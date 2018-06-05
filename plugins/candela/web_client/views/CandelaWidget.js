@@ -2,16 +2,23 @@ import _ from 'underscore';
 
 import View from 'girder/views/View';
 import events from 'girder/events';
-import candela from 'candela';
-import 'candela/plugins/vega/load';
-import 'candela/plugins/treeheatmap/load';
 
-import datalib from 'girder_plugins/candela/node/datalib';
+import {
+  ScatterPlot,
+  BarChart
+} from '@candela/vega';
+
+import { loader, read, inferTypes } from 'vega-loader';
 
 import CandelaWidgetTemplate from '../templates/candelaWidget.pug';
 import '../stylesheets/candelaWidget.styl';
 
 import CandelaParametersView from './CandelaParametersView';
+
+const components = {
+  ScatterPlot,
+  BarChart
+};
 
 var CandelaWidget = View.extend({
     events: {
@@ -21,31 +28,34 @@ var CandelaWidget = View.extend({
     initialize: function (settings) {
         this.item = settings.item;
         this.accessLevel = settings.accessLevel;
-        this._components = _.keys(_.pick(candela.components, (comp) => comp.options));
+        this._components = _.keys(_.pick(components, (comp) => comp.options));
 
         this.listenTo(this.item, 'change', function () {
             this.render();
         }, this);
 
         this.parametersView = new CandelaParametersView({
-            component: candela.components[this.$('.g-item-candela-component').val()],
+            component: components[this.$('.g-item-candela-component').val()],
             parentView: this
         });
 
+        this.loader = loader();
         this.render();
     },
 
     updateComponent: function () {
-        this.parametersView.setComponent(candela.components[this.$('.g-item-candela-component').val()]);
+        this.parametersView.setComponent(components[this.$('.g-item-candela-component').val()]);
     },
 
     render: function () {
-        let parser = null;
+        let options = {
+          type: null
+        };
         let name = this.item.get('name').toLowerCase();
         if (name.endsWith('.csv')) {
-            parser = datalib.csv;
+          options.type = 'csv';
         } else if (name.endsWith('.tsv') || name.endsWith('.tab')) {
-            parser = datalib.tsv;
+          options.type = 'tsv';
         } else {
             this.$('.g-item-candela').remove();
             return this;
@@ -55,20 +65,11 @@ var CandelaWidget = View.extend({
             components: this._components
         }));
         this.parametersView.setElement(this.$('.g-item-candela-parameters'));
-        parser(this.item.downloadUrl(), (error, data) => {
-            if (error) {
-                events.trigger('g:alert', {
-                    text: 'An error occurred while attempting to read and ' +
-                          'parse the data file. Details have been logged in the console.',
-                    type: 'danger',
-                    timeout: 5000,
-                    icon: 'attention'
-                });
-                console.error(error);
-                return;
-            }
-
-            datalib.read(data, {parse: 'auto'});
+        this.loader.load(this.item.downloadUrl()).then((data) => {
+            data = read(data, options);
+            let columns = Object.keys(data[0]);
+            const types = inferTypes(data, columns);
+            data.__types__ = types;
 
             // Vega has issues with empty-string fields and fields with dots, so rename those.
             let rename = [];
@@ -89,7 +90,8 @@ var CandelaWidget = View.extend({
                 });
             });
 
-            let columns = _.keys(data.__types__);
+            columns = Object.keys(data[0]);
+
             this.parametersView.setData(data, columns);
             this.updateComponent();
         });

@@ -7,6 +7,6 @@
     "npm": {
         "file": "package.json",
         "fields": ["dependencies"],
-        "localNodeModules": true
+        "localNodeModules": false
     }
 }
