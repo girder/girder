@@ -3,10 +3,8 @@ import _ from 'underscore';
 import View from 'girder/views/View';
 import events from 'girder/events';
 
-import {
-  ScatterPlot,
-  BarChart
-} from '@candela/vega';
+import * as vega from '@candela/vega';
+import * as treeheatmap from '@candela/treeheatmap';
 
 import { loader, read, inferTypes } from 'vega-loader';
 
@@ -15,10 +13,7 @@ import '../stylesheets/candelaWidget.styl';
 
 import CandelaParametersView from './CandelaParametersView';
 
-const components = {
-  ScatterPlot,
-  BarChart
-};
+const components = Object.assign({}, vega, treeheatmap);
 
 var CandelaWidget = View.extend({
     events: {
