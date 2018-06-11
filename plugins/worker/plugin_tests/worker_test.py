@@ -27,28 +27,25 @@ from girder.models.upload import Upload
 from girder.models.user import User
 from tests import base
 
-JobStatus = None
-utils = None
-worker = None
-CustomJobStatus = None
+from girder_plugin_jobs.models.job import Job
+from girder_plugin_jobs.constants import JobStatus
+from girder_plugin_worker import celery
+from girder_plugin_worker.constants import PluginSettings
+from girder_plugin_worker import utils
+from girder_plugin_worker.status import CustomJobStatus
 
 
 def setUpModule():
     base.enabledPlugins.append('worker')
     base.startServer()
 
-    global JobStatus, utils, worker, CustomJobStatus
-    from girder.plugins.jobs.constants import JobStatus
-    from girder.plugins import worker
-    from girder.plugins.worker import utils, CustomJobStatus
-
 
 def tearDownModule():
     base.stopServer()
+    celery._celeryapp = None
 
 
 def local_job(job):
-    from girder.plugins.jobs.models.job import Job
 
     Job().updateJob(job, log='job running', status=JobStatus.RUNNING)
     Job().updateJob(job, log='job ran', status=JobStatus.SUCCESS)
@@ -80,17 +77,16 @@ class WorkerTestCase(base.TestCase):
         # Test the settings
         resp = self.request('/system/setting', method='PUT', params={
             'list': json.dumps([{
-                'key': worker.PluginSettings.BROKER,
+                'key': PluginSettings.BROKER,
                 'value': 'amqp://guest@broker.com'
             }, {
-                'key': worker.PluginSettings.BACKEND,
+                'key': PluginSettings.BACKEND,
                 'value': 'amqp://guest@backend.com'
             }])
         }, user=self.admin)
         self.assertStatusOk(resp)
 
         # Create a job to be handled by the worker plugin
-        from girder.plugins.jobs.models.job import Job
         jobModel = Job()
         job = jobModel.createJob(
             title='title', type='foo', handler='worker_handler',
@@ -140,7 +136,7 @@ class WorkerTestCase(base.TestCase):
     def testWorkerDifferentTask(self):
         # Test the settings
         resp = self.request('/system/setting', method='PUT', params={
-            'key': worker.PluginSettings.API_URL,
+            'key': PluginSettings.API_URL,
             'value': 'bad value'
         }, user=self.admin)
         self.assertStatus(resp, 400)
@@ -148,17 +144,16 @@ class WorkerTestCase(base.TestCase):
 
         resp = self.request('/system/setting', method='PUT', params={
             'list': json.dumps([{
-                'key': worker.PluginSettings.BROKER,
+                'key': PluginSettings.BROKER,
                 'value': 'amqp://guest@broker.com'
             }, {
-                'key': worker.PluginSettings.BACKEND,
+                'key': PluginSettings.BACKEND,
                 'value': 'amqp://guest@backend.com'
             }])
         }, user=self.admin)
         self.assertStatusOk(resp)
 
         # Create a job to be handled by the worker plugin
-        from girder.plugins.jobs.models.job import Job
         jobModel = Job()
         job = jobModel.createJob(
             title='title', type='foo', handler='worker_handler',
@@ -180,13 +175,13 @@ class WorkerTestCase(base.TestCase):
         job = jobModel.save(job)
 
         # Schedule the job, make sure it is sent to celery
-        with mock.patch('celery.Celery') as celeryMock:
-            instance = celeryMock.return_value
-            instance.send_task.return_value = FakeAsyncResult()
+        app = celery.getCeleryApp()
+        with mock.patch.object(app, 'send_task') as sendTask:
+            sendTask.return_value = FakeAsyncResult()
 
             jobModel.scheduleJob(job)
 
-            sendTaskCalls = celeryMock.return_value.send_task.mock_calls
+            sendTaskCalls = sendTask.mock_calls
             self.assertEqual(len(sendTaskCalls), 1)
             self.assertEqual(sendTaskCalls[0][1], (
                 'some_other.task', job['args'], job['kwargs']))
@@ -194,7 +189,6 @@ class WorkerTestCase(base.TestCase):
             self.assertEqual(sendTaskCalls[0][2]['queue'], 'my_other_q')
 
     def testWorkerCancel(self):
-        from girder.plugins.jobs.models.job import Job
         jobModel = Job()
         job = jobModel.createJob(
             title='title', type='foo', handler='worker_handler',
@@ -214,7 +208,7 @@ class WorkerTestCase(base.TestCase):
 
         # Schedule the job, make sure it is sent to celery
         with mock.patch('celery.Celery') as celeryMock, \
-                mock.patch('girder.plugins.worker.AsyncResult') as asyncResult:
+                mock.patch('girder_plugin_worker.event_handlers.AsyncResult') as asyncResult:
             instance = celeryMock.return_value
             instance.send_task.return_value = FakeAsyncResult()
 
@@ -228,7 +222,6 @@ class WorkerTestCase(base.TestCase):
             self.assertEqual(job['status'], CustomJobStatus.CANCELING)
 
     def testWorkerWithParent(self):
-        from girder.plugins.jobs.models.job import Job
         jobModel = Job()
         parentJob = jobModel.createJob(
             title='title', type='foo', handler='worker_handler',
@@ -242,7 +235,6 @@ class WorkerTestCase(base.TestCase):
 
     def testLocalJob(self):
         # Make sure local jobs still work
-        from girder.plugins.jobs.models.job import Job
         job = Job().createLocalJob(
             title='local', type='local', user=self.users[0],
             module='plugin_tests.worker_test', function='local_job')
@@ -254,8 +246,8 @@ class WorkerTestCase(base.TestCase):
 
     def testGirderInputSpec(self):
         # Set an API_URL so we can use the spec outside of a rest request
-        Setting().set(worker.PluginSettings.API_URL, 'http://127.0.0.1')
-        Setting().set(worker.PluginSettings.DIRECT_PATH, True)
+        Setting().set(PluginSettings.API_URL, 'http://127.0.0.1')
+        Setting().set(PluginSettings.DIRECT_PATH, True)
 
         spec = utils.girderInputSpec(self.adminFolder, resourceType='folder')
         self.assertEqual(spec['id'], str(self.adminFolder['_id']))
@@ -269,12 +261,12 @@ class WorkerTestCase(base.TestCase):
         self.assertFalse(spec['fetch_parent'])
         self.assertIn('direct_path', spec)
 
-        Setting().set(worker.PluginSettings.DIRECT_PATH, False)
+        Setting().set(PluginSettings.DIRECT_PATH, False)
         spec = utils.girderInputSpec(self.sampleFile, resourceType='file')
         self.assertFalse(spec['fetch_parent'])
         self.assertNotIn('direct_path', spec)
 
-        Setting().set(worker.PluginSettings.DIRECT_PATH, True)
+        Setting().set(PluginSettings.DIRECT_PATH, True)
         spec = utils.girderInputSpec(self.sampleFile, resourceType='file', fetchParent=True)
         self.assertTrue(spec['fetch_parent'])
         self.assertNotIn('direct_path', spec)
@@ -282,20 +274,19 @@ class WorkerTestCase(base.TestCase):
     def testDirectPathSettingValidation(self):
         # Test the setting
         resp = self.request('/system/setting', method='PUT', params={
-            'key': worker.PluginSettings.DIRECT_PATH,
+            'key': PluginSettings.DIRECT_PATH,
             'value': 'bad value'
         }, user=self.admin)
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'], 'The direct path setting must be true or false.')
         resp = self.request('/system/setting', method='PUT', params={
-            'key': worker.PluginSettings.DIRECT_PATH,
+            'key': PluginSettings.DIRECT_PATH,
             'value': 'false'
         }, user=self.admin)
         self.assertStatusOk(resp)
 
     def testWorkerStatusEndpoint(self):
         # Create a job to be handled by the worker plugin
-        from girder.plugins.jobs.models.job import Job
         job = Job().createJob(
             title='title', type='foo', handler='worker_handler',
             user=self.admin, public=False, args=(), kwargs={})
