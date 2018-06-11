@@ -69,6 +69,7 @@ plugin:
         "girder-plugin": {
             "name": "example",  // The entrypoint name defined in setup.py.
             "main": "./main.js" // The plugin client entrypoint containing code that is executed on load.
+            "webpack": "webpack.helper" // If your plugin needs to modify the webpack config
         }
     }
 

@@ -208,7 +208,7 @@ module.exports = function (grunt) {
 
     // Get a list of entry points for each installed plugin.
     plugins.forEach(function (plugin) {
-        const pluginDef = require(path.join(plugin, '/package.json'))['girder-plugin'];
+        const pluginDef = require(path.join(plugin, 'package.json'))['girder-plugin'];
         const name = pluginDef.name;
         const babelRule = {
             resource: {
@@ -224,7 +224,7 @@ module.exports = function (grunt) {
                 }
             }]
         };
-        const pluginWebpackConfig = {
+        let pluginWebpackConfig = {
             entry: {
                 [`plugins/${name}/plugin`]: [`${plugin}/main.js`]
             },
@@ -266,6 +266,11 @@ module.exports = function (grunt) {
             }))
         };
         injectIstanbulCoverage(pluginWebpackConfig);
+
+        // allow the plugin to mutate its own webpack config
+        if (pluginDef.webpack) {
+            pluginWebpackConfig = require(path.join(plugin, pluginDef.webpack))(pluginWebpackConfig);
+        }
         grunt.config.set(`webpack.plugin_${name}`, pluginWebpackConfig);
 
         // Make dependent plugins build before this one to create the DLL manifest.
