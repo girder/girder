@@ -7,7 +7,11 @@ from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.upload import Upload
 from girder.models.user import User
+import pydicom
 from tests import base
+
+from girder_plugin_dicom_viewer import _removeUniqueMetadata, _extractFileData
+from girder_plugin_dicom_viewer.event_helper import _EventHelper
 
 
 def setUpModule():
@@ -15,7 +19,6 @@ def setUpModule():
     base.startServer()
     global _removeUniqueMetadata
     global _extractFileData
-    from girder.plugins.dicom_viewer import _removeUniqueMetadata, _extractFileData
 
 
 def tearDownModule():
@@ -166,8 +169,6 @@ class DicomViewerTest(base.TestCase):
         self.assertIsNotNone(ndcmFile)
 
     def _uploadDicomFiles(self, item, user):
-        from girder.plugins.dicom_viewer.event_helper import _EventHelper
-
         # Upload the files in the reverse order to check if they're well sorted
         for i in [1, 3, 0, 2]:
             file = os.path.join(self.dataDir, '00000%i.dcm' % i)
@@ -225,9 +226,6 @@ class DicomViewerTest(base.TestCase):
         # this test should not found anything
 
     def testDicomWithIOError(self):
-        import pydicom
-        from girder.plugins.dicom_viewer.event_helper import _EventHelper
-
         # One of the test files in the pydicom module will throw an IOError
         # when parsing metadata.  We should work around that and still be able
         # to import the file
@@ -259,9 +257,6 @@ class DicomViewerTest(base.TestCase):
         self.assertHasKeys(dicomItem['dicom'], ['meta', 'files'])
 
     def testDicomWithBinaryValues(self):
-        import pydicom
-        from girder.plugins.dicom_viewer.event_helper import _EventHelper
-
         # One of the test files in the pydicom module will throw an IOError
         # when parsing metadata.  We should work around that and still be able
         # to import the file

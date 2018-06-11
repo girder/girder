@@ -32,10 +32,26 @@ from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
+from girder.plugin import GirderPlugin
 from girder.models.item import Item
 from girder.models.file import File
 from girder.utility import search
 from girder.utility.progress import setResponseTimeLimit
+
+
+class DicomViewerPlugin(GirderPlugin):
+    NPM_PACKAGE_NAME = '@girder/dicom-viewer'
+
+    def load(self, info):
+        Item().exposeFields(level=AccessType.READ, fields={'dicom'})
+        events.bind('data.process', 'dicom_viewer', _uploadHandler)
+
+        # Add the DICOM search mode only once
+        search.addSearchMode('dicom', dicomSubstringSearchHandler)
+
+        dicomItem = DicomItem()
+        info['apiRoot'].item.route(
+            'POST', (':id', 'parseDicom'), dicomItem.makeDicomItem)
 
 
 class DicomItem(Resource):
@@ -286,15 +302,3 @@ def dicomSubstringSearchHandler(query, types, user=None, level=None, limit=0, of
     }
 
     return result
-
-
-def load(info):
-    Item().exposeFields(level=AccessType.READ, fields={'dicom'})
-    events.bind('data.process', 'dicom_viewer', _uploadHandler)
-
-    # Add the DICOM search mode only once
-    search.addSearchMode('dicom', dicomSubstringSearchHandler)
-
-    dicomItem = DicomItem()
-    info['apiRoot'].item.route(
-        'POST', (':id', 'parseDicom'), dicomItem.makeDicomItem)

@@ -5,7 +5,7 @@ module.exports = function (config) {
             include: [/node_modules(\/|\\)vtk\.js(\/|\\)/]
         },
         use: [
-            'shader-loader'
+            require.resolve('shader-loader')
         ]
     });
     config.module.rules.push({
