@@ -52,33 +52,13 @@ installReqs = [
     'six>=1.9',
 ]
 
-extrasReqs = {}
-# To avoid conflict with the `girder-install plugin' command, this only adds built-in plugins with
-# extras requirements.
-# Note: the usage of automatically-parsed plugin-specific 'requirements.txt' is a temporary
-# measure to keep plugin requirements close to plugin code. It will be removed when pip-installable
-# plugins are added. It should not be used by other projects.
-with open(os.path.join('plugins', '.gitignore')) as builtinPluginsIgnoreStream:
-    builtinPlugins = set()
-    for line in builtinPluginsIgnoreStream:
-        # Plugin .gitignore entries should end with a /, but we will tolerate those that don't;
-        # (accordingly, note the non-greedy qualifier for the match group)
-        builtinPluginNameRe = re.match(r'^!(.+?)/?$', line)
-        if builtinPluginNameRe:
-            builtinPluginName = builtinPluginNameRe.group(1)
-            if os.path.isdir(os.path.join('plugins', builtinPluginName)):
-                builtinPlugins.add(builtinPluginName)
-for pluginName in os.listdir('plugins'):
-    pluginReqsFile = os.path.join('plugins', pluginName, 'requirements.txt')
-    if pluginName in builtinPlugins and os.path.isfile(pluginReqsFile):
-        with open(pluginReqsFile) as pluginReqsStream:
-            pluginExtrasReqs = []
-            for line in pluginReqsStream:
-                line = line.strip()
-                if line and not line.startswith('#'):
-                    pluginExtrasReqs.append(line)
-            extrasReqs[pluginName] = pluginExtrasReqs
-
+extrasReqs = {
+    'candela': ['girder-plugin-candela'],
+    'dicom_viewer': ['girder-plugin-dicom-viewer'],
+    'item_tasks': ['girder-plugin-item-tasks'],
+    'jobs': ['girder-plugin-jobs'],
+    'worker': ['girder-plugin-worker']
+}
 extrasReqs['plugins'] = list(set(itertools.chain.from_iterable(extrasReqs.values())))
 extrasReqs['sftp'] = [
     'paramiko',

@@ -9,9 +9,9 @@
         - pip
         - setuptools
 
-    - name: Install Girder and plugin requirements
+    - name: Install Girder
       pip:
-        name: ".[plugins]"
+        name: "."
         extra_args: "-e"
         chdir: "{{ girder_path }}"
         virtualenv: "{{ girder_virtualenv }}"
@@ -40,9 +40,9 @@
         - six
         - requests
 
-    - name: Install Girder and plugin requirements
+    - name: Install Girder
       pip:
-        name: "{{ girder_path }}[plugins]"
+        name: "."
         extra_args: "-e"
         executable: "{{ girder_pip | default(omit) }}"
 
