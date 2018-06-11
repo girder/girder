@@ -15,6 +15,10 @@ from girder.models.token import Token
 from girder.models.user import User
 from tests import base
 
+from girder_plugin_jobs.constants import JobStatus
+from girder_plugin_jobs.models.job import Job
+from girder_plugin_item_tasks.constants import ACCESS_FLAG_EXECUTE_TASK
+
 
 def setUpModule():
     base.enabledPlugins.append('item_tasks')
@@ -48,7 +52,7 @@ class TasksTest(base.TestCase):
             name='placeholder', creator=self.admin, parent=self.admin, parentType='user')
 
         # Create task to introspect container
-        with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
+        with mock.patch('girder_plugin_jobs.models.job.Job.scheduleJob') as scheduleMock:
             resp = self.request(
                 '/folder/%s/item_task_json_description' % folder['_id'], method='POST', params={
                     'image': 'johndoe/foo:v5'
@@ -149,7 +153,7 @@ class TasksTest(base.TestCase):
             # Create a new item that will become a task
             item = Item().createItem(name=itemName, creator=self.admin, folder=self.privateFolder)
             # Create task to introspect container
-            with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
+            with mock.patch('girder_plugin_jobs.models.job.Job.scheduleJob') as scheduleMock:
                 resp = self.request(
                     '/item/%s/item_task_json_description' % item['_id'], method='POST', params={
                         'image': 'johndoe/foo:v5',
@@ -206,7 +210,7 @@ class TasksTest(base.TestCase):
         item = Item().createItem(name='placeholder', creator=self.admin, folder=self.privateFolder)
 
         # Create job to introspect container
-        with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
+        with mock.patch('girder_plugin_jobs.models.job.Job.scheduleJob') as scheduleMock:
             resp = self.request(
                 '/item/%s/item_task_json_description' % item['_id'], method='POST', params={
                     'image': 'johndoe/foo:v5',
@@ -282,7 +286,7 @@ class TasksTest(base.TestCase):
         self.assertEqual(item['meta']['itemTaskSpec']['outputs'], [])
 
         # Create job to introspect container
-        with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
+        with mock.patch('girder_plugin_jobs.models.job.Job.scheduleJob') as scheduleMock:
             resp = self.request(
                 '/item/%s/item_task_json_description' % item['_id'], method='POST', params={
                     'image': 'johndoe/foo:v5',
@@ -349,7 +353,7 @@ class TasksTest(base.TestCase):
             name='placeholder', creator=self.admin, parent=self.admin, parentType='user')
 
         # Create task to introspect container
-        with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
+        with mock.patch('girder_plugin_jobs.models.job.Job.scheduleJob') as scheduleMock:
             resp = self.request(
                 '/folder/%s/item_task_slicer_cli_description' % folder['_id'], method='POST',
                 params={
@@ -423,7 +427,7 @@ class TasksTest(base.TestCase):
         item = Item().createItem(name='placeholder', creator=self.admin, folder=self.privateFolder)
 
         # Create task to introspect container
-        with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
+        with mock.patch('girder_plugin_jobs.models.job.Job.scheduleJob') as scheduleMock:
             resp = self.request(
                 '/item/%s/item_task_slicer_cli_description' % item['_id'], method='POST', params={
                     'image': 'johndoe/foo:v5',
@@ -580,7 +584,6 @@ class TasksTest(base.TestCase):
         self.assertStatus(resp, 403)
 
         # Grant the user permission, and run the task
-        from girder.plugins.item_tasks.constants import ACCESS_FLAG_EXECUTE_TASK
         Folder().setUserAccess(
             self.privateFolder, user=self.user, level=AccessType.WRITE,
             flags=ACCESS_FLAG_EXECUTE_TASK, currentUser=self.admin, save=True)
@@ -634,7 +637,7 @@ class TasksTest(base.TestCase):
         }
 
         # Ensure task was scheduled
-        with mock.patch('girder.plugins.jobs.models.job.Job.scheduleJob') as scheduleMock:
+        with mock.patch('girder_plugin_jobs.models.job.Job.scheduleJob') as scheduleMock:
             resp = self.request(
                 '/item_task/%s/execution' % item['_id'], method='POST', user=self.user, params={
                     'inputs': json.dumps(inputs),
@@ -646,7 +649,6 @@ class TasksTest(base.TestCase):
         self.assertEqual(job['_modelType'], 'job')
         self.assertNotIn('kwargs', job)  # ordinary user can't see kwargs
 
-        from girder.plugins.jobs.models.job import Job
         jobModel = Job()
         job = jobModel.load(job['_id'], force=True)
         output = job['kwargs']['outputs']['--DetectedPoints']
@@ -680,7 +682,6 @@ class TasksTest(base.TestCase):
         job = jobModel.load(job['_id'], force=True)
         self.assertIn('itemTaskTempToken', job)
 
-        from girder.plugins.jobs.constants import JobStatus
         # Transition through states to SUCCESS
         job = jobModel.updateJob(job, status=JobStatus.QUEUED)
         job = jobModel.updateJob(job, status=JobStatus.RUNNING)
@@ -705,7 +706,7 @@ class TasksTest(base.TestCase):
             job['itemTaskBindings']['outputs']['--DetectedPoints']['itemId'], file['itemId'])
 
     def testListExtensions(self):
-        with mock.patch('girder.plugins.item_tasks.celery_tasks.get_extensions',
+        with mock.patch('girder_plugin_item_tasks.celery_tasks.get_extensions',
                         return_value=['c', 'f', 'a', 'b']):
             resp = self.request('/item_task/extensions', user=self.admin)
             self.assertStatusOk(resp)
@@ -732,7 +733,7 @@ class TasksTest(base.TestCase):
             name='temp', creator=self.admin, folder=self.privateFolder)
 
         app.tasks['task'] = lambda n: None
-        with mock.patch('girder.plugins.item_tasks.celery_tasks.decorators.describe_function',
+        with mock.patch('girder_plugin_item_tasks.celery_tasks.decorators.describe_function',
                         return_value=spec):
             resp = self.request(
                 '/item/%s/item_task_celery' % item['_id'],
@@ -810,11 +811,11 @@ class TasksTest(base.TestCase):
 
         app.tasks['task'] = lambda n: None
         with mock.patch(
-            'girder.plugins.item_tasks.celery_tasks.decorators.describe_function',
+            'girder_plugin_item_tasks.celery_tasks.decorators.describe_function',
                 return_value=spec):
 
             with mock.patch(
-                'girder.plugins.item_tasks.celery_tasks.get_extension_tasks',
+                'girder_plugin_item_tasks.celery_tasks.get_extension_tasks',
                     return_value={'task': app.tasks['task']}):
 
                 resp = self.request(

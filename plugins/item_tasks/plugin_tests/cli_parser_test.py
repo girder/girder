@@ -1,6 +1,7 @@
 import os
 
 from tests import base
+from girder_plugin_item_tasks import cli_parser
 
 CLI_FILE = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),
@@ -25,7 +26,6 @@ class CliParserTest(base.TestCase):
             os.path.abspath(os.path.dirname(__file__)),
             fileName
         )
-        from girder.plugins.item_tasks import cli_parser
         with open(fullPath) as fd:
             spec = cli_parser.parseSlicerCliXml(fd)
         return spec

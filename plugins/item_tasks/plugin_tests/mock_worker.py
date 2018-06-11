@@ -1,6 +1,5 @@
 # Mocks job scheduling in order to simulate interaction with the worker.
 # This is loaded during the web_client_item_tasks.tasks test.
-import girder
 import mock
 import os
 import requests
@@ -10,6 +9,8 @@ from girder_worker import entrypoint
 from girder_worker.app import app
 from girder_worker_utils import types
 from girder_worker_utils.decorators import argument
+from girder_plugin_jobs.models.job import Job
+from girder_plugin_jobs.constants import JobStatus
 
 
 # register a few girder_worker extensions for testing the ui
@@ -51,17 +52,17 @@ def markAsFinished(job):
 
     req = requests.request(
         method=jobInfo['method'], url=jobInfo['url'], headers=jobInfo['headers'], params={
-            'status': girder.plugins.jobs.constants.JobStatus.QUEUED
+            'status': JobStatus.QUEUED
         })
     req.raise_for_status()
     req = requests.request(
         method=jobInfo['method'], url=jobInfo['url'], headers=jobInfo['headers'], params={
-            'status': girder.plugins.jobs.constants.JobStatus.RUNNING
+            'status': JobStatus.RUNNING
         })
     req.raise_for_status()
     req = requests.request(
         method=jobInfo['method'], url=jobInfo['url'], headers=jobInfo['headers'], params={
-            'status': girder.plugins.jobs.constants.JobStatus.SUCCESS
+            'status': JobStatus.SUCCESS
         })
     req.raise_for_status()
 
@@ -106,20 +107,20 @@ def simulateRun(job):
     # Write the inputs to the log
     req = requests.request(
         method=jobInfo['method'], url=jobInfo['url'], headers=jobInfo['headers'], params={
-            'status': girder.plugins.jobs.constants.JobStatus.QUEUED
+            'status': JobStatus.QUEUED
         })
     req.raise_for_status()
     req = requests.request(
         method=jobInfo['method'], url=jobInfo['url'], headers=jobInfo['headers'], params={
             'log': json.dumps(job['itemTaskBindings']['inputs']),
-            'status': girder.plugins.jobs.constants.JobStatus.RUNNING
+            'status': JobStatus.RUNNING
         })
     req.raise_for_status()
 
     # Update the job to mark it as finished
     req = requests.request(
         method=jobInfo['method'], url=jobInfo['url'], headers=jobInfo['headers'], params={
-            'status': girder.plugins.jobs.constants.JobStatus.SUCCESS
+            'status': JobStatus.SUCCESS
         })
     req.raise_for_status()
 
@@ -141,4 +142,4 @@ def mockedSchedule(self, job, *args, **kwargs):
         raise Exception('Unknown job type scheduled: %s' % job['type'])
 
 
-girder.plugins.jobs.models.job.Job.scheduleJob = mockedSchedule
+Job.scheduleJob = mockedSchedule

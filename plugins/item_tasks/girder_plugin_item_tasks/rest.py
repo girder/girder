@@ -217,7 +217,6 @@ class ItemTask(Resource):
         if task.get('mode') == 'girder_worker':
             return runCeleryTask(item['meta']['itemTaskImport'], inputs)
 
-        jobModel = self.model('job', 'jobs')
         jobModel = Job()
         job = jobModel.createJob(
             title=jobTitle, type='item_task', handler=handler, user=user)
