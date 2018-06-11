@@ -206,7 +206,8 @@ module.exports = {
         extensions: ['.js'],
         symlinks: false,
         alias: {
-            'girder': path.resolve('src')
+            'girder': path.resolve('src'),
+            'jquery': require.resolve('jquery') // ensure that all plugins use the same "jquery"
         }
     },
     node: {

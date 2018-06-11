@@ -16,9 +16,13 @@
         "@candela/vega": "~0.23.3",
         "vega-loader": "^3.0.0"
     },
+    "peerDependencies": {
+        "@girder/item_tasks": "*"
+    },
     "girder-plugin": {
         "name": "candela",
         "main": "./main.js",
-        "dependencies": ["item_tasks"]
+        "dependencies": ["item_tasks"],
+        "webpack": "webpack.helper"
     }
 }
