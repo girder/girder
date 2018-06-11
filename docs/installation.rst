@@ -58,9 +58,9 @@ dependencies in order to use.  By default, none of these dependencies will be
 installed; however, you can tell pip to install them using pip's
 "`extras`_ " syntax.  Each girder plugin requiring extra Python dependencies
 can be specified during the pip install.  For example, installing girder with
-support for the `celery_jobs` and `geospatial` plugins can be done like this: ::
+support for the `item_tasks` and `dicom_viewer` plugins can be done like this: ::
 
-   pip install girder[celery_jobs,geospatial]
+   pip install girder[item_tasks,dicom_viewer]
 
 There is also an extra you can use to install the dependencies for all bundled
 plugins supported in the current Python environment called ``plugins``: ::
