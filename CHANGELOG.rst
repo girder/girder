@@ -17,8 +17,15 @@ Changes
 Bug Fixes
 ---------
 
+Server
+^^^^^^
 * Fixed a bug where removing admin status from a user via the REST API did not work.
   (`#2720 <https://github.com/girder/girder/pull/2720>`_).
+
+Web Client
+^^^^^^^^^^
+* Ensure that a text input doesn't appear after downloading checked items.
+  (`#2736 <https://github.com/girder/girder/pull/2736>`_)
 
 Python Client
 ^^^^^^^^^^^^^
