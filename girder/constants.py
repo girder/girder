@@ -164,6 +164,7 @@ class SettingKey(object):
     BANNER_COLOR = 'core.banner_color'
     BRAND_NAME = 'core.brand_name'
     COLLECTION_CREATE_POLICY = 'core.collection_create_policy'
+    PRIVACY_NOTICE = 'core.privacy_notice'
     CONTACT_EMAIL_ADDRESS = 'core.contact_email_address'
     COOKIE_LIFETIME = 'core.cookie_lifetime'
     CORS_ALLOW_HEADERS = 'core.cors.allow_headers'
@@ -205,12 +206,13 @@ class SettingDefault(object):
             'users': []
         },
         SettingKey.CONTACT_EMAIL_ADDRESS: 'kitware@kitware.com',
+        SettingKey.PRIVACY_NOTICE: 'https://www.kitware.com/privacy',
         SettingKey.COOKIE_LIFETIME: 180,
         # These headers are necessary to allow the web server to work with just
         # changes to the CORS origin
         SettingKey.CORS_ALLOW_HEADERS:
             'Accept-Encoding, Authorization, Content-Disposition, '
-            'Content-Type, Cookie, Girder-Authorization, Girder-Token',
+            'Content-Type, Cookie, Girder-Authorization, Girder-OTP, Girder-Token',
         # An apache server using reverse proxy would also need
         #  X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
         #  X-Forwarded-Host, Remote-Addr

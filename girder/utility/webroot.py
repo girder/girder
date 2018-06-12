@@ -139,6 +139,7 @@ class Webroot(WebrootBase):
         self.vars['brandName'] = Setting().get(SettingKey.BRAND_NAME)
         self.vars['contactEmail'] = Setting().get(
             SettingKey.CONTACT_EMAIL_ADDRESS)
+        self.vars['privacyNoticeHref'] = Setting().get(SettingKey.PRIVACY_NOTICE)
         self.vars['bannerColor'] = Setting().get(SettingKey.BANNER_COLOR)
         self.vars['registrationPolicy'] = Setting().get(SettingKey.REGISTRATION_POLICY)
         self.vars['enablePasswordLogin'] = Setting().get(SettingKey.ENABLE_PASSWORD_LOGIN)

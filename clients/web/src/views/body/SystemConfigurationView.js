@@ -92,6 +92,7 @@ var SystemConfigurationView = View.extend({
             'core.contact_email_address',
             'core.brand_name',
             'core.banner_color',
+            'core.privacy_notice',
             'core.cookie_lifetime',
             'core.enable_password_login',
             'core.email_from_address',

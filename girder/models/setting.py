@@ -195,6 +195,12 @@ class Setting(Model):
             raise ValidationException('The banner color must be a hex color triplet', 'value')
 
     @staticmethod
+    @setting_utilities.validator(SettingKey.PRIVACY_NOTICE)
+    def validateCorePrivacyNotice(doc):
+        if not doc['value']:
+            raise ValidationException('The privacy notice link may not be empty', 'value')
+
+    @staticmethod
     @setting_utilities.validator(SettingKey.SECURE_COOKIE)
     def validateSecureCookie(doc):
         if not isinstance(doc['value'], bool):
