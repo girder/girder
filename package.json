@@ -52,7 +52,7 @@
     },
     "devDependencies": {
         "babel-plugin-istanbul": "^4.1.5",
-        "core-js": "^2.4.1",
+        "core-js": "^2.5.7",
         "esdoc": "^1.0.4",
         "esdoc-standard-plugin": "^1.0.0",
         "eslint": "^4.13.1",
@@ -69,7 +69,8 @@
         "nyc": "^11.3.0",
         "phantomjs-prebuilt": "^2.1.14",
         "pug-lint": "^2.4.0",
-        "stylint": "^1.5.9"
+        "stylint": "^1.5.9",
+        "whatwg-fetch": "^2.0.4"
     },
     "scripts": {
         "build": "NODE_PATH=$PWD/node_modules grunt",

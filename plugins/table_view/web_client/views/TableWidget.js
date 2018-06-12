@@ -2,7 +2,7 @@ import _ from 'underscore';
 
 import View from 'girder/views/View';
 
-import datalib from 'datalib';
+import * as loader from 'vega-loader';
 
 import TableWidgetTemplate from '../templates/tableWidget.pug';
 import '../stylesheets/tableWidget.styl';
@@ -43,10 +43,10 @@ var TableWidget = View.extend({
         }
         const ext = file.get('exts')[file.get('exts').length - 1];
         if (file.get('mimeType') === 'text/csv' || ext === 'csv') {
-            return datalib.csv;
+            return 'csv';
         }
         if (file.get('mimeType') === 'text/tab-separated-values' || _.contains(['tsv', 'tab'], ext)) {
-            return datalib.tsv;
+            return 'tsv';
         }
         return null;
     },
@@ -64,18 +64,18 @@ var TableWidget = View.extend({
             this.$('.g-item-table-view').remove();
             return this;
         }
-        parser(this.file.downloadUrl(), (error, data) => {
-            if (error) {
-                console.error(error);
-                this.state = this.states.DATA_ERROR;
-                this.render();
-                return;
-            }
-            datalib.read(data, {parse: 'auto'});
+        loader.loader().load(this.file.downloadUrl()).then((data) => {
+            data = loader.read(data, {type: parser, parse: 'auto'});
             this.data = data;
-            this.columns = _.keys(data.__types__);
+            this.columns = _.keys(data[0]);
             this.state = this.states.DATA_READY;
             this.render();
+            return data;
+        }, (error) => {
+            console.error(error);
+            this.state = this.states.DATA_ERROR;
+            this.render();
+            return null;
         });
     },
 

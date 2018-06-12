@@ -145,7 +145,12 @@ describe('Test the table UI.', function () {
         });
     });
 
-    it('uploads a bad data file', function () {
+    // This test is skipped because this failure mode no longer exists with the
+    // updated Candela plugin backing technologies. Specifically, d3-dsv is used
+    // for parsing, and that module happily accepts any stream of bytes and will
+    // simply parse what it gets, even if that is a zip file or a PNG image or
+    // anything else.
+    xit('uploads a bad data file', function () {
         runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(0);
             $('.g-user-text>a:first').click();

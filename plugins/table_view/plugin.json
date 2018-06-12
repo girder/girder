@@ -5,7 +5,7 @@
     "version": "0.1.0",
     "npm": {
         "dependencies": {
-            "datalib": "~1.7"
+            "vega-loader": "^3.0.0"
         }
     }
 }

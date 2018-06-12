@@ -2,7 +2,8 @@
     "name": "candela-plugin",
     "version": "0.1.0",
     "dependencies": {
-        "candela": "~0.16.0",
-        "datalib": "~1.7"
+        "@candela/treeheatmap": "~0.23.3",
+        "@candela/vega": "~0.23.3",
+        "vega-loader": "^3.0.0"
     }
 }
