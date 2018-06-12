@@ -44,6 +44,7 @@ setup(
         '': ['web_client/**']
     },
     packages=find_packages(exclude=['plugin_tests']),
+    zip_safe=False,
     install_requires=['girder', 'pydicom>=1.0.2'],
     entry_points={
         'girder.plugin': [

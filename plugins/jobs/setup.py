@@ -44,7 +44,7 @@ setup(
         '': ['web_client/**']
     },
     packages=find_packages(exclude=['plugin_tests']),
-    zip_save=False,
+    zip_safe=False,
     install_requires=['girder'],
     entry_points={
         'girder.plugin': [

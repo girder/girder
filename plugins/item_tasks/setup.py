@@ -31,7 +31,7 @@ setup(
     url='http://girder.readthedocs.io/en/latest/plugins.html#item-tasks',
     license='Apache 2.0',
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
@@ -45,6 +45,7 @@ setup(
         '': ['web_client/**']
     },
     packages=find_packages(exclude=['plugin_tests']),
+    zip_safe=False,
     install_requires=[
         'girder',
         'girder-plugin-jobs',
