@@ -7,12 +7,11 @@ RUN mkdir /girder
 RUN mkdir /girder/logs
 
 RUN apt-get update && apt-get install -qy \
-    build-essential \
+    gcc \
+    libpython2.7-dev \
     git \
-    libffi-dev \
-    libsasl2-dev \
     libldap2-dev \
-    libpython2.7-dev && \
+    libsasl2-dev && \
   apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py
