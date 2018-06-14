@@ -136,7 +136,14 @@ const timeChartConfig = {
         {
             'name': 'tt1',
             'value': {},
-            'update': '{ sum_y:!tt0.sum_y?"":timeFormat(datetime(0,0,0,0,0,0,tt0.sum_y), tt0.sum_y>3600000? "%H:%M:%S.%Ls":(tt0.sum_y>60000?"%M:%S.%Ls":"%S.%Ls")) }'
+            'update': '{ sum_y: ' +
+                '!tt0.sum_y ? "" : ' +
+                'floor(tt0.sum_y/(' +
+                '  tt0.sum_y >= 3600000 ? 3600000 : (' +
+                '    tt0.sum_y >= 60000 ? 60000 : 1000))) + ' +
+                'timeFormat(datetime(0,0,0,0,0,0,tt0.sum_y), ' +
+                '  tt0.sum_y >= 3600000 ? ":%M:%S.%L": (' +
+                '    tt0.sum_y >= 60000 ? ":%S.%L" : ".%Ls")) }'
         },
         {
             'name': 'tt2',
