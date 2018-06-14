@@ -344,25 +344,6 @@ can also be used instead.
 
          brew install node
 
-npm (optional)
---------------
-Node.js v8.x will install npm v5.6 by default, but developers may wish to install the latest npm instead.
-
-To upgrade to the latest npm on all platforms, either:
-
-- `Fix npm's global permissions <https://docs.npmjs.com/getting-started/fixing-npm-permissions>`_,
-  then run the command :
-
-  .. code-block:: bash
-
-     npm install -g npm
-
-- Or just run the command:
-
-  .. code-block:: bash
-
-     sudo npm install -g npm
-
 Girder
 ------
 
