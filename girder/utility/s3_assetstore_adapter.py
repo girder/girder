@@ -335,12 +335,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                         'Key': upload['s3']['key'],
                         'UploadId': upload['s3']['uploadId']
                     })
-                file['s3FinalizeRequest'] = {
+                file.setdefault('s3', {})['request'] = {
                     'method': 'POST',
                     'url': url,
                     'headers': {'Content-Type': 'text/plain;charset=UTF-8'}
                 }
-                file['additionalFinalizeKeys'] = ('s3FinalizeRequest',)
+                file['additionalFinalizeKeys'] = ('s3',)
         return file
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,

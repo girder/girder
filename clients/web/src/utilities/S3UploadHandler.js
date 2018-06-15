@@ -267,7 +267,7 @@ prototype._finalizeMultiChunkUpload = function () {
             root.appendChild(partEl);
         });
 
-        var req = resp.s3FinalizeRequest;
+        var req = resp.s3.request;
         var xhr = new XMLHttpRequest();
 
         xhr.open(req.method, req.url);
@@ -278,7 +278,7 @@ prototype._finalizeMultiChunkUpload = function () {
 
         xhr.onload = () => {
             if (xhr.status === 200) {
-                delete resp.s3FinalizeRequest;
+                delete resp.s3;
                 this.trigger('g:upload.complete', resp);
             } else {
                 this.trigger('g:upload.error', {

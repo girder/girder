@@ -636,8 +636,8 @@ class AssetstoreTestCase(base.TestCase):
             params={'uploadId': multiChunkUpload['_id']})
         largeFile = resp.json
         self.assertStatusOk(resp)
-        six.assertRegex(self, resp.json['s3FinalizeRequest']['url'], s3Regex)
-        self.assertEqual(resp.json['s3FinalizeRequest']['method'], 'POST')
+        six.assertRegex(self, resp.json['s3']['request']['url'], s3Regex)
+        self.assertEqual(resp.json['s3']['request']['method'], 'POST')
 
         # Test init for an empty file (should be no-op)
         params['size'] = 0

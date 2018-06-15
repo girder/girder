@@ -165,12 +165,12 @@ class UploadTestCase(base.TestCase):
             path='/file/completion', method='POST', user=self.user,
             params={'uploadId': upload['_id']})
         self.assertStatusOk(resp)
-        if 's3FinalizeRequest' in resp.json:
+        if 's3' in resp.json and 'request' in resp.json['s3']:
             xml = '<CompleteMultipartUpload>'
             for i, tag in enumerate(etags, 1):
                 xml += '<Part><PartNumber>%d</PartNumber><ETag>%s</ETag></Part>' % (i, tag)
             xml += '</CompleteMultipartUpload>'
-            _send_s3_request(resp.json['s3FinalizeRequest'], data=xml)
+            _send_s3_request(resp.json['s3']['request'], data=xml)
         return upload
 
     def _uploadFileWithInitialChunk(self, name, partial=False, largeFile=False, oneChunk=False):
