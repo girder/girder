@@ -10,7 +10,8 @@ the tools used to develop Girder.
 Configuring Your Development Environment
 ----------------------------------------
 
-In order to develop Girder, you should first refer to :doc:`prerequisites <prerequisites>`, `virtual environment <installation.html#creating-a-virtual-environment>`__, `install from Git <installation.html#install-from-git-repository>`__, and `run <installation.html#run>`__ sections to setup a basic local development environment.
+In order to develop Girder, you should first refer to the :doc:`installation quickstart <installation-quickstart>` and
+:doc:`installation (from Git) <installation>` guides to setup a basic local development environment.
 
 Next, you should install the Python development dependencies with pip, to
 provide helpful development tools and to allow the test suite to run: ::

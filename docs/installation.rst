@@ -1,8 +1,8 @@
 Installation
 ============
 
-Before you install, see the :doc:`prerequisites <prerequisites>` guide to make sure you have all required system
-dependencies installed.
+Before you install, see the :doc:`installation quickstart <installation-quickstart>` guide to make sure you have all
+required system dependencies installed.
 
 Activate the virtual environment
 --------------------------------
@@ -41,8 +41,8 @@ install these libraries for you. Just run the following command: ::
 
    girder-install web
 
-.. note:: Installing the web client code requires the node package manager (npm).
-   See the :doc:`prerequisites` section for instructions on installing nodejs.
+.. note:: Installing the web client code requires Node.js. See the :ref:`Node.js installation guide <nodejs-install>`
+          for installation instructions.
 
 .. note:: If you installed Girder into your system ``site-packages``, you may
    need to run the above commands as root.
