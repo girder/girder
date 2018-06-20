@@ -18,9 +18,8 @@
 ###############################################################################
 
 import cherrypy
-from girder.utility import config, server
+from girder.utility import server
 
-config.loadConfig()  # Read the config files first, so we can override some values
 cherrypy.config.update({'engine.autoreload.on': False,
                         'environment': 'embedded'})
 cherrypy.config['server'].update({'cherrypy_server': False,

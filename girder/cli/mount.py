@@ -454,7 +454,7 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, plugins=None
         curConfig = config.getConfig()
         curConfig.setdefault('logging', {})['log_quiet'] = True
         curConfig.setdefault('logging', {})['log_level'] = 'FATAL'
-        girder._setupLogger()
+        girder._attachFileLogHandlers()
     if database and '://' in database:
         cherrypy.config['database']['uri'] = database
     if plugins is not None:

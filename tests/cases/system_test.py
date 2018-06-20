@@ -496,11 +496,15 @@ class SystemTestCase(base.TestCase):
         del config.getConfig()['logging']
 
     def testLogLevel(self):
-        from girder import logger
+        from girder import logger, _attachFileLogHandlers
+        _attachFileLogHandlers()
+        logger.setLevel('INFO')
         for handler in logger.handlers:
             if getattr(handler, '_girderLogHandler') == 'info':
+                handler.emit = mock.MagicMock()
                 infoEmit = handler.emit
             elif getattr(handler, '_girderLogHandler') == 'error':
+                handler.emit = mock.MagicMock()
                 errorEmit = handler.emit
         # We should be an info level
         resp = self.request(path='/system/log/level', user=self.users[0])

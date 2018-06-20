@@ -38,6 +38,8 @@ VERSION['apiVersion'] = __version__
 _quiet = False
 _originalStdOut = sys.stdout
 _originalStdErr = sys.stderr
+logger = logging.getLogger('girder')
+config.loadConfig()  # Populate the config info at import time
 
 
 class LogLevelFilter(object):
@@ -136,13 +138,12 @@ def getLogPaths():
     }
 
 
-def _setupLogger():
+def _attachFileLogHandlers():
     """
     Sets up the Girder logger.
     """
     global _quiet
 
-    logger = logging.getLogger('girder')
     cfg = config.getConfig()
     logCfg = cfg.get('logging', {})
 
@@ -161,11 +162,10 @@ def _setupLogger():
     for logDir in logDirs:
         mkdir(logDir)
 
-    # Set log level
+    # Allow minimum log level to be set via config file
     level = logging.INFO
     if logCfg.get('log_level') and isinstance(getattr(logging, logCfg['log_level'], None), int):
         level = getattr(logging, logCfg['log_level'])
-    logger.setLevel(logging.DEBUG if level is None else level)
 
     logSize = MAX_LOG_SIZE
     if logCfg.get('log_max_size'):
@@ -222,9 +222,6 @@ def _setupLogger():
         cherrypy.log.access_log.addHandler(ih)
 
     return logger
-
-
-logger = _setupLogger()
 
 
 def logStdoutStderr(force=False):
