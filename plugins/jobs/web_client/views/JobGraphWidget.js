@@ -86,7 +86,7 @@ const JobGraphWidget = View.extend({
 
             const runtime = parse(config);
             const view = new VegaView(runtime)
-                .initialize(document.querySelector('.g-jobs-graph'))
+                .initialize(this.$('.g-jobs-graph')[0])
                 .renderer('svg')
                 .hover()
                 .run();
@@ -133,7 +133,7 @@ const JobGraphWidget = View.extend({
 
             const runtime = parse(config);
             const view = new VegaView(runtime)
-                .initialize(document.querySelector('.g-jobs-graph'))
+                .initialize(this.$('.g-jobs-graph')[0])
                 .renderer('svg')
                 .hover()
                 .run();
