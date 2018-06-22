@@ -39,6 +39,7 @@ _quiet = False
 _originalStdOut = sys.stdout
 _originalStdErr = sys.stderr
 logger = logging.getLogger('girder')
+logger.setLevel(logging.DEBUG)  # Pass everything; let filters handle level-based filtering
 config.loadConfig()  # Populate the config info at import time
 
 

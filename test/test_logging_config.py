@@ -44,7 +44,6 @@ def configureLogging(logConfig={}, oneFile=False):
         os.unlink(cfg['logging']['error_log_file'])
     cfg['logging'].update(logConfig)
 
-    girder.logger.setLevel('INFO')
     girder._attachFileLogHandlers()
 
     return cfg['logging']

@@ -498,7 +498,6 @@ class SystemTestCase(base.TestCase):
     def testLogLevel(self):
         from girder import logger, _attachFileLogHandlers
         _attachFileLogHandlers()
-        logger.setLevel('INFO')
         for handler in logger.handlers:
             if getattr(handler, '_girderLogHandler') == 'info':
                 handler.emit = mock.MagicMock()
@@ -509,7 +508,7 @@ class SystemTestCase(base.TestCase):
         # We should be an info level
         resp = self.request(path='/system/log/level', user=self.users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json, 'INFO')
+        self.assertEqual(resp.json, 'DEBUG')
         levels = [{
             'level': 'INFO',
             'debug': (0, 0),
