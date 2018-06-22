@@ -178,13 +178,6 @@ def _attachFileLogHandlers():
             logSize = int(sizeValue)
     backupCount = int(logCfg.get('log_backup_count', LOG_BACKUP_COUNT))
 
-    # Remove extant log handlers (this allows this function to called multiple
-    # times)
-    for handler in list(logger.handlers):
-        if hasattr(handler, '_girderLogHandler'):
-            logger.removeHandler(handler)
-            cherrypy.log.access_log.removeHandler(handler)
-
     fmt = LogFormatter('[%(asctime)s] %(levelname)s: %(message)s')
     infoMaxLevel = logging.INFO
     # Create log handlers
