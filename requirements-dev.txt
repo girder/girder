@@ -1,3 +1,4 @@
+-e pytest_girder
 -e plugins/jobs
 -e plugins/remote_worker
 -e plugins/item_tasks
@@ -9,7 +10,7 @@
 -e plugins/download_statistics
 -e plugins/google_analytics
 -e plugins/gravatar
--e pytest_girder
+-e plugins/hashsum_download
 coverage
 flake8
 flake8-blind-except

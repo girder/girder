@@ -31,6 +31,7 @@ from girder.constants import AccessType, TokenScope
 from girder.exceptions import ValidationException, RestException
 from girder.models.file import File as FileModel
 from girder.models.setting import Setting
+from girder.plugin import GirderPlugin
 from girder.utility import setting_utilities
 from girder.utility.progress import ProgressContext, noProgress
 
@@ -220,8 +221,12 @@ def _validateAutoCompute(doc):
         raise ValidationException('Auto-compute hash setting must be true or false.')
 
 
-def load(info):
-    HashedFile(info['apiRoot'].file)
-    FileModel().exposeFields(level=AccessType.READ, fields=SUPPORTED_ALGORITHMS)
+class HashsumDownloadPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Hashsum download'
+    NPM_PACKAGE_NAME = '@girder/hashsum_download'
 
-    events.bind('data.process', info['name'], _computeHashHook)
+    def load(self, info):
+        HashedFile(info['apiRoot'].file)
+        FileModel().exposeFields(level=AccessType.READ, fields=SUPPORTED_ALGORITHMS)
+
+        events.bind('data.process', 'hashsum_download', _computeHashHook)

@@ -61,6 +61,7 @@ extrasReqs = {
     'download_statistics': ['girder-download-statistics'],
     'google_analytics': ['girder-google-analytics'],
     'gravatar': ['girder-gravatar'],
+    'hashsum_download': ['girder-hashsum-download'],
     'item_tasks': ['girder-item-tasks'],
     'jobs': ['girder-jobs'],
     'worker': ['girder-remote-worker']
