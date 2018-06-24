@@ -16,9 +16,6 @@
         "shader-loader": "1.3.0",
         "vtk.js": "5.10.3"
     },
-    "peerDependencies": {
-        "girder": "*"
-    },
     "girder-plugin": {
         "name": "dicom_viewer",
         "main": "./main.js",

@@ -17,7 +17,6 @@
         "tinycolor2": "^1.4.1"
     },
     "peerDependencies": {
-        "girder": "*",
         "@girder/jobs": "*",
         "@girder/remote_worker": "*"
     },
