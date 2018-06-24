@@ -46,6 +46,7 @@ def scheduleLocal(event):
 
 
 class JobsPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Jobs'
     NPM_PACKAGE_NAME = '@girder/jobs'
 
     def load(self, info):

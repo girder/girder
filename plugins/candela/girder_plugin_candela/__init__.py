@@ -18,6 +18,7 @@ from girder.plugin import GirderPlugin
 
 
 class CandelaPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Candela Visualization'
     NPM_PACKAGE_NAME = '@girder/candela'
 
     def load(self, info):

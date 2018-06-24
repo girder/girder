@@ -112,6 +112,7 @@ def load(info):
 
 
 class ItemTasksPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Item tasks'
     NPM_PACKAGE_NAME = '@girder/item_tasks'
 
     def load(self, info):

@@ -88,11 +88,29 @@ class ThrowsOnLoad(NoDeps):
         raise Exception()
 
 
+class HasDisplayName(NoDeps):
+    DISPLAY_NAME = 'A plugin with a display name'
+
+
 @pytest.mark.plugin('invalid', InvalidPlugin)
 def testPluginWithNoLoadMethod(registry, logprint):
     with pytest.raises(NotImplementedError):
         plugin.getPlugin('invalid').load({})
     logprint.exception.assert_called_once_with('Failed to load plugin invalid')
+
+
+@pytest.mark.plugin('display', HasDisplayName)
+def testPluginWithDisplayName(registry):
+    pluginDef = plugin.getPlugin('display')
+    assert pluginDef.name == 'display'
+    assert pluginDef.displayName == 'A plugin with a display name'
+
+
+@pytest.mark.plugin('nodeps', NoDeps)
+def testPluginWithNoDisplayName(registry):
+    pluginDef = plugin.getPlugin('nodeps')
+    assert pluginDef.name == 'nodeps'
+    assert pluginDef.displayName == 'nodeps'
 
 
 @pytest.mark.plugin('nodeps', NoDeps, description='description', version='1.0.0', url='url')

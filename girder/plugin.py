@@ -117,6 +117,10 @@ class GirderPlugin(object):
 
                 import rest  # register new rest endpoints, etc.
     """
+    #: This is the named displayed to users on the plugin page.  Unlike the entrypoint name
+    #: used internally, this name can be an arbitrary string.
+    DISPLAY_NAME = None
+
     #: The name of the web client package on npm.
     NPM_PACKAGE_NAME = None
 
@@ -157,6 +161,11 @@ class GirderPlugin(object):
     def name(self):
         """Return the plugin name defaulting to the entrypoint name."""
         return self._name
+
+    @property
+    def displayName(self):
+        """Return a user-friendly plugin name (defaults to the entrypoint name)."""
+        return self.DISPLAY_NAME or self._name
 
     @property
     def description(self):

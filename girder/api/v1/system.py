@@ -159,7 +159,7 @@ class System(Resource):
         def _pluginNameToResponse(name):
             p = plugin.getPlugin(name)
             return {
-                'name': p.name,
+                'name': p.displayName,
                 'description': p.description,
                 'url': p.url,
                 'version': p.version

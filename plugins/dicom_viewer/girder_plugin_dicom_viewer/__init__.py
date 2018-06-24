@@ -40,6 +40,7 @@ from girder.utility.progress import setResponseTimeLimit
 
 
 class DicomViewerPlugin(GirderPlugin):
+    DISPLAY_NAME = 'DICOM Viewer'
     NPM_PACKAGE_NAME = '@girder/dicom-viewer'
 
     def load(self, info):
