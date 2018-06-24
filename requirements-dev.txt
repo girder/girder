@@ -1,9 +1,10 @@
--e pytest_girder
--e plugins/jobs
--e plugins/remote_worker
--e plugins/item_tasks
+-e plugins/authorized_upload
 -e plugins/candela
 -e plugins/dicom_viewer
+-e plugins/item_tasks
+-e plugins/jobs
+-e plugins/remote_worker
+-e pytest_girder
 coverage
 flake8
 flake8-blind-except

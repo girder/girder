@@ -186,11 +186,12 @@ endmacro()
 # Look for plugin.cmake in plugin dirs, include if they exist
 # file(GLOB pluginDirs "${PROJECT_SOURCE_DIR}/plugins/*")
 set(pluginDirs
-  "${PROJECT_SOURCE_DIR}/plugins/jobs"
-  "${PROJECT_SOURCE_DIR}/plugins/dicom_viewer"
+  "${PROJECT_SOURCE_DIR}/plugins/authorized_upload"
   "${PROJECT_SOURCE_DIR}/plugins/candela"
-  "${PROJECT_SOURCE_DIR}/plugins/remote_worker"
+  "${PROJECT_SOURCE_DIR}/plugins/dicom_viewer"
   "${PROJECT_SOURCE_DIR}/plugins/item_tasks"
+  "${PROJECT_SOURCE_DIR}/plugins/jobs"
+  "${PROJECT_SOURCE_DIR}/plugins/remote_worker"
 )
 foreach(pluginDir ${pluginDirs})
   get_filename_component(pluginName "${pluginDir}" NAME)

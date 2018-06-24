@@ -25,15 +25,12 @@ from girder.models.upload import Upload
 from girder.models.user import User
 from tests import base
 
-TOKEN_SCOPE_AUTHORIZED_UPLOAD = None
+from girder_authorized_upload.constants import TOKEN_SCOPE_AUTHORIZED_UPLOAD
 
 
 def setUpModule():
-    global TOKEN_SCOPE_AUTHORIZED_UPLOAD
     base.enabledPlugins.append('authorized_upload')
     base.startServer()
-
-    from girder.plugins.authorized_upload.constants import TOKEN_SCOPE_AUTHORIZED_UPLOAD
 
 
 def tearDownModule():

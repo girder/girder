@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
+
 from bson.objectid import ObjectId
 from girder import events
 from girder.api import access
@@ -24,10 +26,13 @@ from girder.api.rest import getCurrentToken, setCurrentUser
 from girder.models.item import Item
 from girder.models.token import Token
 from girder.models.user import User
+from girder.plugin import GirderPlugin
 from girder.utility import mail_utils
 
 from .constants import TOKEN_SCOPE_AUTHORIZED_UPLOAD
 from .rest import AuthorizedUpload
+
+_HERE = os.path.abspath(os.path.dirname(__file__))
 
 
 @access.public
@@ -110,14 +115,20 @@ def _uploadComplete(event):
         Token().remove(token)
 
 
-def load(info):
-    name = info['name']
+class AuthorizedUploadPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Authorized upload'
+    NPM_PACKAGE_NAME = '@girder/authorized_upload'
 
-    events.bind('rest.post.file.before', name, _authorizeInitUpload)
-    events.bind('rest.post.file.after', name, _storeUploadId)
-    events.bind('rest.post.file/chunk.before', name, _authorizeUploadStep)
-    events.bind('rest.post.file/completion.before', name, _authorizeUploadStep)
-    events.bind('rest.get.file/offset.before', name, _authorizeUploadStep)
-    events.bind('model.file.finalizeUpload.after', name, _uploadComplete)
+    def load(self, info):
+        name = 'authorized_upload'
 
-    info['apiRoot'].authorized_upload = AuthorizedUpload()
+        mail_utils.addTemplateDirectory(os.path.join(_HERE, 'mail_templates'))
+
+        events.bind('rest.post.file.before', name, _authorizeInitUpload)
+        events.bind('rest.post.file.after', name, _storeUploadId)
+        events.bind('rest.post.file/chunk.before', name, _authorizeUploadStep)
+        events.bind('rest.post.file/completion.before', name, _authorizeUploadStep)
+        events.bind('rest.get.file/offset.before', name, _authorizeUploadStep)
+        events.bind('model.file.finalizeUpload.after', name, _uploadComplete)
+
+        info['apiRoot'].authorized_upload = AuthorizedUpload()
