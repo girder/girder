@@ -26,6 +26,7 @@ from girder.api.describe import Description, autoDescribeRoute
 from girder.models.model_base import AccessType
 from girder.models.setting import Setting
 from girder.models.user import User
+from girder.plugin import GirderPlugin
 from girder.utility import setting_utilities
 
 
@@ -75,9 +76,13 @@ def _userUpdate(event):
     event.info['gravatar_baseUrl'] = computeBaseUrl(event.info)
 
 
-def load(info):
-    info['apiRoot'].user.route('GET', (':id', 'gravatar'), getGravatar)
+class GravatarPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Gravatar portraits'
+    NPM_PACKAGE_NAME = '@girder/gravatar'
 
-    User().exposeFields(level=AccessType.READ, fields='gravatar_baseUrl')
+    def load(self, info):
+        info['apiRoot'].user.route('GET', (':id', 'gravatar'), getGravatar)
 
-    events.bind('model.user.save', 'gravatar', _userUpdate)
+        User().exposeFields(level=AccessType.READ, fields='gravatar_baseUrl')
+
+        events.bind('model.user.save', 'gravatar', _userUpdate)

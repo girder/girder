@@ -60,6 +60,7 @@ extrasReqs = {
     'dicom_viewer': ['girder-dicom-viewer'],
     'download_statistics': ['girder-download-statistics'],
     'google_analytics': ['girder-google-analytics'],
+    'gravatar': ['girder-gravatar'],
     'item_tasks': ['girder-item-tasks'],
     'jobs': ['girder-jobs'],
     'worker': ['girder-remote-worker']

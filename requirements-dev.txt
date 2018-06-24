@@ -8,6 +8,7 @@
 -e plugins/dicom_viewer
 -e plugins/download_statistics
 -e plugins/google_analytics
+-e plugins/gravatar
 -e pytest_girder
 coverage
 flake8
