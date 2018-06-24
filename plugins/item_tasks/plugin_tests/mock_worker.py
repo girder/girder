@@ -9,8 +9,8 @@ from girder_worker import entrypoint
 from girder_worker.app import app
 from girder_worker_utils import types
 from girder_worker_utils.decorators import argument
-from girder_plugin_jobs.models.job import Job
-from girder_plugin_jobs.constants import JobStatus
+from girder_jobs.models.job import Job
+from girder_jobs.constants import JobStatus
 
 
 # register a few girder_worker extensions for testing the ui

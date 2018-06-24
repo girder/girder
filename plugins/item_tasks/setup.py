@@ -22,7 +22,7 @@ from setuptools import setup, find_packages
 
 # perform the install
 setup(
-    name='girder-plugin-item-tasks',
+    name='girder-item-tasks',
     version='0.2.0',
     description=('Allows items in Girder to be used as specifications for tasks to be '
                  'run on the worker.'),
@@ -48,15 +48,15 @@ setup(
     zip_safe=False,
     install_requires=[
         'girder',
-        'girder-plugin-jobs',
-        'girder-plugin-worker',
+        'girder-jobs',
+        'girder-remote-worker',
         'ctk-cli',
         'girder-worker>=0.4.0',
         'girder-worker-utils>=0.7.2'
     ],
     entry_points={
         'girder.plugin': [
-            'item_tasks = girder_plugin_item_tasks:ItemTasksPlugin'
+            'item_tasks = girder_item_tasks:ItemTasksPlugin'
         ]
     }
 )

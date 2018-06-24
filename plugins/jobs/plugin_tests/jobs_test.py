@@ -28,8 +28,8 @@ from girder.exceptions import ValidationException
 from girder.models.user import User
 from girder.models.token import Token
 
-from girder_plugin_jobs.constants import JobStatus, REST_CREATE_JOB_TOKEN_SCOPE
-from girder_plugin_jobs.models.job import Job
+from girder_jobs.constants import JobStatus, REST_CREATE_JOB_TOKEN_SCOPE
+from girder_jobs.models.job import Job
 
 
 def setUpModule():

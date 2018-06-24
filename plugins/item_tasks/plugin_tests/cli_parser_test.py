@@ -1,7 +1,7 @@
 import os
 
 from tests import base
-from girder_plugin_item_tasks import cli_parser
+from girder_item_tasks import cli_parser
 
 CLI_FILE = os.path.join(
     os.path.abspath(os.path.dirname(__file__)),

@@ -10,8 +10,8 @@ from girder.models.user import User
 import pydicom
 from tests import base
 
-from girder_plugin_dicom_viewer import _removeUniqueMetadata, _extractFileData
-from girder_plugin_dicom_viewer.event_helper import _EventHelper
+from girder_dicom_viewer import _removeUniqueMetadata, _extractFileData
+from girder_dicom_viewer.event_helper import _EventHelper
 
 
 def setUpModule():

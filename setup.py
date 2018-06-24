@@ -53,11 +53,11 @@ installReqs = [
 ]
 
 extrasReqs = {
-    'candela': ['girder-plugin-candela'],
-    'dicom_viewer': ['girder-plugin-dicom-viewer'],
-    'item_tasks': ['girder-plugin-item-tasks'],
-    'jobs': ['girder-plugin-jobs'],
-    'worker': ['girder-plugin-worker']
+    'candela': ['girder-candela'],
+    'dicom_viewer': ['girder-dicom-viewer'],
+    'item_tasks': ['girder-item-tasks'],
+    'jobs': ['girder-jobs'],
+    'worker': ['girder-remote-worker']
 }
 extrasReqs['plugins'] = list(set(itertools.chain.from_iterable(extrasReqs.values())))
 extrasReqs['sftp'] = [

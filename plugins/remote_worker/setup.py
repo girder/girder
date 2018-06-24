@@ -22,12 +22,12 @@ from setuptools import setup, find_packages
 
 # perform the install
 setup(
-    name='girder-dicom-viewer',
+    name='girder-remote-worker',
     version='0.2.0',
-    description='View DICOM images in the browser',
+    description='Distributed offline processing engine built on celery.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
-    url='http://girder.readthedocs.io/en/latest/plugins.html#dicom-viewer',
+    url='http://girder.readthedocs.io/en/latest/plugins.html#remote-worker',
     license='Apache 2.0',
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -45,10 +45,10 @@ setup(
     },
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder', 'pydicom>=1.0.2'],
+    install_requires=['girder', 'girder-jobs', 'celery>=4,<4.2'],
     entry_points={
         'girder.plugin': [
-            'dicom_viewer = girder_dicom_viewer:DicomViewerPlugin'
+            'remote_worker = girder_remote_worker:WorkerPlugin'
         ]
     }
 )

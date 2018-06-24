@@ -189,7 +189,7 @@ set(pluginDirs
   "${PROJECT_SOURCE_DIR}/plugins/jobs"
   "${PROJECT_SOURCE_DIR}/plugins/dicom_viewer"
   "${PROJECT_SOURCE_DIR}/plugins/candela"
-  "${PROJECT_SOURCE_DIR}/plugins/worker"
+  "${PROJECT_SOURCE_DIR}/plugins/remote_worker"
   "${PROJECT_SOURCE_DIR}/plugins/item_tasks"
 )
 foreach(pluginDir ${pluginDirs})

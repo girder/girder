@@ -16,7 +16,7 @@
 
 import pytest
 
-from girder_plugin_jobs import constants
+from girder_jobs import constants
 
 
 @pytest.mark.plugin('jobs')

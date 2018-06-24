@@ -1,6 +1,6 @@
 -e pytest_girder
 -e plugins/jobs
--e plugins/worker
+-e plugins/remote_worker
 -e plugins/item_tasks
 -e plugins/candela
 -e plugins/dicom_viewer

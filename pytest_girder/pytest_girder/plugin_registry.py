@@ -46,7 +46,7 @@ class PluginRegistry(object):
 
     @classmethod
     def generateEntrypoint(self, name, class_, **kwargs):
-        package = kwargs.get('package', 'girder-plugin-' + name)
+        package = kwargs.get('package', 'girder-' + name)
         description = kwargs.get('description', '')
         url = kwargs.get('url', '')
         version = kwargs.get('version', '0.1.0')

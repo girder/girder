@@ -1,4 +1,4 @@
-girderTest.importPlugin('jobs', 'worker', 'item_tasks');
+girderTest.importPlugin('jobs', 'remote_worker', 'item_tasks');
 girderTest.startApp();
 
 describe('Create an item task', function () {
