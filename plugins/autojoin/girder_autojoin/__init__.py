@@ -5,6 +5,7 @@ from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 from girder.models.group import Group
 from girder.models.setting import Setting
+from girder.plugin import GirderPlugin
 
 _autojoinSchema = {
     'type': 'array',
@@ -51,5 +52,9 @@ def userCreated(event):
             Group().addUser(group, user, rule['level'])
 
 
-def load(info):
-    events.bind('model.user.save.created', 'autojoin', userCreated)
+class AutojoinPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Auto Join'
+    NPM_PACKAGE_NAME = '@girder/autojoin'
+
+    def load(self, info):
+        events.bind('model.user.save.created', 'autojoin', userCreated)

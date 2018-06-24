@@ -1,4 +1,5 @@
 -e plugins/authorized_upload
+-e plugins/autojoin
 -e plugins/candela
 -e plugins/dicom_viewer
 -e plugins/item_tasks
