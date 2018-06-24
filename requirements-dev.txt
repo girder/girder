@@ -1,10 +1,10 @@
--e plugins/authorized_upload
--e plugins/autojoin
--e plugins/candela
--e plugins/dicom_viewer
--e plugins/item_tasks
 -e plugins/jobs
 -e plugins/remote_worker
+-e plugins/item_tasks
+-e plugins/candela
+-e plugins/authorized_upload
+-e plugins/autojoin
+-e plugins/dicom_viewer
 -e pytest_girder
 coverage
 flake8
