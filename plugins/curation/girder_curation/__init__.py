@@ -17,6 +17,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
+
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, loadmodel
@@ -24,11 +26,13 @@ from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
 from girder.models.folder import Folder
 from girder.models.user import User
+from girder.plugin import GirderPlugin
 from girder.utility import mail_utils
 from girder.utility.progress import ProgressContext
 import datetime
 
 
+_HERE = os.path.abspath(os.path.dirname(__file__))
 CURATION = 'curation'
 
 ENABLED = 'enabled'
@@ -270,9 +274,14 @@ class CuratedFolder(Resource):
         mail_utils.sendEmail(emails, subject, text)
 
 
-def load(info):
-    curatedFolder = CuratedFolder()
-    info['apiRoot'].folder.route(
-        'GET', (':id', 'curation'), curatedFolder.getCuration)
-    info['apiRoot'].folder.route(
-        'PUT', (':id', 'curation'), curatedFolder.setCuration)
+class CurationPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Curation'
+    NPM_PACKAGE_NAME = '@girder/curation'
+
+    def load(self, info):
+        mail_utils.addTemplateDirectory(os.path.join(_HERE, 'mail_templates'))
+        curatedFolder = CuratedFolder()
+        info['apiRoot'].folder.route(
+            'GET', (':id', 'curation'), curatedFolder.getCuration)
+        info['apiRoot'].folder.route(
+            'PUT', (':id', 'curation'), curatedFolder.setCuration)

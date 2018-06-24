@@ -4,6 +4,7 @@
 -e plugins/candela
 -e plugins/authorized_upload
 -e plugins/autojoin
+-e plugins/curation
 -e plugins/dicom_viewer
 -e pytest_girder
 coverage
