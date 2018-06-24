@@ -18,7 +18,9 @@
 ###############################################################################
 
 from girder.exceptions import ValidationException
+from girder.plugin import GirderPlugin
 from girder.utility import setting_utilities
+
 from . import constants, rest
 
 
@@ -28,5 +30,9 @@ def validateTrackingId(doc):
         raise ValidationException('Google Analytics Tracking ID must not be empty.', 'value')
 
 
-def load(info):
-    info['apiRoot'].google_analytics = rest.GoogleAnalytics()
+class GoogleAnalyticsPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Google Analytics'
+    NPM_PACKAGE_NAME = '@girder/google_analytics'
+
+    def load(self, info):
+        info['apiRoot'].google_analytics = rest.GoogleAnalytics()
