@@ -21,6 +21,7 @@
 from girder import events
 from girder.constants import AccessType
 from girder.models.file import File
+from girder.plugin import GirderPlugin
 
 
 def _onDownloadFileRequest(event):
@@ -42,10 +43,13 @@ def _onDownloadFileComplete(event):
         amount=1)
 
 
-def load(info):
-    # Bind REST events
-    events.bind('model.file.download.request', 'download_statistics', _onDownloadFileRequest)
-    events.bind('model.file.download.complete', 'download_statistics', _onDownloadFileComplete)
+class DownloadStatisticsPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Download Statistics'
 
-    # Add download count fields to file model
-    File().exposeFields(level=AccessType.READ, fields='downloadStatistics')
+    def load(self, info):
+        # Bind REST events
+        events.bind('model.file.download.request', 'download_statistics', _onDownloadFileRequest)
+        events.bind('model.file.download.complete', 'download_statistics', _onDownloadFileComplete)
+
+        # Add download count fields to file model
+        File().exposeFields(level=AccessType.READ, fields='downloadStatistics')

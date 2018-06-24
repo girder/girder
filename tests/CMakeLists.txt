@@ -191,6 +191,7 @@ set(pluginDirs
   "${PROJECT_SOURCE_DIR}/plugins/candela"
   "${PROJECT_SOURCE_DIR}/plugins/curation"
   "${PROJECT_SOURCE_DIR}/plugins/dicom_viewer"
+  "${PROJECT_SOURCE_DIR}/plugins/download_statistics"
   "${PROJECT_SOURCE_DIR}/plugins/item_tasks"
   "${PROJECT_SOURCE_DIR}/plugins/jobs"
   "${PROJECT_SOURCE_DIR}/plugins/remote_worker"
