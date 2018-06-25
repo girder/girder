@@ -59,17 +59,17 @@ plugin:
   .. code-block:: javascript
 
     {
-        "name": "@girder/my-plugin",  // TODO: for the moment, plugins must be in the @girder org
+        "name": "@girder/my-plugin",
         "version": "1.0.0",
         "peerDepencencies": {
-            "girder": "*"       // The girder version should be as relaxed as possible.
+            "@girder/other_plugin": "*"       // The girder version should be as relaxed as possible.
         },
         "depencencies": {},     // Any js deps not provided by girder.
-        "main": "./index.js",
         "girder-plugin": {
             "name": "example",  // The entrypoint name defined in setup.py.
             "main": "./main.js" // The plugin client entrypoint containing code that is executed on load.
-            "webpack": "webpack.helper" // If your plugin needs to modify the webpack config
+            "webpack": "webpack.helper", // If your plugin needs to modify the webpack config
+            "dependencies": ["other_plugin"] // If you plugin web_client requires another plugin
         }
     }
 
@@ -84,7 +84,6 @@ plugin:
 
     class ExamplePlugin(GirderPlugin):
         NPM_PACKAGE_NAME = '@girder/my-plugin'  # the npm package name defined in package.json
-        NPM_PACKAGE_VERSION = '>=1.0.0'         # optionally pin to a specific version
 
         def load(self, info):
             getPlugin('mydependency').load(info)  # load plugins you depend on
@@ -95,17 +94,6 @@ plugin:
   valid.  Any reference to ``girder.plugins`` in python or ``girder.plugin`` in javascript should be changed
   to the actual installed module names.
 
-.. warning:: TODO: The web_client infrastructure is not yet complete and is subject to change.  In
-             particular, there is no hook for customizing webpack build rules in place.  We may
-             also move away from actually publishing javascript code to npm for production.
-
-             The grunt build task for plugins has been completely rewritten, so plugins hooking into
-             exotic features of that task will no longer build correctly.  This is WIP at this point
-             until we finalize a list features necessary.
-
-             Legacy testing infrastructure (those using cmake) still require plugins be installed into
-             the ``plugins`` directory of Girder's source tree.  This includes all supported methods
-             for creating client tests.
 
 Other backwards incompatible changes affecting plugins
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
