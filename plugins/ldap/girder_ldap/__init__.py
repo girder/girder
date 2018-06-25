@@ -28,7 +28,9 @@ from girder.api.rest import boundHandler
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.models.user import User
+from girder.plugin import GirderPlugin
 from girder.utility import setting_utilities
+
 from .constants import PluginSettings
 
 _LDAP_ATTRS = ('uid', 'mail', 'cn', 'sn', 'givenName', 'distinguishedName')
@@ -196,7 +198,10 @@ def _ldapServerTest(self, uri, bindName, password, params):
         conn.unbind_s()
 
 
-def load(info):
-    events.bind('model.user.authenticate', info['name'], _ldapAuth)
+class LDAPPlugin(GirderPlugin):
+    DISPLAY_NAME = 'LDAP authentication'
+    NPM_PACKAGE_NAME = '@girder/ldap'
 
-    info['apiRoot'].system.route('GET', ('ldap_server', 'status'), _ldapServerTest)
+    def load(self, info):
+        events.bind('model.user.authenticate', 'ldap', _ldapAuth)
+        info['apiRoot'].system.route('GET', ('ldap_server', 'status'), _ldapServerTest)

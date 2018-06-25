@@ -13,6 +13,7 @@
 -e plugins/hashsum_download
 -e plugins/homepage
 -e plugins/item_licenses
+-e plugins/ldap
 coverage
 flake8
 flake8-blind-except

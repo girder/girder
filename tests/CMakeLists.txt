@@ -199,6 +199,7 @@ set(pluginDirs
   "${PROJECT_SOURCE_DIR}/plugins/item_licenses"
   "${PROJECT_SOURCE_DIR}/plugins/item_tasks"
   "${PROJECT_SOURCE_DIR}/plugins/jobs"
+  "${PROJECT_SOURCE_DIR}/plugins/ldap"
   "${PROJECT_SOURCE_DIR}/plugins/remote_worker"
 )
 foreach(pluginDir ${pluginDirs})

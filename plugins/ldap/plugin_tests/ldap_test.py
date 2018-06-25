@@ -25,6 +25,8 @@ from girder.models.setting import Setting
 from girder.models.user import User
 from tests import base
 
+from girder_ldap.constants import PluginSettings
+
 
 def setUpModule():
     base.enabledPlugins.append('ldap')
@@ -68,7 +70,6 @@ class MockLdap(object):
 
 class LdapTestCase(base.TestCase):
     def testLdapLogin(self):
-        from girder.plugins.ldap.constants import PluginSettings
         settings = Setting()
 
         self.assertEqual(settings.get(PluginSettings.LDAP_SERVERS), [])
