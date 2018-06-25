@@ -17,6 +17,7 @@
 -e plugins/oauth
 -e plugins/provenance
 -e plugins/table_view
+-e plugins/terms
 coverage
 flake8
 flake8-blind-except

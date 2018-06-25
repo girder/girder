@@ -29,6 +29,7 @@ from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
 from girder.models.collection import Collection as CollectionModel
 from girder.models.user import User
+from girder.plugin import GirderPlugin
 
 
 @access.user(scope=TokenScope.DATA_READ)
@@ -79,21 +80,26 @@ def afterPostPutCollection(event):
         event.addResponse(collectionResponse)
 
 
-def load(info):
-    # Augment the collection creation and edit routes to accept a terms field
-    events.bind('rest.post.collection.after', 'terms', afterPostPutCollection)
-    events.bind('rest.put.collection/:id.after', 'terms', afterPostPutCollection)
-    for handler in [
-        Collection.createCollection,
-        Collection.updateCollection
-    ]:
-        handler.description.param('terms', 'The Terms of Use for the collection.', required=False)
+class TermsPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Terms of Use'
+    NPM_PACKAGE_NAME = '@girder/terms'
 
-    # Expose the terms field on all collections
-    CollectionModel().exposeFields(level=AccessType.READ, fields={'terms'})
+    def load(self, info):
+        # Augment the collection creation and edit routes to accept a terms field
+        events.bind('rest.post.collection.after', 'terms', afterPostPutCollection)
+        events.bind('rest.put.collection/:id.after', 'terms', afterPostPutCollection)
+        for handler in [
+            Collection.createCollection,
+            Collection.updateCollection
+        ]:
+            handler.description.param(
+                'terms', 'The Terms of Use for the collection.', required=False)
 
-    # Add endpoint for registered users to accept terms
-    info['apiRoot'].collection.route('POST', (':id', 'acceptTerms'), acceptCollectionTerms)
+        # Expose the terms field on all collections
+        CollectionModel().exposeFields(level=AccessType.READ, fields={'terms'})
 
-    # Expose the terms field on all users
-    User().exposeFields(level=AccessType.ADMIN, fields={'terms'})
+        # Add endpoint for registered users to accept terms
+        info['apiRoot'].collection.route('POST', (':id', 'acceptTerms'), acceptCollectionTerms)
+
+        # Expose the terms field on all users
+        User().exposeFields(level=AccessType.ADMIN, fields={'terms'})
