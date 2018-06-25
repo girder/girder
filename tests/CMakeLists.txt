@@ -204,6 +204,7 @@ set(pluginDirs
   "${PROJECT_SOURCE_DIR}/plugins/provenance"
   "${PROJECT_SOURCE_DIR}/plugins/table_view"
   "${PROJECT_SOURCE_DIR}/plugins/terms"
+  "${PROJECT_SOURCE_DIR}/plugins/thumbnails"
   "${PROJECT_SOURCE_DIR}/plugins/remote_worker"
 )
 foreach(pluginDir ${pluginDirs})

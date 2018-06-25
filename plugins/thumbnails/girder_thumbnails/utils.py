@@ -1,4 +1,4 @@
-from girder.plugins.jobs.models.job import Job
+from girder_jobs.models.job import Job
 
 
 def scheduleThumbnailJob(file, attachToType, attachToId, user, width=0, height=0, crop=True):
@@ -7,7 +7,7 @@ def scheduleThumbnailJob(file, attachToType, attachToId, user, width=0, height=0
     """
     job = Job().createLocalJob(
         title='Generate thumbnail for %s' % file['name'], user=user, type='thumbnails.create',
-        public=False, module='girder.plugins.thumbnails.worker', kwargs={
+        public=False, module='girder_thumbnails.worker', kwargs={
             'fileId': str(file['_id']),
             'width': width,
             'height': height,

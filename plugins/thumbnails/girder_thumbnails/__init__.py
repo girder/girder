@@ -25,6 +25,7 @@ from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.user import User
+from girder.plugin import getPlugin, GirderPlugin
 from girder.utility.model_importer import ModelImporter
 from . import rest, utils
 
@@ -101,12 +102,19 @@ def _onUpload(event):
         width=width, height=height, crop=crop)
 
 
-def load(info):
-    info['apiRoot'].thumbnail = rest.Thumbnail()
+class ThumbnailsPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Thumbnails'
+    NPM_PACKAGE_NAME = '@girder/thumbnails'
 
-    for model in (Item(), Collection(), Folder(), User()):
-        model.exposeFields(level=AccessType.READ, fields='_thumbnails')
-        events.bind('model.%s.remove' % model.name, info['name'], removeThumbnails)
+    def load(self, info):
+        getPlugin('jobs').load(info)
 
-    events.bind('model.file.remove', info['name'], removeThumbnailLink)
-    events.bind('data.process', info['name'], _onUpload)
+        name = 'thumbnails'
+        info['apiRoot'].thumbnail = rest.Thumbnail()
+
+        for model in (Item(), Collection(), Folder(), User()):
+            model.exposeFields(level=AccessType.READ, fields='_thumbnails')
+            events.bind('model.%s.remove' % model.name, name, removeThumbnails)
+
+        events.bind('model.file.remove', name, removeThumbnailLink)
+        events.bind('data.process', name, _onUpload)
