@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-const fs = require('fs');
 const path = require('path');
 const process = require('process');
 
@@ -59,11 +58,11 @@ module.exports = function (grunt) {
         process.env.NODE_ENV = isDev ? 'development' : 'production';
     }
 
-    // TODO: nyc will only instrument source files within it's cwd (it resolves symlinks).
-    // This will cause problems when we try to instrument plugins that are not present
-    // inside girder's source tree.  Here we set it to the root of the repository to
-    // resolve plugin sources.
-    process.env.NYC_CWD = path.resolve(fs.realpathSync(__dirname), '..', '..', '..');
+    // nyc will only instrument files whose *real* path is inside the working directory.  Because we
+    // want to instrument files that could be symlinked into node_modules from outside the girder
+    // web_client directory, we just set this to the system root.  There do not seem to be any
+    // consequences to this beyond the path lookup performed in nyc.
+    process.env.NYC_CWD = '/';
 
     // Load the global webpack config
     const webpackConfig = require('./webpack.config.js');
