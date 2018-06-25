@@ -16,6 +16,7 @@
 -e plugins/ldap
 -e plugins/oauth
 -e plugins/provenance
+-e plugins/table_view
 coverage
 flake8
 flake8-blind-except
