@@ -74,7 +74,8 @@ extrasReqs = {
     'thumbnails': ['girder-thumbnails'],
     'treeview': ['girder-treeview'],
     'quota': ['girder-user-quota'],
-    'worker': ['girder-remote-worker']
+    'worker': ['girder-remote-worker'],
+    'virtual_folders': ['girder-virtual-folders']
 }
 extrasReqs['plugins'] = list(set(itertools.chain.from_iterable(extrasReqs.values())))
 extrasReqs['sftp'] = [

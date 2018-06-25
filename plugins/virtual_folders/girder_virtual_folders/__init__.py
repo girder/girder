@@ -7,6 +7,7 @@ from girder.constants import AccessType
 from girder.exceptions import ValidationException
 from girder.models.folder import Folder
 from girder.models.item import Item
+from girder.plugin import GirderPlugin
 
 
 def _validateFolder(event):
@@ -104,22 +105,26 @@ def _virtualChildItems(self, event):
     event.preventDefault().addResponse([item.filter(i, user) for i in items])
 
 
-def load(info):
-    events.bind('model.folder.validate', info['name'], _validateFolder)
-    events.bind('model.item.validate', info['name'], _validateItem)
-    events.bind('rest.get.item.before', info['name'], _virtualChildItems)
-    events.bind('rest.post.folder.after', info['name'], _folderUpdate)
-    events.bind('rest.put.folder/:id.after', info['name'], _folderUpdate)
+class VirtualFoldersPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Virtual folders'
 
-    Folder().exposeFields(level=AccessType.READ, fields={'isVirtual'})
-    Folder().exposeFields(level=AccessType.SITE_ADMIN, fields={
-        'virtualItemsQuery', 'virtualItemsSort'})
+    def load(self, info):
+        name = 'virtual_folders'
+        events.bind('model.folder.validate', name, _validateFolder)
+        events.bind('model.item.validate', name, _validateItem)
+        events.bind('rest.get.item.before', name, _virtualChildItems)
+        events.bind('rest.post.folder.after', name, _folderUpdate)
+        events.bind('rest.put.folder/:id.after', name, _folderUpdate)
 
-    for endpoint in (FolderResource.updateFolder, FolderResource.createFolder):
-        (endpoint.description
-            .param('isVirtual', 'Whether this is a virtual folder.', required=False,
-                   dataType='boolean')
-            .param('virtualItemsQuery', 'Query to use to do virtual item lookup, as JSON.',
-                   required=False)
-            .param('virtualItemsSort', 'Sort to use during virtual item lookup, as JSON.',
-                   required=False))
+        Folder().exposeFields(level=AccessType.READ, fields={'isVirtual'})
+        Folder().exposeFields(level=AccessType.SITE_ADMIN, fields={
+            'virtualItemsQuery', 'virtualItemsSort'})
+
+        for endpoint in (FolderResource.updateFolder, FolderResource.createFolder):
+            (endpoint.description
+                .param('isVirtual', 'Whether this is a virtual folder.', required=False,
+                       dataType='boolean')
+                .param('virtualItemsQuery', 'Query to use to do virtual item lookup, as JSON.',
+                       required=False)
+                .param('virtualItemsSort', 'Sort to use during virtual item lookup, as JSON.',
+                       required=False))

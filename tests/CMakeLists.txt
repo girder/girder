@@ -184,31 +184,7 @@ macro(_add_plugin pluginName pluginDir)
 endmacro()
 
 # Look for plugin.cmake in plugin dirs, include if they exist
-# file(GLOB pluginDirs "${PROJECT_SOURCE_DIR}/plugins/*")
-set(pluginDirs
-  "${PROJECT_SOURCE_DIR}/plugins/authorized_upload"
-  "${PROJECT_SOURCE_DIR}/plugins/autojoin"
-  "${PROJECT_SOURCE_DIR}/plugins/candela"
-  "${PROJECT_SOURCE_DIR}/plugins/curation"
-  "${PROJECT_SOURCE_DIR}/plugins/dicom_viewer"
-  "${PROJECT_SOURCE_DIR}/plugins/download_statistics"
-  "${PROJECT_SOURCE_DIR}/plugins/google_analytics"
-  "${PROJECT_SOURCE_DIR}/plugins/gravatar"
-  "${PROJECT_SOURCE_DIR}/plugins/hashsum_download"
-  "${PROJECT_SOURCE_DIR}/plugins/homepage"
-  "${PROJECT_SOURCE_DIR}/plugins/item_licenses"
-  "${PROJECT_SOURCE_DIR}/plugins/item_tasks"
-  "${PROJECT_SOURCE_DIR}/plugins/jobs"
-  "${PROJECT_SOURCE_DIR}/plugins/ldap"
-  "${PROJECT_SOURCE_DIR}/plugins/oauth"
-  "${PROJECT_SOURCE_DIR}/plugins/provenance"
-  "${PROJECT_SOURCE_DIR}/plugins/table_view"
-  "${PROJECT_SOURCE_DIR}/plugins/terms"
-  "${PROJECT_SOURCE_DIR}/plugins/thumbnails"
-  "${PROJECT_SOURCE_DIR}/plugins/treeview"
-  "${PROJECT_SOURCE_DIR}/plugins/remote_worker"
-  "${PROJECT_SOURCE_DIR}/plugins/user_quota"
-)
+file(GLOB pluginDirs "${PROJECT_SOURCE_DIR}/plugins/*")
 foreach(pluginDir ${pluginDirs})
   get_filename_component(pluginName "${pluginDir}" NAME)
 
