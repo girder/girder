@@ -17,10 +17,14 @@
 #  limitations under the License.
 ###############################################################################
 
-# Import constants for the side effect of registering settings
-from . import constants  # noqa: F401
+from girder.plugin import GirderPlugin
+
 from . import rest
 
 
-def load(info):
-    info['apiRoot'].homepage = rest.Homepage()
+class HomepagePlugin(GirderPlugin):
+    DISPLAY_NAME = 'Homepage'
+    NPM_PACKAGE_NAME = '@girder/homepage'
+
+    def load(self, info):
+        info['apiRoot'].homepage = rest.Homepage()
