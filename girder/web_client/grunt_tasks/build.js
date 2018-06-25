@@ -23,8 +23,10 @@ const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const GitRevisionPlugin = require('git-revision-webpack-plugin');
 
 const webpackPlugins = require('./webpack.plugins.js');
+const pkg = require('../package.json');
 
 const isTrue = (str) => !!str && !['false', 'off', '0'].includes(str.toString().toLowerCase());
 
@@ -132,11 +134,36 @@ module.exports = function (grunt) {
         });
     }
 
+    const gitRevision = new GitRevisionPlugin();
+    let versionInfo = {
+        git: false,
+        SHA: null,
+        shortSHA: null,
+        date: new Date().toISOString(),
+        apiVersion: pkg.version
+    };
+    try {
+        // inject git revision information if possible
+        const gitHash = gitRevision.commithash();
+        Object.assign(versionInfo, {
+            git: true,
+            SHA: gitHash,
+            shortSHA: gitHash.slice(0, 8)
+        });
+    } catch (err) {
+        // The above writes a fatal error line when not inside a git repo
+        // Let the user know this is not a problem for production/non-dev installs.
+        grunt.log.oklns(
+            'You are not running in a git repository.  This is normal for non-development builds of girder.'
+        );
+    }
+
     // Define global constants
     updateWebpackConfig({
         plugins: [
             new webpack.DefinePlugin({
-                'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+                'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+                'GIRDER_VERSION': JSON.stringify(versionInfo)
             })
         ]
     });

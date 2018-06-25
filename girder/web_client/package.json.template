@@ -42,6 +42,7 @@
         "extendify": "^1.0.0",
         "extract-text-webpack-plugin": "^2.1.2",
         "file-loader": "^0.11.2",
+        "git-revision-webpack-plugin": "^2.5.1",
         "google-fonts-webpack-plugin": "^0.4.0",
         "grunt": "^1.0.1",
         "grunt-cli": "^1.2.0",

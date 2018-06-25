@@ -10,6 +10,7 @@ import * as utilities from './utilities';
 import * as views from './views';
 import events from './events';
 import router from './router';
+import version from './version';
 
 // This will be modified dynamically when plugins are loaded.
 var plugins = {};
@@ -27,5 +28,6 @@ export {
     router,
     server,
     utilities,
+    version,
     views
 };
