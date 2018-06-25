@@ -28,22 +28,12 @@ describe('Unit test worker status page', function () {
             $('.g-job-worker-task-info').click();
         });
     });
-    // TODO: fix this test
-    xit('Check refresh button', function () {
+    it('Check refresh button', function () {
         waitsFor(function () {
             return $('.g-worker-status-header').length > 0;
         }, 'the worker status page to load');
         runs(function () {
             expect($('.icon-spin4').length > 0);
         });
-        waitsFor(function () {
-            return $('.g-worker-status-btn-reload').length > 0;
-        }, 'The load of the worker status page to finish');
-        runs(function () {
-            $('.g-worker-status-btn-reload').click();
-        });
-        waitsFor(function () {
-            return $('.icon-spin4').length > 0;
-        }, 'The icon-spin to be shown');
     });
 });

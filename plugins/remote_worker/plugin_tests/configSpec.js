@@ -68,8 +68,7 @@ $(function () {
             }, 'worker settings to change');
             girderTest.waitForLoad();
         });
-        // TODO: fix this test
-        xit('Go to the worker status page', function () {
+        it('Go to the worker status page', function () {
             waitsFor(function () {
                 return $('a.g-nav-link[g-target="admin"]').length > 0;
             }, 'admin console link to load');
@@ -98,7 +97,6 @@ $(function () {
             runs(function () {
                 $('.q-worker-task-info').click();
             });
-            girderTest.waitForLoad();
             waitsFor(function () {
                 return $('.g-worker-status-header').length > 0;
             }, 'the worker status page header to be shown');
