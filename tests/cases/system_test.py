@@ -21,7 +21,6 @@ import json
 import os
 import time
 import six
-import unittest
 
 from subprocess import check_output, CalledProcessError
 
@@ -84,7 +83,6 @@ class SystemTestCase(base.TestCase):
         if 'plugins' in conf:
             del conf['plugins']
 
-    @unittest.skip('TODO: port plugin changes')
     def testGetVersion(self):
         usingGit = True
         resp = self.request(path='/system/version', method='GET')
@@ -105,11 +103,11 @@ class SystemTestCase(base.TestCase):
             self.assertEqual(resp.json['SHA'], sha)
             self.assertEqual(sha.find(resp.json['shortSHA']), 0)
 
-            resp = self.request(path='/system/version', method='GET', params={'fromGit': True})
-            self.assertStatusOk(resp)
-            self.assertEqual(resp.json['SHA'], resp.json['gitVersions']['core']['SHA'])
+            # TODO: port #2776
+            # resp = self.request(path='/system/version', method='GET', params={'fromGit': True})
+            # self.assertStatusOk(resp)
+            # self.assertEqual(resp.json['SHA'], resp.json['gitVersions']['core']['SHA'])
 
-    @unittest.skip('TODO: port plugin changes')
     def testSettings(self):
         users = self.users
 
@@ -122,7 +120,7 @@ class SystemTestCase(base.TestCase):
             self.assertStatus(resp, 403)
 
         # Only valid setting keys should be allowed
-        obj = ['oauth', 'geospatial', '_invalid_']
+        obj = ['oauth', 'jobs', '_invalid_']
         resp = self.request(path='/system/setting', method='PUT', params={
             'key': 'foo',
             'value': json.dumps(obj)
@@ -153,7 +151,7 @@ class SystemTestCase(base.TestCase):
         # Set a valid value
         resp = self.request(path='/system/setting', method='PUT', params={
             'key': SettingKey.PLUGINS_ENABLED,
-            'value': json.dumps(['geospatial', 'oauth'])
+            'value': json.dumps(['jobs', 'oauth'])
         }, user=users[0])
         self.assertStatusOk(resp)
 
@@ -162,7 +160,7 @@ class SystemTestCase(base.TestCase):
             'key': SettingKey.PLUGINS_ENABLED
         }, user=users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(set(resp.json), set(['geospatial', 'oauth']))
+        self.assertEqual(set(resp.json), set(['jobs', 'oauth']))
 
         # We should now clear the setting
         resp = self.request(path='/system/setting', method='DELETE', params={
@@ -258,71 +256,6 @@ class SystemTestCase(base.TestCase):
                 'default': 'default'
             }, user=users[0])
             self.assertStatusOk(resp)
-
-    @unittest.skip('TODO: port plugin changes')
-    def testPlugins(self):
-        resp = self.request(path='/system/plugins', user=self.users[0])
-        self.assertStatusOk(resp)
-        self.assertIn('all', resp.json)
-        self.assertNotIn('.gitignore', resp.json['all'])
-
-        resp = self.request(
-            path='/system/plugins', method='PUT', user=self.users[0],
-            params={'plugins': 'not_a_json_list'})
-        self.assertStatus(resp, 400)
-        resp = self.request(
-            path='/system/plugins', method='PUT', user=self.users[0],
-            params={'plugins': '["has_deps"]'})
-        self.assertStatusOk(resp)
-        enabled = resp.json['value']
-        self.assertEqual(len(enabled), 3)
-        self.assertTrue('test_plugin' in enabled)
-        self.assertTrue('does_nothing' in enabled)
-        resp = self.request(
-            path='/system/plugins', method='PUT', user=self.users[0],
-            params={'plugins': '["has_nonexistent_deps"]'},
-            exception=True)
-        self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'],
-                         ("Required plugin a_plugin_that_does_not_exist"
-                          " does not exist."))
-        resp = self.request(
-            path='/system/plugins', method='PUT', user=self.users[0],
-            params={'plugins': '["has_deps", "has_sub_deps"]'})
-        self.assertStatusOk(resp)
-        enabled = resp.json['value']
-        self.assertEqual(len(enabled), 6)
-        self.assertTrue('test_plugin' in enabled)
-        self.assertTrue('does_nothing' in enabled)
-        self.assertTrue('has_other_deps' in enabled)
-        self.assertTrue('plugin_yaml' in enabled)
-
-    @unittest.skip('TODO: port plugin changes')
-    def testBadPlugin(self, logprint):
-        pluginRoot = os.path.normpath(os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), '..', 'test_plugins'
-        ))
-        self.mockPluginDir(pluginRoot)
-
-        # Enabling plugins with bad JSON/YML should still work.
-        resp = self.request(
-            path='/system/plugins', method='PUT', user=self.users[0],
-            params={'plugins': '["bad_json","bad_yaml"]'})
-        self.assertStatusOk(resp)
-        enabled = set(resp.json['value'])
-        self.assertEqual({'bad_json', 'bad_yaml'}, enabled)
-
-        resp = self.request(path='/system/plugins', user=self.users[0])
-        self.assertStatusOk(resp)
-        self.assertIn('failed', resp.json)
-        self.assertHasKeys(resp.json['failed'], ['bad_json', 'bad_yaml'])
-        self.assertIn('traceback', resp.json['failed']['bad_json'])
-        self.assertIn('traceback', resp.json['failed']['bad_yaml'])
-        # Python < 3.5 throw ValueError, >= 3.5 throw JSONDecodeError
-        self.assertTrue(
-            'ValueError:' in resp.json['failed']['bad_json']['traceback'] or
-            'JSONDecodeError:' in resp.json['failed']['bad_json']['traceback'])
-        self.assertIn('ScannerError:', resp.json['failed']['bad_yaml']['traceback'])
 
     def testRestart(self):
         resp = self.request(path='/system/restart', method='PUT',

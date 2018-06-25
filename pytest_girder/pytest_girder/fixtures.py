@@ -98,18 +98,19 @@ def server(db, request):
     enabledPlugins = []
     hasPluginMarkers = request.node.get_marker('plugin') is not None
     pluginRegistry = PluginRegistry()
-    if hasPluginMarkers:
-        for pluginMarker in request.node.iter_markers('plugin'):
-            pluginName = pluginMarker.args[0]
-            if len(pluginMarker.args) > 1:
-                pluginRegistry.registerTestPlugin(
-                    *pluginMarker.args, **pluginMarker.kwargs
-                )
-            enabledPlugins.append(pluginName)
+
+    with pluginRegistry():
+        if hasPluginMarkers:
+            for pluginMarker in request.node.iter_markers('plugin'):
+                pluginName = pluginMarker.args[0]
+                if len(pluginMarker.args) > 1:
+                    pluginRegistry.registerTestPlugin(
+                        *pluginMarker.args, **pluginMarker.kwargs
+                    )
+                enabledPlugins.append(pluginName)
 
         Setting().set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
 
-    with pluginRegistry():
         server = setupServer(test=True, plugins=enabledPlugins)
         server.request = restRequest
         server.uploadFile = uploadFile

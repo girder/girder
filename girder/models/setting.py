@@ -27,6 +27,7 @@ from ..constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingDefault,
 from .model_base import Model
 from girder import logprint
 from girder.exceptions import ValidationException
+from girder.plugin import getPlugin
 from girder.utility import config, setting_utilities
 from girder.utility._cache import cache
 from bson.objectid import ObjectId
@@ -221,6 +222,10 @@ class Setting(Model):
         """
         if not isinstance(doc['value'], list):
             raise ValidationException('Plugins enabled setting must be a list.', 'value')
+
+        for pluginName in doc['value']:
+            if getPlugin(pluginName) is None:
+                raise ValidationException('Required plugin %s does not exist.' % pluginName)
 
     @staticmethod
     @setting_utilities.validator(SettingKey.ADD_TO_GROUP_POLICY)

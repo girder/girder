@@ -158,6 +158,22 @@ module.exports = function (grunt) {
         );
     }
 
+    // TODO: Eventually we should refactor the setup.py to use setuptools scm and avoid
+    // this hackery, but for now, we generate a version file when building the web client.
+    grunt.config.merge({
+        'file-creator': {
+            'python-version': {
+                [path.resolve('..', 'girder-version.json')]: function (fs, fd, done) {
+                    fs.writeSync(fd, JSON.stringify(versionInfo, null, 4) + '\n');
+                    done();
+                }
+            }
+        },
+        default: {
+            'file-creator:python-version': {}
+        }
+    });
+
     // Define global constants
     updateWebpackConfig({
         plugins: [
