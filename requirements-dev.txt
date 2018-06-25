@@ -19,6 +19,7 @@
 -e plugins/table_view
 -e plugins/terms
 -e plugins/thumbnails
+-e plugins/treeview
 coverage
 flake8
 flake8-blind-except
