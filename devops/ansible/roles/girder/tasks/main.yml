@@ -56,10 +56,13 @@
 - include: daemon.yml
   when: girder_daemonize
 
-# TODO replace with a `pip install step`
-#- name: Install Girder Plugins
-#  command: "{{ girder_install_executable|default('girder-install') }} plugin {{ item.args|default('') }} {{ item.path|default(item) }}"
-#  with_items: "{{ girder_plugins }}"
+- name: Install Girder Plugins
+  pip:
+    name: "{{ item.path|default(item) }}"
+    extra_args: "-e"
+    chdir: "{{ girder_path }}"
+    executable: "{{ girder_pip | default(omit) }}"
+  with_items: "{{ girder_plugins }}"
 
 - name: Build Girder (web)
   command: "{{ girder_build_executable }} build {{ girder_web_extra_args }}"
