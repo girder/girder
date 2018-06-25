@@ -63,7 +63,7 @@ def main(dev, watch, watch_plugin, reinstall):
 
     quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
     buildCommand = [
-        'npx', '-n', '--preserve-symlinks', 'grunt', '--static-path=%s' % STATIC_ROOT_DIR, quiet]
+        'npx', 'grunt', '--static-path=%s' % STATIC_ROOT_DIR, quiet]
     if watch:
         buildCommand.append('--watch')
     if watch_plugin:
