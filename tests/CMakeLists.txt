@@ -127,26 +127,27 @@ macro(add_standard_plugin_tests)
   #   * NO_CLIENT_TESTS: Never add client plugin_tests and associated static analysis.
 
   set(_options NO_SERVER NO_CLIENT NO_SERVER_TESTS NO_CLIENT_TESTS)
-  set(_args "")
+  set(_args "PACKAGE")
   set(_multival_args "")
   cmake_parse_arguments(_fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
 
   set(_pluginDir "${CMAKE_CURRENT_LIST_DIR}")
+  set(_packageDir "${_pluginDir}/${_fn_PACKAGE}")
   get_filename_component(_pluginName "${CMAKE_CURRENT_LIST_DIR}" NAME)
 
   # Server static analysis
-  if(IS_DIRECTORY "${_pluginDir}/server" AND (NOT _fn_NO_SERVER))
-    add_python_style_test(python_static_analysis_${_pluginName} "${_pluginDir}/server")
+  if(IS_DIRECTORY "${_packageDir}" AND (NOT _fn_NO_SERVER))
+    add_python_style_test(python_static_analysis_${_pluginName} "${_packageDir}")
   endif()
 
   # Client static analysis
-  if(IS_DIRECTORY "${_pluginDir}/web_client" AND (NOT _fn_NO_CLIENT))
-    add_eslint_test(${_pluginName} "${_pluginDir}/web_client")
+  if(IS_DIRECTORY "${_packageDir}/web_client" AND (NOT _fn_NO_CLIENT))
+    add_eslint_test(${_pluginName} "${_packageDir}/web_client")
     if(IS_DIRECTORY "${_pluginDir}/web_client/templates")
-      add_puglint_test(${_pluginName} "${_pluginDir}/web_client/templates")
+      add_puglint_test(${_pluginName} "${_packageDir}/web_client/templates")
     endif()
-    if(IS_DIRECTORY "${_pluginDir}/web_client/stylesheets")
-      add_stylint_test(${_pluginName} "${_pluginDir}/web_client/stylesheets")
+    if(IS_DIRECTORY "${_packageDir}/web_client/stylesheets")
+      add_stylint_test(${_pluginName} "${_packageDir}/web_client/stylesheets")
     endif()
   endif()
 
