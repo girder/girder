@@ -207,6 +207,7 @@ set(pluginDirs
   "${PROJECT_SOURCE_DIR}/plugins/thumbnails"
   "${PROJECT_SOURCE_DIR}/plugins/treeview"
   "${PROJECT_SOURCE_DIR}/plugins/remote_worker"
+  "${PROJECT_SOURCE_DIR}/plugins/user_quota"
 )
 foreach(pluginDir ${pluginDirs})
   get_filename_component(pluginName "${pluginDir}" NAME)

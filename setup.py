@@ -73,6 +73,7 @@ extrasReqs = {
     'terms': ['girder-terms'],
     'thumbnails': ['girder-thumbnails'],
     'treeview': ['girder-treeview'],
+    'quota': ['girder-user-quota'],
     'worker': ['girder-remote-worker']
 }
 extrasReqs['plugins'] = list(set(itertools.chain.from_iterable(extrasReqs.values())))

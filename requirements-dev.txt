@@ -20,6 +20,7 @@
 -e plugins/terms
 -e plugins/thumbnails
 -e plugins/treeview
+-e plugins/user_quota
 coverage
 flake8
 flake8-blind-except
