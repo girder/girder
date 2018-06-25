@@ -21,6 +21,7 @@ from girder import events
 from girder.constants import SettingDefault, SortDir
 from girder.exceptions import ValidationException
 from girder.models.user import User
+from girder.plugin import GirderPlugin
 from girder.utility import setting_utilities
 from . import rest, constants, providers
 
@@ -75,14 +76,18 @@ def checkOauthUser(event):
             'password reset link.' % prettyProviderNames)
 
 
-def load(info):
-    User().ensureIndex((
-        (('oauth.provider', SortDir.ASCENDING),
-         ('oauth.id', SortDir.ASCENDING)), {}))
-    User().reconnect()
+class OAuthPlugin(GirderPlugin):
+    DISPLAY_NAME = 'OAuth2 login'
+    NPM_PACKAGE_NAME = '@girder/oauth'
 
-    events.bind('no_password_login_attempt', 'oauth', checkOauthUser)
+    def load(self, info):
+        User().ensureIndex((
+            (('oauth.provider', SortDir.ASCENDING),
+             ('oauth.id', SortDir.ASCENDING)), {}))
+        User().reconnect()
 
-    info['apiRoot'].oauth = rest.OAuth()
+        events.bind('no_password_login_attempt', 'oauth', checkOauthUser)
 
-    SettingDefault.defaults[constants.PluginSettings.PROVIDERS_ENABLED] = []
+        info['apiRoot'].oauth = rest.OAuth()
+
+        SettingDefault.defaults[constants.PluginSettings.PROVIDERS_ENABLED] = []
