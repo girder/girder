@@ -196,6 +196,7 @@ set(pluginDirs
   "${PROJECT_SOURCE_DIR}/plugins/gravatar"
   "${PROJECT_SOURCE_DIR}/plugins/hashsum_download"
   "${PROJECT_SOURCE_DIR}/plugins/homepage"
+  "${PROJECT_SOURCE_DIR}/plugins/item_licenses"
   "${PROJECT_SOURCE_DIR}/plugins/item_tasks"
   "${PROJECT_SOURCE_DIR}/plugins/jobs"
   "${PROJECT_SOURCE_DIR}/plugins/remote_worker"

@@ -63,6 +63,7 @@ extrasReqs = {
     'gravatar': ['girder-gravatar'],
     'hashsum_download': ['girder-hashsum-download'],
     'homepage': ['girder-homepage'],
+    'item_licenses': ['girder-item-licenses'],
     'item_tasks': ['girder-item-tasks'],
     'jobs': ['girder-jobs'],
     'worker': ['girder-remote-worker']

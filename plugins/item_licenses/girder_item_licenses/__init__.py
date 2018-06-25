@@ -24,6 +24,7 @@ from girder.constants import AccessType, SettingDefault
 from girder.exceptions import ValidationException
 from girder.models.item import Item
 from girder.models.setting import Setting
+from girder.plugin import GirderPlugin
 from girder.utility import setting_utilities
 
 from .constants import PluginSettings, PluginSettingsDefaults
@@ -117,21 +118,25 @@ def validateLicenses(doc):
                     'License name is required and must be a non-empty string.', 'name')
 
 
-def load(info):
-    # Bind REST events
-    events.bind('rest.post.item.after', 'item_licenses', postItemAfter)
-    events.bind('rest.post.item/:id/copy.after', 'item_licenses', postItemCopyAfter)
-    events.bind('rest.put.item/:id.after', 'item_licenses', putItemAfter)
+class ItemLicensesPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Item licenses'
+    NPM_PACKAGE_NAME = '@girder/item_licenses'
 
-    # Bind validation events
-    events.bind('model.item.validate', 'item_licenses', validateItem)
+    def load(self, info):
+        # Bind REST events
+        events.bind('rest.post.item.after', 'item_licenses', postItemAfter)
+        events.bind('rest.post.item/:id/copy.after', 'item_licenses', postItemCopyAfter)
+        events.bind('rest.put.item/:id.after', 'item_licenses', putItemAfter)
 
-    # Add license field to item model
-    Item().exposeFields(level=AccessType.READ, fields='license')
+        # Bind validation events
+        events.bind('model.item.validate', 'item_licenses', validateItem)
 
-    # Add endpoint to get list of licenses
-    info['apiRoot'].item.route('GET', ('licenses',), getLicenses)
+        # Add license field to item model
+        Item().exposeFields(level=AccessType.READ, fields='license')
 
-    # Add default license settings
-    SettingDefault.defaults[PluginSettings.LICENSES] = \
-        PluginSettingsDefaults.defaults[PluginSettings.LICENSES]
+        # Add endpoint to get list of licenses
+        info['apiRoot'].item.route('GET', ('licenses',), getLicenses)
+
+        # Add default license settings
+        SettingDefault.defaults[PluginSettings.LICENSES] = \
+            PluginSettingsDefaults.defaults[PluginSettings.LICENSES]
