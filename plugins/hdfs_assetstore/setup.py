@@ -47,6 +47,7 @@ setup(
         '': ['web_client/**']
     },
     packages=find_packages(exclude=['plugin_tests']),
+    python_requires='<3.0',
     zip_safe=False,
     install_requires=['girder', 'snakebite'],
     entry_points={

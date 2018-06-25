@@ -11,7 +11,6 @@
 -e plugins/google_analytics
 -e plugins/gravatar
 -e plugins/hashsum_download
--e plugins/hdfs_assetstore ; python_version < '3.0'
 -e plugins/homepage
 -e plugins/item_licenses
 -e plugins/ldap
@@ -37,3 +36,7 @@ pytest-xdist
 python-dateutil<2.7 # required for botocore=1.9.8
 tox
 virtualenv
+
+# We want to restrict hdfs_assetstore to python 2, but this
+# does not work.  https://github.com/pypa/pip/issues/4530
+# -e plugins/hdfs_assetstore ; python_version < '3.0'
