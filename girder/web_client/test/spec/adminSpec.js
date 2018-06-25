@@ -562,8 +562,7 @@ describe('Test the assetstore page', function () {
     });
 });
 
-// TODO: Add plugins to satisfy these test cases to the web_client test case.
-xdescribe('Test the plugins page', function () {
+describe('Test the plugins page', function () {
     beforeEach(function () {
         spyOn(girder.server.restartServer, '_callSystemRestart').andCallFake(function () {
             var restartResolution = $.Deferred();
@@ -599,42 +598,19 @@ xdescribe('Test the plugins page', function () {
         }, 'plugins page to load');
         girderTest.waitForLoad();
     });
-    it('Check that an error indicator is displayed for an enabled plugin that failed to load', function () {
-        var target = $('.g-plugin-list-item:contains(bad_server)');
-        expect(target.length).toBe(1);
-        expect(target.find('input[type=checkbox]:checked').length).toBe(1);
-        expect(target.hasClass('g-plugin-list-item-failed')).toBe(true);
-        expect(target.find('.g-plugin-list-item-failed-notice').length).toBe(1);
-
-        var content = target.find('.g-plugin-list-item-failed-notice').data('content');
-        expect(content).toContain('Traceback');
-        expect(content).toContain('Exception: Bad server');
-    });
-    it('Enable a plugin with non-existent dependencies', function () {
-        runs(function () {
-            var target = $('.g-plugin-list-item:contains(has_nonexistent_deps)');
-
-            expect(target.find('.bootstrap-switch-disabled').length > 0).toBe(true);
-            expect(target.find('.g-plugin-warning').length > 0).toBe(true);
-
-            target.find('.g-plugin-switch').click();
-
-            expect($('.g-plugin-restart-text').css('visibility')).toBe('hidden');
-        });
-    });
     it('Enable a plugin', function () {
         runs(function () {
             expect($('.g-plugin-list-item .bootstrap-switch').length > 0).toBe(true);
             expect($('.g-plugin-restart-text').css('visibility')).toBe('hidden');
-            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(1);
-            $('.g-plugin-list-item:contains(test_plugin) .g-plugin-switch').click();
+            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
+            $('.g-plugin-list-item:contains(Jobs) .g-plugin-switch').click();
         });
         waitsFor(function () {
             return $('.g-plugin-restart-text').css('visibility') === 'visible' &&
                 $('.g-restart').hasClass('btn-danger');
         }, 'restart change color and restart messsage to be shown');
         runs(function () {
-            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(2);
+            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(1);
             $('.g-restart').click();
         });
         waitsFor(function () {
@@ -668,7 +644,7 @@ xdescribe('Test the plugins page', function () {
     });
     it('Disable a plugin', function () {
         runs(function () {
-            $('.g-plugin-list-item:contains(test_plugin) .g-plugin-switch').click();
+            $('.g-plugin-list-item:contains(Jobs) .g-plugin-switch').click();
         });
         runs(function () {
             expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(1);
@@ -680,7 +656,7 @@ xdescribe('Test the plugins page', function () {
                 async: false
             });
             return (resp && resp.responseJSON && resp.responseJSON.enabled &&
-                resp.responseJSON.enabled.length === 1);
+                resp.responseJSON.enabled.length === 0);
         });
     });
     /* Logout to make sure we don't see the plugins any more */

@@ -75,8 +75,6 @@ if(RUN_CORE_TESTS)
   endif()
   add_web_client_test(data_s3 "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE s3 WEBSECURITY false)
   add_web_client_test(admin "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/adminSpec.js" ASSETSTORE s3 WEBSECURITY false
-    PLUGIN_DIR "${PROJECT_SOURCE_DIR}/tests/test_plugins"
-    ENABLEDPLUGINS "bad_server"
     RESOURCE_LOCKS replicaset
     )
   add_web_client_test(collection "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/collectionSpec.js")
