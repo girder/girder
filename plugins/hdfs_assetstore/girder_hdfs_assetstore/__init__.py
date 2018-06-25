@@ -17,14 +17,16 @@
 #  limitations under the License.
 ###############################################################################
 
-from .assetstore import HdfsAssetstoreAdapter
-from .rest import HdfsAssetstoreResource
 from girder import events
 from girder.api import access
 from girder.api.v1.assetstore import Assetstore
 from girder.constants import AssetstoreType
 from girder.models.assetstore import Assetstore as AssetstoreModel
+from girder.plugin import GirderPlugin
 from girder.utility import assetstore_utilities
+
+from .assetstore import HdfsAssetstoreAdapter
+from .rest import HdfsAssetstoreResource
 
 
 def getAssetstore(event):
@@ -67,23 +69,27 @@ def createAssetstore(event):
         event.preventDefault()
 
 
-def load(info):
-    AssetstoreType.HDFS = 'hdfs'
-    events.bind('assetstore.update', 'hdfs_assetstore', updateAssetstore)
-    events.bind('rest.post.assetstore.before', 'hdfs_assetstore', createAssetstore)
+class HDFSAssetstorePlugin(GirderPlugin):
+    DISPLAY_NAME = 'HDFS assetstore'
+    NPM_PACKAGE_NAME = '@girder/hdfs_assetstore'
 
-    assetstore_utilities.setAssetstoreAdapter(AssetstoreType.HDFS, HdfsAssetstoreAdapter)
+    def load(self, info):
+        AssetstoreType.HDFS = 'hdfs'
+        events.bind('assetstore.update', 'hdfs_assetstore', updateAssetstore)
+        events.bind('rest.post.assetstore.before', 'hdfs_assetstore', createAssetstore)
 
-    (Assetstore.createAssetstore.description
-        .param('host', 'The namenode host (for HDFS type).', required=False)
-        .param('port', 'The namenode RPC port (for HDFS type).', required=False)
-        .param('path', 'Absolute path under which new files will be stored ('
-               'for HDFS type).', required=False)
-        .param('user', 'The effective user to use when calling HDFS RPCs (for '
-               'HDFS type). This defaults to whatever system username the '
-               'Girder server process is running under.', required=False)
-        .param('webHdfsPort', 'WebHDFS port for the namenode. You must enable '
-               'WebHDFS on your Hadoop cluster if you want to write new files '
-               'to the assetstore (for HDFS type).', required=False))
+        assetstore_utilities.setAssetstoreAdapter(AssetstoreType.HDFS, HdfsAssetstoreAdapter)
 
-    info['apiRoot'].hdfs_assetstore = HdfsAssetstoreResource()
+        (Assetstore.createAssetstore.description
+            .param('host', 'The namenode host (for HDFS type).', required=False)
+            .param('port', 'The namenode RPC port (for HDFS type).', required=False)
+            .param('path', 'Absolute path under which new files will be stored ('
+                   'for HDFS type).', required=False)
+            .param('user', 'The effective user to use when calling HDFS RPCs (for '
+                   'HDFS type). This defaults to whatever system username the '
+                   'Girder server process is running under.', required=False)
+            .param('webHdfsPort', 'WebHDFS port for the namenode. You must enable '
+                   'WebHDFS on your Hadoop cluster if you want to write new files '
+                   'to the assetstore (for HDFS type).', required=False))
+
+        info['apiRoot'].hdfs_assetstore = HdfsAssetstoreResource()

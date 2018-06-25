@@ -11,6 +11,7 @@
 -e plugins/google_analytics
 -e plugins/gravatar
 -e plugins/hashsum_download
+-e plugins/hdfs_assetstore ; python_version < '3.0'
 -e plugins/homepage
 -e plugins/item_licenses
 -e plugins/ldap

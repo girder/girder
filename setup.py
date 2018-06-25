@@ -20,6 +20,7 @@
 import os
 import re
 import itertools
+import sys
 
 from setuptools import setup, find_packages
 
@@ -77,6 +78,9 @@ extrasReqs = {
     'worker': ['girder-remote-worker'],
     'virtual_folders': ['girder-virtual-folders']
 }
+if sys.version_info[0] < 3:
+    extrasReqs['hdfs_assetstore'] = ['girder-hdfs-assetstore']
+
 extrasReqs['plugins'] = list(set(itertools.chain.from_iterable(extrasReqs.values())))
 extrasReqs['sftp'] = [
     'paramiko',
