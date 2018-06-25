@@ -21,7 +21,9 @@ import six
 
 from girder import events
 from girder.exceptions import ValidationException
+from girder.plugin import GirderPlugin
 from girder.utility import setting_utilities
+
 from . import constants
 from .resource import ResourceExt
 
@@ -39,11 +41,15 @@ def validateProvenanceResources(doc):
         doc['value'] = ','.join(resources)
 
 
-def load(info):
-    ext = ResourceExt(info)
-    events.bind('model.setting.save.after', 'provenanceMain', ext.bindModels)
-    events.bind('provenance.initialize', 'provenanceMain', ext.bindModels)
-    events.trigger('provenance.initialize', info={})
-    events.bind('model.file.save', 'provenanceMain', ext.fileSaveHandler)
-    events.bind('model.file.save.created', 'provenanceMain', ext.fileSaveCreatedHandler)
-    events.bind('model.file.remove', 'provenance', ext.fileRemoveHandler)
+class ProvenancePlugin(GirderPlugin):
+    DISPLAY_NAME = 'Provenance tracker'
+    NPM_PACKAGE_NAME = '@girder/provenance'
+
+    def load(self, info):
+        ext = ResourceExt(info)
+        events.bind('model.setting.save.after', 'provenanceMain', ext.bindModels)
+        events.bind('provenance.initialize', 'provenanceMain', ext.bindModels)
+        events.trigger('provenance.initialize', info={})
+        events.bind('model.file.save', 'provenanceMain', ext.fileSaveHandler)
+        events.bind('model.file.save.created', 'provenanceMain', ext.fileSaveCreatedHandler)
+        events.bind('model.file.remove', 'provenance', ext.fileRemoveHandler)

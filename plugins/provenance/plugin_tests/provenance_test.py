@@ -30,7 +30,8 @@ from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.models.upload import Upload
 from girder.models.user import User
-from server import constants
+
+from girder_provenance import constants
 
 
 def setUpModule():

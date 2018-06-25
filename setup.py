@@ -68,6 +68,7 @@ extrasReqs = {
     'jobs': ['girder-jobs'],
     'ldap': ['girder-ldap'],
     'oauth': ['girder-oauth'],
+    'provenance': ['girder-provenance'],
     'worker': ['girder-remote-worker']
 }
 extrasReqs['plugins'] = list(set(itertools.chain.from_iterable(extrasReqs.values())))

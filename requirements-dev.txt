@@ -15,6 +15,7 @@
 -e plugins/item_licenses
 -e plugins/ldap
 -e plugins/oauth
+-e plugins/provenance
 coverage
 flake8
 flake8-blind-except
