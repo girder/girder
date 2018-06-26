@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="${staticRoot}/built/swagger/css/reset.css">
     <link rel="stylesheet" href="${staticRoot}/built/swagger/css/screen.css">
     <link rel="stylesheet" href="${staticRoot}/built/swagger/docs.css">
-    <link rel="icon" type="image/png" href="${staticRoot}/img/Girder_Favicon.png">
+    <link rel="icon" type="image/png" href="${staticRoot}/built/Girder_Favicon.png">
     <style type="text/css">
       .response_throbber {
         content: url("${staticRoot}/built/swagger/images/throbber.gif");

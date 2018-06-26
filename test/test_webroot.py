@@ -81,14 +81,14 @@ def testWebRootProperlyHandlesStaticRouteUrls(server, db):
     assertStatusOk(resp)
     body = getResponseBody(resp)
 
-    assert 'href="http://my-cdn-url.com/static/img/Girder_Favicon.png"' in body
+    assert 'href="http://my-cdn-url.com/static/built/Girder_Favicon.png"' in body
 
     # Same assertion should hold true for Swagger
     resp = server.request(path='/', method='GET', isJson=False)
     assertStatusOk(resp)
     body = getResponseBody(resp)
 
-    assert 'href="http://my-cdn-url.com/static/img/Girder_Favicon.png"' in body
+    assert 'href="http://my-cdn-url.com/static/built/Girder_Favicon.png"' in body
 
 def testWebRootTemplateFilename():
     """

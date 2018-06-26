@@ -24,6 +24,7 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const GitRevisionPlugin = require('git-revision-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const webpackPlugins = require('./webpack.plugins.js');
 const pkg = require('../package.json');
@@ -239,7 +240,12 @@ module.exports = function (grunt) {
                     new ExtractTextPlugin({
                         filename: '[name].min.css',
                         allChunks: true
-                    })
+                    }),
+                    new CopyWebpackPlugin([{
+                        from: 'static/img/Girder_Favicon.png',
+                        to: grunt.config.get('builtPath'),
+                        toType: 'dir'
+                    }])
                 ]
             }
         },

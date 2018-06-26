@@ -36,6 +36,7 @@
         "babel-plugin-istanbul": "^4.1.5",
         "babel-preset-env": "^1.6.1",
         "colors": "^1.1.2",
+        "copy-webpack-plugin": "^4.5.2",
         "core-js": "^2.4.1",
         "css-loader": "^0.26.1",
         "event-source": "^0.1.1",
