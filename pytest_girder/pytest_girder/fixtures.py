@@ -6,7 +6,7 @@ import os
 import pytest
 import shutil
 
-from .utils import MockSmtpReceiver, request as restRequest
+from .utils import uploadFile, MockSmtpReceiver, request as restRequest
 
 
 def _uid(node):
@@ -126,6 +126,7 @@ def server(db, request):
 
     server = setupServer(test=True, plugins=enabledPlugins)
     server.request = restRequest
+    server.uploadFile = uploadFile
 
     cherrypy.server.unsubscribe()
     cherrypy.config.update({'environment': 'embedded',
