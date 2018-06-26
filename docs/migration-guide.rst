@@ -62,14 +62,16 @@ plugin:
         "name": "@girder/my-plugin",
         "version": "1.0.0",
         "peerDepencencies": {
-            "@girder/other_plugin": "*"       // The girder version should be as relaxed as possible.
+            "@girder/other_plugin": "*"       // Peer dependencies should be as relaxed as possible
+                                              // Plugin dependencies should also be listed by entrypoint
+                                              // name in "girder-plugin" as shown below.
         },
-        "depencencies": {},     // Any js deps not provided by girder.
+        "dependencies": {},                   // Any other dependencies of the client code
         "girder-plugin": {
-            "name": "example",  // The entrypoint name defined in setup.py.
-            "main": "./main.js" // The plugin client entrypoint containing code that is executed on load.
-            "webpack": "webpack.helper", // If your plugin needs to modify the webpack config
-            "dependencies": ["other_plugin"] // If you plugin web_client requires another plugin
+            "name": "example",                // The entrypoint name defined in setup.py.
+            "main": "./main.js"               // The plugin client entrypoint containing code that is executed on load.
+            "webpack": "webpack.helper",      // If your plugin needs to modify the webpack config
+            "dependencies": ["other_plugin"]  // If you plugin web_client requires another plugin
         }
     }
 
@@ -83,12 +85,17 @@ plugin:
     from girder.plugin import getPlugin, GirderPlugin
 
     class ExamplePlugin(GirderPlugin):
+        DISPLAY_NAME = 'My Plugin'              # a user-facing plugin name, the plugin is still
+                                                # referenced internally by the entrypoint name.
         NPM_PACKAGE_NAME = '@girder/my-plugin'  # the npm package name defined in package.json
 
         def load(self, info):
             getPlugin('mydependency').load(info)  # load plugins you depend on
 
             # run the code that was in the original load method
+
+.. warning:: The plugin name was removed from the info object.  Where previously used, plugins should
+             replace references to ``info['name']`` with a hard-coded string.
 
 * Migrate all imports in python and javascript source files.  The old plugin module paths are no longer
   valid.  Any reference to ``girder.plugins`` in python or ``girder.plugin`` in javascript should be changed
@@ -121,21 +128,21 @@ Other backwards incompatible changes affecting plugins
 Client build changes
 ++++++++++++++++++++
 
-The ``girder_install`` command has been removed.  This command was primarily used to install
-plugins and run the client build.  Plugins should now be installed (and uninstalled) using
-``pip`` directly.  For the client build, there is a new command, ``girder build``.  Without
-any arguments this command will execute a production build of all installed plugins.  The
-client assets will be fetched from ``npm``.  (This will cause production builds to fail until
-the package is actually published.)
+The ``girder_install`` command has been removed.  This command was primarily
+used to install plugins and run the client build.  Plugins should now be
+installed (and uninstalled) using ``pip`` directly.  For the client build,
+there is a new command, ``girder build``.  Without any arguments this command
+will execute a production build of all installed plugins.  Executing ``girder
+build --dev`` will build a *development* install of Girder's static assets as
+well as building targets only necessary when running testing.
 
-Executing ``girder build --dev`` will build a *development* install of Girder's static assets.
-This means that client code will be *symlinked* into a staging directory residing in
-``{{sys.prefix}}/share/girder/staging`` and built into a dedicated static directory
-``{{sys.prefix}}/share/girder/static``.
-
-.. note::  The behavior of using symlinks relies on the node flag ``--preserve-symlinks``
-           which was added in version ``6.3``.  We have had a soft requirement of ``node>=6.5``
-           for some time, but now builds will actually fail if that requirement is not met.
+The new build process works by generating a ``package.json`` file in ``girder/web_client``
+from the template (``girder/web_client/package.json.template``).  The generated
+``package.json`` includes all plugin web client dependencies as well as a list of
+npm packages containing web client extensions.  The build process is executed in
+place (in the Girder python package) in both development and production installs.
+The built assets are installed into a virtual environment specific static path
+``{sys.prefix}/share/girder``.
 
 1.x |ra| 2.x
 ------------
