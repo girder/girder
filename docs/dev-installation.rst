@@ -49,6 +49,6 @@ To rebuild the web client:
 
 .. code-block:: bash
 
-    girder-install web --dev
+    girder build --dev
 
 For more development documentation, see `During Development <development.html#during-development>`__
