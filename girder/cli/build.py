@@ -28,7 +28,6 @@ import click
 from girder.constants import STATIC_ROOT_DIR
 from girder.plugin import allPlugins, getPlugin
 
-# _GIRDER_STAGING_PATH = os.path.join(STATIC_PREFIX, 'staging')
 _GIRDER_BUILD_ASSETS_PATH = resource_filename('girder', 'web_client')
 
 
@@ -40,7 +39,7 @@ _GIRDER_BUILD_ASSETS_PATH = resource_filename('girder', 'web_client')
 @click.option('--watch-plugin',
               help='Build a girder plugin bundle in watch mode (implies --dev --no-reinstall).')
 @click.option('--reinstall/--no-reinstall', default=True,
-              help='Force regenerate node_modules exists.')
+              help='Force regenerate node_modules.')
 def main(dev, watch, watch_plugin, reinstall):
     if watch and watch_plugin:
         raise click.UsageError('--watch and --watch-plugins cannot be used together')

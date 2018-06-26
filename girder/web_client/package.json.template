@@ -72,9 +72,8 @@
         "whatwg-fetch": "^2.0.4"
     },
     "scripts": {
-        "build": "NODE_PATH=$PWD/node_modules grunt",
-        "prepublishOnly": "node _prepublish.js",
-        "watch": "NODE_PATH=$PWD/node_modules grunt --watch"
+        "build": "grunt",
+        "watch": "grunt --watch"
     },
     "files": [
         "Gruntfile.js",
