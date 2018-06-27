@@ -31,7 +31,7 @@ from girder.utility import path as path_util
 from girder.utility.progress import ProgressContext
 
 # Plugins can modify this set to allow other types to be searched
-allowedSearchTypes = {'collection', 'folder', 'group', 'item', 'user'}
+allowedSearchTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
 allowedDeleteTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
 
 
