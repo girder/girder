@@ -27,7 +27,8 @@ cherrypy.config['server'].update({'cherrypy_server': False,
                                   'disable_event_daemon': True})
 
 # 'application' is the default callable object for WSGI implementations, see PEP 3333 for more.
-application = server.setup()
+server.setup()
+application = cherrypy.tree
 
 cherrypy.server.unsubscribe()
 cherrypy.engine.start()
