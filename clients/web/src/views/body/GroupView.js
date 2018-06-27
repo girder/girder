@@ -102,44 +102,22 @@ var GroupView = View.extend({
         this.isAdmin = false;
 
         if (getCurrentUser()) {
-            _.every(getCurrentUser().get('groups'), function (groupId) {
-                if (groupId === this.model.get('_id')) {
-                    this.isMember = true;
-                    return false; // 'break;'
-                }
-                return true;
-            }, this);
-
-            _.every(getCurrentUser().get('groupInvites'), function (inv) {
-                if (inv.groupId === this.model.get('_id')) {
-                    this.isInvited = true;
-                    return false; // 'break;'
-                }
-                return true;
-            }, this);
-
-            _.every(this.model.get('requests') || [], function (user) {
-                if (user.id === getCurrentUser().get('_id')) {
-                    this.isRequested = true;
-                    return false; // 'break;'
-                }
-                return true;
-            }, this);
+            this.isMember = _.contains(getCurrentUser().get('groups'), this.model.get('_id'));
+            this.isInvited = _.contains(getCurrentUser().get('groupInvites'),
+                                        this.model.get('_id'));
+            this.isRequested = _.contains(_.pluck(this.model.get('requests') || [], 'id'),
+                                          getCurrentUser().get('_id'));
         }
 
         if (this.isMember) {
-            _.every(this.model.get('access').users || [], function (access) {
-                if (access.id === getCurrentUser().get('_id')) {
-                    if (access.level === AccessType.WRITE) {
-                        this.isModerator = true;
-                    } else if (access.level === AccessType.ADMIN) {
-                        this.isAdmin = true;
-                    }
-                    return false; // 'break';
-                }
-                return true;
-            }, this);
+            var userAccess = _.find(this.model.get('access').users || [], function (user) {
+                return user.id === getCurrentUser().get('_id');
+            });
+
+            this.isModerator = (userAccess && userAccess.level === AccessType.WRITE);
+            this.isAdmin = (userAccess && userAccess.level === AccessType.ADMIN);
         }
+
         this.$el.html(GroupPageTemplate({
             group: this.model,
             getCurrentUser: getCurrentUser,
