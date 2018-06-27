@@ -14,7 +14,7 @@ def recordModel():
 
 
 @pytest.fixture
-def resetLog():
+def freshLog():
     yield auditLogger
 
     for handler in auditLogger.handlers:
@@ -22,7 +22,7 @@ def resetLog():
 
 
 @pytest.mark.plugin('audit_logs')
-def testAnonymousRestRequestLogging(server, recordModel, resetLog):
+def testAnonymousRestRequestLogging(server, recordModel, freshLog):
     assert list(recordModel.find()) == []
 
     server.request('/user/me')
@@ -42,7 +42,7 @@ def testAnonymousRestRequestLogging(server, recordModel, resetLog):
 
 
 @pytest.mark.plugin('audit_logs')
-def testFailedRestRequestLogging(server, recordModel, resetLog):
+def testFailedRestRequestLogging(server, recordModel, freshLog):
     server.request('/folder', method='POST', params={
         'name': 'Foo',
         'parentId': 'foo'
@@ -62,7 +62,7 @@ def testFailedRestRequestLogging(server, recordModel, resetLog):
 
 
 @pytest.mark.plugin('audit_logs')
-def testAuthenticatedRestRequestLogging(server, recordModel, resetLog, admin):
+def testAuthenticatedRestRequestLogging(server, recordModel, freshLog, admin):
     server.request('/user/me', user=admin)
     records = recordModel.find()
     assert records.count() == 1
@@ -71,7 +71,7 @@ def testAuthenticatedRestRequestLogging(server, recordModel, resetLog, admin):
 
 
 @pytest.mark.plugin('audit_logs')
-def testDownloadLogging(server, recordModel, resetLog, admin, fsAssetstore):
+def testDownloadLogging(server, recordModel, freshLog, admin, fsAssetstore):
     folder = Folder().find({
         'parentId': admin['_id'],
         'name': 'Public'
