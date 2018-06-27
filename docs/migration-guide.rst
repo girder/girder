@@ -64,10 +64,10 @@ plugin:
         "peerDepencencies": {
             "@girder/other_plugin": "*"       // Peer dependencies should be as relaxed as possible
                                               // Plugin dependencies should also be listed by entrypoint
-                                              // name in "girder-plugin" as shown below.
+                                              // name in "girderPlugin" as shown below.
         },
         "dependencies": {},                   // Any other dependencies of the client code
-        "girder-plugin": {
+        "girderPlugin": {
             "name": "example",                // The entrypoint name defined in setup.py.
             "main": "./main.js"               // The plugin client entrypoint containing code that is executed on load.
             "webpack": "webpack.helper",      // If your plugin needs to modify the webpack config

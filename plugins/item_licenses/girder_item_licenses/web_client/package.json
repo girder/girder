@@ -10,7 +10,7 @@
         "type": "git",
         "url": "https://github.com/girder/girder.git"
     },
-    "girder-plugin": {
+    "girderPlugin": {
         "name": "item_licenses",
         "main": "./main.js"
     }

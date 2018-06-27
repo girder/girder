@@ -256,7 +256,7 @@ module.exports = function (grunt) {
 
     // Get a list of entry points for each installed plugin.
     plugins.forEach(function (plugin) {
-        const pluginDef = require(path.join(plugin, 'package.json'))['girder-plugin'];
+        const pluginDef = require(path.join(plugin, 'package.json'))['girderPlugin'];
         const name = pluginDef.name;
         const babelRule = {
             resource: {

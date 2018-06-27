@@ -14,7 +14,7 @@
     "dependencies": {
         "vega-loader": "^3.0.0"
     },
-    "girder-plugin": {
+    "girderPlugin": {
         "name": "table_view",
         "main": "./main.js"
     }

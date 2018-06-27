@@ -19,7 +19,7 @@
     "peerDependencies": {
         "@girder/item_tasks": "*"
     },
-    "girder-plugin": {
+    "girderPlugin": {
         "name": "candela",
         "main": "./main.js",
         "dependencies": ["item_tasks"],

@@ -633,7 +633,7 @@ What follows is a typical npm package file for a Girder client side extension:
         "dependencies": {
             "othermodule": "^1.2.4"
         },
-        "girder-plugin": {
+        "girderPlugin": {
             "name": "cats",
             "main": "./main.js",
             "dependencies": ["jobs"],
@@ -644,7 +644,7 @@ What follows is a typical npm package file for a Girder client side extension:
 
 The package name in this file **must** match the ``NPM_PACKAGE_NAME`` in your
 python plugin descriptor class.  In addition to the standard ``package.json``
-properties, Girder plugins **must** also define a ``girder-plugin`` object to
+properties, Girder plugins **must** also define a ``girderPlugin`` object to
 register themselves with Girder's client build system.  The important keys in
 the object are as follows:
 

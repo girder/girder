@@ -12,7 +12,7 @@
         "url": "https://github.com/girder/girder.git"
     },
     "main": "./index.js",
-    "girder-plugin": {
+    "girderPlugin": {
         "name": "authorized_upload",
         "main": "./main.js"
     }

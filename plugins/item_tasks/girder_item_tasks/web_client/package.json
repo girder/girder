@@ -21,7 +21,7 @@
         "@girder/remote_worker": "*"
     },
     "main": "./index.js",
-    "girder-plugin": {
+    "girderPlugin": {
         "name": "item_tasks",
         "main": "./main.js",
         "dependencies": ["remote_worker", "jobs"]

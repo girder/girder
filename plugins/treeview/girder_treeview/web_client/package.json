@@ -15,7 +15,7 @@
         "jstree": "^3.3.4"
     },
     "main": "./index.js",
-    "girder-plugin": {
+    "girderPlugin": {
         "name": "treeview",
         "main": "./main.js"
     }

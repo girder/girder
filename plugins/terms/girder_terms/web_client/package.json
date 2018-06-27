@@ -14,7 +14,7 @@
     "dependencies": {
         "sha.js": "~2.4.8"
     },
-    "girder-plugin": {
+    "girderPlugin": {
         "name": "terms",
         "main": "./main.js"
     }

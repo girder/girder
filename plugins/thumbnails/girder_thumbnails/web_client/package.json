@@ -13,7 +13,7 @@
     "peerDependencies": {
         "@girder/jobs": "*"
     },
-    "girder-plugin": {
+    "girderPlugin": {
         "name": "thumbnails",
         "main": "./main.js",
         "dependencies": ["jobs"]

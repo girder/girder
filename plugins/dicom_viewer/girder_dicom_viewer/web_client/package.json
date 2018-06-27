@@ -16,7 +16,7 @@
         "shader-loader": "1.3.0",
         "vtk.js": "5.10.3"
     },
-    "girder-plugin": {
+    "girderPlugin": {
         "name": "dicom_viewer",
         "main": "./main.js",
         "webpack": "webpack.helper"

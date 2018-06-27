@@ -16,7 +16,7 @@
     "peerDependencies": {
         "@girder/jobs": "*"
     },
-    "girder-plugin": {
+    "girderPlugin": {
         "name": "remote_worker",
         "main": "./main.js",
         "dependencies": ["jobs"]

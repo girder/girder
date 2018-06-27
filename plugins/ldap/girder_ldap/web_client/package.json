@@ -13,7 +13,7 @@
     "dependencies": {
         "sortablejs": "1.5.1"
     },
-    "girder-plugin": {
+    "girderPlugin": {
         "name": "ldap",
         "main": "./main.js"
     }
