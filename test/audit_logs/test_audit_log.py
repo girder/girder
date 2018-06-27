@@ -5,6 +5,7 @@ from girder import auditLogger
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.upload import Upload
+from girder.models.user import User
 
 
 @pytest.fixture
@@ -63,6 +64,7 @@ def testFailedRestRequestLogging(server, recordModel, freshLog):
 
 @pytest.mark.plugin('audit_logs')
 def testAuthenticatedRestRequestLogging(server, recordModel, freshLog, admin):
+    recordModel.collection.remove({})  # Clear existing records
     server.request('/user/me', user=admin)
     records = recordModel.find()
     assert records.count() == 1
@@ -80,6 +82,8 @@ def testDownloadLogging(server, recordModel, freshLog, admin, fsAssetstore):
         six.BytesIO(b'hello'), size=5, name='test', parentType='folder', parent=folder,
         user=admin, assetstore=fsAssetstore)
 
+    recordModel.collection.remove({})  # Clear existing records
+
     File().download(file, headers=False, offset=2, endByte=4)
 
     records = recordModel.find()
@@ -92,3 +96,15 @@ def testDownloadLogging(server, recordModel, freshLog, admin, fsAssetstore):
     assert record['details']['startByte'] == 2
     assert record['details']['endByte'] == 4
     assert isinstance(record['when'], datetime.datetime)
+
+@pytest.mark.plugin('audit_logs')
+def testDocumentCreationLogging(server, recordModel, freshLog):
+    user = User().createUser('admin', 'password', 'first', 'last', 'a@a.com')
+    records = recordModel.find(sort=[('when', 1)])
+    assert records.count() == 3
+
+    assert records[0]['details']['collection'] == 'user'
+    assert records[0]['details']['id'] == user['_id']
+    assert records[1]['details']['collection'] == 'folder'
+    assert records[2]['details']['collection'] == 'folder'
+
