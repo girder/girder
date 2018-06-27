@@ -81,6 +81,12 @@ class Item(acl_mixin.AccessControlMixin, Model):
         # onto the end of the name, incrementing n until the name is unique.
         name = doc['name']
         # If the item already exists with the current name, don't check.
+        # Although we don't want duplicate names, they can occur when there are
+        # simultaneous uploads, and also because Mongo has no guaranteed
+        # multi-collection uniqueness constraints.  If this occurs, and we are
+        # changing a non-name property, don't validate the name (since that may
+        # fail).  If the name is being changed, validate that it is probably
+        # unique.
         checkName = '_id' not in doc or not self.findOne({'_id': doc['_id'], 'name': name})
         n = 0
         while checkName:
