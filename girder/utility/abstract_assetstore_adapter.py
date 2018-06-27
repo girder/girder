@@ -362,7 +362,7 @@ class AbstractAssetstoreAdapter(ModelImporter):
         :param chunkSize: the chunk size that needs to be validated.
         :type chunkSize: a non-negative integer or None if unknown.
         """
-        if 'received' not in upload or 'size' not in upload:
+        if 'received' not in upload or 'size' not in upload or upload['size'] is None:
             return
         if chunkSize is None:
             return
