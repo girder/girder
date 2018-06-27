@@ -746,3 +746,15 @@ class FolderTestCase(base.TestCase):
             path='/folder/%s/copy' % subFolder['_id'], method='POST',
             user=self.admin, params={'public': 'false', 'progress': True})
         self.assertStatusOk(resp)
+
+    def testUpdateDuplicatedName(self):
+        folder1 = Folder().createFolder(
+            name='foo', parent=self.admin, parentType='user', creator=self.admin)
+        folder2 = Folder().createFolder(
+            name='bar', parent=self.admin, parentType='user', creator=self.admin)
+        folder2['name'] = 'foo'
+        Folder().save(folder2, validate=False)
+        self.assertEqual(folder2['name'], 'foo')
+        folder1['size'] = 3
+        Folder().save(folder1)
+        self.assertEqual(folder1['name'], 'foo')

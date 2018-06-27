@@ -79,9 +79,11 @@ class Folder(AccessControlledModel):
                                   doc['parentCollection'],
                                   'girder.models.folder.invalid-parent-type')
         name = doc['name']
+        # If the folder already exists with the current name, don't check.
+        checkName = '_id' not in doc or not self.findOne({'_id': doc['_id'], 'name': name})
         n = 0
         itemModel = Item()
-        while True:
+        while checkName:
             q = {
                 'parentId': doc['parentId'],
                 'name': name,

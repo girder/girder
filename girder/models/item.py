@@ -80,8 +80,10 @@ class Item(acl_mixin.AccessControlMixin, Model):
         # name collides with an existing item or folder, we will append (n)
         # onto the end of the name, incrementing n until the name is unique.
         name = doc['name']
+        # If the item already exists with the current name, don't check.
+        checkName = '_id' not in doc or not self.findOne({'_id': doc['_id'], 'name': name})
         n = 0
-        while True:
+        while checkName:
             q = {
                 'name': name,
                 'folderId': doc['folderId']
@@ -98,7 +100,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
             dupFolder = Folder().findOne(q, fields=['_id'])
             if dupItem is None and dupFolder is None:
                 doc['name'] = name
-                break
+                checkName = False
             else:
                 n += 1
                 name = '%s (%d)' % (doc['name'], n)
