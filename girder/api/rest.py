@@ -31,10 +31,9 @@ import unicodedata
 
 from dogpile.cache.util import kwarg_function_key_generator
 from . import docs
-from girder import events, logger, logprint
+from girder import auditLogger, events, logger, logprint
 from girder.constants import SettingKey, TokenScope, SortDir
-from girder.exceptions import AccessException, GirderException, ValidationException, \
-    RestException
+from girder.exceptions import AccessException, GirderException, ValidationException, RestException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
@@ -573,6 +572,17 @@ def _handleValidationException(e):
     return val
 
 
+def _logRestRequest(resource, path, params):
+    auditLogger.info('rest.request', extra={
+        'details': {
+            'method': cherrypy.request.method.upper(),
+            'route': (getattr(resource, 'resourceName', resource.__class__.__name__),) + path,
+            'params': params,
+            'status': cherrypy.response.status or 200
+        }
+    })
+
+
 def endpoint(fun):
     """
     REST HTTP method endpoints should use this decorator. It converts the return
@@ -586,11 +596,11 @@ def endpoint(fun):
     from the inner method.
     """
     @six.wraps(fun)
-    def endpointDecorator(self, *args, **kwargs):
+    def endpointDecorator(self, *path, **params):
         _setCommonCORSHeaders()
         cherrypy.lib.caching.expires(0)
         try:
-            val = fun(self, args, kwargs)
+            val = fun(self, path, params)
 
             # If this is a partial response, we set the status appropriately
             if 'Content-Range' in cherrypy.response.headers:
@@ -601,6 +611,7 @@ def endpoint(fun):
                 # lambda, functools.partial), we assume it's a generator
                 # function for a streaming response.
                 cherrypy.response.stream = True
+                _logRestRequest(self, path, params)
                 return val()
 
             if isinstance(val, cherrypy.lib.file_generator):
@@ -629,7 +640,10 @@ def endpoint(fun):
                 # Unless we are in production mode, send a traceback too
                 val['trace'] = traceback.extract_tb(tb)
 
-        return _createResponse(val)
+        resp = _createResponse(val)
+        _logRestRequest(self, path, params)
+
+        return resp
     return endpointDecorator
 
 

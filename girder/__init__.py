@@ -225,6 +225,7 @@ def _setupLogger():
 
 
 logger = _setupLogger()
+auditLogger = logging.getLogger('girder.audit')
 
 
 def logStdoutStderr(force=False):
