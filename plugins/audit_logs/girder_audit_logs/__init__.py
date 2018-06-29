@@ -4,6 +4,7 @@ import logging
 from girder import auditLogger
 from girder.models.model_base import Model
 from girder.api.rest import getCurrentUser
+from girder.plugin import GirderPlugin
 
 
 class Record(Model):
@@ -26,5 +27,8 @@ class _AuditLogDatabaseHandler(logging.Handler):
         }, triggerEvents=False)
 
 
-def load(info):
-    auditLogger.addHandler(_AuditLogDatabaseHandler())
+class AuditLogsPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Audit logging'
+
+    def load(self, info):
+        auditLogger.addHandler(_AuditLogDatabaseHandler())

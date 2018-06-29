@@ -3,6 +3,7 @@
 -e plugins/remote_worker
 -e plugins/item_tasks
 -e plugins/candela
+-e plugins/audit_logs
 -e plugins/authorized_upload
 -e plugins/autojoin
 -e plugins/curation
