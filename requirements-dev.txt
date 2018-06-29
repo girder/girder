@@ -1,11 +1,15 @@
+# The following editable installs *must* be in topological order
+# to prevent pip from fetching versions from pypi.
 -e pytest_girder
 -e plugins/jobs
 -e plugins/remote_worker
 -e plugins/item_tasks
--e plugins/candela
+
+# The following are top level dependencies.
 -e plugins/audit_logs
 -e plugins/authorized_upload
 -e plugins/autojoin
+-e plugins/candela
 -e plugins/curation
 -e plugins/dicom_viewer
 -e plugins/download_statistics
@@ -23,6 +27,8 @@
 -e plugins/treeview
 -e plugins/user_quota
 -e plugins/virtual_folders
+
+# External dependencies
 coverage
 flake8
 flake8-blind-except
