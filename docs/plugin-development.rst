@@ -329,7 +329,21 @@ Adding a new model type in your plugin
 
 Most of the time, if you add a new resource type in your plugin, you'll have a
 ``Model`` class backing it. These model classes work just like the core model
-classes as described in the :ref:`models` section.
+classes as described in the :ref:`models` section.  Because custom models in plugins
+cannot be automatically resolved, they should be registered with the :py:class:`girder.utility.model_importer.ModelImporter`
+class inside your load method.
+
+
+.. code-block:: python
+
+    from girder.plugin import GirderPlugin
+    from girder.utilities.model_importer import ModelImporter
+    from .models.cat import Cat
+
+    class CatsPlugin(GirderPlugin):
+        def load(self, info):
+            ModelImporter.registerModel('cat', Cat(), 'cats')
+
 
 Adding custom access flags
 **************************

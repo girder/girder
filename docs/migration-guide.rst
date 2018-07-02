@@ -124,6 +124,20 @@ Other backwards incompatible changes affecting plugins
 * When running the server in testing mode (``girder serve --testing``), the source directory
   is no longer served.  If you need any assets for testing, they have to be installed into
   the static directory during the client build process.
+* Automatic registration of plugin models is no longer provided.  If your plugin contains any
+  custom models that must be resolved dynamically (with ``ModelImporter.model(name, plugin=plugin)``)
+  then you must register the model in your load method.  In the jobs plugin for example, we
+  register the ``job`` model as follows:
+
+  .. code-block:: python
+
+    from girder.utility.model_importer import ModelImporter
+    from .models.job import Job
+
+    class JobsPlugin(GirderPlugin):
+        def load(self, info):
+            ModelImporter.registerModel('job', Job(), 'jobs')
+
 
 Client build changes
 ++++++++++++++++++++

@@ -21,8 +21,10 @@ import importlib
 
 from girder import events
 from girder.plugin import GirderPlugin
+from girder.utility.model_importer import ModelImporter
 
 from . import constants, job_rest
+from .models.job import Job
 
 
 def scheduleLocal(event):
@@ -50,5 +52,6 @@ class JobsPlugin(GirderPlugin):
     NPM_PACKAGE_NAME = '@girder/jobs'
 
     def load(self, info):
+        ModelImporter.registerModel('job', Job(), 'jobs')
         info['apiRoot'].job = job_rest.Job()
         events.bind('jobs.schedule', 'jobs', scheduleLocal)
