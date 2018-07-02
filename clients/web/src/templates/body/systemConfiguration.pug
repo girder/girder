@@ -224,8 +224,8 @@ form.g-settings-form(role="form")
             br
             span Disabling this may improve server performance with many concurrent web client users.
             .checkbox
-              label(for="g-core-notification-stream-enabled")
-                input#g-core-notification-stream-enabled(
+              label(for="g-core-enable-notification-stream")
+                input#g-core-enable-notification-stream(
                 type="checkbox", checked=(
                   settings['core.enable_notification_stream'] === null ?
                   defaults['core.enable_notification_stream'] :
