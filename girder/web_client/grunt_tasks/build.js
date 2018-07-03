@@ -305,7 +305,14 @@ module.exports = function (grunt) {
                 new ExtractTextPlugin({
                     filename: 'plugin.min.css',
                     allChunks: true
-                })
+                }),
+                // Copy assets from the "extras" directory.
+                new CopyWebpackPlugin([{
+                    context: path.resolve(`node_modules/${plugin}/extra`),
+                    from: '**',
+                    to: path.join(grunt.config.get('builtPath'), 'plugins', name, 'extra'),
+                    toType: 'dir'
+                }])
             ].concat(_.map(pluginDef.dependencies || [], (dep) => {
                 return new webpack.DllReferencePlugin({
                     context: '.',
