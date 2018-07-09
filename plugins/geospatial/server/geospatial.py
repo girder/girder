@@ -326,7 +326,7 @@ class GeospatialItem(Resource):
             if v:
                 try:
                     GeoJSON.to_instance(v, strict=True)
-                except ValueError:
+                except (ValueError, TypeError):
                     raise RestException('Geospatial field with key %s does not'
                                         ' contain valid GeoJSON: %s' % (k, v))
 

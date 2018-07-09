@@ -777,3 +777,13 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(item1['_id'], item3['_id'])
         self.assertEqual(item2['name'], 'to be reused (1)')
         self.assertEqual(item3['name'], 'to be reused')
+
+    def testUpdateDuplicatedName(self):
+        item1 = Item().createItem('foo', creator=self.users[0], folder=self.publicFolder)
+        item2 = Item().createItem('bar', creator=self.users[0], folder=self.publicFolder)
+        item2['name'] = 'foo'
+        Item().save(item2, validate=False)
+        self.assertEqual(item2['name'], 'foo')
+        item1['size'] = 3
+        Item().save(item1)
+        self.assertEqual(item1['name'], 'foo')

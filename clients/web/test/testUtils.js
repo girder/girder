@@ -590,15 +590,23 @@ girderTest.waitForLoad = function (desc) {
         }
         return !$('.modal').data('bs.modal').$backdrop;
     }, 'any modal dialog to be hidden' + desc);
+    /* We used to just make sure that we were no longer in transition, had
+     * outstanding web requests, and loading blocks were gone.  However, some
+     * actions would release their time slice only to schedule another action
+     * as soon as possible, and thus not really be finished.  This waits a few
+     * extra time slices before assuming that loading is finished, which works
+     * around this. */
+    var clearCount = 0;
     waitsFor(function () {
-        return !girder._inTransition;
-    }, 'transitions to finish');
-    waitsFor(function () {
-        return girder.rest.numberOutstandingRestRequests() === 0;
-    }, 'rest requests to finish' + desc);
-    waitsFor(function () {
-        return $('.g-loading-block').length === 0;
-    }, 'all blocks to finish loading' + desc);
+        if (girder._inTransition ||
+                girder.rest.numberOutstandingRestRequests() ||
+                $('.g-loading-block').length) {
+            clearCount = 0;
+            return false;
+        }
+        clearCount += 1;
+        return clearCount > 2;
+    }, 'transitions, rest requests, and block loads to finish' + desc);
 };
 
 /**

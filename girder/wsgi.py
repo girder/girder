@@ -38,7 +38,8 @@ cherrypy.log.access_log.addHandler(_handler)
 cherrypy.log.error_log.addHandler(_handler)
 
 # 'application' is the default callable object for WSGI implementations, see PEP 3333 for more.
-application = server.setup()
+server.setup()
+application = cherrypy.tree
 
 cherrypy.server.unsubscribe()
 cherrypy.engine.start()
