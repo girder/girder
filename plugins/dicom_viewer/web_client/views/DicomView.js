@@ -168,6 +168,13 @@ const DicomSliceImageWidget = View.extend({
         };
     },
 
+    destroy: function () {
+        if (this.vtk.interactor) {
+            this.vtk.interactor.unbindEvents(this.el);
+        }
+        View.prototype.destroy.apply(this, arguments);
+    },
+
     /**
      * Set the slice to use.
      *
