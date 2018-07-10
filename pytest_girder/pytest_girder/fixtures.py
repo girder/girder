@@ -6,6 +6,13 @@ import os
 import pytest
 import shutil
 
+import time
+try:
+    from urllib2 import urlopen
+    from urllib2 import URLError
+except ImportError:
+    from urllib.request import urlopen
+    from urllib import URLError
 from .utils import uploadFile, MockSmtpReceiver, request as restRequest
 
 
@@ -147,6 +154,15 @@ def server(db, request):
     docs.routes.clear()
 
 
+    # Wait for girder to be up and running
+    timeout = 5
+    while timeout > 0:
+        time.sleep(1)
+        try:
+            urlopen(url)
+            timeout = 0
+        except URLError:
+            timeout -= 1
 @pytest.fixture
 def smtp(db, server):
     """
