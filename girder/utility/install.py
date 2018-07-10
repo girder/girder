@@ -378,4 +378,8 @@ def main():
     ).set_defaults(func=print_web_root)
 
     parsed = parser.parse_args()
-    parsed.func(parsed)
+
+    if hasattr(parsed, 'func'):
+        parsed.func(parsed)
+    else:
+        parser.print_help()
