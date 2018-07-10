@@ -10,11 +10,9 @@ import subprocess
 import time
 import warnings
 try:
-    from urllib2 import urlopen
-    from urllib2 import URLError
+    from urllib2 import urlopen, URLError
 except ImportError:
-    from urllib.request import urlopen
-    from urllib import URLError
+    from urllib.request import urlopen, URLError
 
 from girder_client import GirderClient
 from .utils import uploadFile, MockSmtpReceiver, request as restRequest
