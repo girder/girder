@@ -8,6 +8,7 @@ import shutil
 
 import socket
 import time
+import warnings
 try:
     from urllib2 import urlopen
     from urllib2 import URLError
@@ -35,13 +36,17 @@ def _uid(node):
 
 
 @pytest.fixture(autouse=True)
-def bcrypt():
+def bcrypt(request):
     """
     Mock out bcrypt password hashing to avoid unnecessary testing bottlenecks.
     """
-    with mock.patch('bcrypt.hashpw') as hashpw:
-        hashpw.side_effect = lambda x, y: x
-        yield hashpw
+    if 'liveServer' in request.node.fixturenames:
+        warnings.warn(UserWarning("Not using bicrypt mock, it is a live server"))
+        yield
+    else:
+        with mock.patch('bcrypt.hashpw') as hashpw:
+            hashpw.side_effect = lambda x, y: x
+            yield hashpw
 
 
 @pytest.fixture
