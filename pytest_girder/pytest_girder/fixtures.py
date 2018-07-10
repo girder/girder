@@ -5,8 +5,8 @@ import mongomock
 import os
 import pytest
 import shutil
-
 import socket
+import subprocess
 import time
 import warnings
 try:
@@ -15,6 +15,8 @@ try:
 except ImportError:
     from urllib.request import urlopen
     from urllib import URLError
+
+from girder_client import GirderClient
 from .utils import uploadFile, MockSmtpReceiver, request as restRequest
 
 
@@ -170,6 +172,44 @@ def server(db, request):
     docs.routes.clear()
 
 
+@pytest.fixture
+def liveServer(request, db):
+    """
+    Provides a girder client instance pointing to a live
+    Girder server. Would be used for integration tests which
+    require a live Girder instance.
+
+    Requires the db fixture.
+    """
+    from girder.constants import SettingKey
+    from girder.models.setting import Setting
+
+    # Avoid having both server and liveServer fixtures in a test
+    fixtures = request.node.fixturenames
+    if 'server' in fixtures and 'liveServer' in fixtures:
+        raise ValueError('server and liveServer fixtures should not be used together')
+
+    enabledPlugins = []
+    hasInstalledPluginMarkers = request.node.get_closest_marker('plugin') is not None
+    if hasInstalledPluginMarkers:
+        for installedPluginMarker in request.node.iter_markers('plugin'):
+            pluginName = installedPluginMarker.args[0]
+            enabledPlugins.append(pluginName)
+
+    Setting().set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
+
+    PORT = str(_getFreeTcpPort())
+    HOST = '127.0.0.1'
+
+    database = db.get_default_database()
+    dbUri = 'mongodb://{}:{}/{}'.format(db.HOST,
+                                        db.PORT,
+                                        database.name)
+    command = 'girder serve --testing --database {} --port {}'.format(dbUri, PORT)
+    _process = subprocess.Popen(command, shell=True)
+
+    url = "http://{}:{}/api/v1".format(HOST, PORT)
+
     # Wait for girder to be up and running
     timeout = 5
     while timeout > 0:
@@ -179,6 +219,14 @@ def server(db, request):
             timeout = 0
         except URLError:
             timeout -= 1
+
+    # Returns a girder client instance.
+    # Can use the admin fixture to authenticate
+    # liveServer.authenticate(admin['login'], 'password')
+    yield GirderClient(apiUrl=url)
+    _process.kill()
+
+
 @pytest.fixture
 def smtp(db, server):
     """
@@ -252,4 +300,4 @@ def fsAssetstore(db, request):
         shutil.rmtree(path)
 
 
-__all__ = ('admin', 'bcrypt', 'db', 'fsAssetstore', 'server', 'user', 'smtp')
+__all__ = ('admin', 'bcrypt', 'db', 'fsAssetstore', 'server', 'liveServer', 'user', 'smtp')
