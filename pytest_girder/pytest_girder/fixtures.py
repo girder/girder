@@ -6,6 +6,7 @@ import os
 import pytest
 import shutil
 
+import socket
 import time
 try:
     from urllib2 import urlopen
@@ -14,6 +15,16 @@ except ImportError:
     from urllib.request import urlopen
     from urllib import URLError
 from .utils import uploadFile, MockSmtpReceiver, request as restRequest
+
+
+def _getFreeTcpPort():
+    # Get a random free tcp port
+    # Taken from https://gist.github.com/gabrielfalcao/20e567e188f588b65ba2
+    tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    tcp.bind(('', 0))
+    addr, port = tcp.getsockname()
+    tcp.close()
+    return port
 
 
 def _uid(node):
