@@ -107,9 +107,8 @@ class DicomViewerTest(base.TestCase):
 
         # Check if the 'dicomItem' is well processed
         dicomItem = Item().load(item['_id'], force=True)
-        self.assertHasKeys(dicomItem, ['dicom'])
-        self.assertHasKeys(dicomItem['dicom'], ['meta'])
-        self.assertHasKeys(dicomItem['dicom'], ['files'])
+        self.assertIn('dicom', dicomItem)
+        self.assertHasKeys(dicomItem['dicom'], ['meta', 'files'])
 
         # Check if the files list contain the good keys and all the file are well sorted
         for i in range(0, 4):

@@ -173,7 +173,7 @@ def _coerceMetadata(dataset):
     #       yield dataset[tag]
     # but we want to ignore certain exceptions of delayed data loading, so
     # we iterate through the dataset ourselves.
-    for tag in sorted(dataset.keys()):
+    for tag in dataset.keys():
         try:
             dataElement = dataset[tag]
         except IOError:
