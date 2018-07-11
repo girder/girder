@@ -107,9 +107,8 @@ class DicomViewerTest(base.TestCase):
 
         # Check if the 'dicomItem' is well processed
         dicomItem = Item().load(item['_id'], force=True)
-        self.assertHasKeys(dicomItem, ['dicom'])
-        self.assertHasKeys(dicomItem['dicom'], ['meta'])
-        self.assertHasKeys(dicomItem['dicom'], ['files'])
+        self.assertIn('dicom', dicomItem)
+        self.assertHasKeys(dicomItem['dicom'], ['meta', 'files'])
 
         # Check if the files list contain the good keys and all the file are well sorted
         for i in range(0, 4):
@@ -225,3 +224,38 @@ class DicomViewerTest(base.TestCase):
 
         # TODO: Add test to search for a private DICOM item with an other user
         # this test should not found anything
+
+    def testDicomWithIOError(self):
+        import pydicom
+        from girder.plugins.dicom_viewer.event_helper import _EventHelper
+
+        # One of the test files in the pydicom module will throw an IOError
+        # when parsing metadata.  We should work around that and still be able
+        # to import the file
+        samplePath = os.path.join(os.path.dirname(os.path.abspath(
+            pydicom.__file__)), 'data', 'test_files', 'CT_small.dcm')
+        admin, user = self.users
+        # Create a collection, folder, and item
+        collection = Collection().createCollection('collection4', admin, public=True)
+        folder = Folder().createFolder(collection, 'folder4', parentType='collection', public=True)
+        item = Item().createItem('item4', admin, folder)
+        # Upload this dicom file
+        with open(samplePath, 'rb') as fp, _EventHelper('dicom_viewer.upload.success') as helper:
+            dcmFile = Upload().uploadFromFile(
+                obj=fp,
+                size=os.path.getsize(samplePath),
+                name=os.path.basename(samplePath),
+                parentType='item',
+                parent=item,
+                mimeType='application/dicom',
+                user=user
+            )
+            self.assertIsNotNone(dcmFile)
+            # Wait for handler success event
+            handled = helper.wait()
+            self.assertTrue(handled)
+        # Check if the 'dicomItem' is well processed
+        dicomItem = Item().load(item['_id'], force=True)
+        self.assertHasKeys(dicomItem, ['dicom'])
+        self.assertHasKeys(dicomItem['dicom'], ['meta'])
+        self.assertHasKeys(dicomItem['dicom'], ['files'])
