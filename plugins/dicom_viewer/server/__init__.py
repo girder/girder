@@ -134,6 +134,15 @@ def _removeUniqueMetadata(dicomMeta, additionalMeta):
 
 
 def _coerceValue(value):
+    # For binary data, see if it can be coerced further into utf8 data.  If
+    # not, mongo won't store it, so don't accept it here.
+    if isinstance(value, six.binary_type):
+        if b'\x00' in value:
+            raise ValueError('Binary data with null')
+        try:
+            value.decode('utf-8')
+        except UnicodeDecodeError:
+            raise ValueError('Binary data that cannot be stored as utf-8')
     # Many pydicom value types are subclasses of base types; to ensure the value can be serialized
     # to MongoDB, cast the value back to its base type
     for knownBaseType in {
