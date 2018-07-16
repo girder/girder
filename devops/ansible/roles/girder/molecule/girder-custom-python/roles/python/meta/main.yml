@@ -1,0 +1,8 @@
+dependencies:
+  - role: torian.python
+    python_version: 3.6.2
+    python_bin: /usr/local/bin/python3.6
+    python_setuptools_bin: /usr/local/bin/easy_install-3.6
+    python_build_opts: '-j4 profile-opt'
+    become: yes
+    become_user: root

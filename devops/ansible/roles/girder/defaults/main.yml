@@ -3,6 +3,7 @@
 
 girder_path: "{{ ansible_user_dir }}/girder"
 girder_repo: "https://github.com/girder/girder.git"
+girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
 girder_version: "master"
 girder_update: yes
 girder_force: yes

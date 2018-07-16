@@ -6,14 +6,6 @@
         (ansible_distribution_release != "xenial") and
         (ansible_os_family == "RedHat" and ansible_distribution_major_version != "7")
 
-- fail:
-    msg="girder_pip and girder_virtualenv are mututally exclusive variables."
-  when: girder_pip is defined and girder_virtualenv is defined
-
-- fail:
-    msg="Setting girder_python requires setting girder_pip."
-  when: girder_python is defined and girder_pip is not defined
-
 - name: Ensure girder base directory exists
   file:
     path: "{{ girder_path }}"
@@ -23,6 +15,12 @@
     mode: 0755
   become: yes
   become_user: root
+
+- name: Install apt-transport-https
+  apt:
+    name: apt-transport-https
+  become: yes
+  when: ansible_os_family == "Debian"
 
 - include: npm-RedHat.yml
   when:
@@ -36,34 +34,11 @@
 
 - include: girder.yml
 
-- name: Install virtualenv
-  pip:
-    name: virtualenv
-    executable: "{{ girder_pip | default(omit) }}"
-    state: latest
-  become: yes
-  become_user: root
-  when: girder_virtualenv is defined
-
 - include: pip.yml
-  when: girder_virtualenv is not defined
-  become: yes
-  become_user: root
-
-- include: pip.yml
-  when: girder_virtualenv is defined
 
 - include: daemon.yml
   when: girder_daemonize
 
 - name: Install Girder Plugins
-  command: "{{ girder_install_executable|default('girder-install') }} plugin {{ item.args|default('') }} {{ item.path|default(item) }}"
+  command: "{{ girder_virtualenv }}/bin/girder-install plugin {{ item.args|default('') }} {{ item.path|default(item) }}"
   with_items: "{{ girder_plugins }}"
-
-- name: Build Girder (web)
-  command: "{{ girder_install_executable }} web {{ girder_web_extra_args }}"
-  args:
-    chdir: "{{ girder_path }}"
-  # ensure that the install is one that uses web assets and
-  # the assets are always supposed to be rebuilt, or the files have changed (from git)
-  when: girder_web and (girder_always_build_assets or girder_files_updated)

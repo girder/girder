@@ -1,0 +1,22 @@
+---
+- name: Converge
+  hosts: all
+
+  pre_tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+      become: yes
+      become_user: root
+      changed_when: false
+      when: ansible_os_family == "Debian"
+
+    - name: Install virtualenv
+      package:
+        name: python-virtualenv
+      become: yes
+
+  roles:
+    - role: girder
+      girder_start: no
+      girder_web_extra_args: "--no-plugins"

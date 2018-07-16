@@ -1,0 +1,27 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint:
+  name: yamllint
+platforms:
+  - name: instance-ubuntu-14.04
+    image: ubuntu:14.04
+  - name: instance-ubuntu-16.04
+    image: ubuntu:16.04
+  - name: instance-centos-7
+    image: centos:7
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+scenario:
+  name: default
+  test_sequence:
+    - destroy
+    - dependency
+    - syntax
+    - create
+    - converge
+    - verify
