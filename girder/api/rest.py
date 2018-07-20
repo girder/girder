@@ -78,7 +78,7 @@ def getApiUrl(url=None, preferReferer=False):
         a cherrypy request that has a referer header that contains the api
         string, use that referer as the url.
     """
-    apiStr = '/api/v1'
+    apiStr = config.getConfig()['server']['api_root']
 
     if not url:
         if preferReferer and apiStr in cherrypy.request.headers.get('referer', ''):
@@ -86,7 +86,7 @@ def getApiUrl(url=None, preferReferer=False):
         else:
             root = Setting().get(SettingKey.SERVER_ROOT)
             if root:
-                return posixpath.join(root, config.getConfig()['server']['api_root'].lstrip('/'))
+                return posixpath.join(root, apiStr.lstrip('/'))
 
     url = url or cherrypy.url()
     idx = url.find(apiStr)
