@@ -20,6 +20,7 @@
 import importlib
 
 from girder import events
+from girder.models.file import File
 from . import constants, job_rest
 
 
@@ -43,6 +44,18 @@ def scheduleLocal(event):
         fn(job)
 
 
+def _onJobRemove(event):
+    # Remove any existing artifacts attached to this job
+    cursor = File().find({
+        'attachedToType': 'job',
+        'attachedToId': event.info['_id']
+    })
+
+    for file in cursor:
+        File().remove(file)
+
+
 def load(info):
     info['apiRoot'].job = job_rest.Job()
     events.bind('jobs.schedule', 'jobs', scheduleLocal)
+    events.bind('model.job.remove', 'jobs', _onJobRemove)

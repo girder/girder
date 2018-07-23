@@ -17,11 +17,15 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, filtermodel
 from girder.constants import AccessType, SortDir
+from girder.models.file import File
+from girder.models.upload import Upload
 from girder.models.user import User
+from girder.utility import RequestBodyStream
 from .models.job import Job as JobModel
 from . import constants
 
@@ -35,6 +39,7 @@ class Job(Resource):
 
         self.route('GET', (), self.listJobs)
         self.route('POST', (), self.createJob)
+        self.route('POST', (':id', 'artifact'), self.attachArtifact)
         self.route('GET', ('all',), self.listAllJobs)
         self.route('GET', (':id',), self.getJob)
         self.route('PUT', (':id',), self.updateJob)
@@ -216,3 +221,27 @@ class Job(Resource):
         .errorResponse('Write access was denied for the job.', 403))
     def cancelJob(self, job, params):
         return self._model.cancelJob(job)
+
+    @access.token
+    @filtermodel(File)
+    @autoDescribeRoute(
+        Description('Upload a file to a job as an attached artifact.')
+        .notes('The contents of the file should be passed as the request body. '
+               'Multi-chunk uploading of artifacts is not supported.')
+        .modelParam('id', 'The ID of the job.', model=JobModel, force=True)
+        .param('name', 'A name for the artifact.')
+        .param('size', 'The size of the file in bytes.', dataType='integer')
+        .param('mimeType', 'The MIME type for the file.', required=False)
+        .errorResponse('ID was invalid.')
+        .errorResponse('Write access was denied for the job.', 403))
+    def attachArtifact(self, job, name, size, mimeType):
+        user = self.getCurrentUser()
+        if user:
+            self._model.requireAccess(job, user, level=AccessType.WRITE)
+        else:
+            self.ensureTokenScopes('jobs.job_' + str(job['_id']))
+
+        body = RequestBodyStream(cherrypy.request.body)
+        return Upload().uploadFromFile(
+            body, size=size, name=name, parentType='job', parent=job, user=user, mimeType=mimeType,
+            attachParent=True)
