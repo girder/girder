@@ -55,6 +55,7 @@ class Notification(Resource):
         super(Notification, self).__init__()
         self.resourceName = 'notification'
         self.route('GET', ('stream',), self.stream)
+        self.route('GET', (), self.list)
 
     @access.cookie
     @access.token
@@ -105,3 +106,21 @@ class Notification(Resource):
 
                 time.sleep(wait)
         return streamGen
+
+    @access.cookie
+    @access.token
+    @autoDescribeRoute(
+        Description('List notification events')
+        .notes('This endpoint can be used for manual long-polling when '
+               'SSE support is disabled or otherwise unavailable.')
+        .param('since', 'Filter out events before this time stamp.',
+               dataType='integer', required=False)
+        .errorResponse()
+        .errorResponse('You are not logged in.', 403)
+    )
+    def list(self, params):
+        user, token = self.getCurrentUser(returnToken=True)
+        since = params.get('since')
+        if since is not None:
+            since = datetime.utcfromtimestamp(since)
+        return list(NotificationModel().get(user, since, token=token))
