@@ -118,9 +118,8 @@ class Notification(Resource):
         .errorResponse()
         .errorResponse('You are not logged in.', 403)
     )
-    def listNotifications(self, params):
+    def listNotifications(self, since):
         user, token = self.getCurrentUser(returnToken=True)
-        since = params.get('since')
         timestamp = time.time()
 
         if since is not None:
@@ -128,9 +127,7 @@ class Notification(Resource):
         notifications = list(NotificationModel().get(user, since, token=token))
 
         if notifications:
-            timestamp = notifications[0]['updatedTime']
-            for notification in notifications:
-                timestamp = max(timestamp, notification['updatedTime'])
+            timestamp = max(n['updatedTime'] for n in notifications)
 
         setResponseHeader('Date', str(timestamp))
         return notifications
