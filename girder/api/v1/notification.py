@@ -121,6 +121,8 @@ class Notification(Resource):
     def listNotifications(self, params):
         user, token = self.getCurrentUser(returnToken=True)
         since = params.get('since')
+        setResponseHeader('Date', str(time.time()))
+
         if since is not None:
             since = datetime.utcfromtimestamp(since)
         return list(NotificationModel().get(user, since, token=token))

@@ -38,12 +38,14 @@ def notifications(user):
 def testListAllNotifications(server, user, notifications):
     resp = server.request(path='/notification', user=user)
     assertStatusOk(resp)
+    assert 'Date' in resp.headers
     assert {m['_id'] for m in resp.json} == {str(m['_id']) for m in notifications}
 
 
 def testListNotificationsSinceTime(server, user, notifications):
     resp = server.request(path='/notification', user=user, params={'since': 10})
     assertStatusOk(resp)
+    assert 'Date' in resp.headers
     assert {m['_id'] for m in resp.json} == {str(notifications[-1]['_id'])}
 
 
