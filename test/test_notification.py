@@ -16,10 +16,17 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
+import time
+
 import pytest
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
 from girder.models.notification import Notification
+
+
+def assertApproximateTimestamp(time1, time2, delta=1):
+    __tracebackhide__ = True
+    assert abs(float(time1) - float(time2)) < delta
 
 
 @pytest.fixture
@@ -38,15 +45,23 @@ def notifications(user):
 def testListAllNotifications(server, user, notifications):
     resp = server.request(path='/notification', user=user)
     assertStatusOk(resp)
-    assert 'Date' in resp.headers
     assert {m['_id'] for m in resp.json} == {str(m['_id']) for m in notifications}
+    assertApproximateTimestamp(resp.headers.get('Date'), notifications[1]['updatedTime'])
 
 
 def testListNotificationsSinceTime(server, user, notifications):
     resp = server.request(path='/notification', user=user, params={'since': 10})
     assertStatusOk(resp)
-    assert 'Date' in resp.headers
     assert {m['_id'] for m in resp.json} == {str(notifications[-1]['_id'])}
+    assertApproximateTimestamp(resp.headers.get('Date'), notifications[1]['updatedTime'])
+
+
+def testDefaultDateHeader(server, user, notifications):
+    resp = server.request(path='/notification', user=user,
+                          params={'since': int(time.time()) + 1000})
+    assertStatusOk(resp)
+    assert resp.json == []
+    assertApproximateTimestamp(resp.headers.get('Date'), time.time(), 10)
 
 
 def testListNotificationsAuthError(server, notifications):

@@ -121,8 +121,16 @@ class Notification(Resource):
     def listNotifications(self, params):
         user, token = self.getCurrentUser(returnToken=True)
         since = params.get('since')
-        setResponseHeader('Date', str(time.time()))
 
         if since is not None:
             since = datetime.utcfromtimestamp(since)
-        return list(NotificationModel().get(user, since, token=token))
+        notifications = list(NotificationModel().get(user, since, token=token))
+        if not notifications:
+            timestamp = time.time()
+        else:
+            timestamp = notifications[0]['updatedTime']
+            for notification in notifications:
+                timestamp = max(timestamp, notification['updatedTime'])
+
+        setResponseHeader('Date', str(timestamp))
+        return notifications
