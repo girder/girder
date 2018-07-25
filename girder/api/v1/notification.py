@@ -18,13 +18,14 @@
 ###############################################################################
 
 import cherrypy
+import dateutil.parser
 import json
 import time
 from datetime import datetime
 
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, setResponseHeader
-from girder.constants import SettingKey
+from girder.constants import SettingKey, SortDir
 from girder.exceptions import RestException
 from girder.models.notification import Notification as NotificationModel
 from girder.models.setting import Setting
@@ -112,22 +113,25 @@ class Notification(Resource):
     @autoDescribeRoute(
         Description('List notification events')
         .notes('This endpoint can be used for manual long-polling when '
-               'SSE support is disabled or otherwise unavailable.')
-        .param('since', 'Filter out events before this time stamp.',
-               dataType='integer', required=False)
+               'SSE support is disabled or otherwise unavailable. The events are always '
+               'returned in chronological order.')
+        .param('since', 'Filter out events before this date. Pass as either epoch seconds or '
+               'an ISO-8601 formatted datetime.', required=False)
         .errorResponse()
         .errorResponse('You are not logged in.', 403)
     )
     def listNotifications(self, since):
         user, token = self.getCurrentUser(returnToken=True)
-        timestamp = time.time()
 
         if since is not None:
-            since = datetime.utcfromtimestamp(since)
-        notifications = list(NotificationModel().get(user, since, token=token))
+            try:
+                since = dateutil.parser.parse(since)
+            except ValueError:
+                try:
+                    since = datetime.utcfromtimestamp(float(since))
+                except ValueError:
+                    raise RestException(
+                        'The "since" parameter must be a valid date string or epoch timestamp.')
 
-        if notifications:
-            timestamp = max(n['updatedTime'] for n in notifications)
-
-        setResponseHeader('Date', str(timestamp))
-        return notifications
+        return list(NotificationModel().get(
+            user, since, token=token, sort=[('updated', SortDir.ASCENDING)]))

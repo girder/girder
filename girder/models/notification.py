@@ -204,7 +204,7 @@ class Notification(Model):
         else:
             return record
 
-    def get(self, user, since=None, token=None):
+    def get(self, user, since=None, token=None, sort=None):
         """
         Get outstanding notifications for the given user.
 
@@ -214,6 +214,7 @@ class Notification(Model):
             since a certain timestamp.
         :type since: datetime
         :param token: if the user is None, the token requesting updated.
+        :param sort: Sort field for the database query.
         """
         q = {}
         if user:
@@ -224,4 +225,4 @@ class Notification(Model):
         if since is not None:
             q['updated'] = {'$gt': since}
 
-        return self.find(q)
+        return self.find(q, sort=sort)
