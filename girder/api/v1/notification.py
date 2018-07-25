@@ -18,7 +18,6 @@
 ###############################################################################
 
 import cherrypy
-import dateutil.parser
 import json
 import time
 from datetime import datetime
@@ -115,23 +114,11 @@ class Notification(Resource):
         .notes('This endpoint can be used for manual long-polling when '
                'SSE support is disabled or otherwise unavailable. The events are always '
                'returned in chronological order.')
-        .param('since', 'Filter out events before this date. Pass as either epoch seconds or '
-               'an ISO-8601 formatted datetime.', required=False)
+        .param('since', 'Filter out events before this date.', required=False, dataType='dateTime')
         .errorResponse()
         .errorResponse('You are not logged in.', 403)
     )
     def listNotifications(self, since):
         user, token = self.getCurrentUser(returnToken=True)
-
-        if since is not None:
-            try:
-                since = dateutil.parser.parse(since)
-            except ValueError:
-                try:
-                    since = datetime.utcfromtimestamp(float(since))
-                except ValueError:
-                    raise RestException(
-                        'The "since" parameter must be a valid date string or epoch timestamp.')
-
         return list(NotificationModel().get(
             user, since, token=token, sort=[('updated', SortDir.ASCENDING)]))

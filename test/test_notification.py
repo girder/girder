@@ -19,12 +19,11 @@
 
 import datetime
 import pytest
-import time
 from pytest_girder.assertions import assertStatus, assertStatusOk
 from girder.models.notification import Notification
 
 OLD_TIME = datetime.datetime.utcnow() - datetime.timedelta(days=3)
-SINCE_TIME = OLD_TIME + datetime.timedelta(days=1)
+SINCE = OLD_TIME + datetime.timedelta(days=1)
 
 
 @pytest.fixture
@@ -47,12 +46,8 @@ def testListAllNotifications(server, user, notifications):
     assert [n['_id'] for n in resp.json] == [str(n2['_id']), str(n1['_id'])]
 
 
-@pytest.mark.parametrize('since', [
-    SINCE_TIME.isoformat(),
-    time.mktime(SINCE_TIME.timetuple())
-])
-def testListNotificationsSinceTime(server, user, notifications, since):
-    resp = server.request(path='/notification', user=user, params={'since': since})
+def testListNotificationsSinceTime(server, user, notifications):
+    resp = server.request(path='/notification', user=user, params={'since': SINCE.isoformat()})
     assertStatusOk(resp)
     assert len(resp.json) == 1
     assert resp.json[0]['_id'] == str(notifications[0]['_id'])
