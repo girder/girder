@@ -16,54 +16,43 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
-import time
 
+import datetime
 import pytest
 from pytest_girder.assertions import assertStatus, assertStatusOk
-
 from girder.models.notification import Notification
 
-
-def assertApproximateTimestamp(time1, time2, delta=1):
-    __tracebackhide__ = True
-    assert abs(float(time1) - float(time2)) < delta
+OLD_TIME = datetime.datetime.utcnow() - datetime.timedelta(days=3)
+SINCE = OLD_TIME + datetime.timedelta(days=1)
 
 
 @pytest.fixture
 def notifications(user):
     model = Notification()
     doc1 = model.createNotification('type', {}, user)
-    doc1['updated'] = 1
-    doc1['time'] = 1
-    model.save(doc1)
     doc2 = model.createNotification('type', {}, user)
+    doc2['updated'] = OLD_TIME
+    doc2['time'] = OLD_TIME
+    model.save(doc2)
+
     yield [doc1, doc2]
-    model.remove(doc1)
-    model.remove(doc2)
 
 
 def testListAllNotifications(server, user, notifications):
     resp = server.request(path='/notification', user=user)
     assertStatusOk(resp)
-    assert {m['_id'] for m in resp.json} == {str(m['_id']) for m in notifications}
-    assertApproximateTimestamp(resp.headers.get('Date'), notifications[1]['updatedTime'])
+    n1, n2 = notifications
+    # Make sure we get results back in chronological order
+    assert [n['_id'] for n in resp.json] == [str(n2['_id']), str(n1['_id'])]
 
 
 def testListNotificationsSinceTime(server, user, notifications):
-    resp = server.request(path='/notification', user=user, params={'since': 10})
+    resp = server.request(path='/notification', user=user, params={'since': SINCE.isoformat()})
     assertStatusOk(resp)
-    assert {m['_id'] for m in resp.json} == {str(notifications[-1]['_id'])}
-    assertApproximateTimestamp(resp.headers.get('Date'), notifications[1]['updatedTime'])
+    assert len(resp.json) == 1
+    assert resp.json[0]['_id'] == str(notifications[0]['_id'])
 
 
-def testDefaultDateHeader(server, user, notifications):
-    resp = server.request(path='/notification', user=user,
-                          params={'since': int(time.time()) + 1000})
-    assertStatusOk(resp)
-    assert resp.json == []
-    assertApproximateTimestamp(resp.headers.get('Date'), time.time(), 10)
-
-
-def testListNotificationsAuthError(server, notifications):
+def testListNotificationsAuthError(server):
     resp = server.request(path='/notification')
     assertStatus(resp, 401)
