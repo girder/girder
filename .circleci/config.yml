@@ -19,7 +19,7 @@ jobs:
       - checkout:
           path: girder
       - restore_cache:
-          key: venv-py2-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
+          key: venv-py2-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}-{{ checksum "girder/plugins/remote_worker/setup.py" }}
       - run:
           name: Create virtual environment (if necessary)
           command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
@@ -37,7 +37,7 @@ jobs:
           working_directory: girder
       - save_cache:
           paths: girder_env
-          key: venv-py2-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
+          key: venv-py2-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}-{{ checksum "girder/plugins/remote_worker/setup.py" }}
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
@@ -80,7 +80,7 @@ jobs:
       - checkout:
           path: girder
       - restore_cache:
-          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
+          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}-{{ checksum "girder/plugins/remote_worker/setup.py" }}
       - run:
           name: Create virtual environment (if necessary)
           command: if [ ! -d girder_env ]; then python3 -m venv girder_env; fi
@@ -101,7 +101,7 @@ jobs:
             pyclean girder_env
       - save_cache:
           paths: girder_env
-          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
+          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}-{{ checksum "girder/plugins/remote_worker/setup.py" }}
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -461,7 +461,7 @@ jobs:
       # Since this cache must have been created in a previous step of this workflow, we can get
       # a virtualenv without having to create one or install anything.
       - restore_cache:
-          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
+          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}-{{ checksum "girder/plugins/remote_worker/setup.py" }}
       - run:
           name: Activate virtual environment
           command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
