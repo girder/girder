@@ -31,6 +31,15 @@
         - pip
         - setuptools
 
+    - name: Force install of requests and six
+      pip:
+        name: "{{ item }}"
+        extra_args: "--ignore-installed"
+        executable: "{{ girder_pip | default(omit) }}"
+      with_items:
+        - six
+        - requests
+
     - name: Install Girder and plugin requirements
       pip:
         name: "{{ girder_path }}[plugins]"
