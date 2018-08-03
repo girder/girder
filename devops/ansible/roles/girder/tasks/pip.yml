@@ -33,9 +33,8 @@
 
     - name: Install Girder and plugin requirements
       pip:
-        name: ".[plugins]"
+        name: "{{ girder_path }}[plugins]"
         extra_args: "-e"
-        chdir: "{{ girder_path }}"
         executable: "{{ girder_pip | default(omit) }}"
 
     - name: Find girder-install executable
