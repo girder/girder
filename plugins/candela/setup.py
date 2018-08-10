@@ -45,7 +45,7 @@ setup(
     },
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder'],
+    install_requires=['girder', 'girder-item-tasks'],
     entry_points={
         'girder.plugin': [
             'candela = girder_candela:CandelaPlugin'

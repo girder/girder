@@ -14,7 +14,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.plugin import GirderPlugin
+from girder.plugin import getPlugin, GirderPlugin
 
 
 class CandelaPlugin(GirderPlugin):
@@ -22,4 +22,4 @@ class CandelaPlugin(GirderPlugin):
     NPM_PACKAGE_NAME = '@girder/candela'
 
     def load(self, info):
-        pass
+        getPlugin('item_tasks').load(info)
