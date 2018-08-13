@@ -461,7 +461,7 @@ class System(Resource):
 
     @access.admin
     @autoDescribeRoute(
-        Description('Get the current log level.')
+        Description('Set the current log level.')
         .notes('Must be a system administrator to call this.')
         .param('level', 'The new level to set.',
                enum=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
