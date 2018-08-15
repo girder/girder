@@ -26,17 +26,32 @@ module.exports = function (grunt) {
         const branch = local.branch || {};
         const current = branch.current || {};
 
-        return JSON.stringify(
-            {
-                git: !!current.SHA,
-                SHA: current.SHA,
-                shortSHA: current.shortSHA,
-                date: grunt.template.date(new Date(), 'isoDateTime', true),
-                apiVersion: grunt.config.get('pkg').version
-            },
-            null,
-            4
-        );
+        var info = {
+            git: !!current.SHA,
+            SHA: current.SHA,
+            shortSHA: current.shortSHA,
+            lastCommitTime: current.lastCommitTime
+                ? grunt.template.date(new Date(current.lastCommitTime), 'isoDateTime', true)
+                : undefined,
+            date: grunt.template.date(new Date(), 'isoDateTime', true),
+            apiVersion: grunt.config.get('pkg').version
+        };
+        Object.keys(gitVersion.plugins || {}).forEach(function (pluginName) {
+            var plugin = gitVersion.plugins[pluginName];
+            if (plugin.SHA && plugin.SHA !== current.SHA) {
+                if (!info.plugins) {
+                    info.plugins = {};
+                }
+                info.plugins[pluginName] = {
+                    SHA: plugin.SHA,
+                    shortSHA: plugin.shortSHA,
+                    lastCommitTime: plugin.lastCommitTime
+                        ? grunt.template.date(new Date(plugin.lastCommitTime), 'isoDateTime', true)
+                        : undefined
+                };
+            }
+        });
+        return JSON.stringify(info, null, 4);
     }
 
     grunt.config.merge({
