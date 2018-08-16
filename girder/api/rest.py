@@ -595,7 +595,7 @@ def _logRestRequest(resource, path, params):
 
 def _mongoCursorToList(val):
     """
-    If the specified value is a Monog cursor, convert it to a list.
+    If the specified value is a Mongo cursor, convert it to a list.
     Otherwise, just return the passed values.
 
     :param val: a value that might be a Mongo cursor.
