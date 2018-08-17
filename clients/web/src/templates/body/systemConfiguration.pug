@@ -231,6 +231,18 @@ form.g-settings-form(role="form")
                   defaults['core.enable_notification_stream'] :
                   settings['core.enable_notification_stream']))
                 | Enabled
+          .form-group
+            label Allow Public Access
+            br
+            span Disabling public access requires a user or access token to perform nearly all actions.  Altering this setting requires a #[a#g-restart-server restart of the Girder server] to take effect.
+            .checkbox
+              label(for="g-core-allow-public-access")
+                input#g-core-allow-public-access(
+                type="checkbox", checked=(
+                  settings['core.enable_notification_stream'] === null ?
+                  defaults['core.enable_notification_stream'] :
+                  settings['core.enable_notification_stream']))
+                | Allow
           .g-settings-form-container
             h4 CORS
             p.

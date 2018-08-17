@@ -34,7 +34,7 @@ class Homepage(Resource):
         self.route('GET', (), self.getSettings)
         self.route('GET', ('assets',), self.getAssets)
 
-    @access.public
+    @access.public(alwaysPublic=True)
     @autoDescribeRoute(
         Description('Public url for getting the homepage properties.')
     )

@@ -467,3 +467,10 @@ class Setting(Model):
         if not isinstance(doc['value'], bool):
             raise ValidationException(
                 'Enable notification stream option must be boolean.', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.ALLOW_PUBLIC_ACCESS)
+    def validateAllowPublicAccess(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException(
+                'Allow public access option must be boolean.', 'value')

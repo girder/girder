@@ -176,6 +176,7 @@ class SettingKey(object):
     ENABLE_PASSWORD_LOGIN = 'core.enable_password_login'
     GIRDER_MOUNT_INFORMATION = 'core.girder_mount_information'
     ENABLE_NOTIFICATION_STREAM = 'core.enable_notification_stream'
+    ALLOW_PUBLIC_ACCESS = 'core.allow_public_access'
     PLUGINS_ENABLED = 'core.plugins_enabled'
     REGISTRATION_POLICY = 'core.registration_policy'
     ROUTE_TABLE = 'core.route_table'
@@ -220,6 +221,7 @@ class SettingDefault(object):
         SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',
         SettingKey.ENABLE_PASSWORD_LOGIN: True,
         SettingKey.ENABLE_NOTIFICATION_STREAM: True,
+        SettingKey.ALLOW_PUBLIC_ACCESS: True,
         SettingKey.PLUGINS_ENABLED: [],
         SettingKey.REGISTRATION_POLICY: 'open',
         SettingKey.SMTP_HOST: 'localhost',
