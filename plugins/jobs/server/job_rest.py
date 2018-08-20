@@ -38,6 +38,7 @@ class Job(Resource):
         self._model = JobModel()
 
         self.route('GET', (), self.listJobs)
+        self.route('GET', (':id', 'artifact'), self.listArtifacts)
         self.route('POST', (), self.createJob)
         self.route('POST', (':id', 'artifact'), self.attachArtifact)
         self.route('GET', ('all',), self.listAllJobs)
@@ -245,3 +246,15 @@ class Job(Resource):
         return Upload().uploadFromFile(
             body, size=size, name=name, parentType='job', parent=job, user=user, mimeType=mimeType,
             attachParent=True)
+
+    @access.user
+    @filtermodel(File)
+    @autoDescribeRoute(
+        Description('List artifacts attached to a job.')
+        .modelParam('id', 'The ID of the job.', model=JobModel, level=AccessType.READ)
+        .pagingParams(defaultSort='name'))
+    def listArtifacts(self, job, limit, offset, sort):
+        return list(File().find({
+            'attachedToType': 'job',
+            'attachedToId': job['_id']
+        }, limit=limit, offset=offset, sort=sort))
