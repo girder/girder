@@ -322,10 +322,10 @@ class AccessControlMixin(object):
                 }},
                 {'$match': self.permissionClauses(user, level, '_access.')},
             ]
-            countPipeline = initialPipeline[:] + [
+            countPipeline = initialPipeline + [
                 {'$count': 'count'},
             ]
-            fullPipeline = initialPipeline[:] + [
+            fullPipeline = initialPipeline + [
                 {'$project': {'_access': False}},
             ]
             if sort is not None or aggregateSort is not None:
@@ -336,7 +336,7 @@ class AccessControlMixin(object):
             if offset:
                 fullPipeline.append({'$skip': offset})
             if fields is not None:
-                if any([isinstance(v, bool) for v in fields.values()]):
+                if any(isinstance(v, bool) for v in fields.values()):
                     fullPipeline.append({'$project': fields})
                 else:
                     fullPipeline.append({'$addFields': fields})

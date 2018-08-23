@@ -455,7 +455,7 @@ class filtermodel(object):  # noqa: class name
 
             if isinstance(val, _MONGO_CURSOR_TYPES):
                 if callable(getattr(val, 'count', None)):
-                    cherrypy.response.headers['X-Total-Count'] = val.count()
+                    cherrypy.response.headers['Girder-Total-Count'] = val.count()
                 return [model.filter(m, user, self.addFields) for m in val]
             elif isinstance(val, (list, tuple, types.GeneratorType)):
                 return [model.filter(m, user, self.addFields) for m in val]
@@ -605,7 +605,7 @@ def _mongoCursorToList(val):
     # be callable.
     if isinstance(val, _MONGO_CURSOR_TYPES):
         if callable(getattr(val, 'count', None)):
-            cherrypy.response.headers['X-Total-Count'] = val.count()
+            cherrypy.response.headers['Girder-Total-Count'] = val.count()
         val = list(val)
     return val
 

@@ -644,7 +644,7 @@ class Folder(AccessControlledModel):
         folders = self.findWithPermissions({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
-        }, fields=('access',), user=user, level=level)
+        }, fields='access', user=user, level=level)
 
         count += sum(self.subtreeCount(subfolder, includeItems=includeItems,
                                        user=user, level=level)
