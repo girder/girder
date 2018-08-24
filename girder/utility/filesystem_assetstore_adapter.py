@@ -412,12 +412,17 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                 listDir, params=params)
             return
 
+        # Sort listDir to process files before directories.  Files and
+        # directories are alphabetized as well.
+        listDir = [entry[-1] for entry in sorted([
+            (not os.path.isfile(os.path.join(importPath, val)), val)
+            for val in listDir])]
         for name in listDir:
             progress.update(message=name)
             path = os.path.join(importPath, name)
 
             if os.path.isdir(path):
-                localListDir = os.listdir(path)
+                localListDir = sorted(os.listdir(path))
                 if leafFoldersAsItems and self._hasOnlyFiles(path, localListDir):
                     self._importDataAsItem(name, user, parent, path, localListDir, params=params)
                 else:
