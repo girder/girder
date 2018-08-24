@@ -168,11 +168,17 @@ class System(Resource):
     @access.public
     @autoDescribeRoute(
         Description('Get the version information for this server.')
+        .param('fromGit', 'If true, use git to get the version of the server '
+               'and any plugins that are git repositories.  This supplements '
+               'the usual version information.',
+               required=False, dataType='boolean')
     )
-    def getVersion(self):
+    def getVersion(self, fromGit=False):
         version = dict(**VERSION)
         version['apiVersion'] = API_VERSION
         version['serverStartDate'] = ModuleStartTime
+        if fromGit:
+            version['gitVersions'] = install.getGitVersions()
         return version
 
     @access.admin

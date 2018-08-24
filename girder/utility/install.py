@@ -21,6 +21,7 @@ This module contains functions to install optional components
 into the current Girder installation.  Note that Girder must
 be restarted for these changes to take effect.
 """
+import collections
 import os
 import re
 import select
@@ -30,6 +31,7 @@ import subprocess
 import string
 import sys
 
+import girder
 from girder import constants
 from girder.models.setting import Setting
 from girder.utility import plugin_utilities
@@ -128,6 +130,41 @@ def _pipeOutputToProgress(proc, progress):
             break
         elif not fds and proc.poll() is None:
             proc.wait()
+
+
+def getGitVersions():
+    """
+    Use git to query the versions of the core deployment and all plugins.
+
+    :returns: a dictionary with 'core' and each plugin, each with git
+        version information if it can be found.
+    """
+    gitCommands = collections.OrderedDict([
+        ('SHA', ['rev-parse', 'HEAD']),
+        ('shortSHA', ['rev-parse', '--short', 'HEAD']),
+        ('lastCommitTime', ['log', '--format="%ai"', '-n1', 'HEAD']),
+        ('branch', ['rev-parse', '--abbrev-ref', 'HEAD']),
+    ])
+    versions = {}
+    paths = collections.OrderedDict()
+    if hasattr(girder, '__file__'):
+        paths['core'] = fix_path(os.path.dirname(os.path.dirname(girder.__file__)))
+    for plugin in plugin_utilities.findAllPlugins():
+        paths[plugin] = fix_path(os.path.join(plugin_utilities.getPluginDir(), plugin))
+    for key in paths:
+        if os.path.exists(paths[key]):
+            for info, cmd in six.iteritems(gitCommands):
+                value = subprocess.Popen(
+                    ['git'] + cmd,
+                    shell=False,
+                    stdout=subprocess.PIPE,
+                    cwd=paths[key]).stdout.read()
+                value = value.strip().decode('utf8', 'ignore').strip('"')
+                if (info == 'SHA' and key != 'core' and
+                        value == versions.get('core', {}).get('SHA', '')):
+                    break
+                versions.setdefault(key, {})[info] = value
+    return versions
 
 
 def runWebBuild(wd=None, dev=False, npm='npm', allPlugins=False, plugins=None, progress=None,

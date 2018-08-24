@@ -256,30 +256,11 @@ module.exports = function (grunt) {
         // the plugin itself appends tasks to this array
         cfg.plugin[plugin] = {
             tasks: [
-                'copy:' + pluginTarget,
-                'gitinfo-' + plugin
+                'copy:' + pluginTarget
             ]
         };
 
         grunt.config.merge(cfg);
-
-        grunt.registerTask('gitinfo-' + plugin, 'Get gitinfo for the plugin', function () {
-            grunt.task.run(['gitinfo-pre-' + plugin, 'gitinfo', 'gitinfo-post-' + plugin]);
-        });
-
-        grunt.registerTask('gitinfo-pre-' + plugin, 'Prepare to get gitinfo for the plugin', function () {
-            grunt.config.merge({gitinfo: {options: {cwd: pluginPath}}});
-        });
-
-        grunt.registerTask('gitinfo-post-' + plugin, 'Prepare to get gitinfo for the plugin', function () {
-            var info = {},
-                current = ((grunt.config.get('gitinfo').local || {}).branch || {}).current || {};
-            if (current.SHA) {
-                info[plugin] = current;
-                grunt.config.merge({gitinfo: {plugins: info}});
-            }
-            grunt.config.merge({gitinfo: {options: {cwd: null}}});
-        });
     };
 
     var getPluginLocalNodePath = function (plugin) {
