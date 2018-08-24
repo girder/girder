@@ -350,6 +350,8 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         :type mimeType: str
         :returns: The file document that was created.
         """
+        logger.debug('Importing file %s to item %s on filesystem assetstore %s',
+                     path, item['_id'], self.assetstore['_id'])
         stat = os.stat(path)
         name = name or os.path.basename(path)
 
@@ -359,7 +361,10 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         file['path'] = os.path.abspath(os.path.expanduser(path))
         file['mtime'] = stat.st_mtime
         file['imported'] = True
-        return File().save(file)
+        file = File().save(file)
+        logger.debug('Imported file %s to item %s on filesystem assetstore %s',
+                     path, item['_id'], self.assetstore['_id'])
+        return file
 
     def _importDataAsItem(self, name, user, folder, path, files, reuseExisting=True, params=None):
         params = params or {}
