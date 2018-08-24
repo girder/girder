@@ -406,6 +406,12 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             return
 
         listDir = os.listdir(importPath)
+
+        if parentType != 'folder' and any(
+                os.path.isfile(os.path.join(importPath, val)) for val in listDir):
+            raise ValidationException(
+                'Files cannot be imported directly underneath a %s.' % parentType)
+
         if leafFoldersAsItems and self._hasOnlyFiles(importPath, listDir):
             self._importDataAsItem(
                 os.path.basename(importPath.rstrip(os.sep)), user, parent, importPath,
