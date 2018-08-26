@@ -20,19 +20,21 @@
 import copy
 import functools
 import itertools
-import pymongo
 import re
-import six
 
-from bson.objectid import ObjectId
+import pymongo
+import six
 from bson.errors import InvalidId
+from bson.objectid import ObjectId
 from pymongo.errors import WriteError
+
 from girder import events, logprint, logger, auditLogger
 from girder.constants import AccessType, CoreEventHandler, ACCESS_FLAGS, TEXT_SCORE_SORT_MAX
+from girder.exceptions import AccessException, ValidationException
 from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.utility.model_importer import ModelImporter
-from girder.exceptions import AccessException, ValidationException
+
 # Import the GirderException since it was historically defined here
 from girder.exceptions import GirderException  # noqa
 
@@ -1038,6 +1040,9 @@ class AccessControlledModel(Model):
         :type force: bool
         :returns: The updated resource.
         """
+        from .group import Group
+        from .user import User
+
         # First coerce the access list value into a valid form.
         acList = {
             'users': [],
@@ -1050,9 +1055,10 @@ class AccessControlledModel(Model):
             if 'id' in userAccess and 'level' in userAccess:
                 if not userAccess['level'] in allowedLevels:
                     raise ValidationException('Invalid access level', 'access')
+                user_ = User().load(userAccess['id'], user=user, level=AccessType.READ, exc=True)
 
                 acList['users'].append({
-                    'id': ObjectId(userAccess['id']),
+                    'id': user_['_id'],
                     'level': userAccess['level'],
                     'flags': self._validateFlags(doc, user, 'user', userAccess, force)
                 })
@@ -1063,9 +1069,10 @@ class AccessControlledModel(Model):
             if 'id' in groupAccess and 'level' in groupAccess:
                 if not groupAccess['level'] in allowedLevels:
                     raise ValidationException('Invalid access level', 'access')
+                group = Group().load(groupAccess['id'], user=user, level=AccessType.READ, exc=True)
 
                 acList['groups'].append({
-                    'id': ObjectId(groupAccess['id']),
+                    'id': group['_id'],
                     'level': groupAccess['level'],
                     'flags': self._validateFlags(doc, user, 'group', groupAccess, force)
                 })
