@@ -582,15 +582,27 @@ def _handleValidationException(e):
     return val
 
 
+def disableAuditLog(fun):
+    """
+    If calls to a REST route should not be logged in the audit log, decorate it with this function.
+    """
+    @six.wraps(fun)
+    def wrapped(*args, **kwargs):
+        cherrypy.request.girderNoAuditLog = True
+        return fun(*args, **kwargs)
+    return wrapped
+
+
 def _logRestRequest(resource, path, params):
-    auditLogger.info('rest.request', extra={
-        'details': {
-            'method': cherrypy.request.method.upper(),
-            'route': (getattr(resource, 'resourceName', resource.__class__.__name__),) + path,
-            'params': params,
-            'status': cherrypy.response.status or 200
-        }
-    })
+    if not hasattr(cherrypy.request, 'girderNoAuditLog'):
+        auditLogger.info('rest.request', extra={
+            'details': {
+                'method': cherrypy.request.method.upper(),
+                'route': (getattr(resource, 'resourceName', resource.__class__.__name__),) + path,
+                'params': params,
+                'status': cherrypy.response.status or 200
+            }
+        })
 
 
 def _mongoCursorToList(val):

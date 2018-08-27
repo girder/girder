@@ -23,13 +23,14 @@ import time
 from datetime import datetime
 
 from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, setResponseHeader
+from ..rest import Resource, disableAuditLog, setResponseHeader
 from girder.constants import SettingKey, SortDir
 from girder.exceptions import RestException
 from girder.models.notification import Notification as NotificationModel
 from girder.models.setting import Setting
 from girder.utility import JsonEncoder
 from girder.api import access
+
 
 # If no timeout param is passed to stream, we default to this value
 DEFAULT_STREAM_TIMEOUT = 300
@@ -57,6 +58,7 @@ class Notification(Resource):
         self.route('GET', ('stream',), self.stream)
         self.route('GET', (), self.listNotifications)
 
+    @disableAuditLog
     @access.cookie
     @access.token
     @autoDescribeRoute(
@@ -107,6 +109,7 @@ class Notification(Resource):
                 time.sleep(wait)
         return streamGen
 
+    @disableAuditLog
     @access.cookie
     @access.token
     @autoDescribeRoute(
