@@ -1,6 +1,7 @@
 import datetime
 import pytest
 import six
+from click.testing import CliRunner
 from girder import auditLogger
 from girder.models.file import File
 from girder.models.folder import Folder
@@ -12,6 +13,12 @@ from girder.models.user import User
 def recordModel():
     from girder.plugins.audit_logs import Record
     yield Record()
+
+
+@pytest.fixture
+def cleanupCli():
+    from girder.plugins.audit_logs import cleanup
+    yield cleanup.cleanup
 
 
 @pytest.fixture
@@ -64,7 +71,7 @@ def testFailedRestRequestLogging(server, recordModel, freshLog):
 
 @pytest.mark.plugin('audit_logs')
 def testAuthenticatedRestRequestLogging(server, recordModel, freshLog, admin):
-    recordModel.collection.remove({})  # Clear existing records
+    recordModel.collection.drop()  # Clear existing records
     server.request('/user/me', user=admin)
     records = recordModel.find()
     assert records.count() == 1
@@ -97,6 +104,7 @@ def testDownloadLogging(server, recordModel, freshLog, admin, fsAssetstore):
     assert record['details']['endByte'] == 4
     assert isinstance(record['when'], datetime.datetime)
 
+
 @pytest.mark.plugin('audit_logs')
 def testDocumentCreationLogging(server, recordModel, freshLog):
     user = User().createUser('admin', 'password', 'first', 'last', 'a@a.com')
@@ -108,3 +116,27 @@ def testDocumentCreationLogging(server, recordModel, freshLog):
     assert records[1]['details']['collection'] == 'folder'
     assert records[2]['details']['collection'] == 'folder'
 
+
+@pytest.mark.plugin('audit_logs')
+@pytest.mark.parametrize('args,expected', [
+    ([], 0),
+    (['--days=0'], 4),
+    (['--days=0', '--types=rest.request'], 1),
+    (['--days=0', '--types=document.create'], 3)
+])
+def testCleanupScript(server, freshLog, recordModel, cleanupCli, args, expected):
+    user = User().createUser('admin', 'password', 'first', 'last', 'a@a.com')
+    server.request('/user/me', user=user)
+
+    result = CliRunner().invoke(cleanupCli, args)
+    assert result.exit_code == 0
+    assert result.output == 'Deleted %d log entries.\n' % expected
+
+
+@pytest.mark.plugin('audit_logs')
+def testDisableLoggingOnNotificationEndpoints(server, freshLog, recordModel, user):
+    recordModel.collection.drop()
+    server.request('/user/me')
+    server.request('/notification', user=user)
+    server.request('/notification/stream', params={'timeout': 0}, user=user, isJson=False)
+    assert recordModel.find().count() == 1
