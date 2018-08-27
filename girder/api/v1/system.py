@@ -178,7 +178,7 @@ class System(Resource):
         version['apiVersion'] = API_VERSION
         version['serverStartDate'] = ModuleStartTime
         if fromGit:
-            version['gitVersions'] = install.getGitVersions()
+            version['gitVersions'] = install._getGitVersions()
         return version
 
     @access.admin

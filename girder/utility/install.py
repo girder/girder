@@ -132,7 +132,7 @@ def _pipeOutputToProgress(proc, progress):
             proc.wait()
 
 
-def getGitVersions():
+def _getGitVersions():
     """
     Use git to query the versions of the core deployment and all plugins.
 
