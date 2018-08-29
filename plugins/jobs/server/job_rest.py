@@ -241,6 +241,8 @@ class Job(Resource):
             self._model.requireAccess(job, user, level=AccessType.WRITE)
         else:
             self.ensureTokenScopes('jobs.job_' + str(job['_id']))
+            if job.get('userId'):
+                user = User().load(job['userId'], force=True)
 
         body = RequestBodyStream(cherrypy.request.body)
         return Upload().uploadFromFile(

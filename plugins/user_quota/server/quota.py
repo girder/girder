@@ -372,7 +372,10 @@ class QuotaPolicy(Resource):
         else:
             model, resource = self._getBaseResource(upload['parentType'], upload['parentId'])
         if resource is None:
-            return None
+            if upload['userId'] is None:
+                return None
+            else:  # Any other parent types will just use the upload's userId
+                model, resource = 'user', User().load(upload['userId'], force=True)
         fileSizeQuota = self._getFileSizeQuota(model, resource)
         if not fileSizeQuota:
             return None
