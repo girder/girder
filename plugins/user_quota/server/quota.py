@@ -174,37 +174,31 @@ class QuotaPolicy(Resource):
                            dictionary as if the JSON was already decoded.
         :returns: a validate policy dictionary.
         """
-        validKeys = []
-        for key in dir(self):
-            if key.startswith('_validate_'):
-                validKeys.append(key.split('_validate_', 1)[1])
-        for key in list(policy):
-            if key.startswith('_'):
-                del policy[key]
+        validKeys = [k[10:] for k in dir(self) if k.startswith('_validate_')]
+        policy = {k: v for k, v in six.iteritems(policy) if not k.startswith('_')}
+
         for key in policy:
             if key not in validKeys:
                 raise RestException(
                     '%s is not a valid quota policy key.  Valid keys are %s.' %
                     (key, ', '.join(sorted(validKeys))))
-            funcName = '_validate_' + key
-            policy[key] = getattr(self, funcName)(policy[key])
+            policy[key] = getattr(self, '_validate_' + key)(policy[key])
         return policy
 
-    @access.public
+    @access.user
     @autoDescribeRoute(
         Description('Get quota and assetstore policies for the collection.')
-        .modelParam('id', 'The collection ID', model=Collection, level=AccessType.READ)
+        .modelParam('id', 'The collection ID', model=Collection, level=AccessType.ADMIN)
         .errorResponse('ID was invalid.')
-        .errorResponse('Read permission denied on the collection.', 403)
     )
     def getCollectionQuota(self, collection):
         if QUOTA_FIELD not in collection:
             collection[QUOTA_FIELD] = {}
-        collection[QUOTA_FIELD][
-            '_currentFileSizeQuota'] = self._getFileSizeQuota('collection', collection)
+        collection[QUOTA_FIELD]['_currentFileSizeQuota'] = self._getFileSizeQuota(
+            'collection', collection)
         return self._filter('collection', collection)
 
-    @access.public
+    @access.admin
     @autoDescribeRoute(
         Description('Set quota and assetstore policies for the collection.')
         .modelParam('id', 'The collection ID', model=Collection, level=AccessType.ADMIN)
@@ -212,17 +206,15 @@ class QuotaPolicy(Resource):
                    'dictionary of keys and values. Any key that is not specified '
                    'does not change.', requireObject=True)
         .errorResponse('ID was invalid.')
-        .errorResponse('Read permission denied on the collection.', 403)
     )
     def setCollectionQuota(self, collection, policy):
         return self._setResourceQuota('collection', collection, policy)
 
-    @access.public
+    @access.user
     @autoDescribeRoute(
         Description('Get quota and assetstore policies for the user.')
-        .modelParam('id', 'The user ID', model=User, level=AccessType.READ)
+        .modelParam('id', 'The user ID', model=User, level=AccessType.ADMIN)
         .errorResponse('ID was invalid.')
-        .errorResponse('Read permission denied on the user.', 403)
     )
     def getUserQuota(self, user):
         if QUOTA_FIELD not in user:
@@ -230,7 +222,7 @@ class QuotaPolicy(Resource):
         user[QUOTA_FIELD]['_currentFileSizeQuota'] = self._getFileSizeQuota('user', user)
         return self._filter('user', user)
 
-    @access.public
+    @access.admin
     @autoDescribeRoute(
         Description('Set quota and assetstore policies for the user.')
         .modelParam('id', 'The user ID', model=User, level=AccessType.ADMIN)
@@ -279,8 +271,11 @@ class QuotaPolicy(Resource):
                  type, either 'user' or 'collection'., and 'resource' is the
                  base resource document or the id of that document.
         """
-        if isinstance(resource, tuple(list(six.string_types) + [ObjectId])):
-            resource = self.model(model).load(id=resource, force=True)
+        if isinstance(resource, six.string_types + (ObjectId,)):
+            try:
+                resource = self.model(model).load(id=resource, force=True)
+            except ImportError:
+                return None, None
         if model == 'file':
             model = 'item'
             resource = Item().load(id=resource['itemId'], force=True)
