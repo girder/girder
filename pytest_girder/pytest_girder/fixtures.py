@@ -108,13 +108,11 @@ def server(db, request):
 
     elif hasInstalledPluginMarkers:
         for installedPluginMarker in request.node.iter_markers('plugin'):
-            pluginName = installedPluginMarker.args[0]
-            enabledPlugins.append(pluginName)
+            enabledPlugins.extend(installedPluginMarker.args)
 
     elif hasTestPluginMarkers:
         for testPluginMarker in request.node.iter_markers('testPlugin'):
-            pluginName = testPluginMarker.args[0]
-            enabledPlugins.append(pluginName)
+            enabledPlugins.extend(testPluginMarker.args)
 
         # testFilePath is a py.path.local object that we *assume* lives in 'test/',
         # with 'test/test_plugins' nearby
