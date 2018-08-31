@@ -105,7 +105,7 @@ class Upload(Model):
             if not data:
                 break
 
-            upload = self.handleChunk(upload, RequestBodyStream(six.BytesIO(data), size))
+            upload = self.handleChunk(upload, RequestBodyStream(six.BytesIO(data), len(data)))
 
         return upload
 
