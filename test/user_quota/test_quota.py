@@ -3,7 +3,8 @@ import pytest
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
 
-@pytest.mark.plugin('jobs', 'user_quota')
+@pytest.mark.plugin('jobs')
+@pytest.mark.plugin('user_quota')
 def testQuotaEnforcedOutsideHierarchy(server, admin, user, fsAssetstore):
     from girder.plugins.jobs.models.job import Job
 
