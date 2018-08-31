@@ -245,9 +245,16 @@ class Job(Resource):
                 user = User().load(job['userId'], force=True)
 
         body = RequestBodyStream(cherrypy.request.body)
-        return Upload().uploadFromFile(
-            body, size=size, name=name, parentType='job', parent=job, user=user, mimeType=mimeType,
-            attachParent=True)
+        file = Upload().uploadFromFile(
+            body, size=size, name=name, parentType=['job', 'jobs'], parent=job, user=user,
+            mimeType=mimeType, attachParent=True)
+
+        if user:  # These artifacts count towards the user's storage total
+            User().increment(query={
+                '_id': user['_id']
+            }, field='size', amount=size, multi=False)
+
+        return file
 
     @access.user
     @filtermodel(File)
@@ -257,6 +264,6 @@ class Job(Resource):
         .pagingParams(defaultSort='name'))
     def listArtifacts(self, job, limit, offset, sort):
         return list(File().find({
-            'attachedToType': 'job',
+            'attachedToType': ['job', 'jobs'],
             'attachedToId': job['_id']
         }, limit=limit, offset=offset, sort=sort))

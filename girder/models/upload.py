@@ -105,7 +105,7 @@ class Upload(Model):
             if not data:
                 break
 
-            upload = self.handleChunk(upload, RequestBodyStream(six.BytesIO(data), size))
+            upload = self.handleChunk(upload, RequestBodyStream(six.BytesIO(data), len(data)))
 
         return upload
 
@@ -116,6 +116,17 @@ class Upload(Model):
             raise ValidationException('Received too many bytes.')
 
         doc['updated'] = datetime.datetime.utcnow()
+
+        parentType = doc.get('parentType')
+        if isinstance(parentType, six.string_types):
+            doc['parentType'] = parentType.lower()
+        elif isinstance(parentType, list):
+            try:
+                self.model(*parentType)
+            except ImportError:
+                raise ValidationException('Invalid upload parent type: %s' % parentType)
+        elif parentType is not None:
+            raise ValidationException('Parent type must be a string or list of [model, plugin].')
 
         return doc
 
@@ -382,7 +393,7 @@ class Upload(Model):
             upload['reference'] = reference
 
         if parentType and parent:
-            upload['parentType'] = parentType.lower()
+            upload['parentType'] = parentType
             upload['parentId'] = parent['_id']
         else:
             upload['parentType'] = None
