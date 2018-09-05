@@ -59,7 +59,8 @@ with open('README.rst') as f:
     readme = f.read()
 
 installReqs = [
-    'boto3',
+    'boto3>=1.7,<1.8',  # TODO: unpin once moto works with boto3>=1.8
+    'botocore<1.11.0',  # TODO: remove once moto works with boto3>=1.8
     # CherryPy version is restricted due to a bug in versions >=11.1
     # https://github.com/cherrypy/cherrypy/issues/1662
     'CherryPy<11.1',
