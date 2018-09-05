@@ -45,7 +45,7 @@ _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
 _modelSingletons = []
 
 
-def _permissionClauses(user=None, level=AccessType.READ, prefix=''):
+def _permissionClauses(user=None, level=None, prefix=''):
     """
     Given a user and access level, return a list of clauses that can be used as
     part of a Mongo find query or aggregate match step.
@@ -62,13 +62,16 @@ def _permissionClauses(user=None, level=AccessType.READ, prefix=''):
         of match clauses, any one of which implies validation.
     """
     permissionClauses = []
-    if level <= AccessType.READ:
+    if level is None or (user and user['admin']):
+        # Without a level or with an admin user, match everything.
+        permissionClauses.append({})
+    elif level <= AccessType.READ:
         permissionClauses.append({prefix + 'public': True})
     elif not user:
         # If we have no user and asked for higher than read access, make a
         # query that will fail
         permissionClauses.append({'__matchnothing': 'nothing'})
-    if user:
+    if user and not user['admin']:
         permissionClauses.extend([
             {prefix + 'access.users': {'$elemMatch': {
                 'id': user['_id'],
@@ -1607,7 +1610,7 @@ class AccessControlledModel(Model):
             filters, offset=offset, limit=limit, sort=sort, fields=fields,
             user=user, level=level)
 
-    def permissionClauses(self, user=None, level=AccessType.READ, prefix=''):
+    def permissionClauses(self, user=None, level=None, prefix=''):
         return _permissionClauses(user, level, prefix)
 
     def findWithPermissions(self, query=None, offset=0, limit=0, timeout=None, fields=None,
