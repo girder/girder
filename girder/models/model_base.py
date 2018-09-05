@@ -45,7 +45,7 @@ _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
 _modelSingletons = []
 
 
-def _permissionClauses(user=None, level=None, prefix=''):
+def _permissionClauses(user=None, level=AccessType.READ, prefix=''):
     """
     Given a user and access level, return a list of clauses that can be used as
     part of a Mongo find query or aggregate match step.
@@ -61,9 +61,13 @@ def _permissionClauses(user=None, level=None, prefix=''):
     :returns: A query dictionary with an '$or' entry which consists of a list
         of match clauses, any one of which implies validation.
     """
-    permissionClauses = [
-        {prefix + 'public': True},
-    ]
+    permissionClauses = []
+    if level <= AccessType.READ:
+        permissionClauses.append({prefix + 'public': True})
+    elif not user:
+        # If we have no user and asked for higher than read access, make a
+        # query that will fail
+        permissionClauses.append({'__matchnothing': 'nothing'})
     if user:
         permissionClauses.extend([
             {prefix + 'access.users': {'$elemMatch': {
@@ -1603,7 +1607,7 @@ class AccessControlledModel(Model):
             filters, offset=offset, limit=limit, sort=sort, fields=fields,
             user=user, level=level)
 
-    def permissionClauses(self, user=None, level=None, prefix=''):
+    def permissionClauses(self, user=None, level=AccessType.READ, prefix=''):
         return _permissionClauses(user, level, prefix)
 
     def findWithPermissions(self, query=None, offset=0, limit=0, timeout=None, fields=None,
@@ -1638,12 +1642,7 @@ class AccessControlledModel(Model):
         :returns: A pymongo Cursor or CommandCursor.  If a CommandCursor, it
             has been augmented with a count function.
         """
-        # If no user is specified and greater than READ access is requested,
-        # we won't return anything.  So as to always return a cursor for
-        # consistency, we make a query that will return no results
-        if user is None and level is not None and level > AccessType.READ:
-            query = {'__matchnothing': 'nothing'}
-        elif level is not None and (not user or not user['admin']):
+        if level is not None and (not user or not user['admin']):
             query = {'$and': [query or {}, self.permissionClauses(user, level)]}
         return self.find(
             query=query, offset=offset, limit=limit, timeout=timeout,
