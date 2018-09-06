@@ -64,13 +64,13 @@ def _permissionClauses(user=None, level=None, prefix=''):
     permissionClauses = []
     if level is None or (user and user['admin']):
         # Without a level or with an admin user, match everything.
-        permissionClauses.append({})
-    elif level <= AccessType.READ:
+        return {}
+    if level <= AccessType.READ:
         permissionClauses.append({prefix + 'public': True})
     elif not user:
         # If we have no user and asked for higher than read access, make a
         # query that will fail
-        permissionClauses.append({'__matchnothing': 'nothing'})
+        return {'__matchnothing': 'nothing'}
     if user and not user['admin']:
         permissionClauses.extend([
             {prefix + 'access.users': {'$elemMatch': {
