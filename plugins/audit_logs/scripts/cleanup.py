@@ -1,11 +1,12 @@
 """
-This script is for deleting old audit log entries from the database. Due to the relative
-import, it should be run from the parent dir as `python -m server.cleanup`. TODO Pip installable
-plugins will allow us to just expose a console entry point for this.
+This script is for deleting old audit log entries from the database. Example invocation:
+
+    girder shell --plugins=audit_logs cleanup.py -- --days=30 --types=rest.request
 """
+
 import click
 import datetime
-from . import Record
+from girder.plugins.audit_logs import Record
 
 
 @click.command()
