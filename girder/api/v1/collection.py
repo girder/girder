@@ -56,9 +56,9 @@ class Collection(Resource):
         user = self.getCurrentUser()
 
         if text is not None:
-            return list(self._model.textSearch(text, user=user, limit=limit, offset=offset))
+            return self._model.textSearch(text, user=user, limit=limit, offset=offset)
 
-        return list(self._model.list(user=user, offset=offset, limit=limit, sort=sort))
+        return self._model.list(user=user, offset=offset, limit=limit, sort=sort)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model=CollectionModel)

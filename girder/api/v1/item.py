@@ -91,11 +91,11 @@ class Item(Resource):
             if name:
                 filters['name'] = name
 
-            return list(Folder().childItems(
-                folder=folder, limit=limit, offset=offset, sort=sort, filters=filters))
+            return Folder().childItems(
+                folder=folder, limit=limit, offset=offset, sort=sort, filters=filters)
         elif text is not None:
-            return list(self._model.textSearch(
-                text, user=user, limit=limit, offset=offset, sort=sort))
+            return self._model.textSearch(
+                text, user=user, limit=limit, offset=offset, sort=sort)
         else:
             raise RestException('Invalid search mode.')
 
@@ -232,7 +232,7 @@ class Item(Resource):
         .errorResponse('Read access was denied for the item.', 403)
     )
     def getFiles(self, item, limit, offset, sort):
-        return list(self._model.childFiles(item=item, limit=limit, offset=offset, sort=sort))
+        return self._model.childFiles(item=item, limit=limit, offset=offset, sort=sort)
 
     @access.cookie
     @access.public(scope=TokenScope.DATA_READ)
