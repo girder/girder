@@ -1,5 +1,7 @@
 import datetime
+import imp
 import pytest
+import os
 import six
 from click.testing import CliRunner
 from girder import auditLogger
@@ -7,6 +9,9 @@ from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.upload import Upload
 from girder.models.user import User
+from girder.utility.plugin_utilities import getPluginDir
+
+CLEANUP_PATH = os.path.join(getPluginDir(), 'audit_logs', 'scripts')
 
 
 @pytest.fixture
@@ -17,8 +22,10 @@ def recordModel():
 
 @pytest.fixture
 def cleanupCli():
-    from girder.plugins.audit_logs import cleanup
-    yield cleanup.cleanup
+    # TODO pip installable plugins can make this weirdness go away
+    fp, pathname, description = imp.find_module('cleanup', [CLEANUP_PATH])
+    module = imp.load_module('girder.plugins.audit_logs.cleanup', fp, pathname, description)
+    yield module.cleanup
 
 
 @pytest.fixture
