@@ -16,7 +16,7 @@ Installation of Girder's server has the following system dependencies:
                Python v2.7 environment.
 
   .. note:: Girder performs continuous integration testing using Python v2.7 and Python v3.5. Girder *should* work on
-            newer Python v3.6+ versions as well, but that support is not verified by Girder's auftomated testing at this
+            newer Python v3.6+ versions as well, but that support is not verified by Girder's automated testing at this
             time, so use at your own risk.
 
 * `pip <https://pip.pypa.io/>`_ v8.1+
@@ -110,7 +110,7 @@ Running Girder's server has the following additional system dependencies:
     `Postfix <http://www.postfix.org/documentation.html>`_, as a relay.
 
     * Beware that self-hosted SMTP relays may need additional configuration with IP whitelisting, SPF, DKIM, and other
-      measures before their mail can be reliability delivered to some email providers.
+      measures before their mail can be reliably delivered to some email providers.
 
 Web Client Build
 ----------------

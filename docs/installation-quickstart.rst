@@ -81,7 +81,7 @@ To create and enable a Python virtual environment, run the commands:
 .. code-block:: bash
 
    virtualenv girder_env
-   source girder-env/bin/activate
+   source girder_env/bin/activate
    pip install -U pip setuptools
 
 .. note:: You will need to re-run
