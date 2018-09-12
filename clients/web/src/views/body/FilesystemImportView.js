@@ -3,6 +3,7 @@ import $ from 'jquery';
 import BrowserWidget from 'girder/views/widgets/BrowserWidget';
 import router from 'girder/router';
 import View from 'girder/views/View';
+import { restRequest } from 'girder/rest';
 
 import FilesystemImportTemplate from 'girder/templates/body/filesystemImport.pug';
 
@@ -11,7 +12,7 @@ var FilesystemImportView = View.extend({
         'submit .g-filesystem-import-form': function (e) {
             e.preventDefault();
 
-            var destId = this.$('#g-filesystem-import-dest-id').val().trim(),
+            var destId = this.$('#g-filesystem-import-dest-id').val().trim().split(/\s/)[0],
                 destType = this.$('#g-filesystem-import-dest-type').val(),
                 foldersAsItems = this.$('#g-filesystem-import-leaf-items').val();
 
@@ -50,6 +51,17 @@ var FilesystemImportView = View.extend({
         });
         this.listenTo(this._browserWidgetView, 'g:saved', function (val) {
             this.$('#g-filesystem-import-dest-id').val(val.id);
+            this.$('#g-filesystem-import-dest-type').val(val.get('_modelType'));
+            restRequest({
+                url: `resource/${val.id}/path`,
+                method: 'GET',
+                data: {type: val.get('_modelType')}
+            }).done((result) => {
+                // Only add the resource path if the value wasn't altered
+                if (this.$('#g-filesystem-import-dest-id').val() === val.id) {
+                    this.$('#g-filesystem-import-dest-id').val(`${val.id} (${result})`);
+                }
+            });
         });
         this.assetstore = settings.assetstore;
         this.render();

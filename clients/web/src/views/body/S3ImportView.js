@@ -3,6 +3,7 @@ import $ from 'jquery';
 import BrowserWidget from 'girder/views/widgets/BrowserWidget';
 import router from 'girder/router';
 import View from 'girder/views/View';
+import { restRequest } from 'girder/rest';
 
 import S3ImportTemplate from 'girder/templates/body/s3Import.pug';
 
@@ -11,7 +12,7 @@ var S3ImportView = View.extend({
         'submit .g-s3-import-form': function (e) {
             e.preventDefault();
 
-            var destId = this.$('#g-s3-import-dest-id').val().trim(),
+            var destId = this.$('#g-s3-import-dest-id').val().trim().split(/\s/)[0],
                 destType = this.$('#g-s3-import-dest-type').val();
 
             this.$('.g-validation-failed-message').empty();
@@ -48,6 +49,17 @@ var S3ImportView = View.extend({
         });
         this.listenTo(this._browserWidgetView, 'g:saved', function (val) {
             this.$('#g-s3-import-dest-id').val(val.id);
+            this.$('#g-s3-import-dest-type').val(val.get('_modelType'));
+            restRequest({
+                url: `resource/${val.id}/path`,
+                method: 'GET',
+                data: {type: val.get('_modelType')}
+            }).done((result) => {
+                // Only add the resource path if the value wasn't altered
+                if (this.$('#g-s3-import-dest-id').val() === val.id) {
+                    this.$('#g-s3-import-dest-id').val(`${val.id} (${result})`);
+                }
+            });
         });
         this.assetstore = settings.assetstore;
         this.render();

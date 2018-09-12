@@ -64,6 +64,7 @@ EventStream.prototype._onError = function () {
         .fail((jqXHR) => {
             if (jqXHR.status === 503) {
                 // Notification stream is disabled, so close this EventStream
+                this.trigger('g:eventStream.disable', jqXHR);
                 this.close();
             }
         });
@@ -74,6 +75,7 @@ EventStream.prototype._onError = function () {
 EventStream.prototype.open = function () {
     if (!window.EventSource) {
         console.error('EventSource is not supported on this platform.');
+        this.trigger('g:eventStream.disable');
         return;
     }
     if (this._state !== 'closed') {

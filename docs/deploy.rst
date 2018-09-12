@@ -14,6 +14,33 @@ server.  For example, if you have a server accepting requests at
 ``www.example.com``, you may want to forward requests to
 ``www.example.com/girder`` to a Girder instance listening on port ``9000``.
 
+Anytime you deploy behind a proxy, Girder must be configured properly in order to serve
+content correctly.  This can be accomplished by setting a few parameters in
+your local configuration file at ``girder/conf/girder.local.cfg``.  In this
+example, we have the following:
+
+.. code-block:: ini
+
+    [global]
+    server.socket_host = "127.0.0.1"
+    server.socket_port = 9000
+    tools.proxy.on = True
+
+    [server]
+    api_root = "/girder/api/v1"
+    static_root = "/girder/static"
+
+.. note:: If your chosen proxy server does not add the appropriate
+   ``X-Forwarded-Host`` header (containing the host used in http requests,
+   including any non-default port to proxied requests), the ``tools.proxy.base``
+   and ``tools.proxy.local`` configuration options must also be set in the
+   ``[global]`` section as:
+
+   .. code-block:: ini
+
+       tools.proxy.base = "http://www.example.com/girder"
+       tools.proxy.local = ""
+
 Apache
 ++++++
 
@@ -79,36 +106,6 @@ would be::
 
    `CherryPy documentation describing how to deploy under WSGI <http://docs.cherrypy.org/en/latest/deploy.html#wsgi-servers>`_
 
-
-Girder Settings
-+++++++++++++++
-
-In such a scenario, Girder must be configured properly in order to serve
-content correctly.  This can be accomplished by setting a few parameters in
-your local configuration file at ``girder/conf/girder.local.cfg``.  In this
-example, we have the following:
-
-.. code-block:: ini
-
-    [global]
-    server.socket_host = "127.0.0.1"
-    server.socket_port = 9000
-    tools.proxy.on = True
-
-    [server]
-    api_root = "/girder/api/v1"
-    static_root = "/girder/static"
-
-.. note:: If your chosen proxy server does not add the appropriate
-   ``X-Forwarded-Host`` header (containing the host used in http requests,
-   including any non-default port to proxied requests), the ``tools.proxy.base``
-   and ``tools.proxy.local`` configuration options must also be set in the
-   ``[global]`` section as:
-
-   .. code-block:: ini
-
-       tools.proxy.base = "http://www.example.com/girder"
-       tools.proxy.local = ""
 
 Docker Container
 ----------------

@@ -6,7 +6,7 @@ import os
 import pytest
 import shutil
 
-from .utils import MockSmtpReceiver, request as restRequest
+from .utils import uploadFile, MockSmtpReceiver, request as restRequest
 
 
 def _uid(node):
@@ -98,21 +98,21 @@ def server(db, request):
     girder.events.daemon = girder.events.AsyncEventsThread()
 
     enabledPlugins = []
-    installedPluginMarkers = request.node.get_marker('plugin')
-    testPluginMarkers = request.node.get_marker('testPlugin')
+    hasInstalledPluginMarkers = request.node.get_closest_marker('plugin') is not None
+    hasTestPluginMarkers = request.node.get_closest_marker('testPlugin') is not None
 
-    if installedPluginMarkers is not None and testPluginMarkers is not None:
+    if hasInstalledPluginMarkers and hasTestPluginMarkers:
         raise Exception(
             'The "testPlugin" and "plugin" markers cannot both be used on a single test'
         )
 
-    elif installedPluginMarkers is not None:
-        for installedPluginMarker in installedPluginMarkers:
+    elif hasInstalledPluginMarkers:
+        for installedPluginMarker in request.node.iter_markers('plugin'):
             pluginName = installedPluginMarker.args[0]
             enabledPlugins.append(pluginName)
 
-    elif testPluginMarkers is not None:
-        for testPluginMarker in testPluginMarkers:
+    elif hasTestPluginMarkers:
+        for testPluginMarker in request.node.iter_markers('testPlugin'):
             pluginName = testPluginMarker.args[0]
             enabledPlugins.append(pluginName)
 
@@ -126,6 +126,7 @@ def server(db, request):
 
     server = setupServer(test=True, plugins=enabledPlugins)
     server.request = restRequest
+    server.uploadFile = uploadFile
 
     cherrypy.server.unsubscribe()
     cherrypy.config.update({'environment': 'embedded',

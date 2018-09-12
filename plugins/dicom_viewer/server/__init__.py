@@ -134,6 +134,15 @@ def _removeUniqueMetadata(dicomMeta, additionalMeta):
 
 
 def _coerceValue(value):
+    # For binary data, see if it can be coerced further into utf8 data.  If
+    # not, mongo won't store it, so don't accept it here.
+    if isinstance(value, six.binary_type):
+        if b'\x00' in value:
+            raise ValueError('Binary data with null')
+        try:
+            value.decode('utf-8')
+        except UnicodeDecodeError:
+            raise ValueError('Binary data that cannot be stored as utf-8')
     # Many pydicom value types are subclasses of base types; to ensure the value can be serialized
     # to MongoDB, cast the value back to its base type
     for knownBaseType in {
@@ -166,9 +175,18 @@ def _coerceValue(value):
 def _coerceMetadata(dataset):
     metadata = {}
 
-    # Use simple iteration instead of "dataset.iterall", to prevent recursing into Sequiences, which
+    # Use simple iteration instead of "dataset.iterall", to prevent recursing into Sequences, which
     # are too complicated to flatten now
-    for dataElement in dataset:
+    # The dataset iterator is
+    #   for tag in sorted(dataset.keys()):
+    #       yield dataset[tag]
+    # but we want to ignore certain exceptions of delayed data loading, so
+    # we iterate through the dataset ourselves.
+    for tag in dataset.keys():
+        try:
+            dataElement = dataset[tag]
+        except IOError:
+            continue
         if dataElement.tag.element == 0:
             # Skip Group Length tags, which are always element 0x0000
             continue

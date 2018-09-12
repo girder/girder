@@ -2,6 +2,7 @@
 # editing it.
 /*
 !.gitignore
+!audit_logs/
 !authorized_upload/
 !autojoin/
 !candela/

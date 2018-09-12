@@ -1,0 +1,3 @@
+name: Audit logging
+description: Keeps detailed logs of every REST request and low-level file download event.
+version: 0.1.0

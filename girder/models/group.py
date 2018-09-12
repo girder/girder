@@ -375,6 +375,16 @@ class Group(AccessControlledModel):
             return self._hasUserAccess(doc.get('access', {}).get('users', []),
                                        user['_id'], level)
 
+    def permissionClauses(self, user=None, level=None, prefix=''):
+        permission = super(Group, self).permissionClauses(user, level, prefix)
+        if user and level == AccessType.READ:
+            permission['$or'].extend([
+                {prefix + '_id': {'$in': user.get('groups', [])}},
+                {prefix + '_id': {'$in': [i['groupId'] for i in
+                                          user.get('groupInvites', [])]}},
+            ])
+        return permission
+
     def getAccessLevel(self, doc, user):
         """
         Return the maximum access level for a given user on the group.

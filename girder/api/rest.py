@@ -24,17 +24,20 @@ import datetime
 import inspect
 import json
 import posixpath
+import pymongo
 import six
 import sys
 import traceback
+import types
 import unicodedata
 
 from dogpile.cache.util import kwarg_function_key_generator
+from girder.external.mongodb_proxy import MongoProxy
+
 from . import docs
-from girder import events, logger, logprint
+from girder import auditLogger, events, logger, logprint
 from girder.constants import SettingKey, TokenScope, SortDir
-from girder.exceptions import AccessException, GirderException, ValidationException, \
-    RestException
+from girder.exceptions import AccessException, GirderException, ValidationException, RestException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
@@ -45,6 +48,8 @@ from six.moves import range, urllib
 
 # Arbitrary buffer length for stream-reading request bodies
 READ_BUFFER_LEN = 65536
+
+_MONGO_CURSOR_TYPES = (MongoProxy, pymongo.cursor.Cursor, pymongo.command_cursor.CommandCursor)
 
 
 def getUrlParts(url=None):
@@ -79,7 +84,7 @@ def getApiUrl(url=None, preferReferer=False):
         a cherrypy request that has a referer header that contains the api
         string, use that referer as the url.
     """
-    apiStr = '/api/v1'
+    apiStr = config.getConfig()['server']['api_root']
 
     if not url:
         if preferReferer and apiStr in cherrypy.request.headers.get('referer', ''):
@@ -87,7 +92,7 @@ def getApiUrl(url=None, preferReferer=False):
         else:
             root = Setting().get(SettingKey.SERVER_ROOT)
             if root:
-                return posixpath.join(root, config.getConfig()['server']['api_root'].lstrip('/'))
+                return posixpath.join(root, apiStr.lstrip('/'))
 
     url = url or cherrypy.url()
     idx = url.find(apiStr)
@@ -448,7 +453,11 @@ class filtermodel(object):  # noqa: class name
 
             user = getCurrentUser()
 
-            if isinstance(val, (list, tuple)):
+            if isinstance(val, _MONGO_CURSOR_TYPES):
+                if callable(getattr(val, 'count', None)):
+                    cherrypy.response.headers['Girder-Total-Count'] = val.count()
+                return [model.filter(m, user, self.addFields) for m in val]
+            elif isinstance(val, (list, tuple, types.GeneratorType)):
                 return [model.filter(m, user, self.addFields) for m in val]
             elif isinstance(val, dict):
                 return model.filter(val, user, self.addFields)
@@ -573,6 +582,34 @@ def _handleValidationException(e):
     return val
 
 
+def _logRestRequest(resource, path, params):
+    auditLogger.info('rest.request', extra={
+        'details': {
+            'method': cherrypy.request.method.upper(),
+            'route': (getattr(resource, 'resourceName', resource.__class__.__name__),) + path,
+            'params': params,
+            'status': cherrypy.response.status or 200
+        }
+    })
+
+
+def _mongoCursorToList(val):
+    """
+    If the specified value is a Mongo cursor, convert it to a list.
+    Otherwise, just return the passed values.
+
+    :param val: a value that might be a Mongo cursor.
+    :returns: a list if val was a Mongo cursor, otherwise the original val.
+    """
+    # This needs to be before the callable check, as mongo cursors can
+    # be callable.
+    if isinstance(val, _MONGO_CURSOR_TYPES):
+        if callable(getattr(val, 'count', None)):
+            cherrypy.response.headers['Girder-Total-Count'] = val.count()
+        val = list(val)
+    return val
+
+
 def endpoint(fun):
     """
     REST HTTP method endpoints should use this decorator. It converts the return
@@ -586,26 +623,32 @@ def endpoint(fun):
     from the inner method.
     """
     @six.wraps(fun)
-    def endpointDecorator(self, *args, **kwargs):
+    def endpointDecorator(self, *path, **params):
         _setCommonCORSHeaders()
         cherrypy.lib.caching.expires(0)
         try:
-            val = fun(self, args, kwargs)
+            val = fun(self, path, params)
 
             # If this is a partial response, we set the status appropriately
             if 'Content-Range' in cherrypy.response.headers:
                 cherrypy.response.status = 206
+
+            val = _mongoCursorToList(val)
 
             if callable(val):
                 # If the endpoint returned anything callable (function,
                 # lambda, functools.partial), we assume it's a generator
                 # function for a streaming response.
                 cherrypy.response.stream = True
+                _logRestRequest(self, path, params)
                 return val()
 
             if isinstance(val, cherrypy.lib.file_generator):
                 # Don't do any post-processing of static files
                 return val
+
+            if isinstance(val, types.GeneratorType):
+                val = list(val)
 
         except RestException as e:
             val = _handleRestException(e)
@@ -629,7 +672,10 @@ def endpoint(fun):
                 # Unless we are in production mode, send a traceback too
                 val['trace'] = traceback.extract_tb(tb)
 
-        return _createResponse(val)
+        resp = _createResponse(val)
+        _logRestRequest(self, path, params)
+
+        return resp
     return endpointDecorator
 
 
