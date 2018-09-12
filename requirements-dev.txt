@@ -8,7 +8,7 @@ mock
 mongomock
 moto[server]
 pytest>=3.6
-pytest-cov
+pytest-cov<2.6
 pytest-xdist
 python-dateutil<2.7 # required for botocore=1.9.8
 tox
