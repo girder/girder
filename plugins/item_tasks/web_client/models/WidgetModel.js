@@ -38,7 +38,7 @@ import tinycolor from 'tinycolor2';
  *
  * Girder models:
  *   * file:
- *      an input file (evaluates to an item id)
+ *      an input file (evaluates to an file id)
  *   * directory:
  *      an input folder (evaluates to a folder id)
  *   * new-file:
@@ -302,10 +302,10 @@ var WidgetModel = Backbone.Model.extend({
             return 'Empty value';
         } else if (!type) {
             return 'Invalid value';
-        } else if (this.get('type') === 'file' && type !== 'item') {
-            return 'Value must be an item';
-        } else if (this.get('type') === 'image' && type !== 'item') {
-            return 'Value must be an item';
+        } else if (this.get('type') === 'image' && type !== 'file') {
+            return 'Value must be an file';
+        } else if (this.get('type') === 'file' && type !== 'file') {
+            return 'Value must be a file';
         } else if (this.get('type') === 'directory' && type !== 'folder') {
             return 'Value must be a folder';
         } else if (this.get('type') === 'new-file' && type !== 'folder') {

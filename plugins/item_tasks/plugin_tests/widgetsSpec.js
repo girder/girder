@@ -358,7 +358,7 @@ describe('widget collection', function () {
             'number-vector': '[1,2,3]',
             'string-enumeration': '"a"',
             'number-enumeration': '1',
-            'file_girderItemId': 'a',
+            'file_girderFileId': 'a',
             'new-file_girderFolderId': 'b',
             'new-file_name': 'a',
             'image_girderFileId': 'c'
@@ -368,6 +368,7 @@ describe('widget collection', function () {
 
 describe('control widget view', function () {
     var $el;
+    var w;
     var parentView = {
         registerChildView: function () {}
     };
@@ -388,11 +389,11 @@ describe('control widget view', function () {
     });
 
     afterEach(function () {
-        $el.remove();
+        w.remove();
     });
 
     it('range', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -412,10 +413,12 @@ describe('control widget view', function () {
         expect(w.$('input').val()).toBe('2');
         w.$('input').val('4').trigger('change');
         expect(w.model.value()).toBe(4);
+
+        w.remove();
     });
 
     it('number', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -444,7 +447,7 @@ describe('control widget view', function () {
     });
 
     it('boolean', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -464,7 +467,7 @@ describe('control widget view', function () {
     });
 
     it('string', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -485,7 +488,7 @@ describe('control widget view', function () {
     });
 
     it('color', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -509,7 +512,7 @@ describe('control widget view', function () {
     });
 
     it('string-vector', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -529,7 +532,7 @@ describe('control widget view', function () {
     });
 
     it('number-vector', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -549,7 +552,7 @@ describe('control widget view', function () {
     });
 
     it('string-enumeration', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -574,7 +577,7 @@ describe('control widget view', function () {
     });
 
     it('number-enumeration', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -599,34 +602,51 @@ describe('control widget view', function () {
     });
 
     it('file', function () {
-        var item = new girder.models.ItemModel({id: 'model id', name: 'b'});
+        var file = new girder.models.FileModel({_id: 'file id', name: 'd'});
+        var item = new girder.models.ItemModel({_id: 'item id', name: 'e'});
+        runs(function () {
+            var browserWidgetProto = girder.views.widgets.BrowserWidget.prototype;
+            // Browswer widget creates a RootSelectorWidget.
+            // RootSelectorWidget fetches, so we need to mock it.
+            spyOn(girder.views.widgets.RootSelectorWidget.prototype, 'initialize');
+            spyOn(browserWidgetProto, 'render').andCallFake(function () {
+                // Validate works because there is no input validation, only slected validation.
+                // Set selected item and validate it as to mock a selection via click.
+                var hv = {
+                    parentModel: 'temp'
+                };
+                this._hierarchyView = hv;
+                this._selected = item;
+                this._validate();
+            });
 
-        var browserWidgetProto = girder.views.widgets.BrowserWidget.prototype;
-        spyOn(browserWidgetProto, 'initialize');
-        spyOn(browserWidgetProto, 'render').andCallFake(function () {
-            // trigger a response from the mocked widget
-            this.trigger('g:saved', item);
+            w = new itemTasks.views.ControlWidget({
+                parentView: parentView,
+                el: $el,
+                model: new itemTasks.models.WidgetModel({
+                    type: 'file',
+                    title: 'Title',
+                    id: 'file-widget'
+                })
+            });
+
+            girder.rest.mockRestRequest(function (opts) {
+                return $.Deferred().resolve([file.toJSON()]);
+            });
+            w.render();
+            checkWidgetCommon(w);
+            expect(w.model.has('value')).toBe(false);
+            w.$('.g-select-file-button').click();
         });
 
-        var w = new itemTasks.views.ControlWidget({
-            parentView: parentView,
-            el: $el,
-            model: new itemTasks.models.WidgetModel({
-                type: 'file',
-                title: 'Title',
-                id: 'file-widget'
-            })
+        waitsFor(function () {
+            return w.model.has('value');
+        }, 'file to be fetched.');
+
+        runs(function () {
+            expect(w.model.get('value').get('_id')).toBe(file.get('_id'));
+            girder.rest.unmockRestRequest();
         });
-
-        w.render();
-        checkWidgetCommon(w);
-
-        w.$('.g-select-file-button').click();
-
-        // make sure the browser widget was initialized
-        expect(browserWidgetProto.initialize).toHaveBeenCalled();
-
-        expect(w.model.get('value')).toBe(item);
     });
 
     it('new-file', function () {
@@ -639,7 +659,7 @@ describe('control widget view', function () {
             this.trigger('g:saved', folder);
         });
 
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({
@@ -661,7 +681,7 @@ describe('control widget view', function () {
     });
 
     it('invalid', function () {
-        var w = new itemTasks.views.ControlWidget({
+        w = new itemTasks.views.ControlWidget({
             parentView: parentView,
             el: $el,
             model: new itemTasks.models.WidgetModel({

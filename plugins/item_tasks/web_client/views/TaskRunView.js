@@ -3,7 +3,7 @@ import _ from 'underscore';
 
 import View from 'girder/views/View';
 import FolderModel from 'girder/models/FolderModel';
-import ItemModel from 'girder/models/ItemModel';
+import FileModel from 'girder/models/FileModel';
 import router  from 'girder/router';
 import { restRequest } from 'girder/rest';
 import { renderMarkdown } from 'girder/misc';
@@ -60,10 +60,10 @@ const TaskRunView = View.extend({
      */
     _setJobInfo: function (spec, bindings) {
         const match = bindings[spec.id || spec.name] || {};
-        if (match.mode === 'girder' && match.resource_type === 'item') {
-            spec.value = new ItemModel({
+        if (match.mode === 'girder' && (match.resource_type === 'file' || match.resource_type === 'image')) {
+            spec.value = new FileModel({
                 _id: match.id,
-                _modelType: 'item',
+                _modelType: 'file',
                 name: match.fileName || match.id
             });
             spec.fileName = match.fileName || match.id;
@@ -140,11 +140,11 @@ const TaskRunView = View.extend({
         const translate = (model) => {
             let val = model.value();
             switch (model.get('type')) {
-                case 'image':
+                case 'image': // This is an input
                 case 'file': // This is an input
                     return {
                         mode: 'girder',
-                        resource_type: 'item',
+                        resource_type: 'file',
                         id: val.id,
                         fileName: model.get('fileName') || null
                     };

@@ -21,13 +21,13 @@ var SelectSingleFileTaskWidget = View.extend({
 
             this.trigger('g:selected', {
                 task: this.task,
-                item: this.item
+                file: this.file
             });
         }
     },
 
     initialize: function (settings) {
-        this.item = settings.item;
+        this.file = settings.file;
         this.collection = new ItemTaskCollection();
         this.collection.pageLimit = 5;
         this.paginateTasksWidget = new PaginateTasksWidget({
@@ -42,9 +42,7 @@ var SelectSingleFileTaskWidget = View.extend({
 
     render: function () {
         this.$el
-            .html(SelectSingleFileTaskWidgetTemplate({
-                item: this.item
-            }))
+            .html(SelectSingleFileTaskWidgetTemplate())
             .girderModal(this);
 
         this.paginateTasksWidget.setElement(this.$('.g-task-list-container')).render();
