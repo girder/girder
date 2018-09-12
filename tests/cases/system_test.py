@@ -104,6 +104,10 @@ class SystemTestCase(base.TestCase):
             self.assertEqual(resp.json['SHA'], sha)
             self.assertEqual(sha.find(resp.json['shortSHA']), 0)
 
+            resp = self.request(path='/system/version', method='GET', params={'fromGit': True})
+            self.assertStatusOk(resp)
+            self.assertEqual(resp.json['SHA'], resp.json['gitVersions']['core']['SHA'])
+
     def testSettings(self):
         users = self.users
 

@@ -85,29 +85,64 @@ class Job(AccessControlledModel):
         :param parentJob: Parent Job.
         :param currentUser: User for access filtering.
         """
-        query = {}
-        # When user is 'all', no filtering by user, list jobs of all users.
-        if user == 'all':
-            pass
-        # When user is 'none' or None, list anonymous user jobs.
-        elif user == 'none' or user is None:
-            query['userId'] = None
-        # Otherwise, filter by user id
-        else:
-            query['userId'] = user['_id']
-        if types is not None:
-            query['type'] = {'$in': types}
-        if statuses is not None:
-            query['status'] = {'$in': statuses}
-        if parentJob:
-            query['parentId'] = parentJob['_id']
+        return self.findWithPermissions(
+            offset=offset, limit=limit, sort=sort, user=currentUser,
+            types=types, statuses=statuses, jobUser=user, parentJob=parentJob)
 
-        cursor = self.find(query, sort=sort)
-
-        for r in self.filterResultsByPermission(cursor=cursor, user=currentUser,
-                                                level=AccessType.READ,
-                                                limit=limit, offset=offset):
-            yield r
+    def findWithPermissions(self, query=None, offset=0, limit=0, timeout=None, fields=None,
+                            sort=None, user=None, level=AccessType.READ,
+                            types=None, statuses=None, jobUser=None, parentJob=None, **kwargs):
+        """
+        Search the list of jobs.
+        :param query: The search query (see general MongoDB docs for "find()")
+        :type query: dict
+        :param offset: The offset into the results
+        :type offset: int
+        :param limit: Maximum number of documents to return
+        :type limit: int
+        :param timeout: Cursor timeout in ms. Default is no timeout.
+        :type timeout: int
+        :param fields: A mask for filtering result documents by key, or None to return the full
+            document, passed to MongoDB find() as the `projection` param.
+        :type fields: `str, list of strings or tuple of strings for fields to be included from the
+            document, or dict for an inclusion or exclusion projection`.
+        :param sort: The sort order.
+        :type sort: List of (key, order) tuples.
+        :param user: The user to check policies against.
+        :type user: dict or None
+        :param level: The access level.  Explicitly passing None skips doing
+            permissions checks.
+        :type level: AccessType
+        :param types: job type filter.
+        :type types: array of type string, or None.
+        :param statuses: job status filter.
+        :type statuses: array of status integer, or None.
+        :param jobUser: The user who owns the job.
+        :type jobUser: dict, 'all', 'none', or None.
+        :param parentJob: Parent Job.
+        :returns: A pymongo Cursor or CommandCursor.  If a CommandCursor, it
+            has been augmented with a count function.
+        """
+        if query is None:
+            query = {}
+            # When user is 'all', no filtering by user, list jobs of all users.
+            if jobUser == 'all':
+                pass
+            # When user is 'none' or None, list anonymous user jobs.
+            elif jobUser == 'none' or jobUser is None:
+                query['userId'] = None
+            # Otherwise, filter by user id
+            else:
+                query['userId'] = jobUser['_id']
+            if types is not None:
+                query['type'] = {'$in': types}
+            if statuses is not None:
+                query['status'] = {'$in': statuses}
+            if parentJob:
+                query['parentId'] = parentJob['_id']
+        return super(Job, self).findWithPermissions(
+            query, offset=offset, limit=limit, timeout=timeout, fields=fields,
+            sort=sort, user=user, level=level, **kwargs)
 
     def listAll(self, limit=0, offset=0, sort=None, currentUser=None):
         """

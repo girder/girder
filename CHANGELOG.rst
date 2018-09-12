@@ -17,8 +17,15 @@ Changes
 Bug Fixes
 ---------
 
+Server
+^^^^^^
 * Fixed a bug where removing admin status from a user via the REST API did not work.
   (`#2720 <https://github.com/girder/girder/pull/2720>`_).
+
+Web Client
+^^^^^^^^^^
+* Ensure that a text input doesn't appear after downloading checked items.
+  (`#2736 <https://github.com/girder/girder/pull/2736>`_)
 
 Python Client
 ^^^^^^^^^^^^^
@@ -49,6 +56,10 @@ Python Client
   certain error responses (`#2697 <https://github.com/girder/girder/pull/2697>`_).
 * Added a ``--verbose`` option to the girder-client command line interface to increase the verbosity
   of information dumped to stderr (`#2699 <https://github.com/girder/girder/pull/2699>`_).
+
+Web Client
+^^^^^^^^^^
+* Filesystem and S3 assetstore imports show the selected destination resource path next to the ID when selected via the browser widget (`#2775 <https://github.com/girder/girder/pull/2775>`_).
 
 Changes
 -------

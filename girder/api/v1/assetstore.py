@@ -65,7 +65,7 @@ class Assetstore(Resource):
         .errorResponse('You are not an administrator.', 403)
     )
     def find(self, limit, offset, sort):
-        return list(self._model.list(offset=offset, limit=limit, sort=sort))
+        return self._model.list(offset=offset, limit=limit, sort=sort)
 
     @access.admin
     @autoDescribeRoute(
@@ -265,5 +265,5 @@ class Assetstore(Resource):
         .errorResponse('You are not an administrator.', 403)
     )
     def getAssetstoreFiles(self, assetstore, limit, offset, sort):
-        return list(File().find(
-            query={'assetstoreId': assetstore['_id']}, offset=offset, limit=limit, sort=sort))
+        return File().find(
+            query={'assetstoreId': assetstore['_id']}, offset=offset, limit=limit, sort=sort)

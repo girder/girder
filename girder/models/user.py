@@ -553,14 +553,10 @@ class User(AccessControlledModel):
 
         count = 1
         folderModel = Folder()
-        folders = folderModel.find({
+        folders = folderModel.findWithPermissions({
             'parentId': doc['_id'],
             'parentCollection': 'user'
-        }, fields=('access',))
-
-        if level is not None:
-            folders = self.filterResultsByPermission(
-                cursor=folders, user=user, level=level)
+        }, fields='access', user=user, level=level)
 
         count += sum(folderModel.subtreeCount(
             folder, includeItems=includeItems, user=user, level=level)
@@ -585,16 +581,12 @@ class User(AccessControlledModel):
         fields = () if level is None else ('access', 'public')
 
         folderModel = Folder()
-        folders = folderModel.find({
+        folders = folderModel.findWithPermissions({
             'parentId': user['_id'],
             'parentCollection': 'user'
-        }, fields=fields)
+        }, fields=fields, user=filterUser, level=level)
 
-        if level is None:
-            return folders.count()
-        else:
-            return sum(1 for _ in folderModel.filterResultsByPermission(
-                cursor=folders, user=filterUser, level=level))
+        return folders.count()
 
     def updateSize(self, doc):
         """

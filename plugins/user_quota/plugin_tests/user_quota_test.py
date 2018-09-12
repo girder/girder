@@ -355,14 +355,14 @@ class QuotaTestCase(base.TestCase):
         self.currentAssetstore = assetstores[0]
         self.alternateAssetstore = assetstores[1]
         self.brokenAssetstore = assetstores[2]
-        self._testAssetstores('user', self.user, self.user)
+        self._testAssetstores('user', self.user, self.admin)
         self._testAssetstores('collection', self.collection, self.admin)
 
     def testQuotaPolicy(self):
         """
         Test quota policies for a user and a collection.
         """
-        self._testQuota('user', self.user, self.user)
+        self._testQuota('user', self.user, self.admin)
         self._testQuota('collection', self.collection, self.admin)
 
     def testPolicySettings(self):
@@ -372,62 +372,62 @@ class QuotaTestCase(base.TestCase):
         # We have to send a json dictionary
         # We can only set certain keys
         self._setPolicy('this is not json',
-                        'user', self.user, self.user,
+                        'user', self.user, self.admin,
                         error='Parameter policy must be valid JSON.')
         self._setPolicy(json.dumps(['this is not a dictionary']),
-                        'user', self.user, self.user,
+                        'user', self.user, self.admin,
                         error='Parameter policy must be a JSON object.')
         # We can only set certain keys
         self._setPolicy({'notAKey': 'notAValue'},
-                        'user', self.user, self.user,
+                        'user', self.user, self.admin,
                         error='not a valid quota policy key')
         # We need to pass None, current, or an ObjectId to preferredAssetstore
         self._setPolicy({'preferredAssetstore': 'current'},
-                        'user', self.user, self.user,
+                        'user', self.user, self.admin,
                         results={'preferredAssetstore': None})
         self._setPolicy({'preferredAssetstore': 'not an id'},
-                        'user', self.user, self.user,
+                        'user', self.user, self.admin,
                         error='Invalid preferredAssetstore')
         self._setPolicy({'preferredAssetstore': None},
-                        'user', self.user, self.user)
+                        'user', self.user, self.admin)
         # fallbackAssetstore can also take 'none'
         self._setPolicy({'fallbackAssetstore': 'current'},
-                        'user', self.user, self.user,
+                        'user', self.user, self.admin,
                         results={'fallbackAssetstore': None})
         self._setPolicy({'fallbackAssetstore': 'none'},
-                        'user', self.user, self.user)
+                        'user', self.user, self.admin)
         self._setPolicy({'fallbackAssetstore': 'not an id'},
-                        'user', self.user, self.user,
+                        'user', self.user, self.admin,
                         error='Invalid fallbackAssetstore')
         self._setPolicy({'fallbackAssetstore': None},
-                        'user', self.user, self.user)
+                        'user', self.user, self.admin)
         # fileSizeQuota can be None, blank, 0, or a positive integer
         self._setPolicy({'fileSizeQuota': 0},
-                        'user', self.user, self.user,
+                        'user', self.user, self.admin,
                         results={'fileSizeQuota': None})
         self._setPolicy({'fileSizeQuota': '00'},
-                        'user', self.user, self.user,
+                        'user', self.user, self.admin,
                         results={'fileSizeQuota': None})
         self._setPolicy({'fileSizeQuota': ''},
-                        'user', self.user, self.user,
+                        'user', self.user, self.admin,
                         results={'fileSizeQuota': None})
         self._setPolicy({'fileSizeQuota': 'not an integer'},
-                        'user', self.user, self.user,
+                        'user', self.user, self.admin,
                         error='Invalid quota')
         self._setPolicy({'fileSizeQuota': -1},
-                        'user', self.user, self.user,
+                        'user', self.user, self.admin,
                         error='Invalid quota')
         self._setPolicy({'fileSizeQuota': None},
-                        'user', self.user, self.user)
+                        'user', self.user, self.admin)
         # useDefaultQuota can be True, False, None, yes, no, 0, 1.
         valdict = {None: True, True: True, 'true': True, 1: True, 'True': True,
                    False: False, 'false': False, 0: False, 'False': False}
         for val in valdict:
             self._setPolicy({'useQuotaDefault': val},
-                            'user', self.user, self.user,
+                            'user', self.user, self.admin,
                             results={'useQuotaDefault': valdict[val]})
         self._setPolicy({'useQuotaDefault': 'not_a_boolean'}, 'user',
-                        self.user, self.user, error='Invalid useQuotaDefault')
+                        self.user, self.admin, error='Invalid useQuotaDefault')
         # the resource default values behave like fileSizeQuota
         self._setQuotaDefault('user', 0, None)
         self._setQuotaDefault('user', '00', None)

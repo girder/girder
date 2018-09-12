@@ -454,12 +454,10 @@ class Folder(AccessControlledModel):
         }
         q.update(filters)
 
-        # Perform the find; we'll do access-based filtering of the result set
-        # afterward.
-        cursor = self.find(q, sort=sort, **kwargs)
+        cursor = self.findWithPermissions(
+            q, sort=sort, user=user, level=AccessType.READ, limit=limit, offset=offset, **kwargs)
 
-        return self.filterResultsByPermission(
-            cursor=cursor, user=user, level=AccessType.READ, limit=limit, offset=offset)
+        return iter(cursor)
 
     def createFolder(self, parent, name, description='', parentType='folder',
                      public=None, creator=None, allowRename=False, reuseExisting=False):
@@ -617,16 +615,12 @@ class Folder(AccessControlledModel):
         """
         fields = () if level is None else ('access', 'public')
 
-        folders = self.find({
+        folders = self.findWithPermissions({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
-        }, fields=fields)
+        }, fields=fields, user=user, level=level)
 
-        if level is None:
-            return folders.count()
-        else:
-            return sum(1 for _ in self.filterResultsByPermission(
-                cursor=folders, user=user, level=level))
+        return folders.count()
 
     def subtreeCount(self, folder, includeItems=True, user=None, level=None):
         """
@@ -647,14 +641,10 @@ class Folder(AccessControlledModel):
         if includeItems:
             count += self.countItems(folder)
 
-        folders = self.find({
+        folders = self.findWithPermissions({
             'parentId': folder['_id'],
             'parentCollection': 'folder'
-        }, fields=('access',))
-
-        if level is not None:
-            folders = self.filterResultsByPermission(
-                cursor=folders, user=user, level=level)
+        }, fields='access', user=user, level=level)
 
         count += sum(self.subtreeCount(subfolder, includeItems=includeItems,
                                        user=user, level=level)
@@ -870,13 +860,10 @@ class Folder(AccessControlledModel):
             self, doc, access, user=user, save=save, force=force)
 
         if recurse:
-            cursor = self.find({
+            subfolders = self.findWithPermissions({
                 'parentId': doc['_id'],
                 'parentCollection': 'folder'
-            })
-
-            subfolders = self.filterResultsByPermission(
-                cursor=cursor, user=user, level=AccessType.ADMIN)
+            }, user=user, level=AccessType.ADMIN)
 
             for folder in subfolders:
                 self.setAccessList(
