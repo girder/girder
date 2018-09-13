@@ -51,45 +51,6 @@ def registerPluginWebroot(webroot, name):
     _pluginWebroots[name] = webroot
 
 
-def _wrapPluginLoad(func):
-    """Wrap a plugin load method to provide logging and ensure it is loaded only once."""
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-
-        if not getattr(self, '_loaded', False):
-            # This block is executed on the first call to the function.
-            # The return value of the call (or exception raised) is saved
-            # as attributes on the wrapper for future invocations.
-            self._loaded = True
-            self._exception = None
-            self._return = None
-
-            try:
-                result = func(self, *args, **kwargs)
-            except Exception as e:
-                # If any errors occur in loading the plugin, log the information, and
-                # store failure information that can be queried through the api.
-                self._exception = e
-                logprint.exception('Failed to load plugin %s' % self.name)
-                _pluginFailureInfo[self.name] = {
-                    'traceback': traceback.format_exc()
-                }
-                raise
-
-            _pluginLoadOrder.append(self.name)
-            self._return = result
-            self._success = True
-            logprint.success('Loaded plugin "%s"' % self.name)
-
-        elif self._exception:
-            # If the plugin failed on the first invocation, reraise the original exception.
-            raise self._exception
-
-        return self._return
-
-    return wrapper
-
-
 class _PluginMeta(type):
     """
     This is a metaclass applied to the ``GirderPlugin`` descriptor class.  It
@@ -97,8 +58,47 @@ class _PluginMeta(type):
     """
     def __new__(meta, classname, bases, classdict):
         if 'load' in classdict:
-            classdict['load'] = _wrapPluginLoad(classdict['load'])
+            classdict['load'] = _PluginMeta._wrapPluginLoad(classdict['load'])
         return type.__new__(meta, classname, bases, classdict)
+
+    @staticmethod
+    def _wrapPluginLoad(func):
+        """Wrap a plugin load method to provide logging and ensure it is loaded only once."""
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+
+            if not getattr(self, '_loaded', False):
+                # This block is executed on the first call to the function.
+                # The return value of the call (or exception raised) is saved
+                # as attributes on the wrapper for future invocations.
+                self._loaded = True
+                self._exception = None
+                self._return = None
+
+                try:
+                    result = func(self, *args, **kwargs)
+                except Exception as e:
+                    # If any errors occur in loading the plugin, log the information, and
+                    # store failure information that can be queried through the api.
+                    self._exception = e
+                    logprint.exception('Failed to load plugin %s' % self.name)
+                    _pluginFailureInfo[self.name] = {
+                        'traceback': traceback.format_exc()
+                    }
+                    raise
+
+                _pluginLoadOrder.append(self.name)
+                self._return = result
+                self._success = True
+                logprint.success('Loaded plugin "%s"' % self.name)
+
+            elif self._exception:
+                # If the plugin failed on the first invocation, reraise the original exception.
+                raise self._exception
+
+            return self._return
+
+        return wrapper
 
 
 @six.add_metaclass(_PluginMeta)
