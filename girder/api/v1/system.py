@@ -25,6 +25,7 @@ import json
 import six
 import os
 import logging
+import traceback
 
 from girder.api import access
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
@@ -169,7 +170,11 @@ class System(Resource):
             'all': {name: _pluginNameToResponse(name) for name in plugin.allPlugins()},
             'enabled': plugin.loadedPlugins()
         }
-        failureInfo = plugin.getPluginFailureInfo()
+        failureInfo = {
+            plugin: ''.join(traceback.format_exception(*exc_info))
+            for plugin, exc_info in six.iteritems(plugin.getPluginFailureInfo())
+        }
+
         if failureInfo:
             plugins['failed'] = failureInfo
         return plugins

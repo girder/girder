@@ -22,7 +22,7 @@ import distutils.dist
 from functools import wraps
 import os
 from pkg_resources import iter_entry_points, resource_filename
-import traceback
+import sys
 
 import six
 
@@ -76,15 +76,13 @@ class _PluginMeta(type):
 
                 try:
                     result = func(self, *args, **kwargs)
-                except Exception as e:
+                except Exception:
+                    self._loaded = False
+
                     # If any errors occur in loading the plugin, log the information, and
                     # store failure information that can be queried through the api.
-                    self._exception = e
                     logprint.exception('Failed to load plugin %s' % self.name)
-                    _pluginFailureInfo[self.name] = {
-                        'traceback': traceback.format_exc()
-                    }
-                    self._loaded = False
+                    _pluginFailureInfo[self.name] = sys.exc_info()
                     raise
 
                 _pluginLoadOrder.append(self.name)
