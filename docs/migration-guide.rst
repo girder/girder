@@ -12,7 +12,7 @@ Existing installations may be upgraded by running ``pip install --upgrade --upgr
 re-running ``girder-install web``. You may need to remove ``node_modules`` directory
 from the installed girder package if you encounter problems while re-running
 ``girder-install web``. Note that the prerequisites may have changed in the latest
-version: make sure to review :doc:`prerequisites` prior to the upgrade.
+version: make sure to review the :doc:`dependencies guide <dependencies>` prior to the upgrade.
 
 1.x |ra| 2.x
 ------------

@@ -5,6 +5,7 @@ Developer Documentation
    :maxdepth: 2
 
    dev-installation
+   dependencies
    api-docs
    development
    plugin-development

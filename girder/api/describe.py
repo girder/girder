@@ -828,7 +828,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         elif type == 'number':
             value = self._handleNumber(name, descParam, value)
 
-        # Enum validation (should be afer type coercion)
+        # Enum validation (should be after type coercion)
         if 'enum' in descParam and value not in descParam['enum']:
             raise RestException('Invalid value for %s: "%s". Allowed values: %s.' % (
                 name, value, ', '.join(str(v) for v in descParam['enum'])))
