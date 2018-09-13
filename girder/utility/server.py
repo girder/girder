@@ -157,7 +157,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
         'staticRoot': routeTable[constants.GIRDER_STATIC_ROUTE_ID]
     }
 
-    plugin.loadPlugins(plugins, info)
+    plugin._loadPlugins(plugins, info)
     root, appconf = info['serverRoot'], info['config']
 
     return root, appconf

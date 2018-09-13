@@ -204,7 +204,7 @@ def testLoadPluginWithError(registry, logprint):
 @pytest.mark.plugin('plugin1', ThrowsOnLoad)
 @pytest.mark.plugin('plugin2', NoDeps)
 def testLoadMultiplePluginsWithFailure(registry, logprint):
-    plugin.loadPlugins(['plugin1', 'plugin2'], {})
+    plugin._loadPlugins(['plugin1', 'plugin2'], {})
 
     logprint.exception.assert_has_calls([
         mock.call('Failed to load plugin plugin1')
@@ -217,7 +217,7 @@ def testLoadMultiplePluginsWithFailure(registry, logprint):
 @pytest.mark.plugin('plugin2', DependsOnPlugin1)
 @pytest.mark.plugin('plugin3', NoDeps)
 def testLoadTreeWithFailure(registry, logprint):
-    plugin.loadPlugins(['plugin2', 'plugin3'], {})
+    plugin._loadPlugins(['plugin2', 'plugin3'], {})
 
     logprint.exception.assert_has_calls([
         mock.call('Failed to load plugin plugin1'),
@@ -228,7 +228,7 @@ def testLoadTreeWithFailure(registry, logprint):
 
 
 def testLoadMissingDependency(logprint):
-    plugin.loadPlugins(['missing'], {})
+    plugin._loadPlugins(['missing'], {})
     logprint.error.assert_called_once_with('Plugin missing is not installed')
 
 

@@ -29,7 +29,7 @@ import six
 from girder import logprint
 
 
-NAMESPACE = 'girder.plugin'
+_NAMESPACE = 'girder.plugin'
 _pluginRegistry = None
 _pluginFailureInfo = {}
 _pluginLoadOrder = []
@@ -207,7 +207,7 @@ def _getPluginRegistry():
         return _pluginRegistry
 
     _pluginRegistry = {}
-    for entryPoint in iter_entry_points(NAMESPACE):
+    for entryPoint in iter_entry_points(_NAMESPACE):
         pluginClass = entryPoint.load()
         plugin = pluginClass(entryPoint)
         _pluginRegistry[plugin.name] = plugin
@@ -225,7 +225,7 @@ def getPluginFailureInfo():
     return _pluginFailureInfo
 
 
-def loadPlugins(names, info):
+def _loadPlugins(names, info):
     """Load a list of plugins with the given app info object.
 
     This method will try to load **all** plugins in the provided list.  If
