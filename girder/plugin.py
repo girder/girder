@@ -31,7 +31,6 @@ from girder import logprint
 
 _NAMESPACE = 'girder.plugin'
 _pluginRegistry = None
-_pluginFailureInfo = {}
 _pluginLoadOrder = []
 _pluginWebroots = {}
 
@@ -82,7 +81,7 @@ class _PluginMeta(type):
                     # If any errors occur in loading the plugin, log the information, and
                     # store failure information that can be queried through the api.
                     logprint.exception('Failed to load plugin %s' % self.name)
-                    _pluginFailureInfo[self.name] = sys.exc_info()
+                    self._pluginFailureInfo = sys.exc_info()
                     raise
 
                 _pluginLoadOrder.append(self.name)
@@ -220,7 +219,11 @@ def getPlugin(name):
 
 def getPluginFailureInfo():
     """Return an object containing plugin failure information."""
-    return _pluginFailureInfo
+    return {
+        name: value._pluginFailureInfo
+        for name, value in six.iteritems(_getPluginRegistry())
+        if hasattr(value, '_pluginFailureInfo')
+    }
 
 
 def _loadPlugins(names, info):

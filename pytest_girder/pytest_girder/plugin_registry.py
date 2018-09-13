@@ -74,5 +74,4 @@ class PluginRegistry(object):
             yield mock_
 
         plugin._pluginRegistry = None
-        plugin._pluginFailureInfo = {}
         plugin._pluginLoadOrder = []
