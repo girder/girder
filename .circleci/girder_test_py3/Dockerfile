@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install --assume-yes \
 # Install Girder development prereqs
 # Get a very recent version of CMake
 RUN mkdir --parents "/opt/cmake" \
-  && curl --location "https://cmake.org/files/v3.11/cmake-3.11.3.tar.gz" | \
+  && curl --location "https://cmake.org/files/v3.12/cmake-3.12.2-Linux-x86_64.tar.gz" | \
     gunzip --stdout | \
     tar --extract --directory "/opt/cmake" --strip-components 1 \
   && ln --symbolic --force "/opt/cmake/bin/cmake" "/usr/local/bin/cmake" \
