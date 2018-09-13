@@ -198,7 +198,7 @@ def testLoadPluginWithError(registry, logprint):
     with pytest.raises(Exception) as exception2:
         plugin.getPlugin('throws').load({})
 
-    assert exception1.value == exception2.value
+    assert exception1.value is not exception2.value
 
 
 @pytest.mark.plugin('plugin1', ThrowsOnLoad)

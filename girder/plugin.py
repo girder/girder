@@ -72,7 +72,6 @@ class _PluginMeta(type):
                 # The return value of the call (or exception raised) is saved
                 # as attributes on the wrapper for future invocations.
                 self._loaded = True
-                self._exception = None
                 self._return = None
 
                 try:
@@ -85,16 +84,13 @@ class _PluginMeta(type):
                     _pluginFailureInfo[self.name] = {
                         'traceback': traceback.format_exc()
                     }
+                    self._loaded = False
                     raise
 
                 _pluginLoadOrder.append(self.name)
                 self._return = result
                 self._success = True
                 logprint.success('Loaded plugin "%s"' % self.name)
-
-            elif self._exception:
-                # If the plugin failed on the first invocation, reraise the original exception.
-                raise self._exception
 
             return self._return
 
