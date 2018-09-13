@@ -87,7 +87,7 @@ class User(Resource):
     def getUser(self, user):
         return user
 
-    @access.public(scope=TokenScope.USER_INFO_READ)
+    @access.public(scope=TokenScope.USER_INFO_READ, alwaysPublic=True)
     @filtermodel(model=UserModel)
     @autoDescribeRoute(
         Description('Retrieve the currently logged-in user information.')
@@ -96,7 +96,7 @@ class User(Resource):
     def getMe(self):
         return self.getCurrentUser()
 
-    @access.public
+    @access.public(alwaysPublic=True)
     @autoDescribeRoute(
         Description('Log in to the system.')
         .notes('Pass your username and password using HTTP Basic Auth. Sends'
@@ -159,7 +159,7 @@ class User(Resource):
         self.deleteAuthTokenCookie()
         return {'message': 'Logged out.'}
 
-    @access.public
+    @access.public(alwaysPublic=True)
     @filtermodel(model=UserModel, addFields={'authToken'})
     @autoDescribeRoute(
         Description('Create a new user.')

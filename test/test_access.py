@@ -23,6 +23,7 @@ from girder.api.rest import loadmodel, Resource
 from girder.api import access
 from girder.constants import AccessType, SettingKey, TokenScope
 from girder.models.user import User
+from girder.models.setting import Setting
 from girder.models.token import Token
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
@@ -30,106 +31,102 @@ from pytest_girder.assertions import assertStatus, assertStatusOk
 CUSTOM_SCOPE = "Some.Exclusive.Scope"
 
 
-# We deliberately don't have an access decorator
-def defaultFunctionHandler(**kwargs):
-    return
+def createAccessTestResource():
+
+    class AccessTestResource(Resource):
+        def __init__(self):
+            super(AccessTestResource, self).__init__()
+            self.resourceName = 'accesstest'
+            self.route('GET', ('default_access', ), self.defaultHandler)
+            self.route('GET', ('admin_access', ), self.adminHandler)
+            self.route('GET', ('user_access', ), self.userHandler)
+            self.route('GET', ('public_access', ), self.publicHandler)
+            self.route('GET', ('cookie_auth', ), self.cookieHandler)
+            self.route('POST', ('cookie_auth', ), self.cookieHandler)
+            self.route('GET', ('cookie_force_auth', ), self.cookieForceHandler)
+            self.route('POST', ('cookie_force_auth', ), self.cookieForceHandler)
+            self.route('GET', ('fn_admin', ), self.fnAdmin)
+            self.route('GET', ('scoped_user', ), self.scopedUser)
+            self.route('GET', ('fn_public', ), self.fnPublic)
+            self.route('GET', ('scoped_public', ), self.scopedPublic)
+
+        # We deliberately don't have an access decorator
+        def defaultHandler(self, **kwargs):
+            return
+
+        @access.admin
+        def adminHandler(self, **kwargs):
+            return
+
+        @access.user
+        def userHandler(self, **kwargs):
+            return
+
+        @access.public
+        def publicHandler(self, **kwargs):
+            return self.getCurrentUser()
+
+        @access.cookie
+        @access.user
+        def cookieHandler(self, **kwargs):
+            return
+
+        @access.cookie(force=True)
+        @access.user
+        def cookieForceHandler(self, **kwargs):
+            return
+
+        @access.admin()
+        def fnAdmin(self, **kwargs):
+            return
+
+        @access.user(scope=TokenScope.DATA_READ)
+        def scopedUser(self, **kwargs):
+            return
+
+        @access.public()
+        def fnPublic(self, **kwargs):
+            return self.getCurrentUser()
+
+        @access.public(scope=TokenScope.SETTINGS_READ)
+        def scopedPublic(self, **kwargs):
+            return self.getCurrentUser()
+
+    return AccessTestResource
 
 
-@access.admin
-def adminFunctionHandler(**kwargs):
-    return
-
-
-@access.user
-def userFunctionHandler(**kwargs):
-    return
-
-
-@access.public
-def publicFunctionHandler(**kwargs):
-    return
-
-
-@access.token(scope=CUSTOM_SCOPE, required=True)
-def requireScope(**kwargs):
-    return
-
-
-@access.public
-@loadmodel(map={'id': 'user'}, model='user', level=AccessType.READ)
-def plainFn(user, params):
-    return user
-
-
-@access.public
-@loadmodel(map={'userId': 'user'}, model='user', level=AccessType.READ)
-def loadModelWithMap(user, params):
-    return user
-
-
-class AccessTestResource(Resource):
-    def __init__(self):
-        super(AccessTestResource, self).__init__()
-        self.resourceName = 'accesstest'
-        self.route('GET', ('default_access', ), self.defaultHandler)
-        self.route('GET', ('admin_access', ), self.adminHandler)
-        self.route('GET', ('user_access', ), self.userHandler)
-        self.route('GET', ('public_access', ), self.publicHandler)
-        self.route('GET', ('cookie_auth', ), self.cookieHandler)
-        self.route('POST', ('cookie_auth', ), self.cookieHandler)
-        self.route('GET', ('cookie_force_auth', ), self.cookieForceHandler)
-        self.route('POST', ('cookie_force_auth', ), self.cookieForceHandler)
-        self.route('GET', ('fn_admin', ), self.fnAdmin)
-        self.route('GET', ('scoped_user', ), self.scopedUser)
-        self.route('GET', ('fn_public', ), self.fnPublic)
-        self.route('GET', ('scoped_public', ), self.scopedPublic)
-
+def makeServer(server):
     # We deliberately don't have an access decorator
-    def defaultHandler(self, **kwargs):
+    def defaultFunctionHandler(**kwargs):
         return
 
     @access.admin
-    def adminHandler(self, **kwargs):
+    def adminFunctionHandler(**kwargs):
         return
 
     @access.user
-    def userHandler(self, **kwargs):
+    def userFunctionHandler(**kwargs):
         return
 
     @access.public
-    def publicHandler(self, **kwargs):
-        return self.getCurrentUser()
-
-    @access.cookie
-    @access.user
-    def cookieHandler(self, **kwargs):
+    def publicFunctionHandler(**kwargs):
         return
 
-    @access.cookie(force=True)
-    @access.user
-    def cookieForceHandler(self, **kwargs):
+    @access.token(scope=CUSTOM_SCOPE, required=True)
+    def requireScope(**kwargs):
         return
 
-    @access.admin()
-    def fnAdmin(self, **kwargs):
-        return
+    @access.public
+    @loadmodel(map={'id': 'user'}, model='user', level=AccessType.READ)
+    def plainFn(user, params):
+        return user
 
-    @access.user(scope=TokenScope.DATA_READ)
-    def scopedUser(self, **kwargs):
-        return
+    @access.public
+    @loadmodel(map={'userId': 'user'}, model='user', level=AccessType.READ)
+    def loadModelWithMap(user, params):
+        return user
 
-    @access.public()
-    def fnPublic(self, **kwargs):
-        return self.getCurrentUser()
-
-    @access.public(scope=TokenScope.SETTINGS_READ)
-    def scopedPublic(self, **kwargs):
-        return self.getCurrentUser()
-
-
-@pytest.fixture
-def server(server):
-    server.root.api.v1.accesstest = AccessTestResource()
+    server.root.api.v1.accesstest = createAccessTestResource()()
     # Public access endpoints do not need to be a Resource subclass method,
     # they can be a regular function
     accesstest = server.root.api.v1.accesstest
@@ -143,7 +140,18 @@ def server(server):
     accesstest.route('GET', ('test_loadmodel_query',), loadModelWithMap)
     accesstest.route('GET', ('test_required_scope_exists', ), requireScope)
 
-    yield server
+    return server
+
+
+@pytest.fixture
+def nonPublicServer(db, server):
+    Setting().set(SettingKey.ALLOW_PUBLIC_ACCESS, False)
+    yield makeServer(server)
+
+
+@pytest.fixture
+def server(db, server):
+    yield makeServer(server)
 
 
 @pytest.fixture
@@ -215,6 +223,18 @@ def testUserCannotAccessAdminEndpoints(server, user, endpoint):
 @pytest.mark.parametrize('endpoint', public_endpoints + user_endpoints + admin_endpoints)
 def testAdminCanAccessAllEndpoints(server, admin, endpoint):
     resp = server.request(path=endpoint, method='GET', user=admin)
+    assertStatusOk(resp)
+
+
+@pytest.mark.parametrize('endpoint', public_endpoints)
+def testPublicCannotAccessPublicEndpointsOnNonPublicServer(nonPublicServer, endpoint):
+    resp = nonPublicServer.request(path=endpoint, method='GET')
+    assertStatus(resp, 401)
+
+
+@pytest.mark.parametrize('endpoint', public_endpoints + user_endpoints)
+def testUserCanAccessPublicEndpointsOnNonPublicServer(nonPublicServer, user, endpoint):
+    resp = nonPublicServer.request(path=endpoint, method='GET', user=user)
     assertStatusOk(resp)
 
 

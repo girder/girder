@@ -20,7 +20,9 @@
 import six
 
 from girder.api import rest
+from girder.constants import SettingKey
 from girder.exceptions import AccessException
+from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.utility import optionalArgumentDecorator
 
@@ -92,7 +94,7 @@ def token(fun, scope=None, required=False):
 
 
 @optionalArgumentDecorator
-def public(fun, scope=None):
+def public(fun, scope=None, alwaysPublic=False):
     """
     Functions that allow any client access, including those that haven't logged
     in should be wrapped in this decorator.
@@ -101,10 +103,29 @@ def public(fun, scope=None):
     :type fun: callable
     :param scope: The scope or list of scopes required for this token.
     :type scope: str or list of str or None
+    :param alwaysPublic: True if this endpoint is public even when public
+        access is disabled.
+    :type alwaysPublic: bool
     """
-    fun.accessLevel = 'public'
-    fun.requiredScopes = scope
-    return fun
+    try:
+        # This can fail if there is no database, such as when building docs
+        isPublic = alwaysPublic or Setting().get(SettingKey.ALLOW_PUBLIC_ACCESS) is not False
+    except AttributeError:
+        isPublic = True
+
+    if isPublic:
+        fun.accessLevel = 'public'
+        fun.requiredScopes = scope
+        return fun
+
+    @six.wraps(fun)
+    def wrapped(*args, **kwargs):
+        if not rest.getCurrentToken():
+            raise AccessException('You must be logged in or have a valid auth token.')
+        return fun(*args, **kwargs)
+    wrapped.accessLevel = 'token'
+    wrapped.requiredScopes = scope
+    return wrapped
 
 
 @optionalArgumentDecorator
