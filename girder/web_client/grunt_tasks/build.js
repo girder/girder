@@ -258,6 +258,7 @@ module.exports = function (grunt) {
     plugins.forEach(function (plugin) {
         const pluginDef = require(path.join(plugin, 'package.json'))['girderPlugin'];
         const name = pluginDef.name;
+        const main = pluginDef.main;
         const babelRule = {
             resource: {
                 test: /\.js$/,
@@ -274,7 +275,7 @@ module.exports = function (grunt) {
         };
         let pluginWebpackConfig = {
             entry: {
-                [`plugins/${name}/plugin`]: [`${plugin}/main.js`]
+                [`plugins/${name}/plugin`]: [`${plugin}/${main}`]
             },
             output: {
                 path: path.resolve(grunt.config.get('builtPath'), 'plugins', name),
@@ -293,7 +294,7 @@ module.exports = function (grunt) {
                 // execute an entry point at load time instead of just exposing symbols
                 // as a library.
                 new webpackPlugins.DllBootstrapPlugin({
-                    [`plugins/${name}/plugin`]: `${plugin}/main.js`
+                    [`plugins/${name}/plugin`]: `${plugin}/${main}`
                 }),
                 // This plugin allows this bundle to dynamically link against girder's
                 // core library bundle.
