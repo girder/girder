@@ -28,7 +28,7 @@ from . import event_handlers
 
 class WorkerPlugin(GirderPlugin):
     DISPLAY_NAME = 'Remote worker'
-    NPM_PACKAGE_NAME = '@girder/remote_worker'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         getPlugin('jobs').load(info)

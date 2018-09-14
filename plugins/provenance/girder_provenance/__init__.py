@@ -43,7 +43,7 @@ def validateProvenanceResources(doc):
 
 class ProvenancePlugin(GirderPlugin):
     DISPLAY_NAME = 'Provenance tracker'
-    NPM_PACKAGE_NAME = '@girder/provenance'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         ext = ResourceExt(info)

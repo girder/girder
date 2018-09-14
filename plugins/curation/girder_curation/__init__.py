@@ -276,7 +276,7 @@ class CuratedFolder(Resource):
 
 class CurationPlugin(GirderPlugin):
     DISPLAY_NAME = 'Curation'
-    NPM_PACKAGE_NAME = '@girder/curation'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         mail_utils.addTemplateDirectory(os.path.join(_HERE, 'mail_templates'))

@@ -24,7 +24,7 @@ from . import rest
 
 class HomepagePlugin(GirderPlugin):
     DISPLAY_NAME = 'Homepage'
-    NPM_PACKAGE_NAME = '@girder/homepage'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         info['apiRoot'].homepage = rest.Homepage()

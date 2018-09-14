@@ -78,7 +78,7 @@ def checkOauthUser(event):
 
 class OAuthPlugin(GirderPlugin):
     DISPLAY_NAME = 'OAuth2 login'
-    NPM_PACKAGE_NAME = '@girder/oauth'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         User().ensureIndex((

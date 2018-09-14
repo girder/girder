@@ -19,7 +19,7 @@ from girder.plugin import GirderPlugin
 
 class TreeviewPlugin(GirderPlugin):
     DISPLAY_NAME = 'Treeview'
-    NPM_PACKAGE_NAME = '@girder/treeview'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         pass

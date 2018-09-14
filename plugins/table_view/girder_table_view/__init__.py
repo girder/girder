@@ -19,7 +19,7 @@ from girder.plugin import GirderPlugin
 
 class TableViewPlugin(GirderPlugin):
     DISPLAY_NAME = 'Table View'
-    NPM_PACKAGE_NAME = '@girder/table_view'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         pass

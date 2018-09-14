@@ -117,7 +117,7 @@ def _uploadComplete(event):
 
 class AuthorizedUploadPlugin(GirderPlugin):
     DISPLAY_NAME = 'Authorized upload'
-    NPM_PACKAGE_NAME = '@girder/authorized_upload'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         name = 'authorized_upload'

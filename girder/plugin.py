@@ -20,6 +20,7 @@ This module defines functions for registering, loading, and querying girder plug
 
 import distutils.dist
 from functools import wraps
+import json
 import os
 from pkg_resources import iter_entry_points, resource_filename
 import sys
@@ -114,16 +115,11 @@ class GirderPlugin(object):
     #: used internally, this name can be an arbitrary string.
     DISPLAY_NAME = None
 
-    #: The name of the web client package on npm.
-    NPM_PACKAGE_NAME = None
-
-    #: The version of the web client package to use.  Accepts any npm version identifier.
-    NPM_PACKAGE_VERSION = '*'
-
     #: The path of the plugin's web client source code.  This path is given relative to the python
     #: package.  This property is used to link the web client source into the staging area while
-    #: building in development mode.
-    CLIENT_SOURCE_PATH = 'web_client'
+    #: building in development mode.  When this value is `None` it indicates there is no web client
+    #: component.
+    CLIENT_SOURCE_PATH = None
 
     def __init__(self, entrypoint):
         self._name = entrypoint.name
@@ -134,21 +130,25 @@ class GirderPlugin(object):
     def npmPackages(self):
         """Return a dictionary of npm packages -> versions for building the plugin client.
 
-        By default, this dictionary will be assembled from the class properties, but plugins can
-        customize the behaivor for advanced usage.  For development, this function will replace the
-        version string with a ``file:...`` reference so npm will use the local source.
+        By default, this dictionary will be assembled from the CLIENT_SOURCE_PATH property by
+        inspecting the package.json file in the indicated directory.  Plugins can override this
+        method customize the behaivor for advanced usage.
         """
-        if not self.NPM_PACKAGE_NAME:
+        if self.CLIENT_SOURCE_PATH is None:
             return {}
 
-        version = self.NPM_PACKAGE_VERSION
+        packageJsonFile = resource_filename(
+            self.__module__,
+            os.path.join(self.CLIENT_SOURCE_PATH, 'package.json')
+        )
+        if not os.path.isfile(packageJsonFile):
+            raise Exception('Invalid web client path provided')
 
-        # check if the web client sources are included in the python distribution
-        clientDir = resource_filename(self.__module__, self.CLIENT_SOURCE_PATH)
-        if os.path.isdir(clientDir):
-            version = 'file:%s' % clientDir
+        with open(packageJsonFile, 'r') as f:
+            packageJson = json.load(f)
+            packageName = packageJson['name']
 
-        return {self.NPM_PACKAGE_NAME: version}
+        return {packageName: 'file:%s' % os.path.dirname(packageJsonFile)}
 
     @property
     def name(self):

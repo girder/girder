@@ -82,7 +82,7 @@ def afterPostPutCollection(event):
 
 class TermsPlugin(GirderPlugin):
     DISPLAY_NAME = 'Terms of Use'
-    NPM_PACKAGE_NAME = '@girder/terms'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         # Augment the collection creation and edit routes to accept a terms field

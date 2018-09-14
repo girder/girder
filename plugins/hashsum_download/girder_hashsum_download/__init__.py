@@ -223,7 +223,7 @@ def _validateAutoCompute(doc):
 
 class HashsumDownloadPlugin(GirderPlugin):
     DISPLAY_NAME = 'Hashsum download'
-    NPM_PACKAGE_NAME = '@girder/hashsum_download'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         HashedFile(info['apiRoot'].file)

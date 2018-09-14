@@ -113,7 +113,7 @@ def load(info):
 
 class ItemTasksPlugin(GirderPlugin):
     DISPLAY_NAME = 'Item tasks'
-    NPM_PACKAGE_NAME = '@girder/item_tasks'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         getPlugin('jobs').load(info)

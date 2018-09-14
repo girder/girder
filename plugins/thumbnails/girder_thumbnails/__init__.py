@@ -104,7 +104,7 @@ def _onUpload(event):
 
 class ThumbnailsPlugin(GirderPlugin):
     DISPLAY_NAME = 'Thumbnails'
-    NPM_PACKAGE_NAME = '@girder/thumbnails'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         getPlugin('jobs').load(info)

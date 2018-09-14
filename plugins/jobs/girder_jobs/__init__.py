@@ -49,7 +49,7 @@ def scheduleLocal(event):
 
 class JobsPlugin(GirderPlugin):
     DISPLAY_NAME = 'Jobs'
-    NPM_PACKAGE_NAME = '@girder/jobs'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         ModelImporter.registerModel('job', Job(), 'jobs')

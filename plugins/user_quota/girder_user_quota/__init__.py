@@ -41,7 +41,7 @@ def validateSettings(doc):
 
 class UserQuotaPlugin(GirderPlugin):
     DISPLAY_NAME = 'User and collection quotas and policies'
-    NPM_PACKAGE_NAME = '@girder/user_quota'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         quota = QuotaPolicy()

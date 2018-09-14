@@ -41,7 +41,7 @@ from girder.utility.progress import setResponseTimeLimit
 
 class DicomViewerPlugin(GirderPlugin):
     DISPLAY_NAME = 'DICOM Viewer'
-    NPM_PACKAGE_NAME = '@girder/dicom-viewer'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         Item().exposeFields(level=AccessType.READ, fields={'dicom'})

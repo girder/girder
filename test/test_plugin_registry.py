@@ -14,7 +14,7 @@
 #  limitations under the License.
 ###############################################################################
 
-import os
+import tempfile
 
 import mock
 import pytest
@@ -59,8 +59,7 @@ class NoDeps(GirderPlugin):
 
 
 class PluginWithNPM(NoDeps):
-    NPM_PACKAGE_NAME = '@girder/test_plugin'
-    NPM_PACKAGE_VERSION = '1.0.0'
+    CLIENT_SOURCE_PATH = 'web_client'
 
 
 class DependsOnPlugin1(NoDeps):
@@ -125,17 +124,12 @@ def testPluginMetadata(registry):
 
 @pytest.mark.plugin('client_plugin', PluginWithNPM)
 def testPluginWithNPMPackage(registry):
-    pluginDef = plugin.getPlugin('client_plugin')
-    assert pluginDef.npmPackages() == {'@girder/test_plugin': '1.0.0'}
-
-
-@pytest.mark.plugin('client_plugin', PluginWithNPM)
-def testPluginWithDevInstall(registry):
-    pluginDef = plugin.getPlugin('client_plugin')
-    currentPath = os.path.abspath(os.path.dirname(__file__))
-    with mock.patch('os.path.isdir',  return_value=True):
-        assert pluginDef.npmPackages() == \
-            {'@girder/test_plugin': 'file:%s/web_client' % currentPath}
+    with tempfile.NamedTemporaryFile() as packageJson:
+        packageJson.write(b'{"name": "@girder/test_plugin"}')
+        packageJson.flush()
+        pluginDef = plugin.getPlugin('client_plugin')
+        with mock.patch.object(plugin, 'resource_filename', return_value=packageJson.name):
+            assert '@girder/test_plugin' in pluginDef.npmPackages()
 
 
 @pytest.mark.plugin('plugin1', NoDeps)

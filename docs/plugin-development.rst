@@ -108,7 +108,7 @@ the following into the top level ``__init__.py`` will suffice.
 
     class CatsPlugin(GirderPlugin):
         DISPLAY_NAME = 'Cats in Girder'
-        NPM_PACKAGE_NAME = '@girder/cats'
+        CLIENT_SOURCE_PATH = 'web_client'
 
         def load(self, info):
             getPlugin('jobs').load(info)
@@ -124,13 +124,10 @@ class instance provide the following:
     of the plugin not limited by the tokenization rules inherent in the "entrypoint
     name".  By default, the entrypoint name will be used if none is provided here.
 
-``NPM_PACKAGE_NAME``
-    Plugins containing web client extensions **must** define an npm module name
-    here.  By default, Girder searches for a folder called ``web_client`` inside
-    your package for this module.  If you publish your web assets inside your
-    python package (as is done here), there is no need to publish the module to
-    npm.  If the ``web_client`` directory is not found, the package will be
-    queried on the npm package index.
+``CLIENT_SOURCE_PATH``
+    If your plugin contains a web client extension, you need to set this property
+    to a path containing an npm package.  The path is always interpreted relative
+    the python package install path.
 
 Other optional attributes are defined on this class for more advanced use cases,
 see the class documentation at :py:class:`girder.plugin.GirderPlugin` for details.
@@ -627,8 +624,8 @@ import Pug templates, Stylus files, and JavaScript files into the application.
 The plugin loading system ensures that only content from enabled plugins gets
 loaded into the application at runtime.
 
-By default, all of your plugin's extensions to the web client must live in a directory in
-the top level of your plugin's python package called **web_client**. ::
+All of your plugin's extensions to the web client must live in a directory inside
+of your python package.  By convention, this is in a directory called **web_client**. ::
 
     cd girder_cats ; mkdir web_client
 
@@ -656,11 +653,9 @@ What follows is a typical npm package file for a Girder client side extension:
     }
 
 
-The package name in this file **must** match the ``NPM_PACKAGE_NAME`` in your
-python plugin descriptor class.  In addition to the standard ``package.json``
-properties, Girder plugins **must** also define a ``girderPlugin`` object to
-register themselves with Girder's client build system.  The important keys in
-the object are as follows:
+In addition to the standard ``package.json`` properties, Girder plugins
+**must** also define a ``girderPlugin`` object to register themselves with
+Girder's client build system.  The important keys in the object are as follows:
 
 ``name``
     This must be **exactly** the entrypoint name registered in your ``setup.py`` file.

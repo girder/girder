@@ -120,7 +120,7 @@ def validateLicenses(doc):
 
 class ItemLicensesPlugin(GirderPlugin):
     DISPLAY_NAME = 'Item licenses'
-    NPM_PACKAGE_NAME = '@girder/item_licenses'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         # Bind REST events

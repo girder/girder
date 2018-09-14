@@ -200,7 +200,7 @@ def _ldapServerTest(self, uri, bindName, password, params):
 
 class LDAPPlugin(GirderPlugin):
     DISPLAY_NAME = 'LDAP authentication'
-    NPM_PACKAGE_NAME = '@girder/ldap'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         events.bind('model.user.authenticate', 'ldap', _ldapAuth)

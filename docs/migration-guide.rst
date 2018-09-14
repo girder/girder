@@ -87,7 +87,7 @@ plugin:
     class ExamplePlugin(GirderPlugin):
         DISPLAY_NAME = 'My Plugin'              # a user-facing plugin name, the plugin is still
                                                 # referenced internally by the entrypoint name.
-        NPM_PACKAGE_NAME = '@girder/my-plugin'  # the npm package name defined in package.json
+        CLIENT_SOURCE_PATH = 'web_client'       # path to the web client relative to the python package
 
         def load(self, info):
             getPlugin('mydependency').load(info)  # load plugins you depend on

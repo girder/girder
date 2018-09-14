@@ -71,7 +71,7 @@ def createAssetstore(event):
 
 class HDFSAssetstorePlugin(GirderPlugin):
     DISPLAY_NAME = 'HDFS assetstore'
-    NPM_PACKAGE_NAME = '@girder/hdfs_assetstore'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         AssetstoreType.HDFS = 'hdfs'

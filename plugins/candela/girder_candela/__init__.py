@@ -19,7 +19,7 @@ from girder.plugin import getPlugin, GirderPlugin
 
 class CandelaPlugin(GirderPlugin):
     DISPLAY_NAME = 'Candela Visualization'
-    NPM_PACKAGE_NAME = '@girder/candela'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         getPlugin('item_tasks').load(info)
