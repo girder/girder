@@ -43,9 +43,7 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7'
     ],
-    package_data={
-        '': ['web_client/**']
-    },
+    include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     python_requires='<3.0',
     zip_safe=False,

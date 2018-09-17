@@ -118,16 +118,7 @@ setup(
     packages=find_packages(
         exclude=('girder.test', 'tests.*', 'tests', '*.plugin_tests.*', '*.plugin_tests')
     ),
-    package_data={
-        'girder': [
-            'girder-version.json',
-            'conf/girder.dist.cfg',
-            'mail_templates/*.mako',
-            'mail_templates/**/*.mako',
-            'utility/*.mako',
-            'api/api_docs.mako'
-        ]
-    },
+    include_package_data=True,
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
     install_requires=installReqs,
     extras_require=extrasReqs,

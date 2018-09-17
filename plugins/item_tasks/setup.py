@@ -41,9 +41,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5'
     ],
-    package_data={
-        '': ['web_client/**']
-    },
+    include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
     install_requires=[

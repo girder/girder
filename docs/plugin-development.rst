@@ -42,6 +42,7 @@ package we are going to create.
         'Environment :: Web Environment',
         'License :: OSI Approved :: Apache Software License'
       ],
+      include_package_data=True,
       package_data={ '': ['web_client'] },
       packages=find_packages(exclude=['plugin_tests']),
       zip_safe=False,
@@ -56,10 +57,12 @@ the list of `available classifiers <https://pypi.org/pypi?%3Aaction=list_classif
 that can be added to aid in discoverability of your package.  Several arguments
 in this example are specific to a Girder plugin.  These are as follows:
 
-``package_data={ '': ['web_client'] }``
-    This tells python to include the ``web_client`` subdirectory in the distributed
-    version of your package.  If your plugin does not contain a web client extension,
-    this is not needed.
+``include_package_data=True``
+    This tells python to include data files in addition to python modules found in
+    your repository.  This is necessary to ensure the web client assets are included
+    in the package distribution.  See the
+    `setuptools documentation <https://setuptools.readthedocs.io/en/latest/setuptools.html#including-data-files>`_
+    for details.
 
 ``packages=find_packages(exclude=['plugin_tests'])``
     This will include all python "packages" found inside the local path in the distribution
