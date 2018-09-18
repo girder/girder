@@ -875,7 +875,7 @@ class FileTestCase(base.TestCase):
         Assetstore().remove(Assetstore().getCurrent())
         assetstore = Assetstore().createS3Assetstore(
             name='test', bucket='b', accessKeyId='access', secret='secret',
-            prefix='test')
+            prefix='test', serverSideEncryption=True)
         self.assetstore = assetstore
 
         # Initialize the upload
@@ -915,6 +915,7 @@ class FileTestCase(base.TestCase):
             path='/file/offset', method='GET', user=self.user, params={'uploadId': uploadId})
         self.assertStatusOk(resp)
 
+        initRequests = []
         @httmock.all_requests
         def mockChunkUpload(url, request):
             """
@@ -926,6 +927,10 @@ class FileTestCase(base.TestCase):
                 raise Exception('Unexpected request to host ' + url.netloc)
 
             body = request.body.read(65536)  # sufficient for now, we have short bodies
+
+            if 'x-amz-meta-uploader-ip' in url.query:
+                # this is an init request, not a chunk upload
+                initRequests.append(request)
 
             # Actually set the key in moto
             self.assertEqual(url.path[:3], '/b/')
@@ -948,6 +953,8 @@ class FileTestCase(base.TestCase):
             'type': 'validation',
             'message': 'Received too many bytes.'
         })
+        self.assertEqual(len(initRequests), 1)
+        self.assertEqual(initRequests[-1].headers['x-amz-server-side-encryption'], 'AES256')
 
         # The offset should not have changed
         resp = self.request(
@@ -962,6 +969,8 @@ class FileTestCase(base.TestCase):
             resp = self.multipartRequest(
                 path='/file/chunk', user=self.user, fields=fields, files=files)
         self.assertStatusOk(resp)
+        self.assertEqual(len(initRequests), 2)
+        self.assertEqual(initRequests[-1].headers['x-amz-server-side-encryption'], 'AES256')
 
         file = File().load(resp.json['_id'], force=True)
 
