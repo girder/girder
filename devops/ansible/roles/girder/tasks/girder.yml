@@ -5,17 +5,12 @@
       apt:
         name: "{{ item }}"
       with_items:
+        - gcc
         - curl
         - git
-        - libffi-dev
-        - build-essential
-        - libgif-dev
-        - libjpeg-dev
-        - libssl-dev
-        - zlib1g-dev
-        # Needed for LDAP plugin
-        - libsasl2-dev
+        # Needed for 'ldap' plugin
         - libldap2-dev
+        - libsasl2-dev
 
     # Python dev headers are only installed if the user hasn't specified a python executable
     - name: Install Python development headers
@@ -39,14 +34,10 @@
       yum:
         name: "{{ item }}"
       with_items:
+        - gcc
         - curl
-        - gcc-c++
         - git
-        - libffi-devel
-        - make
-        - openssl-devel
-        - libjpeg-turbo-devel
-        - zlib-devel
+        # Needed for 'ldap' plugin
         - openldap-devel
 
     - name: Install Python development headers
