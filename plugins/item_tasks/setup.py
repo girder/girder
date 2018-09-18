@@ -47,7 +47,7 @@ setup(
     install_requires=[
         'girder',
         'girder-jobs',
-        'girder-remote-worker',
+        'girder-worker',
         'ctk-cli',
         'girder-worker>=0.4.0',
         'girder-worker-utils>=0.7.2'

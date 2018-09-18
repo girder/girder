@@ -2,7 +2,7 @@
 # to prevent pip from fetching versions from pypi.
 -e pytest_girder
 -e plugins/jobs
--e plugins/remote_worker
+-e git+https://github.com/girder/girder_worker.git@girder-plugin#egg=girder-worker
 -e plugins/item_tasks
 
 # The following are top level dependencies.

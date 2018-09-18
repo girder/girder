@@ -117,5 +117,5 @@ class ItemTasksPlugin(GirderPlugin):
 
     def load(self, info):
         getPlugin('jobs').load(info)
-        getPlugin('remote_worker').load(info)
+        getPlugin('worker').load(info)
         return load(info)

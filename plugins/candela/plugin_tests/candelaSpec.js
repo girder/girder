@@ -1,5 +1,5 @@
 girderTest.importPlugin('jobs');
-girderTest.importPlugin('remote_worker');
+girderTest.importPlugin('worker');
 girderTest.importPlugin('item_tasks');
 girderTest.importPlugin('candela');
 girderTest.startApp();

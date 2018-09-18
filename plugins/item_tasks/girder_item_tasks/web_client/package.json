@@ -18,12 +18,12 @@
     },
     "peerDependencies": {
         "@girder/jobs": "*",
-        "@girder/remote_worker": "*"
+        "@girder/worker": "*"
     },
     "main": "./index.js",
     "girderPlugin": {
         "name": "item_tasks",
         "main": "./main.js",
-        "dependencies": ["remote_worker", "jobs"]
+        "dependencies": ["worker", "jobs"]
     }
 }

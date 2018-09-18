@@ -21,7 +21,6 @@
 !ldap/
 !oauth/
 !provenance/
-!remote_worker/
 !table_view/
 !terms/
 !thumbnails/

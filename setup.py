@@ -75,7 +75,7 @@ extrasReqs = {
     'thumbnails': ['girder-thumbnails'],
     'treeview': ['girder-treeview'],
     'quota': ['girder-user-quota'],
-    'worker': ['girder-remote-worker'],
+    'worker': ['girder-worker'],
     'virtual_folders': ['girder-virtual-folders']
 }
 if sys.version_info[0] < 3:

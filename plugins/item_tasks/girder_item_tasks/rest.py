@@ -10,7 +10,7 @@ from girder.exceptions import ValidationException
 from girder.models.item import Item
 from girder.models.token import Token
 from girder_jobs.models.job import Job
-from girder_remote_worker import utils
+from girder_worker.girder_plugin import utils
 from . import constants
 from .json_tasks import createItemTasksFromJson, runJsonTasksDescriptionForFolder
 from .slicer_cli_tasks import configureItemTaskFromSlicerCliXml, runSlicerCliTasksDescriptionForItem
