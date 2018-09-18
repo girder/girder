@@ -24,12 +24,16 @@ import datetime
 import inspect
 import json
 import posixpath
+import pymongo
 import six
 import sys
 import traceback
+import types
 import unicodedata
 
 from dogpile.cache.util import kwarg_function_key_generator
+from girder.external.mongodb_proxy import MongoProxy
+
 from . import docs
 from girder import auditLogger, events, logger, logprint
 from girder.constants import SettingKey, TokenScope, SortDir
@@ -44,6 +48,8 @@ from six.moves import range, urllib
 
 # Arbitrary buffer length for stream-reading request bodies
 READ_BUFFER_LEN = 65536
+
+_MONGO_CURSOR_TYPES = (MongoProxy, pymongo.cursor.Cursor, pymongo.command_cursor.CommandCursor)
 
 
 def getUrlParts(url=None):
@@ -447,7 +453,11 @@ class filtermodel(object):  # noqa: class name
 
             user = getCurrentUser()
 
-            if isinstance(val, (list, tuple)):
+            if isinstance(val, _MONGO_CURSOR_TYPES):
+                if callable(getattr(val, 'count', None)):
+                    cherrypy.response.headers['Girder-Total-Count'] = val.count()
+                return [model.filter(m, user, self.addFields) for m in val]
+            elif isinstance(val, (list, tuple, types.GeneratorType)):
                 return [model.filter(m, user, self.addFields) for m in val]
             elif isinstance(val, dict):
                 return model.filter(val, user, self.addFields)
@@ -583,6 +593,23 @@ def _logRestRequest(resource, path, params):
     })
 
 
+def _mongoCursorToList(val):
+    """
+    If the specified value is a Mongo cursor, convert it to a list.
+    Otherwise, just return the passed values.
+
+    :param val: a value that might be a Mongo cursor.
+    :returns: a list if val was a Mongo cursor, otherwise the original val.
+    """
+    # This needs to be before the callable check, as mongo cursors can
+    # be callable.
+    if isinstance(val, _MONGO_CURSOR_TYPES):
+        if callable(getattr(val, 'count', None)):
+            cherrypy.response.headers['Girder-Total-Count'] = val.count()
+        val = list(val)
+    return val
+
+
 def endpoint(fun):
     """
     REST HTTP method endpoints should use this decorator. It converts the return
@@ -606,6 +633,8 @@ def endpoint(fun):
             if 'Content-Range' in cherrypy.response.headers:
                 cherrypy.response.status = 206
 
+            val = _mongoCursorToList(val)
+
             if callable(val):
                 # If the endpoint returned anything callable (function,
                 # lambda, functools.partial), we assume it's a generator
@@ -617,6 +646,9 @@ def endpoint(fun):
             if isinstance(val, cherrypy.lib.file_generator):
                 # Don't do any post-processing of static files
                 return val
+
+            if isinstance(val, types.GeneratorType):
+                val = list(val)
 
         except RestException as e:
             val = _handleRestException(e)

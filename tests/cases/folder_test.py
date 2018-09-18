@@ -149,6 +149,15 @@ class FolderTestCase(base.TestCase):
         self.assertTrue(resp.json['message'].startswith(
             'Write access denied for user'))
 
+    def testFolderTextSearch(self):
+        resp = self.request(
+            path='/folder', method='GET', user=self.admin, params={
+                'text': 'Public',
+                'sortdir': SortDir.DESCENDING
+            })
+        self.assertStatusOk(resp)
+        self.assertEqual(len(resp.json), 2)
+
     def testCreateFolder(self):
         self.ensureRequiredParams(
             path='/folder', method='POST', required=['name', 'parentId'],

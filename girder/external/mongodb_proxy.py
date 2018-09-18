@@ -35,6 +35,7 @@ except ImportError:
 EXECUTABLE_MONGO_METHODS = get_methods(pymongo.collection.Collection,
                                        pymongo.database.Database,
                                        pymongo.cursor.Cursor,
+                                       pymongo.command_cursor.CommandCursor,
                                        MongoClient, MongoReplicaSetClient,
                                        pymongo)
 
@@ -65,7 +66,7 @@ class Executable(object):
 
                 # If we get back a cursor, we need to also make sure it tries
                 # to auto-reconnect on failure.
-                if isinstance(val, pymongo.cursor.Cursor):
+                if isinstance(val, (pymongo.cursor.Cursor, pymongo.command_cursor.CommandCursor)):
                     return MongoProxy(val, self.logger, self.wait_time)
                 else:
                     return val
