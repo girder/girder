@@ -916,6 +916,7 @@ class FileTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         initRequests = []
+
         @httmock.all_requests
         def mockChunkUpload(url, request):
             """
