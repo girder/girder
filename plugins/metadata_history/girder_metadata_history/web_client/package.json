@@ -1,7 +1,7 @@
 {
-    "name": "@girder/provenance",
+    "name": "@girder/metadata_history",
     "version": "0.2.0",
-    "description": "Tracks provenance of items in Girder",
+    "description": "Tracks metadata history of items in Girder",
     "bugs": {
         "url": "https://github.com/girder/girder/issues"
     },
@@ -11,7 +11,7 @@
         "url": "https://github.com/girder/girder.git"
     },
     "girderPlugin": {
-        "name": "provenance",
+        "name": "metadata_history",
         "main": "./main.js"
     }
 }

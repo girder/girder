@@ -20,7 +20,7 @@
 -e plugins/item_licenses
 -e plugins/ldap
 -e plugins/oauth
--e plugins/provenance
+-e plugins/metadata_history
 -e plugins/table_view
 -e plugins/terms
 -e plugins/thumbnails

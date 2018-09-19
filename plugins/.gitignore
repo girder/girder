@@ -19,8 +19,8 @@
 !item_tasks/
 !jobs/
 !ldap/
+!metadata_history/
 !oauth/
-!provenance/
 !table_view/
 !terms/
 !thumbnails/

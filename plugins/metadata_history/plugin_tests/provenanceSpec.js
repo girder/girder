@@ -1,7 +1,7 @@
-girderTest.importPlugin('provenance');
+girderTest.importPlugin('metadata_history');
 girderTest.startApp();
 
-describe('test the provenance plugin', function () {
+describe('test the metadata_history plugin', function () {
     it('create the admin user', girderTest.createUser(
         'provenance', 'provenance@girder.org', 'Provenance', 'Plugin',
         'testpassword'));
@@ -20,11 +20,11 @@ describe('test the provenance plugin', function () {
         });
         girderTest.waitForLoad();
         waitsFor(function () {
-            return $('input.g-plugin-switch[key="provenance"]').length > 0;
+            return $('input.g-plugin-switch[key="metadata_history"]').length > 0;
         }, 'the plugins page to load');
         runs(function () {
-            expect($('.g-plugin-config-link[g-route="plugins/provenance/config"]').length > 0);
-            $('.g-plugin-config-link[g-route="plugins/provenance/config"]').click();
+            expect($('.g-plugin-config-link[g-route="plugins/metadata_history/config"]').length > 0);
+            $('.g-plugin-config-link[g-route="plugins/metadata_history/config"]').click();
         });
         girderTest.waitForLoad();
         waitsFor(function () {

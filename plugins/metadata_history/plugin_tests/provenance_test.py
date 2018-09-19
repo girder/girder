@@ -31,11 +31,11 @@ from girder.models.setting import Setting
 from girder.models.upload import Upload
 from girder.models.user import User
 
-from girder_provenance import constants
+from girder_metadata_history import constants
 
 
 def setUpModule():
-    base.enabledPlugins.append('provenance')
+    base.enabledPlugins.append('metadata_history')
     base.startServer()
 
 

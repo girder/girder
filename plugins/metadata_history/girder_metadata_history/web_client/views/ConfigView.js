@@ -37,7 +37,7 @@ var ConfigView = View.extend({
 
         if (!this.breadcrumb) {
             this.breadcrumb = new PluginConfigBreadcrumbWidget({
-                pluginName: 'Provenance tracker',
+                pluginName: 'Metadata history tracker',
                 el: this.$('.g-config-breadcrumb-container'),
                 parentView: this
             }).render();

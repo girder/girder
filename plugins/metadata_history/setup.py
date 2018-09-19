@@ -22,9 +22,9 @@ from setuptools import setup, find_packages
 
 # perform the install
 setup(
-    name='girder-provenance',
+    name='girder-metadata-history',
     version='0.2.0',
-    description='Tracks provenance of items in Girder',
+    description='Tracks metadata history of items in Girder',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
     license='Apache 2.0',
@@ -45,7 +45,7 @@ setup(
     install_requires=['girder'],
     entry_points={
         'girder.plugin': [
-            'provenance = girder_provenance:ProvenancePlugin'
+            'metadata_history = girder_metadata_history:MetadataHistoryPlugin'
         ]
     }
 )

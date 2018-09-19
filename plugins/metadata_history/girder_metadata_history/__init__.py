@@ -41,8 +41,8 @@ def validateProvenanceResources(doc):
         doc['value'] = ','.join(resources)
 
 
-class ProvenancePlugin(GirderPlugin):
-    DISPLAY_NAME = 'Provenance tracker'
+class MetadataHistoryPlugin(GirderPlugin):
+    DISPLAY_NAME = 'Metadata history tracker'
     CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
