@@ -1,6 +1,6 @@
 {
     "name": "@girder/authorized_upload",
-    "version": "0.1.0",
+    "version": "0.2.0-alpha.1",
     "description": "Allows registered users to authorize file uploads on their behalf via a secure one-use URL.",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#authorized-uploads",
     "bugs": {

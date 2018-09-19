@@ -28,7 +28,7 @@ description = (
 # perform the install
 setup(
     name='girder-hdfs-assetstore',
-    version='2.0.0',
+    version='2.0.0a1',
     description=description,
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
@@ -47,7 +47,7 @@ setup(
     packages=find_packages(exclude=['plugin_tests']),
     python_requires='<3.0',
     zip_safe=False,
-    install_requires=['girder', 'snakebite'],
+    install_requires=['girder>=3.0.0a1', 'snakebite'],
     entry_points={
         'girder.plugin': [
             'hdfs_assetstore = girder_hdfs_assetstore:HDFSAssetstorePlugin'

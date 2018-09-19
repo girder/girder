@@ -30,7 +30,7 @@ from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT, TerminalC
 from girder.utility import config, mkdir
 from girder.utility._cache import cache, requestCache, rateLimitBuffer
 
-__version__ = '2.5.0'
+__version__ = '3.0.0a1'
 __license__ = 'Apache 2.0'
 
 

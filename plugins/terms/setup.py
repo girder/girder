@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-terms',
-    version='0.2.0',
+    version='0.2.0a1',
     description='Allows Girder collections to require users to accept terms of '
     'use before browsing.',
     author='Kitware, Inc.',
@@ -44,7 +44,7 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder'],
+    install_requires=['girder>=3.0.0a1'],
     entry_points={
         'girder.plugin': [
             'terms = girder_terms:TermsPlugin'

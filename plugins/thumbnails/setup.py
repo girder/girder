@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-thumbnails',
-    version='0.2.0',
+    version='0.2.0a1',
     description='Generate thumbnails from files.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
@@ -43,8 +43,8 @@ setup(
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
     install_requires=[
-        'girder',
-        'girder-jobs',
+        'girder>=3.0.0a1',
+        'girder-jobs>=3.0.0a1',
         'Pillow',
         'pydicom>=1.0.2',
         'numpy'

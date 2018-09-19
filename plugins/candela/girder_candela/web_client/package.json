@@ -1,6 +1,6 @@
 {
     "name": "@girder/candela",
-    "version": "0.2.0",
+    "version": "0.2.0-alpha.1",
     "description": "Render Candela visualizations in the item page for CSV files.",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#candela-visualization",
     "bugs": {

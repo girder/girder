@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-table-view',
-    version='0.2.0',
+    version='0.2.0a1',
     description='Render table view in the item page for CSV and TSV files.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
@@ -43,7 +43,7 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder'],
+    install_requires=['girder>=3.0.0a1'],
     entry_points={
         'girder.plugin': [
             'table_view = girder_table_view:TableViewPlugin'

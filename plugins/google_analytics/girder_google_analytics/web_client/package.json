@@ -1,6 +1,6 @@
 {
     "name": "@girder/google_analytics",
-    "version": "0.2.0",
+    "version": "0.2.0-alpha.1",
     "description": "Allow the tracking of page views via Google Analytics.",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#google-analytics",
     "bugs": {

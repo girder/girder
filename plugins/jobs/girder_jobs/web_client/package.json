@@ -1,6 +1,6 @@
 {
     "name": "@girder/jobs",
-    "version": "3.0.0",
+    "version": "3.0.0-alpha.1",
     "description": "A general purpose plugin for managing offline jobs.",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#jobs",
     "bugs": {

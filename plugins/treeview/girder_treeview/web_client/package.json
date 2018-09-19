@@ -1,6 +1,6 @@
 {
     "name": "@girder/treeview",
-    "version": "0.2.0",
+    "version": "0.2.0-alpha.1",
     "description": "Provides an alternative hierarchy widget using jstree",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#treeview",
     "bugs": {

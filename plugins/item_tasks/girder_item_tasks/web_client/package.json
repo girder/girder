@@ -1,6 +1,6 @@
 {
     "name": "@girder/item_tasks",
-    "version": "0.2.0",
+    "version": "0.2.0-alpha.1",
     "description": "Allows items in Girder to be used as specifications for tasks to be run on the worker.",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#item_tasks",
     "bugs": {

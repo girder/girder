@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-item-licenses',
-    version='0.2.0',
+    version='0.2.0a1',
     description='Add a license field to items.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
@@ -42,7 +42,7 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder'],
+    install_requires=['girder>=3.0.0a1'],
     entry_points={
         'girder.plugin': [
             'item_licenses = girder_item_licenses:ItemLicensesPlugin'

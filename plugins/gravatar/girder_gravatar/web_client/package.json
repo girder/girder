@@ -1,6 +1,6 @@
 {
     "name": "@girder/gravatar",
-    "version": "2.0.0",
+    "version": "2.0.0-alpha.1",
     "description": "Adds Gravatar URLs for users.",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#gravatar-portraits",
     "bugs": {

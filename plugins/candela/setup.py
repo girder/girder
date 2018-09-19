@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-candela',
-    version='0.2.0',
+    version='0.2.0a1',
     description='Render Candela visualizations in the item page for CSV files.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
@@ -43,7 +43,7 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder', 'girder-item-tasks'],
+    install_requires=['girder>=3.0.0a1', 'girder-item-tasks>=0.2.0a1'],
     entry_points={
         'girder.plugin': [
             'candela = girder_candela:CandelaPlugin'

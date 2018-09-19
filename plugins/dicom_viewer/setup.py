@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-dicom-viewer',
-    version='0.2.0',
+    version='0.2.0a1',
     description='View DICOM images in the browser',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
@@ -43,7 +43,7 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder', 'pydicom>=1.0.2'],
+    install_requires=['girder>=3.0.0a1', 'pydicom>=1.0.2'],
     entry_points={
         'girder.plugin': [
             'dicom_viewer = girder_dicom_viewer:DicomViewerPlugin'
