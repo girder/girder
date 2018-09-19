@@ -123,11 +123,11 @@ class Webroot(WebrootBase):
 
     def _renderHTML(self):
         from girder.utility import server
-        self.vars['plugins'] = server.getPlugins()
+        from girder.plugin import loadedPlugins
+        self.vars['plugins'] = loadedPlugins()
         self.vars['pluginCss'] = []
         self.vars['pluginJs'] = []
-        builtDir = os.path.join(constants.STATIC_ROOT_DIR, 'clients', 'web',
-                                'static', 'built', 'plugins')
+        builtDir = os.path.join(constants.STATIC_ROOT_DIR, 'built', 'plugins')
         for plugin in self.vars['plugins']:
             if os.path.exists(os.path.join(builtDir, plugin, 'plugin.min.css')):
                 self.vars['pluginCss'].append(plugin)

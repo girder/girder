@@ -7,6 +7,7 @@ import pytest
 import shutil
 
 from .utils import uploadFile, MockSmtpReceiver, request as restRequest
+from .plugin_registry import PluginRegistry
 
 
 def _uid(node):
@@ -90,61 +91,44 @@ def server(db, request):
     from girder.api import docs
     from girder.constants import SettingKey
     from girder.models.setting import Setting
-    from girder.utility import plugin_utilities
     from girder.utility.server import setup as setupServer
-
-    oldPluginDir = plugin_utilities.getPluginDir
 
     girder.events.daemon = girder.events.AsyncEventsThread()
 
     enabledPlugins = []
-    hasInstalledPluginMarkers = request.node.get_closest_marker('plugin') is not None
-    hasTestPluginMarkers = request.node.get_closest_marker('testPlugin') is not None
+    hasPluginMarkers = request.node.get_marker('plugin') is not None
+    pluginRegistry = PluginRegistry()
 
-    if hasInstalledPluginMarkers and hasTestPluginMarkers:
-        raise Exception(
-            'The "testPlugin" and "plugin" markers cannot both be used on a single test'
-        )
-
-    elif hasInstalledPluginMarkers:
-        for installedPluginMarker in request.node.iter_markers('plugin'):
-            pluginName = installedPluginMarker.args[0]
-            enabledPlugins.append(pluginName)
-
-    elif hasTestPluginMarkers:
-        for testPluginMarker in request.node.iter_markers('testPlugin'):
-            pluginName = testPluginMarker.args[0]
-            enabledPlugins.append(pluginName)
-
-        # testFilePath is a py.path.local object that we *assume* lives in 'test/',
-        # with 'test/test_plugins' nearby
-        testFilePath = request.node.fspath
-        testPluginsPath = testFilePath.dirpath('test_plugins').strpath
-        plugin_utilities.getPluginDir = mock.Mock(return_value=testPluginsPath)
+    with pluginRegistry():
+        if hasPluginMarkers:
+            for pluginMarker in request.node.iter_markers('plugin'):
+                pluginName = pluginMarker.args[0]
+                if len(pluginMarker.args) > 1:
+                    pluginRegistry.registerTestPlugin(
+                        *pluginMarker.args, **pluginMarker.kwargs
+                    )
+                enabledPlugins.append(pluginName)
 
         Setting().set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
 
-    server = setupServer(test=True, plugins=enabledPlugins)
-    server.request = restRequest
-    server.uploadFile = uploadFile
+        server = setupServer(test=True, plugins=enabledPlugins)
+        server.request = restRequest
+        server.uploadFile = uploadFile
 
-    cherrypy.server.unsubscribe()
-    cherrypy.config.update({'environment': 'embedded',
-                            'log.screen': False,
-                            'request.throw_errors': True})
-    cherrypy.engine.start()
+        cherrypy.server.unsubscribe()
+        cherrypy.config.update({'environment': 'embedded',
+                                'log.screen': False,
+                                'request.throw_errors': True})
+        cherrypy.engine.start()
 
-    yield server
+        yield server
 
-    cherrypy.engine.unsubscribe('start', girder.events.daemon.start)
-    cherrypy.engine.unsubscribe('stop', girder.events.daemon.stop)
-    cherrypy.engine.stop()
-    cherrypy.engine.exit()
-    cherrypy.tree.apps = {}
-    plugin_utilities.getPluginDir = oldPluginDir
-    plugin_utilities.getPluginWebroots().clear()
-    plugin_utilities.getPluginFailureInfo().clear()
-    docs.routes.clear()
+        cherrypy.engine.unsubscribe('start', girder.events.daemon.start)
+        cherrypy.engine.unsubscribe('stop', girder.events.daemon.stop)
+        cherrypy.engine.stop()
+        cherrypy.engine.exit()
+        cherrypy.tree.apps = {}
+        docs.routes.clear()
 
 
 @pytest.fixture

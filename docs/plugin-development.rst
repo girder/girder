@@ -7,10 +7,12 @@ The capabilities of Girder can be extended via plugins. The plugin framework is
 designed to allow Girder to be as flexible as possible, on both the client
 and server sides.
 
-A plugin is self-contained in a single directory. To create your plugin, simply
-create a directory within the **plugins** directory. In fact, that directory
-is the only thing that is truly required to make a plugin in Girder. All of the
-other components discussed henceforth are optional.
+A plugin is self-contained python package with an optional "web_client" directory
+containing the client side extension.  In this document, we describe the minimal
+components necessary to create and distribute a python package containing a Girder
+plugin for basic use cases.  For a more detailed guide, see python's own
+`packaging documentation <https://packaging.python.org/guides/distributing-packages-using-setuptools/>`_
+and `tutorial <https://python-packaging.readthedocs.io/en/latest/index.html>`_.
 
 Example Plugin
 ^^^^^^^^^^^^^^
@@ -18,87 +20,121 @@ Example Plugin
 We'll use a contrived example to demonstrate the capabilities and components of
 a plugin. Our plugin will be called `cats`. ::
 
-    cd plugins ; mkdir cats
+    mkdir cats
 
-The first thing we should do is create a plugin config file in the **cats**
-directory. As promised above, this file is not required, but is strongly
-recommended by convention. This file contains high-level information about
-your plugin, and can be either JSON or YAML. If you want to use YAML features,
-make sure to name your config file ``plugin.yml`` instead of ``plugin.json``. For
-our example, we'll just use JSON. ::
+The first thing we should do is create a ``setup.py`` file describing the
+package we are going to create.
 
-    touch cats/plugin.json
+.. code-block:: python
 
-The plugin config file should specify a human-readable name and description for
-your plugin. It can also optionally contain a URL to documentation and
-a list of other plugins that your plugin depends on. If your plugin has
-dependencies, the other plugins will be enabled whenever your plugin is enabled.
-The contents of plugin.json for our example will be:
+  from setuptools import setup, find_packages
 
-.. note:: If you have both ``plugin.json`` and ``plugin.yml`` files in the directory, the
-   ``plugin.json`` will take precedence.
+  setup(
+      name='girder_cats',
+      version='1.0.0',
+      description='A contrived example of a Girder plugin.',
+      author='Plugin Development, Inc.',
+      author_email='plugin-developer@email.com',
+      url='https://my-plugin-documentation-page.com/cats',
+      license='Apache 2.0',
+      classifiers: [
+        'Development Status :: 5 - Production/Stable',
+        'Environment :: Web Environment',
+        'License :: OSI Approved :: Apache Software License'
+      ],
+      include_package_data=True,
+      package_data={ '': ['web_client'] },
+      packages=find_packages(exclude=['plugin_tests']),
+      zip_safe=False,
+      install_requires=['girder>=3', 'girder_jobs'],
+      entry_points={
+          'girder.plugin': [ 'cats = girder_cats.CatsPlugin' ]
+      }
+  )
 
-.. code-block:: json
+Many of these values are metadata associated with a standard python package.  See also
+the list of `available classifiers <https://pypi.org/pypi?%3Aaction=list_classifiers>`_
+that can be added to aid in discoverability of your package.  Several arguments
+in this example are specific to a Girder plugin.  These are as follows:
 
-    {
-        "name": "My Cats Plugin",
-        "description": "Allows users to manage their cats.",
-        "url": "http://girder.readthedocs.io/en/latest/plugin/mycat.html",
-        "version": "1.0.0",
-        "dependencies": ["other_plugin"]
-    }
+``include_package_data=True``
+    This tells python to include data files in addition to python modules found in
+    your repository.  This is necessary to ensure the web client assets are included
+    in the package distribution.  See the
+    `setuptools documentation <https://setuptools.readthedocs.io/en/latest/setuptools.html#including-data-files>`_
+    for details.
 
-.. note:: Some plugins depend on other plugins, but only for building web client code, not
-    at runtime. For these cases, rather than the ``dependencies`` field, use the
-    ``staticWebDependencies`` field instead. This will allow the plugin to import web
-    code from the other plugin, but will not require the other plugin to be built or enabled
-    at runtime.
+``packages=find_packages(exclude=['plugin_tests'])``
+    This will include all python "packages" found inside the local path in the distribution
+    with the exception of the ``plugin_tests`` directory.  If any other python modules or
+    testing files are not desired in the distributed bundle, they should be added to this
+    list.
 
-This information will appear in the web client administration console, and
-administrators will be able to enable and disable it there. Whenever plugins
-are enabled or disabled, a server restart is required in order for the
-change to take effect.
+``zip_safe=False``
+    Unless this flag is provided, the python installer will install the package (and
+    its non-python data files) as a python "egg".  Girder plugins including web
+    extensions **do not** support this feature.
 
-If you are developing a plugin for girder, sometimes using the Rebuild and restart button
-on the Plugins page may be undesirable as it will rebuild core and all enabled plugins
-in production mode, which will take some time and doesn't provide sourcemaps.
-Rebuild specific plugin restart the server may be a better choice. See `During Development <development.html#during-development>`__ for details.
+``install_requires=['girder>=3', 'girder_jobs']``
+    This tells the installer that Girder of at least version 3 is required for this package
+    to function.  When installing with ``pip``, Girder will be automatically installed
+    from pypi if it is not already installed.  Any additional dependencies (including
+    other Girder plugins) should be added to this list as well.
+
+``entry_points={'girder.plugin': [ 'cats = girder_cats.CatsPlugin' ]}``
+    This is the piece that registers your plugin with Girder's application.  When Girder
+    starts up, it queries this entrypoint (``girder.plugin``) for all registered plugins.
+    Here the name ``cats`` is the internal name registered to this plugin.  The value
+    ``girder_cats.CatsPlugin`` is an import path resolving to a class that is expected
+    to derive from ``girder.plugin.GirderPlugin``.  See below for an example of how to
+    define this object.
 
 
+Defining a Plugin Descriptor Class
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Extending the Server-Side Application
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Once you have created your ``setup.py`` file, you should begin to define the
+python package that will contain your plugin.  In our case, we will name the
+python package ``girder_cats`` so that it is a unique name on pypi ::
 
-Girder plugins can augment and alter the core functionality of the system in
-almost any way imaginable. These changes can be achieved via several mechanisms
-which are described below. First, in order to implement the functionality of
-your plugin, create a **server** directory within your plugin, and make it
-a Python package by creating **__init__.py**. ::
+    mkdir girder_cats
+    touch girder_cats/__init__.py
 
-    cd cats ; mkdir server ; touch server/__init__.py
+The base class at :py:class:`girder.plugin.GirderPlugin` defines the interface
+between Girder and its plugins.  For advanced requirements, plugin authors can
+override the properties defined on this class, but for most use cases inserting
+the following into the top level ``__init__.py`` will suffice.
 
-This package will be imported at server startup if your plugin is enabled.
-Additionally, if your package implements a ``load`` function, that will be
-called. This ``load`` function is where the logic of extension should be
-performed for your plugin. ::
+.. code-block:: python
 
-    def load(info):
-        ...
+    from girder.plugin import getPlugin, GirderPlugin
 
-This ``load`` function must take a single argument, which is a dictionary of
-useful information passed from the core system. This dictionary contains an
-``apiRoot`` value, which is the object to which you should attach API endpoints,
-a ``config`` value, which is the server's configuration dictionary, and a
-``serverRoot`` object, which can be used to attach endpoints that do not belong
-to the web API.
+    class CatsPlugin(GirderPlugin):
+        DISPLAY_NAME = 'Cats in Girder'
+        CLIENT_SOURCE_PATH = 'web_client'
 
-Within your plugin, you may import packages using relative imports or via
-the ``girder.plugins`` package. This will work for your own plugin, but you can
-also import modules from any active plugin. You can also import core Girder
-modules using the ``girder`` package as usual. Example: ::
+        def load(self, info):
+            getPlugin('jobs').load(info)
+            # attach endpoints, listen to events, etc...
 
-    from girder.plugins.cats import some_module
-    from girder import events
+Girder inspects attributes on this class for several pieces of metadata.  Most
+of this metadata is automatically determined from the package-level metadata
+defined in your ``setup.py`` file.  The additional attributes defined on this
+class instance provide the following:
+
+``DISPLAY_NAME``
+    This provides Girder with a "user facing" name, e.g. a short description
+    of the plugin not limited by the tokenization rules inherent in the "entrypoint
+    name".  By default, the entrypoint name will be used if none is provided here.
+
+``CLIENT_SOURCE_PATH``
+    If your plugin contains a web client extension, you need to set this property
+    to a path containing an npm package.  The path is always interpreted relative
+    the python package install path.
+
+Other optional attributes are defined on this class for more advanced use cases,
+see the class documentation at :py:class:`girder.plugin.GirderPlugin` for details.
+
 
 .. _extending-the-api:
 
@@ -124,8 +160,14 @@ route for ``GET /item/:id/cat`` to the system,
            'cat': params['cat']
         }
 
-    def load(info):
-        info['apiRoot'].item.route('GET', (':id', 'cat'), myHandler)
+You can then attach this route to Girder in your plugin's load method
+
+.. code-block:: python
+
+    from girder.plugin import GirderPlugin
+    class CatsPlugin(GirderPlugin)
+      def load(self, info):
+          info['apiRoot'].item.route('GET', (':id', 'cat'), myHandler)
 
 You should always add an access decorator to your handler function or method to
 indicate who can call the new route.  The decorator is one of ``@access.admin``
@@ -236,8 +278,16 @@ classes, and we can add it to the API in the ``load()`` method.
         def getCat(self, id, params):
             ...
 
-    def load(info):
-        info['apiRoot'].cat = Cat()
+As done when extending an existing resource, this should be mounted into Girder's
+API inside your plugin's load method:
+
+.. code-block:: python
+
+    from girder.plugin import GirderPlugin
+    class CatsPlugin(GirderPlugin)
+        def load(self, info):
+            info['apiRoot'].cat = Cat()
+
 
 Adding a prefix to an API
 *************************
@@ -251,6 +301,7 @@ from the mount location.
 .. code-block:: python
 
     from girder.api.rest import Resource, Prefix
+    from girder.plugin import GirderPlugin
 
     class Cat(Resource):
         def __init__(self):
@@ -265,9 +316,10 @@ from the mount location.
         def getCat(self, id, params):
             ...
 
-    def load(info):
-        info['apiRoot'].meow = Prefix()
-        info['apiRoot'].meow.cat = Cat()
+    class CatsPlugin(GirderPlugin):
+        def load(self, info):
+            info['apiRoot'].meow = Prefix()
+            info['apiRoot'].meow.cat = Cat()
 
 The endpoints are now mounted at meow/cat/
 
@@ -277,7 +329,21 @@ Adding a new model type in your plugin
 
 Most of the time, if you add a new resource type in your plugin, you'll have a
 ``Model`` class backing it. These model classes work just like the core model
-classes as described in the :ref:`models` section.
+classes as described in the :ref:`models` section.  Because custom models in plugins
+cannot be automatically resolved, they should be registered with the :py:class:`girder.utility.model_importer.ModelImporter`
+class inside your load method.
+
+
+.. code-block:: python
+
+    from girder.plugin import GirderPlugin
+    from girder.utilities.model_importer import ModelImporter
+    from .models.cat import Cat
+
+    class CatsPlugin(GirderPlugin):
+        def load(self, info):
+            ModelImporter.registerModel('cat', Cat(), 'cats')
+
 
 Adding custom access flags
 **************************
@@ -302,7 +368,7 @@ can call ``requireAccessFlags``, e.g.:
 
 .. code-block:: python
 
-    from girder.plugins.cats.models.cat import Cat
+    from girder_cat import Cat
 
     @access.user
     @autoDescribeRoute(
@@ -323,7 +389,7 @@ method using ``autoDescribeRoute``, passing a ``requiredFlags`` parameter, e.g.:
     @access.user
     @autoDescribeRoute(
         Description('Feed a cat')
-        .modelParam('id', 'ID of the cat', model='cat', plugin='cats', level=AccessType.WRITE,
+        .modelParam('id', 'ID of the cat', model=Cat, level=AccessType.WRITE,
                     requiredFlags='cats.feed')
     )
     def feedCats(self, cat, params):
@@ -528,23 +594,28 @@ base template and overrides one or more blocks. For example,
       <p>Manage your cats using the resources below.</p>
     </%block>
 
-Install the custom template in the ``load`` function:
+Install the custom template in the plugin's ``load`` function:
 
 .. code-block:: python
 
-    def load(info):
-        # Initially, the value of info['apiRoot'].templateFilename is
-        # 'api_docs.mako'. Because custom_api_docs.mako inherits from this
-        # base template, pass 'api_docs.mako' in the variable that the
-        # <%inherit> directive references.
-        baseTemplateFilename = info['apiRoot'].templateFilename
-        info['apiRoot'].updateHtmlVars({
-            'baseTemplateFilename': baseTemplateFilename
-        })
+    import os
+    from girder.plugin import GirderPlugin
 
-        # Set the path to the custom template
-        templatePath = os.path.join(info['pluginRootDir'], 'server', 'custom_api_docs.mako')
-        info['apiRoot'].setTemplatePath(templatePath)
+    PLUGIN_PATH = os.path.dirname(__file__)
+    class CustomTemplatePlugin(GirderPlugin):
+        def load(self, info):
+            # Initially, the value of info['apiRoot'].templateFilename is
+            # 'api_docs.mako'. Because custom_api_docs.mako inherits from this
+            # base template, pass 'api_docs.mako' in the variable that the
+            # <%inherit> directive references.
+            baseTemplateFilename = info['apiRoot'].templateFilename
+            info['apiRoot'].updateHtmlVars({
+                'baseTemplateFilename': baseTemplateFilename
+            })
+
+            # Set the path to the custom template
+            templatePath = os.path.join(PLUGIN_PATH, 'custom_api_docs.mako')
+            info['apiRoot'].setTemplatePath(templatePath)
 
 .. _client-side-plugins:
 
@@ -556,221 +627,69 @@ import Pug templates, Stylus files, and JavaScript files into the application.
 The plugin loading system ensures that only content from enabled plugins gets
 loaded into the application at runtime.
 
-By default, all of your plugin's extensions to the web client must live in a directory in
-the top level of your plugin called **web_client**. ::
+All of your plugin's extensions to the web client must live in a directory inside
+of your python package.  By convention, this is in a directory called **web_client**. ::
 
-    cd plugins/cats ; mkdir web_client
+    cd girder_cats ; mkdir web_client
 
-Under the **web_client** directory, you must have a webpack entry point file called **main.js**.
-In this file, you can import code from your plugin using relative paths, or relative to the special alias
-**girder_plugins/<your_plugin_key>**. For example,
-``import template from 'girder_plugins/cats/templates/myTemplate.pug`` would import the template file
-located at ``plugins/cats/web_client/templates/myTemplate.pug``. Core Girder code can be imported
-relative to the path **girder**, for example ``import View from 'girder/views/View';``. The entry
-point defined in your **main.js** file will be automatically built once the plugin has been enabled,
-and your built code will be served with the application once the server has been restarted.
-
-You can also customize which file is used as the webpack entry point, using a
-``webpack`` section in your plugin config. The ``main`` property is a path relative
-to your plugin directory naming the entry point file (by default, as discussed
-above, the value of this property is ``web_client/main.js``):
+When present, this directory must contain a valid npm package, which includes a ``package.json``
+file.  (See the `npm documentation <https://docs.npmjs.com/files/package.json>`_ for details.)
+What follows is a typical npm package file for a Girder client side extension:
 
 .. code-block:: json
 
     {
-        "name": "MY_PLUGIN",
-        "webpack": {
-            "main": "web_external/index.js"
+        "name": "@girder/cats",
+        "version": "1.0.0",
+        "peerDependencies": {
+            "@girder/jobs": "*"
+        },
+        "dependencies": {
+            "othermodule": "^1.2.4"
+        },
+        "girderPlugin": {
+            "name": "cats",
+            "main": "./main.js",
+            "dependencies": ["jobs"],
+            "webpack": "webpack.helper"
         }
     }
 
-You may also set ``main`` to an object that maps bundle names to entry points, which is
-helpful for plugins that want to build multiple targets using the same loaders. For example:
 
-.. code-block:: json
+In addition to the standard ``package.json`` properties, Girder plugins
+**must** also define a ``girderPlugin`` object to register themselves with
+Girder's client build system.  The important keys in the object are as follows:
 
-    {
-        "name": "MY_PLUGIN",
-        "webpack": {
-            "main": {
-                "plugin": "web_client/main.js",
-                "external": "web_external/main.js"
-            }
-        }
-    }
+``name``
+    This must be **exactly** the entrypoint name registered in your ``setup.py`` file.
 
-That will cause both ``plugin.min.*`` and ``external.min.*`` files to appear in the
-built directory. The file paths of the entry points should be specified relative to the
-plugin directory.
+``main``
+    This is the entrypoint into your plugin on the client.  All runtime initialization
+    should occur from here.
+
+``dependencies``
+    This is an array of entrypoint names that your plugin depends on.  Specifying this
+    explicitly here is what allows Girder's client build system to build the plugin
+    assets in the correct order.
+
+``webpack``
+    This is an optional property whose value is a node module that exports a
+    function that can make arbitrary modification the webpack config used to
+    build the plugin bundle.
+
+    By default, Girder includes loaders for pug, stylus, css, fonts, and images
+    in all paths.  For javascript inside the plugin, the code is transpiled
+    through babel using ``babel-preset-env``; however, this is not done for
+    dependencies resolved inside ``node_modules``.  This option makes it
+    easy to include additional transpilation rules.  For an example of this in
+    use, see the built in ``dicom_viewer`` plugin.
+
+Core Girder code can be imported relative to the path **girder**, for example
+``import View from 'girder/views/View';``. The entry point defined in your
+"main" file will be loaded into the browser after Girder's core library, but
+before the application is initialized.
 
 
-.. _webpackhelper:
-
-Customizing the Webpack Build
-*****************************
-
-Girder's core webpack configuration may not be quite right for your plugin. The
-plugin config's ``webpack`` section may contain a ``configHelper`` property (default
-value: ``webpack.helper.js``) that names a relative path to a JavaScript file that
-exports a "webpack helper". This helper is simply a function of two arguments -
-Girder's core webpack configuration object, and a hash of useful data about the
-plugin build - that returns a modified webpack configuration to use to build the
-plugin. This can be useful if you wish to use custom webpack loaders or plugins
-to build your plugin.
-
-The object passed to the helper function contains the following keys:
-
-- ``plugin``: the name of the plugin
-- ``output``: the name of the output bundle, which is "plugin" by default.
-- ``main``: the full path to the entry point file for the bundle.
-- ``pluginEntry``: the webpack entry point for the plugin (e.g.
-  ``plugins/MY_PLUGIN/plugin``)
-- ``pluginDir``: the full path to the plugin directory
-- ``nodeDir``: the full path to the plugin's dedicated NPM dependencies
-
-Additionally, you can instruct the build system to start with an empty loader
-list. You may want to do this to ensure that your plugin files are processed by
-webpack exactly as you see fit, and not risk any of Girder's predefined loaders
-getting involved where you may not expect them. To use this option, set the
-``webpack.defaultLoaders`` property to ``false`` (the property is ``true`` by
-default):
-
-.. code-block:: json
-
-    {
-        "name": "MY_PLUGIN",
-        "webpack": {
-            "configHelper": "plugin_webpack.js",
-            "defaultLoaders": false
-        }
-    }
-
-Installing custom dependencies from npm
-***************************************
-
-If your application requires third-party npm packages to be installed, there are a few ways to achieve this. The
-first is to declare them in your ``plugin.json`` file under ``npm.dependencies``:
-
-  .. code-block:: json
-
-      {
-          "name": "MY_PLUGIN",
-          "npm": {
-              "dependencies": {
-                  "vega": "^2.6.0"
-              }
-          }
-      }
-
-You can also name a JSON file containing NPM dependencies, as follows:
-
-  .. code-block:: json
-
-      {
-          "name": "MY_PLUGIN",
-          "npm": {
-              "file": "package.json",
-              "fields": ["devDependencies"],
-              "localNodeModules": true
-          }
-      }
-
-The ``npm.file`` property is a path to a JSON file relative to the plugin
-directory (``package.json`` is a convenient choice, simply because the ``npm
-install --save-dev`` command manipulates this file by default), while
-``npm.fields`` specifies which top-level keys in that file contain package names
-to install (by default, this property has the value ``['devDependencies',
-'dependencies', 'optionalDependencies']``). If the ``localNodeModules`` option
-is set to ``true``, then the dependencies will be installed within a separate
-directory so that they will not collide with Girder's own set of node_modules.
-
-The final alternative for Webpack-built plugins is to set the ``npm.install``
-configuration property to ``true``; this will cause the build system to run
-``npm install`` in the plugin directory.
-
-When you use the `import` directive within your plugin code, for example:
-
-.. code-block:: javascript
-
-    import foobar from 'foobar';
-
-The build process will search for the ``'foobar'`` module in the following locations, in order:
-
-1. The plugin's local modules directory that is created if ``npm.localNodeModules`` has
-   been set to ``true`` in the plugin configuration file.
-2. The ``node_modules`` directory underneath the plugin directory, which would exist when using
-   ``npm.install: true``, or if node modules had been installed there manually.
-3. Within Girder's own ``node_modules`` directory.
-
-.. note:: One notable exception to this rule is for the jQuery library; having multiple versions of jQuery from
-          different targets often breaks things at runtime, so plugins will always use the same jQuery
-          as Girder core.
-
-If for some reason you need to modify this search order for your plugin, you can do so via the ``webpack.helper.js``
-file documented in the :ref:`webpackhelper` section. To do so, you can override the ``resolve.modules`` field of
-the configuration and set it to a list of paths to search in order. If you need to modify the path to search for
-webpack loaders instead of module imports, use the ``resolveLoader.modules`` list instead.
-
-Controlling the Build Output
-****************************
-
-In the plugin config's ``webpack`` section, you can set the ``webpack.output``
-property to control the name of the plugin bundle file. By default this value is
-``plugin``, so that the resulting file will be
-``clients/web/static/build/plugins/MY_PLUGIN/plugin.min.js``. Girder automatically
-detects such files named ``plugin.min.js`` and automatically loads them into the
-main web client.
-
-To create an "external" plugin, simply change the output name to any other
-value. One reasonable choice is ``index``. These plugins can be used to create
-wholly independent web clients that don't explicitly depend on the core Girder
-client being loaded.
-
-.. note:: If you use an object to specify an output to entry point mapping in ``webpack.main``,
-          the ``webpack.output`` value will be ignored if specified.
-
-Executing custom Grunt build steps for your plugin
-**************************************************
-
-For more complex plugins which require custom Grunt tasks to build, the user can
-specify custom targets within their own Grunt file that will be executed when
-the main Girder Grunt step is executed. To use this functionality, add a **grunt**
-key to your **plugin.json** file.
-
-.. code-block:: json
-
-    {
-    "name": "MY_PLUGIN",
-    "grunt":
-        {
-        "file" : "Gruntfile.js",
-        "defaultTargets": [ "MY_PLUGIN_TASK" ],
-        "autobuild": true
-        }
-    }
-
-This will allow to register a Gruntfile relative to the plugin root directory
-and add any target to the default one using the "defaultTargets" array.
-
-.. note:: The **file** key within the **grunt** object must be a path that is
-   relative to the root directory of your plugin. It does not have to be called
-   ``Gruntfile.js``, it can be called anything you want.
-
-.. note:: Girder creates a number of Grunt build tasks that expect plugins to be
-   organized according to a certain convention.  To opt out of these tasks, add
-   an **autobuild** key (default: **true**) within the **grunt** object and set
-   it to **false**.
-
-All paths within your custom Grunt tasks must be relative to the root directory
-of the Girder source repository, rather than relative to the plugin directory.
-
-.. code-block:: javascript
-
-    module.exports = function (grunt) {
-        grunt.registerTask('MY_PLUGIN_TASK', 'Custom plugin build task', function () {
-            /* ... Execute custom behavior ... */
-        });
-    };
 
 JavaScript extension capabilities
 *********************************
@@ -908,7 +827,7 @@ plugin, you can make use of a handy CMake function provided by the core system. 
 
 .. code-block:: cmake
 
-    add_standard_plugin_tests()
+    add_standard_plugin_tests(PACKAGE "girder_cats")
 
 This will automatically run static analysis tools on most parts of your plugin, including the
 server, client, and testing files. Additionally, it will detect and run any tests in the special
@@ -918,17 +837,26 @@ client-side tests are named with the suffix ``Spec.js``. For example:
 
 .. code-block:: bash
 
-    cd plugins/cats; mkdir plugin_tests ; cd plugin_tests ; touch __init__.py cat_test.py catSpec.js
+    mkdir plugin_tests ; cd plugin_tests ; touch __init__.py cat_test.py catSpec.js
 
 For more sophisticated configuration of plugin testing, options to ``add_standard_plugin_tests`` can
 be used to disable some of the automatically-added tests, so they can be explicitly added with
 additional options. See the ``add_standard_plugin_tests`` implementation for full option
 documentation.
 
+.. note::
+
+    For auto-discovery of tests via plugin.cmake, you must copy your plugin's
+    code inside Girder's ``/plugins`` directory.  This is the only case where
+    the location of your plugin on the file system matters.
+
+    TODO: We should think about an alternative discovery mechanism.
+
+
 Testing Server-Side Code
 ************************
 
-.. note:: Support for ``pytest`` tests has not yet been added to plugins.
+TODO: Replace this content with a pytest example.
 
 The ``plugin_tests/cat_test.py`` file should look like:
 
@@ -955,7 +883,7 @@ You can use all of the testing utilities provided by the ``base.TestCase`` class
 from core. You will also get coverage results for your plugin aggregated with
 the main Girder coverage results.
 
-.. note:: Only files residing under the plugin's``server`` directory will be included in coverage.
+.. note:: Only files residing under the plugin's package directory will be included in coverage.
           See :ref:`python-coverage-paths` to change the paths used to generate Python coverage
           reports.
 
@@ -999,6 +927,8 @@ For example, the cats plugin would define tests in a ``plugin_tests/catSpec.js``
 
 Using External Data Artifacts
 *****************************
+
+TODO: Should we deprecate/remove this capability for plugins?
 
 Plugin tests can also use the external data artifact interface provided by Girder as described in
 :ref:`use_external_data`.  The artifact key files should be placed inside a directory

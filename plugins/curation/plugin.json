@@ -1,6 +1,0 @@
-{
-    "name": "Curation",
-    "description": "Manage curation workflows for folders.",
-    "url": "http://girder.readthedocs.io/en/latest/plugins.html#curation",
-    "version": "0.1.0"
-}

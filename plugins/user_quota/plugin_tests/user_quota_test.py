@@ -31,6 +31,8 @@ from girder.models.setting import Setting
 from girder.models.user import User
 from girder.utility.system import formatSize
 
+from girder_user_quota import constants
+
 
 def setUpModule():
     base.enabledPlugins.append('user_quota')
@@ -183,8 +185,6 @@ class QuotaTestCase(base.TestCase):
                         matches this.
         :param error: if set, this is a substring expected in an error message.
         """
-        from girder.plugins.user_quota import constants
-
         if model == 'user':
             key = constants.PluginSettings.QUOTA_DEFAULT_USER_QUOTA
         elif model == 'collection':

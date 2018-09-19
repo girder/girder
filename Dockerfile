@@ -21,13 +21,14 @@ COPY girder /girder/girder
 COPY clients /girder/clients
 COPY plugins /girder/plugins
 COPY scripts /girder/scripts
-COPY grunt_tasks /girder/grunt_tasks
-COPY Gruntfile.js /girder/Gruntfile.js
 COPY setup.py /girder/setup.py
 COPY package.json /girder/package.json
 COPY README.rst /girder/README.rst
+COPY requirements-dev.txt /girder/requirements-dev.txt
 
-RUN pip install --upgrade --upgrade-strategy eager --editable .[plugins]
-RUN girder-install web --all-plugins
+# TODO: Do we want to create editable installs of plugins as well?  We
+# will need a plugin only requirements file for this.
+RUN pip install --upgrade --upgrade-strategy eager --editable .
+RUN girder build
 
 ENTRYPOINT ["girder", "serve"]

@@ -1,10 +1,5 @@
 /* global girder girderTest describe it expect beforeEach afterEach runs waitsFor _ */
-
-girderTest.addCoveredScripts([
-    '/clients/web/static/built/plugins/treeview/plugin.min.js'
-]);
-
-girderTest.importStylesheet('/static/built/plugins/treeview/plugin.min.css');
+girderTest.importPlugin('treeview');
 
 function asyncCall(func) {
     var called = false;

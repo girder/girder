@@ -57,11 +57,15 @@
   when: girder_daemonize
 
 - name: Install Girder Plugins
-  command: "{{ girder_install_executable|default('girder-install') }} plugin {{ item.args|default('') }} {{ item.path|default(item) }}"
+  pip:
+    name: "{{ item.path|default(item) }}"
+    extra_args: "-e"
+    chdir: "{{ girder_path }}"
+    executable: "{{ girder_pip | default(omit) }}"
   with_items: "{{ girder_plugins }}"
 
 - name: Build Girder (web)
-  command: "{{ girder_install_executable }} web {{ girder_web_extra_args }}"
+  command: "{{ girder_build_executable }} build {{ girder_web_extra_args }}"
   args:
     chdir: "{{ girder_path }}"
   # ensure that the install is one that uses web assets and

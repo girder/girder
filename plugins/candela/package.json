@@ -1,9 +1,0 @@
-{
-    "name": "candela-plugin",
-    "version": "0.1.0",
-    "dependencies": {
-        "@candela/treeheatmap": "~0.23.3",
-        "@candela/vega": "~0.23.3",
-        "vega-loader": "^3.0.0"
-    }
-}
