@@ -8,7 +8,6 @@ from girder_jobs.models.job import Job
 @pytest.mark.plugin('jobs')
 @pytest.mark.plugin('user_quota')
 def testQuotaEnforcedOutsideHierarchy(server, admin, user, fsAssetstore):
-
     # Set quota on the user
     resp = server.request('/user/%s/quota' % user['_id'], method='PUT', user=admin, params={
         'policy': json.dumps({

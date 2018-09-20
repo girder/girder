@@ -52,7 +52,7 @@ def scheduleLocal(event):
 def _onJobRemove(event):
     # Remove any existing artifacts attached to this job
     cursor = File().find({
-        'attachedToType': ['job', 'jobs'],
+        'attachedToType': 'job',
         'attachedToId': event.info['_id']
     })
 

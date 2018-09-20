@@ -276,7 +276,7 @@ class Job(AccessControlledModel):
 
         if user:
             job['userId'] = user['_id']
-            self.setUserAccess(job, user=user, level=AccessType.ADMIN)
+            job = self.setUserAccess(job, user=user, level=AccessType.ADMIN)
         else:
             job['userId'] = None
 
