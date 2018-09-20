@@ -79,25 +79,6 @@ class IncorrectUploadLengthError(RuntimeError):
         self.upload = upload
 
 
-class HttpError(requests.HTTPError):
-    """
-    Raised if the server returns an error status code from a request.
-    @deprecated This will be removed in a future release of Girder. Raisers of this
-    exception should instead raise requests.HTTPError manually or through another mechanism
-    such as requests.Response.raise_for_status.
-    """
-    def __init__(self, status, text, url, method, response=None):
-        super(HttpError, self).__init__('HTTP error %s: %s %s' % (status, method, url),
-                                        response=response)
-        self.status = status
-        self.responseText = text
-        self.url = url
-        self.method = method
-
-    def __str__(self):
-        return super(HttpError, self).__str__() + '\nResponse text: ' + self.responseText
-
-
 class IncompleteResponseError(requests.RequestException):
     def __init__(self, message, expected, received, response=None):
         super(IncompleteResponseError, self).__init__('%s (%d of %d bytes received)' % (
@@ -350,7 +331,7 @@ class GirderClient(object):
             try:
                 resp = self.sendRestRequest('get', 'user/authentication', auth=(username, password),
                                             headers={'Girder-Token': None})
-            except HttpError as e:
+            except requests.HTTPError as e:
                 if e.status in (401, 403):
                     raise AuthenticationError()
                 raise
@@ -492,16 +473,13 @@ class GirderClient(object):
             url, params=parameters, data=data, files=files, json=json, headers=_headers,
             **kwargs)
 
-        # If success, return the json object. Otherwise throw an exception.
-        if result.status_code in (200, 201):
+        result.raise_for_status()
+
+        if result.ok:
             if jsonResp:
                 return result.json()
             else:
                 return result
-        else:
-            raise HttpError(
-                status=result.status_code, url=result.url, method=method, text=result.text,
-                response=result)
 
     def get(self, path, parameters=None, jsonResp=True):
         """
