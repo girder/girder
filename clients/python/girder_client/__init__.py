@@ -33,6 +33,7 @@ import tempfile
 
 from contextlib import contextmanager
 from requests_toolbelt import MultipartEncoder
+from requests_toolbelt.sessions import BaseUrlSession
 
 __version__ = '2.4.0'
 __license__ = 'Apache 2.0'
@@ -127,7 +128,7 @@ class _ProgressMultiPartEncoder(MultipartEncoder):
         return _chunk
 
 
-class GirderClient(object):
+class GirderClient(BaseUrlSession):
     """
     A class for interacting with the Girder RESTful API.
     Some simple examples of how to use this class follow:
@@ -143,10 +144,8 @@ class GirderClient(object):
         client.uploadFileToItem(item['_id'], 'path/to/your/file.txt')
 
         r1 = client.getItem(item['_id'])
-        r2 = client.sendRestRequest('GET', 'item',
-            {'folderId': folder_id, 'sortdir': '-1' })
-        r3 = client.sendRestRequest('GET', 'resource/search',
-            {'q': 'aggregated','types': '["folder", "item"]'})
+        r2 = client.get('item', params={'folderId': folder_id, 'sortdir': '-1' })
+        r3 = client.get('resource/search', params={'q': 'aggregated','types': '["folder", "item"]'})
     """
 
     # The current maximum chunk size for uploading file chunks
@@ -249,39 +248,8 @@ class GirderClient(object):
             progressReporterCls = _NoopProgressReporter
 
         self.progressReporterCls = progressReporterCls
-        self._session = None
 
-    @contextmanager
-    def session(self, session=None):
-        """
-        Use a :class:`requests.Session` object for all outgoing requests from
-        :class:`GirderClient`. If `session` isn't passed into the context manager
-        then one will be created and yielded. Session objects are useful for enabling
-        persistent HTTP connections as well as partially applying arguments to many
-        requests, such as headers.
-
-        Note: `session` is closed when the context manager exits, regardless of who
-        created it.
-
-        .. code-block:: python
-
-            with gc.session() as session:
-                session.headers.update({'User-Agent': 'myapp 1.0'})
-
-                for itemId in itemIds:
-                    gc.downloadItem(itemId, fh)
-
-        In the above example, each request will be executed with the User-Agent header
-        while reusing the same TCP connection.
-
-        :param session: An existing :class:`requests.Session` object, or None.
-        """
-        self._session = session if session else requests.Session()
-
-        yield self._session
-
-        self._session.close()
-        self._session = None
+        super(GirderClient, self).__init__(base_url=self.urlBase)
 
     def authenticate(self, username=None, password=None, interactive=False, apiKey=None):
         """
@@ -315,7 +283,7 @@ class GirderClient(object):
         :type apiKey: str
         """
         if apiKey:
-            resp = self.post('api_key/token', parameters={
+            resp = self.post('api_key/token', params={
                 'key': apiKey
             })
             self.setToken(resp['authToken']['token'])
@@ -329,8 +297,8 @@ class GirderClient(object):
                 raise Exception('A user name and password are required')
 
             try:
-                resp = self.sendRestRequest('get', 'user/authentication', auth=(username, password),
-                                            headers={'Girder-Token': None})
+                resp = self.get('user/authentication', auth=(username, password),
+                                headers={'Girder-Token': None})
             except requests.HTTPError as e:
                 if e.status in (401, 403):
                     raise AuthenticationError()
@@ -345,7 +313,7 @@ class GirderClient(object):
 
         :param token: A string containing the existing Girder token
         """
-        self.token = token
+        self.headers.update({'Girder-Token': token})
 
     def getServerVersion(self, useCached=True):
         """
@@ -409,113 +377,6 @@ class GirderClient(object):
 
         return self._serverApiDescription
 
-    def _requestFunc(self, method):
-        if self._session is not None:
-            return getattr(self._session, method.lower())
-        else:
-            return getattr(requests, method.lower())
-
-    def sendRestRequest(self, method, path, parameters=None,
-                        data=None, files=None, json=None, headers=None, jsonResp=True,
-                        **kwargs):
-        """
-        This method looks up the appropriate method, constructs a request URL
-        from the base URL, path, and parameters, and then sends the request. If
-        the method is unknown or if the path is not found, an exception is
-        raised, otherwise a JSON object is returned with the Girder response.
-
-        This is a convenience method to use when making basic requests that do
-        not involve multipart file data that might need to be specially encoded
-        or handled differently.
-
-        :param method: The HTTP method to use in the request (GET, POST, etc.)
-        :type method: str
-        :param path: A string containing the path elements for this request.
-            Note that the path string should not begin or end with the path  separator, '/'.
-        :type path: str
-        :param parameters: A dictionary mapping strings to strings, to be used
-            as the key/value pairs in the request parameters.
-        :type parameters: dict
-        :param data: A dictionary, bytes or file-like object to send in the body.
-        :param files: A dictionary of 'name' => file-like-objects for multipart encoding upload.
-        :type files: dict
-        :param json: A JSON object to send in the request body.
-        :type json: dict
-        :param headers: If present, a dictionary of headers to encode in the request.
-        :type headers: dict
-        :param jsonResp: Whether the response should be parsed as JSON. If False, the raw
-            response object is returned. To get the raw binary content of the response,
-            use the ``content`` attribute of the return value, e.g.
-
-            .. code-block:: python
-
-                resp = client.get('my/endpoint', jsonResp=False)
-                print(resp.content)  # Raw binary content
-                print(resp.headers)  # Dict of headers
-
-        :type jsonResp: bool
-        """
-        if not parameters:
-            parameters = {}
-
-        # Look up the HTTP method we need
-        f = self._requestFunc(method)
-
-        # Construct the url
-        url = self.urlBase + path
-
-        # Make the request, passing parameters and authentication info
-        _headers = {'Girder-Token': self.token}
-        if isinstance(headers, dict):
-            _headers.update(headers)
-
-        result = f(
-            url, params=parameters, data=data, files=files, json=json, headers=_headers,
-            **kwargs)
-
-        result.raise_for_status()
-
-        if result.ok:
-            if jsonResp:
-                return result.json()
-            else:
-                return result
-
-    def get(self, path, parameters=None, jsonResp=True):
-        """
-        Convenience method to call :py:func:`sendRestRequest` with the 'GET' HTTP method.
-        """
-        return self.sendRestRequest('GET', path, parameters, jsonResp=jsonResp)
-
-    def post(self, path, parameters=None, files=None, data=None, json=None, headers=None,
-             jsonResp=True):
-        """
-        Convenience method to call :py:func:`sendRestRequest` with the 'POST' HTTP method.
-        """
-        return self.sendRestRequest('POST', path, parameters, files=files,
-                                    data=data, json=json, headers=headers, jsonResp=jsonResp)
-
-    def put(self, path, parameters=None, data=None, json=None, jsonResp=True):
-        """
-        Convenience method to call :py:func:`sendRestRequest` with the 'PUT'
-        HTTP method.
-        """
-        return self.sendRestRequest('PUT', path, parameters, data=data,
-                                    json=json, jsonResp=jsonResp)
-
-    def delete(self, path, parameters=None, jsonResp=True):
-        """
-        Convenience method to call :py:func:`sendRestRequest` with the 'DELETE' HTTP method.
-        """
-        return self.sendRestRequest('DELETE', path, parameters, jsonResp=jsonResp)
-
-    def patch(self, path, parameters=None, data=None, json=None, jsonResp=True):
-        """
-        Convenience method to call :py:func:`sendRestRequest` with the 'PATCH' HTTP method.
-        """
-        return self.sendRestRequest('PATCH', path, parameters, data=data,
-                                    json=json, jsonResp=jsonResp)
-
     def createResource(self, path, params):
         """
         Creates and returns a resource.
@@ -545,7 +406,7 @@ class GirderClient(object):
         :param test: Whether or not to return None, if the path does not
             exist, rather than throwing an exception.
         """
-        return self.get('resource/lookup', parameters={'path': path, 'test': test})
+        return self.get('resource/lookup', params={'path': path, 'test': test})
 
     def listResource(self, path, params=None, limit=None, offset=None):
         """
@@ -583,7 +444,7 @@ class GirderClient(object):
             params['created'] = str(created)
         if updated:
             params['updated'] = str(updated)
-        return self.put(url, parameters=params)
+        return self.put(url, params=params)
 
     def getFile(self, fileId):
         """
@@ -1018,7 +879,7 @@ class GirderClient(object):
                         data=_ProgressBytesIO(chunk, reporter=reporter))
                 else:
                     # Prior to version 2.2 the server only supported multipart uploads
-                    parameters = {
+                    params = {
                         'offset': offset,
                         'uploadId': uploadId
                     }
@@ -1028,7 +889,7 @@ class GirderClient(object):
                         fields={'chunk': ('chunk', chunk, 'application/octet-stream')},
                     )
 
-                    uploadObj = self.post('file/chunk', parameters=parameters,
+                    uploadObj = self.post('file/chunk', params=params,
                                           data=m, headers={'Content-Type': m.content_type})
 
                 if '_id' not in uploadObj:
@@ -1187,7 +1048,7 @@ class GirderClient(object):
         """
 
         path = 'file/%s/download' % fileId
-        return self.sendRestRequest('get', path, stream=True, jsonResp=False)
+        return self.get(path, stream=True)
 
     def downloadFile(self, fileId, path, created=None):
         """
@@ -1277,7 +1138,7 @@ class GirderClient(object):
         offset = 0
         first = True
         while True:
-            files = self.get('item/%s/files' % itemId, parameters={
+            files = self.get('item/%s/files' % itemId, params={
                 'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset
             })
@@ -1319,7 +1180,7 @@ class GirderClient(object):
         offset = 0
         folderId = self._checkResourcePath(folderId)
         while True:
-            folders = self.get('folder', parameters={
+            folders = self.get('folder', params={
                 'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset,
                 'parentType': 'folder',
@@ -1339,7 +1200,7 @@ class GirderClient(object):
         offset = 0
 
         while True:
-            items = self.get('item', parameters={
+            items = self.get('item', params={
                 'folderId': folderId,
                 'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset
@@ -1379,7 +1240,7 @@ class GirderClient(object):
             offset = 0
             resourceId = self._checkResourcePath(resourceId)
             while True:
-                folders = self.get('folder', parameters={
+                folders = self.get('folder', params={
                     'limit': DEFAULT_PAGE_LIMIT,
                     'offset': offset,
                     'parentType': resourceType,
@@ -1445,7 +1306,7 @@ class GirderClient(object):
         while True:
             self.setFolderAccess(ancestorFolderId, json.dumps(access), public)
 
-            folders = self.get('folder', parameters={
+            folders = self.get('folder', params={
                 'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset,
                 'parentType': 'folder',
