@@ -1,1 +1,1 @@
-add_standard_plugin_tests(NO_SERVER)
+add_standard_plugin_tests(PACKAGE "girder_treeview" NO_SERVER)

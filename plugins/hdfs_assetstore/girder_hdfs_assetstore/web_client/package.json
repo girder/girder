@@ -1,0 +1,18 @@
+{
+    "name": "@girder/hdfs_assetstore",
+    "version": "2.0.0-alpha.1",
+    "description": "Adds a new assetstore type to the system that proxies files for the Hadoop Distributed Filesystem (HDFS).",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#hdfs_assetstore",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "girderPlugin": {
+        "name": "hdfs_assetstore",
+        "main": "./main.js"
+    }
+}

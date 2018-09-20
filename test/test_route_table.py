@@ -18,12 +18,27 @@
 ###############################################################################
 
 import json
+
 import pytest
+from pytest_girder.assertions import assertStatusOk
+from pytest_girder.utils import getResponseBody
+
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingKey
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting
-from pytest_girder.assertions import assertStatusOk
-from pytest_girder.utils import getResponseBody
+from girder.plugin import GirderPlugin, registerPluginWebroot
+
+
+class SomeWebroot(object):
+    exposed = True
+
+    def GET(self):
+        return "some webroot"
+
+
+class HasWebroot(GirderPlugin):
+    def load(self, info):
+        registerPluginWebroot(SomeWebroot(), 'has_webroot')
 
 
 @pytest.mark.parametrize('value,err', [
@@ -65,7 +80,7 @@ def testRouteTableValidationSuccess(value):
     })
 
 
-@pytest.mark.testPlugin('has_webroot')
+@pytest.mark.plugin('has_webroot', HasWebroot)
 def testRouteTableBehavior(server, admin):
     Setting().set(SettingKey.ROUTE_TABLE, {
         GIRDER_ROUTE_ID: '/',

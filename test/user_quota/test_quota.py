@@ -2,11 +2,12 @@ import json
 import pytest
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
+from girder_jobs.models.job import Job
+
 
 @pytest.mark.plugin('jobs')
 @pytest.mark.plugin('user_quota')
 def testQuotaEnforcedOutsideHierarchy(server, admin, user, fsAssetstore):
-    from girder.plugins.jobs.models.job import Job
 
     # Set quota on the user
     resp = server.request('/user/%s/quota' % user['_id'], method='PUT', user=admin, params={

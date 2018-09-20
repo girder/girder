@@ -28,7 +28,7 @@ describe('Test the table UI.', function () {
                    $('.g-empty-parent-message:visible').length === 1;
         }, 'descending into Public folder');
 
-        girderTest.binaryUpload('clients/web/test/testFile.csv');
+        girderTest.binaryUpload('girder/web_client/test/testFile.csv');
 
         runs(function () {
             $('.g-item-list-link:first').click();
@@ -117,7 +117,7 @@ describe('Test the table UI.', function () {
                    $('.g-item-list-link').length === 1;
         }, 'descending into Public folder');
 
-        girderTest.binaryUpload('clients/web/test/testFile.tsv');
+        girderTest.binaryUpload('girder/web_client/test/testFile.tsv');
 
         runs(function () {
             $('.g-item-list-link').eq(1).click();
@@ -175,7 +175,7 @@ describe('Test the table UI.', function () {
                    $('.g-item-list-link').length === 2;
         }, 'descending into Public folder');
 
-        girderTest.binaryUpload('clients/web/test/testFileBad.csv');
+        girderTest.binaryUpload('girder/web_client/test/testFileBad.csv');
 
         runs(function () {
             $('.g-item-list-link').eq(2).click();

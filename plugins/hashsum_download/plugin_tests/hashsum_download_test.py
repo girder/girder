@@ -29,6 +29,8 @@ from girder.models.upload import Upload
 from girder.models.user import User
 from tests import base
 
+import girder_hashsum_download as hashsum_download
+
 
 def setUpModule():
     base.enabledPlugins.append('hashsum_download')
@@ -268,7 +270,6 @@ class HashsumDownloadTest(base.TestCase):
         six.assertRegex(self, resp.json['message'], '^Read access denied')
 
     def testAutoComputeHashes(self):
-        from girder.plugins import hashsum_download
         with self.assertRaises(ValidationException):
             Setting().set(hashsum_download.PluginSettings.AUTO_COMPUTE, 'bad')
 
@@ -300,7 +301,6 @@ class HashsumDownloadTest(base.TestCase):
         hashsum_download.SUPPORTED_ALGORITHMS = old
 
     def testManualComputeHashes(self):
-        from girder.plugins import hashsum_download
         Setting().set(hashsum_download.PluginSettings.AUTO_COMPUTE, False)
         old = hashsum_download.SUPPORTED_ALGORITHMS
         hashsum_download.SUPPORTED_ALGORITHMS = {'sha512', 'sha256'}

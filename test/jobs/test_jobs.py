@@ -18,16 +18,17 @@ import pytest
 from pytest_girder.assertions import assertStatus, assertStatusOk
 from girder.models.file import File
 
+from girder_jobs import constants
+from girder_jobs.models.job import Job
+
 
 @pytest.mark.plugin('jobs')
 def testConstantsIsDefined(server):
-    from girder.plugins.jobs import constants
     assert constants.JobStatus.isValid(constants.JobStatus.SUCCESS) is True
 
 
 @pytest.mark.plugin('jobs')
 def testJobArtifacts(server, admin, user, fsAssetstore):
-    from girder.plugins.jobs.models.job import Job
     job = Job().createJob('test', 'test', user=admin)
     url = '/job/%s/artifact' % job['_id']
     params = {

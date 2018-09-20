@@ -1,0 +1,28 @@
+{
+    "name": "@girder/candela",
+    "version": "0.2.0-alpha.1",
+    "description": "Render Candela visualizations in the item page for CSV files.",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#candela-visualization",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "dependencies": {
+        "@candela/treeheatmap": "~0.23.3",
+        "@candela/vega": "~0.23.3",
+        "vega-loader": "^3.0.0"
+    },
+    "peerDependencies": {
+        "@girder/item_tasks": "*"
+    },
+    "girderPlugin": {
+        "name": "candela",
+        "main": "./main.js",
+        "dependencies": ["item_tasks"],
+        "webpack": "webpack.helper"
+    }
+}

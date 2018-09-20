@@ -1,0 +1,22 @@
+{
+    "name": "@girder/treeview",
+    "version": "0.2.0-alpha.1",
+    "description": "Provides an alternative hierarchy widget using jstree",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#treeview",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "dependencies": {
+        "jstree": "^3.3.4"
+    },
+    "main": "./index.js",
+    "girderPlugin": {
+        "name": "treeview",
+        "main": "./main.js"
+    }
+}

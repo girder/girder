@@ -1,8 +1,38 @@
+# The following editable installs *must* be in topological order
+# to prevent pip from fetching versions from pypi.
 -e pytest_girder
+-e plugins/jobs
+-e plugins/item_tasks
+
+# The following are top level dependencies.
+-e plugins/audit_logs
+-e plugins/authorized_upload
+-e plugins/autojoin
+-e plugins/candela
+-e plugins/curation
+-e plugins/dicom_viewer
+-e plugins/download_statistics
+-e plugins/google_analytics
+-e plugins/gravatar
+-e plugins/hashsum_download
+-e plugins/homepage
+-e plugins/item_licenses
+-e plugins/ldap
+-e plugins/oauth
+-e plugins/metadata_history
+-e plugins/table_view
+-e plugins/terms
+-e plugins/thumbnails
+-e plugins/treeview
+-e plugins/user_quota
+-e plugins/virtual_folders
+
+# External dependencies
 coverage
 flake8
 flake8-blind-except
 flake8-docstrings>=1.3
+girder-worker==0.5.1.dev68
 httmock
 mock
 mongomock
@@ -13,3 +43,7 @@ pytest-xdist
 python-dateutil<2.7 # required for botocore=1.9.8
 tox
 virtualenv
+
+# We want to restrict hdfs_assetstore to python 2, but this
+# does not work.  https://github.com/pypa/pip/issues/4530
+# -e plugins/hdfs_assetstore ; python_version < '3.0'

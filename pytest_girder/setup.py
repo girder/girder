@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='pytest-girder',
-    version='0.0.1',
+    version='0.1.0a1',
     description='A set of pytest fixtures for testing Girder applications.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
@@ -12,7 +12,7 @@ setup(
     ],
     packages=find_packages(),
     install_requires=[
-        'girder',
+        'girder>=3.0.0a1',
         'mongomock',
         'pytest>=3.6',
         'pytest-cov<2.6',

@@ -1,3 +1,0 @@
-hachoir-core ; python_version < '3.0'
-hachoir-metadata ; python_version < '3.0'
-hachoir-parser ; python_version < '3.0'

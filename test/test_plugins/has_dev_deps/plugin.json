@@ -1,7 +1,0 @@
-{
-    "dependencies": ["does_nothing"],
-
-    "devDependencies": [
-        "test_plugin"
-    ]
-}

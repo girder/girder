@@ -25,7 +25,7 @@ from girder.models.setting import Setting
 from girder.models.user import User
 from tests import base
 
-from server.constants import PluginSettings
+from girder_item_licenses.constants import PluginSettings
 
 
 def setUpModule():
