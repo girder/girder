@@ -22,6 +22,7 @@ import pytest
 from girder.models.model_base import AccessControlledModel, Model, AccessType
 from girder.models.group import Group
 from girder.models.user import User
+from girder.utility import acl_mixin, model_importer
 
 
 @pytest.fixture
@@ -218,6 +219,8 @@ def FakeAcModel():
             self.exposeFields(level=AccessType.ADMIN, fields='admin')
             self.exposeFields(level=AccessType.SITE_ADMIN, fields='sa')
 
+            self.ensureTextIndex({'name': 1})
+
         def validate(self, doc):
             return doc
 
@@ -231,8 +234,28 @@ class FakeModel(Model):
         self.exposeFields(level=AccessType.READ, fields='read')
         self.exposeFields(level=AccessType.SITE_ADMIN, fields='sa')
 
+        self.ensureTextIndex({'name': 1})
+
     def validate(self, doc):
         return doc
+
+
+@pytest.fixture
+def FakeAcMixModel(FakeAcModel):
+    model_importer._modelInstances.setdefault('_core', {})['fake_ac'] = FakeAcModel()
+
+    class FakeAcMixModelClass(acl_mixin.AccessControlMixin, Model):
+        def initialize(self):
+            self.name = 'fake_acmix'
+
+            self.resourceColl = 'fake_ac'
+            self.resourceParent = 'parentId'
+
+            self.ensureTextIndex({'name': 1})
+
+        def validate(self, doc):
+            return doc
+    return FakeAcMixModelClass
 
 
 class TestModelFiltering(object):
@@ -333,3 +356,111 @@ class TestAccessControlCleanup(object):
         assert len(doc1['access']['users']) == 2
         assert len(doc1['access']['groups']) == 0
         assert doc1.get('creatorId') is not None
+
+
+def testTextSearch(db):
+    FakeModel().save({'name': 'first name'})
+    FakeModel().save({'name': 'second name'})
+    FakeModel().save({'name': 'second second'})
+    FakeModel().save({'name': 'fourth names'})
+    assert FakeModel().textSearch('names').count() == 3
+    assert FakeModel().textSearch('"names"').count() == 1
+    assert FakeModel().textSearch('second').count() == 2
+    assert FakeModel().textSearch('unknown').count() == 0
+
+
+def makeDocumentWithPermissions(
+        model, name, admin=None, adminLevel=None, user=None, userLevel=None,
+        group=None, groupLevel=None):
+    doc = {
+        'creatorId': (admin or user)['_id'],
+        'name': name,
+        'field1': 'value1',
+        'field2': 'value2'
+    }
+    if admin is not None and adminLevel is not None:
+        doc = model.setUserAccess(doc, admin, level=adminLevel)
+    if user is not None and userLevel is not None:
+        doc = model.setUserAccess(doc, user, level=userLevel)
+    if group is not None and groupLevel is not None:
+        doc = model.setGroupAccess(doc, group, level=groupLevel)
+    doc = model.save(doc)
+    return doc
+
+
+class TestFindWithPermissions(object):
+    def generalTest(self, _model, admin, user):
+        query, fields = _model._textSearchFilters('names')
+        # Test with permissions
+        assert _model.findWithPermissions(
+            query, fields=fields, user=admin).count() == 3
+        assert _model.findWithPermissions(
+            query, fields=fields, user=user).count() == 2
+        assert _model.findWithPermissions(
+            query, fields=fields, user=None).count() == 0
+        assert _model.findWithPermissions(
+            query, fields=fields, user=user, level=AccessType.WRITE).count() == 1
+        assert _model.findWithPermissions(
+            query, fields=fields, user=None, level=AccessType.WRITE).count() == 0
+        # Test with offset
+        assert len(list(_model.findWithPermissions(
+            query, fields=fields, user=admin))) == 3
+        assert len(list(_model.findWithPermissions(
+            query, fields=fields, user=admin, offset=1))) == 2
+        assert len(list(_model.findWithPermissions(
+            query, fields=fields, user=user))) == 2
+        assert len(list(_model.findWithPermissions(
+            query, fields=fields, user=user, offset=1))) == 1
+
+        # Ensure timeout is accepted
+        assert _model.findWithPermissions(
+            query, fields=fields, user=user, timeout=5).count() == 2
+        assert _model.findWithPermissions(
+            query, fields=fields, user=user, timeout=0).count() == 2
+
+        # Test with fields
+        for currentUser in (user, admin):
+            query, fields = _model._textSearchFilters('names')
+            assert 'name' in _model.findWithPermissions(
+                query, fields=fields, user=currentUser).next()
+            assert 'field1' in _model.findWithPermissions(
+                query, fields=fields, user=currentUser).next()
+            query, fields = _model._textSearchFilters('names', fields={'name': True})
+            assert 'name' in _model.findWithPermissions(
+                query, fields=fields, user=currentUser).next()
+            assert 'field1' not in _model.findWithPermissions(
+                query, fields=fields, user=currentUser).next()
+
+    def testFindWithPermissions(self, db, admin, user, group, FakeAcModel):
+        _model = FakeAcModel()
+        makeDocumentWithPermissions(
+            _model, 'first name', admin, AccessType.ADMIN,
+            user, AccessType.READ, group, AccessType.WRITE)
+        makeDocumentWithPermissions(
+            _model, 'second name', admin, AccessType.ADMIN)
+        makeDocumentWithPermissions(
+            _model, 'second second', admin, AccessType.ADMIN,
+            user, AccessType.READ)
+        makeDocumentWithPermissions(
+            _model, 'fourth names', admin, AccessType.ADMIN,
+            user, AccessType.WRITE, group, AccessType.WRITE)
+        self.generalTest(_model, admin, user)
+
+    def testFindWithPermissionsAcMix(self, db, admin, user, group, FakeAcModel, FakeAcMixModel):
+        _model = FakeAcMixModel()
+        d1 = makeDocumentWithPermissions(
+            FakeAcModel(), 'd1', admin, AccessType.ADMIN,
+            user, AccessType.READ, group, AccessType.WRITE)
+        d2 = makeDocumentWithPermissions(
+            FakeAcModel(), 'd2', admin, AccessType.ADMIN)
+        d3 = makeDocumentWithPermissions(
+            FakeAcModel(), 'd3', admin, AccessType.ADMIN,
+            user, AccessType.READ)
+        d4 = makeDocumentWithPermissions(
+            FakeAcModel(), 'd4', admin, AccessType.ADMIN,
+            user, AccessType.WRITE, group, AccessType.WRITE)
+        _model.save({'name': 'first name', 'parentId': d1['_id'], 'field1': 'value1'})
+        _model.save({'name': 'second name', 'parentId': d2['_id'], 'field1': 'value1'})
+        _model.save({'name': 'second second', 'parentId': d3['_id'], 'field1': 'value1'})
+        _model.save({'name': 'fourth names', 'parentId': d4['_id'], 'field1': 'value1'})
+        self.generalTest(_model, admin, user)

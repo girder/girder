@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import _ from 'underscore';
 
 import { parse,
     View as VegaView } from 'vega-lib';
@@ -29,13 +30,13 @@ var VegaWidget = View.extend({
             restRequest({
                 url: `item/${this.item.id}/download`
             })
-                .done(function (spec) {
+                .done(_.bind(function (spec) {
                     let runtime = parse(spec);
                     let view = new VegaView(runtime)
-                        .initialize(document.querySelector('.g-item-vega-vis'))
+                        .initialize($('.g-item-vega-vis')[0])
                         .renderer('svg');
                     view.run();
-                });
+                }, this));
         } else {
             $('.g-item-vega')
                 .remove();

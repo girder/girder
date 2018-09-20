@@ -73,7 +73,7 @@ class Group(Resource):
         else:
             groupList = self._model.list(
                 user=user, offset=offset, limit=limit, sort=sort)
-        return list(groupList)
+        return groupList
 
     @access.user
     @filtermodel(model=GroupModel)
@@ -133,7 +133,7 @@ class Group(Resource):
         .errorResponse('Read access was denied for the group.', 403)
     )
     def getGroupInvitations(self, group, limit, offset, sort):
-        return list(self._model.getInvites(group, limit, offset, sort))
+        return self._model.getInvites(group, limit, offset, sort)
 
     @access.user
     @filtermodel(model=GroupModel)
@@ -192,7 +192,7 @@ class Group(Resource):
         .errorResponse('Read access was denied for the group.', 403)
     )
     def listMembers(self, group, limit, offset, sort):
-        return list(self._model.listMembers(group, offset=offset, limit=limit, sort=sort))
+        return self._model.listMembers(group, offset=offset, limit=limit, sort=sort)
 
     @access.user
     @filtermodel(model=GroupModel, addFields={'access', 'requests'})

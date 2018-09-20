@@ -271,10 +271,10 @@ class QuotaPolicy(Resource):
                  type, either 'user' or 'collection'., and 'resource' is the
                  base resource document or the id of that document.
         """
-        if isinstance(resource, (six.string_types) + (ObjectId,)):
+        if isinstance(resource, six.string_types + (ObjectId,)):
             try:
                 resource = self.model(model).load(id=resource, force=True)
-            except Exception:
+            except ImportError:
                 return None, None
         if model == 'file':
             model = 'item'

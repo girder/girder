@@ -146,7 +146,7 @@ class User(Resource):
             'message': 'Login succeeded.'
         }
 
-    @access.user
+    @access.public
     @autoDescribeRoute(
         Description('Log out of the system.')
         .responseClass('Token')
