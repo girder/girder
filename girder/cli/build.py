@@ -21,6 +21,7 @@ import json
 import os
 from pkg_resources import resource_filename
 from subprocess import check_call
+import shutil
 import sys
 
 import click
@@ -35,30 +36,26 @@ _GIRDER_BUILD_ASSETS_PATH = resource_filename('girder', 'web_client')
 @click.option('--dev/--no-dev', default=False,
               help='Build girder client for development.')
 @click.option('--watch', default=False, is_flag=True,
-              help='Build girder library bundle in watch mode (implies --dev --no-reinstall).')
+              help='Build girder library bundle in watch mode (implies --dev).')
 @click.option('--watch-plugin',
-              help='Build a girder plugin bundle in watch mode (implies --dev --no-reinstall).')
-@click.option('--reinstall/--no-reinstall', default=True,
-              help='Force regenerate node_modules.')
-def main(dev, watch, watch_plugin, reinstall):
+              help='Build a girder plugin bundle in watch mode (implies --dev).')
+def main(dev, watch, watch_plugin):
     if watch and watch_plugin:
         raise click.UsageError('--watch and --watch-plugins cannot be used together')
     if watch or watch_plugin:
         dev = True
-        reinstall = False
 
     staging = _GIRDER_BUILD_ASSETS_PATH
     _generatePackageJSON(staging, os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'package.json.template'))
 
-    if not os.path.isdir(os.path.join(staging, 'node_modules')) or reinstall:
-        # The autogeneration of package.json breaks how package-lock.json is
-        # intended to work.  If we don't delete it first, you will frequently
-        # get "file doesn't exist" errors.
-        npmLockFile = os.path.join(staging, 'package-lock.json')
-        if os.path.exists(npmLockFile):
-            os.unlink(npmLockFile)
+    # The autogeneration of package.json breaks how package-lock.json is
+    # intended to work.  If we don't delete it first, you will frequently
+    # get "file doesn't exist" errors.
+    npmLockFile = os.path.join(staging, 'package-lock.json')
+    if os.path.exists(npmLockFile):
+        os.unlink(npmLockFile)
 
-        check_call(['npm', 'install'], cwd=staging)
+    check_call(['npm', 'install'], cwd=staging)
 
     quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
     buildCommand = [
@@ -74,7 +71,10 @@ def main(dev, watch, watch_plugin, reinstall):
         buildCommand.append('--env=dev')
     else:
         buildCommand.append('--env=prod')
-    check_call(buildCommand, cwd=staging)
+    try:
+        check_call(buildCommand, cwd=staging)
+    finally:
+        shutil.rmtree(os.path.join(staging, 'node_modules'), ignore_errors=True)
 
 
 def _collectPluginDependencies():
