@@ -103,11 +103,13 @@ def server(db, request):
         if hasPluginMarkers:
             for pluginMarker in request.node.iter_markers('plugin'):
                 pluginName = pluginMarker.args[0]
+                shouldEnable = pluginMarker.kwargs.pop('enabled', True)
                 if len(pluginMarker.args) > 1:
                     pluginRegistry.registerTestPlugin(
                         *pluginMarker.args, **pluginMarker.kwargs
                     )
-                enabledPlugins.append(pluginName)
+                if shouldEnable:
+                    enabledPlugins.append(pluginName)
 
         Setting().set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
 
