@@ -645,9 +645,7 @@ describe('Test the plugins page', function () {
     it('Disable a plugin', function () {
         runs(function () {
             $('.g-plugin-list-item:contains(Jobs) .g-plugin-switch').click();
-        });
-        runs(function () {
-            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(1);
+            expect($('.g-plugin-list-item input[type=checkbox]:checked').length).toBe(0);
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
