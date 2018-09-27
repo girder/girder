@@ -2,6 +2,7 @@ import json
 import pytest
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
+from girder.models.user import User
 from girder_jobs.models.job import Job
 
 
@@ -44,6 +45,8 @@ def testAttachedFilesCountTowardQuota(server, admin, user, fsAssetstore):
         })
     })
     assertStatusOk(resp)
+    user = User().load(user['_id'], force=True)
+    assert user['size'] == 0
 
     job = Job().createJob('test', 'test', user=user)
     url = '/job/%s/artifact' % job['_id']
@@ -56,6 +59,9 @@ def testAttachedFilesCountTowardQuota(server, admin, user, fsAssetstore):
     resp = server.request(
         url, method='POST', type='text/plain', body=b'0', user=user, params=params)
     assertStatusOk(resp)
+    fileId = resp.json['_id']
+    user = User().load(user['_id'], force=True)
+    assert user['size'] == 1
 
     # Second should fail since the first counts toward the quota
     resp = server.request(
@@ -65,3 +71,9 @@ def testAttachedFilesCountTowardQuota(server, admin, user, fsAssetstore):
                                     'only 0 B available - used 1 B out of 1 B)')
     assert resp.json['type'] == 'validation'
     assert resp.json['field'] == 'size'
+
+    # Deleting the artifact file should decrease the used space
+    resp = server.request('/file/%s' % fileId, method='DELETE', user=user)
+    assertStatusOk(resp)
+    user = User().load(user['_id'], force=True)
+    assert user['size'] == 0

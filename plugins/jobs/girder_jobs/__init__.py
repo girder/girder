@@ -52,7 +52,7 @@ def scheduleLocal(event):
 def _onJobRemove(event):
     # Remove any existing artifacts attached to this job
     cursor = File().find({
-        'attachedToType': 'job',
+        'attachedToType': ['job', 'jobs'],
         'attachedToId': event.info['_id']
     })
 
@@ -62,9 +62,9 @@ def _onJobRemove(event):
 
 def _onFileRemove(event):
     file = event.info
-    if file.get('attachedToType') == ['job', 'jobs'] and file.get('userId') is not None:
+    if file.get('attachedToType') == ['job', 'jobs'] and file.get('creatorId') is not None:
         User().increment(query={
-            '_id': file['userId']
+            '_id': file['creatorId']
         }, field='size', amount=-file['size'], multi=False)
 
 

@@ -246,7 +246,7 @@ class Job(Resource):
 
         body = RequestBodyStream(cherrypy.request.body)
         file = Upload().uploadFromFile(
-            body, size=size, name=name, parentType='job', parent=job, user=user,
+            body, size=size, name=name, parentType=['job', 'jobs'], parent=job, user=user,
             mimeType=mimeType, attachParent=True)
 
         if user:  # These artifacts count towards the user's storage total
@@ -264,6 +264,6 @@ class Job(Resource):
         .pagingParams(defaultSort='name'))
     def listArtifacts(self, job, limit, offset, sort):
         return File().find({
-            'attachedToType': 'job',
+            'attachedToType': ['job', 'jobs'],
             'attachedToId': job['_id']
         }, limit=limit, offset=offset, sort=sort)
