@@ -45,6 +45,10 @@ setup(
     entry_points={
         'girder.plugin': [
             'audit_logs = girder_audit_logs:AuditLogsPlugin'
+        ],
+        'girder.cli_plugins': [
+            'audit_logs_cleanup = girder_audit_logs.cleanup:cleanup',
+            'audit_logs_report = girder_audit_logs.report:report'
         ]
     }
 )
