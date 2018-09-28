@@ -106,20 +106,7 @@ full document in the handler.
 Geospatial
 ----------
 
-The geospatial plugin enables the storage and querying of `GeoJSON <http://geojson.org>`__
-formatted geospatial data. It uses the underlying MongoDB support of geospatial
-indexes and query operators to create an API for the querying of items that
-either intersect a GeoJSON point, line, or polygon; are in proximity to a
-GeoJSON point; or are entirely within a GeoJSON polygon or circular region. In
-addition, new items may be created from GeoJSON features or feature collections.
-GeoJSON properties of the features are added to the created items as metadata.
-
-The plugin requires the `geojson <https://pypi.python.org/pypi/geojson/>`__
-Python package, which may be installed using **pip**: ::
-
-    pip install -e .[geospatial]
-
-Once the package is installed, the plugin may be enabled via the admin console.
+TODO: Add migration notice
 
 
 Google Analytics
@@ -220,41 +207,7 @@ plugin configuration page. Each server in the list has several properties:
 Metadata Extractor
 ------------------
 
-The metadata extractor plugin enables the extraction of metadata from uploaded
-files such as archives, images, and videos. It may be used as either a
-server-side plugin that extracts metadata on the server when a file is added
-to a filesystem asset store local to the server or as a remote client that
-extracts metadata from a file on a filesystem local to the client that is then
-sent to the server using the Girder Python client.
-
-The server-side plugin requires several `Hachoir <https://bitbucket.org/haypo/hachoir/wiki/Home>`_
-Python packages to parse files and extract metadata from them. These packages
-may be installed using **pip** as follows: ::
-
-    pip install -e .[metadata_extractor]
-
-Once the packages are installed, the plugin may be enabled via the admin
-console on the server.
-
-In this example, we use the girder :doc:`python client <python-client>` to
-interact with the plugin's python API.
-Assuming ``girder_client.py`` and ``metadata_extractor.py`` are located in
-the module path, the following code fragment will extract metadata from a file
-located at ``path`` on the remote filesystem that has been uploaded to
-``itemId`` on the server: ::
-
-    from girder_client import GirderClient
-    from metadata_extractor import ClientMetadataExtractor
-
-    client = GirderClient(host='localhost', port=8080)
-    client.authenticate(login, password)
-
-    extractor = ClientMetadataExtractor(client, path, itemId)
-    extractor.extractMetadata()
-
-The user authenticating with ``login`` and ``password`` must have ``WRITE``
-access to the file located at ``itemId`` on the server.
-
+TODO: Add migration notice
 
 OAuth Login
 -----------
@@ -672,8 +625,6 @@ To use it, simply upload a CSV or TSV file as an item, navigate to it, and expan
 
 Vega Visualization
 ------------------
-The Vega plugin uses the `Vega library <http://trifacta.github.io/vega>`_ to render Vega-formatted
-JSON objects directly in the Girder application. To use it, simply upload the JSON file as an item,
-and then set a "vega: true" metadata field on the item. The visualization will then be rendered
-directly in the item view.
+
+TODO: Add migration notice
 

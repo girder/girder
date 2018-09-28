@@ -1,0 +1,40 @@
+.g-body-title Plugins
+  .g-restart-container(class=cherrypyServer ? '' : 'hide')
+    button.g-restart.btn.btn-primary(title="Restart the server",
+        disabled=!cherrypyServer)
+      i.icon-arrows-cw
+      | Restart
+    .g-clear
+.g-plugin-restart-text
+  | The selected plugins have changed.
+  br
+  | You must restart the server for the changes to take effect.
+.g-plugin-list-container
+  each plugin in allPlugins
+    - var experimental = plugin.value.version ? plugin.value.version.indexOf('0.') === 0 : true
+    - var failed = plugin.value.failed
+    .g-plugin-list-item(class=failed ? 'g-plugin-list-item-failed' : undefined)
+      input.g-plugin-switch(type="checkbox", key=plugin.key,
+          checked=(plugin.value.enabled ? "checked" : undefined),
+          experimental=(experimental ? "true" : undefined),
+          data-on-color=(experimental ? "warning" : "primary"))
+      .g-plugin-name
+        if plugin.value.url
+          a(href=plugin.value.url, target='_blank')= plugin.value.name
+        else
+          span= plugin.value.name
+        if plugin.value.version
+          span.g-plugin-version Version #{plugin.value.version}
+        if experimental
+          span.g-plugin-list-item-notice.g-plugin-list-item-experimental-notice(
+            title="WARNING: this plugin is an alpha version and is subject " +
+                  "to breaking changes; use at your own risk.") Experimental
+        if failed
+          span.g-plugin-list-item-notice.g-plugin-list-item-failed-notice(
+              title='Click to see traceback',
+              data-title='Failed to load entrypoint "' + plugin.value.name + '"',
+              data-content=failed.traceback) Error
+        if plugin.value.configRoute
+          a.g-plugin-config-link(g-route=plugin.value.configRoute, title="Configure Plugin")
+            i.icon-cog
+      .g-plugin-description= plugin.value.description

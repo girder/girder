@@ -17,9 +17,10 @@
 #  limitations under the License.
 ###############################################################################
 
-from server.constants import PluginSettings
 from tests import base
 from girder.models.setting import Setting
+
+from girder_google_analytics.constants import PluginSettings
 
 
 def setUpModule():

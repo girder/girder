@@ -1,0 +1,29 @@
+{
+    "name": "@girder/item_tasks",
+    "version": "0.2.0-alpha.1",
+    "description": "Allows items in Girder to be used as specifications for tasks to be run on the worker.",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#item_tasks",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "dependencies": {
+        "bootstrap-colorpicker": "^2.5.2",
+        "bootstrap-slider": "^10.0.0",
+        "tinycolor2": "^1.4.1"
+    },
+    "peerDependencies": {
+        "@girder/jobs": "*",
+        "@girder/worker": "*"
+    },
+    "main": "./index.js",
+    "girderPlugin": {
+        "name": "item_tasks",
+        "main": "./main.js",
+        "dependencies": ["worker", "jobs"]
+    }
+}

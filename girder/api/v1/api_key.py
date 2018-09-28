@@ -128,11 +128,10 @@ class ApiKey(Resource):
 
         user, token = ApiKeyModel().createToken(key, days=duration)
 
-        self.sendAuthTokenCookie(token=token, days=duration)
-
         # Return the same structure as a normal user login, except do not
         # include the full user document since the key may not authorize
-        # reading user information.
+        # reading user information. We also intentionally do not set the cookie
+        # as we would during a normal login, in case someone is using this via swagger.
         return {
             'user': {
                 '_id': user['_id']

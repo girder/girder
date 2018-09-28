@@ -1,0 +1,17 @@
+{
+    "name": "@girder/metadata_history",
+    "version": "0.2.0-alpha.1",
+    "description": "Tracks metadata history of items in Girder",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "girderPlugin": {
+        "name": "metadata_history",
+        "main": "./main.js"
+    }
+}

@@ -25,6 +25,7 @@ import json
 import six
 import os
 import logging
+import traceback
 
 from girder.api import access
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
@@ -34,7 +35,8 @@ from girder.models.group import Group
 from girder.models.setting import Setting
 from girder.models.upload import Upload
 from girder.models.user import User
-from girder.utility import config, install, plugin_utilities, system
+from girder import plugin
+from girder.utility import config, system
 from girder.utility.progress import ProgressContext
 from ..describe import API_VERSION, Description, autoDescribeRoute
 from ..rest import Resource
@@ -66,7 +68,6 @@ class System(Resource):
         self.route('GET', ('log',), self.getLog)
         self.route('GET', ('log', 'level'), self.getLogLevel)
         self.route('PUT', ('log', 'level'), self.setLogLevel)
-        self.route('POST', ('web_build',), self.buildWebCode)
         self.route('GET', ('setting', 'collection_creation_policy', 'access'),
                    self.getCollectionCreationPolicyAccess)
 
@@ -156,29 +157,44 @@ class System(Resource):
         .errorResponse('You are not a system administrator.', 403)
     )
     def getPlugins(self):
+        def _pluginNameToResponse(name):
+            p = plugin.getPlugin(name)
+            return {
+                'name': p.displayName,
+                'description': p.description,
+                'url': p.url,
+                'version': p.version
+            }
+
         plugins = {
-            'all': plugin_utilities.findAllPlugins(),
-            'enabled': Setting().get(SettingKey.PLUGINS_ENABLED)
+            'all': {name: _pluginNameToResponse(name) for name in plugin.allPlugins()},
+            'enabled': Setting().get(SettingKey.PLUGINS_ENABLED),
+            'loaded': plugin.loadedPlugins()
         }
-        failureInfo = plugin_utilities.getPluginFailureInfo()
+        failureInfo = {
+            plugin: ''.join(traceback.format_exception(*exc_info))
+            for plugin, exc_info in six.iteritems(plugin.getPluginFailureInfo())
+        }
+
         if failureInfo:
             plugins['failed'] = failureInfo
         return plugins
 
+    # TODO: port #2776
     @access.public
     @autoDescribeRoute(
         Description('Get the version information for this server.')
-        .param('fromGit', 'If true, use git to get the version of the server '
-               'and any plugins that are git repositories.  This supplements '
-               'the usual version information.',
-               required=False, dataType='boolean')
+        # .param('fromGit', 'If true, use git to get the version of the server '
+        #        'and any plugins that are git repositories.  This supplements '
+        #        'the usual version information.',
+        #        required=False, dataType='boolean')
     )
-    def getVersion(self, fromGit=False):
+    def getVersion(self):  # , fromGit=False):
         version = dict(**VERSION)
         version['apiVersion'] = API_VERSION
         version['serverStartDate'] = ModuleStartTime
-        if fromGit:
-            version['gitVersions'] = install._getGitVersions()
+        # if fromGit:
+        #     version['gitVersions'] = install._getGitVersions()
         return version
 
     @access.admin
@@ -481,20 +497,6 @@ class System(Resource):
             for handler in logger.handlers:
                 handler.setLevel(level)
         return logging.getLevelName(level)
-
-    @access.admin
-    @autoDescribeRoute(
-        Description('Rebuild web client code.')
-        .param('progress', 'Whether to record progress on this task.', required=False,
-               dataType='boolean', default=False)
-        .param('dev', 'Whether to build for development mode.', required=False,
-               dataType='boolean', default=False)
-    )
-    def buildWebCode(self, progress, dev):
-        user = self.getCurrentUser()
-
-        with ProgressContext(progress, user=user, title='Building web client code') as progress:
-            install.runWebBuild(dev=dev, progress=progress)
 
     @access.admin
     @autoDescribeRoute(

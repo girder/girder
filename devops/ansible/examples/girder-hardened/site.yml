@@ -5,7 +5,6 @@
     girder_update: no
     girder_force: no
     girder_always_build_assets: yes
-    girder_web_extra_args: "--all-plugins"
     girder_hardened: yes
     nginx_vhosts:
       - listen: "8080 default_server"

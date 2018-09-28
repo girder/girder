@@ -19,10 +19,11 @@
 
 import hashlib
 
-from server import PluginSettings
 from tests import base
 from girder.models.setting import Setting
 from girder.models.user import User
+
+from girder_gravatar import PluginSettings
 
 
 def setUpModule():

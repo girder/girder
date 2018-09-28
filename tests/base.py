@@ -23,7 +23,6 @@ import cherrypy
 import io
 import json
 import logging
-import mock
 import os
 import shutil
 import signal
@@ -35,7 +34,7 @@ import warnings
 
 from six import BytesIO
 from six.moves import urllib
-from girder.utility import model_importer, plugin_utilities
+from girder.utility import model_importer
 from girder.utility._cache import cache, requestCache
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
@@ -165,25 +164,6 @@ def dropFsAssetstore(path):
         shutil.rmtree(path)
 
 
-def mockPluginDir(path):
-    """
-    Modify the location that the server will search when loading plugins. Call this prior to
-    calling startServer. Returns the original un-mocked function.
-
-    :param path: The directory in which to search for plugins.
-    """
-    oldFn = plugin_utilities.getPluginDir
-    plugin_utilities.getPluginDir = mock.Mock(return_value=path)
-    return oldFn
-
-
-def unmockPluginDir(oldFn):
-    """
-    Restore the getPluginDir function to its original un-mocked version.
-    """
-    plugin_utilities.getPluginDir = oldFn
-
-
 class TestCase(unittest.TestCase, model_importer.ModelImporter):
     """
     Test case base class for the application. Adds helpful utilities for
@@ -255,12 +235,6 @@ class TestCase(unittest.TestCase, model_importer.ModelImporter):
         # Invalidate cache regions which persist across tests
         cache.invalidate()
         requestCache.invalidate()
-
-    def mockPluginDir(self, path):
-        self._oldPluginDirFn = mockPluginDir(path)
-
-    def unmockPluginDir(self):
-        unmockPluginDir(self._oldPluginDirFn)
 
     def assertStatusOk(self, response):
         """

@@ -17,9 +17,23 @@
 #  limitations under the License.
 ###############################################################################
 
+import os
+
 import pytest
 from pytest_girder.assertions import assertStatusOk
 from pytest_girder.utils import getResponseBody
+
+from girder.plugin import GirderPlugin
+
+
+class CustomAPIDocs(GirderPlugin):
+    def load(self, info):
+        info['apiRoot'].updateHtmlVars({
+            'baseTemplateFilename': info['apiRoot'].templateFilename
+        })
+
+        templatePath = os.path.join(os.path.dirname(__file__), 'data', 'custom_api_docs.mako')
+        info['apiRoot'].setTemplatePath(templatePath)
 
 
 def testApiDocsContent(server):
@@ -35,7 +49,7 @@ def testApiDocsContent(server):
     assert 'id="swagger-ui-container"' in body
 
 
-@pytest.mark.testPlugin('custom_api_docs_test')
+@pytest.mark.plugin('custom_api_docs', CustomAPIDocs)
 def testApiDocsCustomContent(server):
     """
     Test content of API documentation page that's customized by a plugin.

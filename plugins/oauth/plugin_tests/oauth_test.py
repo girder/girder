@@ -33,6 +33,10 @@ from girder.models.token import Token
 from girder.models.user import User
 from tests import base
 
+from girder_oauth.constants import PluginSettings
+from girder_oauth.providers.base import ProviderBase
+from girder_oauth.providers.google import Google
+
 
 def setUpModule():
     base.enabledPlugins.append('oauth')
@@ -47,10 +51,6 @@ class OauthTest(base.TestCase):
 
     def setUp(self):
         base.TestCase.setUp(self)
-
-        # girder.plugins is not available until setUp is running
-        global PluginSettings
-        from girder.plugins.oauth.constants import PluginSettings
 
         self.adminUser = User().createUser(
             email='rocky@phila.pa.us',
@@ -69,8 +69,6 @@ class OauthTest(base.TestCase):
         """
         Unit tests the _deriveLogin method of the provider classes.
         """
-        from girder.plugins.oauth.providers.base import ProviderBase
-
         login = ProviderBase._deriveLogin('1234@mail.com', 'John', 'Doe')
         self.assertEqual(login, 'johndoe')
 
@@ -425,7 +423,6 @@ class OauthTest(base.TestCase):
         }
 
         # Test inclusion of custom scope
-        from girder.plugins.oauth.providers.google import Google
         Google.addScopes(['custom_scope', 'foo'])
 
         @httmock.urlmatch(scheme='https', netloc='^accounts.google.com$',
