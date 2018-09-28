@@ -6,7 +6,7 @@ This script is for deleting old audit log entries from the database. Example inv
 
 import click
 import datetime
-from girder.plugins.audit_logs import Record
+from girder_audit_logs import Record
 
 
 @click.command()

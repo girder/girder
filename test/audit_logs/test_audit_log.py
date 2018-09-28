@@ -1,7 +1,5 @@
 import datetime
-import imp
 import pytest
-import os
 import six
 from click.testing import CliRunner
 from girder import auditLogger
@@ -9,22 +7,11 @@ from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.upload import Upload
 from girder.models.user import User
-from girder.utility.plugin_utilities import getPluginDir
-CLEANUP_PATH = os.path.join(getPluginDir(), 'audit_logs', 'scripts')
-from girder_audit_logs import Record
-
+from girder_audit_logs import Record, cleanup
 
 @pytest.fixture
 def recordModel():
     yield Record()
-
-
-@pytest.fixture
-def cleanupCli():
-    # TODO pip installable plugins can make this weirdness go away
-    fp, pathname, description = imp.find_module('cleanup', [CLEANUP_PATH])
-    module = imp.load_module('girder.plugins.audit_logs.cleanup', fp, pathname, description)
-    yield module.cleanup
 
 
 @pytest.fixture
@@ -123,7 +110,6 @@ def testDocumentCreationLogging(server, recordModel, freshLog):
     assert records[0]['details']['id'] == user['_id']
     assert records[1]['details']['collection'] == 'folder'
     assert records[2]['details']['collection'] == 'folder'
-<<<<<<< HEAD
 
 
 @pytest.mark.plugin('audit_logs')
@@ -133,11 +119,11 @@ def testDocumentCreationLogging(server, recordModel, freshLog):
     (['--days=0', '--types=rest.request'], 1),
     (['--days=0', '--types=document.create'], 3)
 ])
-def testCleanupScript(server, freshLog, recordModel, cleanupCli, args, expected):
+def testCleanupScript(server, freshLog, recordModel, args, expected):
     user = User().createUser('admin', 'password', 'first', 'last', 'a@a.com')
     server.request('/user/me', user=user)
 
-    result = CliRunner().invoke(cleanupCli, args)
+    result = CliRunner().invoke(cleanup.cleanup, args)
     assert result.exit_code == 0
     assert result.output == 'Deleted %d log entries.\n' % expected
 
@@ -149,5 +135,3 @@ def testDisableLoggingOnNotificationEndpoints(server, freshLog, recordModel, use
     server.request('/notification', user=user)
     server.request('/notification/stream', params={'timeout': 0}, user=user, isJson=False)
     assert recordModel.find().count() == 1
-=======
->>>>>>> origin/master
