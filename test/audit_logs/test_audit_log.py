@@ -120,6 +120,7 @@ def testDocumentCreationLogging(server, recordModel, freshLog):
     (['--days=0', '--types=document.create'], 3)
 ])
 def testCleanupScript(server, freshLog, recordModel, args, expected):
+    recordModel.collection.remove({})  # Clear existing records
     user = User().createUser('admin', 'password', 'first', 'last', 'a@a.com')
     server.request('/user/me', user=user)
 
