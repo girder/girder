@@ -30,7 +30,7 @@
     state: present
 
 - name: Build Girder (web)
-  command: "{{ girder_virtualenv }}/bin/girder-install web"
+  command: "{{ girder_virtualenv }}/bin/girder build"
   args:
     chdir: "{{ girder_path }}"
 

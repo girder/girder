@@ -12,10 +12,161 @@ Existing installations may be upgraded by running ``pip install --upgrade --upgr
 re-running ``girder-install web``. You may need to remove ``node_modules`` directory
 from the installed girder package if you encounter problems while re-running
 ``girder-install web``. Note that the prerequisites may have changed in the latest
-version: make sure to review :doc:`prerequisites` prior to the upgrade.
+version: make sure to review the :doc:`dependencies guide <dependencies>` prior to the upgrade.
+
+2.x |ra| 3.x
+------------
+
+Girder 3.0 changed how plugins are installed and loaded into the runtime
+environment.  These changes require that **all** plugins exist as a standalone
+python package.  Automatic loading of plugins from Girder's ``plugins``
+directory is no longer supported.  This also applies to plugins that have no
+server (python) component.
+
+General plugin migration steps
+++++++++++++++++++++++++++++++
+
+The following is a list of changes that are necessary for a typical Girder
+plugin:
+
+* Create a ``setup.py`` in the root directory of your plugin.  A minimal example
+  is as follows:
+
+  .. code-block:: python
+
+    from setuptools import setup
+    setup(
+        name='example-plugin',            # The name registered on PyPI
+        version='1.0.0',
+        description='An example plugin.'  # This text will be displayed on the plugin page
+        packages=['example_plugin'],
+        install_requires=['girder'],      # Add any plugin dependencies here
+        entry_points={
+          'girder.plugin': [              # Register the plugin with girder.  The next line registers
+                                          # our plugin under the name "example".  The name here must be
+                                          # unique for all installed plugins.  The right side points to
+                                          # a subclass of GirderPlugin inside your plugin.
+              'example = example_plugin:ExamplePlugin'
+          ]
+        }
+    )
+
+* Move your plugin's python source code from the ``server`` directory to the package name defined
+  in your ``setup.py``.
+* Create a ``package.json`` file inside your ``web_client`` directory defining an npm package.  A minimal
+  example is as follows:
+
+  .. code-block:: javascript
+
+    {
+        "name": "@girder/my-plugin",
+        "version": "1.0.0",
+        "peerDepencencies": {
+            "@girder/other_plugin": "*"       // Peer dependencies should be as relaxed as possible
+                                              // Plugin dependencies should also be listed by entrypoint
+                                              // name in "girderPlugin" as shown below.
+        },
+        "dependencies": {},                   // Any other dependencies of the client code
+        "girderPlugin": {
+            "name": "example",                // The entrypoint name defined in setup.py.
+            "main": "./main.js"               // The plugin client entrypoint containing code that is executed on load.
+            "webpack": "webpack.helper",      // If your plugin needs to modify the webpack config
+            "dependencies": ["other_plugin"]  // If you plugin web_client requires another plugin
+        }
+    }
+
+* Create a subclass of :py:class:`girder.plugin.GirderPlugin` in your plugin package.  This class
+  can be anywhere in your package, but a sensible place to put it is in the top-level ``__init__.py``.
+  There are hooks for custom behavior in this class, but at a minimum you should move the old
+  load method into this class and point to an npm package name containing your web client code.
+
+  .. code-block:: python
+
+    from girder.plugin import getPlugin, GirderPlugin
+
+    class ExamplePlugin(GirderPlugin):
+        DISPLAY_NAME = 'My Plugin'              # a user-facing plugin name, the plugin is still
+                                                # referenced internally by the entrypoint name.
+        CLIENT_SOURCE_PATH = 'web_client'       # path to the web client relative to the python package
+
+        def load(self, info):
+            getPlugin('mydependency').load(info)  # load plugins you depend on
+
+            # run the code that was in the original load method
+
+.. warning:: The plugin name was removed from the info object.  Where previously used, plugins should
+             replace references to ``info['name']`` with a hard-coded string.
+
+* Migrate all imports in python and javascript source files.  The old plugin module paths are no longer
+  valid.  Any reference to ``girder.plugins`` in python or ``girder.plugin`` in javascript should be changed
+  to the actual installed module names.
+
+
+Other backwards incompatible changes affecting plugins
+++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+* Automatic detection of mail templates has been removed.  Instead, plugins should register
+  them in their ``load`` method with :py:func:`girder.utility.mail_utils.addTemplateDirectory`.
+* The ``mockPluginDir`` methods have been removed from the testing infrastructure.  If plugins
+  need to generate a one-off plugin for testing, they can generate a subclass of
+  :py:class:`girder.plugin.GirderPlugin` in the test file and register it in a test context
+  with the ``test_plugin`` mark.  For example,
+
+  .. code-block:: python
+
+    class FailingPlugin(GirderPlugin):
+        def load(self, info):
+            raise Exception('This plugin fails on load')
+
+    @pytest.mark.plugin('failing_plugin', FailingPlugin)
+    def test_with_failing_plugin(server):
+        # the test plugin will be installed in this context
+* When running the server in testing mode (``girder serve --testing``), the source directory
+  is no longer served.  If you need any assets for testing, they have to be installed into
+  the static directory during the client build process.
+* Automatic registration of plugin models is no longer provided.  If your plugin contains any
+  custom models that must be resolved dynamically (with ``ModelImporter.model(name, plugin=plugin)``)
+  then you must register the model in your load method.  In the jobs plugin for example, we
+  register the ``job`` model as follows:
+
+  .. code-block:: python
+
+    from girder.utility.model_importer import ModelImporter
+    from .models.job import Job
+
+    class JobsPlugin(GirderPlugin):
+        def load(self, info):
+            ModelImporter.registerModel('job', Job(), 'jobs')
+
+
+Client build changes
+++++++++++++++++++++
+
+The ``girder_install`` command has been removed.  This command was primarily
+used to install plugins and run the client build.  Plugins should now be
+installed (and uninstalled) using ``pip`` directly.  For the client build,
+there is a new command, ``girder build``.  Without any arguments this command
+will execute a production build of all installed plugins.  Executing ``girder
+build --dev`` will build a *development* install of Girder's static assets as
+well as building targets only necessary when running testing.
+
+The new build process works by generating a ``package.json`` file in ``girder/web_client``
+from the template (``girder/web_client/package.json.template``).  The generated
+``package.json`` includes all plugin web client dependencies as well as a list of
+npm packages containing web client extensions.  The build process is executed in
+place (in the Girder python package) in both development and production installs.
+The built assets are installed into a virtual environment specific static path
+``{sys.prefix}/share/girder``.
 
 1.x |ra| 2.x
 ------------
+
+Existing installations may be upgraded to the latest 2.x release by running
+``pip install -U girder<3`` and re-running ``girder-install web``. You may need
+to remove ``node_modules`` directory from the installed girder package if you
+encounter problems while re-running ``girder-install web``. Note that the
+prerequisites may have changed in the latest version: make sure to review
+:doc:`dependencies` prior to the upgrade.
 
 Server changes
 ++++++++++++++

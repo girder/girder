@@ -1,6 +1,0 @@
-{
-"name": "Bad plugin.json",
-"description": "Plugin with invalid plugin.json file",
-"version": "0.1.0"
-make_this_bad_json
-}

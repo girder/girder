@@ -65,7 +65,6 @@ function(add_web_client_test case specFile)
   # PLUGIN (name of plugin) : this plugin and all dependencies are loaded
   # (unless overridden with ENABLEDPLUGINS) and the test name includes the
   # plugin name
-  # PLUGIN_DIR Alternate directory in which to look for plugins.
   # ASSETSTORE (assetstore type) : use the specified assetstore type when
   #     running the test.  Defaults to 'filesystem'
   # WEBSECURITY (boolean) : if false, don't use CORS validation.  Defaults to
@@ -106,9 +105,11 @@ function(add_web_client_test case specFile)
   endif()
 
   if(fn_PLUGIN_DIR)
-    set(pluginDir ${fn_PLUGIN_DIR})
-  else()
-    set(pluginDir "")
+    message(
+      SEND_ERROR
+      "PLUGIN_DIR argument no longer supported.  Tests requiring \"test plugins\" must
+      be converted to pytest-style tests and use the plugin mark."
+    )
   endif()
 
   if(fn_ASSETSTORE)
@@ -174,7 +175,6 @@ function(add_web_client_test case specFile)
     "ASSETSTORE_TYPE=${assetstoreType}"
     "WEB_SECURITY=${webSecurity}"
     "ENABLED_PLUGINS=${plugins}"
-    "PLUGIN_DIR=${pluginDir}"
     "GIRDER_TEST_DB=mongodb://localhost:27017/girder_test_${testname}"
     "GIRDER_TEST_ASSETSTORE=${testname}"
     "GIRDER_PORT=${web_client_port}"

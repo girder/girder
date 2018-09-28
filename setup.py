@@ -19,40 +19,10 @@
 
 import os
 import re
-import shutil
 import itertools
+import sys
 
 from setuptools import setup, find_packages
-from setuptools.command.install import install
-from distutils.dir_util import copy_tree
-
-
-class InstallWithOptions(install):
-    def mergeDir(self, path, dest):
-        """
-        We don't want to delete the old dir, since it might contain third
-        party plugin content from previous installations; we simply want to
-        merge the existing directory with the new one.
-        """
-        copy_tree(path, os.path.join(dest, path), preserve_symlinks=True)
-
-    def run(self, *arg, **kw):
-        """
-        We override the default install command in order to copy our required
-        package data underneath the package directory; in the egg, it is
-        adjacent to the package dir.
-        """
-        install.run(self, *arg, **kw)
-
-        dest = os.path.join(self.install_lib, 'girder')
-        shutil.copy('Gruntfile.js', dest)
-        shutil.copy('package.json', dest)
-        self.mergeDir(os.path.join('clients', 'web', 'src'), dest)
-        self.mergeDir(os.path.join('clients', 'web', 'static'), dest)
-        shutil.copy(os.path.join('clients', 'web', 'src', 'assets', 'fontello.config.json'),
-                    os.path.join(dest, 'clients', 'web', 'src', 'assets'))
-        self.mergeDir('grunt_tasks', dest)
-        self.mergeDir('plugins', dest)
 
 
 with open('README.rst') as f:
@@ -75,6 +45,7 @@ installReqs = [
     'pymongo>=3.5',
     'PyYAML',
     'psutil',
+    'pyOpenSSL',
     'python-dateutil<2.7',  # required for compatibility with botocore=1.9.8
     'pytz',
     'requests',
@@ -82,39 +53,40 @@ installReqs = [
     'six>=1.9',
 ]
 
-extrasReqs = {}
-# To avoid conflict with the `girder-install plugin' command, this only adds built-in plugins with
-# extras requirements.
-# Note: the usage of automatically-parsed plugin-specific 'requirements.txt' is a temporary
-# measure to keep plugin requirements close to plugin code. It will be removed when pip-installable
-# plugins are added. It should not be used by other projects.
-with open(os.path.join('plugins', '.gitignore')) as builtinPluginsIgnoreStream:
-    builtinPlugins = set()
-    for line in builtinPluginsIgnoreStream:
-        # Plugin .gitignore entries should end with a /, but we will tolerate those that don't;
-        # (accordingly, note the non-greedy qualifier for the match group)
-        builtinPluginNameRe = re.match(r'^!(.+?)/?$', line)
-        if builtinPluginNameRe:
-            builtinPluginName = builtinPluginNameRe.group(1)
-            if os.path.isdir(os.path.join('plugins', builtinPluginName)):
-                builtinPlugins.add(builtinPluginName)
-for pluginName in os.listdir('plugins'):
-    pluginReqsFile = os.path.join('plugins', pluginName, 'requirements.txt')
-    if pluginName in builtinPlugins and os.path.isfile(pluginReqsFile):
-        with open(pluginReqsFile) as pluginReqsStream:
-            pluginExtrasReqs = []
-            for line in pluginReqsStream:
-                line = line.strip()
-                if line and not line.startswith('#'):
-                    pluginExtrasReqs.append(line)
-            extrasReqs[pluginName] = pluginExtrasReqs
+extrasReqs = {
+    'authorized_upload': ['girder-authorized-upload'],
+    'autojoin': ['girder-autojoin'],
+    'curation': ['girder-curation'],
+    'candela': ['girder-candela'],
+    'dicom_viewer': ['girder-dicom-viewer'],
+    'download_statistics': ['girder-download-statistics'],
+    'google_analytics': ['girder-google-analytics'],
+    'gravatar': ['girder-gravatar'],
+    'hashsum_download': ['girder-hashsum-download'],
+    'homepage': ['girder-homepage'],
+    'item_licenses': ['girder-item-licenses'],
+    'item_tasks': ['girder-item-tasks'],
+    'jobs': ['girder-jobs'],
+    'ldap': ['girder-ldap'],
+    'oauth': ['girder-oauth'],
+    'metadata_history': ['girder-metadata-history'],
+    'table_view': ['girder-table-view'],
+    'terms': ['girder-terms'],
+    'thumbnails': ['girder-thumbnails'],
+    'treeview': ['girder-treeview'],
+    'quota': ['girder-user-quota'],
+    'worker': ['girder-worker'],
+    'virtual_folders': ['girder-virtual-folders']
+}
+if sys.version_info[0] < 3:
+    extrasReqs['hdfs_assetstore'] = ['girder-hdfs-assetstore']
 
 extrasReqs['plugins'] = list(set(itertools.chain.from_iterable(extrasReqs.values())))
 extrasReqs['sftp'] = [
     'paramiko',
 ]
 extrasReqs['mount'] = [
-    'fusepy>=2.0.4',
+    'fusepy>=2.0.4,<3.0',
 ]
 
 init = os.path.join(os.path.dirname(__file__), 'girder', '__init__.py')
@@ -146,27 +118,14 @@ setup(
     packages=find_packages(
         exclude=('girder.test', 'tests.*', 'tests', '*.plugin_tests.*', '*.plugin_tests')
     ),
-    package_data={
-        'girder': [
-            'girder-version.json',
-            'conf/girder.dist.cfg',
-            'mail_templates/*.mako',
-            'mail_templates/**/*.mako',
-            'utility/*.mako',
-            'api/api_docs.mako'
-        ]
-    },
+    include_package_data=True,
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
     install_requires=installReqs,
     extras_require=extrasReqs,
     zip_safe=False,
-    cmdclass={
-        'install': InstallWithOptions
-    },
     entry_points={
         'console_scripts': [
             'girder-server = girder.cli.serve:main',
-            'girder-install = girder.utility.install:main',
             'girder-sftpd = girder.cli.sftpd:main',
             'girder-shell = girder.cli.shell:main',
             'girder = girder.cli:main'
@@ -175,7 +134,8 @@ setup(
             'serve = girder.cli.serve:main',
             'mount = girder.cli.mount:main',
             'shell = girder.cli.shell:main',
-            'sftpd = girder.cli.sftpd:main'
+            'sftpd = girder.cli.sftpd:main',
+            'build = girder.cli.build:main'
         ]
     }
 )

@@ -18,8 +18,11 @@ jobs:
     steps:
       - checkout:
           path: girder
+      - run:
+          name: Generate python environment checksum file
+          command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
       - restore_cache:
-          key: venv-py2-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
+          key: venv-py2-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - run:
           name: Create virtual environment (if necessary)
           command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
@@ -31,13 +34,13 @@ jobs:
           command: pip install --upgrade pip setuptools virtualenv
       - run:
           name: Install Girder
-          command: pip install --upgrade --upgrade-strategy eager --editable .[plugins,sftp,mount] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt -e plugins/hdfs_assetstore
           # Until https://github.com/pypa/pip/pull/4208 is available in pip 10, the install of
           # "requirements-dev.txt" must be run from the "girder" working directory
           working_directory: girder
       - save_cache:
           paths: girder_env
-          key: venv-py2-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
+          key: venv-py2-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
@@ -79,8 +82,11 @@ jobs:
     steps:
       - checkout:
           path: girder
+      - run:
+          name: Generate python environment checksum file
+          command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
       - restore_cache:
-          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
+          key: venv-py3.5-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - run:
           name: Create virtual environment (if necessary)
           command: if [ ! -d girder_env ]; then python3 -m venv girder_env; fi
@@ -92,7 +98,7 @@ jobs:
           command: pip install --upgrade pip setuptools
       - run:
           name: Install Girder
-          command: pip install --upgrade --upgrade-strategy eager --editable .[plugins,sftp,mount] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Reduce workspace size
@@ -101,7 +107,7 @@ jobs:
             pyclean girder_env
       - save_cache:
           paths: girder_env
-          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
+          key: venv-py3.5-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -163,8 +169,14 @@ jobs:
       - restore_cache:
           key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
       - run:
+          name: Install @girder/lint for javascript linting
+          command: npm ci
+          environment:
+            - npm_config_cache: /home/circleci/project/npm_cache
+          working_directory: girder
+      - run:
           name: Build Girder web client
-          command: girder-install web --all-plugins --dev | cat
+          command: girder build --dev | cat
           environment:
             - npm_config_cache: /home/circleci/project/npm_cache
       - save_cache:
@@ -213,6 +225,9 @@ jobs:
       - checkout:
           path: girder
       - run:
+          name: Update npm
+          command: npm install -g npm
+      - run:
           # Technically, we should add the circleci user to the fuse group, log
           # out, and log back in for it to take effect.  This allows fuse to be
           # available to all users without requiring them to be in the fuse
@@ -248,14 +263,14 @@ jobs:
       - run:
           name: Install all pip modules
           # sftp and python client aren't installed by the ansible example
-          command: pip install --upgrade --upgrade-strategy eager --editable .[plugins,sftp,mount] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt -e plugins/hdfs_assetstore
           working_directory: girder
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
       - run:
           name: Build Girder web client
-          command: girder-install web --all-plugins --dev | cat
+          command: girder build --dev | cat
       - run:
           name: CMake
           command: cmake ../girder -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
@@ -320,6 +335,9 @@ jobs:
       - checkout:
           path: girder
       - run:
+          name: Update npm
+          command: npm install -g npm
+      - run:
           # Technically, we should add the circleci user to the fuse group, log
           # out, and log back in for it to take effect.  This allows fuse to be
           # available to all users without requiring them to be in the fuse
@@ -369,14 +387,14 @@ jobs:
       - run:
           name: Install all pip modules
           # sftp and python client aren't installed by the ansible example
-          command: pip install --upgrade --upgrade-strategy eager --editable .[plugins,sftp,mount] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
       - run:
           name: Build Girder web client
-          command: girder-install web --all-plugins --dev | cat
+          command: girder build --dev | cat
       - run:
           name: CMake
           command: cmake ../girder -DPYTHON_VERSION=3.5 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
@@ -448,8 +466,11 @@ jobs:
           path: girder
       # Since this cache must have been created in a previous step of this workflow, we can get
       # a virtualenv without having to create one or install anything.
+      - run:
+          name: Generate python environment checksum file
+          command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
       - restore_cache:
-          key: venv-py3.5-{{ arch }}-{{ checksum "girder/setup.py" }}-{{ checksum "girder/requirements-dev.txt" }}
+          key: venv-py3.5-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - run:
           name: Activate virtual environment
           command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
@@ -460,43 +481,25 @@ jobs:
           name: Deploy roles to Ansible Galaxy
           command: .circleci/galaxy_deploy.sh
           working_directory: girder
-      - run:
-          name: Update 2.x-maintenance branch
-          command: |
-            git fetch origin
-            git push origin origin/master:2.x-maintenance
-          working_directory: girder
 
 workflows:
   version: 2
   test_all:
     jobs:
-      - py2_serverInstall_serverTest:
-          filters:
-            branches:
-              ignore: 2.x-maintenance
-      - py2_integrationTests:
-          filters:
-            branches:
-              ignore: 2.x-maintenance
+      - py2_serverInstall_serverTest
+      - py2_integrationTests
       - py2_coverage:
           requires:
             - py2_serverInstall_serverTest
             - py2_integrationTests
-      - py3_serverInstall:
-          filters:
-            branches:
-              ignore: 2.x-maintenance
+      - py3_serverInstall
       - py3_serverTest:
           requires:
             - py3_serverInstall
       - py3_webBuild_webTest:
           requires:
             - py3_serverInstall
-      - py3_integrationTests:
-          filters:
-            branches:
-              ignore: 2.x-maintenance
+      - py3_integrationTests
       - py3_coverage:
           requires:
             - py3_serverTest

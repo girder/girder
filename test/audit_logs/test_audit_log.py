@@ -10,13 +10,12 @@ from girder.models.folder import Folder
 from girder.models.upload import Upload
 from girder.models.user import User
 from girder.utility.plugin_utilities import getPluginDir
-
 CLEANUP_PATH = os.path.join(getPluginDir(), 'audit_logs', 'scripts')
+from girder_audit_logs import Record
 
 
 @pytest.fixture
 def recordModel():
-    from girder.plugins.audit_logs import Record
     yield Record()
 
 
@@ -38,8 +37,7 @@ def freshLog():
 
 @pytest.mark.plugin('audit_logs')
 def testAnonymousRestRequestLogging(server, recordModel, freshLog):
-    assert list(recordModel.find()) == []
-
+    recordModel.collection.remove({})  # Clear existing records
     server.request('/user/me')
 
     records = recordModel.find()
@@ -48,7 +46,7 @@ def testAnonymousRestRequestLogging(server, recordModel, freshLog):
 
     assert record['ip'] == '127.0.0.1'
     assert record['type'] == 'rest.request'
-    assert record['userId'] == None
+    assert record['userId'] is None
     assert isinstance(record['when'], datetime.datetime)
     assert record['details']['method'] == 'GET'
     assert record['details']['status'] == 200
@@ -58,6 +56,7 @@ def testAnonymousRestRequestLogging(server, recordModel, freshLog):
 
 @pytest.mark.plugin('audit_logs')
 def testFailedRestRequestLogging(server, recordModel, freshLog):
+    recordModel.collection.remove({})  # Clear existing records
     server.request('/folder', method='POST', params={
         'name': 'Foo',
         'parentId': 'foo'
@@ -88,6 +87,7 @@ def testAuthenticatedRestRequestLogging(server, recordModel, freshLog, admin):
 
 @pytest.mark.plugin('audit_logs')
 def testDownloadLogging(server, recordModel, freshLog, admin, fsAssetstore):
+    recordModel.collection.remove({})  # Clear existing records
     folder = Folder().find({
         'parentId': admin['_id'],
         'name': 'Public'
@@ -114,6 +114,7 @@ def testDownloadLogging(server, recordModel, freshLog, admin, fsAssetstore):
 
 @pytest.mark.plugin('audit_logs')
 def testDocumentCreationLogging(server, recordModel, freshLog):
+    recordModel.collection.remove({})  # Clear existing records
     user = User().createUser('admin', 'password', 'first', 'last', 'a@a.com')
     records = recordModel.find(sort=[('when', 1)])
     assert records.count() == 3
@@ -122,6 +123,7 @@ def testDocumentCreationLogging(server, recordModel, freshLog):
     assert records[0]['details']['id'] == user['_id']
     assert records[1]['details']['collection'] == 'folder'
     assert records[2]['details']['collection'] == 'folder'
+<<<<<<< HEAD
 
 
 @pytest.mark.plugin('audit_logs')
@@ -147,3 +149,5 @@ def testDisableLoggingOnNotificationEndpoints(server, freshLog, recordModel, use
     server.request('/notification', user=user)
     server.request('/notification/stream', params={'timeout': 0}, user=user, isJson=False)
     assert recordModel.find().count() == 1
+=======
+>>>>>>> origin/master

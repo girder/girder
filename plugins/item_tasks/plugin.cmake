@@ -1,4 +1,4 @@
-add_standard_plugin_tests(NO_CLIENT_TESTS)
+add_standard_plugin_tests(PACKAGE "girder_item_tasks" NO_CLIENT_TESTS)
 
 set(_pluginDir "${CMAKE_CURRENT_LIST_DIR}")
 get_filename_component(_pluginName "${CMAKE_CURRENT_LIST_DIR}" NAME)
