@@ -74,7 +74,8 @@ def main(dev, watch, watch_plugin):
     try:
         check_call(buildCommand, cwd=staging)
     finally:
-        shutil.rmtree(os.path.join(staging, 'node_modules'), ignore_errors=True)
+        if not dev:
+            shutil.rmtree(os.path.join(staging, 'node_modules'), ignore_errors=True)
 
 
 def _collectPluginDependencies():
