@@ -382,17 +382,17 @@ class ProvenanceTestCase(base.TestCase):
             'unknown': True}
         for key in checkList:
             eventName = 'model.%s.save' % key
-            self.assertTrue((eventName in events._mapping and 'provenance' in
-                            [h['name'] for h in events._mapping[eventName]])
-                            is checkList[key])
+            self.assertTrue((
+                eventName in events._mapping and 'provenance' in events._mapping[eventName])
+                is checkList[key])
         # Setting a blank should be okay.  It should also remove all but item
         # event mappings
         Setting().set(constants.PluginSettings.PROVENANCE_RESOURCES, '')
         for key in checkList:
             eventName = 'model.%s.save' % key
-            self.assertTrue((eventName in events._mapping and 'provenance' in
-                            [h['name'] for h in events._mapping[eventName]])
-                            is (key == 'item'))
+            self.assertTrue((
+                eventName in events._mapping and 'provenance' in events._mapping[eventName])
+                is (key == 'item'))
 
     def testProvenanceFileWithoutItem(self):
         fileData = b'this is a test'

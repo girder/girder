@@ -168,7 +168,8 @@ class System(Resource):
 
         plugins = {
             'all': {name: _pluginNameToResponse(name) for name in plugin.allPlugins()},
-            'enabled': plugin.loadedPlugins()
+            'enabled': Setting().get(SettingKey.PLUGINS_ENABLED),
+            'loaded': plugin.loadedPlugins()
         }
         failureInfo = {
             plugin: ''.join(traceback.format_exception(*exc_info))

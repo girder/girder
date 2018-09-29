@@ -158,6 +158,45 @@ place (in the Girder python package) in both development and production installs
 The built assets are installed into a virtual environment specific static path
 ``{sys.prefix}/share/girder``.
 
+Server changes
+++++++++++++++
+
+Event bindings are now unique by handler name
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In Girder 2, it was possible to bind multiple handler callbacks to the same event with
+the same handler name. This has changed in Girder 3; for any given event identifier, each callback
+must be bound to it with a unique handler name. Example:
+
+.. code-block:: python
+
+    def cb(event):
+       print('hello')
+
+    for _ in range(5):
+      events.bind('an_event', 'my_handler', cb)
+
+    # Prints 'hello' five times in Girder 2, but only once in Girder 3
+    events.trigger('an_event')
+
+In the new behavior, a call to ``bind`` with the same event name and handler name as an existing
+handler will be ignored, and will emit a warning to the log. If you wish to overwrite the existing
+handler, you must call :py:func:`girder.events.unbind` on the existing mapping first.
+
+.. code-block:: python
+
+    def a(event):
+      print('a')
+
+    def b(event):
+      print('b')
+
+    events.bind('an_event', 'my_handler', a)
+    events.bind('an_event', 'my_handler', b)
+
+    # Prints 'a' and 'b' in Girder 2, but only 'a' in Girder 3
+    events.trigger('an_event')
+
 1.x |ra| 2.x
 ------------
 

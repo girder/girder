@@ -43,8 +43,10 @@ receive the Event object as its only argument.
 
 import contextlib
 import girder
+import six
 import threading
 
+from collections import OrderedDict
 from girder.utility import config
 from six.moves import queue
 
@@ -225,16 +227,15 @@ def bind(eventName, handlerName, handler):
     :type handler: function
     """
     if eventName in _deprecated:
-        girder.logger.warning('event "%s" is deprecated; %s' %
-                              (eventName, _deprecated[eventName]))
+        girder.logger.warning('event "%s" is deprecated; %s' % (eventName, _deprecated[eventName]))
 
     if eventName not in _mapping:
-        _mapping[eventName] = []
+        _mapping[eventName] = OrderedDict()
 
-    _mapping[eventName].append({
-        'name': handlerName,
-        'handler': handler
-    })
+    if handlerName in _mapping[eventName]:
+        girder.logger.warning('Event binding already exists: %s -> %s' % (eventName, handlerName))
+    else:
+        _mapping[eventName][handlerName] = handler
 
 
 def unbind(eventName, handlerName):
@@ -246,13 +247,7 @@ def unbind(eventName, handlerName):
     :param handlerName: The name that identifies the handler calling bind().
     :type handlerName: str
     """
-    if eventName not in _mapping:
-        return
-
-    for handler in _mapping[eventName]:
-        if handler['name'] == handlerName:
-            _mapping[eventName].remove(handler)
-            break
+    _mapping.get(eventName, {}).pop(handlerName, None)
 
 
 def unbindAll():
@@ -302,16 +297,15 @@ def trigger(eventName, info=None, pre=None, async=False, daemon=False):
     :type daemon: bool
     """
     e = Event(eventName, info, async=async)
-    for handler in _mapping.get(eventName, ()):
+    for name, handler in six.viewitems(_mapping.get(eventName, {})):
         if daemon and not async:
             girder.logprint.warning(
                 'WARNING: Handler "%s" for event "%s" was triggered on the daemon, but is '
-                'actually running synchronously.' % (handler['name'], eventName))
-        e.currentHandlerName = handler['name']
+                'actually running synchronously.' % (name, eventName))
+        e.currentHandlerName = name
         if pre is not None:
-            pre(info=info, handler=handler['handler'], eventName=eventName,
-                handlerName=handler['name'])
-        handler['handler'](e)
+            pre(info=info, handler=handler, eventName=eventName, handlerName=name)
+        handler(e)
 
         if e.propagate is False:
             break

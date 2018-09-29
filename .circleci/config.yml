@@ -466,6 +466,9 @@ jobs:
           path: girder
       # Since this cache must have been created in a previous step of this workflow, we can get
       # a virtualenv without having to create one or install anything.
+      - run:
+          name: Generate python environment checksum file
+          command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
       - restore_cache:
           key: venv-py3.5-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - run:
