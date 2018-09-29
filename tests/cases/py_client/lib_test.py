@@ -419,58 +419,57 @@ class PythonClientTestCase(base.TestCase):
         def processEvent(event):
             eventList.append(event.info)
 
-        events.bind('model.file.finalizeUpload.after', 'lib_test', processEvent)
+        with events.bound('model.file.finalizeUpload.after', 'lib_test', processEvent):
+            path = os.path.join(self.libTestDir, 'sub0', 'f')
+            size = os.path.getsize(path)
+            with open(path) as fh:
+                self.client.uploadFile(
+                    self.publicFolder['_id'], fh, name='test1', size=size, parentType='folder',
+                    reference='test1_reference')
+            self.assertEqual(len(eventList), 1)
+            self.assertEqual(eventList[0]['upload']['reference'], 'test1_reference')
 
-        path = os.path.join(self.libTestDir, 'sub0', 'f')
-        size = os.path.getsize(path)
-        with open(path) as fh:
-            self.client.uploadFile(
-                self.publicFolder['_id'], fh, name='test1', size=size, parentType='folder',
-                reference='test1_reference')
-        self.assertEqual(len(eventList), 1)
-        self.assertEqual(eventList[0]['upload']['reference'], 'test1_reference')
+            self.client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
+                                         reference='test2_reference')
+            self.assertEqual(len(eventList), 2)
+            self.assertEqual(eventList[1]['upload']['reference'], 'test2_reference')
+            self.assertNotEqual(eventList[0]['file']['_id'],
+                                eventList[1]['file']['_id'])
 
-        self.client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
-                                     reference='test2_reference')
-        self.assertEqual(len(eventList), 2)
-        self.assertEqual(eventList[1]['upload']['reference'], 'test2_reference')
-        self.assertNotEqual(eventList[0]['file']['_id'],
-                            eventList[1]['file']['_id'])
+            with open(path, 'ab') as fh:
+                fh.write(b'test')
 
-        with open(path, 'ab') as fh:
-            fh.write(b'test')
+            size = os.path.getsize(path)
+            self.client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
+                                         reference='test3_reference')
+            self.assertEqual(len(eventList), 3)
+            self.assertEqual(eventList[2]['upload']['reference'], 'test3_reference')
+            self.assertNotEqual(eventList[0]['file']['_id'],
+                                eventList[2]['file']['_id'])
+            self.assertEqual(eventList[1]['file']['_id'],
+                             eventList[2]['file']['_id'])
 
-        size = os.path.getsize(path)
-        self.client.uploadFileToItem(str(eventList[0]['file']['itemId']), path,
-                                     reference='test3_reference')
-        self.assertEqual(len(eventList), 3)
-        self.assertEqual(eventList[2]['upload']['reference'], 'test3_reference')
-        self.assertNotEqual(eventList[0]['file']['_id'],
-                            eventList[2]['file']['_id'])
-        self.assertEqual(eventList[1]['file']['_id'],
-                         eventList[2]['file']['_id'])
+            item = self.client.createItem(self.publicFolder['_id'], 'a second item')
+            # Test explicit MIME type setting
+            file = self.client.uploadFileToItem(item['_id'], path,
+                                                mimeType='image/jpeg')
+            self.assertEqual(file['mimeType'], 'image/jpeg')
 
-        item = self.client.createItem(self.publicFolder['_id'], 'a second item')
-        # Test explicit MIME type setting
-        file = self.client.uploadFileToItem(item['_id'], path,
-                                            mimeType='image/jpeg')
-        self.assertEqual(file['mimeType'], 'image/jpeg')
+            # Test guessing of MIME type
+            testPath = os.path.join(self.libTestDir, 'out.txt')
+            with open(testPath, 'w') as fh:
+                fh.write('test')
 
-        # Test guessing of MIME type
-        testPath = os.path.join(self.libTestDir, 'out.txt')
-        with open(testPath, 'w') as fh:
-            fh.write('test')
+            file = self.client.uploadFileToItem(item['_id'], testPath)
+            self.assertEqual(file['mimeType'], 'text/plain')
 
-        file = self.client.uploadFileToItem(item['_id'], testPath)
-        self.assertEqual(file['mimeType'], 'text/plain')
-
-        # Test uploading to a folder
-        self.client.uploadFileToFolder(
-            str(self.publicFolder['_id']), path, reference='test4_reference')
-        self.assertEqual(len(eventList), 6)
-        self.assertEqual(eventList[-1]['upload']['reference'], 'test4_reference')
-        self.assertNotEqual(eventList[2]['file']['_id'],
-                            eventList[-1]['file']['_id'])
+            # Test uploading to a folder
+            self.client.uploadFileToFolder(
+                str(self.publicFolder['_id']), path, reference='test4_reference')
+            self.assertEqual(len(eventList), 6)
+            self.assertEqual(eventList[-1]['upload']['reference'], 'test4_reference')
+            self.assertNotEqual(eventList[2]['file']['_id'],
+                                eventList[-1]['file']['_id'])
 
     def testUploadFileToFolder(self):
         filepath = os.path.join(self.libTestDir, 'sub0', 'f')
