@@ -722,6 +722,8 @@ def _setCommonCORSHeaders():
 
     if allowed:
         setResponseHeader('Access-Control-Allow-Credentials', 'true')
+        setResponseHeader(
+            'Access-Control-Expose-Headers', Setting().get(SettingKey.CORS_EXPOSE_HEADERS))
 
         allowed_list = [o.strip() for o in allowed.split(',')]
         key = 'Access-Control-Allow-Origin'
