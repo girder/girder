@@ -314,6 +314,12 @@ class Setting(Model):
             'value')
 
     @staticmethod
+    @setting_utilities.validator(SettingKey.CORS_EXPOSE_HEADERS)
+    def validateCoreCorsExposeHeaders(doc):
+        if not isinstance(doc['value'], six.string_types):
+            raise ValidationException('CORS exposed headers must be a string')
+
+    @staticmethod
     @setting_utilities.validator(SettingKey.EMAIL_FROM_ADDRESS)
     def validateCoreEmailFromAddress(doc):
         if not doc['value']:
