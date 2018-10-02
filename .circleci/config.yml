@@ -454,6 +454,41 @@ jobs:
       - run:
           name: Upload coverage
           command: codecov --disable search pycov gcov --root girder --file girder/build/test/coverage/py_coverage.xml girder/build/test/coverage/cobertura-coverage.xml
+
+  public_symbols:
+    docker:
+      - image: kotfic/ctags:latest
+    working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
+    steps:
+      - checkout:
+          path: girder
+      - run:
+          name: Test public symbols
+          command: |
+            set +e
+            DIFF=$(diff girder/scripts/publicNames.txt <(python girder/scripts/publicNames.py))
+            if [ "$DIFF" != "" ]; then
+
+            sdiff girder/scripts/publicNames.txt <(python girder/scripts/publicNames.py)
+
+            cat << EOF
+
+            **********************************************************
+
+            Public symbols have been introduced (or removed) and those
+            changes have not been commited to the scripts/publicNames.txt
+            file. Please run the following command:
+
+              python scripts/publicNames.py > scripts/publicNames.txt
+
+            from the root of your local repository and commit the
+            changes to scripts/publicNames.txt
+            **********************************************************
+
+            EOF
+            exit 1;
+            fi
+
   deploy:
     docker:
       - image: girder/girder_test:latest-py3
@@ -505,6 +540,7 @@ workflows:
             - py3_serverTest
             - py3_webBuild_webTest
             - py3_integrationTests
+      - public_symbols
       - deploy:
           requires:
             - py2_coverage
