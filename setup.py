@@ -86,7 +86,7 @@ extrasReqs['sftp'] = [
     'paramiko',
 ]
 extrasReqs['mount'] = [
-    'fusepy>=2.0.4,<3.0',
+    'fusepy>=3.0',
 ]
 
 init = os.path.join(os.path.dirname(__file__), 'girder', '__init__.py')
