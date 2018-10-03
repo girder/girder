@@ -80,7 +80,6 @@ girder
                 route
                 sendAuthTokenCookie
                 setRawResponse
-            RestException
             boundHandler
             endpoint
             ensureTokenScopes
@@ -100,7 +99,6 @@ girder
             setRawResponse
             setResponseHeader
         sftp
-            DEFAULT_PORT
             MAX_BUF_LEN
             SftpServer
                 allow_reuse_address
@@ -198,6 +196,7 @@ girder
                 MAX_POLL_INTERVAL
                 MIN_POLL_INTERVAL
                 Notification
+                    listNotifications
                     stream
                 sseMessage
             resource
@@ -211,11 +210,12 @@ girder
                     path
                     search
                     setTimestamp
+                allowedDeleteTypes
+                allowedSearchTypes
             system
                 LOG_BUF_SIZE
                 ModuleStartTime
                 System
-                    buildWebCode
                     discardPartialUploads
                     enablePlugins
                     getAccessFlags
@@ -249,18 +249,55 @@ girder
                     checkTemporaryPassword
                     createUser
                     deleteUser
+                    finalizeOtp
                     find
                     generateTemporaryPassword
                     getMe
                     getUser
                     getUserDetails
                     getUsersDetails
+                    initializeOtp
                     login
                     logout
-                    resetPassword
+                    removeOtp
                     sendVerificationEmail
                     updateUser
                     verifyEmail
+    auditLogger
+    cli
+        build
+            help
+            main
+        context_settings
+        main
+        mount
+            FUSELogError
+            ServerFuse
+                access
+                create
+                destroy
+                flush
+                getattr
+                getxattr
+                listxattr
+                open
+                read
+                readdir
+                release
+            help
+            main
+            mountServer
+            show_default
+            unmountServer
+        serve
+            main
+        sftpd
+            DEFAULT_PORT
+            default
+            help
+            main
+        shell
+            main
     conf
     constants
         ACCESS_FLAGS
@@ -289,12 +326,13 @@ girder
         MAX_LOG_SIZE
         PACKAGE_DIR
         ROOT_DIR
-        ROOT_PLUGINS_PACKAGE
+        STATIC_PREFIX
         STATIC_ROOT_DIR
         SettingDefault
             defaults
         SettingKey
             ADD_TO_GROUP_POLICY
+            API_KEYS
             BANNER_COLOR
             BRAND_NAME
             COLLECTION_CREATE_POLICY
@@ -306,7 +344,11 @@ girder
             EMAIL_FROM_ADDRESS
             EMAIL_HOST
             EMAIL_VERIFICATION
+            ENABLE_NOTIFICATION_STREAM
+            ENABLE_PASSWORD_LOGIN
+            GIRDER_MOUNT_INFORMATION
             PLUGINS_ENABLED
+            PRIVACY_NOTICE
             REGISTRATION_POLICY
             ROUTE_TABLE
             SECURE_COOKIE
@@ -367,9 +409,21 @@ girder
         bind
         bound
         daemon
+        setupDaemon
         trigger
         unbind
         unbindAll
+    exceptions
+        AccessException
+        FilePathException
+            identifier
+        GirderBaseException
+        GirderException
+        NoAssetstoreAdapter
+            identifier
+        ResourcePathNotFound
+        RestException
+        ValidationException
     external
         mongodb_proxy
             EXECUTABLE_MONGO_METHODS
@@ -422,6 +476,8 @@ girder
                 createLinkFile
                 download
                 getAssetstoreAdapter
+                getGirderMountFilePath
+                getLocalFilePath
                 initialize
                 isOrphan
                 open
@@ -470,6 +526,7 @@ girder
                 inviteUser
                 joinGroup
                 listMembers
+                permissionClauses
                 remove
                 removeUser
                 setGroupAccess
@@ -500,12 +557,14 @@ girder
                 copyAccessPolicies
                 filter
                 filterResultsByPermission
+                findWithPermissions
                 getAccessLevel
                 getFullAccessList
                 hasAccess
                 hasAccessFlags
                 list
                 load
+                permissionClauses
                 prefixSearch
                 requireAccess
                 requireAccessFlags
@@ -515,8 +574,6 @@ girder
                 setPublicFlags
                 setUserAccess
                 textSearch
-            AccessException
-            GirderException
             Model
                 ensureIndex
                 ensureIndices
@@ -540,7 +597,6 @@ girder
                 update
                 validate
                 validateKeys
-            ValidationException
         notification
             Notification
                 createNotification
@@ -574,6 +630,7 @@ girder
                 set
                 unset
                 validate
+                validateApiKeys
                 validateCoreAddToGroupPolicy
                 validateCoreBannerColor
                 validateCoreBrandName
@@ -586,7 +643,9 @@ girder
                 validateCoreEmailFromAddress
                 validateCoreEmailHost
                 validateCoreEmailVerification
+                validateCoreGirderMountInformation
                 validateCorePluginsEnabled
+                validateCorePrivacyNotice
                 validateCoreRegistrationPolicy
                 validateCoreRouteTable
                 validateCoreServerRoot
@@ -597,6 +656,8 @@ girder
                 validateCoreSmtpUsername
                 validateCoreUploadMinimumChunkSize
                 validateCoreUserDefaultFolders
+                validateEnableNotificationStream
+                validateEnablePasswordLogin
                 validateSecureCookie
         token
             Token
@@ -632,14 +693,36 @@ girder
                 createUser
                 emailVerificationRequired
                 fileList
+                filter
                 getAdmins
+                hasOtpEnabled
                 initialize
+                initializeOtp
                 remove
                 search
                 setPassword
                 subtreeCount
                 updateSize
                 validate
+                verifyOtp
+    plugin
+        GirderPlugin
+            CLIENT_SOURCE_PATH
+            DISPLAY_NAME
+            description
+            displayName
+            load
+            loaded
+            name
+            npmPackages
+            url
+            version
+        allPlugins
+        getPlugin
+        getPluginFailureInfo
+        getPluginWebroots
+        loadedPlugins
+        registerPluginWebroot
     utility
         JsonEncoder
             default
@@ -661,6 +744,7 @@ girder
                 finalizeUpload
                 findInvalidFiles
                 getChunkSize
+                getLocalFilePath
                 importData
                 initUpload
                 open
@@ -678,9 +762,11 @@ girder
         acl_mixin
             AccessControlMixin
                 filterResultsByPermission
+                findWithPermissions
                 hasAccess
                 hasAccessFlags
                 load
+                permissionClauses
                 prefixSearch
                 requireAccess
                 requireAccessFlags
@@ -690,6 +776,7 @@ girder
         assetstore_utilities
             fileIndexFields
             getAssetstoreAdapter
+            removeAssetstoreAdapter
             setAssetstoreAdapter
         camelcase
         config
@@ -707,6 +794,7 @@ girder
                 finalizeUpload
                 findInvalidFiles
                 fullPath
+                getLocalFilePath
                 importData
                 importFile
                 initUpload
@@ -736,17 +824,6 @@ girder
             serializeHex
             stateSize
             type
-        install
-            fix_path
-            install_plugin
-            install_web
-            main
-            print_plugin_path
-            print_version
-            print_web_root
-            runWebBuild
-            version
-            webRoot
         mail_utils
             addTemplateDirectory
             getEmailUrlPrefix
@@ -757,6 +834,7 @@ girder
             ModelImporter
                 model
                 registerModel
+                unregisterModel
             reinitializeAll
         optionalArgumentDecorator
         parseTimestamp
@@ -770,19 +848,6 @@ girder
             lookUpPath
             lookUpToken
             split
-        plugin_utilities
-            addChildNode
-            config
-            findAllPlugins
-            findEntryPointPlugins
-            getPluginDir
-            getPluginFailureInfo
-            getPluginWebroots
-            getToposortedPlugins
-            loadPlugin
-            loadPlugins
-            registerPluginWebroot
-            toposort
         progress
             ProgressContext
                 update
@@ -808,12 +873,16 @@ girder
                 uploadChunk
                 validateInfo
             makeBotoConnectParams
-        search_mode_utilities
+        search
             addSearchMode
             getSearchModeHandler
             removeSearchMode
         server
             configureServer
+            getApiRoot
+            getApiStaticRoot
+            getPlugins
+            getStaticRoot
             loadRouteTable
             setup
             staticFile
@@ -824,8 +893,6 @@ girder
             registerDefaultFunction
             registerValidator
             validator
-        shell
-            main
         system
             StatusMonitor
                 callable
@@ -842,6 +909,7 @@ girder
                 POST
                 PUT
                 exposed
+                setTemplatePath
                 updateHtmlVars
         ziputil
             DEFLATE
@@ -855,31 +923,109 @@ girder
                 dataDescriptor
                 fileHeader
             zlib
+    web_client
+        grunt_tasks
+        src
+            assets
+            collections
+            models
+            stylesheets
+                apidocs
+                body
+                layout
+                widgets
+            templates
+                body
+                layout
+                widgets
+            utilities
+                jquery
+            views
+                body
+                layout
+                widgets
+        static
+            built
+            img
+        test
+            lib
+                jasmine-1.3.1
+            spec
     wsgi
         application
 plugins
+    audit_logs
+        girder_audit_logs
+            AuditLogsPlugin
+                DISPLAY_NAME
+                load
+            Record
+                initialize
+                validate
+        scripts
+            report
+                get_file_download_records
+                index_folder
+                report
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            license
+            name
+            packages
+            version
+            zip_safe
     authorized_upload
+        girder_authorized_upload
+            AuthorizedUploadPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            constants
+                TOKEN_SCOPE_AUTHORIZED_UPLOAD
+            mail_templates
+            rest
+                AuthorizedUpload
+                    createAuthorizedUpload
+            web_client
+                stylesheets
+                templates
+                views
         plugin_tests
             upload_test
                 AuthorizedUploadTest
                     setUp
                     testAuthorizedUpload
-                TOKEN_SCOPE_AUTHORIZED_UPLOAD
                 setUpModule
                 tearDownModule
-        server
-            constants
-                TOKEN_SCOPE_AUTHORIZED_UPLOAD
-            load
-            mail_templates
-            rest
-                AuthorizedUpload
-                    createAuthorizedUpload
-        web_client
-            stylesheets
-            templates
-            views
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
     autojoin
+        girder_autojoin
+            AutojoinPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            userCreated
+            validateSettings
+            web_client
+                stylesheets
+                templates
+                views
         plugin_tests
             autojoin_test
                 AutoJoinTest
@@ -887,52 +1033,55 @@ plugins
                     testCuration
                 setUpModule
                 tearDownModule
-        server
-            load
-            userCreated
-            validateSettings
-        web_client
-            stylesheets
-            templates
-            views
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
     candela
+        girder_candela
+            CandelaPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            web_client
+                stylesheets
+                templates
+                views
         plugin_tests
-        web_client
-            stylesheets
-            templates
-            views
-    celery_jobs
-        server
-            constants
-                PluginSettings
-                    APP_MAIN
-                    BROKER_URL
-                    CELERY_USER_ID
-            getCeleryUser
-            load
-            schedule
-            validateAppMain
-            validateBrokerUrl
-            validateCeleryUserId
-        web_client
-            stylesheets
-            templates
-            views
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
     curation
-        plugin_tests
-            curation_test
-                CurationTest
-                    setUp
-                    testCuration
-                setUpModule
-                tearDownModule
-        server
+        girder_curation
             APPROVED
             CONSTRUCTION
             CURATION
             CuratedFolder
                 getCuration
                 setCuration
+            CurationPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
             DEFAULTS
             ENABLED
             ENABLE_USER_ID
@@ -945,34 +1094,77 @@ plugins
             TITLE_PUBLIC
             TITLE_READ_ONLY
             TITLE_WRITEABLE
-            load
             mail_templates
-        web_client
-            stylesheets
-            templates
-            views
+            web_client
+                stylesheets
+                templates
+                views
+        plugin_tests
+            curation_test
+                CurationTest
+                    setUp
+                    testCuration
+                setUpModule
+                tearDownModule
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
     dicom_viewer
+        girder_dicom_viewer
+            DicomItem
+                makeDicomItem
+            DicomViewerPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            dicomSubstringSearchHandler
+            event_helper
+            web_client
+                stylesheets
+                templates
+                views
         plugin_tests
             data
             dicom_viewer_test
                 DicomViewerTest
                     setUp
+                    testDicomWithBinaryValues
+                    testDicomWithIOError
                     testExtractFileData
                     testFileProcessHandler
                     testMakeDicomItem
                     testRemoveUniqueMetadata
+                    testSearchForDicomItem
                 setUpModule
                 tearDownModule
-        server
-            DicomItem
-                makeDicomItem
-            event_helper
-            load
-        web_client
-            stylesheets
-            templates
-            views
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
     download_statistics
+        girder_download_statistics
+            DownloadStatisticsPlugin
+                DISPLAY_NAME
+                load
         plugin_tests
             download_statistics_test
                 DownloadStatisticsTestCase
@@ -981,54 +1173,69 @@ plugins
                 setUpModule
                 tearDownModule
             files
-        server
-            load
-    geospatial
-        plugin_tests
-            geospatial_test
-                GeospatialItemTestCase
-                    setUp
-                    testGeospatial
-                setUpModule
-                tearDownModule
-        server
-            geospatial
-                GEOSPATIAL_FIELD
-                GeospatialItem
-                    create
-                    find
-                    getGeospatial
-                    intersects
-                    near
-                    setGeospatial
-                    within
-            load
-        web_client
-            stylesheets
-            templates
-            views
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            version
+            zip_safe
     google_analytics
+        girder_google_analytics
+            GoogleAnalyticsPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            constants
+                PluginSettings
+                    GOOGLE_ANALYTICS_TRACKING_ID
+            rest
+                GoogleAnalytics
+                    getId
+            validateTrackingId
+            web_client
+                lib
+                stylesheets
+                templates
+                views
         plugin_tests
             google_analytics_test
                 GoogleAnalyticsTest
                     testGetAnalytics
                 setUpModule
                 tearDownModule
-        server
-            constants
-                PluginSettings
-                    GOOGLE_ANALYTICS_TRACKING_ID
-            load
-            rest
-                GoogleAnalytics
-                    getId
-            validateTrackingId
-        web_client
-            lib
-            stylesheets
-            templates
-            views
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
     gravatar
+        girder_gravatar
+            GravatarPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            PluginSettings
+                DEFAULT_IMAGE
+            computeBaseUrl
+            getGravatar
+            web_client
+                models
+                templates
+                views
         plugin_tests
             gravatar_test
                 GravatarTest
@@ -1038,42 +1245,90 @@ plugins
                     testUserInfoUpdate
                 setUpModule
                 tearDown
-        server
-            PluginSettings
-                DEFAULT_IMAGE
-            computeBaseUrl
-            getGravatar
-            load
-        web_client
-            models
-            templates
-            views
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
     hashsum_download
+        girder_hashsum_download
+            HashedFile
+                computeHashes
+                downloadKeyFile
+                downloadWithHash
+                getByHash
+                supportedAlgorithms
+            HashsumDownloadPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            PluginSettings
+                AUTO_COMPUTE
+            SUPPORTED_ALGORITHMS
+            web_client
+                stylesheets
+                templates
+                views
         plugin_tests
             hashsum_download_test
                 HashsumDownloadTest
                     setUp
                     testAutoComputeHashes
                     testDownload
+                    testGetByHash
                     testKeyFile
                     testManualComputeHashes
                 setUpModule
                 tearDownModule
-        server
-            HashedFile
-                computeHashes
-                downloadKeyFile
-                downloadWithHash
-                supportedAlgorithms
-            PluginSettings
-                AUTO_COMPUTE
-            SUPPORTED_ALGORITHMS
-            load
-        web_client
-            stylesheets
-            templates
-            views
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
     hdfs_assetstore
+        girder_hdfs_assetstore
+            HDFSAssetstorePlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            assetstore
+                HdfsAssetstoreAdapter
+                    cancelUpload
+                    capacityInfo
+                    deleteFile
+                    downloadFile
+                    finalizeUpload
+                    initUpload
+                    requestOffset
+                    uploadChunk
+                    validateInfo
+            createAssetstore
+            getAssetstore
+            rest
+                HdfsAssetstoreResource
+                    importData
+            updateAssetstore
+            web_client
+                models
+                stylesheets
+                templates
+                views
         plugin_tests
             hdfs_assetstore_test
                 HdfsAssetstoreTest
@@ -1092,40 +1347,27 @@ plugins
                 setUpModule
                 tearDownModule
             mock_fs
-                test
                 to_import
-        server
-            assetstore
-                HdfsAssetstoreAdapter
-                    cancelUpload
-                    capacityInfo
-                    deleteFile
-                    downloadFile
-                    finalizeUpload
-                    initUpload
-                    requestOffset
-                    uploadChunk
-                    validateInfo
-            createAssetstore
-            getAssetstore
-            load
-            rest
-                HdfsAssetstoreResource
-                    importData
-            updateAssetstore
-        web_client
-            models
-            stylesheets
-            templates
-            views
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            python_requires
+            url
+            version
+            zip_safe
     homepage
-        plugin_tests
-            homepage_test
-                HomepageTest
-                    testGetMarkdown
-                setUpModule
-                tearDownModule
-        server
+        girder_homepage
+            HomepagePlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
             constants
                 COLLECTION_NAME
                 PluginSettings
@@ -1134,16 +1376,57 @@ plugins
                     MARKDOWN
                     SUBHEADER
                     WELCOME_TEXT
-            load
             rest
                 Homepage
                     getAssets
                     getSettings
-        web_client
-            stylesheets
-            templates
-            views
+            web_client
+                stylesheets
+                templates
+                views
+        plugin_tests
+            homepage_test
+                HomepageTest
+                    testGetMarkdown
+                setUpModule
+                tearDownModule
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
     item_licenses
+        girder_item_licenses
+            ItemLicensesPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            constants
+                PluginSettings
+                    LICENSES
+                PluginSettingsDefaults
+                    defaults
+            postItemAfter
+            postItemCopyAfter
+            putItemAfter
+            rest
+                getLicenses
+            updateItemLicense
+            validateItem
+            validateLicenses
+            validateString
+            web_client
+                stylesheets
+                templates
+                views
         plugin_tests
             item_licenses_test
                 ItemLicensesTestCase
@@ -1155,64 +1438,34 @@ plugins
                     testLicensesSettingValidation
                 setUpModule
                 tearDownModule
-        server
-            constants
-                PluginSettings
-                    LICENSES
-                PluginSettingsDefaults
-                    defaults
-            load
-            postItemAfter
-            postItemCopyAfter
-            putItemAfter
-            rest
-                getLicenses
-            updateItemLicense
-            validateItem
-            validateLicenses
-            validateString
-        web_client
-            stylesheets
-            templates
-            views
-    item_previews
-        web_client
-            stylesheets
-            templates
-            views
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            version
+            zip_safe
     item_tasks
         demo
         devops
             playbooks
                 post-tasks
-        plugin_tests
-            cli_parser_test
-                CLI_FILE
-                CliParserTest
-                    parse_file
-                    test_default_channel
-                    test_image_parameter
-                    test_region_type_conversion
-                    test_vector_type_conversion
-                setUpModule
-                tearDownModule
-            mock_worker
-                markAsFinished
-                mockedSchedule
-                simulateConfigure
-                simulateJsonConfigure
-                simulateRun
-            tasks_test
-                TasksTest
-                    setUp
-                    testAddItemTasksToFolderFromJson
-                    testAddItemTasksToFolderFromSlicerCli
-                    testConfigureItemTaskFromJson
-                    testConfigureItemTaskFromSlicerCli
-                    testItemTaskGetEndpointMinMax
-                setUpModule
-                tearDownModule
-        server
+        girder_item_tasks
+            ItemTasksPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            celery_tasks
+                celeryTaskDescriptionForFolder
+                describeCeleryTaskItem
+                describeItemTaskFromFunction
+                listGirderWorkerExtensions
+                runCeleryTask
             cli_parser
                 parseSlicerCliXml
             constants
@@ -1238,49 +1491,75 @@ plugins
                 hide
                 runSlicerCliTasksDescriptionForFolder
                 runSlicerCliTasksDescriptionForItem
-        web_client
-            collections
-            extra
-                bootstrap-colorpicker
-            models
-            stylesheets
-            templates
-            views
-    jobs
+            web_client
+                collections
+                extra
+                    bootstrap-colorpicker
+                models
+                stylesheets
+                templates
+                views
         plugin_tests
-            jobs_test
-                JobStatus
-                JobsTestCase
-                    setUp
-                    testCancelJob
-                    testCancelJobEndpoint
-                    testCreateJobRest
-                    testDefaultParentId
-                    testDotsInKwargs
-                    testFiltering
-                    testIsParentIdCorrect
-                    testJobProgressAndNotifications
-                    testJobStateTransitions
-                    testJobs
-                    testJobsTypesAndStatuses
-                    testLegacyLogBehavior
-                    testListAllJobs
-                    testListChildJobs
-                    testListChildJobsRest
-                    testListJobs
-                    testLocalJob
-                    testParentCannotBeEqualToChild
-                    testParentIdCannotBeOverridden
-                    testSetParentCorrectly
-                    testUpdateOtherFields
-                    testValidateCustomStatus
-                    testValidateCustomStrStatus
+            cli_parser_test
+                CLI_FILE
+                CliParserTest
+                    parse_file
+                    test_default_channel
+                    test_image_parameter
+                    test_region_type_conversion
+                    test_vector_type_conversion
                 setUpModule
                 tearDownModule
-            local_job_impl
-                fail
-                run
-        server
+            mock_worker
+                echo_number
+                echo_string
+                markAsFinished
+                mock_celery_task
+                mockedSchedule
+                simulateConfigure
+                simulateJsonConfigure
+                simulateRun
+            tasks_test
+                TasksTest
+                    createCeleryItemTask
+                    setUp
+                    testAddItemTasksToFolderFromJson
+                    testAddItemTasksToFolderFromSlicerCli
+                    testConfigureCeleryTaskFolder
+                    testConfigureCeleryTaskInvalidTask
+                    testConfigureCeleryTaskItemDefaults
+                    testConfigureCeleryTaskItemNoRedescribe
+                    testConfigureCeleryTaskItemNoRename
+                    testConfigureCeleryTaskPermissions
+                    testConfigureCeleryTaskUnknownExtension
+                    testConfigureCeleryTaskUnknownTask
+                    testConfigureItemTaskFromJson
+                    testConfigureItemTaskFromSlicerCli
+                    testExecuteCeleryTask
+                    testItemTaskGetEndpointMinMax
+                    testListExtensions
+                setUpModule
+                tearDownModule
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            install_requires
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
+    jobs
+        girder_jobs
+            JobsPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
             constants
                 JOB_HANDLER_LOCAL
                 JobStatus
@@ -1306,7 +1585,6 @@ plugins
                     listAllJobs
                     listJobs
                     updateJob
-            load
             models
                 job
                     Job
@@ -1316,6 +1594,7 @@ plugins
                         createLocalJob
                         filter
                         find
+                        findWithPermissions
                         getAllTypesAndStatuses
                         initialize
                         list
@@ -1328,16 +1607,71 @@ plugins
                         updateJob
                         validate
             scheduleLocal
-        web_client
-            collections
-            models
-            stylesheets
-            templates
-            views
-    jquery_widgets
-        server
-            load
+            web_client
+                collections
+                models
+                stylesheets
+                templates
+                views
+        plugin_tests
+            jobs_test
+                JobsTestCase
+                    setUp
+                    testCancelJob
+                    testCancelJobEndpoint
+                    testCreateJobRest
+                    testDefaultParentId
+                    testDotsInKwargs
+                    testFiltering
+                    testIsParentIdCorrect
+                    testJobProgressAndNotifications
+                    testJobSaveEventModification
+                    testJobStateTransitions
+                    testJobs
+                    testJobsTypesAndStatuses
+                    testLegacyLogBehavior
+                    testListAllJobs
+                    testListChildJobs
+                    testListChildJobsRest
+                    testListJobs
+                    testLocalJob
+                    testParentCannotBeEqualToChild
+                    testParentIdCannotBeOverridden
+                    testSetParentCorrectly
+                    testUpdateOtherFields
+                    testValidateCustomStatus
+                    testValidateCustomStrStatus
+                setUpModule
+                tearDownModule
+            local_job_impl
+                fail
+                run
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
     ldap
+        girder_ldap
+            LDAPPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            constants
+                PluginSettings
+                    LDAP_SERVERS
+            web_client
+                stylesheets
+                templates
+                views
         plugin_tests
             ldap_test
                 LdapTestCase
@@ -1350,67 +1684,79 @@ plugins
                     unbind_s
                 setUpModule
                 tearDownModule
-        server
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            version
+            zip_safe
+    metadata_history
+        girder_metadata_history
+            MetadataHistoryPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
             constants
                 PluginSettings
-                    LDAP_SERVERS
-            load
-        web_client
-            stylesheets
-            templates
-            views
-    metadata_extractor
+                    PROVENANCE_RESOURCES
+            resource
+                ResourceExt
+                    addProvenanceEvent
+                    bindModels
+                    createExistingProvenance
+                    createNewProvenance
+                    fileRemoveHandler
+                    fileSaveCreatedHandler
+                    fileSaveHandler
+                    getGetHandler
+                    getProvenanceUser
+                    incrementVersion
+                    provenanceGetHandler
+                    resourceCopyHandler
+                    resourceDifference
+                    resourceSaveHandler
+                    snapshotResource
+                    unbindModels
+                    updateProvenance
+            validateProvenanceResources
+            web_client
+                templates
+                views
         plugin_tests
-            client_metadata_extractor_test
-                ClientMetadataExtractorTestCase
-                    testClientMetadataExtractor
-                setUpModule
-                tearDownModule
-            files
-            metadata_extractor_test
-                MetadataExtractorTestCase
+            provenance_test
+                ProvenanceTestCase
                     setUp
-            server_metadata_extractor_test
-                ServerMetadataExtractorTestCase
-                    testServerMetadataExtractor
+                    testProvenanceFileWithoutItem
+                    testProvenanceFolder
+                    testProvenanceItemFiles
+                    testProvenanceItemMetadata
+                    testProvenanceSetting
                 setUpModule
                 tearDownModule
-        server
-            handler
-            load
-            metadata_extractor
-                ClientMetadataExtractor
-                MetadataExtractor
-                    extractMetadata
-                ServerMetadataExtractor
-    mongo_search
-        plugin_tests
-            search_test
-                MongoSearchTestCase
-                    testMongoSearch
-                setUpModule
-                tearDownModule
-        server
-            ResourceExt
-                dataType
-                mongoSearch
-            load
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            version
+            zip_safe
     oauth
-        plugin_tests
-            oauth_test
-                OauthTest
-                    mockOtherRequest
-                    setUp
-                    testBitbucketOauth
-                    testBoxOauth
-                    testDeriveLogin
-                    testGithubOauth
-                    testGlobusOauth
-                    testGoogleOauth
-                    testLinkedinOauth
-                setUpModule
-                tearDownModule
-        server
+        girder_oauth
+            OAuthPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
             checkOauthUser
             constants
                 PluginSettings
@@ -1428,7 +1774,6 @@ plugins
                     LINKEDIN_CLIENT_ID
                     LINKEDIN_CLIENT_SECRET
                     PROVIDERS_ENABLED
-            load
             providers
                 addProvider
                 base
@@ -1490,51 +1835,74 @@ plugins
             validateIgnoreRegistrationPolicy
             validateOtherSettings
             validateProvidersEnabled
-        web_client
-            stylesheets
-            templates
-            views
-    provenance
+            web_client
+                stylesheets
+                templates
+                views
         plugin_tests
-            provenance_test
-                ProvenanceTestCase
+            oauth_test
+                OauthTest
+                    mockOtherRequest
                     setUp
-                    testProvenanceFileWithoutItem
-                    testProvenanceFolder
-                    testProvenanceItemFiles
-                    testProvenanceItemMetadata
-                    testProvenanceSetting
+                    testBitbucketOauth
+                    testBoxOauth
+                    testDeriveLogin
+                    testGithubOauth
+                    testGlobusOauth
+                    testGoogleOauth
+                    testLinkedinOauth
                 setUpModule
                 tearDownModule
-        server
-            constants
-                PluginSettings
-                    PROVENANCE_RESOURCES
-            load
-            resource
-                ResourceExt
-                    addProvenanceEvent
-                    bindModels
-                    createExistingProvenance
-                    createNewProvenance
-                    fileRemoveHandler
-                    fileSaveCreatedHandler
-                    fileSaveHandler
-                    getGetHandler
-                    getProvenanceUser
-                    incrementVersion
-                    provenanceGetHandler
-                    resourceCopyHandler
-                    resourceDifference
-                    resourceSaveHandler
-                    snapshotResource
-                    unbindModels
-                    updateProvenance
-            validateProvenanceResources
-        web_client
-            templates
-            views
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
+    table_view
+        girder_table_view
+            TableViewPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            web_client
+                stylesheets
+                templates
+                views
+        plugin_tests
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
     terms
+        girder_terms
+            TermsPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            acceptCollectionTerms
+            afterPostPutCollection
+            web_client
+                models
+                stylesheets
+                templates
+                views
         plugin_tests
             terms_test
                 TermsTest
@@ -1542,16 +1910,42 @@ plugins
                     testTerms
                 setUpModule
                 tearDownModule
-        server
-            acceptCollectionTerms
-            afterPostPutCollection
-            load
-        web_client
-            models
-            stylesheets
-            templates
-            views
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
     thumbnails
+        girder_thumbnails
+            ThumbnailsPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            removeThumbnailLink
+            removeThumbnails
+            rest
+                Thumbnail
+                    createThumbnail
+            utils
+                scheduleThumbnailJob
+            web_client
+                models
+                stylesheets
+                templates
+                views
+            worker
+                attachThumbnail
+                createThumbnail
+                run
+                scaleDicomLevels
         plugin_tests
             data
             thumbnail_test
@@ -1563,43 +1957,56 @@ plugins
                     testThumbnailCreation
                 setUpModule
                 tearDownModule
-        server
-            load
-            removeThumbnailLink
-            removeThumbnails
-            rest
-                Thumbnail
-                    createThumbnail
-            utils
-                scheduleThumbnailJob
-            worker
-                attachThumbnail
-                createThumbnail
-                run
-                scaleDicomLevels
-        web_client
-            models
-            stylesheets
-            templates
-            views
-    tmp
-    user_quota
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            install_requires
+            license
+            name
+            packages
+            version
+            zip_safe
+    treeview
+        girder_treeview
+            TreeviewPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            web_client
+                builtin
+                stylesheets
+                templates
+                utils
+                views
         plugin_tests
-            user_quota_test
-                QuotaTestCase
-                    setUp
-                    testAssetstorePolicy
-                    testFormatSize
-                    testPolicySettings
-                    testQuotaPolicy
-                setUpModule
-                tearDownModule
-        server
+            files
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            url
+            version
+            zip_safe
+    user_quota
+        girder_user_quota
+            UserQuotaPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
             constants
                 PluginSettings
                     QUOTA_DEFAULT_COLLECTION_QUOTA
                     QUOTA_DEFAULT_USER_QUOTA
-            load
             quota
                 QUOTA_FIELD
                 QuotaPolicy
@@ -1612,73 +2019,57 @@ plugins
                     setUserQuota
                 ValidateSizeQuota
             validateSettings
-        web_client
-            models
-            stylesheets
-            templates
-            utilities
-            views
-    vega
-        web_client
-            stylesheets
-            templates
-            views
-    worker
+            web_client
+                models
+                stylesheets
+                templates
+                utilities
+                views
         plugin_tests
-            worker_test
-                CustomJobStatus
-                FakeAsyncResult
-                JobStatus
-                WorkerTestCase
+            user_quota_test
+                QuotaTestCase
                     setUp
-                    testDirectPathSettingValidation
-                    testGirderInputSpec
-                    testLocalJob
-                    testWorker
-                    testWorkerCancel
-                    testWorkerDifferentTask
-                    testWorkerWithParent
-                local_job
+                    testAssetstorePolicy
+                    testFormatSize
+                    testPolicySettings
+                    testQuotaPolicy
                 setUpModule
                 tearDownModule
-                utils
-                worker
-        server
-            CustomJobStatus
-                CANCELING
-                CONVERTING_INPUT
-                CONVERTING_OUTPUT
-                FETCHING_INPUT
-                PUSHING_OUTPUT
-                isValid
-                validTransitionsCelery
-                validTransitionsWorker
-                valid_celery_transitions
-                valid_worker_transitions
-            attachJobInfoSpec
-            attachParentJob
-            cancel
-            constants
-                DOCKER_DATA_VOLUME
-                DOCKER_SCRIPTS_VOLUME
-                PluginSettings
-                    API_URL
-                    BACKEND
-                    BROKER
-                    DIRECT_PATH
-            getCeleryApp
-            load
-            schedule
-            utils
-                getWorkerApiUrl
-                girderInputSpec
-                girderOutputSpec
-                jobInfoSpec
-            validTransitions
-            validateApiUrl
-            validateJobStatus
-            validateSettings
-        web_client
-            stylesheets
-            templates
-            views
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            version
+            zip_safe
+    virtual_folders
+        girder_virtual_folders
+            VirtualFoldersPlugin
+                DISPLAY_NAME
+                load
+        plugin_tests
+            virtual_folders_test
+                VirtualFoldersTestCase
+                    setUp
+                    testRestEndpoint
+                    testVirtualFolderValidation
+                    testVirtualQuery
+                setUpModule
+                tearDownModule
+        setup
+            author
+            author_email
+            classifiers
+            description
+            entry_points
+            include_package_data
+            license
+            name
+            packages
+            version
+            zip_safe
