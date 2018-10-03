@@ -1,1 +1,2 @@
-- src: Stouts.mongodb
+- src: https://github.com/Stouts/Stouts.mongodb
+  version: "2.3.2"

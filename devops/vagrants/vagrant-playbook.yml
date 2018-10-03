@@ -25,3 +25,25 @@
         line: "export WATCH_USEPOLLING=true"
         path: "{{ ansible_user_dir }}/.bashrc"
         state: present
+        
+    - name: Install development packages for python
+      apt:
+        name: [python-dev, gcc]
+        state: present
+      become: yes
+      become_user: root
+      when: ansible_os_family == "Debian"
+      
+    - name: Install pip
+      easy_install:
+        name: pip
+        state: present
+      become: yes
+      become_user: root
+    
+    - name: Install virtualenv
+      easy_install:
+        name: virtualenv
+        state: present
+      become: yes
+      become_user: root

@@ -8,7 +8,7 @@ def true?(obj)
 end
 
 Vagrant.configure("2") do |config|
-  vagrant_box = ENV.fetch("VAGRANT_BOX", "ubuntu/trusty64")
+  vagrant_box = ENV.fetch("VAGRANT_BOX", "ubuntu/xenial64")
   ansible_example_name = ENV.fetch("GIRDER_EXAMPLE", "girder-dev-environment")
   is_testing = true?(ENV.fetch("ANSIBLE_TESTING", false))
   is_client_testing = true?(ENV.fetch("ANSIBLE_CLIENT_TESTING", false))
@@ -54,7 +54,6 @@ Vagrant.configure("2") do |config|
       ansible.groups = {
         "girder" => ["default"]
       }
-
       ansible.playbook = "devops/ansible/roles/girder/library/test/site.yml"
       ansible.galaxy_role_file = "devops/ansible/roles/girder/library/test/requirements.yml"
     else
