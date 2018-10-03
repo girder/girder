@@ -31,7 +31,6 @@ from girder.models.user import User
 
 from ..constants import JobStatus, JOB_HANDLER_LOCAL
 
-
 class Job(AccessControlledModel):
 
     def initialize(self):
@@ -47,7 +46,7 @@ class Job(AccessControlledModel):
 
         self.exposeFields(level=AccessType.READ, fields={
             'title', 'type', 'created', 'interval', 'when', 'status',
-            'progress', 'log', 'meta', '_id', 'public', 'parentId', 'async',
+            'progress', 'log', 'meta', '_id', 'public', 'parentId', 'asynq',
             'updated', 'timestamps', 'handler', 'jobInfoSpec'})
 
         self.exposeFields(level=AccessType.SITE_ADMIN, fields={'args', 'kwargs'})
@@ -200,6 +199,7 @@ class Job(AccessControlledModel):
 
         return self.save(job)
 
+	@events.deprecated_async
     def createJob(self, title, type, args=(), kwargs=None, user=None, when=None,
                   interval=0, public=False, handler=None, async=False,
                   save=True, parentJob=None, otherFields=None):
@@ -341,7 +341,7 @@ class Job(AccessControlledModel):
         actually scheduling and/or executing the job, except in the case when
         the handler is 'local'.
         """
-        if job.get('async') is True:
+        if job.get('asynq') is True:
             events.daemon.trigger('jobs.schedule', info=job)
         else:
             events.trigger('jobs.schedule', info=job)
