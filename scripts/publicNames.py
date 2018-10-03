@@ -5,6 +5,7 @@ import subprocess
 
 Tree = lambda: collections.defaultdict(Tree)
 
+EXCLUDE_DIRS = ['test', 'tests', 'plugin_tests']
 
 def addSymbol(symbolScope, symbolTree):
     if not symbolScope:
@@ -50,7 +51,7 @@ def addFileSymbols(filePath, symbolTree):
 def addDirSymbols(dirPath, symbolTree):
     for subName in os.listdir(dirPath):
         subPath = os.path.join(dirPath, subName)
-        if os.path.isdir(subPath):
+        if os.path.isdir(subPath) and subName not in EXCLUDE_DIRS:
             addDirSymbols(subPath, symbolTree[subName])
         elif os.path.isfile(subPath):
             subNameBase, subNameExt = os.path.splitext(subName)
