@@ -233,6 +233,7 @@ class SystemTestCase(base.TestCase):
             SettingKey.CORS_ALLOW_ORIGIN: {},
             SettingKey.CORS_ALLOW_METHODS: {},
             SettingKey.CORS_ALLOW_HEADERS: {},
+            SettingKey.CORS_EXPOSE_HEADERS: {},
         }
         allKeys = dict.fromkeys(six.viewkeys(SettingDefault.defaults))
         allKeys.update(badValues)
