@@ -73,8 +73,8 @@
         "whatwg-fetch": "^2.0.4"
     },
     "scripts": {
-        "build": "NODE_PATH=$PWD/node_modules grunt",
-        "watch": "NODE_PATH=$PWD/node_modules grunt --watch",
+        "build": "grunt",
+        "watch": "grunt --watch",
         "lint": "eslint --cache clients/web Gruntfile.js grunt_tasks scripts clients/web/test && pug-lint clients/web/src/templates",
         "docs": "esdoc"
     },
