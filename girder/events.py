@@ -62,7 +62,7 @@ def deprecated_async(func):
                                  'keyword arguments! the latter obsoletes the first.')
             warnings.warn('async keyword argumnt is deprecated, '
                           'use asynq instead', DeprecationWarning)
-            kwargs['asynchronous'] = kwargs.pop('async')
+            kwargs['asynq'] = kwargs.pop('async')
         return func(*args, **kwargs)
     return inner
 
