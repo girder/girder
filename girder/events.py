@@ -46,6 +46,7 @@ import girder
 import six
 import threading
 from functools import wraps
+import warnings
 
 from collections import OrderedDict
 from girder.utility import config
