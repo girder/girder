@@ -52,6 +52,7 @@ from collections import OrderedDict
 from girder.utility import config
 from six.moves import queue
 
+
 def deprecated_async(func):
     """A decorator, that let's us keep our old API, but deprecate it"""
     @wraps(func)
@@ -290,6 +291,7 @@ def bound(eventName, handlerName, handler):
         yield
     finally:
         unbind(eventName, handlerName)
+
 
 @deprecated_async
 def trigger(eventName, info=None, pre=None, async_=False, daemon=False):

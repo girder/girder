@@ -31,6 +31,7 @@ from girder.models.user import User
 
 from ..constants import JobStatus, JOB_HANDLER_LOCAL
 
+
 class Job(AccessControlledModel):
 
     def initialize(self):
