@@ -342,7 +342,7 @@ class Job(AccessControlledModel):
         actually scheduling and/or executing the job, except in the case when
         the handler is 'local'.
         """
-        if job.get('async_') is True:
+        if job.get('async_', job.get('async')) is True:
             events.daemon.trigger('jobs.schedule', info=job)
         else:
             events.trigger('jobs.schedule', info=job)
