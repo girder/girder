@@ -5,7 +5,7 @@ There are many ways to contribute to Girder, with varying levels of effort.  Do 
 look through the documentation first if something is unclear, and let us know how we can
 do better.
 
-- Ask a question on the `Girder users email list <http://public.kitware.com/mailman/listinfo/girder-users>`_
+- Ask a question on the `Girder Discourse <https://discourse.girder.org/>`_
 - Ask a question in the `Gitter Forum <https://gitter.im/girder/girder>`_
 - Submit a feature request or bug, or add to the discussion on the `Girder issue tracker <https://github.com/girder/girder/issues>`_
 - Submit a `Pull Request <https://github.com/girder/girder/pulls>`_ to improve Girder or its documentation
