@@ -315,7 +315,7 @@ def trigger(eventName, info=None, pre=None, async_=False, daemon=False):
     :param daemon: Whether this was triggered via ``girder.events.daemon``.
     :type daemon: bool
     """
-    e = Event(eventName, info, async=async)
+    e = Event(eventName, info, async_=async_)
     for name, handler in six.viewitems(_mapping.get(eventName, {})):
         if daemon and not async_:
             girder.logprint.warning(
