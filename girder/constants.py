@@ -170,6 +170,7 @@ class SettingKey(object):
     CORS_ALLOW_HEADERS = 'core.cors.allow_headers'
     CORS_ALLOW_METHODS = 'core.cors.allow_methods'
     CORS_ALLOW_ORIGIN = 'core.cors.allow_origin'
+    CORS_EXPOSE_HEADERS = 'core.cors.expose_headers'
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
     EMAIL_HOST = 'core.email_host'
     EMAIL_VERIFICATION = 'core.email_verification'
@@ -213,6 +214,7 @@ class SettingDefault(object):
         SettingKey.CORS_ALLOW_HEADERS:
             'Accept-Encoding, Authorization, Content-Disposition, '
             'Content-Type, Cookie, Girder-Authorization, Girder-OTP, Girder-Token',
+        SettingKey.CORS_EXPOSE_HEADERS: 'Girder-Total-Count',
         # An apache server using reverse proxy would also need
         #  X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
         #  X-Forwarded-Host, Remote-Addr
