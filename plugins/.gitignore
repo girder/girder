@@ -13,10 +13,8 @@
 !google_analytics/
 !gravatar/
 !hashsum_download/
-!hdfs_assetstore/
 !homepage/
 !item_licenses/
-!item_tasks/
 !jobs/
 !ldap/
 !oauth/

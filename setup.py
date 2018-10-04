@@ -20,7 +20,6 @@
 import os
 import re
 import itertools
-import sys
 
 from setuptools import setup, find_packages
 
@@ -65,7 +64,6 @@ extrasReqs = {
     'hashsum_download': ['girder-hashsum-download'],
     'homepage': ['girder-homepage'],
     'item_licenses': ['girder-item-licenses'],
-    'item_tasks': ['girder-item-tasks'],
     'jobs': ['girder-jobs'],
     'ldap': ['girder-ldap'],
     'oauth': ['girder-oauth'],
@@ -76,8 +74,6 @@ extrasReqs = {
     'worker': ['girder-worker'],
     'virtual_folders': ['girder-virtual-folders']
 }
-if sys.version_info[0] < 3:
-    extrasReqs['hdfs_assetstore'] = ['girder-hdfs-assetstore']
 
 extrasReqs['plugins'] = list(set(itertools.chain.from_iterable(extrasReqs.values())))
 extrasReqs['sftp'] = [

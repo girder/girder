@@ -203,7 +203,7 @@ Removed or moved plugins
 Many plugins were either deleted from the main repository, or moved to other repositories. Plugins
 that were moved to other repositories will no longer be installed via the ``[plugins]`` extra when
 installing the ``girder`` python package, but can be installed by
-``pip install girder_plugin_[name]``. If you were depending on a plugin that was deleted
+``pip install girder-[plugin_name]``. If you were depending on a plugin that was deleted
 altogether, please reach out to us on Discourse for discussion of a path forward.
 
 The following plugins were **deleted**:
@@ -219,8 +219,10 @@ The following plugins were **deleted**:
 
 The following plugins were **moved to different repositories**:
 
-* geospatial
-* worker
+* `geospatial <https://github.com/OpenGeoscience/girder_geospatial>`_
+* `hdfs_assetstore <https://github.com/girder/girder-hdfs-assetstore>`_
+* `item_tasks <https://github.com/girder/girder-item-tasks>`_
+* `worker <https://github.com/girder/girder_worker>`_
 
 1.x |ra| 2.x
 ------------

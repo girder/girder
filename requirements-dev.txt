@@ -2,7 +2,6 @@
 # to prevent pip from fetching versions from pypi.
 -e pytest_girder
 -e plugins/jobs
--e plugins/item_tasks
 
 # The following are top level dependencies.
 -e plugins/audit_logs
@@ -41,7 +40,3 @@ pytest-xdist
 python-dateutil<2.7 # required for botocore=1.9.8
 tox
 virtualenv
-
-# We want to restrict hdfs_assetstore to python 2, but this
-# does not work.  https://github.com/pypa/pip/issues/4530
-# -e plugins/hdfs_assetstore ; python_version < '3.0'

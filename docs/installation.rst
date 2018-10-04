@@ -58,9 +58,9 @@ dependencies in order to use.  By default, none of these dependencies will be
 installed; however, you can tell pip to install them using pip's
 "`extras`_ " syntax.  Each girder plugin requiring extra Python dependencies
 can be specified during the pip install.  For example, installing girder with
-support for the `item_tasks` and `dicom_viewer` plugins can be done like this: ::
+support for the ``ldap`` and ``dicom_viewer`` plugins can be done like this: ::
 
-   pip install girder[item_tasks,dicom_viewer]
+   pip install girder[ldap,dicom_viewer]
 
 There is also an extra you can use to install the dependencies for all bundled
 plugins supported in the current Python environment called ``plugins``: ::
@@ -68,7 +68,7 @@ plugins supported in the current Python environment called ``plugins``: ::
    pip install girder[plugins]
 
 .. warning:: Not all plugins are available in every Python version and platform.
-   Specifying a plugin for in an unsupported environment will raise an error.
+   Specifying a plugin in an unsupported environment will raise an error.
 
 .. _extras: https://packaging.python.org/en/latest/installing/#installing-setuptools-extras
 
@@ -95,7 +95,7 @@ dependencies: ::
 
 or: ::
 
-    pip install -e .plugins/<plugin name>
+    pip install -e ./plugins/<plugin name>
 
 to install individual plugins as well.
 
