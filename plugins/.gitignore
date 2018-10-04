@@ -19,11 +19,9 @@
 !item_tasks/
 !jobs/
 !ldap/
-!metadata_history/
 !oauth/
 !table_view/
 !terms/
 !thumbnails/
-!treeview/
 !user_quota/
 !virtual_folders/

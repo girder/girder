@@ -69,11 +69,9 @@ extrasReqs = {
     'jobs': ['girder-jobs'],
     'ldap': ['girder-ldap'],
     'oauth': ['girder-oauth'],
-    'metadata_history': ['girder-metadata-history'],
     'table_view': ['girder-table-view'],
     'terms': ['girder-terms'],
     'thumbnails': ['girder-thumbnails'],
-    'treeview': ['girder-treeview'],
     'quota': ['girder-user-quota'],
     'worker': ['girder-worker'],
     'virtual_folders': ['girder-virtual-folders']
