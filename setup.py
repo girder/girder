@@ -66,7 +66,6 @@ extrasReqs = {
     'jobs': ['girder-jobs'],
     'ldap': ['girder-ldap'],
     'oauth': ['girder-oauth'],
-    'table_view': ['girder-table-view'],
     'terms': ['girder-terms'],
     'thumbnails': ['girder-thumbnails'],
     'quota': ['girder-user-quota'],

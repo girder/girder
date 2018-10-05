@@ -223,6 +223,7 @@ The following plugins were **moved to different repositories**:
 * `geospatial <https://github.com/OpenGeoscience/girder_geospatial>`_
 * `hdfs_assetstore <https://github.com/girder/girder-hdfs-assetstore>`_
 * `item_tasks <https://github.com/girder/girder-item-tasks>`_
+* `table_view <https://github.com/girder/girder-table-view>`_
 * `worker <https://github.com/girder/girder_worker>`_
 
 1.x |ra| 2.x
