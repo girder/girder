@@ -5,7 +5,6 @@
 !audit_logs/
 !authorized_upload/
 !autojoin/
-!curation/
 !dicom_viewer/
 !download_statistics/
 !fuse/

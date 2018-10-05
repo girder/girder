@@ -220,6 +220,7 @@ The following plugins were **deleted**:
 The following plugins were **moved to different repositories**:
 
 * `candela <https://github.com/kitware/candela>`_
+* `curation (renamed to publication_approval) <https://github.com/girder/girder-publication-approval>`_
 * `geospatial <https://github.com/OpenGeoscience/girder_geospatial>`_
 * `hdfs_assetstore <https://github.com/girder/girder-hdfs-assetstore>`_
 * `item_tasks <https://github.com/girder/girder-item-tasks>`_
