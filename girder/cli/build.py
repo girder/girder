@@ -44,14 +44,11 @@ _GIRDER_BUILD_ASSETS_PATH = resource_filename('girder', 'web_client')
               help='Build girder library bundle in watch mode (implies --dev --no-reinstall).')
 @click.option('--watch-plugin',
               help='Build a girder plugin bundle in watch mode (implies --dev --no-reinstall).')
-@click.option('--npm',
+@click.option('--npm', default=os.getenv('NPM_EXE', 'npm'),
               help='Full path to the npm executable to use.')
 @click.option('--reinstall/--no-reinstall', default=True,
               help='Force regenerate node_modules.')
 def main(dev, watch, watch_plugin, npm, reinstall):
-    if npm is None:
-        npm = os.getenv('NPM_EXE', 'npm')
-
     if shutil.which(npm) is None:
         raise click.UsageError(
             'No npm executable was detected.  Please ensure the npm executable is in your '
