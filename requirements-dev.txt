@@ -26,7 +26,7 @@ coverage
 flake8
 flake8-blind-except
 flake8-docstrings>=1.3
-girder-worker==0.5.1.dev68
+girder-worker
 httmock
 mock
 mongomock
