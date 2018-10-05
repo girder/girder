@@ -44,14 +44,18 @@ _GIRDER_BUILD_ASSETS_PATH = resource_filename('girder', 'web_client')
               help='Build girder library bundle in watch mode (implies --dev --no-reinstall).')
 @click.option('--watch-plugin',
               help='Build a girder plugin bundle in watch mode (implies --dev --no-reinstall).')
+@click.option('--npm',
+              help='Full path to the npm executable to use.')
 @click.option('--reinstall/--no-reinstall', default=True,
               help='Force regenerate node_modules.')
-def main(dev, watch, watch_plugin, reinstall):
-    npmCommand = os.getenv('NPM_EXE', 'npm')
-    if shutil.which(npmCommand) is None:
+def main(dev, watch, watch_plugin, npm, reinstall):
+    if npm is None:
+        npm = os.getenv('NPM_EXE', 'npm')
+
+    if shutil.which(npm) is None:
         raise click.UsageError(
             'No npm executable was detected.  Please ensure the npm executable is in your '
-            'path or set the "NPM_EXE" environment variable.'
+            'path, use the --npm flag, or set the "NPM_EXE" environment variable.'
         )
 
     if watch and watch_plugin:
@@ -71,11 +75,11 @@ def main(dev, watch, watch_plugin, reinstall):
         if os.path.exists(npmLockFile):
             os.unlink(npmLockFile)
 
-        check_call([npmCommand, 'install'], cwd=staging)
+        check_call([npm, 'install'], cwd=staging)
 
     quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
     buildCommand = [
-        npmCommand, 'run', 'build', '--', '--static-path=%s' % STATIC_ROOT_DIR, quiet]
+        npm, 'run', 'build', '--', '--static-path=%s' % STATIC_ROOT_DIR, quiet]
     if watch:
         buildCommand.append('--watch')
     if watch_plugin:
