@@ -2,10 +2,13 @@ import collections
 import os
 import six
 import subprocess
+import re
 
 Tree = lambda: collections.defaultdict(Tree)
 
-EXCLUDE_DIRS = ['test', 'tests', 'plugin_tests']
+EXCLUDE_DIRS = ['test', 'tests', 'plugin_tests', '.*egg-info']
+
+excluder = re.compile("|".join(EXCLUDE_DIRS))
 
 def addSymbol(symbolScope, symbolTree):
     if not symbolScope:
@@ -51,7 +54,7 @@ def addFileSymbols(filePath, symbolTree):
 def addDirSymbols(dirPath, symbolTree):
     for subName in os.listdir(dirPath):
         subPath = os.path.join(dirPath, subName)
-        if os.path.isdir(subPath) and subName not in EXCLUDE_DIRS:
+        if os.path.isdir(subPath) and not excluder.match(subName):
             addDirSymbols(subPath, symbolTree[subName])
         elif os.path.isfile(subPath):
             subNameBase, subNameExt = os.path.splitext(subName)
