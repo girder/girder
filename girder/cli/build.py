@@ -21,12 +21,18 @@ import json
 import os
 from pkg_resources import resource_filename
 from subprocess import check_call
+import shutil
 import sys
 
 import click
+import six
 
 from girder.constants import STATIC_ROOT_DIR
 from girder.plugin import allPlugins, getPlugin
+
+# monkey patch shutil for python < 3
+if not six.PY3:
+    import shutilwhich  # noqa
 
 _GIRDER_BUILD_ASSETS_PATH = resource_filename('girder', 'web_client')
 
@@ -38,9 +44,17 @@ _GIRDER_BUILD_ASSETS_PATH = resource_filename('girder', 'web_client')
               help='Build girder library bundle in watch mode (implies --dev --no-reinstall).')
 @click.option('--watch-plugin',
               help='Build a girder plugin bundle in watch mode (implies --dev --no-reinstall).')
+@click.option('--npm', default=os.getenv('NPM_EXE', 'npm'),
+              help='Full path to the npm executable to use.')
 @click.option('--reinstall/--no-reinstall', default=True,
               help='Force regenerate node_modules.')
-def main(dev, watch, watch_plugin, reinstall):
+def main(dev, watch, watch_plugin, npm, reinstall):
+    if shutil.which(npm) is None:
+        raise click.UsageError(
+            'No npm executable was detected.  Please ensure the npm executable is in your '
+            'path, use the --npm flag, or set the "NPM_EXE" environment variable.'
+        )
+
     if watch and watch_plugin:
         raise click.UsageError('--watch and --watch-plugins cannot be used together')
     if watch or watch_plugin:
@@ -58,11 +72,11 @@ def main(dev, watch, watch_plugin, reinstall):
         if os.path.exists(npmLockFile):
             os.unlink(npmLockFile)
 
-        check_call(['npm', 'install'], cwd=staging)
+        check_call([npm, 'install'], cwd=staging)
 
     quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
     buildCommand = [
-        'npx', 'grunt', '--static-path=%s' % STATIC_ROOT_DIR, quiet]
+        npm, 'run', 'build', '--', '--static-path=%s' % STATIC_ROOT_DIR, quiet]
     if watch:
         buildCommand.append('--watch')
     if watch_plugin:
