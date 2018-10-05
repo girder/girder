@@ -457,37 +457,24 @@ jobs:
 
   public_symbols:
     docker:
-      - image: kotfic/ctags:latest
+      - image: kotfic/girder_test:latest-py3
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
       - checkout:
           path: girder
       - run:
+          name: Create virtual environment (if necessary)
+          command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
+      - run:
+          name: Activate virtual environment
+          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+      - run:
+          name: Install tox
+          command: pip install --upgrade pip tox
+      - run:
           name: Test public symbols
-          command: |
-            set +e
-            DIFF=$(diff girder/scripts/publicNames.txt <(python girder/scripts/publicNames.py))
-            if [ "$DIFF" != "" ]; then
-
-            sdiff girder/scripts/publicNames.txt <(python girder/scripts/publicNames.py)
-
-            cat << EOF
-
-            **********************************************************
-
-            Public symbols have been introduced (or removed) and those
-            changes have not been commited to the scripts/publicNames.txt
-            file. Please run the following command:
-
-              python scripts/publicNames.py > scripts/publicNames.txt
-
-            from the root of your local repository and commit the
-            changes to scripts/publicNames.txt
-            **********************************************************
-
-            EOF
-            exit 1;
-            fi
+          command: tox -e public_names
+          working_directory: girder
 
   deploy:
     docker:
