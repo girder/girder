@@ -58,7 +58,7 @@ def main(dev, watch, watch_plugin, reinstall):
         if os.path.exists(npmLockFile):
             os.unlink(npmLockFile)
 
-        check_call(['npm', 'install'], cwd=staging, shell=hasattr(sys, 'getwindowsversion'))
+        check_call(['npm', 'install'], cwd=staging)
 
     quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
     buildCommand = [
@@ -74,7 +74,7 @@ def main(dev, watch, watch_plugin, reinstall):
         buildCommand.append('--env=dev')
     else:
         buildCommand.append('--env=prod')
-    check_call(buildCommand, cwd=staging, shell=hasattr(sys, 'getwindowsversion'))
+    check_call(buildCommand, cwd=staging)
 
 
 def _collectPluginDependencies():
