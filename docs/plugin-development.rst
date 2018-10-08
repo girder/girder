@@ -46,7 +46,7 @@ package we are going to create.
       package_data={ '': ['web_client'] },
       packages=find_packages(exclude=['plugin_tests']),
       zip_safe=False,
-      install_requires=['girder>=3', 'girder_jobs'],
+      install_requires=['girder>=3', 'girder-jobs'],
       entry_points={
           'girder.plugin': [ 'cats = girder_cats.CatsPlugin' ]
       }
