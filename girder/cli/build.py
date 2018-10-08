@@ -71,8 +71,10 @@ def main(dev, watch, watch_plugin, npm, reinstall):
         npmLockFile = os.path.join(staging, 'package-lock.json')
         if os.path.exists(npmLockFile):
             os.unlink(npmLockFile)
-
-        check_call([npm, 'install'], cwd=staging)
+        installCommand = [npm, 'install']
+        if not dev:
+            installCommand.append('--production')
+        check_call(installCommand, cwd=staging)
 
     quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
     buildCommand = [
