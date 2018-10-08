@@ -1,0 +1,33 @@
+environment:
+  matrix:
+    - PYTHON: "C:\\Python27-x64"
+    - PYTHON: "C:\\Python35-x64"
+    - PYTHON: "C:\\Python36-x64"
+    # - PYTHON: "C:\\Python37-x64"
+
+services:
+  - mongodb
+
+init:
+  - SET PROJDIR=%cd%
+  - SET ORIGPATH=%PATH%
+  # Print the build system version
+  - ver
+
+build_script:
+  # Use the specific python version for building
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%ORIGPATH%"
+  # We should output the results of 'where npm' for use in the build command
+  - where npm
+  - npm install -g npm
+  - pip install -U --upgrade-strategy eager .
+  - girder build --npm="C:\Program Files (x86)\nodejs\npm.cmd"
+
+test_script:
+  - ps: $GirderProcess = Start-Process -PassThru girder serve
+  # poll the version endpoint until it gets back a sensible response
+  - python .appveyor/waitforgirder.py
+  # This should be changed to more thorough testing
+  - curl --silent --show-error --fail "127.0.0.1:8080"
+  - curl --silent --show-error --fail -X POST "127.0.0.1:8080/api/v1/user?login=admin&email=admin@admin.admin&firstName=admin&lastName=admin&password=adminadmin&admin=true" --data ''
+  - ps: Stop-Process -Id $GirderProcess.Id

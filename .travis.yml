@@ -1,0 +1,43 @@
+os: osx
+language: generic
+
+env:
+  matrix:
+    - PYTHON=2.7.15
+    - PYTHON=3.5.4
+    - PYTHON=3.6.5
+
+before_install: |
+  if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+    # brew update
+    brew install openssl readline
+
+    brew install mongodb
+    sudo mkdir -p /data/db
+    brew services start mongodb
+
+    brew install node
+
+    brew outdated pyenv || brew upgrade pyenv
+    brew install pyenv-virtualenv
+    pyenv install $PYTHON
+    export PYENV_VERSION=$PYTHON
+    export PATH="/Users/travis/.pyenv/shims:${PATH}"
+    pyenv-virtualenv venv
+    source venv/bin/activate
+    # A manual check that the correct version of Python is running.
+    python --version
+    python -m pip install -U pip
+  fi
+
+install:
+  - npm install -g npm
+  - pip install -U --upgrade-strategy eager .
+
+script:
+  - girder serve &
+  # poll the version endpoint until it gets back a sensible response
+  - python .appveyor/waitforgirder.py
+  # This should be changed to more thorough testing
+  - curl --silent --show-error --fail "127.0.0.1:8080"
+  - curl --silent --show-error --fail -X POST "127.0.0.1:8080/api/v1/user?login=admin&email=admin@admin.admin&firstName=admin&lastName=admin&password=adminadmin&admin=true" --data ''
