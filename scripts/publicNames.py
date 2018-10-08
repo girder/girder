@@ -6,7 +6,7 @@ import re
 
 Tree = lambda: collections.defaultdict(Tree)
 
-EXCLUDE_DIRS = ['test', 'tests', 'plugin_tests', '.*egg-info']
+EXCLUDE_DIRS = ['test', 'tests', 'plugin_tests', '.*egg-info', 'web_client']
 
 excluder = re.compile("|".join(EXCLUDE_DIRS))
 

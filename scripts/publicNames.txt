@@ -927,30 +927,6 @@ girder
                 dataDescriptor
                 fileHeader
             zlib
-    web_client
-        grunt_tasks
-        src
-            assets
-            collections
-            models
-            stylesheets
-                apidocs
-                body
-                layout
-                widgets
-            templates
-                body
-                layout
-                widgets
-            utilities
-                jquery
-            views
-                body
-                layout
-                widgets
-        static
-            built
-            img
     wsgi
         application
 plugins
@@ -990,10 +966,6 @@ plugins
             rest
                 AuthorizedUpload
                     createAuthorizedUpload
-            web_client
-                stylesheets
-                templates
-                views
         setup
             author
             author_email
@@ -1015,10 +987,6 @@ plugins
                 load
             userCreated
             validateSettings
-            web_client
-                stylesheets
-                templates
-                views
         setup
             author
             author_email
@@ -1033,70 +1001,7 @@ plugins
             version
             zip_safe
     candela
-        girder_candela
-            CandelaPlugin
-                CLIENT_SOURCE_PATH
-                DISPLAY_NAME
-                load
-            web_client
-                stylesheets
-                templates
-                views
-        setup
-            author
-            author_email
-            classifiers
-            description
-            entry_points
-            include_package_data
-            license
-            name
-            packages
-            url
-            version
-            zip_safe
     curation
-        girder_curation
-            APPROVED
-            CONSTRUCTION
-            CURATION
-            CuratedFolder
-                getCuration
-                setCuration
-            CurationPlugin
-                CLIENT_SOURCE_PATH
-                DISPLAY_NAME
-                load
-            DEFAULTS
-            ENABLED
-            ENABLE_USER_ID
-            REQUESTED
-            REQUEST_USER_ID
-            REVIEW_USER_ID
-            STATUS
-            TIMELINE
-            TITLE_PRIVATE
-            TITLE_PUBLIC
-            TITLE_READ_ONLY
-            TITLE_WRITEABLE
-            mail_templates
-            web_client
-                stylesheets
-                templates
-                views
-        setup
-            author
-            author_email
-            classifiers
-            description
-            entry_points
-            include_package_data
-            license
-            name
-            packages
-            url
-            version
-            zip_safe
     dicom_viewer
         girder_dicom_viewer
             DicomItem
@@ -1107,10 +1012,6 @@ plugins
                 load
             dicomSubstringSearchHandler
             event_helper
-            web_client
-                stylesheets
-                templates
-                views
         setup
             author
             author_email
@@ -1154,11 +1055,6 @@ plugins
                 GoogleAnalytics
                     getId
             validateTrackingId
-            web_client
-                lib
-                stylesheets
-                templates
-                views
         setup
             author
             author_email
@@ -1182,10 +1078,6 @@ plugins
                 DEFAULT_IMAGE
             computeBaseUrl
             getGravatar
-            web_client
-                models
-                templates
-                views
         setup
             author
             author_email
@@ -1214,10 +1106,6 @@ plugins
             PluginSettings
                 AUTO_COMPUTE
             SUPPORTED_ALGORITHMS
-            web_client
-                stylesheets
-                templates
-                views
         setup
             author
             author_email
@@ -1228,48 +1116,6 @@ plugins
             license
             name
             packages
-            url
-            version
-            zip_safe
-    hdfs_assetstore
-        girder_hdfs_assetstore
-            HDFSAssetstorePlugin
-                CLIENT_SOURCE_PATH
-                DISPLAY_NAME
-                load
-            assetstore
-                HdfsAssetstoreAdapter
-                    cancelUpload
-                    capacityInfo
-                    deleteFile
-                    downloadFile
-                    finalizeUpload
-                    initUpload
-                    requestOffset
-                    uploadChunk
-                    validateInfo
-            createAssetstore
-            getAssetstore
-            rest
-                HdfsAssetstoreResource
-                    importData
-            updateAssetstore
-            web_client
-                models
-                stylesheets
-                templates
-                views
-        setup
-            author
-            author_email
-            classifiers
-            description
-            entry_points
-            include_package_data
-            license
-            name
-            packages
-            python_requires
             url
             version
             zip_safe
@@ -1291,10 +1137,6 @@ plugins
                 Homepage
                     getAssets
                     getSettings
-            web_client
-                stylesheets
-                templates
-                views
         setup
             author
             author_email
@@ -1328,10 +1170,6 @@ plugins
             validateItem
             validateLicenses
             validateString
-            web_client
-                stylesheets
-                templates
-                views
         setup
             author
             author_email
@@ -1345,68 +1183,6 @@ plugins
             version
             zip_safe
     item_tasks
-        demo
-        devops
-            playbooks
-                post-tasks
-        girder_item_tasks
-            ItemTasksPlugin
-                CLIENT_SOURCE_PATH
-                DISPLAY_NAME
-                load
-            celery_tasks
-                celeryTaskDescriptionForFolder
-                describeCeleryTaskItem
-                describeItemTaskFromFunction
-                listGirderWorkerExtensions
-                runCeleryTask
-            cli_parser
-                parseSlicerCliXml
-            constants
-                ACCESS_FLAG_EXECUTE_TASK
-                TOKEN_SCOPE_AUTO_CREATE_CLI
-                TOKEN_SCOPE_EXECUTE_TASK
-            json_tasks
-                configureItemTaskFromJson
-                createItemTasksFromJson
-                hide
-                paramType
-                runJsonTasksDescriptionForFolder
-                runJsonTasksDescriptionForItem
-            load
-            rest
-                ItemTask
-                    executeTask
-                    listTasks
-            slicer_cli_tasks
-                configureItemTaskFromSlicerCliXml
-                createItemTasksFromSlicerCliXml
-                default
-                hide
-                runSlicerCliTasksDescriptionForFolder
-                runSlicerCliTasksDescriptionForItem
-            web_client
-                collections
-                extra
-                    bootstrap-colorpicker
-                models
-                stylesheets
-                templates
-                views
-        setup
-            author
-            author_email
-            classifiers
-            description
-            entry_points
-            include_package_data
-            install_requires
-            license
-            name
-            packages
-            url
-            version
-            zip_safe
     jobs
         girder_jobs
             JobsPlugin
@@ -1460,12 +1236,6 @@ plugins
                         updateJob
                         validate
             scheduleLocal
-            web_client
-                collections
-                models
-                stylesheets
-                templates
-                views
         setup
             author
             author_email
@@ -1488,10 +1258,6 @@ plugins
             constants
                 PluginSettings
                     LDAP_SERVERS
-            web_client
-                stylesheets
-                templates
-                views
         setup
             author
             author_email
@@ -1505,49 +1271,6 @@ plugins
             version
             zip_safe
     metadata_history
-        girder_metadata_history
-            MetadataHistoryPlugin
-                CLIENT_SOURCE_PATH
-                DISPLAY_NAME
-                load
-            constants
-                PluginSettings
-                    PROVENANCE_RESOURCES
-            resource
-                ResourceExt
-                    addProvenanceEvent
-                    bindModels
-                    createExistingProvenance
-                    createNewProvenance
-                    fileRemoveHandler
-                    fileSaveCreatedHandler
-                    fileSaveHandler
-                    getGetHandler
-                    getProvenanceUser
-                    incrementVersion
-                    provenanceGetHandler
-                    resourceCopyHandler
-                    resourceDifference
-                    resourceSaveHandler
-                    snapshotResource
-                    unbindModels
-                    updateProvenance
-            validateProvenanceResources
-            web_client
-                templates
-                views
-        setup
-            author
-            author_email
-            classifiers
-            description
-            entry_points
-            include_package_data
-            license
-            name
-            packages
-            version
-            zip_safe
     oauth
         girder_oauth
             OAuthPlugin
@@ -1632,10 +1355,6 @@ plugins
             validateIgnoreRegistrationPolicy
             validateOtherSettings
             validateProvidersEnabled
-            web_client
-                stylesheets
-                templates
-                views
         setup
             author
             author_email
@@ -1650,28 +1369,6 @@ plugins
             version
             zip_safe
     table_view
-        girder_table_view
-            TableViewPlugin
-                CLIENT_SOURCE_PATH
-                DISPLAY_NAME
-                load
-            web_client
-                stylesheets
-                templates
-                views
-        setup
-            author
-            author_email
-            classifiers
-            description
-            entry_points
-            include_package_data
-            license
-            name
-            packages
-            url
-            version
-            zip_safe
     terms
         girder_terms
             TermsPlugin
@@ -1680,11 +1377,6 @@ plugins
                 load
             acceptCollectionTerms
             afterPostPutCollection
-            web_client
-                models
-                stylesheets
-                templates
-                views
         setup
             author
             author_email
@@ -1711,11 +1403,6 @@ plugins
                     createThumbnail
             utils
                 scheduleThumbnailJob
-            web_client
-                models
-                stylesheets
-                templates
-                views
             worker
                 attachThumbnail
                 createThumbnail
@@ -1735,30 +1422,6 @@ plugins
             version
             zip_safe
     treeview
-        girder_treeview
-            TreeviewPlugin
-                CLIENT_SOURCE_PATH
-                DISPLAY_NAME
-                load
-            web_client
-                builtin
-                stylesheets
-                templates
-                utils
-                views
-        setup
-            author
-            author_email
-            classifiers
-            description
-            entry_points
-            include_package_data
-            license
-            name
-            packages
-            url
-            version
-            zip_safe
     user_quota
         girder_user_quota
             UserQuotaPlugin
@@ -1781,12 +1444,6 @@ plugins
                     setUserQuota
                 ValidateSizeQuota
             validateSettings
-            web_client
-                models
-                stylesheets
-                templates
-                utilities
-                views
         setup
             author
             author_email
