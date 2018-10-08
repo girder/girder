@@ -197,6 +197,36 @@ handler, you must call :py:func:`girder.events.unbind` on the existing mapping f
     # Prints 'a' and 'b' in Girder 2, but only 'a' in Girder 3
     events.trigger('an_event')
 
+Removed or moved plugins
+++++++++++++++++++++++++
+
+Many plugins were either deleted from the main repository, or moved to other repositories. Plugins
+that were moved to other repositories will no longer be installed via the ``[plugins]`` extra when
+installing the ``girder`` python package, but can be installed by
+``pip install girder-[plugin_name]``. If you were depending on a plugin that was deleted
+altogether, please reach out to us on Discourse for discussion of a path forward.
+
+The following plugins were **deleted**:
+
+* celery_jobs
+* item_previews
+* jquery_widgets
+* metadata_extractor
+* mongo_search
+* provenance
+* treeview
+* vega
+
+The following plugins were **moved to different repositories**:
+
+* `candela <https://github.com/kitware/candela>`_
+* `curation (renamed to publication_approval) <https://github.com/girder/girder-publication-approval>`_
+* `geospatial <https://github.com/OpenGeoscience/girder_geospatial>`_
+* `hdfs_assetstore <https://github.com/girder/girder-hdfs-assetstore>`_
+* `item_tasks <https://github.com/girder/girder-item-tasks>`_
+* `table_view <https://github.com/girder/girder-table-view>`_
+* `worker <https://github.com/girder/girder_worker>`_
+
 1.x |ra| 2.x
 ------------
 

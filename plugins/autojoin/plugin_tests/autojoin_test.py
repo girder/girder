@@ -23,7 +23,7 @@ class AutoJoinTest(base.TestCase):
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
             for num in [0, 1]]
 
-    def testCuration(self):
+    def testAutoJoinBehavior(self):
         admin, user = self.users
 
         # create some groups
