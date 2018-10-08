@@ -23,7 +23,6 @@ const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const GitRevisionPlugin = require('git-revision-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const webpackPlugins = require('./webpack.plugins.js');
@@ -135,7 +134,6 @@ module.exports = function (grunt) {
         });
     }
 
-    const gitRevision = new GitRevisionPlugin();
     let versionInfo = {
         git: false,
         SHA: null,
@@ -143,20 +141,21 @@ module.exports = function (grunt) {
         date: new Date().toISOString(),
         apiVersion: pkg.version
     };
-    try {
-        // inject git revision information if possible
-        const gitHash = gitRevision.commithash();
-        Object.assign(versionInfo, {
-            git: true,
-            SHA: gitHash,
-            shortSHA: gitHash.slice(0, 8)
-        });
-    } catch (err) {
-        // The above writes a fatal error line when not inside a git repo
-        // Let the user know this is not a problem for production/non-dev installs.
-        grunt.log.oklns(
-            'You are not running in a git repository.  This is normal for non-development builds of girder.'
-        );
+    if (isDev) {
+        const GitRevisionPlugin = require('git-revision-webpack-plugin');
+        const gitRevision = new GitRevisionPlugin();
+        try {
+            // inject git revision information if possible
+            const gitHash = gitRevision.commithash();
+            Object.assign(versionInfo, {
+                git: true,
+                SHA: gitHash,
+                shortSHA: gitHash.slice(0, 8)
+            });
+        } catch (err) {
+            // The above writes a fatal error line when not inside a git repo
+            grunt.log.oklns('You are not running in a git repository.');
+        }
     }
 
     // TODO: Eventually we should refactor the setup.py to use setuptools scm and avoid
