@@ -1326,3 +1326,39 @@ plugins
             VirtualFoldersPlugin
                 DISPLAY_NAME
                 load
+pytest_girder
+    pytest_girder
+        assertions
+            assertStatus
+            assertStatusOk
+        fixtures
+            admin
+            bcrypt
+            db
+            fsAssetstore
+            server
+            smtp
+            user
+        plugin
+            pytest_addoption
+            pytest_configure
+        plugin_registry
+            PluginRegistry
+                generateEntrypoint
+                registerEntrypoint
+                registerTestPlugin
+        utils
+            MockSmtpReceiver
+                getMail
+                isMailQueueEmpty
+                loop
+                start
+                stop
+                waitForMail
+            MockSmtpServer
+                mailQueue
+                process_message
+            buildHeaders
+            getResponseBody
+            request
+            uploadFile

@@ -6,8 +6,13 @@ import re
 
 Tree = lambda: collections.defaultdict(Tree)
 
-EXCLUDE_DIRS = ['test', 'tests', 'plugin_tests', 'docs', '.*egg-info',
-                '^devops/ansible/roles/girder/library', '^scripts']
+EXCLUDE_DIRS = [
+    # Only look in girder, plugins and clients folders i.e. exclude all directories that don't begin
+    # with "clients" or "girder" or "plugins"
+    '^(?!(clients|girder|plugins|pytest_girder))',
+    # Exclude plugin tests
+    'plugin_tests']
+
 IGNORE_FILES = ['setup.py']
 
 excluder = re.compile("|".join(EXCLUDE_DIRS))
