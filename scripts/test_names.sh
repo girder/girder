@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set +e
 DIFF=$(diff scripts/publicNames.txt <(python scripts/publicNames.py))
