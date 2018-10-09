@@ -6,7 +6,8 @@ import re
 
 Tree = lambda: collections.defaultdict(Tree)
 
-EXCLUDE_DIRS = ['test', 'tests', 'plugin_tests', 'docs', '.*egg-info']
+EXCLUDE_DIRS = ['test', 'tests', 'plugin_tests', 'docs', '.*egg-info',
+                '^devops/ansible/roles/girder/library', '^scripts']
 IGNORE_FILES = ['setup.py']
 
 excluder = re.compile("|".join(EXCLUDE_DIRS))
