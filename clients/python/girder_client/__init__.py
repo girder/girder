@@ -98,6 +98,13 @@ class HttpError(requests.HTTPError):
         return super(HttpError, self).__str__() + '\nResponse text: ' + self.responseText
 
 
+class IncompleteResponseError(requests.HTTPError):
+    def __init__(self, message, expected, received, response=None):
+        super(IncompleteResponseError, self).__init__('%s (%d of %d bytes received)' % (
+            message, received, expected
+        ), response=response)
+
+
 class _NoopProgressReporter(object):
     reportProgress = False
 
@@ -1211,7 +1218,8 @@ class GirderClient(object):
         :param fileId: The ID of the Girder file to download.
         :param path: The path to write the file to, or a file-like object.
         """
-        created = created or self.getFile(fileId)['created']
+        fileObj = self.getFile(fileId)
+        created = created or fileObj['created']
         cacheKey = '\n'.join([self.urlBase, fileId, created])
 
         # see if file is in local cache
@@ -1235,6 +1243,11 @@ class GirderClient(object):
                 for chunk in req.iter_content(chunk_size=REQ_BUFFER_SIZE):
                     reporter.update(len(chunk))
                     tmp.write(chunk)
+
+        size = os.stat(tmp.name).st_size
+        if size != fileObj['size']:
+            os.remove(tmp.name)
+            raise IncompleteResponseError('File %s download' % fileId, fileObj['size'], size)
 
         # save file in cache
         if self.cache is not None:
