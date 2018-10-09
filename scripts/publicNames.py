@@ -6,9 +6,12 @@ import re
 
 Tree = lambda: collections.defaultdict(Tree)
 
-EXCLUDE_DIRS = ['test', 'tests', 'plugin_tests', '.*egg-info', 'web_client']
+EXCLUDE_DIRS = ['test', 'tests', 'plugin_tests', 'docs', '.*egg-info']
+IGNORE_FILES = ['setup.py']
 
 excluder = re.compile("|".join(EXCLUDE_DIRS))
+
+baseTree = Tree()
 
 def addSymbol(symbolScope, symbolTree):
     if not symbolScope:
@@ -54,11 +57,9 @@ def addFileSymbols(filePath, symbolTree):
 def addDirSymbols(dirPath, symbolTree):
     for subName in os.listdir(dirPath):
         subPath = os.path.join(dirPath, subName)
-        if os.path.isdir(subPath) and not excluder.match(subName):
-            addDirSymbols(subPath, symbolTree[subName])
-        elif os.path.isfile(subPath):
+        if os.path.isfile(subPath):
             subNameBase, subNameExt = os.path.splitext(subName)
-            if subNameExt != '.py':
+            if subNameExt != '.py' or subName in IGNORE_FILES:
                 continue
             if subName == '__init__.py':
                 # '__init__.py' adds symbols to the module-level tree
@@ -75,20 +76,37 @@ def printTree(symbolTree, level=0):
         printTree(subTree, level+1)
 
 
+def _get_subtree_hierarchy(tree, symbol_list):
+    if symbol_list == []:
+        return tree
+
+    return _get_subtree_hierarchy(tree[symbol_list.pop(0)], symbol_list)
+
+
+def _root_relative_path(directory_path, rootPath):
+    return directory_path[len(rootPath) +1:]
+
+def _valid_directory(dp, f, rootPath):
+    return os.path.splitext(f)[1] == '.py' and \
+        _root_relative_path(dp, rootPath) != '' and \
+            not excluder.search(_root_relative_path(dp, rootPath))
+
 def main():
     rootPath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-    baseTree = Tree()
-    addDirSymbols(
-        os.path.join(rootPath, 'girder'),
-        baseTree['girder']
-    )
-    addDirSymbols(
-        os.path.join(rootPath, 'plugins'),
-        baseTree['plugins']
-    )
+    # Note: that's a set comprehension not a dict comprehension
+    module_or_package_directories = {_root_relative_path(dp, rootPath)
+                                     for dp, _, fn in os.walk(rootPath) for f in fn
+                                     if _valid_directory(dp, f, rootPath)}
+
+    for d in module_or_package_directories:
+        addDirSymbols(
+            os.path.join(rootPath, d),
+            _get_subtree_hierarchy(baseTree, d.split(os.sep)))
+
 
     printTree(baseTree)
+
 
 
 if __name__ == '__main__':
