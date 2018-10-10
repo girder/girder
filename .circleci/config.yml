@@ -457,7 +457,7 @@ jobs:
 
   public_symbols:
     docker:
-      - image: kotfic/girder_test:latest-py3
+      - image: girder/girder_test:latest-py3
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
       - checkout:
