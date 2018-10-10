@@ -56,12 +56,30 @@ These results will list any failed tests. Coverage reports and any screenshots
 from failed web client tests will be attached to the build as artifact files. You can reach your
 build by clicking the build status link on your GitHub PR.
 
+Tracking Public Symbols
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Adding new public symbols to Girder's python library should only be done intentionally, as doing so
+increases the surface of the API and introduces a maintenance burden. Public symbols are packages,
+modules, and symbols within those modules that do not start with an underscore character. To help
+with this goal, public symbol addition and removal is tracked automatically as part of our CI
+process, with the full list of symbols residing in ``scripts/publicNames.txt``
+
+Any PR that adds new public symbols must regenerate the ``scripts/publicNames.txt`` file. This is
+done by running the following script::
+
+    python scripts/publicNames.py > scripts/publicNames.txt
+
+Changes to the file should be committed as a part of the PR or not all CI tests will pass.
+
+
 How to integrate a PR
 ^^^^^^^^^^^^^^^^^^^^^
 
 Getting your contributions integrated is relatively straightforward, here is the checklist:
 
 - All tests pass
+- Public symbols list is updated in ``scripts/publicNames.txt``
 - Any significant changes are added to the ``CHANGELOG.rst`` with human-readable and understandable
   text (i.e. not a commit message). Text should be placed in the "Unreleased" section, and grouped
   into the appropriate sub-section of:
