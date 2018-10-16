@@ -52,7 +52,8 @@ plugin:
     )
 
 * Move your plugin's python source code from the ``server`` directory to the package name defined
-  in your ``setup.py``.
+  in your ``setup.py``. In this example, you would move all python files from ``server`` to a new directory
+  named ``example_plugin``.
 * Create a ``package.json`` file inside your ``web_client`` directory defining an npm package.  A minimal
   example is as follows:
 
