@@ -98,7 +98,7 @@ class HttpError(requests.HTTPError):
         return super(HttpError, self).__str__() + '\nResponse text: ' + self.responseText
 
 
-class IncompleteResponseError(requests.HTTPError):
+class IncompleteResponseError(requests.RequestException):
     def __init__(self, message, expected, received, response=None):
         super(IncompleteResponseError, self).__init__('%s (%d of %d bytes received)' % (
             message, received, expected
