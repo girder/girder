@@ -31,7 +31,6 @@ import shutil
 import six
 import tempfile
 
-from contextlib import contextmanager
 from requests_toolbelt import MultipartEncoder
 from requests_toolbelt.sessions import BaseUrlSession
 
@@ -286,7 +285,10 @@ class GirderClient(BaseUrlSession):
             resp = self.post('api_key/token', params={
                 'key': apiKey
             })
-            self.setToken(resp['authToken']['token'])
+            if not resp.ok:
+                resp.raise_for_status()
+
+            self.setToken(resp.json()['authToken']['token'])
         else:
             if interactive:
                 if username is None:
@@ -296,15 +298,15 @@ class GirderClient(BaseUrlSession):
             if username is None or password is None:
                 raise Exception('A user name and password are required')
 
-            try:
-                resp = self.get('user/authentication', auth=(username, password),
-                                headers={'Girder-Token': None})
-            except requests.HTTPError as e:
-                if e.status in (401, 403):
-                    raise AuthenticationError()
-                raise
+            resp = self.get('user/authentication', auth=(username, password),
+                            headers={'Girder-Token': None})
 
-            self.setToken(resp['authToken']['token'])
+            if resp.status_code in (401, 403):
+                raise AuthenticationError()
+            elif not resp.ok:
+                resp.raise_for_status()
+            else:
+                self.setToken(resp.json()['authToken']['token'])
 
     def setToken(self, token):
         """
@@ -373,15 +375,9 @@ class GirderClient(BaseUrlSession):
 
         """
         if not self._serverApiDescription or not useCached:
-            self._serverApiDescription = self.get('describe')
+            self._serverApiDescription = self.get('describe').json()
 
         return self._serverApiDescription
-
-    def createResource(self, path, params):
-        """
-        Creates and returns a resource.
-        """
-        return self.post(path, params)
 
     def getResource(self, path, id=None, property=None):
         """
@@ -394,7 +390,7 @@ class GirderClient(BaseUrlSession):
         if property is not None:
             route += '/%s' % property
 
-        return self.get(route)
+        return self.get(route).json()
 
     def resourceLookup(self, path, test=False):
         """
@@ -406,7 +402,7 @@ class GirderClient(BaseUrlSession):
         :param test: Whether or not to return None, if the path does not
             exist, rather than throwing an exception.
         """
-        return self.get('resource/lookup', params={'path': path, 'test': test})
+        return self.get('resource/lookup', params={'path': path, 'test': test}).json()
 
     def listResource(self, path, params=None, limit=None, offset=None):
         """
@@ -421,7 +417,7 @@ class GirderClient(BaseUrlSession):
         params['limit'] = limit or DEFAULT_PAGE_LIMIT
 
         while True:
-            records = self.get(path, params)
+            records = self.get(path, params=params).json()
             for record in records:
                 yield record
 
@@ -444,7 +440,7 @@ class GirderClient(BaseUrlSession):
             params['created'] = str(created)
         if updated:
             params['updated'] = str(updated)
-        return self.put(url, params=params)
+        return self.put(url, params=params).json()
 
     def getFile(self, fileId):
         """
@@ -489,7 +485,7 @@ class GirderClient(BaseUrlSession):
             'reuseExisting': reuseExisting,
             'metadata': metadata
         }
-        return self.createResource('item', params)
+        return self.post('item', params=params).json()
 
     def getItem(self, itemId):
         """
@@ -550,7 +546,7 @@ class GirderClient(BaseUrlSession):
         }
         if admin is not None:
             params['admin'] = admin
-        return self.createResource('user', params)
+        return self.post('user', params=params).json()
 
     def listCollection(self, limit=None, offset=None):
         """
@@ -579,7 +575,7 @@ class GirderClient(BaseUrlSession):
             'description': description,
             'public': public
         }
-        return self.createResource('collection', params)
+        return self.post('collection', params=params).json()
 
     def createFolder(self, parentId, name, description='', parentType='folder',
                      public=None, reuseExisting=False, metadata=None):
@@ -609,7 +605,7 @@ class GirderClient(BaseUrlSession):
         }
         if public is not None:
             params['public'] = public
-        return self.createResource('folder', params)
+        return self.post('folder', params=params).json()
 
     def getFolder(self, folderId):
         """
@@ -667,7 +663,7 @@ class GirderClient(BaseUrlSession):
             'access': access,
             'public': public
         }
-        return self.put(path, params)
+        return self.put(path, params).json()
 
     def isFileCurrent(self, itemId, filename, filepath):
         """
@@ -732,7 +728,7 @@ class GirderClient(BaseUrlSession):
             }
             if reference:
                 params['reference'] = reference
-            obj = self.put(path, params)
+            obj = self.put(path, params).json()
             if '_id' not in obj:
                 raise Exception(
                     'After creating an upload token for replacing file '
@@ -752,7 +748,7 @@ class GirderClient(BaseUrlSession):
             }
             if reference:
                 params['reference'] = reference
-            obj = self.post('file', params)
+            obj = self.post('file', params).json()
             if '_id' not in obj:
                 raise Exception(
                     'After creating an upload token for a new file, expected '
@@ -797,9 +793,9 @@ class GirderClient(BaseUrlSession):
                 chunk = chunk.encode('utf8')
             with self.progressReporterCls(label=filename, length=size) as reporter:
                 return self.post(
-                    'file', params, data=_ProgressBytesIO(chunk, reporter=reporter))
+                    'file', params=params, data=_ProgressBytesIO(chunk, reporter=reporter))
 
-        obj = self.post('file', params)
+        obj = self.post('file', params).json()
 
         if '_id' not in obj:
             raise Exception(
@@ -876,7 +872,7 @@ class GirderClient(BaseUrlSession):
                 if self.getServerVersion() >= ['2', '2']:
                     uploadObj = self.post(
                         'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId),
-                        data=_ProgressBytesIO(chunk, reporter=reporter))
+                        data=_ProgressBytesIO(chunk, reporter=reporter)).json()
                 else:
                     # Prior to version 2.2 the server only supported multipart uploads
                     params = {
@@ -890,7 +886,7 @@ class GirderClient(BaseUrlSession):
                     )
 
                     uploadObj = self.post('file/chunk', params=params,
-                                          data=m, headers={'Content-Type': m.content_type})
+                                          data=m, headers={'Content-Type': m.content_type}).json()
 
                 if '_id' not in uploadObj:
                     raise Exception(
@@ -950,7 +946,7 @@ class GirderClient(BaseUrlSession):
         }
         if reference is not None:
             params['reference'] = reference
-        obj = self.post('file', params)
+        obj = self.post('file', params).json()
         if '_id' not in obj:
             raise Exception(
                 'After creating an upload token for a new file, expected '
@@ -979,7 +975,7 @@ class GirderClient(BaseUrlSession):
         if reference:
             params['reference'] = reference
 
-        obj = self.put(path, params)
+        obj = self.put(path, params).json()
         if '_id' not in obj:
             raise Exception(
                 'After creating an upload token for replacing file '
@@ -996,7 +992,7 @@ class GirderClient(BaseUrlSession):
         :param metadata: dictionary of metadata to set on item.
         """
         path = 'item/' + itemId + '/metadata'
-        obj = self.put(path, json=metadata)
+        obj = self.put(path, json=metadata).json()
         return obj
 
     def addMetadataToFolder(self, folderId, metadata):
@@ -1007,7 +1003,7 @@ class GirderClient(BaseUrlSession):
         :param metadata: dictionary of metadata to set on folder.
         """
         path = 'folder/' + folderId + '/metadata'
-        obj = self.put(path, json=metadata)
+        obj = self.put(path, json=metadata).json()
         return obj
 
     def transformFilename(self, name):
@@ -1132,7 +1128,7 @@ class GirderClient(BaseUrlSession):
             which will save a lookup to the server.
         """
         if name is None:
-            item = self.get('item/' + itemId)
+            item = self.get('item/' + itemId).json()
             name = item['name']
 
         offset = 0
@@ -1141,7 +1137,7 @@ class GirderClient(BaseUrlSession):
             files = self.get('item/%s/files' % itemId, params={
                 'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset
-            })
+            }).json()
 
             if first:
                 if len(files) == 1 and files[0]['name'] == name:
@@ -1185,7 +1181,7 @@ class GirderClient(BaseUrlSession):
                 'offset': offset,
                 'parentType': 'folder',
                 'parentId': folderId
-            })
+            }).json()
 
             for folder in folders:
                 local = os.path.join(dest, self.transformFilename(folder['name']))
@@ -1204,7 +1200,7 @@ class GirderClient(BaseUrlSession):
                 'folderId': folderId,
                 'limit': DEFAULT_PAGE_LIMIT,
                 'offset': offset
-            })
+            }).json()
 
             for item in items:
                 _id = item['_id']
@@ -1245,7 +1241,7 @@ class GirderClient(BaseUrlSession):
                     'offset': offset,
                     'parentType': resourceType,
                     'parentId': resourceId
-                })
+                }).json()
 
                 for folder in folders:
                     local = os.path.join(dest, self.transformFilename(folder['name']))
@@ -1311,7 +1307,7 @@ class GirderClient(BaseUrlSession):
                 'offset': offset,
                 'parentType': 'folder',
                 'parentId': ancestorFolderId
-            })
+            }).json()
 
             for folder in folders:
                 self.inheritAccessControlRecursive(folder['_id'], access, public)

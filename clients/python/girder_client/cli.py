@@ -18,7 +18,6 @@
 ###############################################################################
 import click
 import logging
-import requests
 from requests.adapters import HTTPAdapter
 from six.moves.http_client import HTTPConnection
 import sys
@@ -85,23 +84,23 @@ class GirderCli(GirderClient):
             progressReporterCls=_progressBar)
         interactive = password is None
 
-        self.sslVerify = sslVerify
+        self.authenticated = False
+        self.verify = sslVerify
         self.retries = retries
+
+        if self.retries:
+            self.mount(self.urlBase, HTTPAdapter(max_retries=self.retries))
 
         if token:
             self.setToken(token)
+            self.authenticated = True
 
         if apiKey:
             self.authenticate(apiKey=apiKey)
+            self.authenticated = True
         elif username:
             self.authenticate(username, password, interactive=interactive)
-
-    def sendRestRequest(self, *args, **kwargs):
-        with self.session() as session:
-            session.verify = self.sslVerify
-            if self.retries:
-                session.mount(self.urlBase, HTTPAdapter(max_retries=self.retries))
-            return super(GirderCli, self).sendRestRequest(*args, **kwargs)
+            self.authenticated = True
 
 
 class _HiddenOption(click.Option):
@@ -259,13 +258,14 @@ def _lookup_parent_type(client, object_id):
     object_id = client._checkResourcePath(object_id)
 
     for parent_type in ['folder', 'collection', 'user', 'item', 'file']:
-        try:
-            client.get('resource/%s/path' % object_id, parameters={'type': parent_type})
+        r = client.get('resource/%s/path' % object_id, params={'type': parent_type})
+
+        if r.ok:
             return parent_type
-        except requests.HTTPError as exc_info:
-            if exc_info.response.status_code == 400:
-                continue
-            raise
+        elif r.status_code == 400:
+            continue
+        else:
+            r.raise_for_status()
 
 
 def _CommonParameters(path_exists=False, path_writable=True,
@@ -358,8 +358,12 @@ _short_help = 'Upload files to Girder'
 @click.pass_obj
 def _upload(gc, parent_type, parent_id, local_folder,
             leaf_folders_as_items, reuse, blacklist, dry_run, reference):
+    if not gc.authenticated:
+        raise Exception('Must be authenticated to upload data')
+
     if parent_type == 'auto':
         parent_type = _lookup_parent_type(gc, parent_id)
+
     gc.upload(
         local_folder, parent_id, parent_type,
         leafFoldersAsItems=leaf_folders_as_items, reuseExisting=reuse,

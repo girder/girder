@@ -207,6 +207,7 @@ class PythonCliTestCase(base.TestCase):
 
         ]:
             client = girder_client.cli.GirderCli(username, password, **case['input'])
+
             for attribute, value in case['expected'].items():
                 self.assertEqual(getattr(client, attribute), value)
 
@@ -221,7 +222,7 @@ class PythonCliTestCase(base.TestCase):
     def testUploadDownload(self):
         localDir = os.path.join(os.path.dirname(__file__), 'testdata')
         args = ['upload', str(self.publicFolder['_id']), localDir, '--parent-type=folder']
-        with self.assertRaises(requests.HTTPError):
+        with self.assertRaises(Exception):
             invokeCli(args)
 
         with self.assertRaises(requests.HTTPError):
@@ -410,11 +411,6 @@ class PythonCliTestCase(base.TestCase):
             filename = os.path.join(downloadDir, fname)
             self.assertEqual(os.path.getmtime(filename), old_mtimes[fname])
 
-        # Check that localsync command do not show '--parent-type' option help
-        ret = invokeCli(('localsync', '--help'))
-        self.assertNotIn('--parent-type', ret['stdout'])
-        self.assertEqual(ret['exitVal'], 0)
-
         # Check that localsync command still accepts '--parent-type' argument
         ret = invokeCli(('localsync', '--parent-type', 'folder', str(subfolder['_id']),
                          downloadDir), username='mylogin', password='password')
@@ -467,14 +463,12 @@ class PythonCliTestCase(base.TestCase):
                        retries=5)
 
         def checkRetryHandler(*args, **kwargs):
-            session = gc._session
-            self.assertIsNotNone(session)
-            self.assertIn(gc.urlBase, session.adapters)
-            adapter = session.adapters[gc.urlBase]
+            self.assertIn(gc.urlBase, gc.adapters)
+            adapter = gc.adapters[gc.urlBase]
             self.assertEqual(adapter.max_retries.total, 5)
 
-        with mock.patch('girder_client.cli.GirderClient.sendRestRequest',
+        with mock.patch('girder_client.cli.GirderClient.request',
                         side_effect=checkRetryHandler) as m:
-            gc.sendRestRequest('')
+            gc.get('')
 
         self.assertTrue(m.called)

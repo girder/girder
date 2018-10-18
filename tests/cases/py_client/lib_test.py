@@ -81,13 +81,13 @@ class PythonClientTestCase(base.TestCase):
 
         # Register a user
         self.password = 'password'
-        self.user = self.client.createResource('user', params={
+        self.user = self.client.post('user', params={
             'firstName': 'First',
             'lastName': 'Last',
             'login': 'mylogin',
             'password': self.password,
             'email': 'email@email.com'
-        })
+        }).json()
         self.client.authenticate(self.user['login'], self.password)
         self.publicFolder = self.getPublicFolder(self.user)
 
@@ -95,19 +95,6 @@ class PythonClientTestCase(base.TestCase):
         shutil.rmtree(self.libTestDir, ignore_errors=True)
 
         base.TestCase.tearDown(self)
-
-    def testSession(self):
-        @httmock.urlmatch(path=r'.*/describe$')
-        def mock(url, request):
-            self.assertIn('some-header', request.headers)
-            self.assertEqual(request.headers['some-header'], 'some-value')
-
-        with httmock.HTTMock(mock):
-            with self.client.session() as session:
-                session.headers.update({'some-header': 'some-value'})
-
-                self.client.get('describe')
-                self.client.get('describe')
 
     def getPublicFolder(self, user):
             folders = list(self.client.listFolder(
@@ -173,21 +160,6 @@ class PythonClientTestCase(base.TestCase):
         # /user/me should now return our user info
         user = self.client.getResource('user/me')
         self.assertEqual(user['login'], 'mylogin')
-
-        # Test HTTP error case
-        flag = False
-        try:
-            self.client.getResource('user/badId')
-        except requests.HTTPError as e:
-            self.assertEqual(e.response.status_code, 400)
-            self.assertEqual(e.request.method, 'GET')
-            resp = e.response.json()
-            self.assertEqual(resp['type'], 'validation')
-            self.assertEqual(resp['field'], 'id')
-            self.assertEqual(resp['message'], 'Invalid ObjectId: badId')
-            flag = True
-
-        self.assertTrue(flag)
 
         # Test some folder routes
         folders = list(self.client.listFolder(
@@ -391,7 +363,7 @@ class PythonClientTestCase(base.TestCase):
 
         def mock_post(*args, **kwargs):
             if 'data' in kwargs:
-                if 'parameters' in kwargs:
+                if 'params' in kwargs:
                     multipart.append(1)
                 else:
                     non_multipart.append(1)
@@ -655,7 +627,7 @@ class PythonClientTestCase(base.TestCase):
 
         # Attempt to download file to object stream, should raise HTTPError
         with httmock.HTTMock(mock):
-            with self.assertRaises(requests.HTTPError):
+            with self.assertRaises(girder_client.IncompleteResponseError):
                 self.client.downloadFile(file['_id'], obj)
 
     def testAddMetadataToItem(self):
@@ -741,12 +713,8 @@ class PythonClientTestCase(base.TestCase):
                          item['_id'])
 
         # Test invalid path, default
-        with self.assertRaises(requests.HTTPError) as cm:
-            self.client.resourceLookup(testInvalidPath)
+        resp = self.client.resourceLookup(testInvalidPath)
 
-        self.assertEqual(cm.exception.status, 400)
-        self.assertEqual(cm.exception.method, 'GET')
-        resp = json.loads(cm.exception.responseText)
         self.assertEqual(resp['type'], 'validation')
         self.assertEqual(resp['message'],
                          'Path not found: %s' % (testInvalidPath))
@@ -767,12 +735,8 @@ class PythonClientTestCase(base.TestCase):
             item['_id'])
 
         # Test invalid path, test = False
-        with self.assertRaises(requests.HTTPError) as cm:
-            self.client.resourceLookup(testInvalidPath, test=False)
+        resp = self.client.resourceLookup(testInvalidPath, test=False)
 
-        self.assertEqual(cm.exception.response.status_code, 400)
-        self.assertEqual(cm.exception.request.method, 'GET')
-        resp = cm.exception.response.json()
         self.assertEqual(resp['type'], 'validation')
         self.assertEqual(resp['message'], 'Path not found: %s' % (testInvalidPath))
 
@@ -873,7 +837,7 @@ class PythonClientTestCase(base.TestCase):
             self.assertEqual(len(hits), 2)
 
     def testNonJsonResponse(self):
-        resp = self.client.get('user', jsonResp=False)
+        resp = self.client.get('user')
         self.assertIsInstance(resp.content, six.binary_type)
 
     def testCreateItemWithMeta(self):
