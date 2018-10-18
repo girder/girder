@@ -66,3 +66,7 @@
 
 - set_fact:
     girder_files_updated: "{{ vc.changed }}"
+
+- name: Get Girder's major version
+  shell: sed -n "s/__version__ = '\([^.]*\).*'.*/\1/p" < "{{ girder_path }}/girder/__init__.py"
+  register: girder_major_version

@@ -27,6 +27,7 @@ from ..constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingDefault,
 from .model_base import Model
 from girder import logprint
 from girder.exceptions import ValidationException
+from girder.plugin import getPlugin
 from girder.utility import config, setting_utilities
 from girder.utility._cache import cache
 from bson.objectid import ObjectId
@@ -219,13 +220,12 @@ class Setting(Model):
         names. Removes any invalid plugin names, removes duplicates, and adds
         all transitive dependencies to the enabled list.
         """
-        from girder.utility import plugin_utilities
-
         if not isinstance(doc['value'], list):
             raise ValidationException('Plugins enabled setting must be a list.', 'value')
 
-        # Add all transitive dependencies and store in toposorted order
-        doc['value'] = list(plugin_utilities.getToposortedPlugins(doc['value']))
+        for pluginName in doc['value']:
+            if getPlugin(pluginName) is None:
+                raise ValidationException('Required plugin %s does not exist.' % pluginName)
 
     @staticmethod
     @setting_utilities.validator(SettingKey.ADD_TO_GROUP_POLICY)
@@ -312,6 +312,12 @@ class Setting(Model):
         raise ValidationException(
             'Allowed origin must be a comma-separated list of base urls or * or an empty string.',
             'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.CORS_EXPOSE_HEADERS)
+    def validateCoreCorsExposeHeaders(doc):
+        if not isinstance(doc['value'], six.string_types):
+            raise ValidationException('CORS exposed headers must be a string')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.EMAIL_FROM_ADDRESS)

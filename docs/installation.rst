@@ -39,7 +39,7 @@ paths.  In order to use the web interface, you must also install the web client
 libraries. Girder installs a Python script that will automatically build and
 install these libraries for you. Just run the following command: ::
 
-   girder-install web
+   girder build
 
 .. note:: Installing the web client code requires Node.js. See the :ref:`Node.js installation guide <nodejs-install>`
           for installation instructions.
@@ -58,9 +58,9 @@ dependencies in order to use.  By default, none of these dependencies will be
 installed; however, you can tell pip to install them using pip's
 "`extras`_ " syntax.  Each girder plugin requiring extra Python dependencies
 can be specified during the pip install.  For example, installing girder with
-support for the `celery_jobs` and `geospatial` plugins can be done like this: ::
+support for the ``ldap`` and ``dicom_viewer`` plugins can be done like this: ::
 
-   pip install girder[celery_jobs,geospatial]
+   pip install girder[ldap,dicom_viewer]
 
 There is also an extra you can use to install the dependencies for all bundled
 plugins supported in the current Python environment called ``plugins``: ::
@@ -68,7 +68,7 @@ plugins supported in the current Python environment called ``plugins``: ::
    pip install girder[plugins]
 
 .. warning:: Not all plugins are available in every Python version and platform.
-   Specifying a plugin for in an unsupported environment will raise an error.
+   Specifying a plugin in an unsupported environment will raise an error.
 
 .. _extras: https://packaging.python.org/en/latest/installing/#installing-setuptools-extras
 
@@ -76,6 +76,8 @@ Install from Git repository
 +++++++++++++++++++++++++++
 
 Obtain the Girder source code by cloning the Git repository on
+**TODO: change this for girder 3**
+
 `GitHub <https://github.com>`_: ::
 
     git clone --branch 2.x-maintenance https://github.com/girder/girder.git
@@ -93,20 +95,14 @@ dependencies: ::
 
 or: ::
 
-    pip install -e .[plugins]
+    pip install -e ./plugins/<plugin name>
 
-to install the plugins as well.
-
-.. note:: This will install the most recent versions of all dependencies.
-   You can also try to run ``pip install -r requirements.txt`` to duplicate
-   the exact versions used by our CI testing environment; however, this
-   can lead to problems if you are installing other libraries in the same
-   virtual or system environment.
+to install individual plugins as well.
 
 To build the client-side code project, cd into the root of the repository
 and run: ::
 
-    girder-install web
+    girder build
 
 This will run multiple `Grunt <http://gruntjs.com>`_ tasks, to build all of
 the Javascript and CSS files needed to run the web client application.
@@ -139,8 +135,8 @@ Enable Plugins
 The next recommended action is to enable any plugins you want to run on your server.
 Click the ``Admin console`` navigation link, then click ``Plugins``. Here, you
 can turn plugins on or off. Whenever you change the set of plugins that are
-enabled, you need to press the **Rebuild and restart** button at the top of the
-Plugins page to rebuild the web client and restart the server to apply the change.
+enabled, you need to press the **Restart** button at the top of the
+Plugins page to restart the server and apply the change.
 
 For information about specific plugins, see the :ref:`Plugins <plugins>` section.
 
@@ -156,25 +152,8 @@ for a brief overview of ``Assetstores``.
 Installing third-party plugins
 ------------------------------
 
-Girder ships with a :ref:`standard library of plugins <plugins>` that can be
-enabled in the admin console, but it's common for Girder installations to require
-additional third-party plugins to be installed. If you're using a pip installed
-version of Girder, you can simply use the following command: ::
+Third party plugins are packaged as standalone python packages.  To install one,
+install the package and rebuild the web client. ::
 
-    girder-install plugin /path/to/your/plugin
-
-That command will expose the plugin to Girder and build any web client targets
-associated with the plugin. You will still need to enable it in the console and
-then restart the Girder server before it will be active.
-
-.. note:: The ``girder-install plugin`` command can also accept a list of plugins
-   to be installed. You may need to run it as root if you installed Girder at the
-   system level.
-
-For development purposes it is possible to symlink (rather than copy) the plugin
-directory. This is accomplished with the ``-s`` or ``--symlink`` flag: ::
-
-     girder-install plugin -s /path/to/your/plugin
-
-Enabled plugins installed with ``-s`` may be edited in place and those changes will
-be reflected after a server restart.
+   pip install <plugin name>
+   girder build

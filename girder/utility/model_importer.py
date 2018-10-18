@@ -87,7 +87,7 @@ class ModelImporter(object):
             if plugin == '_core':
                 module = 'girder.models.%s' % model
             else:
-                module = 'girder.plugins.%s.models.%s' % (plugin, model)
+                raise Exception('Model "%s" is not registered in plugin "%s"' % (model, plugin))
 
             _loadModel(model, module, plugin)
 

@@ -785,10 +785,10 @@ class AccessControlledModel(Model):
         # Do the bindings before calling __init__(), in case a derived class
         # wants to change things in initialize()
         events.bind('model.user.remove',
-                    CoreEventHandler.ACCESS_CONTROL_CLEANUP,
+                    '.'.join((CoreEventHandler.ACCESS_CONTROL_CLEANUP, self.__class__.__name__)),
                     self._cleanupDeletedEntity)
         events.bind('model.group.remove',
-                    CoreEventHandler.ACCESS_CONTROL_CLEANUP,
+                    '.'.join((CoreEventHandler.ACCESS_CONTROL_CLEANUP, self.__class__.__name__)),
                     self._cleanupDeletedEntity)
         super(AccessControlledModel, self).__init__()
 

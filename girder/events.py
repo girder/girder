@@ -43,10 +43,29 @@ receive the Event object as its only argument.
 
 import contextlib
 import girder
+import six
 import threading
+from functools import wraps
+import warnings
 
+from collections import OrderedDict
 from girder.utility import config
 from six.moves import queue
+
+
+def _deprecatedAsync(func):
+    """A decorator, that let's us keep our old API, but deprecate it"""
+    @wraps(func)
+    def inner(*args, **kwargs):
+        if 'async' in kwargs:
+            if 'async_' in kwargs:
+                raise ValueError('cannot use both async and async_ '
+                                 'keyword arguments! the latter obsoletes the first.')
+            warnings.warn('async keyword argumnt is deprecated, '
+                          'use async_ instead', DeprecationWarning)
+            kwargs['async_'] = kwargs.pop('async')
+        return func(*args, **kwargs)
+    return inner
 
 
 class Event(object):
@@ -60,7 +79,7 @@ class Event(object):
 
     # We might have a lot of events, so we use __slots__ to make them smaller
     __slots__ = (
-        'async',
+        'async_',
         'info',
         'name',
         'propagate',
@@ -69,14 +88,15 @@ class Event(object):
         'currentHandlerName'
     )
 
-    def __init__(self, name, info, async=False):
+    @_deprecatedAsync
+    def __init__(self, name, info, async_=False):
         self.name = name
         self.info = info
         self.propagate = True
         self.defaultPrevented = False
         self.responses = []
         self.currentHandlerName = None
-        self.async = async
+        self.async_ = async_
 
     def preventDefault(self):
         """
@@ -125,9 +145,9 @@ class ForegroundEventsDaemon(object):
 
     def trigger(self, eventName=None, info=None, callback=None):
         if eventName is None:
-            event = Event(None, info, async=False)
+            event = Event(None, info, async_=False)
         else:
-            event = trigger(eventName, info, async=False, daemon=True)
+            event = trigger(eventName, info, async_=False, daemon=True)
 
         if callable(callback):
             callback(event)
@@ -159,9 +179,9 @@ class AsyncEventsThread(threading.Thread):
             try:
                 eventName, info, callback = self.eventQueue.get(block=False)
                 if eventName is None:
-                    event = Event(None, info, async=True)
+                    event = Event(None, info, async_=True)
                 else:
-                    event = trigger(eventName, info, async=True, daemon=True)
+                    event = trigger(eventName, info, async_=True, daemon=True)
 
                 if callable(callback):
                     callback(event)
@@ -225,16 +245,15 @@ def bind(eventName, handlerName, handler):
     :type handler: function
     """
     if eventName in _deprecated:
-        girder.logger.warning('event "%s" is deprecated; %s' %
-                              (eventName, _deprecated[eventName]))
+        girder.logger.warning('event "%s" is deprecated; %s' % (eventName, _deprecated[eventName]))
 
     if eventName not in _mapping:
-        _mapping[eventName] = []
+        _mapping[eventName] = OrderedDict()
 
-    _mapping[eventName].append({
-        'name': handlerName,
-        'handler': handler
-    })
+    if handlerName in _mapping[eventName]:
+        girder.logger.warning('Event binding already exists: %s -> %s' % (eventName, handlerName))
+    else:
+        _mapping[eventName][handlerName] = handler
 
 
 def unbind(eventName, handlerName):
@@ -246,13 +265,7 @@ def unbind(eventName, handlerName):
     :param handlerName: The name that identifies the handler calling bind().
     :type handlerName: str
     """
-    if eventName not in _mapping:
-        return
-
-    for handler in _mapping[eventName]:
-        if handler['name'] == handlerName:
-            _mapping[eventName].remove(handler)
-            break
+    _mapping.get(eventName, {}).pop(handlerName, None)
 
 
 def unbindAll():
@@ -280,7 +293,8 @@ def bound(eventName, handlerName, handler):
         unbind(eventName, handlerName)
 
 
-def trigger(eventName, info=None, pre=None, async=False, daemon=False):
+@_deprecatedAsync
+def trigger(eventName, info=None, pre=None, async_=False, daemon=False):
     """
     Fire an event with the given name. All listeners bound on that name will be
     called until they are exhausted or one of the handlers calls the
@@ -295,23 +309,22 @@ def trigger(eventName, info=None, pre=None, async=False, daemon=False):
         "info" key (the info arg to this function), and "eventName" and
         "handlerName" values.
     :type pre: function or None
-    :param async: Whether this event is executing on the background thread
+    :param async_: Whether this event is executing on the background thread
         (True) or on the request thread (False).
-    :type async: bool
+    :type async_: bool
     :param daemon: Whether this was triggered via ``girder.events.daemon``.
     :type daemon: bool
     """
-    e = Event(eventName, info, async=async)
-    for handler in _mapping.get(eventName, ()):
-        if daemon and not async:
+    e = Event(eventName, info, async_=async_)
+    for name, handler in six.viewitems(_mapping.get(eventName, {})):
+        if daemon and not async_:
             girder.logprint.warning(
                 'WARNING: Handler "%s" for event "%s" was triggered on the daemon, but is '
-                'actually running synchronously.' % (handler['name'], eventName))
-        e.currentHandlerName = handler['name']
+                'actually running synchronously.' % (name, eventName))
+        e.currentHandlerName = name
         if pre is not None:
-            pre(info=info, handler=handler['handler'], eventName=eventName,
-                handlerName=handler['name'])
-        handler['handler'](e)
+            pre(info=info, handler=handler, eventName=eventName, handlerName=name)
+        handler(e)
 
         if e.propagate is False:
             break

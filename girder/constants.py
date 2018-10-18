@@ -22,11 +22,11 @@ Constants should be defined here.
 """
 import os
 import json
+import sys
 
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(PACKAGE_DIR)
 LOG_ROOT = os.path.join(os.path.expanduser('~'), '.girder', 'logs')
-ROOT_PLUGINS_PACKAGE = 'girder.plugins'
 MAX_LOG_SIZE = 1024 * 1024 * 10  # Size in bytes before logs are rotated.
 LOG_BACKUP_COUNT = 5
 ACCESS_FLAGS = {}
@@ -55,10 +55,8 @@ except IOError:
     pass
 
 #: The local directory containing the static content.
-#: Should contain ``clients/web/static``.
-STATIC_ROOT_DIR = ROOT_DIR
-if not os.path.exists(os.path.join(STATIC_ROOT_DIR, 'clients')):
-    STATIC_ROOT_DIR = PACKAGE_DIR
+STATIC_PREFIX = os.path.join(sys.prefix, 'share', 'girder')
+STATIC_ROOT_DIR = os.path.join(STATIC_PREFIX, 'static')
 
 
 def registerAccessFlag(key, name, description=None, admin=False):
@@ -170,6 +168,7 @@ class SettingKey(object):
     CORS_ALLOW_HEADERS = 'core.cors.allow_headers'
     CORS_ALLOW_METHODS = 'core.cors.allow_methods'
     CORS_ALLOW_ORIGIN = 'core.cors.allow_origin'
+    CORS_EXPOSE_HEADERS = 'core.cors.expose_headers'
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
     EMAIL_HOST = 'core.email_host'
     EMAIL_VERIFICATION = 'core.email_verification'
@@ -213,6 +212,7 @@ class SettingDefault(object):
         SettingKey.CORS_ALLOW_HEADERS:
             'Accept-Encoding, Authorization, Content-Disposition, '
             'Content-Type, Cookie, Girder-Authorization, Girder-OTP, Girder-Token',
+        SettingKey.CORS_EXPOSE_HEADERS: 'Girder-Total-Count',
         # An apache server using reverse proxy would also need
         #  X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
         #  X-Forwarded-Host, Remote-Addr

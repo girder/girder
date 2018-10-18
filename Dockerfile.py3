@@ -21,18 +21,19 @@ COPY girder /girder/girder
 COPY clients /girder/clients
 COPY plugins /girder/plugins
 COPY scripts /girder/scripts
-COPY grunt_tasks /girder/grunt_tasks
-COPY Gruntfile.js /girder/Gruntfile.js
 COPY setup.py /girder/setup.py
 COPY package.json /girder/package.json
 COPY README.rst /girder/README.rst
-
-RUN pip install --upgrade --upgrade-strategy eager --editable .[plugins]
-RUN girder-install web --all-plugins
+COPY requirements-dev.txt /girder/requirements-dev.txt
 
 # See http://click.pocoo.org/5/python3/#python-3-surrogate-handling for more detail on
 # why this is necessary.
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
+
+# TODO: Do we want to create editable installs of plugins as well?  We
+# will need a plugin only requirements file for this.
+RUN pip install --upgrade --upgrade-strategy eager --editable .
+RUN girder build
 
 ENTRYPOINT ["girder", "serve"]
