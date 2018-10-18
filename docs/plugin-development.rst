@@ -14,6 +14,23 @@ plugin for basic use cases.  For a more detailed guide, see python's own
 `packaging documentation <https://packaging.python.org/guides/distributing-packages-using-setuptools/>`_
 and `tutorial <https://python-packaging.readthedocs.io/en/latest/index.html>`_.
 
+Quick Start
+^^^^^^^^^^^
+
+We maintain a `Cookiecutter template <https://github.com/girder/cookiecutter-girder-plugin>`_
+to help developers get started with their own Girder plugin.  To generate your own plugin
+using this template, install the cookiecutter package ::
+
+    pip install cookiecutter
+
+and run this command ::
+
+    cookiecutter gh:girder/cookiecutter-girder-plugin
+
+It will ask you a few questions to customize the plugin.  For details on these options
+see the `README <https://github.com/girder/cookiecutter-girder-plugin/blob/master/README.md>`_
+in the template's git repository.
+
 Example Plugin
 ^^^^^^^^^^^^^^
 
