@@ -6,6 +6,7 @@ env:
     - PYTHON=2.7.15
     - PYTHON=3.5.4
     - PYTHON=3.6.5
+    - PYTHON=3.7.0
 
 before_install: |
   if [ "$TRAVIS_OS_NAME" == "osx" ]; then
