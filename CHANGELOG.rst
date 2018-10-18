@@ -35,6 +35,9 @@ Python Client
 
 Added Features
 --------------
+* Added an `NPM_EXE` environment variable and `--npm` flag to `girder build` to configure the npm executable used.
+  (`#2826 <https://github.com/girder/girder/pull/2826>`_).
+
 * Added a privacy notice link to the footer which can be set on the Server Configuration view of the web client (
   `#2728 <https://github.com/girder/girder/pull/2728>`_).
 

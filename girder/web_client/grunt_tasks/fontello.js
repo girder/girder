@@ -60,7 +60,7 @@ module.exports = function (grunt) {
                 dest: path.resolve(grunt.config.get('builtPath'), 'fontello/'),
                 router: function (file) {
                     // remove the first path component
-                    return file.split(path.sep).slice(1).join(path.sep);
+                    return file.split('/').slice(1).join('/');
                 }
             }
         }
