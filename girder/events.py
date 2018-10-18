@@ -53,7 +53,7 @@ from girder.utility import config
 from six.moves import queue
 
 
-def deprecated_async(func):
+def _deprecatedAsync(func):
     """A decorator, that let's us keep our old API, but deprecate it"""
     @wraps(func)
     def inner(*args, **kwargs):
@@ -88,7 +88,7 @@ class Event(object):
         'currentHandlerName'
     )
 
-    @deprecated_async
+    @_deprecatedAsync
     def __init__(self, name, info, async_=False):
         self.name = name
         self.info = info
@@ -293,7 +293,7 @@ def bound(eventName, handlerName, handler):
         unbind(eventName, handlerName)
 
 
-@deprecated_async
+@_deprecatedAsync
 def trigger(eventName, info=None, pre=None, async_=False, daemon=False):
     """
     Fire an event with the given name. All listeners bound on that name will be
