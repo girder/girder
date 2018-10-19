@@ -33,8 +33,6 @@ from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.utility.model_importer import ModelImporter
 from girder.exceptions import AccessException, ValidationException
-# Import the GirderException since it was historically defined here
-from girder.exceptions import GirderException  # noqa
 
 # pymongo3 complains about extra kwargs to find(), so we must filter them.
 _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
