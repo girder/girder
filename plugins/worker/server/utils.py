@@ -21,6 +21,7 @@ import celery
 
 from .constants import PluginSettings
 from girder.api.rest import getApiUrl
+from girder.exceptions import FilePathException
 from girder.models.file import File
 from girder.models.setting import Setting
 from girder.utility import setting_utilities
@@ -111,9 +112,10 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
         # If we are adding a file and it exists on the local filesystem include
         # that location.  This can permit the user of the specification to
         # access the file directly instead of downloading the file.
-        direct_path = File().getLocalFilePath(resource)
-        if direct_path is not None:
-            result['direct_path'] = direct_path
+        try:
+            result['direct_path'] = File().getLocalFilePath(resource)
+        except FilePathException:
+            pass
     return result
 
 
