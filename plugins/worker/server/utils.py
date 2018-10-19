@@ -113,11 +113,9 @@ def girderInputSpec(resource, resourceType='file', name=None, token=None,
         # that location.  This can permit the user of the specification to
         # access the file directly instead of downloading the file.
         try:
-            direct_path = File().getLocalFilePath(resource)
+            result['direct_path'] = File().getLocalFilePath(resource)
         except FilePathException:
-            direct_path = None
-        if direct_path is not None:
-            result['direct_path'] = direct_path
+            pass
     return result
 
 
