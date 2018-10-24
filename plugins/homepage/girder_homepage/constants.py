@@ -82,7 +82,7 @@ def _validateLogo(doc):
     except ValidationException as e:
         # Invalid ObjectId, or non-existent document
         raise ValidationException(e.message, 'value')
-    except AccessException as e:
+    except AccessException:
         raise ValidationException('Logo must be publicly readable', 'value')
 
     # Store this field natively as an ObjectId
