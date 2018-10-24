@@ -49,7 +49,7 @@ def decode(token):
     :return: The decoded string
     :rtype: str
     """
-    return token.replace('\/', '/').replace('\\\\', '\\')
+    return token.replace(r'\/', '/').replace('\\\\', '\\')
 
 
 def split(path):
