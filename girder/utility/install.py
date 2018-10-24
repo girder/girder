@@ -118,7 +118,7 @@ def _pipeOutputToProgress(proc, progress):
                 if buf:
                     buf = buf.decode('utf8', errors='ignore')
                     # Remove ANSI escape sequences
-                    buf = re.sub('(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]', '', buf)
+                    buf = re.sub(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]', '', buf)
                     # Filter out non-printable characters
                     msg = ''.join(c for c in buf if c in string.printable)
                     if msg:
