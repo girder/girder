@@ -1092,7 +1092,7 @@ class OauthTest(base.TestCase):
             })
 
         @httmock.urlmatch(scheme='https', netloc='^api.linkedin.com$',
-                          path='^/v1/people/~(?::\(.+\)?)$', method='GET')
+                          path=r'^/v1/people/~(?::\(.+\)?)$', method='GET')
         def mockLinkedinApi(url, request):
             try:
                 for account in six.viewvalues(providerInfo['accounts']):
