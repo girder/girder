@@ -67,6 +67,7 @@ clients
                 uploadFileToItem
                 uploadStreamToFolder
             HttpError
+            IncompleteResponseError
             IncorrectUploadLengthError
             REQ_BUFFER_SIZE
             cli
