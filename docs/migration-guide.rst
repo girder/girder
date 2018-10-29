@@ -162,6 +162,36 @@ The built assets are installed into a virtual environment specific static path
 Server changes
 ++++++++++++++
 
+ModelImporter behavior changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :py:class:`girder.utility.model_importer.ModelImporter` class allows model types to be mapped
+from strings, which is useful when model types must be provided by users via the REST API. In Girder
+2, there was logic to infer automatically where a model class resides without having to explicitly
+register it, but that logic was removed. If your plugin needs to expose a ``Model`` subclass for
+string-based lookup, it must be explicitly registered, e.g.
+
+.. code-block:: python
+
+  class MyModel(Model):
+     ...
+
+  ModelImporter.registerModel('my_plugin_model', MyModel, plugin='my_plugin')
+
+The ``load`` method of your plugin is a good place to register your plugin's models.
+
+In addition to explicitly requiring registration, the API of
+:py:meth:`~girder.utility.model_importer.ModelImporter.registerModel` has also changed. Before, one
+would pass the model *instance*, but now, one passes the model *class*.
+
+.. code-block:: python
+
+   # Girder 2:
+   ModelImporter.registerModel('my_thing', MyThing())
+
+   # Girder 3:
+   ModelImporter.registerModel('my_thing', MyThing)
+
 Event bindings are now unique by handler name
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -197,7 +227,7 @@ handler, you must call :py:func:`girder.events.unbind` on the existing mapping f
 
     # Prints 'a' and 'b' in Girder 2, but only 'a' in Girder 3
     events.trigger('an_event')
-	
+
 Async keyword arguments and properties changed to async\_ PR #2817
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

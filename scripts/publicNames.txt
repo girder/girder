@@ -914,7 +914,6 @@ girder
                 model
                 registerModel
                 unregisterModel
-            reinitializeAll
         optionalArgumentDecorator
         parseTimestamp
         path

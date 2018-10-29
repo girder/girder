@@ -242,7 +242,7 @@ class FakeModel(Model):
 
 @pytest.fixture
 def FakeAcMixModel(FakeAcModel):
-    model_importer._modelInstances.setdefault('_core', {})['fake_ac'] = FakeAcModel()
+    model_importer._modelClasses.setdefault('_core', {})['fake_ac'] = FakeAcModel
 
     class FakeAcMixModelClass(acl_mixin.AccessControlMixin, Model):
         def initialize(self):
