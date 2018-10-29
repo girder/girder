@@ -59,7 +59,7 @@ class ModelImporter(object):
         lazy-instantiated.
 
         :param model: The name of the model to get. This must have been
-            registered using the :py:ref
+            registered using the :py:meth:`registerModel` method.
         :type model: string
         :param plugin: Plugin identifier (if this is a plugin model).
         :type plugin: str
