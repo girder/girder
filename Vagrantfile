@@ -36,7 +36,7 @@ eos
   config.vm.synced_folder ".", "/home/vagrant/girder"
 
   config.vm.provision "ansible_local" do |ansible|
-    ansible.playbook = "devops/vagrants/vagrant-playbook.yml"
+    ansible.playbook = "devops/vagrant-playbook.yml"
     ansible.provisioning_path = "/home/vagrant/girder"
     ansible.extra_vars = {
       bind_node_modules: bind_node_modules
