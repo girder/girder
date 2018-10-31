@@ -23,11 +23,12 @@ from geojson import GeoJSON
 from pymongo import GEOSPHERE
 from pymongo.errors import OperationFailure
 
+from girder import logger
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, filtermodel
 from girder.constants import AccessType
-from girder.exceptions import RestException
+from girder.exceptions import GirderException, RestException
 from girder.models.folder import Folder
 from girder.models.item import Item
 
@@ -206,8 +207,11 @@ class GeospatialItem(Resource):
 
             if not user:
                 raise RestException('Index creation denied.', 403)
-
-            Item().collection.create_index([(field, GEOSPHERE)])
+            try:
+                Item().collection.create_index([(field, GEOSPHERE)])
+            except OperationFailure:
+                logger.exception()
+                raise GirderException('Item geo index creation failed for field %s.' % field)
 
         query = {
             field: {
