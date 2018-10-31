@@ -664,12 +664,15 @@ def endpoint(fun):
             # These are unexpected failures; send a 500 status
             logger.exception('500 Error')
             cherrypy.response.status = 500
-            t, value, tb = sys.exc_info()
-            val = {'message': '%s: %s' % (t.__name__, repr(value)),
-                   'type': 'internal'}
-            curConfig = config.getConfig()
-            if curConfig['server']['mode'] != 'production':
-                # Unless we are in production mode, send a traceback too
+            val = dict(type='internal')
+
+            if config.getConfig()['server']['mode'] == 'production':
+                # Sanitize errors in production mode
+                val['message'] = 'An unexpected error occurred on the server.'
+            else:
+                # Provide error details in non-production modes
+                t, value, tb = sys.exc_info()
+                val['message'] = '%s: %s' % (t.__name__, repr(value))
                 val['trace'] = traceback.extract_tb(tb)
 
         resp = _createResponse(val)
