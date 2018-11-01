@@ -66,10 +66,10 @@ class LogFormatter(logging.Formatter):
     """
     def formatException(self, exc):
         info = '\n'.join((
-            '  Request URL: %s %s' % (cherrypy.request.method.upper(),
-                                      cherrypy.url()),
+            '  Request URL: %s %s' % (cherrypy.request.method.upper(), cherrypy.url()),
             '  Query string: ' + cherrypy.request.query_string,
-            '  Remote IP: ' + cherrypy.request.remote.ip
+            '  Remote IP: ' + cherrypy.request.remote.ip,
+            '  Request UID: ' + getattr(cherrypy.request, 'girderRequestUid', '[none]')
         ))
         return ('%s\n'
                 'Additional info:\n'

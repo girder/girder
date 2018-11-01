@@ -30,6 +30,7 @@ import sys
 import traceback
 import types
 import unicodedata
+import uuid
 
 from dogpile.cache.util import kwarg_function_key_generator
 from girder.external.mongodb_proxy import MongoProxy
@@ -626,6 +627,9 @@ def endpoint(fun):
     def endpointDecorator(self, *path, **params):
         _setCommonCORSHeaders()
         cherrypy.lib.caching.expires(0)
+        cherrypy.request.girderRequestUid = str(uuid.uuid4())
+        setResponseHeader('Girder-Request-Uid', cherrypy.request.girderRequestUid)
+
         try:
             val = fun(self, path, params)
 
@@ -664,7 +668,7 @@ def endpoint(fun):
             # These are unexpected failures; send a 500 status
             logger.exception('500 Error')
             cherrypy.response.status = 500
-            val = dict(type='internal')
+            val = dict(type='internal', uid=cherrypy.request.girderRequestUid)
 
             if config.getConfig()['server']['mode'] == 'production':
                 # Sanitize errors in production mode
