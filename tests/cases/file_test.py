@@ -44,6 +44,14 @@ from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
 from six.moves import urllib
 
+# The latest moto/boto/botocore requires dummy credentials to function.  It is unclear if
+# this is a bug or intended behavior.
+#  https://github.com/spulec/moto/issues/1793#issuecomment-431459262
+#  https://github.com/spulec/moto/issues/1924
+os.environ['AWS_ACCESS_KEY_ID'] = "access"
+os.environ['AWS_SECRET_ACCESS_KEY'] = "secret"
+os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+
 
 def setUpModule():
     base.startServer()
@@ -1099,5 +1107,5 @@ class FileTestCase(base.TestCase):
             self.assertTrue(self.finalizeUploadBeforeCalled)
             self.assertTrue(self.finalizeUploadAfterCalled)
 
-            events.unbind('model.file.finalizeUpload.before', '_testFinalizeUploadBefore')
-            events.unbind('model.file.finalizeUpload.after', '_testFinalizeUploadAfter')
+        events.unbind('model.file.finalizeUpload.before', '_testFinalizeUploadBefore')
+        events.unbind('model.file.finalizeUpload.after', '_testFinalizeUploadAfter')
