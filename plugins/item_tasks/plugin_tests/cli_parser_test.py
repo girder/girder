@@ -74,3 +74,14 @@ class CliParserTest(base.TestCase):
                 break
         else:
             raise Exception('InputImage not added to spec.')
+
+    def test_output_directory(self):
+        spec = self.parse_file('slicer_cli.xml')
+
+        outputs = spec['outputs']
+        for output in outputs:
+            if output['name'] == 'OutputDirectory':
+                self.assertEqual(output['type'], 'new-folder')
+                break
+        else:
+            raise Exception('Output directory not added')

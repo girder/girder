@@ -139,8 +139,8 @@ describe('Run the item task', function () {
         girderTest.waitForLoad();
     });
 
-    it('configure task output', function () {
-        $('.g-outputs-container .g-select-file-button').click();
+    it('configure task file output', function () {
+        $('.g-outputs-container .g-select-file-button:first').click();
         girderTest.waitForDialog();
 
         waitsFor(function () {
@@ -200,6 +200,22 @@ describe('Run the item task', function () {
         girderTest.waitForLoad();
     });
 
+    it('configure task folder output', function () {
+        $('.g-outputs-container .g-select-file-button:eq(1)').click();
+        girderTest.waitForDialog();
+
+        waitsFor(function () {
+            return $('.modal-dialog .g-hierarchy-widget').length > 0;
+        }, 'hierarchy widget to appear');
+
+        runs(function () {
+            $('#g-input-element').val('outdir');
+            $('.modal-dialog .g-submit-button').click();
+        });
+
+        girderTest.waitForLoad();
+    });
+
     it('run the task', function () {
         $('.g-run-task').click();
 
@@ -209,7 +225,7 @@ describe('Run the item task', function () {
 
         runs(function () {
             expect($('.g-item-task-inputs-container ul>li').length).toBe(9);
-            expect($('.g-item-task-outputs-container ul>li').length).toBe(1);
+            expect($('.g-item-task-outputs-container ul>li').length).toBe(2);
             expect($('.g-input-value[input-id="--MaximumRadius"]').text()).toBe('12');
         });
     });

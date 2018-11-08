@@ -493,7 +493,8 @@ class TasksTest(base.TestCase):
                 '--MinimumSphereActivity=$input{--MinimumSphereActivity}',
                 '--MinimumSphereDistance=$input{--MinimumSphereDistance}',
                 '--SpheresPerPhantom=$input{--SpheresPerPhantom}', '$flag{--StrictSorting}',
-                '--DetectedPoints=$output{--DetectedPoints}'
+                '--DetectedPoints=$output{--DetectedPoints}',
+                '--OutputDirectory=$output{--OutputDirectory}'
             ],
             'inputs': [{
                 'description': 'Input image to be analysed.',
@@ -569,6 +570,13 @@ class TasksTest(base.TestCase):
                 'type': 'new-file',
                 'id': '--DetectedPoints',
                 'target': 'filepath'
+            }, {
+                'description': 'Test output directory argument',
+                'format': 'new-folder',
+                'id': '--OutputDirectory',
+                'name': 'OutputDirectory',
+                'target': 'filepath',
+                'type': 'new-folder'
             }]
         })
 
