@@ -82,5 +82,11 @@
       <channel>output</channel>
       <description>Fiducial points, one for each detected sphere. Will be multiple of 3.</description>
     </pointfile>
+    <directory>
+      <longflag>OutputDirectory</longflag>
+      <label>OutputDirectory</label>
+      <channel>output</channel>
+      <description>Test output directory argument</description>
+    </directory>
   </parameters>
 </executable>
