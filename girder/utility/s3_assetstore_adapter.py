@@ -51,7 +51,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     @staticmethod
     def _s3Client(connectParams):
         try:
-            return boto3.client('s3', **connectParams)
+            client = boto3.client('s3', **connectParams)
+            if 'googleapis' in connectParams.get('endpoint_url', '').split('.'):
+                client.meta.events.unregister(
+                    'before-parameter-build.s3.ListObjects',
+                    botocore.handlers.set_list_objects_encoding_type_url)
+                client._useGoogleAccessId = True
+            return client
         except Exception:
             logger.exception('S3 assetstore validation exception')
             raise ValidationException('Unable to connect to S3 assetstore')
@@ -117,6 +123,18 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             'x-amz-meta-uploader-ip': str(cherrypy.request.remote.ip)
         }
 
+    def _generatePresignedUrl(self, *args, **kwargs):
+        """
+        Wrap self.client.generate_presigned_url to allow it work with
+        Google Cloud Storage.
+
+        See https://gist.github.com/gleicon/2b8acb9f9c0f22753eaac227ff997b34
+        """
+        url = self.client.generate_presigned_url(*args, **kwargs)
+        if getattr(self.client, '_useGoogleAccessId', False):
+            url = url.replace('AWSAccessKeyId', 'GoogleAccessId')
+        return url
+
     def initUpload(self, upload):
         """
         Build the request required to initiate an authorized upload to S3.
@@ -161,7 +179,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             method = 'put_object'
             params['ContentLength'] = upload['size']
 
-        requestInfo['url'] = self.client.generate_presigned_url(ClientMethod=method, Params=params)
+        requestInfo['url'] = self._generatePresignedUrl(ClientMethod=method, Params=params)
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -198,7 +216,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if length <= 0:
             raise ValidationException('Invalid chunk length %d.' % length)
 
-        url = self.client.generate_presigned_url(ClientMethod='upload_part', Params={
+        url = self._generatePresignedUrl(ClientMethod='upload_part', Params={
             'Bucket': self.assetstore['bucket'],
             'Key': upload['s3']['key'],
             'ContentLength': length,
@@ -245,7 +263,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
             # We can't just call upload_part directly because they require a
             # seekable file object, and ours isn't.
-            url = self.client.generate_presigned_url(ClientMethod='upload_part', Params={
+            url = self._generatePresignedUrl(ClientMethod='upload_part', Params={
                 'Bucket': self.assetstore['bucket'],
                 'Key': upload['s3']['key'],
                 'ContentLength': size,
@@ -288,7 +306,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'You should not call requestOffset on a chunked direct-to-S3 upload.')
 
         headers = self._getRequestHeaders(upload)
-        url = self.client.generate_presigned_url(ClientMethod='put_object', Params={
+        url = self._generatePresignedUrl(ClientMethod='put_object', Params={
             'Bucket': self.assetstore['bucket'],
             'Key': upload['s3']['key'],
             'ACL': headers['x-amz-acl'],
@@ -329,7 +347,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     Bucket=self.assetstore['bucket'], Key=file['s3Key'],
                     UploadId=upload['s3']['uploadId'], MultipartUpload={'Parts': parts})
             else:
-                url = self.client.generate_presigned_url(
+                url = self._generatePresignedUrl(
                     ClientMethod='complete_multipart_upload', Params={
                         'Bucket': self.assetstore['bucket'],
                         'Key': upload['s3']['key'],
@@ -366,7 +384,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if contentDisposition == 'inline' and not file.get('imported'):
             params['ResponseContentDisposition'] = 'inline; filename="%s"' % file['name']
 
-        url = self.client.generate_presigned_url(ClientMethod='get_object', Params=params)
+        url = self._generatePresignedUrl(ClientMethod='get_object', Params=params)
 
         if headers:
             raise cherrypy.HTTPRedirect(url)
