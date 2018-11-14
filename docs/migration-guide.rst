@@ -137,7 +137,7 @@ Other backwards incompatible changes affecting plugins
 
     class JobsPlugin(GirderPlugin):
         def load(self, info):
-            ModelImporter.registerModel('job', Job(), 'jobs')
+            ModelImporter.registerModel('job', Job, 'jobs')
 
 
 Client build changes
