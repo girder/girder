@@ -7,6 +7,8 @@ from girder import logger
 from girder.api import access
 from girder.api.rest import Resource
 from girder.constants import AccessType, TokenScope
+from girder.models.collection import Collection
+from girder.models.group import Group
 from girder.models.user import User
 
 
@@ -105,6 +107,44 @@ def restrictUserListings():
     user.findWithPermissions = types.MethodType(restrictFindWithPermissions, user)
 
 
+def restrictCollectionAccess():
+    collection = Collection()
+    hasAccess = collection.hasAccess
+    permissionClauses = collection.permissionClauses
+
+    def restrictHasAccess(self, doc, user=None, level=AccessType.READ):
+        if user is None:
+            return False
+        return hasAccess(doc, user=user, level=level)
+
+    def restrictPermissionClauses(self, user=None, level=None, prefix=''):
+        if level is not None and user is None:
+            return {'__matchnothing': 'nothing'}
+        return permissionClauses(user=user, level=level, prefix=prefix)
+
+    collection.hasAccess = types.MethodType(restrictHasAccess, collection)
+    collection.permissionClauses = types.MethodType(restrictPermissionClauses, collection)
+
+
+def restrictGroupAccess():
+    group = Group()
+    hasAccess = group.hasAccess
+    permissionClauses = group.permissionClauses
+
+    def restrictHasAccess(self, doc, user=None, level=AccessType.READ):
+        if user is None:
+            return False
+        return hasAccess(doc, user=user, level=level)
+
+    def restrictPermissionClauses(self, user=None, level=None, prefix=''):
+        if level is not None and user is None:
+            return {'__matchnothing': 'nothing'}
+        return permissionClauses(user=user, level=level, prefix=prefix)
+
+    group.hasAccess = types.MethodType(restrictHasAccess, group)
+    group.permissionClauses = types.MethodType(restrictPermissionClauses, group)
+
+
 def load(info):
     """
     Modify most public GET routes to require them to be user-access controlled.
@@ -117,3 +157,5 @@ def load(info):
     adjustExistingRoutes(info['apiRoot'])
     modifyResourceToAdjustFutureRoutes()
     restrictUserListings()
+    restrictCollectionAccess()
+    restrictGroupAccess()
