@@ -32,7 +32,7 @@ def logprint():
 
 @pytest.fixture
 def registry(request):
-    testPluginMarkers = request.node.get_marker('plugin')
+    testPluginMarkers = request.node.iter_markers('plugin')
     pluginRegistry = PluginRegistry(include_installed_plugins=False)
     if testPluginMarkers is not None:
         for testPluginMarker in testPluginMarkers:
