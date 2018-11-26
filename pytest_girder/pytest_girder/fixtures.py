@@ -96,7 +96,7 @@ def server(db, request):
     girder.events.daemon = girder.events.AsyncEventsThread()
 
     enabledPlugins = []
-    hasPluginMarkers = request.node.get_marker('plugin') is not None
+    hasPluginMarkers = request.node.get_closest_marker('plugin') is not None
     pluginRegistry = PluginRegistry()
 
     with pluginRegistry():
