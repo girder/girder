@@ -26,11 +26,11 @@ from girder.constants import SettingKey
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 from girder.models.user import User
-from girder.utility import config, model_importer
+from girder.utility import config
 from ..constants import PluginSettings
 
 
-class ProviderBase(model_importer.ModelImporter):
+class ProviderBase(object):
     _AUTH_SCOPES = []
 
     def __init__(self, redirectUri, clientId=None, clientSecret=None):

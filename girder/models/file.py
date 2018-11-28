@@ -27,8 +27,8 @@ from girder import auditLogger, events
 from girder.constants import AccessType, CoreEventHandler, SettingKey
 from girder.exceptions import FilePathException, ValidationException
 from girder.models.setting import Setting
-from girder.utility import acl_mixin
-from girder.utility import path as path_util
+from girder.utility import acl_mixin, path as path_util
+from girder.utility.model_importer import ModelImporter
 
 
 class File(acl_mixin.AccessControlMixin, Model):
@@ -190,9 +190,9 @@ class File(acl_mixin.AccessControlMixin, Model):
         if file.get('assetstoreType'):
             try:
                 if isinstance(file['assetstoreType'], six.string_types):
-                    return self.model(file['assetstoreType'])
+                    return ModelImporter.model(file['assetstoreType'])
                 else:
-                    return self.model(*file['assetstoreType'])
+                    return ModelImporter.model(*file['assetstoreType'])
             except Exception:
                 raise ValidationException(
                     'Invalid assetstore type: %s.' % (file['assetstoreType'],))
@@ -298,7 +298,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         }, field='size', amount=sizeIncrement, multi=False)
 
         # Propagate size up to root data node
-        self.model(item['baseParentType']).increment(query={
+        ModelImporter.model(item['baseParentType']).increment(query={
             '_id': item['baseParentId']
         }, field='size', amount=sizeIncrement, multi=False)
 
@@ -435,9 +435,9 @@ class File(acl_mixin.AccessControlMixin, Model):
         if file.get('attachedToId'):
             attachedToType = file.get('attachedToType')
             if isinstance(attachedToType, six.string_types):
-                modelType = self.model(attachedToType)
+                modelType = ModelImporter.model(attachedToType)
             elif isinstance(attachedToType, list) and len(attachedToType) == 2:
-                modelType = self.model(*attachedToType)
+                modelType = ModelImporter.model(*attachedToType)
             else:
                 # Invalid 'attachedToType'
                 return True

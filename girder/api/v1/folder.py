@@ -24,6 +24,7 @@ from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
 from girder.models.folder import Folder as FolderModel
 from girder.utility import ziputil
+from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
 
 
@@ -83,7 +84,7 @@ class Folder(Resource):
         user = self.getCurrentUser()
 
         if parentType and parentId:
-            parent = self.model(parentType).load(
+            parent = ModelImporter.model(parentType).load(
                 parentId, user=user, level=AccessType.READ, exc=True)
 
             filters = {}
@@ -174,7 +175,7 @@ class Folder(Resource):
             folder = self._model.setMetadata(folder, metadata)
 
         if parentType and parentId:
-            parent = self.model(parentType).load(
+            parent = ModelImporter.model(parentType).load(
                 parentId, level=AccessType.WRITE, user=user, exc=True)
             if (parentType, parent['_id']) != (folder['parentCollection'], folder['parentId']):
                 folder = self._model.move(folder, parent, parentType)
@@ -238,7 +239,7 @@ class Folder(Resource):
     def createFolder(self, public, parentType, parentId, name, description,
                      reuseExisting, metadata):
         user = self.getCurrentUser()
-        parent = self.model(parentType).load(
+        parent = ModelImporter.model(parentType).load(
             id=parentId, user=user, level=AccessType.WRITE, exc=True)
 
         newFolder = self._model.createFolder(
@@ -337,7 +338,7 @@ class Folder(Resource):
         user = self.getCurrentUser()
         parentType = parentType or folder['parentCollection']
         if parentId:
-            parent = self.model(parentType).load(
+            parent = ModelImporter.model(parentType).load(
                 id=parentId, user=user, level=AccessType.WRITE, exc=True)
         else:
             parent = None
