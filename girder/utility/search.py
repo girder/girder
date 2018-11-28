@@ -18,8 +18,8 @@
 ###############################################################################
 from functools import partial
 
-from girder.models.model_base import ModelImporter
 from girder.exceptions import GirderException
+from girder.utility.model_importer import ModelImporter
 
 _allowedSearchMode = {}
 

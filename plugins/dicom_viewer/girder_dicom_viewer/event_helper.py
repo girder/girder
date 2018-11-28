@@ -27,7 +27,7 @@ class _EventHelper(object):
     Helper class to wait for plugin's data.process event handler to complete.
     Usage:
         with EventHelper('event.name') as helper:
-            self.model('upload').uploadFile(...)
+            Upload().uploadFile(...)
             handled = helper.wait()
     """
     def __init__(self, eventName, timeout=10):

@@ -32,6 +32,7 @@ from girder.models.item import Item
 from girder.models.upload import Upload
 from girder.api import access
 from girder.utility import RequestBodyStream
+from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
 
 
@@ -106,7 +107,7 @@ class File(Resource):
         in the designated parent.
         """
         user = self.getCurrentUser()
-        parent = self.model(parentType).load(
+        parent = ModelImporter.model(parentType).load(
             id=parentId, user=user, level=AccessType.WRITE, exc=True)
 
         if linkUrl is not None:

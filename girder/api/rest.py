@@ -338,7 +338,7 @@ def getParamJson(name, params, default=None):
         raise RestException('The %s parameter must be valid JSON.' % name)
 
 
-class loadmodel(ModelImporter):  # noqa: class name
+class loadmodel(object):  # noqa: class name
     """
     This is a decorator that can be used to load a model based on an ID param.
     For access controlled models, it will check authorization for the current
@@ -373,7 +373,7 @@ class loadmodel(ModelImporter):  # noqa: class name
 
         self.level = level
         self.force = force
-        self.modelName = model
+        self.model = model
         self.plugin = plugin
         self.exc = exc
         self.kwargs = kwargs
@@ -390,7 +390,7 @@ class loadmodel(ModelImporter):  # noqa: class name
     def __call__(self, fun):
         @six.wraps(fun)
         def wrapped(*args, **kwargs):
-            model = self.model(self.modelName, self.plugin)
+            model = ModelImporter.model(self.model, self.plugin)
 
             for raw, converted in six.viewitems(self.map):
                 id = self._getIdValue(kwargs, raw)
@@ -741,7 +741,7 @@ def _setCommonCORSHeaders():
             setResponseHeader(key, origin)
 
 
-class Resource(ModelImporter):
+class Resource(object):
     """
     All REST resources should inherit from this class, which provides utilities
     for adding resources/routes to the REST API.
@@ -1269,8 +1269,7 @@ def boundHandler(fun, ctx=None):
     specific to a Resource subclass.
 
     Plugins that add new routes to existing API resources are encouraged to use
-    this to gain access to bound convenience methods like ``self.model``,
-    ``self.boolParam``, ``self.requireParams``, etc.
+    this to gain access to bound convenience methods like ``self.getCurrentUser``, etc.
 
     :param fun: A REST endpoint.
     :type fun: callable

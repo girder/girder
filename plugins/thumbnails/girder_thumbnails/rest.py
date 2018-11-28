@@ -23,6 +23,7 @@ from girder.api.rest import filtermodel, Resource
 from girder.constants import AccessType
 from girder.exceptions import RestException
 from girder.models.file import File
+from girder.utility.model_importer import ModelImporter
 from girder_jobs.models.job import Job
 from . import utils
 
@@ -57,7 +58,8 @@ class Thumbnail(Resource):
     def createThumbnail(self, file, width, height, crop, attachToId, attachToType):
         user = self.getCurrentUser()
 
-        self.model(attachToType).load(attachToId, user=user, level=AccessType.WRITE, exc=True)
+        ModelImporter.model(attachToType).load(
+            attachToId, user=user, level=AccessType.WRITE, exc=True)
 
         width = max(width, 0)
         height = max(height, 0)

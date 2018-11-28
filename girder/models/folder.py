@@ -28,6 +28,7 @@ from .model_base import AccessControlledModel
 from girder import events
 from girder.constants import AccessType
 from girder.exceptions import ValidationException, GirderException
+from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import noProgress, setResponseTimeLimit
 
 
@@ -319,7 +320,7 @@ class Folder(AccessControlledModel):
         if (folder['baseParentType'], folder['baseParentId']) !=\
            (rootType, rootId):
             def propagateSizeChange(folder, inc):
-                self.model(folder['baseParentType']).increment(query={
+                ModelImporter.model(folder['baseParentType']).increment(query={
                     '_id': folder['baseParentId']
                 }, field='size', amount=inc, multi=False)
 
@@ -574,13 +575,13 @@ class Folder(AccessControlledModel):
         curParentType = folder['parentCollection']
 
         if curParentType in ('user', 'collection'):
-            curParentObject = self.model(curParentType).load(
+            curParentObject = ModelImporter.model(curParentType).load(
                 curParentId, user=user, level=level, force=force)
 
             if force:
                 parentFiltered = curParentObject
             else:
-                parentFiltered = self.model(curParentType).filter(curParentObject, user)
+                parentFiltered = ModelImporter.model(curParentType).filter(curParentObject, user)
 
             return [{
                 'type': curParentType,
@@ -748,7 +749,7 @@ class Folder(AccessControlledModel):
             raise ValidationException('The parentType must be folder, '
                                       'collection, or user.')
         if parent is None:
-            parent = self.model(parentType).load(srcFolder['parentId'], force=True)
+            parent = ModelImporter.model(parentType).load(srcFolder['parentId'], force=True)
         if name is None:
             name = srcFolder['name']
         if description is None:
@@ -879,7 +880,7 @@ class Folder(AccessControlledModel):
         :param folder: The folder to check.
         :type folder: dict
         """
-        return not self.model(folder.get('parentCollection')).load(
+        return not ModelImporter.model(folder.get('parentCollection')).load(
             folder.get('parentId'), force=True)
 
     def updateSize(self, doc):

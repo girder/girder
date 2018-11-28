@@ -111,7 +111,7 @@ class _FileHandle(paramiko.SFTPHandle):
         return paramiko.SFTP_OK
 
 
-class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
+class _SftpServerAdapter(paramiko.SFTPServerInterface):
     def __init__(self, server, *args, **kwargs):
         self.server = server
         paramiko.SFTPServerInterface.__init__(self, server, *args, **kwargs)
@@ -146,7 +146,7 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface, ModelImporter):
                 entries.append(info)
         elif path in ('/user', '/collection'):
             model = path[1:]
-            for doc in self.model(model).list(user=self.server.girderUser):
+            for doc in ModelImporter.model(model).list(user=self.server.girderUser):
                 entries.append(_stat(doc, model))
         else:
             obj = lookUpPath(path, filter=False, user=self.server.girderUser)
