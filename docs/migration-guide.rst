@@ -192,6 +192,14 @@ would pass the model *instance*, but now, one passes the model *class*.
    # Girder 3:
    ModelImporter.registerModel('my_thing', MyThing)
 
+Additionally, several key base classes in Girder no longer mixin ``ModelImporter``, and mixing it
+in is now generally discouraged. So instead of ``self.model``, just use ``ModelImporter.model`` if
+you must convert a string to a model instance. The following base classes are affected:
+
+* :py:class:`girder.api.rest.Resource`
+* :py:class:`girder.models.model_base.Model`
+* :py:class:`girder.utility.abstract_assetstore_adapter.AbstractAssetstoreAdapter`
+
 Event bindings are now unique by handler name
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
