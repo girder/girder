@@ -390,10 +390,13 @@ class File(acl_mixin.AccessControlMixin, Model):
 
     def getAssetstoreAdapter(self, file):
         """
-        Return the assetstore adapter for the given file.
+        Return the assetstore adapter for the given file.  Return None if the
+        file has no assetstore.
         """
         from girder.utility import assetstore_utilities
 
+        if not file.get('assetstoreId'):
+            return None
         assetstore = self._getAssetstoreModel(file).load(file['assetstoreId'])
         return assetstore_utilities.getAssetstoreAdapter(assetstore)
 

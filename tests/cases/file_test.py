@@ -1102,6 +1102,10 @@ class FileTestCase(base.TestCase):
         extracted = zip.read('Private/My Link Item').decode('utf8')
         self.assertEqual(extracted, params['linkUrl'].strip())
 
+        # The file should report no assetstore adapter
+        fileDoc = File().load(file['_id'], force=True)
+        self.assertIsNone(File().getAssetstoreAdapter(fileDoc))
+
     def tearDown(self):
         if self.testForFinalizeUpload:
             self.assertTrue(self.finalizeUploadBeforeCalled)
