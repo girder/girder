@@ -18,7 +18,7 @@ _SLICER_TO_GIRDER_WORKER_INPUT_TYPE_MAP = {
     'double-enumeration': 'number-enumeration',
     'string-enumeration': 'string-enumeration',
     'file': 'file',
-    'directory': 'folder',
+    'directory': 'directory',
     'image': 'image',
     'pointfile': 'file',
     'region': 'region'
