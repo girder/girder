@@ -28,6 +28,7 @@ from girder.utility import parseTimestamp
 from girder.utility.search import getSearchModeHandler
 from girder.utility import ziputil
 from girder.utility import path as path_util
+from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
 
 # Plugins can modify this set to allow other types to be searched
@@ -112,8 +113,8 @@ class Resource(BaseResource):
         :returns: the loaded model.
         """
         try:
-            model = self.model(kind)
-        except ImportError:
+            model = ModelImporter.model(kind)
+        except Exception:
             model = None
         if not model or (funcName and not hasattr(model, funcName)):
             raise RestException('Invalid resources format.')
@@ -196,7 +197,7 @@ class Resource(BaseResource):
         def stream():
             zip = ziputil.ZipGenerator()
             for kind in resources:
-                model = self.model(kind)
+                model = ModelImporter.model(kind)
                 for id in resources[kind]:
                     doc = model.load(id=id, user=user, level=AccessType.READ)
                     for (path, file) in model.fileList(
@@ -292,7 +293,8 @@ class Resource(BaseResource):
 
         if resources.get('item') and parentType != 'folder':
             raise RestException('Invalid parentType.')
-        return self.model(parentType).load(parentId, level=AccessType.WRITE, user=user, exc=True)
+        return ModelImporter.model(parentType).load(
+            parentId, level=AccessType.WRITE, user=user, exc=True)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(

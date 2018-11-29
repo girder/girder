@@ -25,6 +25,7 @@ from girder.exceptions import RestException
 from girder.api import access
 from girder.models.assetstore import Assetstore as AssetstoreModel
 from girder.models.file import File
+from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
 from girder.utility.s3_assetstore_adapter import DEFAULT_REGION
 
@@ -153,7 +154,7 @@ class Assetstore(Resource):
     def importData(self, assetstore, importPath, destinationId, destinationType, progress,
                    leafFoldersAsItems, fileIncludeRegex, fileExcludeRegex):
         user = self.getCurrentUser()
-        parent = self.model(destinationType).load(
+        parent = ModelImporter.model(destinationType).load(
             destinationId, user=user, level=AccessType.ADMIN, exc=True)
 
         with ProgressContext(progress, user=user, title='Importing data') as ctx:

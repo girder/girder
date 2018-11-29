@@ -18,6 +18,7 @@
 ###############################################################################
 
 import json
+import mock
 import os
 import time
 import six
@@ -233,6 +234,7 @@ class SystemTestCase(base.TestCase):
             SettingKey.CORS_ALLOW_ORIGIN: {},
             SettingKey.CORS_ALLOW_METHODS: {},
             SettingKey.CORS_ALLOW_HEADERS: {},
+            SettingKey.CORS_EXPOSE_HEADERS: {},
         }
         allKeys = dict.fromkeys(six.viewkeys(SettingDefault.defaults))
         allKeys.update(badValues)
@@ -427,16 +429,19 @@ class SystemTestCase(base.TestCase):
         del config.getConfig()['logging']
 
     def testLogLevel(self):
-        from girder import logger
+        from girder import logger, _attachFileLogHandlers
+        _attachFileLogHandlers()
         for handler in logger.handlers:
             if getattr(handler, '_girderLogHandler') == 'info':
+                handler.emit = mock.MagicMock()
                 infoEmit = handler.emit
             elif getattr(handler, '_girderLogHandler') == 'error':
+                handler.emit = mock.MagicMock()
                 errorEmit = handler.emit
         # We should be an info level
         resp = self.request(path='/system/log/level', user=self.users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json, 'INFO')
+        self.assertEqual(resp.json, 'DEBUG')
         levels = [{
             'level': 'INFO',
             'debug': (0, 0),

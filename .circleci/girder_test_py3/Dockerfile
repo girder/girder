@@ -10,9 +10,11 @@ RUN curl --silent --location https://deb.nodesource.com/setup_10.x | bash - \
   && npm install --global npm
 
 # Install Girder system prereqs (including those for all plugins)
+# Note: ctags is installed for use in the public_names CI job.
 RUN apt-get update && apt-get install --assume-yes \
     libldap2-dev \
-    libsasl2-dev
+    libsasl2-dev \
+    ctags
 
 # Install Girder development prereqs
 # Get a very recent version of CMake

@@ -24,7 +24,6 @@ from girder.constants import SettingKey
 from girder.exceptions import GirderException, ValidationException, FilePathException
 from girder.models.setting import Setting
 from girder.utility import progress, RequestBodyStream
-from .model_importer import ModelImporter
 
 
 class FileHandle(object):
@@ -122,7 +121,7 @@ class FileHandle(object):
         pass
 
 
-class AbstractAssetstoreAdapter(ModelImporter):
+class AbstractAssetstoreAdapter(object):
     """
     This defines the interface to be used by all assetstore adapters.
     """

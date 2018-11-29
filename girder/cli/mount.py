@@ -49,6 +49,8 @@ class ServerFuse(fuse.Operations):
     extended to expose metadata and other resources by extending the available
     paths.  Files can also be reached via a path shortcut of /file/<id>.
     """
+    use_ns = True
+
     def __init__(self, stat=None):
         """
         Instantiate the operations class.  This sets up tracking for open
@@ -141,9 +143,9 @@ class ServerFuse(fuse.Operations):
         attr['st_ino'] = -1
         attr['st_nlink'] = 1
         if 'updated' in doc:
-            attr['st_mtime'] = time.mktime(doc['updated'].timetuple())
+            attr['st_mtime'] = int(time.mktime(doc['updated'].timetuple()) * 1e9)
         elif 'created' in doc:
-            attr['st_mtime'] = time.mktime(doc['created'].timetuple())
+            attr['st_mtime'] = int(time.mktime(doc['created'].timetuple()) * 1e9)
         attr['st_ctime'] = attr['st_mtime']
 
         if model == 'file':
@@ -195,9 +197,10 @@ class ServerFuse(fuse.Operations):
                 entries.append(self._name(file, 'file'))
         return entries
 
-    # We don't handle extended attributes.
+    # We don't handle extended attributes or ioctl.
     getxattr = None
     listxattr = None
+    ioctl = None
 
     def access(self, path, mode):
         """
@@ -454,7 +457,7 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, plugins=None
         curConfig = config.getConfig()
         curConfig.setdefault('logging', {})['log_quiet'] = True
         curConfig.setdefault('logging', {})['log_level'] = 'FATAL'
-        girder._setupLogger()
+        girder._attachFileLogHandlers()
     if database and '://' in database:
         cherrypy.config['database']['uri'] = database
     if plugins is not None:

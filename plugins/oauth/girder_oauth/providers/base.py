@@ -26,11 +26,11 @@ from girder.constants import SettingKey
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 from girder.models.user import User
-from girder.utility import config, model_importer
+from girder.utility import config
 from ..constants import PluginSettings
 
 
-class ProviderBase(model_importer.ModelImporter):
+class ProviderBase(object):
     _AUTH_SCOPES = []
 
     def __init__(self, redirectUri, clientId=None, clientSecret=None):
@@ -213,7 +213,7 @@ class ProviderBase(model_importer.ModelImporter):
         # If they have a username on the other service, try that
         if userName:
             yield userName
-            userName = re.sub('[\W_]+', '', userName)
+            userName = re.sub(r'[\W_]+', '', userName)
             yield userName
 
             for i in range(1, 6):
@@ -222,7 +222,7 @@ class ProviderBase(model_importer.ModelImporter):
         # Next try to use the prefix from their email address
         prefix = email.split('@')[0]
         yield prefix
-        yield re.sub('[\W_]+', '', prefix)
+        yield re.sub(r'[\W_]+', '', prefix)
 
         # Finally try to use their first and last name
         yield '%s%s' % (firstName, lastName)

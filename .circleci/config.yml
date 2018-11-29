@@ -34,7 +34,7 @@ jobs:
           command: pip install --upgrade pip setuptools virtualenv
       - run:
           name: Install Girder
-          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt -e plugins/hdfs_assetstore
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt
           # Until https://github.com/pypa/pip/pull/4208 is available in pip 10, the install of
           # "requirements-dev.txt" must be run from the "girder" working directory
           working_directory: girder
@@ -263,7 +263,7 @@ jobs:
       - run:
           name: Install all pip modules
           # sftp and python client aren't installed by the ansible example
-          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt -e plugins/hdfs_assetstore
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Create Girder build directory
@@ -454,6 +454,28 @@ jobs:
       - run:
           name: Upload coverage
           command: codecov --disable search pycov gcov --root girder --file girder/build/test/coverage/py_coverage.xml girder/build/test/coverage/cobertura-coverage.xml
+
+  public_symbols:
+    docker:
+      - image: girder/girder_test:latest-py3
+    working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
+    steps:
+      - checkout:
+          path: girder
+      - run:
+          name: Create virtual environment (if necessary)
+          command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
+      - run:
+          name: Activate virtual environment
+          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+      - run:
+          name: Install tox
+          command: pip install --upgrade pip tox
+      - run:
+          name: Test public symbols
+          command: tox -e public_names
+          working_directory: girder
+
   deploy:
     docker:
       - image: girder/girder_test:latest-py3
@@ -505,6 +527,7 @@ workflows:
             - py3_serverTest
             - py3_webBuild_webTest
             - py3_integrationTests
+      - public_symbols
       - deploy:
           requires:
             - py2_coverage

@@ -30,7 +30,7 @@ from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT, TerminalC
 from girder.utility import config, mkdir
 from girder.utility._cache import cache, requestCache, rateLimitBuffer
 
-__version__ = '3.0.0a1'
+__version__ = '3.0.0a2'
 __license__ = 'Apache 2.0'
 
 
@@ -38,6 +38,11 @@ VERSION['apiVersion'] = __version__
 _quiet = False
 _originalStdOut = sys.stdout
 _originalStdErr = sys.stderr
+auditLogger = logging.getLogger('girder_audit')
+auditLogger.setLevel(logging.INFO)
+logger = logging.getLogger('girder')
+logger.setLevel(logging.DEBUG)  # Pass everything; let filters handle level-based filtering
+config.loadConfig()  # Populate the config info at import time
 
 
 class LogLevelFilter(object):
@@ -61,10 +66,10 @@ class LogFormatter(logging.Formatter):
     """
     def formatException(self, exc):
         info = '\n'.join((
-            '  Request URL: %s %s' % (cherrypy.request.method.upper(),
-                                      cherrypy.url()),
+            '  Request URL: %s %s' % (cherrypy.request.method.upper(), cherrypy.url()),
             '  Query string: ' + cherrypy.request.query_string,
-            '  Remote IP: ' + cherrypy.request.remote.ip
+            '  Remote IP: ' + cherrypy.request.remote.ip,
+            '  Request UID: ' + getattr(cherrypy.request, 'girderRequestUid', '[none]')
         ))
         return ('%s\n'
                 'Additional info:\n'
@@ -136,13 +141,12 @@ def getLogPaths():
     }
 
 
-def _setupLogger():
+def _attachFileLogHandlers():
     """
     Sets up the Girder logger.
     """
     global _quiet
 
-    logger = logging.getLogger('girder')
     cfg = config.getConfig()
     logCfg = cfg.get('logging', {})
 
@@ -161,11 +165,10 @@ def _setupLogger():
     for logDir in logDirs:
         mkdir(logDir)
 
-    # Set log level
+    # Allow minimum log level to be set via config file
     level = logging.INFO
     if logCfg.get('log_level') and isinstance(getattr(logging, logCfg['log_level'], None), int):
         level = getattr(logging, logCfg['log_level'])
-    logger.setLevel(logging.DEBUG if level is None else level)
 
     logSize = MAX_LOG_SIZE
     if logCfg.get('log_max_size'):
@@ -176,13 +179,6 @@ def _setupLogger():
         else:
             logSize = int(sizeValue)
     backupCount = int(logCfg.get('log_backup_count', LOG_BACKUP_COUNT))
-
-    # Remove extant log handlers (this allows this function to called multiple
-    # times)
-    for handler in list(logger.handlers):
-        if hasattr(handler, '_girderLogHandler'):
-            logger.removeHandler(handler)
-            cherrypy.log.access_log.removeHandler(handler)
 
     fmt = LogFormatter('[%(asctime)s] %(levelname)s: %(message)s')
     infoMaxLevel = logging.INFO
@@ -222,11 +218,6 @@ def _setupLogger():
         cherrypy.log.access_log.addHandler(ih)
 
     return logger
-
-
-logger = _setupLogger()
-auditLogger = logging.getLogger('girder_audit')
-auditLogger.setLevel(logging.INFO)
 
 
 def logStdoutStderr(force=False):

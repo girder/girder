@@ -30,6 +30,7 @@ import sys
 import traceback
 import types
 import unicodedata
+import uuid
 
 from dogpile.cache.util import kwarg_function_key_generator
 from girder.external.mongodb_proxy import MongoProxy
@@ -337,7 +338,7 @@ def getParamJson(name, params, default=None):
         raise RestException('The %s parameter must be valid JSON.' % name)
 
 
-class loadmodel(ModelImporter):  # noqa: class name
+class loadmodel(object):  # noqa: class name
     """
     This is a decorator that can be used to load a model based on an ID param.
     For access controlled models, it will check authorization for the current
@@ -372,7 +373,7 @@ class loadmodel(ModelImporter):  # noqa: class name
 
         self.level = level
         self.force = force
-        self.modelName = model
+        self.model = model
         self.plugin = plugin
         self.exc = exc
         self.kwargs = kwargs
@@ -389,7 +390,7 @@ class loadmodel(ModelImporter):  # noqa: class name
     def __call__(self, fun):
         @six.wraps(fun)
         def wrapped(*args, **kwargs):
-            model = self.model(self.modelName, self.plugin)
+            model = ModelImporter.model(self.model, self.plugin)
 
             for raw, converted in six.viewitems(self.map):
                 id = self._getIdValue(kwargs, raw)
@@ -626,6 +627,9 @@ def endpoint(fun):
     def endpointDecorator(self, *path, **params):
         _setCommonCORSHeaders()
         cherrypy.lib.caching.expires(0)
+        cherrypy.request.girderRequestUid = str(uuid.uuid4())
+        setResponseHeader('Girder-Request-Uid', cherrypy.request.girderRequestUid)
+
         try:
             val = fun(self, path, params)
 
@@ -664,12 +668,15 @@ def endpoint(fun):
             # These are unexpected failures; send a 500 status
             logger.exception('500 Error')
             cherrypy.response.status = 500
-            t, value, tb = sys.exc_info()
-            val = {'message': '%s: %s' % (t.__name__, repr(value)),
-                   'type': 'internal'}
-            curConfig = config.getConfig()
-            if curConfig['server']['mode'] != 'production':
-                # Unless we are in production mode, send a traceback too
+            val = dict(type='internal', uid=cherrypy.request.girderRequestUid)
+
+            if config.getConfig()['server']['mode'] == 'production':
+                # Sanitize errors in production mode
+                val['message'] = 'An unexpected error occurred on the server.'
+            else:
+                # Provide error details in non-production modes
+                t, value, tb = sys.exc_info()
+                val['message'] = '%s: %s' % (t.__name__, repr(value))
                 val['trace'] = traceback.extract_tb(tb)
 
         resp = _createResponse(val)
@@ -722,6 +729,8 @@ def _setCommonCORSHeaders():
 
     if allowed:
         setResponseHeader('Access-Control-Allow-Credentials', 'true')
+        setResponseHeader(
+            'Access-Control-Expose-Headers', Setting().get(SettingKey.CORS_EXPOSE_HEADERS))
 
         allowed_list = [o.strip() for o in allowed.split(',')]
         key = 'Access-Control-Allow-Origin'
@@ -732,7 +741,7 @@ def _setCommonCORSHeaders():
             setResponseHeader(key, origin)
 
 
-class Resource(ModelImporter):
+class Resource(object):
     """
     All REST resources should inherit from this class, which provides utilities
     for adding resources/routes to the REST API.
@@ -1260,8 +1269,7 @@ def boundHandler(fun, ctx=None):
     specific to a Resource subclass.
 
     Plugins that add new routes to existing API resources are encouraged to use
-    this to gain access to bound convenience methods like ``self.model``,
-    ``self.boolParam``, ``self.requireParams``, etc.
+    this to gain access to bound convenience methods like ``self.getCurrentUser``, etc.
 
     :param fun: A REST endpoint.
     :type fun: callable

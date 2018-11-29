@@ -486,7 +486,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         disp = 'attachment; filename="%s"' % file['name']
         mime = file.get('mimeType') or ''
 
-        if key['ContentType'] != mime or key['ContentDisposition'] != disp:
+        if key.get('ContentType') != mime or key.get('ContentDisposition') != disp:
             self.client.copy_object(
                 Bucket=bucket, Key=file['s3Key'], Metadata=key['Metadata'],
                 CopySource={'Bucket': bucket, 'Key': file['s3Key']}, ContentDisposition=disp,

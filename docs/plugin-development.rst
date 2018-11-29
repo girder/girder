@@ -14,6 +14,23 @@ plugin for basic use cases.  For a more detailed guide, see python's own
 `packaging documentation <https://packaging.python.org/guides/distributing-packages-using-setuptools/>`_
 and `tutorial <https://python-packaging.readthedocs.io/en/latest/index.html>`_.
 
+Quick Start
+^^^^^^^^^^^
+
+We maintain a `Cookiecutter template <https://github.com/girder/cookiecutter-girder-plugin>`_
+to help developers get started with their own Girder plugin.  To generate your own plugin
+using this template, install the cookiecutter package ::
+
+    pip install cookiecutter
+
+and run this command ::
+
+    cookiecutter gh:girder/cookiecutter-girder-plugin
+
+It will ask you a few questions to customize the plugin.  For details on these options
+see the `README <https://github.com/girder/cookiecutter-girder-plugin/blob/master/README.md>`_
+in the template's git repository.
+
 Example Plugin
 ^^^^^^^^^^^^^^
 
@@ -37,7 +54,7 @@ package we are going to create.
       author_email='plugin-developer@email.com',
       url='https://my-plugin-documentation-page.com/cats',
       license='Apache 2.0',
-      classifiers: [
+      classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'License :: OSI Approved :: Apache Software License'
@@ -46,7 +63,7 @@ package we are going to create.
       package_data={ '': ['web_client'] },
       packages=find_packages(exclude=['plugin_tests']),
       zip_safe=False,
-      install_requires=['girder>=3', 'girder_jobs'],
+      install_requires=['girder>=3', 'girder-jobs'],
       entry_points={
           'girder.plugin': [ 'cats = girder_cats.CatsPlugin' ]
       }
@@ -329,10 +346,9 @@ Adding a new model type in your plugin
 
 Most of the time, if you add a new resource type in your plugin, you'll have a
 ``Model`` class backing it. These model classes work just like the core model
-classes as described in the :ref:`models` section.  Because custom models in plugins
-cannot be automatically resolved, they should be registered with the :py:class:`girder.utility.model_importer.ModelImporter`
-class inside your load method.
-
+classes as described in the :ref:`models` section. If you need to use the
+:py:class:`~girder.utility.model_importer.ModelImporter` class with your model type,
+you will need to explicitly register the model type to a string, e.g.
 
 .. code-block:: python
 
@@ -342,7 +358,7 @@ class inside your load method.
 
     class CatsPlugin(GirderPlugin):
         def load(self, info):
-            ModelImporter.registerModel('cat', Cat(), 'cats')
+            ModelImporter.registerModel('cat', Cat, plugin='cats')
 
 
 Adding custom access flags

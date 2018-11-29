@@ -22,9 +22,9 @@ import os
 import tempfile
 import warnings
 
-from girder.models.model_base import ModelImporter
 from girder.exceptions import GirderException
 from girder.constants import SettingKey
+from girder.utility.model_importer import ModelImporter
 
 warnings.warn(
     'setup_database.py is only meant for test fixtures, not for provisioning.'

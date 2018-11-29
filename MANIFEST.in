@@ -1,12 +1,9 @@
 include LICENSE
 include setup.py
-include girder/girder-version.json
 include README.rst
-include girder/conf/girder.dist.cfg
+graft girder
 prune test
 prune tests
-graft girder/web_client
-graft girder/mail_templates
 prune girder/web_client/node_modules
 prune girder/web_client/test/spec
 exclude girder/web_client/package.json

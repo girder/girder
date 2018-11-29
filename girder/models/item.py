@@ -30,6 +30,7 @@ from girder import logger
 from girder.constants import AccessType
 from girder.exceptions import ValidationException, GirderException
 from girder.utility import acl_mixin
+from girder.utility.model_importer import ModelImporter
 
 
 class Item(acl_mixin.AccessControlMixin, Model):
@@ -177,7 +178,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
             '_id': item['folderId']
         }, field='size', amount=inc, multi=False)
 
-        self.model(item['baseParentType']).increment(query={
+        ModelImporter.model(item['baseParentType']).increment(query={
             '_id': item['baseParentId']
         }, field='size', amount=inc, multi=False)
 

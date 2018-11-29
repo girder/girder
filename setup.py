@@ -20,7 +20,6 @@
 import os
 import re
 import itertools
-import sys
 
 from setuptools import setup, find_packages
 
@@ -29,8 +28,8 @@ with open('README.rst') as f:
     readme = f.read()
 
 installReqs = [
-    'boto3>=1.7,<1.8',  # TODO: unpin once moto works with boto3>=1.8
-    'botocore<1.11.0',  # TODO: remove once moto works with boto3>=1.8
+    'boto3',
+    'botocore',
     # CherryPy version is restricted due to a bug in versions >=11.1
     # https://github.com/cherrypy/cherrypy/issues/1662
     'CherryPy<11.1',
@@ -56,8 +55,6 @@ installReqs = [
 extrasReqs = {
     'authorized_upload': ['girder-authorized-upload'],
     'autojoin': ['girder-autojoin'],
-    'curation': ['girder-curation'],
-    'candela': ['girder-candela'],
     'dicom_viewer': ['girder-dicom-viewer'],
     'download_statistics': ['girder-download-statistics'],
     'google_analytics': ['girder-google-analytics'],
@@ -65,28 +62,22 @@ extrasReqs = {
     'hashsum_download': ['girder-hashsum-download'],
     'homepage': ['girder-homepage'],
     'item_licenses': ['girder-item-licenses'],
-    'item_tasks': ['girder-item-tasks'],
     'jobs': ['girder-jobs'],
     'ldap': ['girder-ldap'],
     'oauth': ['girder-oauth'],
-    'metadata_history': ['girder-metadata-history'],
-    'table_view': ['girder-table-view'],
     'terms': ['girder-terms'],
     'thumbnails': ['girder-thumbnails'],
-    'treeview': ['girder-treeview'],
     'quota': ['girder-user-quota'],
     'worker': ['girder-worker'],
     'virtual_folders': ['girder-virtual-folders']
 }
-if sys.version_info[0] < 3:
-    extrasReqs['hdfs_assetstore'] = ['girder-hdfs-assetstore']
 
 extrasReqs['plugins'] = list(set(itertools.chain.from_iterable(extrasReqs.values())))
 extrasReqs['sftp'] = [
     'paramiko',
 ]
 extrasReqs['mount'] = [
-    'fusepy>=2.0.4,<3.0',
+    'fusepy>=3.0',
 ]
 
 init = os.path.join(os.path.dirname(__file__), 'girder', '__init__.py')

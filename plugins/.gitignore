@@ -1,29 +1,20 @@
-# This file is parsed by "setup.py" to generate plugin requirements, so care should be taken when
-# editing it.
 /*
 !.gitignore
 !audit_logs/
 !authorized_upload/
 !autojoin/
-!candela/
-!curation/
 !dicom_viewer/
 !download_statistics/
 !fuse/
 !google_analytics/
 !gravatar/
 !hashsum_download/
-!hdfs_assetstore/
 !homepage/
 !item_licenses/
-!item_tasks/
 !jobs/
 !ldap/
-!metadata_history/
 !oauth/
-!table_view/
 !terms/
 !thumbnails/
-!treeview/
 !user_quota/
 !virtual_folders/

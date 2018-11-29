@@ -20,6 +20,7 @@
 import cherrypy
 import click
 
+from girder import _attachFileLogHandlers
 from girder.utility import server
 
 
@@ -38,6 +39,8 @@ def main(testing, database, host, port):
         cherrypy.config['server.socket_host'] = host
     if port:
         cherrypy.config['server.socket_port'] = port
+
+    _attachFileLogHandlers()
     server.setup(testing)
 
     cherrypy.engine.start()

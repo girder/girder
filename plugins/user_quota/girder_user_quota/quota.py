@@ -34,6 +34,7 @@ from girder.models.setting import Setting
 from girder.models.upload import Upload
 from girder.models.user import User
 from girder.utility import assetstore_utilities
+from girder.utility.model_importer import ModelImporter
 from girder.utility.system import formatSize
 from . import constants
 
@@ -78,7 +79,7 @@ class QuotaPolicy(Resource):
         :param resource: the resource document.
         :returns: filtered field of the resource with the quota data, if any.
         """
-        filtered = self.model(model).filter(resource, self.getCurrentUser())
+        filtered = ModelImporter.model(model).filter(resource, self.getCurrentUser())
         filtered[QUOTA_FIELD] = resource.get(QUOTA_FIELD, {})
         return filtered
 
@@ -95,7 +96,7 @@ class QuotaPolicy(Resource):
         if QUOTA_FIELD not in resource:
             resource[QUOTA_FIELD] = {}
         resource[QUOTA_FIELD].update(policy)
-        self.model(model).save(resource, validate=False)
+        ModelImporter.model(model).save(resource, validate=False)
         return self._filter(model, resource)
 
     def _validate_fallbackAssetstore(self, value):
@@ -273,7 +274,7 @@ class QuotaPolicy(Resource):
         """
         if isinstance(resource, six.string_types + (ObjectId,)):
             try:
-                resource = self.model(model).load(id=resource, force=True)
+                resource = ModelImporter.model(model).load(id=resource, force=True)
             except ImportError:
                 return None, None
         if model == 'file':
@@ -282,13 +283,13 @@ class QuotaPolicy(Resource):
         if model in ('folder', 'item'):
             if ('baseParentType' not in resource or
                     'baseParentId' not in resource):
-                resource = self.model(model).load(id=resource['_id'], force=True)
+                resource = ModelImporter.model(model).load(id=resource['_id'], force=True)
             if ('baseParentType' not in resource or
                     'baseParentId' not in resource):
                 return None, None
             model = resource['baseParentType']
             resourceId = resource['baseParentId']
-            resource = self.model(model).load(id=resourceId, force=True)
+            resource = ModelImporter.model(model).load(id=resourceId, force=True)
         if model in ('user', 'collection') and resource:
             # Ensure the base resource has a quota field so we can use the
             # default quota if appropriate

@@ -52,6 +52,6 @@ class JobsPlugin(GirderPlugin):
     CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
-        ModelImporter.registerModel('job', Job(), 'jobs')
+        ModelImporter.registerModel('job', Job, 'jobs')
         info['apiRoot'].job = job_rest.Job()
         events.bind('jobs.schedule', 'jobs', scheduleLocal)

@@ -52,7 +52,8 @@ plugin:
     )
 
 * Move your plugin's python source code from the ``server`` directory to the package name defined
-  in your ``setup.py``.
+  in your ``setup.py``. In this example, you would move all python files from ``server`` to a new directory
+  named ``example_plugin``.
 * Create a ``package.json`` file inside your ``web_client`` directory defining an npm package.  A minimal
   example is as follows:
 
@@ -136,7 +137,7 @@ Other backwards incompatible changes affecting plugins
 
     class JobsPlugin(GirderPlugin):
         def load(self, info):
-            ModelImporter.registerModel('job', Job(), 'jobs')
+            ModelImporter.registerModel('job', Job, 'jobs')
 
 
 Client build changes
@@ -157,6 +158,121 @@ npm packages containing web client extensions.  The build process is executed in
 place (in the Girder python package) in both development and production installs.
 The built assets are installed into a virtual environment specific static path
 ``{sys.prefix}/share/girder``.
+
+Server changes
+++++++++++++++
+
+ModelImporter behavior changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :py:class:`girder.utility.model_importer.ModelImporter` class allows model types to be mapped
+from strings, which is useful when model types must be provided by users via the REST API. In Girder
+2, there was logic to infer automatically where a model class resides without having to explicitly
+register it, but that logic was removed. If your plugin needs to expose a ``Model`` subclass for
+string-based lookup, it must be explicitly registered, e.g.
+
+.. code-block:: python
+
+  class MyModel(Model):
+     ...
+
+  ModelImporter.registerModel('my_plugin_model', MyModel, plugin='my_plugin')
+
+The ``load`` method of your plugin is a good place to register your plugin's models.
+
+In addition to explicitly requiring registration, the API of
+:py:meth:`~girder.utility.model_importer.ModelImporter.registerModel` has also changed. Before, one
+would pass the model *instance*, but now, one passes the model *class*.
+
+.. code-block:: python
+
+   # Girder 2:
+   ModelImporter.registerModel('my_thing', MyThing())
+
+   # Girder 3:
+   ModelImporter.registerModel('my_thing', MyThing)
+
+Additionally, several key base classes in Girder no longer mixin ``ModelImporter``, and mixing it
+in is now generally discouraged. So instead of ``self.model``, just use ``ModelImporter.model`` if
+you must convert a string to a model instance. The following base classes are affected:
+
+* :py:class:`girder.api.rest.Resource`
+* :py:class:`girder.models.model_base.Model`
+* :py:class:`girder.utility.abstract_assetstore_adapter.AbstractAssetstoreAdapter`
+
+Event bindings are now unique by handler name
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In Girder 2, it was possible to bind multiple handler callbacks to the same event with
+the same handler name. This has changed in Girder 3; for any given event identifier, each callback
+must be bound to it with a unique handler name. Example:
+
+.. code-block:: python
+
+    def cb(event):
+       print('hello')
+
+    for _ in range(5):
+      events.bind('an_event', 'my_handler', cb)
+
+    # Prints 'hello' five times in Girder 2, but only once in Girder 3
+    events.trigger('an_event')
+
+In the new behavior, a call to ``bind`` with the same event name and handler name as an existing
+handler will be ignored, and will emit a warning to the log. If you wish to overwrite the existing
+handler, you must call :py:func:`girder.events.unbind` on the existing mapping first.
+
+.. code-block:: python
+
+    def a(event):
+      print('a')
+
+    def b(event):
+      print('b')
+
+    events.bind('an_event', 'my_handler', a)
+    events.bind('an_event', 'my_handler', b)
+
+    # Prints 'a' and 'b' in Girder 2, but only 'a' in Girder 3
+    events.trigger('an_event')
+
+Async keyword arguments and properties changed to async\_ PR #2817
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In version 3.7 of python ``async`` is a `reserved keyword argument <https://www.python.org/dev/peps/pep-0492/#deprecation-plans/>`_. To mitigate any issues all instances of ``async`` in the codebase has changed to ``async_``. If the functions are called with ``async`` a deprecation warning will be given. This affects:
+
+ * The event framework ``girder/events.py``
+ * The built-in job plugin ``plugins/jobs/girder_jobs/models/job.py``
+
+Removed or moved plugins
+++++++++++++++++++++++++
+
+Many plugins were either deleted from the main repository, or moved to other repositories. Plugins
+that were moved to other repositories will no longer be installed via the ``[plugins]`` extra when
+installing the ``girder`` python package, but can be installed by
+``pip install girder-[plugin_name]``. If you were depending on a plugin that was deleted
+altogether, please reach out to us on Discourse for discussion of a path forward.
+
+The following plugins were **deleted**:
+
+* celery_jobs
+* item_previews
+* jquery_widgets
+* metadata_extractor
+* mongo_search
+* provenance
+* treeview
+* vega
+
+The following plugins were **moved to different repositories**:
+
+* `candela <https://github.com/kitware/candela>`_
+* `curation (renamed to publication_approval) <https://github.com/girder/girder-publication-approval>`_
+* `geospatial <https://github.com/OpenGeoscience/girder_geospatial>`_
+* `hdfs_assetstore <https://github.com/girder/girder-hdfs-assetstore>`_
+* `item_tasks <https://github.com/girder/girder-item-tasks>`_
+* `table_view <https://github.com/girder/girder-table-view>`_
+* `worker <https://github.com/girder/girder_worker>`_
 
 1.x |ra| 2.x
 ------------
