@@ -999,6 +999,31 @@ class FileTestCase(base.TestCase):
         self.assertEqual(obj['ContentDisposition'], 'attachment; filename="new name"')
         self.assertEqual(obj['ContentType'], 'application/csv')
 
+        # Test with SSE disabled
+        self.assetstore['serverSideEncryption'] = False
+        self.assetstore = Assetstore().save(self.assetstore)
+        initRequests = []
+
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params={
+                'parentType': 'folder',
+                'parentId': self.privateFolder['_id'],
+                'name': 'hello.txt',
+                'size': len(chunk1) + len(chunk2),
+                'mimeType': 'text/plain'
+            })
+        self.assertStatusOk(resp)
+        uploadId = resp.json['_id']
+
+        files = [('chunk', 'hello.txt', chunk1 + chunk2)]
+        fields = [('offset', 0), ('uploadId', uploadId)]
+        with httmock.HTTMock(mockChunkUpload):
+            resp = self.multipartRequest(
+                path='/file/chunk', user=self.user, fields=fields, files=files)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(initRequests), 1)
+        self.assertNotIn('x-amz-server-side-encryption', initRequests[0].headers)
+
         # Enable testing of multi-chunk proxied upload
         S3AssetstoreAdapter.CHUNK_LEN = 5
 
