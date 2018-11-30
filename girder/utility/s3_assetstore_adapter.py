@@ -109,13 +109,17 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             self.client = S3AssetstoreAdapter._s3Client(self.connectParams)
 
     def _getRequestHeaders(self, upload):
-        return {
+        headers = {
             'Content-Disposition': setContentDisposition(upload['name'], setHeader=False),
             'Content-Type': upload.get('mimeType', ''),
             'x-amz-acl': 'private',
             'x-amz-meta-uploader-id': str(upload['userId']),
             'x-amz-meta-uploader-ip': str(cherrypy.request.remote.ip)
         }
+        if self.assetstore.get('serverSideEncryption'):
+            headers['x-amz-server-side-encryption'] = 'AES256'
+
+        return headers
 
     def initUpload(self, upload):
         """
@@ -141,6 +145,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'uploader-ip': headers['x-amz-meta-uploader-ip']
             }
         }
+
+        if self.assetstore.get('serverSideEncryption'):
+            params['ServerSideEncryption'] = 'AES256'
+
         requestInfo = {
             'headers': headers,
             'method': 'PUT'
@@ -288,7 +296,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'You should not call requestOffset on a chunked direct-to-S3 upload.')
 
         headers = self._getRequestHeaders(upload)
-        url = self.client.generate_presigned_url(ClientMethod='put_object', Params={
+        params = {
             'Bucket': self.assetstore['bucket'],
             'Key': upload['s3']['key'],
             'ACL': headers['x-amz-acl'],
@@ -299,7 +307,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'uploader-id': headers['x-amz-meta-uploader-id'],
                 'uploader-ip': headers['x-amz-meta-uploader-ip']
             }
-        })
+        }
+
+        if self.assetstore.get('serverSideEncryption'):
+            params['ServerSideEncryption'] = 'AES256'
+
+        url = self.client.generate_presigned_url(ClientMethod='put_object', Params=params)
 
         return {
             'method': 'PUT',
