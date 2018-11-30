@@ -25,6 +25,7 @@ import re
 import requests
 import six
 import uuid
+from six.moves import urllib
 
 from girder import logger, events
 from girder.api.rest import setContentDisposition
@@ -52,7 +53,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     def _s3Client(connectParams):
         try:
             client = boto3.client('s3', **connectParams)
-            if 'googleapis' in connectParams.get('endpoint_url', '').split('.'):
+            if 'googleapis' in urllib.parse.urlparse(connectParams.get(
+                    'endpoint_url', '')).netloc.split('.'):
                 client.meta.events.unregister(
                     'before-parameter-build.s3.ListObjects',
                     botocore.handlers.set_list_objects_encoding_type_url)
