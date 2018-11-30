@@ -134,7 +134,15 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         url = self.client.generate_presigned_url(*args, **kwargs)
         if getattr(self.client, '_useGoogleAccessId', False):
-            url = url.replace('AWSAccessKeyId', 'GoogleAccessId')
+            awskey, gskey = 'AWSAccessKeyId', 'GoogleAccessId'
+            parsed = urllib.parse.urlparse(url)
+            if awskey in urllib.parse.parse_qs(parsed.query):
+                qsl = urllib.parse.parse_qsl(parsed.query)
+                qsl = [(key if key != awskey else gskey, value) for key, value in qsl]
+                url = urllib.parse.urlunparse((
+                    parsed[0], parsed[1], parsed[2], parsed[3],
+                    urllib.parse.urlencode(qsl),
+                    parsed[5]))
         return url
 
     def initUpload(self, upload):
