@@ -45,7 +45,8 @@ var NewAssetstoreWidget = View.extend({
                 service: this.$('#g-new-s3-service').val(),
                 region: this.$('#g-new-s3-region').val(),
                 readOnly: this.$('#g-new-s3-readonly').is(':checked'),
-                inferCredentials: this.$('#g-new-s3-infercredentials').is(':checked')
+                inferCredentials: this.$('#g-new-s3-infercredentials').is(':checked'),
+                serverSideEncryption: this.$('#g-new-s3-sse').is(':checked')
             });
         }
     },

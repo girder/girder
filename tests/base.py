@@ -34,7 +34,6 @@ import warnings
 
 from six import BytesIO
 from six.moves import urllib
-from girder.utility import model_importer
 from girder.utility._cache import cache, requestCache
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, SettingKey
@@ -164,7 +163,7 @@ def dropFsAssetstore(path):
         shutil.rmtree(path)
 
 
-class TestCase(unittest.TestCase, model_importer.ModelImporter):
+class TestCase(unittest.TestCase):
     """
     Test case base class for the application. Adds helpful utilities for
     database and HTTP communication.

@@ -31,7 +31,11 @@ from girder.api import access
 from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
     SettingKey, TokenScope, ACCESS_FLAGS, VERSION
 from girder.exceptions import GirderException, ResourcePathNotFound, RestException
+from girder.models.collection import Collection
+from girder.models.file import File
+from girder.models.folder import Folder
 from girder.models.group import Group
+from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.models.upload import Upload
 from girder.models.user import User
@@ -535,18 +539,18 @@ class System(Resource):
 
     def _fixBaseParents(self, progress):
         fixes = 0
-        models = ['folder', 'item']
-        steps = sum(self.model(model).find().count() for model in models)
+        models = [Folder(), Item()]
+        steps = sum(model.find().count() for model in models)
         progress.update(total=steps, current=0)
         for model in models:
-            for doc in self.model(model).find():
+            for doc in model.find():
                 progress.update(increment=1)
-                baseParent = self.model(model).parentsToRoot(doc, force=True)[0]
+                baseParent = model.parentsToRoot(doc, force=True)[0]
                 baseParentType = baseParent['type']
                 baseParentId = baseParent['object']['_id']
                 if (doc['baseParentType'] != baseParentType or
                         doc['baseParentId'] != baseParentId):
-                    self.model(model).update({'_id': doc['_id']}, update={
+                    model.update({'_id': doc['_id']}, update={
                         '$set': {
                             'baseParentType': baseParentType,
                             'baseParentId': baseParentId
@@ -556,25 +560,25 @@ class System(Resource):
 
     def _pruneOrphans(self, progress):
         count = 0
-        models = ['folder', 'item', 'file']
-        steps = sum(self.model(model).find().count() for model in models)
+        models = [File(), Folder(), Item()]
+        steps = sum(model.find().count() for model in models)
         progress.update(total=steps, current=0)
         for model in models:
-            for doc in self.model(model).find():
+            for doc in model.find():
                 progress.update(increment=1)
-                if self.model(model).isOrphan(doc):
-                    self.model(model).remove(doc)
+                if model.isOrphan(doc):
+                    model.remove(doc)
                     count += 1
         return count
 
     def _recalculateSizes(self, progress):
         fixes = 0
-        models = ['collection', 'user']
-        steps = sum(self.model(model).find().count() for model in models)
+        models = [Collection(), User()]
+        steps = sum(model.find().count() for model in models)
         progress.update(total=steps, current=0)
         for model in models:
-            for doc in self.model(model).find():
+            for doc in model.find():
                 progress.update(increment=1)
-                _, f = self.model(model).updateSize(doc)
+                _, f = model.updateSize(doc)
                 fixes += f
         return fixes

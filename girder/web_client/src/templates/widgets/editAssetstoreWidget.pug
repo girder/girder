@@ -60,6 +60,10 @@
               label
                 input#g-edit-s3-readonly(type="checkbox")
                 | Read only
+            .checkbox
+              label
+                input#g-edit-s3-sse(type="checkbox")
+                | Server side encryption
         if assetstore.get('hasFiles')
           div
             i.icon-attention
