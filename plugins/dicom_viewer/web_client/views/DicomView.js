@@ -25,7 +25,8 @@ const DicomFileModel = FileModel.extend({
         if (!this._slice) {
             // Cache the slice on the model
             this._slice = restRequest({
-                url: `file/${this.id}/download`,
+                url: this.get('archivePath') ? `file/${this.get('archiveId')}/archive/download` : `file/${this.id}/download`,
+                data: this.get('archivePath') ? {path: this.get('archivePath')} : {},
                 xhrFields: {
                     responseType: 'arraybuffer'
                 }
@@ -379,7 +380,16 @@ const DicomItemView = View.extend({
      * @param {ItemModel} settings.item An item with its `dicom` attribute set.
      */
     initialize: function (settings) {
-        this._files = new DicomFileCollection(settings.item.get('dicom').files);
+        if (settings.item.get('dicom').files[0].archivePath) {
+            var files = settings.item.get('dicom').files;
+            files.forEach(function (file, idx) {
+                file.archiveId = file._id;
+                file._id = idx;
+            });
+            this._files = new DicomFileCollection(files);
+        } else {
+            this._files = new DicomFileCollection(settings.item.get('dicom').files);
+        }
 
         this._sliceMetadataView = null;
         this._sliceImageView = null;

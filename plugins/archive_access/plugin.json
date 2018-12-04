@@ -1,0 +1,7 @@
+{
+    "name": "Archive access",
+    "description": "Provide utiltiies for accessing internal files of archive (zip and tar) files.",
+    "version": "0.1.0",
+    "dependencies": []
+}
+

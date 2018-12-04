@@ -31,7 +31,7 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource
 from girder.constants import AccessType, TokenScope
-from girder.exceptions import RestException
+from girder.exceptions import RestException, GirderException
 from girder.models.item import Item
 from girder.models.file import File
 from girder.utility import search
@@ -56,19 +56,33 @@ class DicomItem(Resource):
         metadataReference = None
         dicomFiles = []
 
+        lastFile = None
         for file in Item().childFiles(item):
+            lastFile = file
             dicomMeta = _parseFile(file)
-            if dicomMeta is None:
-                continue
-            dicomFiles.append(_extractFileData(file, dicomMeta))
-
-            metadataReference = (
-                dicomMeta
-                if metadataReference is None else
-                _removeUniqueMetadata(metadataReference, dicomMeta)
-            )
-
+            if dicomMeta:
+                dicomFiles.append(_extractFileData(file, dicomMeta))
+                metadataReference = (
+                    dicomMeta
+                    if metadataReference is None else
+                    _removeUniqueMetadata(metadataReference, dicomMeta)
+                )
             setResponseTimeLimit()
+
+        if not dicomFiles and lastFile is not None and hasattr(File(), 'archiveList'):
+            try:
+                for path in File().archiveList(lastFile)['names']:
+                    dicomMeta = _parseFile(lastFile, path)
+                    if dicomMeta:
+                        dicomFiles.append(_extractFileData(lastFile, dicomMeta, path))
+                        metadataReference = (
+                            dicomMeta
+                            if metadataReference is None else
+                            _removeUniqueMetadata(metadataReference, dicomMeta)
+                        )
+                    setResponseTimeLimit()
+            except GirderException:
+                pass
 
         if dicomFiles:
             # Sort the dicom files
@@ -82,12 +96,12 @@ class DicomItem(Resource):
             Item().save(item)
 
 
-def _extractFileData(file, dicomMetadata):
+def _extractFileData(file, dicomMetadata, archivePath=None):
     """
     Extract the useful data to be stored in the `item['dicom']['files']`.
     In this way it become simpler to sort them and store them.
     """
-    return {
+    result = {
         'dicom': {
             'SeriesNumber': dicomMetadata.get('SeriesNumber'),
             'InstanceNumber': dicomMetadata.get('InstanceNumber'),
@@ -96,6 +110,9 @@ def _extractFileData(file, dicomMetadata):
         'name': file['name'],
         '_id': file['_id']
     }
+    if archivePath:
+        result['archivePath'] = archivePath
+    return result
 
 
 def _getDicomFileSortKey(f):
@@ -210,10 +227,10 @@ def _coerceMetadata(dataset):
     return metadata
 
 
-def _parseFile(f):
+def _parseFile(f, p=None):
     try:
         # download file and try to parse dicom
-        with File().open(f) as fp:
+        with File().open(f) if p is None else File().archiveOpen(f, p) as fp:
             dataset = pydicom.dcmread(
                 fp,
                 # don't read huge fields, esp. if this isn't even really dicom
