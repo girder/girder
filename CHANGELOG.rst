@@ -35,6 +35,9 @@ Python Client
 
 Added Features
 --------------
+* Google Storage is provisionally supported via S3 Assetstore
+  (`#2876 <https://github.com/girder/girder/pull/2876>`_).
+
 * Added a privacy notice link to the footer which can be set on the Server Configuration view of the web client (
   `#2728 <https://github.com/girder/girder/pull/2728>`_).
 
