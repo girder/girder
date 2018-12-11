@@ -190,9 +190,6 @@ Utility
 .. automodule:: girder.utility.gridfs_assetstore_adapter
    :members:
 
-.. automodule:: girder.utility.hash_state
-   :members:
-
 .. automodule:: girder.utility.mail_utils
    :members:
 

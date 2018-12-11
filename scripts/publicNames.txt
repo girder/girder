@@ -895,14 +895,6 @@ girder
                 validateInfo
             RECENT_CONNECTION_CACHE_MAX_SIZE
             RECENT_CONNECTION_CACHE_TIME
-        hash_state
-            initVectorFirstWord
-            restore
-            restoreHex
-            serialize
-            serializeHex
-            stateSize
-            type
         mail_utils
             addTemplateDirectory
             getEmailUrlPrefix
