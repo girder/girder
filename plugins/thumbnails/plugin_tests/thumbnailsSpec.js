@@ -1,4 +1,4 @@
-girderTest.importPlugin('jobs', 'thumbnails');
+girderTest.importPlugin('thumbnails');
 girderTest.startApp();
 
 describe('Test the thumbnail creation UI.', function () {
