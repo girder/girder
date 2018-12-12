@@ -35,6 +35,9 @@ Python Client
 
 Added Features
 --------------
+* Google Storage is provisionally supported via S3 Assetstore
+  (`#2876 <https://github.com/girder/girder/pull/2876>`_).
+
 * Added an `NPM_EXE` environment variable and `--npm` flag to `girder build` to configure the npm executable used.
   (`#2826 <https://github.com/girder/girder/pull/2826>`_).
 
