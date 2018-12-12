@@ -41,7 +41,7 @@ module.exports = function (grunt) {
             test: {
                 files: {
                     [resolveBuiltPath('testing.min.js')]: [
-                        require.resolve('core-js/client/shim'),
+                        require.resolve('babel-polyfill/dist/polyfill.js'),
                         require.resolve('whatwg-fetch/fetch.js'),
                         resolveTestPath('lib/jasmine-1.3.1/jasmine.js'),
                         resolveTestPath('lib/jasmine-1.3.1/ConsoleReporter.js'),
