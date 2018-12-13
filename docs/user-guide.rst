@@ -153,6 +153,12 @@ The below CORS configuration is sufficient for Girder's needs:
         </CORSRule>
     </CORSConfiguration>
 
+.. note::
+
+    Google Storage is supported through an S3 assetstore.  Specify the service as ``storage.googleapis.com``.  Public storage buckets can be accessed in read-only mode without an access key ID or secret access key.
+
+    Support for Google Storage may not be complete, as it is accessed via an S3 access library and is not automatically tested.
+
 .. _permissions:
 
 Permissions
