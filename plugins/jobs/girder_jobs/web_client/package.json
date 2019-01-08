@@ -17,7 +17,6 @@
     "main": "./index.js",
     "girderPlugin": {
         "name": "jobs",
-        "main": "./main.js",
-        "webpack": "webpack.helper"
+        "main": "./main.js"
     }
 }
