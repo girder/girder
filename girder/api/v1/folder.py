@@ -39,6 +39,7 @@ class Folder(Resource):
         self.route('DELETE', (':id', 'contents'), self.deleteContents)
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getFolder)
+        self.route('GET', (':id', 'metadata'), self.getFolderMetadata)
         self.route('GET', (':id', 'details'), self.getFolderDetails)
         self.route('GET', (':id', 'access'), self.getFolderAccess)
         self.route('GET', (':id', 'download'), self.downloadFolder)
@@ -103,6 +104,17 @@ class Folder(Resource):
                 text, user=user, limit=limit, offset=offset, sort=sort)
         else:
             raise RestException('Invalid search mode.')
+
+
+    @access.public(scope=TokenScope.DATA_READ)
+    @autoDescribeRoute(
+        Description('Get folder metadata.')
+        .modelParam('id', model=FolderModel, level=AccessType.READ)
+        .errorResponse()
+        .errorResponse('Read access was denied on the folder.', 403)
+    )
+    def getFolderMetadata(self, folder):
+        return folder.get('meta', {})
 
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
