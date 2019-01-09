@@ -353,6 +353,23 @@ class ItemTestCase(base.TestCase):
         self.assertEqual(
             resp.json['message'], 'Parameter metadata must be valid JSON.')
 
+        resp = self.request(
+            path='/item', method='POST', user=self.users[0], params={
+                'name': 'item without without meta via POST',
+                'description': ' a description ',
+                'folderId': self.privateFolder['_id']
+            }
+        )
+        self.assertStatusOk(resp)
+        item = resp.json
+        self.assertNotHasKeys(item, 'meta')
+
+        resp = self.request(
+            path='/item/{}/metadata'.format(item['_id']), method='GET', user=self.users[0]
+        )
+        receivedMetadata = resp.json
+        self.assertEqual(receivedMetadata, {})
+
         # Add some metadata
         metadata = {
             'foo': 'bar',
@@ -365,6 +382,15 @@ class ItemTestCase(base.TestCase):
         item = resp.json
         self.assertEqual(item['meta']['foo'], metadata['foo'])
         self.assertEqual(item['meta']['test'], metadata['test'])
+
+        resp = self.request(
+            path='/item/{}/metadata'.format(item['_id']),
+                method='GET', user=self.users[0]
+        )
+        self.assertStatusOk(resp)
+        receivedMetadata = resp.json
+        self.assertEqual(receivedMetadata['foo'], metadata['foo'])
+        self.assertEqual(receivedMetadata['test'], metadata['test'])
 
         metadata = {
             'foo': None,

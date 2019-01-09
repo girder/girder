@@ -305,6 +305,22 @@ class FolderTestCase(base.TestCase):
             resp.json['message'],
             'Parameter metadata must be valid JSON.')
 
+        resp = self.request(
+            path='/folder', method='POST', user=self.admin, params={
+                'name': 'My public subfolder without meta',
+                'parentId': publicFolder['_id']
+            }
+        )
+        self.assertStatusOk(resp)
+        folder = resp.json
+        self.assertNotHasKeys(folder, 'meta')
+
+        resp = self.request(
+            path='/folder/{}/metadata'.format(folder['_id']), method='GET', user=self.admin
+        )
+        receivedMetadata = resp.json
+        self.assertEqual(receivedMetadata, {})
+
         metadata = {
             'foo': 'bar',
             'test': 2
@@ -319,6 +335,15 @@ class FolderTestCase(base.TestCase):
         folder = resp.json
         self.assertEqual(folder['meta']['foo'], metadata['foo'])
         self.assertEqual(folder['meta']['test'], metadata['test'])
+
+        resp = self.request(
+            path='/folder/{}/metadata'.format(folder['_id']),
+                method='GET', user=self.admin
+        )
+        self.assertStatusOk(resp)
+        receivedMetadata = resp.json
+        self.assertEqual(receivedMetadata['foo'], metadata['foo'])
+        self.assertEqual(receivedMetadata['test'], metadata['test'])
 
         metadata = {
             'foo': None,
