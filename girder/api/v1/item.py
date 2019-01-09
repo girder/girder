@@ -38,6 +38,7 @@ class Item(Resource):
         self.route('DELETE', (':id',), self.deleteItem)
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getItem)
+        self.route('GET', (':id', 'metadata'), self.getItemMetadata)
         self.route('GET', (':id', 'files'), self.getFiles)
         self.route('GET', (':id', 'download'), self.download)
         self.route('GET', (':id', 'rootpath'), self.rootpath)
@@ -220,6 +221,18 @@ class Item(Resource):
                     yield data
             yield zip.footer()
         return stream
+
+
+    @access.public(scope=TokenScope.DATA_READ)
+    @autoDescribeRoute(
+        Description('Get item metadata.')
+        .modelParam('id', model=ItemModel, level=AccessType.READ)
+        .errorResponse()
+        .errorResponse('Read access was denied on the folder.', 403)
+    )
+    def getItemMetadata(self, item):
+        return item.get('meta', {})
+
 
     @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model=File)
