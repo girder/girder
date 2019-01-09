@@ -31,9 +31,9 @@
                   "to breaking changes; use at your own risk.") Experimental
         if failed
           span.g-plugin-list-item-notice.g-plugin-list-item-failed-notice(
-              title='Click to see traceback',
+              native-title='Click to see traceback',
               data-title='Failed to load entrypoint "' + plugin.value.name + '"',
-              data-content=failed.traceback) Error
+              data-content=failed) Error
         if plugin.value.configRoute
           a.g-plugin-config-link(g-route=plugin.value.configRoute, title="Configure Plugin")
             i.icon-cog
