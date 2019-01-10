@@ -148,6 +148,13 @@ const TaskRunView = View.extend({
                         id: val.id,
                         fileName: model.get('fileName') || null
                     };
+                case 'directory': // fallthrough
+                case 'folder': // This is an input folder
+                    return {
+                        mode: 'girder',
+                        resource_type: 'folder',
+                        id: val.id
+                    };
                 case 'new-file': // This is an output
                     return {
                         mode: 'girder',
