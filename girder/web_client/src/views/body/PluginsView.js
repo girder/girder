@@ -143,6 +143,9 @@ var PluginsView = View.extend({
             container: this.$el,
             template: PluginFailedNoticeTemplate()
         });
+        this.$('.g-plugin-list-item-failed-notice').each(function () {
+            $(this).attr('title', $(this).attr('native-title'));
+        });
 
         return this;
     },
