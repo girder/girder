@@ -4,6 +4,8 @@ import LayoutHeaderUserView from 'girder/views/layout/HeaderUserView';
 import router from 'girder/router';
 import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
 import View from 'girder/views/View';
+import events from 'girder/events';
+import { getCurrentUser } from 'girder/auth';
 
 import LayoutHeaderTemplate from 'girder/templates/layout/layoutHeader.pug';
 
@@ -27,6 +29,9 @@ var LayoutHeaderView = View.extend({
             parentView: this,
             registrationPolicy: settings.registrationPolicy
         });
+
+        events.on('g:login', this.render, this);
+        events.on('g:logout', this.render, this);
 
         /*
          * The order of types correspond to the order of the displayed types results on the dialog box.
@@ -55,7 +60,9 @@ var LayoutHeaderView = View.extend({
             // We will lose the hover color by setting this, so only do that if necessary
             this.userView.$('.g-user-text a').css('color', textColor);
         }
-        this.searchWidget.setElement(this.$('.g-quick-search-container')).render();
+        if (getCurrentUser()) {
+            this.searchWidget.setElement(this.$('.g-quick-search-container')).render();
+        }
 
         return this;
     },

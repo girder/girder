@@ -92,7 +92,7 @@ def token(fun, scope=None, required=False):
 
 
 @optionalArgumentDecorator
-def public(fun, scope=None):
+def unauthenticated(fun, scope=None):
     """
     Functions that allow any client access, including those that haven't logged
     in should be wrapped in this decorator.
@@ -105,6 +105,9 @@ def public(fun, scope=None):
     fun.accessLevel = 'public'
     fun.requiredScopes = scope
     return fun
+
+
+public = token
 
 
 @optionalArgumentDecorator

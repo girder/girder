@@ -57,6 +57,9 @@ var LayoutGlobalNavView = View.extend({
 
     render: function () {
         var navItems;
+        if (getCurrentUser() === null) {
+            return this;
+        }
         if (this.navItems) {
             navItems = this.navItems;
         } else {
