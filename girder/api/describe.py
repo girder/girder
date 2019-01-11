@@ -454,7 +454,7 @@ class Describe(Resource):
         super(Describe, self).__init__()
         self.route('GET', (), self.listResources, nodoc=True)
 
-    @access.public
+    @access.unauthenticated
     def listResources(self, params):
         # Paths Object
         paths = {}
