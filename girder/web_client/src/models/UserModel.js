@@ -1,6 +1,6 @@
 import _ from 'underscore';
 
-import { fetchCurrentUser, setCurrentUser } from 'girder/auth';
+import { fetchCurrentUser, setCurrentToken, setCurrentUser } from 'girder/auth';
 import events from 'girder/events';
 import Model from 'girder/models/Model';
 import { restRequest } from 'girder/rest';
@@ -168,6 +168,7 @@ var UserModel = Model.extend({
             resp.user.token = resp.authToken.token;
             eventStream.close();
             setCurrentUser(new UserModel(resp.user));
+            setCurrentToken(resp.authToken.token);
             eventStream.open();
             events.trigger('g:login-changed');
         });
