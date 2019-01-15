@@ -398,7 +398,6 @@ girder
             USER_SELF_ACCESS
             WEBROOT_SETTING_CHANGE
         GIRDER_ROUTE_ID
-        GIRDER_STATIC_ROUTE_ID
         LOG_BACKUP_COUNT
         LOG_ROOT
         MAX_LOG_SIZE
@@ -950,9 +949,7 @@ girder
         server
             configureServer
             getApiRoot
-            getApiStaticRoot
             getPlugins
-            getStaticRoot
             loadRouteTable
             setup
             staticFile

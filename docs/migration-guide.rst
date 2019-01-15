@@ -159,6 +159,23 @@ place (in the Girder python package) in both development and production installs
 The built assets are installed into a virtual environment specific static path
 ``{sys.prefix}/share/girder``.
 
+Static root is no longer dynamic
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The static root, indicating the base URL where web client files are served from,
+is no longer determined dynamcally via a setting. The static root now always assumes its previous
+default value of ``'/static'``. References to:
+
+* ``girder.rest.getStaticRoot()`` in the web client
+* ``girder.utility.server.getStaticRoot()`` in the server
+* ``girder.utility.server.getApiStaticRoot()`` in the server
+* ``info['staticRoot']`` in server plugin ``load`` functinos
+* ``${staticRoot}`` in server Mako templates
+* ``girder.constants.GIRDER_STATIC_ROUTE_ID`` or ``'core_static_root'`` in the server route table
+  (the ``'core.route_table'`` setting)
+
+should all be replaced with ``'/static'``.
+
+
 Server changes
 ++++++++++++++
 

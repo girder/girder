@@ -3,15 +3,15 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${brandName | h} - REST API Documentation</title>
-    <link rel="stylesheet" href="${staticRoot}/built/googlefonts.css">
-    <link rel="stylesheet" href="${staticRoot}/built/fontello/css/fontello.css">
-    <link rel="stylesheet" href="${staticRoot}/built/swagger/css/reset.css">
-    <link rel="stylesheet" href="${staticRoot}/built/swagger/css/screen.css">
-    <link rel="stylesheet" href="${staticRoot}/built/swagger/docs.css">
-    <link rel="icon" type="image/png" href="${staticRoot}/built/Girder_Favicon.png">
+    <link rel="stylesheet" href="/static/built/googlefonts.css">
+    <link rel="stylesheet" href="/static/built/fontello/css/fontello.css">
+    <link rel="stylesheet" href="/static/built/swagger/css/reset.css">
+    <link rel="stylesheet" href="/static/built/swagger/css/screen.css">
+    <link rel="stylesheet" href="/static/built/swagger/docs.css">
+    <link rel="icon" type="image/png" href="/static/built/Girder_Favicon.png">
     <style type="text/css">
       .response_throbber {
-        content: url("${staticRoot}/built/swagger/images/throbber.gif");
+        content: url("/static/built/swagger/images/throbber.gif");
       }
       #api_info {
         display: none;
@@ -47,22 +47,22 @@
           class="swagger-ui-wrap docs-swagger-container">
       </div>
     </div>
-    <script src="${staticRoot}/built/swagger/lib/object-assign-pollyfill.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/jquery-1.8.0.min.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/jquery.slideto.min.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/jquery.wiggle.min.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/jquery.ba-bbq.min.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/handlebars-4.0.5.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/lodash.min.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/backbone-min.js"></script>
-    <script src="${staticRoot}/built/swagger/swagger-ui.min.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/highlight.9.1.0.pack.js"></script>
-    <script src="${staticRoot}/built/swagger/lib/highlight.9.1.0.pack_extended.js"></script>
-    <script src='${staticRoot}/built/swagger/lib/jsoneditor.min.js'></script>
-    <script src='${staticRoot}/built/swagger/lib/marked.js'></script>
-    <script src="${staticRoot}/built/swagger/girder-swagger.js"></script>
+    <script src="/static/built/swagger/lib/object-assign-pollyfill.js"></script>
+    <script src="/static/built/swagger/lib/jquery-1.8.0.min.js"></script>
+    <script src="/static/built/swagger/lib/jquery.slideto.min.js"></script>
+    <script src="/static/built/swagger/lib/jquery.wiggle.min.js"></script>
+    <script src="/static/built/swagger/lib/jquery.ba-bbq.min.js"></script>
+    <script src="/static/built/swagger/lib/handlebars-4.0.5.js"></script>
+    <script src="/static/built/swagger/lib/lodash.min.js"></script>
+    <script src="/static/built/swagger/lib/backbone-min.js"></script>
+    <script src="/static/built/swagger/swagger-ui.min.js"></script>
+    <script src="/static/built/swagger/lib/highlight.9.1.0.pack.js"></script>
+    <script src="/static/built/swagger/lib/highlight.9.1.0.pack_extended.js"></script>
+    <script src='/static/built/swagger/lib/jsoneditor.min.js'></script>
+    <script src='/static/built/swagger/lib/marked.js'></script>
+    <script src="/static/built/swagger/girder-swagger.js"></script>
     % if mode == 'testing':
-    <script src="${staticRoot}/built/testing.min.js"></script>
+    <script src="/static/built/testing.min.js"></script>
     % endif
   </body>
 </html>

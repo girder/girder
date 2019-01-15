@@ -23,7 +23,7 @@ import pymongo
 import six
 import re
 
-from ..constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingDefault, SettingKey
+from ..constants import GIRDER_ROUTE_ID, SettingDefault, SettingKey
 from .model_base import Model
 from girder import logprint
 from girder.exceptions import ValidationException
@@ -380,19 +380,12 @@ class Setting(Model):
     @setting_utilities.validator(SettingKey.ROUTE_TABLE)
     def validateCoreRouteTable(doc):
         nonEmptyRoutes = [route for route in doc['value'].values() if route]
-        for key in [GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID]:
-            if key not in doc['value'] or not doc['value'][key]:
-                raise ValidationException('Girder and static root must be routable.')
+        if GIRDER_ROUTE_ID not in doc['value'] or not doc['value'][GIRDER_ROUTE_ID]:
+            raise ValidationException('Girder root must be routable.')
 
         for key in doc['value']:
-            if (key != GIRDER_STATIC_ROUTE_ID and doc['value'][key] and
-                    not doc['value'][key].startswith('/')):
+            if (doc['value'][key] and not doc['value'][key].startswith('/')):
                 raise ValidationException('Routes must begin with a forward slash.')
-        if doc['value'].get(GIRDER_STATIC_ROUTE_ID):
-            if (not doc['value'][GIRDER_STATIC_ROUTE_ID].startswith('/') and
-                    '://' not in doc['value'][GIRDER_STATIC_ROUTE_ID]):
-                raise ValidationException(
-                    'Static root must begin with a forward slash or contain a URL scheme.')
 
         if len(nonEmptyRoutes) > len(set(nonEmptyRoutes)):
             raise ValidationException('Routes must be unique.')
@@ -401,8 +394,7 @@ class Setting(Model):
     @setting_utilities.default(SettingKey.ROUTE_TABLE)
     def defaultCoreRouteTable():
         return {
-            GIRDER_ROUTE_ID: '/',
-            GIRDER_STATIC_ROUTE_ID: '/static'
+            GIRDER_ROUTE_ID: '/'
         }
 
     @staticmethod

@@ -469,14 +469,12 @@ class ApiDocs(WebrootBase):
 
         self.vars = {
             'apiRoot': '',
-            'staticRoot': '',
             'mode': mode
         }
 
     def _renderHTML(self):
         from girder.utility import server
         self.vars['apiRoot'] = server.getApiRoot()
-        self.vars['staticRoot'] = server.getApiStaticRoot()
         self.vars['brandName'] = Setting().get(SettingKey.BRAND_NAME)
         return super(ApiDocs, self)._renderHTML()
 

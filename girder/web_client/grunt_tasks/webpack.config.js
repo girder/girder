@@ -47,10 +47,8 @@ var loaderPathsNodeModules = loaderPaths.concat([nodeModules]);
 module.exports = {
     output: {
         // pathinfo: true,  // for debugging
-        filename: '[name].min.js'
-        // publicPath must be set to Girder's externally-served static path for built outputs
-        // (typically '/static/built/'). This will be done at runtime with
-        // '__webpack_public_path__', since it's not always known at build-time.
+        filename: '[name].min.js',
+        publicPath: '/static/built/'
     },
     plugins: [
         // Exclude all of Moment.js's extra locale files except English

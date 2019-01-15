@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingKey
+from girder.constants import GIRDER_ROUTE_ID, SettingKey
 from girder.models.setting import Setting
 from pytest_girder.assertions import assertStatusOk
 from pytest_girder.utils import getResponseBody
@@ -70,25 +70,6 @@ def testAccessWebRoot(server, db):
     assert WebrootBase._escapeJavascript(defaultEmailAddress) in body
     assert '<title>%s</title>' % defaultBrandName in body
 
-
-def testWebRootProperlyHandlesStaticRouteUrls(server, db):
-    Setting().set(SettingKey.ROUTE_TABLE, {
-        GIRDER_ROUTE_ID: '/',
-        GIRDER_STATIC_ROUTE_ID: 'http://my-cdn-url.com/static'
-    })
-
-    resp = server.request(path='/', method='GET', isJson=False, prefix='')
-    assertStatusOk(resp)
-    body = getResponseBody(resp)
-
-    assert 'href="http://my-cdn-url.com/static/built/Girder_Favicon.png"' in body
-
-    # Same assertion should hold true for Swagger
-    resp = server.request(path='/', method='GET', isJson=False)
-    assertStatusOk(resp)
-    body = getResponseBody(resp)
-
-    assert 'href="http://my-cdn-url.com/static/built/Girder_Favicon.png"' in body
 
 def testWebRootTemplateFilename():
     """
