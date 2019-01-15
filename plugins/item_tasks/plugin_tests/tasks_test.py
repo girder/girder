@@ -493,7 +493,7 @@ class TasksTest(base.TestCase):
                 '--MinimumSphereActivity=$input{--MinimumSphereActivity}',
                 '--MinimumSphereDistance=$input{--MinimumSphereDistance}',
                 '--SpheresPerPhantom=$input{--SpheresPerPhantom}',
-                '--StrictSorting=$input{--StringSorting}',
+                '--StrictSorting=$input{--StrictSorting}',
                 '--DetectedPoints=$output{--DetectedPoints}',
                 '--OutputDirectory=$output{--OutputDirectory}'
             ],
