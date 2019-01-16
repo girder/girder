@@ -100,9 +100,14 @@ class ServerFuse(fuse.Operations):
             else:
                 logger.debug('<- %s (length %d) %r', op, len(ret), ret[:16])
 
+    _getPathCacheMaxEntries = 100
+    _getPathCacheExpiryDuration = 1  # seconds
+    _getPathCache = {}
+
     def _getPath(self, path):
         """
-        Given a fuse path, return the associated resource.
+        Given a fuse path, return the associated resource.  This uses a simple
+        cache to avoid repeated lookups.
 
         :param path: path within the fuse.
         :returns: a Girder resource dictionary.
@@ -112,18 +117,30 @@ class ServerFuse(fuse.Operations):
         # '/user', and 'collection' before calling this method.
         if '/' not in path.rstrip('/')[1:]:
             raise fuse.FuseOSError(errno.ENOENT)
-        try:
-            # We can't filter the resource, since that removes files'
-            # assetstore information and users' size information.
-            resource = path_util.lookUpPath(
-                path.rstrip('/'), filter=False, force=True)
-        except (path_util.NotFoundException, AccessException):
-            raise fuse.FuseOSError(errno.ENOENT)
-        except ValidationException:
-            raise fuse.FuseOSError(errno.EROFS)
-        except Exception:
-            logger.exception('ServerFuse server internal error')
-            raise fuse.FuseOSError(errno.EROFS)
+        cacheEntry = self._getPathCache.get(path)
+        if cacheEntry and cacheEntry['expiry'] > time.time():
+            resource = cacheEntry['result']
+            cacheEntry['hits'] += 1
+        else:
+            try:
+                # We can't filter the resource, since that removes files'
+                # assetstore information and users' size information.
+                resource = path_util.lookUpPath(
+                    path.rstrip('/'), filter=False, force=True)
+                if len(self._getPathCache) > self._getPathCacheMaxEntries:
+                    self._getPathCache.clear()
+                self._getPathCache[path] = {
+                    'expiry': time.time() + self._getPathCacheExpiryDuration,
+                    'result': resource,
+                    'hits': 0
+                }
+            except (path_util.NotFoundException, AccessException):
+                raise fuse.FuseOSError(errno.ENOENT)
+            except ValidationException:
+                raise fuse.FuseOSError(errno.EROFS)
+            except Exception:
+                logger.exception('ServerFuse server internal error')
+                raise fuse.FuseOSError(errno.EROFS)
         return resource   # {model, document}
 
     def _stat(self, doc, model):
