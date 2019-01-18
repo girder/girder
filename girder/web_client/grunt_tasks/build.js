@@ -190,6 +190,13 @@ module.exports = function (grunt) {
         progress: progress
     });
 
+    // Set the publicPath based on Girder's static root
+    updateWebpackConfig({
+        output: {
+            publicPath: path.join(grunt.config.get('staticUrl'), 'built/')
+        }
+    });
+
     const paths = require('./webpack.paths.js');
 
     // add coverage to all babel loader rules when in dev mode

@@ -29,6 +29,7 @@ import six
 
 from girder.constants import STATIC_ROOT_DIR
 from girder.plugin import allPlugins, getPlugin
+from girder.utility.server import getStaticRoot
 
 # monkey patch shutil for python < 3
 if not six.PY3:
@@ -78,7 +79,11 @@ def main(dev, watch, watch_plugin, npm, reinstall):
 
     quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
     buildCommand = [
-        npm, 'run', 'build', '--', '--static-path=%s' % STATIC_ROOT_DIR, quiet]
+        npm, 'run', 'build', '--',
+        '--static-path=%s' % STATIC_ROOT_DIR,
+        '--static-url=%s' % getStaticRoot(),
+        quiet
+    ]
     if watch:
         buildCommand.append('--watch')
     if watch_plugin:

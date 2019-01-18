@@ -159,6 +159,19 @@ place (in the Girder python package) in both development and production installs
 The built assets are installed into a virtual environment specific static path
 ``{sys.prefix}/share/girder``.
 
+Static root is required during web client build
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The static root, indicating the base URL where web client files are served from,
+is now required when the web client is built. The primary implication is that if the static root
+setting is changed, the web client must be immediately rebuilt. Also, note the API changes:
+
+* In the web client, ``girder.rest.staticRoot``, ``girder.rest.getStaticRoot``, and
+  ``girder.rest.setStaticRoot`` have been removed
+* The ability to set the web client static root via the special element
+  ``<div id="g-global-info-staticroot">`` has been removed
+* In the server, the ``girder.utility.server.getStaticRoot()`` function now returns an absolute path
+  unless set otherwise (which is not recommended).
+
 Server changes
 ++++++++++++++
 
