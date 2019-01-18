@@ -72,7 +72,7 @@ module.exports = function (grunt) {
     const updateWebpackConfig = _.partial(
         extendify({
             inPlace: true,
-            isDeep: false,
+            isDeep: true,
             arrays: 'concat'
         }),
         webpackConfig
