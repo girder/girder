@@ -72,7 +72,7 @@ module.exports = function (grunt) {
     const updateWebpackConfig = _.partial(
         extendify({
             inPlace: true,
-            isDeep: false,
+            isDeep: true,
             arrays: 'concat'
         }),
         webpackConfig
@@ -188,6 +188,13 @@ module.exports = function (grunt) {
     // Add extra config options for grunt-webpack
     updateWebpackConfig({
         progress: progress
+    });
+
+    // Set the publicPath based on Girder's static root
+    updateWebpackConfig({
+        output: {
+            publicPath: path.join(grunt.config.get('staticUrl'), 'built/')
+        }
     });
 
     const paths = require('./webpack.paths.js');

@@ -73,7 +73,6 @@ module.exports = function (grunt) {
                             '/static/built/girder_app.min.js',
                             '/static/built/testing.min.js'
                         ],
-                        staticRoot: '/static',
                         apiRoot: '/api/v1'
                     },
                     pretty: true
