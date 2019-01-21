@@ -13,6 +13,7 @@ Changes
 
 * Move minimum node version to 8.x due to upstream packages using newer ES features.
   (`#2707 <https://github.com/girder/girder/pull/2707>`_).
+* Require MongoDB 3.4+ (`#2900 <https://github.com/girder/girder/pull/2900>`_)
 
 Bug Fixes
 ---------
