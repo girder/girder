@@ -24,7 +24,6 @@ var path = require('path');
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-const webSrc = require('./webpack.paths').web_src;
 const nodeModules = require('./webpack.paths').node_modules;
 
 // Resolving the Babel presets here is required to support symlinking plugin directories from
@@ -41,7 +40,7 @@ function fileLoader() {
     };
 }
 
-var loaderPaths = [webSrc];
+var loaderPaths = [path.dirname(require.resolve('@girder/core'))];
 var loaderPathsNodeModules = loaderPaths.concat([nodeModules]);
 
 module.exports = {
@@ -203,7 +202,7 @@ module.exports = {
         extensions: ['.js'],
         symlinks: false,
         alias: {
-            'girder': path.resolve('src'),
+            'girder': '@girder/core',
             'jquery': require.resolve('jquery') // ensure that all plugins use the same "jquery"
         }
     },

@@ -152,12 +152,10 @@ build --dev`` will build a *development* install of Girder's static assets as
 well as building targets only necessary when running testing.
 
 The new build process works by generating a ``package.json`` file in ``girder/web_client``
-from the template (``girder/web_client/package.json.template``).  The generated
-``package.json`` includes all plugin web client dependencies as well as a list of
-npm packages containing web client extensions.  The build process is executed in
-place (in the Girder python package) in both development and production installs.
-The built assets are installed into a virtual environment specific static path
-``{sys.prefix}/share/girder``.
+from the template (``girder/web_client/package.json.template``). The generated ``package.json``
+itself depends on the core web client and all plugin web clients. The build process is executed in
+place (in the Girder Python package) in both development and production installs. The built assets
+are installed into a virtual environment specific static path ``{sys.prefix}/share/girder``.
 
 Static root is required during web client build
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
