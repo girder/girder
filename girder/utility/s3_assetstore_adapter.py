@@ -432,47 +432,48 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             importPath += '/'
 
         bucket = self.assetstore['bucket']
-        resp = self.client.list_objects(Bucket=bucket, Prefix=importPath, Delimiter='/')
+        paginator = self.client.get_paginator('list_objects')
+        pageIterator = paginator.paginate(Bucket=bucket, Prefix=importPath, Delimiter='/')
+        for resp in pageIterator:
+            # Start with objects
+            for obj in resp.get('Contents', []):
+                if progress:
+                    progress.update(message=obj['Key'])
 
-        # Start with objects
-        for obj in resp.get('Contents', []):
-            if progress:
-                progress.update(message=obj['Key'])
+                name = obj['Key'].rsplit('/', 1)[-1]
+                if not name:
+                    continue
 
-            name = obj['Key'].rsplit('/', 1)[-1]
-            if not name:
-                continue
+                if parentType != 'folder':
+                    raise ValidationException(
+                        'Keys cannot be imported directly underneath a %s.' % parentType)
 
-            if parentType != 'folder':
-                raise ValidationException(
-                    'Keys cannot be imported directly underneath a %s.' % parentType)
+                if self.shouldImportFile(obj['Key'], params):
+                    item = Item().createItem(
+                        name=name, creator=user, folder=parent, reuseExisting=True)
+                    # Create a file record; delay saving it until we have added
+                    # the import information.
+                    file = File().createFile(
+                        name=name, creator=user, item=item, reuseExisting=True,
+                        assetstore=self.assetstore, mimeType=None, size=obj['Size'],
+                        saveFile=False)
+                    file['s3Key'] = obj['Key']
+                    file['imported'] = True
+                    File().save(file)
 
-            if self.shouldImportFile(obj['Key'], params):
-                item = Item().createItem(
-                    name=name, creator=user, folder=parent, reuseExisting=True)
-                # Create a file record; delay saving it until we have added the
-                # import information.
-                file = File().createFile(
-                    name=name, creator=user, item=item, reuseExisting=True,
-                    assetstore=self.assetstore, mimeType=None, size=obj['Size'],
-                    saveFile=False)
-                file['s3Key'] = obj['Key']
-                file['imported'] = True
-                File().save(file)
+            # Now recurse into subdirectories
+            for obj in resp.get('CommonPrefixes', []):
+                if progress:
+                    progress.update(message=obj['Prefix'])
 
-        # Now recurse into subdirectories
-        for obj in resp.get('CommonPrefixes', []):
-            if progress:
-                progress.update(message=obj['Prefix'])
+                name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
 
-            name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
-
-            folder = Folder().createFolder(
-                parent=parent, name=name, parentType=parentType, creator=user,
-                reuseExisting=True)
-            self.importData(parent=folder, parentType='folder', params={
-                'importPath': obj['Prefix']
-            }, progress=progress, user=user, **kwargs)
+                folder = Folder().createFolder(
+                    parent=parent, name=name, parentType=parentType, creator=user,
+                    reuseExisting=True)
+                self.importData(parent=folder, parentType='folder', params={
+                    'importPath': obj['Prefix']
+                }, progress=progress, user=user, **kwargs)
 
     def deleteFile(self, file):
         """
