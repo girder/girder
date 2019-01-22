@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='pytest-girder',
-    version='0.1.0a2',
+    version='0.1.0a3',
     description='A set of pytest fixtures for testing Girder applications.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
