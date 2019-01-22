@@ -182,7 +182,10 @@ def request(path='/', method='GET', params=None, user=None,
         body = body.encode('utf8')
 
     if params:
-        qs = urllib.parse.urlencode(params)
+        # Python2 can't urlencode unicode and this does no harm in Python3
+        qs = urllib.parse.urlencode({
+            k: v.encode('utf8') if isinstance(v, six.text_type) else v
+            for k, v in params.items()})
 
     if params and body:
         # In this case, we are forced to send params in query string
