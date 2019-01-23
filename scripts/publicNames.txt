@@ -1327,6 +1327,7 @@ pytest_girder
             admin
             bcrypt
             db
+            exposedServer
             fsAssetstore
             server
             smtp
