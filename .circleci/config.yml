@@ -225,8 +225,14 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Update npm
-          command: npm install -g npm
+          name: Install NodeJS 8
+          # CircleCI resets the Bash environment between every step, so any steps using node or npm
+          # must first:
+          #   source $NVM_DIR/nvm.sh
+          command: |
+            source $NVM_DIR/nvm.sh
+            nvm install v8
+            nvm alias default v8
       - run:
           # Technically, we should add the circleci user to the fuse group, log
           # out, and log back in for it to take effect.  This allows fuse to be
@@ -270,7 +276,9 @@ jobs:
           command: mkdir girder_build
       - run:
           name: Build Girder web client
-          command: girder build --dev | cat
+          command: |
+            source $NVM_DIR/nvm.sh
+            girder build --dev | cat
       - run:
           name: CMake
           command: cmake ../girder -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
@@ -335,8 +343,14 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Update npm
-          command: npm install -g npm
+          name: Install NodeJS 10
+          # CircleCI resets the Bash environment between every step, so any steps using node or npm
+          # must first:
+          #   source $NVM_DIR/nvm.sh
+          command: |
+            source $NVM_DIR/nvm.sh
+            nvm install v10
+            nvm alias default v10
       - run:
           # Technically, we should add the circleci user to the fuse group, log
           # out, and log back in for it to take effect.  This allows fuse to be
@@ -394,7 +408,9 @@ jobs:
           command: mkdir girder_build
       - run:
           name: Build Girder web client
-          command: girder build --dev | cat
+          command: |
+            source $NVM_DIR/nvm.sh
+            girder build --dev | cat
       - run:
           name: CMake
           command: cmake ../girder -DPYTHON_VERSION=3.5 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
