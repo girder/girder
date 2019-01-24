@@ -124,10 +124,6 @@ Building Girder's web client has the following system dependencies:
 
   * This is necessary to install web client packages.
 
-* `curl <https://curl.haxx.se/>`_
-
-  * This is necessary to download Fontello files as part of the web client build process.
-
 * `Git <https://git-scm.com/>`_
 
   * This is necessary to introspect Girder's install environment and generate version information as part of the web

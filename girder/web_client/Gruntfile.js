@@ -74,9 +74,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-file-creator');
     grunt.loadNpmTasks('grunt-gitinfo');
-    grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-webpack');
-    grunt.loadNpmTasks('grunt-zip');
 
     /**
      * Load task modules inside `grunt_tasks`.

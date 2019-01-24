@@ -63,8 +63,6 @@ module.exports = function (grunt) {
                 options: {
                     data: {
                         cssFiles: [
-                            '/static/built/fontello/css/fontello.css',
-                            '/static/built/fontello/css/animation.css',
                             '/static/built/girder_lib.min.css',
                             '/static/built/testing/testing.min.css'
                         ],

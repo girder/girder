@@ -17,6 +17,7 @@
         "bootstrap": "~3.3.7",
         "bootstrap-switch": "~3.3.4",
         "eonasdan-bootstrap-datetimepicker": "~4.17",
+        "@girder/fontello": "~3.0.0-alpha.1",
         "jquery": "~3.2.1",
         "jsoneditor": "~5.9.3",
         "moment": "~2.20.1",
