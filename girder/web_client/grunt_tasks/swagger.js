@@ -16,13 +16,13 @@
 
 const path = require('path');
 
-const webSrc = require('./webpack.paths').web_src;
-
 /**
  * Define tasks that copy and configure swagger API/doc files.
  */
 module.exports = function (grunt) {
     const builtPath = path.resolve(grunt.config.get('builtPath'), 'swagger');
+    // require.resolve('@girder/core') finds the main index.js
+    const webSrc = path.dirname(require.resolve('@girder/core'));
     grunt.config.merge({
         copy: {
             swagger: {

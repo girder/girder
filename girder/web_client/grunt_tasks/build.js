@@ -197,8 +197,6 @@ module.exports = function (grunt) {
         }
     });
 
-    const paths = require('./webpack.paths.js');
-
     // add coverage to all babel loader rules when in dev mode
     injectIstanbulCoverage(webpackConfig);
 
@@ -207,7 +205,7 @@ module.exports = function (grunt) {
             options: webpackConfig,
             core_lib: {
                 entry: {
-                    girder_lib: [paths.web_src]
+                    girder_lib: [require.resolve('@girder/core')] // main is index.js
                 },
                 output: {
                     library: '[name]',
@@ -234,7 +232,7 @@ module.exports = function (grunt) {
             },
             core_app: {
                 entry: {
-                    girder_app: [path.join(paths.web_src, 'main.js')]
+                    girder_app: [require.resolve('@girder/core/main.js')]
                 },
                 output: {
                     path: grunt.config.get('builtPath')

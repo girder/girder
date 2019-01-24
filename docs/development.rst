@@ -455,18 +455,21 @@ should be done:
 
        npm install -g 'npm@>=5.6'
 
-2. Update ``dependencies`` or ``devDependencies`` in ``girder/web_client/package.json.template``
-   to add a new *abstract* specifier for the package:
+2. Update ``girder/web_client/package.json.template`` or ``girder/web_client/src/package.json`` to
+   add a new *abstract* specifier for the package:
 
-  * Packages that are bundled into the web client should generally use the
+  * Packages that are bundled into the web client must be listed under the ``dependencies`` field
+    of ``girder/web_client/src/package.json`` and should generally use the
     `tilde range <https://www.npmjs.com/package/semver#tilde-ranges-123-12-1>`_
     to specify versions.
-  * Packages that are part of the build or testing process should generally use the
+  * Packages that are part of the build or testing process should be listed under either the
+    ``dependencies`` or ``devDependencies`` fields of ``girder/web_client/package.json.template``
+    and should generally use the
     `caret range <https://www.npmjs.com/package/semver#caret-ranges-123-025-004>`_
     to specify versions.
 
-If updating node libraries related to linting or documentation, you should instead modify
-the top-level ``package.json`` file, run ``npm update``, commit the modified files.
+If updating npm libraries related to linting or documentation, you should instead modify
+the top-level ``package.json`` file, run ``npm update``, then commit the modified files.
 
 Creating a new release
 ----------------------
@@ -477,7 +480,7 @@ are stored as releases inside the official
 `github repository <https://github.com/girder/girder/releases>`_. The
 recommended process for generating a new release is described here.
 
-1.  From the target commit, set the desired version number in ``girder/web_client/package.json.template``,
+1.  From the target commit, set the desired version number in ``girder/web_client/src/package.json``,
     and ``girder/__init__.py``. Create a new commit and note the SHA; this will
     become the release tag.
 
@@ -516,9 +519,9 @@ recommended process for generating a new release is described here.
 
         python setup.py sdist upload
 
-10. Publish the new girder source package on npm.
+10. Publish the new Girder core source package on npm.
 
-        cd girder/web_client && cp package.json.template package.json && npm publish
+        cd girder/web_client/src && npm publish
 
 .. _releasepythonclientpackage:
 
