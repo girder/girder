@@ -732,13 +732,12 @@ def _setCommonCORSHeaders():
         setResponseHeader(
             'Access-Control-Expose-Headers', Setting().get(SettingKey.CORS_EXPOSE_HEADERS))
 
-        allowed_list = [o.strip() for o in allowed.split(',')]
-        key = 'Access-Control-Allow-Origin'
+        allowedList = {o.strip() for o in allowed.split(',')}
 
-        if len(allowed_list) == 1:
-            setResponseHeader(key, allowed_list[0])
-        elif origin in allowed_list:
-            setResponseHeader(key, origin)
+        if origin in allowedList:
+            setResponseHeader('Access-Control-Allow-Origin', origin)
+        elif '*' in allowedList:
+            setResponseHeader('Access-Control-Allow-Origin', '*')
 
 
 class Resource(object):
