@@ -132,15 +132,13 @@ class RoutesTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertFalse('Access-Control-Allow-Origin' in resp.headers)
 
-        # If we allow some origins, we should get the corresponding header
+        # Request from a non-allowed Origin
         Setting().set(SettingKey.CORS_ALLOW_ORIGIN, 'http://kitware.com')
         resp = self.request(path='/dummy/test', additionalHeaders=[
             ('Origin', 'http://foo.com')
         ])
-        self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
-                         'http://kitware.com')
-        self.assertEqual(resp.headers['Access-Control-Allow-Credentials'],
-                         'true')
+        self.assertNotIn('Access-Control-Allow-Origin', resp.headers)
+        self.assertEqual(resp.headers['Access-Control-Allow-Credentials'], 'true')
 
         # Simulate a preflight request; we should get back several headers
         Setting().set(SettingKey.CORS_ALLOW_METHODS, 'POST')
@@ -151,10 +149,9 @@ class RoutesTestCase(base.TestCase):
         )
         self.assertStatusOk(resp)
         self.assertEqual(self.getBody(resp), '')
-        self.assertEqual(resp.headers['Access-Control-Allow-Origin'],
-                         'http://kitware.com')
-        self.assertEqual(resp.headers['Access-Control-Allow-Credentials'],
-                         'true')
+
+        self.assertNotIn('Access-Control-Allow-Origin', resp.headers)
+        self.assertEqual(resp.headers['Access-Control-Allow-Credentials'], 'true')
         self.assertEqual(resp.headers['Access-Control-Allow-Headers'],
                          SettingDefault.defaults[SettingKey.CORS_ALLOW_HEADERS])
         self.assertEqual(resp.headers['Access-Control-Allow-Methods'], 'POST')
@@ -178,3 +175,17 @@ class RoutesTestCase(base.TestCase):
                 ('Origin', 'http://invalid.com')
             ], isJson=False)
         self.assertNotIn('Access-Control-Allow-Origin', resp.headers)
+
+        # Test behavior of '*' allowed origin
+        Setting().set(SettingKey.CORS_ALLOW_ORIGIN, 'http://foo.com,*')
+        resp = self.request(
+            path='/dummy/test', method='GET', additionalHeaders=[
+                ('Origin', 'http://bar.com')
+            ], isJson=False)
+        self.assertEqual(resp.headers['Access-Control-Allow-Origin'], '*')
+
+        resp = self.request(
+            path='/dummy/test', method='GET', additionalHeaders=[
+                ('Origin', 'http://foo.com')
+            ], isJson=False)
+        self.assertEqual(resp.headers['Access-Control-Allow-Origin'], 'http://foo.com')
