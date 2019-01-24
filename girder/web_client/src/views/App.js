@@ -1,6 +1,7 @@
 import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
+import 'typeface-open-sans';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap/js/alert';
 
