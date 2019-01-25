@@ -83,7 +83,7 @@ def _findFreePort():
         return sock.getsockname()[1]
 
 
-def _yieldServer(request, exposePort=False):
+def _yieldServer(request, bindPort=False):
     # The event daemon cannot be restarted since it is a threading.Thread
     # object, however all references to girder.events.daemon are a singular
     # global daemon due to its side effect on import. We have to hack around
@@ -119,11 +119,11 @@ def _yieldServer(request, exposePort=False):
         server.request = restRequest
         server.uploadFile = uploadFile
         cherrypy.server.unsubscribe()
-        if exposePort:
+        if bindPort:
             cherrypy.server.subscribe()
             port = _findFreePort()
             cherrypy.config['server.socket_port'] = port
-            server.exposedPort = port
+            server.boundPort = port
             # This is needed if cherrypy started once on another port
             cherrypy.server.socket_port = port
         cherrypy.config.update({'environment': 'embedded',
@@ -157,18 +157,18 @@ def server(db, request):
 
 
 @pytest.fixture
-def exposedServer(db, request):
+def boundServer(db, request):
     """
     Require a CherryPy server that listens on a port.
 
-    Provides a started CherryPy server with an exposed port and a request
-    method for performing local requests against it. Note: this fixture
-    requires the db fixture.  The returned value has an `exposedPort` property
-    identifying where the server can be reached.  The server can then be
-    accessed via http via an address like
-    `'http://127.0.0.1:%d/api/v1/...' % exposedServer.exposedPort`.
+    Provides a started CherryPy server with a bound port and a request method
+    for performing local requests against it. Note: this fixture requires the
+    db fixture.  The returned value has an `boundPort` property identifying
+    where the server can be reached.  The server can then be accessed via http
+    via an address like `'http://127.0.0.1:%d/api/v1/...' %
+    boundServer.boundPort`.
     """
-    for server in _yieldServer(request, exposePort=True):
+    for server in _yieldServer(request, bindPort=True):
         yield server
 
 
@@ -245,4 +245,4 @@ def fsAssetstore(db, request):
         shutil.rmtree(path)
 
 
-__all__ = ('admin', 'bcrypt', 'db', 'fsAssetstore', 'server', 'exposedServer', 'user', 'smtp')
+__all__ = ('admin', 'bcrypt', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp')

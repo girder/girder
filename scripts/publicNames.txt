@@ -1326,8 +1326,8 @@ pytest_girder
         fixtures
             admin
             bcrypt
+            boundServer
             db
-            exposedServer
             fsAssetstore
             server
             smtp
