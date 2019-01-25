@@ -1,10 +1,12 @@
 import cherrypy
+import contextlib
 import hashlib
 import mock
 import mongomock
 import os
 import pytest
 import shutil
+import socket
 
 from .utils import uploadFile, MockSmtpReceiver, request as restRequest
 from .plugin_registry import PluginRegistry
@@ -75,18 +77,18 @@ def db(request):
         pymongo.MongoClient = realMongoClient
 
 
-@pytest.fixture
-def server(db, request):
-    """
-    Require a CherryPy embedded server.
+def _findFreePort():
+    with contextlib.closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        sock.bind(('', 0))
+        return sock.getsockname()[1]
 
-    Provides a started CherryPy embedded server with a request method for performing
-    local requests against it. Note: this fixture requires the db fixture.
-    """
-    # The event daemon cannot be restarted since it is a threading.Thread object, however
-    # all references to girder.events.daemon are a singular global daemon due to its side
-    # effect on import. We have to hack around this by creating a unique event daemon
-    # each time we startup the server and assigning it to the global.
+
+def _yieldServer(request, bindPort=False):
+    # The event daemon cannot be restarted since it is a threading.Thread
+    # object, however all references to girder.events.daemon are a singular
+    # global daemon due to its side effect on import. We have to hack around
+    # this by creating a unique event daemon each time we startup the server
+    # and assigning it to the global.
     import girder.events
     from girder.api import docs
     from girder.constants import SettingKey
@@ -116,8 +118,14 @@ def server(db, request):
         server = setupServer(test=True, plugins=enabledPlugins)
         server.request = restRequest
         server.uploadFile = uploadFile
-
         cherrypy.server.unsubscribe()
+        if bindPort:
+            cherrypy.server.subscribe()
+            port = _findFreePort()
+            cherrypy.config['server.socket_port'] = port
+            server.boundPort = port
+            # This is needed if cherrypy started once on another port
+            cherrypy.server.socket_port = port
         cherrypy.config.update({'environment': 'embedded',
                                 'log.screen': False,
                                 'request.throw_errors': True})
@@ -130,7 +138,38 @@ def server(db, request):
         cherrypy.engine.stop()
         cherrypy.engine.exit()
         cherrypy.tree.apps = {}
+        # This is needed to allow cherrypy to restart on another port
+        cherrypy.server.httpserver = None
         docs.routes.clear()
+
+
+@pytest.fixture
+def server(db, request):
+    """
+    Require a CherryPy embedded server.
+
+    Provides a started CherryPy embedded server with a request method for
+    performing local requests against it. Note: this fixture requires the db
+    fixture.
+    """
+    for server in _yieldServer(request):
+        yield server
+
+
+@pytest.fixture
+def boundServer(db, request):
+    """
+    Require a CherryPy server that listens on a port.
+
+    Provides a started CherryPy server with a bound port and a request method
+    for performing local requests against it. Note: this fixture requires the
+    db fixture.  The returned value has an `boundPort` property identifying
+    where the server can be reached.  The server can then be accessed via http
+    via an address like `'http://127.0.0.1:%d/api/v1/...' %
+    boundServer.boundPort`.
+    """
+    for server in _yieldServer(request, bindPort=True):
+        yield server
 
 
 @pytest.fixture
@@ -206,4 +245,4 @@ def fsAssetstore(db, request):
         shutil.rmtree(path)
 
 
-__all__ = ('admin', 'bcrypt', 'db', 'fsAssetstore', 'server', 'user', 'smtp')
+__all__ = ('admin', 'bcrypt', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp')
