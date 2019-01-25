@@ -22,6 +22,7 @@
 -e plugins/virtual_folders
 
 # External dependencies
+configparser==3.5.0
 coverage
 flake8
 flake8-blind-except
