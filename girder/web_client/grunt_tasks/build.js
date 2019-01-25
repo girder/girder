@@ -282,6 +282,12 @@ module.exports = function (grunt) {
             module: {
                 rules: [babelRule]
             },
+            resolve: {
+                alias: {
+                    // This is deprecated, but kept in place for compatibility
+                    'girder': '@girder/core'
+                }
+            },
             plugins: [
                 new webpack.DllPlugin({
                     path: path.join(grunt.config.get('builtPath'), 'plugins', name, 'plugin-manifest.json'),
