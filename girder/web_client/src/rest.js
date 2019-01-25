@@ -68,7 +68,8 @@ setApiRoot(
 let restRequest = function (opts) {
     opts = opts || {};
     const defaults = {
-        // the default `method` (aliased as `type`) is 'GET'
+        // the default 'method' is 'GET', as set by 'jquery.ajax'
+
         girderToken: getCurrentToken() || cookie.find('girderToken'),
 
         error: (error, status) => {
@@ -124,12 +125,6 @@ let restRequest = function (opts) {
 
     // Overwrite defaults with passed opts, but do not mutate opts
     const args = _.extend({}, defaults, opts);
-
-    if (args.path) {
-        console.warn('restRequest\'s "path" option is deprecated, use "url" instead');
-        args.url = args.url || args.path;
-        delete args.path;
-    }
 
     if (!args.url) {
         throw new Error('restRequest requires a "url" argument');
