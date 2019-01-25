@@ -20,6 +20,7 @@
         "jquery": "~3.2.1",
         "jsoneditor": "~5.9.3",
         "moment": "~2.20.1",
+        "moment-timezone": "~0.4.1",
         "qrcode": "~1.2.0",
         "remarkable": "~1.7.1",
         "sprintf-js": "~1.1.1",
