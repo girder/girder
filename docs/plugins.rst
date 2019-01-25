@@ -295,7 +295,7 @@ internally. You can use it on any user model with the ``_id`` field set, as in t
 
 .. code-block:: javascript
 
-    import { getCurrentUser } from 'girder/auth';
+    import { getCurrentUser } from '@girder/core/auth';
 
     const currentUser = getCurrentUser();
     if (currentUser) {

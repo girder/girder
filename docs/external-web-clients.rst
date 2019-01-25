@@ -54,12 +54,12 @@ application bootstrapping
 
     import Backbone from 'backbone';
 
-    import { setCurrentUser } from 'girder/auth';
-    import UserModel from 'girder/models/UserModel';
-    import { setApiRoot } from 'girder/rest';
-    import router from 'girder/router';
-    import eventStream from 'girder/utilities/EventStream';
-    import App from 'girder/views/App';
+    import { setCurrentUser } from '@girder/core/auth';
+    import UserModel from '@girder/core/models/UserModel';
+    import { setApiRoot } from '@girder/core/rest';
+    import router from '@girder/core/router';
+    import eventStream from '@girder/core/utilities/EventStream';
+    import App from '@girder/core/views/App';
 
     // set the path where girder's API is mounted
     setApiRoot('/girder/api/v1');
@@ -135,12 +135,12 @@ In your JavaScript, perform callbacks such as the following:
 
 .. code-block:: javascript
 
-    import { getCurrentUser, setCurrentUser } from 'girder/auth';
-    import events from 'girder/events';
-    import UserModel from 'girder/models/UserModel';
-    import { restRequest } from 'girder/rest';
-    import LoginView from 'girder/views/layout/LoginView';
-    import RegisterView from 'girder/views/layout/RegisterView';
+    import { getCurrentUser, setCurrentUser } from '@girder/core/auth';
+    import events from '@girder/core/events';
+    import UserModel from '@girder/core/models/UserModel';
+    import { restRequest } from '@girder/core/rest';
+    import LoginView from '@girder/core/views/layout/LoginView';
+    import RegisterView from '@girder/core/views/layout/RegisterView';
 
     $('#login').click(function () {
         var loginView = new LoginView({

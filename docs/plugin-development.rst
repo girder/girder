@@ -700,8 +700,8 @@ Girder's client build system.  The important keys in the object are as follows:
     easy to include additional transpilation rules.  For an example of this in
     use, see the built in ``dicom_viewer`` plugin.
 
-Core Girder code can be imported relative to the path **girder**, for example
-``import View from 'girder/views/View';``. The entry point defined in your
+Core Girder code can be imported relative to the path **@girder/core**, for example
+``import View from '@girder/core/views/View';``. The entry point defined in your
 "main" file will be loaded into the browser after Girder's core library, but
 before the application is initialized.
 
@@ -715,7 +715,7 @@ events object that can be imported like so:
 
 .. code-block:: javascript
 
-    import events from 'girder/events';
+    import events from '@girder/core/events';
 
     ...
 
@@ -737,8 +737,8 @@ function to `wrap` the method of the core prototype with our own function.
 
 .. code-block:: javascript
 
-    import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
-    import { wrap } from 'girder/utilities/PluginUtils';
+    import HierarchyWidget from '@girder/core/views/widgets/HierarchyWidget';
+    import { wrap } from '@girder/core/utilities/PluginUtils';
 
     // Import our template file from our plugin using a relative path
     import myTemplate from './templates/hierachyWidgetExtension.pug';
@@ -807,11 +807,11 @@ route to your plugin.
 
 .. code-block:: javascript
 
-    import events from 'girder/events';
-    import router from 'girder/router';
-    import { Layout } from 'girder/constants';
-    import CollectionModel from 'girder/models/CollectionModel';
-    import CollectionView from 'girder/views/body/CollectionView';
+    import events from '@girder/core/events';
+    import router from '@girder/core/router';
+    import { Layout } from '@girder/core/constants';
+    import CollectionModel from '@girder/core/models/CollectionModel';
+    import CollectionView from '@girder/core/views/body/CollectionView';
 
     router.route('collection/:id/frontPage', 'collectionFrontPage', function (collectionId, params) {
         var collection = new CollectionModel();
