@@ -1,15 +1,12 @@
-import cherrypy
-import contextlib
 import hashlib
 import mock
 import mongomock
 import os
 import pytest
 import shutil
-import socket
 
-from .utils import uploadFile, MockSmtpReceiver, request as restRequest
 from .plugin_registry import PluginRegistry
+from .utils import MockSmtpReceiver, serverContext
 
 
 def _uid(node):
@@ -77,70 +74,18 @@ def db(request):
         pymongo.MongoClient = realMongoClient
 
 
-def _findFreePort():
-    with contextlib.closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-        sock.bind(('', 0))
-        return sock.getsockname()[1]
+def _getPluginsFromMarker(request, registry):
+    plugins = []
 
-
-def _yieldServer(request, bindPort=False):
-    # The event daemon cannot be restarted since it is a threading.Thread
-    # object, however all references to girder.events.daemon are a singular
-    # global daemon due to its side effect on import. We have to hack around
-    # this by creating a unique event daemon each time we startup the server
-    # and assigning it to the global.
-    import girder.events
-    from girder.api import docs
-    from girder.constants import SettingKey
-    from girder.models.setting import Setting
-    from girder.utility.server import setup as setupServer
-
-    girder.events.daemon = girder.events.AsyncEventsThread()
-
-    enabledPlugins = []
-    hasPluginMarkers = request.node.get_closest_marker('plugin') is not None
-    pluginRegistry = PluginRegistry()
-
-    with pluginRegistry():
-        if hasPluginMarkers:
-            for pluginMarker in request.node.iter_markers('plugin'):
-                pluginName = pluginMarker.args[0]
-                shouldEnable = pluginMarker.kwargs.pop('enabled', True)
-                if len(pluginMarker.args) > 1:
-                    pluginRegistry.registerTestPlugin(
-                        *pluginMarker.args, **pluginMarker.kwargs
-                    )
-                if shouldEnable:
-                    enabledPlugins.append(pluginName)
-
-        Setting().set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
-
-        server = setupServer(test=True, plugins=enabledPlugins)
-        server.request = restRequest
-        server.uploadFile = uploadFile
-        cherrypy.server.unsubscribe()
-        if bindPort:
-            cherrypy.server.subscribe()
-            port = _findFreePort()
-            cherrypy.config['server.socket_port'] = port
-            server.boundPort = port
-            # This is needed if cherrypy started once on another port
-            cherrypy.server.socket_port = port
-        cherrypy.config.update({'environment': 'embedded',
-                                'log.screen': False,
-                                'request.throw_errors': True})
-        cherrypy.engine.start()
-
-        yield server
-
-        cherrypy.engine.unsubscribe('start', girder.events.daemon.start)
-        cherrypy.engine.unsubscribe('stop', girder.events.daemon.stop)
-        cherrypy.engine.stop()
-        cherrypy.engine.exit()
-        cherrypy.tree.apps = {}
-        # This is needed to allow cherrypy to restart on another port
-        cherrypy.server.httpserver = None
-        docs.routes.clear()
+    if request.node.get_closest_marker('plugin') is not None:
+        for pluginMarker in request.node.iter_markers('plugin'):
+            pluginName = pluginMarker.args[0]
+            shouldEnable = pluginMarker.kwargs.pop('enabled', True)
+            if len(pluginMarker.args) > 1:
+                registry.registerTestPlugin(*pluginMarker.args, **pluginMarker.kwargs)
+            if shouldEnable:
+                plugins.append(pluginName)
+    return plugins
 
 
 @pytest.fixture
@@ -152,8 +97,11 @@ def server(db, request):
     performing local requests against it. Note: this fixture requires the db
     fixture.
     """
-    for server in _yieldServer(request):
-        yield server
+    registry = PluginRegistry()
+    with registry():
+        plugins = _getPluginsFromMarker(request, registry)
+        with serverContext(plugins) as server:
+            yield server
 
 
 @pytest.fixture
@@ -168,8 +116,11 @@ def boundServer(db, request):
     via an address like `'http://127.0.0.1:%d/api/v1/...' %
     boundServer.boundPort`.
     """
-    for server in _yieldServer(request, bindPort=True):
-        yield server
+    registry = PluginRegistry()
+    with registry():
+        plugins = _getPluginsFromMarker(request, registry)
+        with serverContext(plugins, bindPort=True) as server:
+            yield server
 
 
 @pytest.fixture
