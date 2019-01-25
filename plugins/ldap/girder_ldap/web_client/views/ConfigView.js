@@ -2,15 +2,15 @@ import $ from 'jquery';
 import _ from 'underscore';
 import sortable from 'sortablejs';
 
-import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
-import View from 'girder/views/View';
-import { restRequest } from 'girder/rest';
-import events from 'girder/events';
+import PluginConfigBreadcrumbWidget from '@girder/core/views/widgets/PluginConfigBreadcrumbWidget';
+import View from '@girder/core/views/View';
+import { restRequest } from '@girder/core/rest';
+import events from '@girder/core/events';
 
 import template from '../templates/configView.pug';
 import newServerTemplate from '../templates/newServerTemplate.pug';
 import '../stylesheets/configView.styl';
-import 'girder/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderEnable';
 
 const FIELDS = ['uri', 'bindName', 'baseDn', 'password', 'searchField'];
 

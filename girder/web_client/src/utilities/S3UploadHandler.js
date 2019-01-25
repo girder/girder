@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import { restRequest, uploadHandlers } from 'girder/rest';
+import { restRequest, uploadHandlers } from '@girder/core/rest';
 
 /**
  * This is the upload handler for the "s3" behavior, which is responsible for

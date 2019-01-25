@@ -4,19 +4,19 @@ import _ from 'underscore';
 import 'bootstrap/js/tooltip';
 import 'bootstrap/js/popover';
 
-import events from 'girder/events';
-import router from 'girder/router';
-import View from 'girder/views/View';
-import { confirm } from 'girder/dialog';
-import { getPluginConfigRoute } from 'girder/utilities/PluginUtils';
-import { restartServer } from 'girder/server';
-import { restRequest, cancelRestRequests } from 'girder/rest';
+import events from '@girder/core/events';
+import router from '@girder/core/router';
+import View from '@girder/core/views/View';
+import { confirm } from '@girder/core/dialog';
+import { getPluginConfigRoute } from '@girder/core/utilities/PluginUtils';
+import { restartServer } from '@girder/core/server';
+import { restRequest, cancelRestRequests } from '@girder/core/rest';
 
-import PluginFailedNoticeTemplate from 'girder/templates/widgets/pluginFailedNotice.pug';
-import PluginsTemplate from 'girder/templates/body/plugins.pug';
+import PluginFailedNoticeTemplate from '@girder/core/templates/widgets/pluginFailedNotice.pug';
+import PluginsTemplate from '@girder/core/templates/body/plugins.pug';
 
-import 'girder/utilities/jquery/girderEnable';
-import 'girder/stylesheets/body/plugins.styl';
+import '@girder/core/utilities/jquery/girderEnable';
+import '@girder/core/stylesheets/body/plugins.styl';
 
 import 'bootstrap-switch'; // /dist/js/bootstrap-switch.js',
 import 'bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css';

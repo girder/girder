@@ -1,13 +1,13 @@
 import _ from 'underscore';
 
-import View from 'girder/views/View';
-import { restRequest } from 'girder/rest';
-import SearchPaginateWidget from 'girder/views/widgets/SearchPaginateWidget';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+import View from '@girder/core/views/View';
+import { restRequest } from '@girder/core/rest';
+import SearchPaginateWidget from '@girder/core/views/widgets/SearchPaginateWidget';
+import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
 
-import SearchResultsTemplate from 'girder/templates/body/searchResults.pug';
-import SearchResultsTypeTemplate from 'girder/templates/body/searchResultsType.pug';
-import 'girder/stylesheets/body/searchResultsList.styl';
+import SearchResultsTemplate from '@girder/core/templates/body/searchResults.pug';
+import SearchResultsTypeTemplate from '@girder/core/templates/body/searchResultsType.pug';
+import '@girder/core/stylesheets/body/searchResultsList.styl';
 
 /**
  * This view display all the search results by instantiating a subview

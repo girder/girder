@@ -1,4 +1,4 @@
-import CollectionView from 'girder/views/body/CollectionView';
+import CollectionView from '@girder/core/views/body/CollectionView';
 
 import CollectionViewPoliciesMenuTemplate from '../templates/collectionViewPoliciesMenu.pug';
 

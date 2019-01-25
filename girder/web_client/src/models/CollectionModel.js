@@ -1,4 +1,4 @@
-import AccessControlledModel from 'girder/models/AccessControlledModel';
+import AccessControlledModel from '@girder/core/models/AccessControlledModel';
 
 var CollectionModel = AccessControlledModel.extend({
     resourceName: 'collection'

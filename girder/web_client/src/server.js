@@ -1,8 +1,8 @@
 import $ from 'jquery';
 
-import { confirm } from 'girder/dialog';
-import events from 'girder/events';
-import { restRequest } from 'girder/rest';
+import { confirm } from '@girder/core/dialog';
+import events from '@girder/core/events';
+import { restRequest } from '@girder/core/rest';
 
 /**
  * Periodically re-run a promise-returning function, until it is fulfilled.

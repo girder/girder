@@ -1,6 +1,6 @@
 import _ from 'underscore';
 
-import { restRequest } from 'girder/rest';
+import { restRequest } from '@girder/core/rest';
 
 var MetadataMixin = {
     _sendMetadata: function (metadata, successCallback, errorCallback, opts) {

@@ -1,5 +1,5 @@
-import UserModel from 'girder/models/UserModel';
-import { getApiRoot } from 'girder/rest';
+import UserModel from '@girder/core/models/UserModel';
+import { getApiRoot } from '@girder/core/rest';
 
 UserModel.prototype.getGravatarUrl = function (size) {
     size = size || 64;

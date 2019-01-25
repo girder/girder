@@ -1,12 +1,12 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import router from 'girder/router';
-import View from 'girder/views/View';
-import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/dialog';
+import router from '@girder/core/router';
+import View from '@girder/core/views/View';
+import { AccessType } from '@girder/core/constants';
+import { confirm } from '@girder/core/dialog';
 
-import GroupInviteListTemplate from 'girder/templates/widgets/groupInviteList.pug';
+import GroupInviteListTemplate from '@girder/core/templates/widgets/groupInviteList.pug';
 
 /**
  * This view shows a list of pending invitations to the group.

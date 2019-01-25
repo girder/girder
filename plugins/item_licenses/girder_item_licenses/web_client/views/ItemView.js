@@ -1,8 +1,8 @@
 import $ from 'jquery';
 
-import ItemView from 'girder/views/body/ItemView';
-import { restRequest } from 'girder/rest';
-import { wrap } from 'girder/utilities/PluginUtils';
+import ItemView from '@girder/core/views/body/ItemView';
+import { restRequest } from '@girder/core/rest';
+import { wrap } from '@girder/core/utilities/PluginUtils';
 
 import ItemLicenseWidget from './ItemLicenseWidget';
 

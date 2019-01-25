@@ -1,10 +1,10 @@
-import View from 'girder/views/View';
-import { handleClose, handleOpen } from 'girder/dialog';
+import View from '@girder/core/views/View';
+import { handleClose, handleOpen } from '@girder/core/dialog';
 
-import EditFileWidgetTemplate from 'girder/templates/widgets/editFileWidget.pug';
+import EditFileWidgetTemplate from '@girder/core/templates/widgets/editFileWidget.pug';
 
-import 'girder/utilities/jquery/girderEnable';
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This widget is used to edit file information.

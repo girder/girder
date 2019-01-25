@@ -1,14 +1,14 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import UserModel from 'girder/models/UserModel';
-import UserView from 'girder/views/body/UserView';
-import View from 'girder/views/View';
-import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/dialog';
-import events from 'girder/events';
+import UserModel from '@girder/core/models/UserModel';
+import UserView from '@girder/core/views/body/UserView';
+import View from '@girder/core/views/View';
+import { AccessType } from '@girder/core/constants';
+import { confirm } from '@girder/core/dialog';
+import events from '@girder/core/events';
 
-import GroupModListTemplate from 'girder/templates/widgets/groupModList.pug';
+import GroupModListTemplate from '@girder/core/templates/widgets/groupModList.pug';
 
 /**
  * This view shows a list of moderators of a group.

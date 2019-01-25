@@ -1,14 +1,14 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import View from 'girder/views/View';
-import { AssetstoreType } from 'girder/constants';
-import { handleClose, handleOpen } from 'girder/dialog';
+import View from '@girder/core/views/View';
+import { AssetstoreType } from '@girder/core/constants';
+import { handleClose, handleOpen } from '@girder/core/dialog';
 
-import EditAssetstoreWidgetTemplate from 'girder/templates/widgets/editAssetstoreWidget.pug';
+import EditAssetstoreWidgetTemplate from '@girder/core/templates/widgets/editAssetstoreWidget.pug';
 
-import 'girder/utilities/jquery/girderEnable';
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This widget is used to edit an existing assetstore.

@@ -1,12 +1,12 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import View from 'girder/views/View';
-import { formatSize } from 'girder/misc';
-import { getCurrentUser } from 'girder/auth';
-import { handleOpen, handleClose } from 'girder/dialog';
-import 'girder/utilities/jquery/girderEnable';
-import 'girder/utilities/jquery/girderModal';
+import View from '@girder/core/views/View';
+import { formatSize } from '@girder/core/misc';
+import { getCurrentUser } from '@girder/core/auth';
+import { handleOpen, handleClose } from '@girder/core/dialog';
+import '@girder/core/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderModal';
 
 import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 import QuotaPoliciesWidgetTemplate from '../templates/quotaPoliciesWidget.pug';

@@ -3,9 +3,9 @@
 // Extends and overrides API
 import './views/FileInfoWidget';
 
-import router from 'girder/router';
-import events from 'girder/events';
-import { exposePluginConfig } from 'girder/utilities/PluginUtils';
+import router from '@girder/core/router';
+import events from '@girder/core/events';
+import { exposePluginConfig } from '@girder/core/utilities/PluginUtils';
 
 exposePluginConfig('hashsum_download', 'plugins/hashsum_download/config');
 

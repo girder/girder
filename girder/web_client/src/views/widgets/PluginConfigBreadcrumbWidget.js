@@ -1,7 +1,7 @@
-import router from 'girder/router';
-import View from 'girder/views/View';
+import router from '@girder/core/router';
+import View from '@girder/core/views/View';
 
-import PluginConfigBreadcrumbTemplate from 'girder/templates/widgets/pluginConfigBreadcrumb.pug';
+import PluginConfigBreadcrumbTemplate from '@girder/core/templates/widgets/pluginConfigBreadcrumb.pug';
 
 /**
  * This widget provides a consistent breadcrumb to be displayed on the admin

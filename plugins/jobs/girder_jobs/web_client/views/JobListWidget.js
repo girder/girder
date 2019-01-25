@@ -1,15 +1,15 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import PaginateWidget from 'girder/views/widgets/PaginateWidget';
-import View from 'girder/views/View';
-import router from 'girder/router';
-import events from 'girder/events';
-import { restRequest } from 'girder/rest';
-import { defineFlags, formatDate, DATE_SECOND, _whenAll } from 'girder/misc';
-import eventStream from 'girder/utilities/EventStream';
-import { getCurrentUser } from 'girder/auth';
-import { SORT_DESC } from 'girder/constants';
+import PaginateWidget from '@girder/core/views/widgets/PaginateWidget';
+import View from '@girder/core/views/View';
+import router from '@girder/core/router';
+import events from '@girder/core/events';
+import { restRequest } from '@girder/core/rest';
+import { defineFlags, formatDate, DATE_SECOND, _whenAll } from '@girder/core/misc';
+import eventStream from '@girder/core/utilities/EventStream';
+import { getCurrentUser } from '@girder/core/auth';
+import { SORT_DESC } from '@girder/core/constants';
 
 import JobCollection from '../collections/JobCollection';
 import JobStatus from '../JobStatus';

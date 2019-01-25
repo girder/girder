@@ -1,5 +1,5 @@
-import Collection from 'girder/collections/Collection';
-import FolderModel from 'girder/models/FolderModel';
+import Collection from '@girder/core/collections/Collection';
+import FolderModel from '@girder/core/models/FolderModel';
 
 var FolderCollection = Collection.extend({
     resourceName: 'folder',

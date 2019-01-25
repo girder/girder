@@ -4,14 +4,14 @@ import moment from 'moment';
 import 'bootstrap/js/tooltip';
 import 'bootstrap/js/popover';
 
-import ApiKeyCollection from 'girder/collections/ApiKeyCollection';
-import EditApiKeyWidget from 'girder/views/widgets/EditApiKeyWidget';
-import PaginateWidget from 'girder/views/widgets/PaginateWidget';
-import View from 'girder/views/View';
-import { confirm } from 'girder/dialog';
-import events from 'girder/events';
+import ApiKeyCollection from '@girder/core/collections/ApiKeyCollection';
+import EditApiKeyWidget from '@girder/core/views/widgets/EditApiKeyWidget';
+import PaginateWidget from '@girder/core/views/widgets/PaginateWidget';
+import View from '@girder/core/views/View';
+import { confirm } from '@girder/core/dialog';
+import events from '@girder/core/events';
 
-import ApiKeyListTemplate from 'girder/templates/widgets/apiKeyList.pug';
+import ApiKeyListTemplate from '@girder/core/templates/widgets/apiKeyList.pug';
 
 var ApiKeyListWidget = View.extend({
     events: {

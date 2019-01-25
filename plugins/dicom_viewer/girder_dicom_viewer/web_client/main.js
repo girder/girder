@@ -1,12 +1,12 @@
 
-import { getCurrentUser } from 'girder/auth';
-import { AccessType } from 'girder/constants';
-import events from 'girder/events';
-import { restRequest } from 'girder/rest';
-import { wrap } from 'girder/utilities/PluginUtils';
+import { getCurrentUser } from '@girder/core/auth';
+import { AccessType } from '@girder/core/constants';
+import events from '@girder/core/events';
+import { restRequest } from '@girder/core/rest';
+import { wrap } from '@girder/core/utilities/PluginUtils';
 
-import ItemView from 'girder/views/body/ItemView';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+import ItemView from '@girder/core/views/body/ItemView';
+import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
 
 import DicomItemView from './views/DicomView';
 import ParseDicomItemTemplate from './templates/parseDicomItem.pug';

@@ -1,8 +1,8 @@
-import View from 'girder/views/View';
+import View from '@girder/core/views/View';
 
-import LoadingAnimationTemplate from 'girder/templates/widgets/loadingAnimation.pug';
+import LoadingAnimationTemplate from '@girder/core/templates/widgets/loadingAnimation.pug';
 
-import 'girder/stylesheets/layout/loading.styl';
+import '@girder/core/stylesheets/layout/loading.styl';
 
 /**
  * This widget can be used to display a small loading animation.

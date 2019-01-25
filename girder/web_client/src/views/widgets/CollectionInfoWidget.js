@@ -1,9 +1,9 @@
-import View from 'girder/views/View';
-import { formatDate, DATE_SECOND, renderMarkdown, formatSize } from 'girder/misc';
+import View from '@girder/core/views/View';
+import { formatDate, DATE_SECOND, renderMarkdown, formatSize } from '@girder/core/misc';
 
-import CollectionInfoDialogTemplate from 'girder/templates/widgets/collectionInfoDialog.pug';
+import CollectionInfoDialogTemplate from '@girder/core/templates/widgets/collectionInfoDialog.pug';
 
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This view shows a dialog containing detailed collection information.

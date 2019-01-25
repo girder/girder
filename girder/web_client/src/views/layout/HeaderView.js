@@ -1,13 +1,13 @@
 import _ from 'underscore';
 
-import LayoutHeaderUserView from 'girder/views/layout/HeaderUserView';
-import router from 'girder/router';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
-import View from 'girder/views/View';
+import LayoutHeaderUserView from '@girder/core/views/layout/HeaderUserView';
+import router from '@girder/core/router';
+import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
+import View from '@girder/core/views/View';
 
-import LayoutHeaderTemplate from 'girder/templates/layout/layoutHeader.pug';
+import LayoutHeaderTemplate from '@girder/core/templates/layout/layoutHeader.pug';
 
-import 'girder/stylesheets/layout/header.styl';
+import '@girder/core/stylesheets/layout/header.styl';
 
 /**
  * This view shows the header in the layout.
