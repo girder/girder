@@ -6,7 +6,6 @@
         name: "{{ item }}"
       with_items:
         - gcc
-        - curl
         - git
         # Needed for 'ldap' plugin
         - libldap2-dev
@@ -35,7 +34,6 @@
         name: "{{ item }}"
       with_items:
         - gcc
-        - curl
         - git
         # Needed for 'ldap' plugin
         - openldap-devel
