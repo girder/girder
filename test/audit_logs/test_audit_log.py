@@ -24,7 +24,7 @@ def freshLog():
 
 @pytest.mark.plugin('audit_logs')
 def testAnonymousRestRequestLogging(server, recordModel, freshLog):
-    recordModel.collection.remove({})  # Clear existing records
+    recordModel.collection.delete_many({})  # Clear existing records
     server.request('/user/me')
 
     records = recordModel.find()
@@ -43,7 +43,7 @@ def testAnonymousRestRequestLogging(server, recordModel, freshLog):
 
 @pytest.mark.plugin('audit_logs')
 def testFailedRestRequestLogging(server, recordModel, freshLog):
-    recordModel.collection.remove({})  # Clear existing records
+    recordModel.collection.delete_many({})  # Clear existing records
     server.request('/folder', method='POST', params={
         'name': 'Foo',
         'parentId': 'foo'
@@ -64,7 +64,7 @@ def testFailedRestRequestLogging(server, recordModel, freshLog):
 
 @pytest.mark.plugin('audit_logs')
 def testAuthenticatedRestRequestLogging(server, recordModel, freshLog, admin):
-    recordModel.collection.remove({})  # Clear existing records
+    recordModel.collection.delete_many({})  # Clear existing records
     server.request('/user/me', user=admin)
     records = recordModel.find()
     assert records.count() == 1
@@ -74,7 +74,7 @@ def testAuthenticatedRestRequestLogging(server, recordModel, freshLog, admin):
 
 @pytest.mark.plugin('audit_logs')
 def testDownloadLogging(server, recordModel, freshLog, admin, fsAssetstore):
-    recordModel.collection.remove({})  # Clear existing records
+    recordModel.collection.delete_many({})  # Clear existing records
     folder = Folder().find({
         'parentId': admin['_id'],
         'name': 'Public'
@@ -83,7 +83,7 @@ def testDownloadLogging(server, recordModel, freshLog, admin, fsAssetstore):
         six.BytesIO(b'hello'), size=5, name='test', parentType='folder', parent=folder,
         user=admin, assetstore=fsAssetstore)
 
-    recordModel.collection.remove({})  # Clear existing records
+    recordModel.collection.delete_many({})  # Clear existing records
 
     File().download(file, headers=False, offset=2, endByte=4)
 
@@ -101,7 +101,7 @@ def testDownloadLogging(server, recordModel, freshLog, admin, fsAssetstore):
 
 @pytest.mark.plugin('audit_logs')
 def testDocumentCreationLogging(server, recordModel, freshLog):
-    recordModel.collection.remove({})  # Clear existing records
+    recordModel.collection.delete_many({})  # Clear existing records
     user = User().createUser('admin', 'password', 'first', 'last', 'a@a.com')
     records = recordModel.find(sort=[('when', 1)])
     assert records.count() == 3
