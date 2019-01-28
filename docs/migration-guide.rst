@@ -101,17 +101,17 @@ plugin:
 * Migrate all imports in Python and Javascript source files.  The old plugin module paths are no longer
   valid.  Any import reference to:
 
-  * ``girder.plugins`` in Python should be changed to the actual installed module name
+  * ``girder.plugins`` in Python must be changed to the actual installed module name
 
     * For example, change ``from girder.plugins.jobs.models.job import Job`` to
       ``from girder_jobs.models.job import Job``
 
-  * ``girder_plugins`` in Javascript should be changed to the actual installed package name
+  * ``girder_plugins`` in Javascript must be changed to the actual installed package name
 
     * For example, change ``import { JobListWidget } from 'girder_plugins/jobs/views';`` to
       ``import { JobListWidget } from '@girder/jobs/views';``
 
-  * ``girder`` in Javascript should be changed to ``@girder/core``
+  * ``girder`` in Javascript must be changed to ``@girder/core``
 
     * For example, change ``import { restRequest } from 'girder/rest';`` to
       ``import { restRequest } from '@girder/core/rest';``
