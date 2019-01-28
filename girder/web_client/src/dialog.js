@@ -2,12 +2,12 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import router from 'girder/router';
-import { parseQueryString, splitRoute } from 'girder/misc';
+import router from '@girder/core/router';
+import { parseQueryString, splitRoute } from '@girder/core/misc';
 
-import ConfirmDialogTemplate from 'girder/templates/widgets/confirmDialog.pug';
+import ConfirmDialogTemplate from '@girder/core/templates/widgets/confirmDialog.pug';
 
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderModal';
 
 function handleClose(name, options, nameId) {
     if (!router.enabled()) {

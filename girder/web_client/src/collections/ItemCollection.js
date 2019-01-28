@@ -1,5 +1,5 @@
-import Collection from 'girder/collections/Collection';
-import ItemModel from 'girder/models/ItemModel';
+import Collection from '@girder/core/collections/Collection';
+import ItemModel from '@girder/core/models/ItemModel';
 
 var ItemCollection = Collection.extend({
     resourceName: 'item',

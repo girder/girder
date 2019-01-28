@@ -1,5 +1,5 @@
-import AccessControlledModel from 'girder/models/AccessControlledModel';
-import { restRequest } from 'girder/rest';
+import AccessControlledModel from '@girder/core/models/AccessControlledModel';
+import { restRequest } from '@girder/core/rest';
 
 var ApiKeyModel = AccessControlledModel.extend({
     resourceName: 'api_key',

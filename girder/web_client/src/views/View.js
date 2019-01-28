@@ -1,8 +1,8 @@
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import events from 'girder/events';
-import eventStream from 'girder/utilities/EventStream';
+import events from '@girder/core/events';
+import eventStream from '@girder/core/utilities/EventStream';
 
 var View = Backbone.View.extend({
     constructor: function (opts) { // eslint-disable-line backbone/no-constructor

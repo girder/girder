@@ -1,11 +1,11 @@
 import _ from 'underscore';
 
-import { restRequest } from 'girder/rest';
-import TimelineWidget from 'girder/views/widgets/TimelineWidget';
-import View from 'girder/views/View';
-import eventStream from 'girder/utilities/EventStream';
-import { formatDate, DATE_SECOND } from 'girder/misc';
-import events from 'girder/events';
+import { restRequest } from '@girder/core/rest';
+import TimelineWidget from '@girder/core/views/widgets/TimelineWidget';
+import View from '@girder/core/views/View';
+import eventStream from '@girder/core/utilities/EventStream';
+import { formatDate, DATE_SECOND } from '@girder/core/misc';
+import events from '@girder/core/events';
 
 import JobDetailsWidgetTemplate from '../templates/jobDetailsWidget.pug';
 import JobStatus from '../JobStatus';

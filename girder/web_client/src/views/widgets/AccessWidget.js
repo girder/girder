@@ -4,22 +4,22 @@ import _ from 'underscore';
 import 'bootstrap/js/tooltip';
 import 'bootstrap/js/popover';
 
-import accessEditorNonModalTemplate from 'girder/templates/widgets/accessEditorNonModal.pug';
-import accessEditorTemplate from 'girder/templates/widgets/accessEditor.pug';
-import accessEntryTemplate from 'girder/templates/widgets/accessEntry.pug';
-import GroupModel from 'girder/models/GroupModel';
-import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
-import UserModel from 'girder/models/UserModel';
-import View from 'girder/views/View';
-import { getCurrentUser } from 'girder/auth';
-import { AccessType } from 'girder/constants';
-import { handleClose, handleOpen } from 'girder/dialog';
-import { restRequest } from 'girder/rest';
+import accessEditorNonModalTemplate from '@girder/core/templates/widgets/accessEditorNonModal.pug';
+import accessEditorTemplate from '@girder/core/templates/widgets/accessEditor.pug';
+import accessEntryTemplate from '@girder/core/templates/widgets/accessEntry.pug';
+import GroupModel from '@girder/core/models/GroupModel';
+import LoadingAnimation from '@girder/core/views/widgets/LoadingAnimation';
+import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
+import UserModel from '@girder/core/models/UserModel';
+import View from '@girder/core/views/View';
+import { getCurrentUser } from '@girder/core/auth';
+import { AccessType } from '@girder/core/constants';
+import { handleClose, handleOpen } from '@girder/core/dialog';
+import { restRequest } from '@girder/core/rest';
 
-import 'girder/stylesheets/widgets/accessWidget.styl';
+import '@girder/core/stylesheets/widgets/accessWidget.styl';
 
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This view allows users to see and control access on a resource.

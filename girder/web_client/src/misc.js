@@ -2,7 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Remarkable from 'remarkable';
 
-import { MONTHS } from 'girder/constants';
+import { MONTHS } from '@girder/core/constants';
 
 /**
  * This file contains utility functions for general use in the application

@@ -1,21 +1,21 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import AssetstoreCollection from 'girder/collections/AssetstoreCollection';
-import AssetstoreModel from 'girder/models/AssetstoreModel';
-import EditAssetstoreWidget from 'girder/views/widgets/EditAssetstoreWidget';
-import NewAssetstoreWidget from 'girder/views/widgets/NewAssetstoreWidget';
-import View from 'girder/views/View';
-import { AssetstoreType } from 'girder/constants';
-import { cancelRestRequests } from 'girder/rest';
-import { confirm } from 'girder/dialog';
-import events from 'girder/events';
-import { formatSize } from 'girder/misc';
-import { getCurrentUser } from 'girder/auth';
+import AssetstoreCollection from '@girder/core/collections/AssetstoreCollection';
+import AssetstoreModel from '@girder/core/models/AssetstoreModel';
+import EditAssetstoreWidget from '@girder/core/views/widgets/EditAssetstoreWidget';
+import NewAssetstoreWidget from '@girder/core/views/widgets/NewAssetstoreWidget';
+import View from '@girder/core/views/View';
+import { AssetstoreType } from '@girder/core/constants';
+import { cancelRestRequests } from '@girder/core/rest';
+import { confirm } from '@girder/core/dialog';
+import events from '@girder/core/events';
+import { formatSize } from '@girder/core/misc';
+import { getCurrentUser } from '@girder/core/auth';
 
-import AssetstoresTemplate from 'girder/templates/body/assetstores.pug';
+import AssetstoresTemplate from '@girder/core/templates/body/assetstores.pug';
 
-import 'girder/stylesheets/body/assetstores.styl';
+import '@girder/core/stylesheets/body/assetstores.styl';
 
 import 'as-jqplot/dist/jquery.jqplot.js';
 import 'as-jqplot/dist/jquery.jqplot.css'; // jquery.jqplot.min.css
@@ -25,8 +25,8 @@ import 'as-jqplot/dist/plugins/jqplot.pieRenderer.js';
  * This private data structure is a dynamic way to map assetstore types to the views
  * that should be rendered to import data into them.
  */
-import FilesystemImportView from 'girder/views/body/FilesystemImportView';
-import S3ImportView from 'girder/views/body/S3ImportView';
+import FilesystemImportView from '@girder/core/views/body/FilesystemImportView';
+import S3ImportView from '@girder/core/views/body/S3ImportView';
 var assetstoreImportViewMap = {};
 assetstoreImportViewMap[AssetstoreType.FILESYSTEM] = FilesystemImportView;
 assetstoreImportViewMap[AssetstoreType.S3] = S3ImportView;

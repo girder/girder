@@ -1,4 +1,4 @@
-import Collection from 'girder/collections/Collection';
+import Collection from '@girder/core/collections/Collection';
 
 import JobModel from '../models/JobModel';
 

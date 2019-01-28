@@ -1,14 +1,14 @@
 import $ from 'jquery';
 import Backbone from 'backbone';
 
-import router from 'girder/router';
-import View from 'girder/views/View';
-import events from 'girder/events';
-import { getCurrentUser } from 'girder/auth';
+import router from '@girder/core/router';
+import View from '@girder/core/views/View';
+import events from '@girder/core/events';
+import { getCurrentUser } from '@girder/core/auth';
 
-import LayoutGlobalNavTemplate from 'girder/templates/layout/layoutGlobalNav.pug';
+import LayoutGlobalNavTemplate from '@girder/core/templates/layout/layoutGlobalNav.pug';
 
-import 'girder/stylesheets/layout/globalNav.styl';
+import '@girder/core/stylesheets/layout/globalNav.styl';
 
 /**
  * This view shows a list of global navigation links that should be

@@ -202,10 +202,9 @@ module.exports = {
         extensions: ['.js'],
         symlinks: false,
         alias: {
-            // Using "'girder': '@girder/core'" breaks the DllPlugin splitting, for some reason
-            'girder': path.dirname(require.resolve('@girder/core')),
-            '@girder/core': path.dirname(require.resolve('@girder/core')),
-            'jquery': require.resolve('jquery') // ensure that all plugins use the same "jquery"
+            'jquery': require.resolve('jquery'), // ensure that all plugins use the same "jquery"
+            // For some reason, this is necessary to ensure DllPlugin splitting works properly
+            '@girder/core': path.dirname(require.resolve('@girder/core'))
         }
     },
     node: {

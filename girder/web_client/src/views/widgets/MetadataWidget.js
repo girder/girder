@@ -1,19 +1,19 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import View from 'girder/views/View';
-import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/dialog';
-import events from 'girder/events';
-import { localeSort } from 'girder/misc';
+import View from '@girder/core/views/View';
+import { AccessType } from '@girder/core/constants';
+import { confirm } from '@girder/core/dialog';
+import events from '@girder/core/events';
+import { localeSort } from '@girder/core/misc';
 
-import JsonMetadatumEditWidgetTemplate from 'girder/templates/widgets/jsonMetadatumEditWidget.pug';
-import JsonMetadatumViewTemplate from 'girder/templates/widgets/jsonMetadatumView.pug';
-import MetadataWidgetTemplate from 'girder/templates/widgets/metadataWidget.pug';
-import MetadatumEditWidgetTemplate from 'girder/templates/widgets/metadatumEditWidget.pug';
-import MetadatumViewTemplate from 'girder/templates/widgets/metadatumView.pug';
+import JsonMetadatumEditWidgetTemplate from '@girder/core/templates/widgets/jsonMetadatumEditWidget.pug';
+import JsonMetadatumViewTemplate from '@girder/core/templates/widgets/jsonMetadatumView.pug';
+import MetadataWidgetTemplate from '@girder/core/templates/widgets/metadataWidget.pug';
+import MetadatumEditWidgetTemplate from '@girder/core/templates/widgets/metadatumEditWidget.pug';
+import MetadatumViewTemplate from '@girder/core/templates/widgets/metadatumView.pug';
 
-import 'girder/stylesheets/widgets/metadataWidget.styl';
+import '@girder/core/stylesheets/widgets/metadataWidget.styl';
 
 import JSONEditor from 'jsoneditor/dist/jsoneditor.js'; // can't 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.css';

@@ -1,10 +1,10 @@
 import _ from 'underscore';
 
-import FolderModel from 'girder/models/FolderModel';
-import ItemModel from 'girder/models/ItemModel';
-import Model from 'girder/models/Model';
-import { restRequest, uploadHandlers, getUploadChunkSize } from 'girder/rest';
-import 'girder/utilities/S3UploadHandler'; // imported for side effect
+import FolderModel from '@girder/core/models/FolderModel';
+import ItemModel from '@girder/core/models/ItemModel';
+import Model from '@girder/core/models/Model';
+import { restRequest, uploadHandlers, getUploadChunkSize } from '@girder/core/rest';
+import '@girder/core/utilities/S3UploadHandler'; // imported for side effect
 
 var FileModel = Model.extend({
     resourceName: 'file',

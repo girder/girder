@@ -142,7 +142,7 @@ expected, but a warning message will appear in the console to remind you. Exampl
 
 .. code-block:: javascript
 
-    import View from 'girder/views/View';
+    import View from '@girder/core/views/View';
 
     MySubView = View.extend({
        ...

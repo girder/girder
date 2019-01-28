@@ -1,12 +1,12 @@
 import _ from 'underscore';
 
-import CollectionCollection from 'girder/collections/CollectionCollection';
-import UserCollection from 'girder/collections/UserCollection';
-import View from 'girder/views/View';
-import events from 'girder/events';
-import { getCurrentUser } from 'girder/auth';
+import CollectionCollection from '@girder/core/collections/CollectionCollection';
+import UserCollection from '@girder/core/collections/UserCollection';
+import View from '@girder/core/views/View';
+import events from '@girder/core/events';
+import { getCurrentUser } from '@girder/core/auth';
 
-import RootSelectorWidgetTemplate from 'girder/templates/widgets/rootSelectorWidget.pug';
+import RootSelectorWidgetTemplate from '@girder/core/templates/widgets/rootSelectorWidget.pug';
 
 /**
  * This widget creates a dropdown box allowing the user to select

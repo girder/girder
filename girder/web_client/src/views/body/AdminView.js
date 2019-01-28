@@ -1,10 +1,10 @@
-import View from 'girder/views/View';
-import { cancelRestRequests } from 'girder/rest';
-import { getCurrentUser } from 'girder/auth';
+import View from '@girder/core/views/View';
+import { cancelRestRequests } from '@girder/core/rest';
+import { getCurrentUser } from '@girder/core/auth';
 
-import AdminConsoleTemplate from 'girder/templates/body/adminConsole.pug';
+import AdminConsoleTemplate from '@girder/core/templates/body/adminConsole.pug';
 
-import 'girder/stylesheets/body/adminConsole.styl';
+import '@girder/core/stylesheets/body/adminConsole.styl';
 
 /**
  * This view shows the admin console, which links to all available admin pages.

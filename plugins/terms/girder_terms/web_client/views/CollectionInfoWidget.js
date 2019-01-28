@@ -1,8 +1,8 @@
 import $ from 'jquery';
 
-import { renderMarkdown } from 'girder/misc';
-import CollectionInfoWidget from 'girder/views/widgets/CollectionInfoWidget';
-import { wrap } from 'girder/utilities/PluginUtils';
+import { renderMarkdown } from '@girder/core/misc';
+import CollectionInfoWidget from '@girder/core/views/widgets/CollectionInfoWidget';
+import { wrap } from '@girder/core/utilities/PluginUtils';
 
 import CollectionInfoWidgetTemplate from '../templates/collectionInfoWidget.pug';
 import '../stylesheets/collectionInfoWidget.styl';

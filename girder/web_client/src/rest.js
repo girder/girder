@@ -2,8 +2,8 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import events from 'girder/events';
-import { getCurrentToken, cookie } from 'girder/auth';
+import events from '@girder/core/events';
+import { getCurrentToken, cookie } from '@girder/core/auth';
 
 let apiRoot;
 var uploadHandlers = {};

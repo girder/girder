@@ -1,25 +1,25 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import EditGroupWidget from 'girder/views/widgets/EditGroupWidget';
-import GroupAdminsWidget from 'girder/views/widgets/GroupAdminsWidget';
-import GroupInvitesWidget from 'girder/views/widgets/GroupInvitesWidget';
-import GroupMembersWidget from 'girder/views/widgets/GroupMembersWidget';
-import GroupModel from 'girder/models/GroupModel';
-import GroupModsWidget from 'girder/views/widgets/GroupModsWidget';
-import LoadingAnimation from 'girder/views/widgets/LoadingAnimation';
-import router from 'girder/router';
-import UserCollection from 'girder/collections/UserCollection';
-import View from 'girder/views/View';
-import { AccessType } from 'girder/constants';
-import { cancelRestRequests } from 'girder/rest';
-import { confirm } from 'girder/dialog';
-import events from 'girder/events';
-import { getCurrentUser } from 'girder/auth';
+import EditGroupWidget from '@girder/core/views/widgets/EditGroupWidget';
+import GroupAdminsWidget from '@girder/core/views/widgets/GroupAdminsWidget';
+import GroupInvitesWidget from '@girder/core/views/widgets/GroupInvitesWidget';
+import GroupMembersWidget from '@girder/core/views/widgets/GroupMembersWidget';
+import GroupModel from '@girder/core/models/GroupModel';
+import GroupModsWidget from '@girder/core/views/widgets/GroupModsWidget';
+import LoadingAnimation from '@girder/core/views/widgets/LoadingAnimation';
+import router from '@girder/core/router';
+import UserCollection from '@girder/core/collections/UserCollection';
+import View from '@girder/core/views/View';
+import { AccessType } from '@girder/core/constants';
+import { cancelRestRequests } from '@girder/core/rest';
+import { confirm } from '@girder/core/dialog';
+import events from '@girder/core/events';
+import { getCurrentUser } from '@girder/core/auth';
 
-import GroupPageTemplate from 'girder/templates/body/groupPage.pug';
+import GroupPageTemplate from '@girder/core/templates/body/groupPage.pug';
 
-import 'girder/stylesheets/body/groupPage.styl';
+import '@girder/core/stylesheets/body/groupPage.styl';
 
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/tab';

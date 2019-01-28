@@ -98,9 +98,23 @@ plugin:
 .. warning:: The plugin name was removed from the info object.  Where previously used, plugins should
              replace references to ``info['name']`` with a hard-coded string.
 
-* Migrate all imports in python and javascript source files.  The old plugin module paths are no longer
-  valid.  Any reference to ``girder.plugins`` in python or ``girder.plugin`` in javascript should be changed
-  to the actual installed module names.
+* Migrate all imports in Python and Javascript source files.  The old plugin module paths are no longer
+  valid.  Any import reference to:
+
+  * ``girder.plugins`` in Python should be changed to the actual installed module name
+
+    * For example, change ``from girder.plugins.jobs.models.job import Job`` to
+      ``from girder_jobs.models.job import Job``
+
+  * ``girder_plugins`` in Javascript should be changed to the actual installed package name
+
+    * For example, change ``import { JobListWidget } from 'girder_plugins/jobs/views';`` to
+      ``import { JobListWidget } from '@girder/jobs/views';``
+
+  * ``girder`` in Javascript should be changed to ``@girder/core``
+
+    * For example, change ``import { restRequest } from 'girder/rest';`` to
+      ``import { restRequest } from '@girder/core/rest';``
 
 
 Other backwards incompatible changes affecting plugins

@@ -1,8 +1,8 @@
 import Backbone from 'backbone';
 
-import { renderMarkdown } from 'girder/misc';
-import router from 'girder/router';
-import View from 'girder/views/View';
+import { renderMarkdown } from '@girder/core/misc';
+import router from '@girder/core/router';
+import View from '@girder/core/views/View';
 
 import TermsAcceptanceTemplate from '../templates/termsAcceptance.pug';
 import '../stylesheets/termsAcceptance.styl';

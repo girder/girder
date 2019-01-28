@@ -1,16 +1,16 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import View from 'girder/views/View';
-import events from 'girder/events';
-import { handleClose, handleOpen } from 'girder/dialog';
-import { login } from 'girder/auth';
-import UserModel from 'girder/models/UserModel';
+import View from '@girder/core/views/View';
+import events from '@girder/core/events';
+import { handleClose, handleOpen } from '@girder/core/dialog';
+import { login } from '@girder/core/auth';
+import UserModel from '@girder/core/models/UserModel';
 
-import LoginDialogTemplate from 'girder/templates/layout/loginDialog.pug';
+import LoginDialogTemplate from '@girder/core/templates/layout/loginDialog.pug';
 
-import 'girder/utilities/jquery/girderEnable';
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This view shows a login modal dialog.

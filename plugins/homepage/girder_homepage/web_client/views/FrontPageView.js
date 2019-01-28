@@ -1,7 +1,7 @@
-import FrontPageView from 'girder/views/body/FrontPageView';
-import { renderMarkdown } from 'girder/misc';
-import { restRequest, getApiRoot } from 'girder/rest';
-import { wrap } from 'girder/utilities/PluginUtils';
+import FrontPageView from '@girder/core/views/body/FrontPageView';
+import { renderMarkdown } from '@girder/core/misc';
+import { restRequest, getApiRoot } from '@girder/core/rest';
+import { wrap } from '@girder/core/utilities/PluginUtils';
 
 wrap(FrontPageView, 'render', function (render) {
     restRequest({

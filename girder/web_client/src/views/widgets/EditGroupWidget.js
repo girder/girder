@@ -1,13 +1,13 @@
 import $ from 'jquery';
 
-import GroupModel from 'girder/models/GroupModel';
-import View from 'girder/views/View';
-import { getCurrentUser } from 'girder/auth';
-import { handleClose, handleOpen } from 'girder/dialog';
+import GroupModel from '@girder/core/models/GroupModel';
+import View from '@girder/core/views/View';
+import { getCurrentUser } from '@girder/core/auth';
+import { handleClose, handleOpen } from '@girder/core/dialog';
 
-import EditGroupWidgetTemplate from 'girder/templates/widgets/editGroupWidget.pug';
+import EditGroupWidgetTemplate from '@girder/core/templates/widgets/editGroupWidget.pug';
 
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This widget is used to create a new group or edit an existing one.

@@ -1,5 +1,5 @@
-import events from 'girder/events';
-import { restRequest } from 'girder/rest';
+import events from '@girder/core/events';
+import { restRequest } from '@girder/core/rest';
 
 import './lib/backbone.analytics';
 import './routes';

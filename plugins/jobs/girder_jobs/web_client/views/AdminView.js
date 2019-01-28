@@ -1,5 +1,5 @@
-import { wrap } from 'girder/utilities/PluginUtils';
-import AdminView from 'girder/views/body/AdminView';
+import { wrap } from '@girder/core/utilities/PluginUtils';
+import AdminView from '@girder/core/views/body/AdminView';
 
 import adminViewMenuItemTemplate from '../templates/adminViewMenuItem.pug';
 

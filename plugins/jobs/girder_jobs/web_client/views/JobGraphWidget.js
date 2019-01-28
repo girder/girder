@@ -4,7 +4,7 @@ import { parse,
     View as VegaView } from 'vega-lib/build/vega';
 import moment from 'moment';
 
-import View from 'girder/views/View';
+import View from '@girder/core/views/View';
 
 import JobStatus from '../JobStatus';
 import JobsGraphWidgetTemplate from '../templates/jobsGraphWidget.pug';

@@ -1,9 +1,9 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import View from 'girder/views/View';
-import { restRequest } from 'girder/rest';
-import { splitRoute } from 'girder/misc';
+import View from '@girder/core/views/View';
+import { restRequest } from '@girder/core/rest';
+import { splitRoute } from '@girder/core/misc';
 
 import OAuthLoginViewTemplate from '../templates/oauthLoginView.pug';
 import '../stylesheets/oauthLoginView.styl';

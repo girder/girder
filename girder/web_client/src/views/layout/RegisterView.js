@@ -1,13 +1,13 @@
-import UserModel from 'girder/models/UserModel';
-import View from 'girder/views/View';
-import events from 'girder/events';
-import { getCurrentUser, setCurrentUser, getCurrentToken, setCurrentToken, corsAuth } from 'girder/auth';
-import { handleClose, handleOpen } from 'girder/dialog';
+import UserModel from '@girder/core/models/UserModel';
+import View from '@girder/core/views/View';
+import events from '@girder/core/events';
+import { getCurrentUser, setCurrentUser, getCurrentToken, setCurrentToken, corsAuth } from '@girder/core/auth';
+import { handleClose, handleOpen } from '@girder/core/dialog';
 
-import RegisterDialogTemplate from 'girder/templates/layout/registerDialog.pug';
+import RegisterDialogTemplate from '@girder/core/templates/layout/registerDialog.pug';
 
-import 'girder/utilities/jquery/girderEnable';
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This view shows a register modal dialog.

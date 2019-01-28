@@ -1,8 +1,8 @@
 import _ from 'underscore';
 
-import UserModel from 'girder/models/UserModel';
-import events from 'girder/events';
-import { restRequest } from 'girder/rest';
+import UserModel from '@girder/core/models/UserModel';
+import events from '@girder/core/events';
+import { restRequest } from '@girder/core/rest';
 
 // TODO: this might need some fixing/testing, as it seems that
 // girder.corsAuth could be an override. See login doc below.

@@ -2,7 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import { getApiRoot, restRequest } from 'girder/rest';
+import { getApiRoot, restRequest } from '@girder/core/rest';
 
 /**
  * The EventStream type wraps window.EventSource to listen to the unified

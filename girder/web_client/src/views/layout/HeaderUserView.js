@@ -1,10 +1,10 @@
-import View from 'girder/views/View';
-import events from 'girder/events';
-import { logout, getCurrentUser } from 'girder/auth';
+import View from '@girder/core/views/View';
+import events from '@girder/core/events';
+import { logout, getCurrentUser } from '@girder/core/auth';
 
-import LayoutHeaderUserTemplate from 'girder/templates/layout/layoutHeaderUser.pug';
+import LayoutHeaderUserTemplate from '@girder/core/templates/layout/layoutHeaderUser.pug';
 
-import 'girder/stylesheets/layout/headerUser.styl';
+import '@girder/core/stylesheets/layout/headerUser.styl';
 
 import 'bootstrap/js/dropdown';
 

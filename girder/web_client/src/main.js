@@ -2,7 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 import moment from 'moment';
-import * as girder from 'girder';
+import * as girder from '@girder/core';
 
 window.girder = girder;
 

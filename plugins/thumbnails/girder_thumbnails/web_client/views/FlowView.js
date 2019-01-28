@@ -1,10 +1,10 @@
 import $ from 'jquery';
 
-import FileModel from 'girder/models/FileModel';
-import View from 'girder/views/View';
-import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/dialog';
-import events from 'girder/events';
+import FileModel from '@girder/core/models/FileModel';
+import View from '@girder/core/views/View';
+import { AccessType } from '@girder/core/constants';
+import { confirm } from '@girder/core/dialog';
+import events from '@girder/core/events';
 
 import FlowViewTemplate from '../templates/flowView.pug';
 

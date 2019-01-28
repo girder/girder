@@ -1,18 +1,18 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import FileModel from 'girder/models/FileModel';
-import View from 'girder/views/View';
-import { formatSize } from 'girder/misc';
-import { handleClose, handleOpen } from 'girder/dialog';
+import FileModel from '@girder/core/models/FileModel';
+import View from '@girder/core/views/View';
+import { formatSize } from '@girder/core/misc';
+import { handleClose, handleOpen } from '@girder/core/dialog';
 
-import UploadWidgetTemplate from 'girder/templates/widgets/uploadWidget.pug';
-import UploadWidgetNonModalTemplate from 'girder/templates/widgets/uploadWidgetNonModal.pug';
+import UploadWidgetTemplate from '@girder/core/templates/widgets/uploadWidget.pug';
+import UploadWidgetNonModalTemplate from '@girder/core/templates/widgets/uploadWidgetNonModal.pug';
 
-import 'girder/stylesheets/widgets/uploadWidget.styl';
+import '@girder/core/stylesheets/widgets/uploadWidget.styl';
 
-import 'girder/utilities/jquery/girderEnable';
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This widget is used to upload files to a folder. Pass a folder model

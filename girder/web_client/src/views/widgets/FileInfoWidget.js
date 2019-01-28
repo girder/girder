@@ -1,9 +1,9 @@
-import View from 'girder/views/View';
-import { formatDate, DATE_SECOND } from 'girder/misc';
+import View from '@girder/core/views/View';
+import { formatDate, DATE_SECOND } from '@girder/core/misc';
 
-import FileInfoDialogTemplate from 'girder/templates/widgets/fileInfoDialog.pug';
+import FileInfoDialogTemplate from '@girder/core/templates/widgets/fileInfoDialog.pug';
 
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This widget shows information about a single file in a modal dialog.

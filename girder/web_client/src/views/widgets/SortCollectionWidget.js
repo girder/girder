@@ -1,7 +1,7 @@
-import View from 'girder/views/View';
-import { SORT_ASC, SORT_DESC } from 'girder/constants';
+import View from '@girder/core/views/View';
+import { SORT_ASC, SORT_DESC } from '@girder/core/constants';
 
-import SortCollectionWidgetTemplate from 'girder/templates/widgets/sortCollectionWidget.pug';
+import SortCollectionWidgetTemplate from '@girder/core/templates/widgets/sortCollectionWidget.pug';
 
 import 'bootstrap/js/dropdown';
 

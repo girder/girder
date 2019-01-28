@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import moment from 'moment';
 
-import View from 'girder/views/View';
+import View from '@girder/core/views/View';
 
-import dateTimeRangeWidgetTemplate from 'girder/templates/widgets/dateTimeRangeWidget.pug';
+import dateTimeRangeWidgetTemplate from '@girder/core/templates/widgets/dateTimeRangeWidget.pug';
 
 import 'eonasdan-bootstrap-datetimepicker'; // /src/js/bootstrap-datetimepicker.js'
 import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css';

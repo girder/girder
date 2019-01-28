@@ -1,5 +1,5 @@
-import LoginView from 'girder/views/layout/LoginView';
-import { wrap } from 'girder/utilities/PluginUtils';
+import LoginView from '@girder/core/views/layout/LoginView';
+import { wrap } from '@girder/core/utilities/PluginUtils';
 
 import OAuthLoginView from './OAuthLoginView';
 
