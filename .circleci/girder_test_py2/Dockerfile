@@ -7,7 +7,7 @@ USER root
 # Install Node.js 8
 RUN curl --silent --location https://deb.nodesource.com/setup_8.x | bash - \
   && apt-get install --assume-yes nodejs \
-  && npm install --global npm
+  && npm install --global npm yarn
 
 # Install Girder system prereqs (including those for all plugins)
 RUN apt-get update && apt-get install --assume-yes \

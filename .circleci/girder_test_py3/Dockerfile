@@ -7,7 +7,7 @@ USER root
 # Install Node.js 10
 RUN curl --silent --location https://deb.nodesource.com/setup_10.x | bash - \
   && apt-get install --assume-yes nodejs \
-  && npm install --global npm
+  && npm install --global npm yarn
 
 # Install Girder system prereqs (including those for all plugins)
 # Note: ctags is installed for use in the public_names CI job.
