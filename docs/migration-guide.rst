@@ -139,6 +139,9 @@ Other backwards incompatible changes affecting plugins
         def load(self, info):
             ModelImporter.registerModel('job', Job, 'jobs')
 
+* In the web client, ``girder.rest.restRequest`` no longer accepts the deprecated ``path``
+  parameter; callers should use the ``url`` parameter instead. Callers are also encouraged to use
+  the ``method`` parameter instead of ``type``.
 
 Client build changes
 ++++++++++++++++++++
