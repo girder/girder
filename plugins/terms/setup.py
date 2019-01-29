@@ -44,6 +44,7 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
+    setup_requires=['setuptools-git'],
     install_requires=['girder>=3.0.0a1'],
     entry_points={
         'girder.plugin': [
