@@ -11,6 +11,9 @@
         "type": "git",
         "url": "https://github.com/girder/girder.git"
     },
+    "peerDependencies": {
+        "@girder/core": "*"
+    },
     "dependencies": {
         "vega-lib": "^3.3.1"
     },
