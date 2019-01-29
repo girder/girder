@@ -11,6 +11,9 @@
         "type": "git",
         "url": "https://github.com/girder/girder.git"
     },
+    "peerDependencies": {
+        "@girder/core": "*"
+    },
     "girderPlugin": {
         "name": "homepage",
         "main": "./main.js"
