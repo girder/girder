@@ -110,11 +110,11 @@ class PythonClientTestCase(base.TestCase):
                 self.client.get('describe')
 
     def getPublicFolder(self, user):
-            folders = list(self.client.listFolder(
-                parentId=user['_id'], parentFolderType='user', name='Public'))
-            self.assertEqual(len(folders), 1)
+        folders = list(self.client.listFolder(
+            parentId=user['_id'], parentFolderType='user', name='Public'))
+        self.assertEqual(len(folders), 1)
 
-            return folders[0]
+        return folders[0]
 
     def testAuthenticateRaisesHTTPError(self):
         # Test non "OK" responses throw HTTPError
