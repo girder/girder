@@ -1,6 +1,7 @@
 import asyncore
 import base64
 import cherrypy
+import contextlib
 import email
 import errno
 import json
@@ -294,3 +295,55 @@ def uploadFile(name, contents, user, parent, parentType='folder',
                    type='text/plain')
 
     return resp.json
+
+
+def _findFreePort():
+    with contextlib.closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        sock.bind(('', 0))
+        return sock.getsockname()[1]
+
+
+@contextlib.contextmanager
+def serverContext(plugins=(), bindPort=False):
+    # The event daemon cannot be restarted since it is a threading.Thread
+    # object, however all references to girder.events.daemon are a singular
+    # global daemon due to its side effect on import. We have to hack around
+    # this by creating a unique event daemon each time we startup the server
+    # and assigning it to the global.
+    import girder.events
+    from girder.api import docs
+    from girder.constants import SettingKey
+    from girder.models.setting import Setting
+    from girder.utility.server import setup as setupServer
+
+    girder.events.daemon = girder.events.AsyncEventsThread()
+
+    Setting().set(SettingKey.PLUGINS_ENABLED, list(plugins))
+
+    server = setupServer(test=True, plugins=plugins)
+    server.request = request
+    server.uploadFile = uploadFile
+    cherrypy.server.unsubscribe()
+    if bindPort:
+        cherrypy.server.subscribe()
+        port = _findFreePort()
+        cherrypy.config['server.socket_port'] = port
+        server.boundPort = port
+        # This is needed if cherrypy started once on another port
+        cherrypy.server.socket_port = port
+    cherrypy.config.update({'environment': 'embedded',
+                            'log.screen': False,
+                            'request.throw_errors': True})
+    cherrypy.engine.start()
+
+    try:
+        yield server
+    finally:
+        cherrypy.engine.unsubscribe('start', girder.events.daemon.start)
+        cherrypy.engine.unsubscribe('stop', girder.events.daemon.stop)
+        cherrypy.engine.stop()
+        cherrypy.engine.exit()
+        cherrypy.tree.apps = {}
+        # This is needed to allow cherrypy to restart on another port
+        cherrypy.server.httpserver = None
+        docs.routes.clear()

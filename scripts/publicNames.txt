@@ -1354,4 +1354,7 @@ pytest_girder
             buildHeaders
             getResponseBody
             request
+            serverContext
             uploadFile
+        web_client
+            runWebClientTest
