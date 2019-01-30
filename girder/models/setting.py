@@ -120,7 +120,7 @@ class Setting(Model):
         setting = self._get(key)
 
         if setting is None:
-            if default is '__default__':
+            if default == '__default__':
                 default = self.getDefault(key)
             return default
         else:

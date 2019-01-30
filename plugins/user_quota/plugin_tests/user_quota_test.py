@@ -197,7 +197,7 @@ class QuotaTestCase(base.TestCase):
             if error not in err.args[0]:
                 raise
             return
-        if testVal is not '__NOCHECK__':
+        if testVal != '__NOCHECK__':
             newVal = Setting().get(key)
             self.assertEqual(newVal, testVal)
 
