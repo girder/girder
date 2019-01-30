@@ -95,7 +95,6 @@ girder
                 exposed
             addApiToNode
         describe
-            API_VERSION
             ApiDocs
             Describe
                 listResources

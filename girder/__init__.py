@@ -17,6 +17,9 @@
 #  limitations under the License.
 ###############################################################################
 
+__version__ = '3.0.0a2'
+__license__ = 'Apache 2.0'
+
 import cherrypy
 import functools
 import logging
@@ -26,15 +29,10 @@ import six
 import sys
 import traceback
 
-from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT, TerminalColor, VERSION
+from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT, TerminalColor
 from girder.utility import config, mkdir
 from girder.utility._cache import cache, requestCache, rateLimitBuffer
 
-__version__ = '3.0.0a2'
-__license__ = 'Apache 2.0'
-
-
-VERSION['apiVersion'] = __version__
 _quiet = False
 _originalStdOut = sys.stdout
 _originalStdErr = sys.stderr

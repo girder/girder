@@ -24,7 +24,7 @@ from .. import base
 
 from girder.api import access, describe, docs
 from girder.api.rest import Resource, filtermodel
-from girder.constants import AccessType, registerAccessFlag, SettingKey
+from girder.constants import AccessType, registerAccessFlag, SettingKey, VERSION
 from girder.models.setting import Setting
 from girder.models.user import User
 
@@ -159,7 +159,7 @@ class ApiDescribeTestCase(base.TestCase):
                                        'info', 'paths', 'swagger', 'tags'))
         self.assertHasKeys(resp.json['info'], ('title', 'version'))
         self.assertEqual(resp.json['swagger'], describe.SWAGGER_VERSION)
-        self.assertEqual(resp.json['info']['version'], describe.API_VERSION)
+        self.assertEqual(resp.json['info']['version'], VERSION['release'])
         self.assertIn('/group', resp.json['paths'])
         self.assertIn({'name': 'group'}, resp.json['tags'])
         self.assertHasKeys(

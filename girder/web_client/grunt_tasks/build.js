@@ -22,11 +22,11 @@ const extendify = require('extendify');
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const GitRevisionPlugin = require('git-revision-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const webpackPlugins = require('./webpack.plugins.js');
-const pkg = require('../package.json');
+const { version: girderVersion } = require('@girder/core/package.json');
+const { getGitSha } = require('./git.js');
 
 const isTrue = (str) => !!str && !['false', 'off', '0'].includes(str.toString().toLowerCase());
 
@@ -134,52 +134,14 @@ module.exports = function (grunt) {
         });
     }
 
-    const gitRevision = new GitRevisionPlugin();
-    let versionInfo = {
-        git: false,
-        SHA: null,
-        shortSHA: null,
-        date: new Date().toISOString(),
-        apiVersion: pkg.version
-    };
-    try {
-        // inject git revision information if possible
-        const gitHash = gitRevision.commithash();
-        Object.assign(versionInfo, {
-            git: true,
-            SHA: gitHash,
-            shortSHA: gitHash.slice(0, 8)
-        });
-    } catch (err) {
-        // The above writes a fatal error line when not inside a git repo
-        // Let the user know this is not a problem for production/non-dev installs.
-        grunt.log.oklns(
-            'You are not running in a git repository.  This is normal for non-development builds of girder.'
-        );
-    }
-
-    // TODO: Eventually we should refactor the setup.py to use setuptools scm and avoid
-    // this hackery, but for now, we generate a version file when building the web client.
-    grunt.config.merge({
-        'file-creator': {
-            'python-version': {
-                [path.resolve('..', 'girder-version.json')]: function (fs, fd, done) {
-                    fs.writeSync(fd, JSON.stringify(versionInfo, null, 4) + '\n');
-                    done();
-                }
-            }
-        },
-        default: {
-            'file-creator:python-version': {}
-        }
-    });
-
-    // Define global constants
+    // Inject environment variables
     updateWebpackConfig({
         plugins: [
-            new webpack.DefinePlugin({
-                'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-                'GIRDER_VERSION': JSON.stringify(versionInfo)
+            new webpack.EnvironmentPlugin({
+                NODE_ENV: null,
+                GIRDER_VERSION_RELEASE: girderVersion,
+                GIRDER_VERSION_GIT: getGitSha(),
+                GIRDER_VERSION_DATE: new Date().toISOString(),
             })
         ]
     });
