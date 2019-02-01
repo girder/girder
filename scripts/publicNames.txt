@@ -1340,6 +1340,8 @@ pytest_girder
                 generateEntrypoint
                 registerEntrypoint
                 registerTestPlugin
+        setup_database
+            setupDatabase
         utils
             MockSmtpReceiver
                 getMail

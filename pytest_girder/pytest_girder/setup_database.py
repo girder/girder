@@ -33,23 +33,23 @@ warnings.warn(
 )
 
 #: A prefix for all relative file paths
-prefix = '.'
+_prefix = '.'
 
 
-def resolvePath(path):
+def _resolvePath(path):
     """Resolve a path to an absolute path string."""
-    global prefix
+    global _prefix
     if os.path.isabs(path):
         return path
-    return os.path.abspath(os.path.join(prefix, path))
+    return os.path.abspath(os.path.join(_prefix, path))
 
 
-def loadModel(kind):
+def _loadModel(kind):
     """Load a model class from its name."""
     return ModelImporter.model(kind)
 
 
-def setAssetstore(name=None):
+def _setAssetstore(name=None):
     """Set the assetstore that will be used for all files.
 
     The default behavior of this function is to assert that
@@ -61,7 +61,7 @@ def setAssetstore(name=None):
     :type name: str
     """
     assetstore = None
-    assetstoreModel = loadModel('assetstore')
+    assetstoreModel = _loadModel('assetstore')
     if not name:
         try:
             assetstore = assetstoreModel.getCurrent()
@@ -81,7 +81,7 @@ def setAssetstore(name=None):
     assetstoreModel.save(assetstore)
 
 
-def addCreator(spec, parent=None):
+def _addCreator(spec, parent=None):
     """Inject a creator into document spec.
 
     This function mutates the input spec setting the ``creator``
@@ -95,7 +95,7 @@ def addCreator(spec, parent=None):
     :param parent: The parent of current document
     :type parent: dict
     """
-    userModel = loadModel('user')
+    userModel = _loadModel('user')
     if 'creator' in spec:
         spec['creator'] = userModel.findOne({'login': spec['creator'].lower()}, force=True)
     elif parent is not None:
@@ -118,11 +118,11 @@ def addCreator(spec, parent=None):
         raise Exception('Could not find the requested creator')
 
 
-def createUser(defaultFolders=False, **args):
+def _createUser(defaultFolders=False, **args):
     """Create a user document from a user spec.
 
     As a side effect of this function, the created user will be
-    cached in a global dictionary to be used by :py:func:`addCreator`.
+    cached in a global dictionary to be used by :py:func:`_addCreator`.
     Keyword arguments are passed directly to the ``createUser``
     function.
 
@@ -132,10 +132,10 @@ def createUser(defaultFolders=False, **args):
 
     :param defaultFolders: Create default public and private folders
     :type defaultFolders: bool
-    :returns: The generated user document
+    :returns: The _generated user document
     """
-    settingModel = loadModel('setting')
-    userModel = loadModel('user')
+    settingModel = _loadModel('setting')
+    userModel = _loadModel('user')
     if not defaultFolders:
         settingModel.set(SettingKey.USER_DEFAULT_FOLDERS, 'none')
     user = userModel.createUser(**args)
@@ -144,20 +144,20 @@ def createUser(defaultFolders=False, **args):
     return user
 
 
-def createCollection(**args):
+def _createCollection(**args):
     """Create a collection document from a collection spec.
 
     Keyword arguments are passed directly to the ``createCollection``
     function.
 
-    :returns: The generated collection document
+    :returns: The _generated collection document
     """
-    addCreator(args)
-    collectionModel = loadModel('collection')
+    _addCreator(args)
+    collectionModel = _loadModel('collection')
     return collectionModel.createCollection(**args)
 
 
-def createFolder(parent, **args):
+def _createFolder(parent, **args):
     """Create a folder document from a folder spec.
 
     The parent type can be any of ``collection``, ``folder``, or
@@ -166,15 +166,15 @@ def createFolder(parent, **args):
 
     :param parent: The parent document
     :type parent: dict
-    :returns: The generated folder document
+    :returns: The _generated folder document
     """
-    addCreator(args, parent)
-    folderModel = loadModel('folder')
+    _addCreator(args, parent)
+    folderModel = _loadModel('folder')
     args['parentType'] = parent['_modelType']
     return folderModel.createFolder(parent, **args)
 
 
-def createItem(parent, **args):
+def _createItem(parent, **args):
     """Create an item document from an item spec.
 
     The parent folder document must be provided and is injected
@@ -182,15 +182,15 @@ def createItem(parent, **args):
 
     :param parent: The parent folder
     :type parent: dict
-    :returns: The generated item document
+    :returns: The _generated item document
     """
-    addCreator(args, parent)
-    itemModel = loadModel('item')
+    _addCreator(args, parent)
+    itemModel = _loadModel('item')
     args['folder'] = parent
     return itemModel.createItem(**args)
 
 
-def createFile(parent, path, **args):
+def _createFile(parent, path, **args):
     """Create a file document from a file path.
 
     The provided path should resolve to a valid file.  The
@@ -201,12 +201,12 @@ def createFile(parent, path, **args):
     :type parent: dict
     :param path: The local path to a file
     :type path: str
-    :returns: The generated file document
+    :returns: The _generated file document
     """
-    addCreator(args, parent)
-    uploadModel = loadModel('upload')
+    _addCreator(args, parent)
+    uploadModel = _loadModel('upload')
 
-    path = resolvePath(path)
+    path = _resolvePath(path)
     args['parentType'] = 'item'
     args['parent'] = parent
     args['user'] = args.pop('creator')
@@ -223,16 +223,16 @@ def createFile(parent, path, **args):
         return uploadModel.uploadFromFile(f, **args)
 
 
-dispatch = {
-    'user': createUser,
-    'collection': createCollection,
-    'folder': createFolder,
-    'item': createItem,
-    'file': createFile
+_dispatch = {
+    'user': _createUser,
+    'collection': _createCollection,
+    'folder': _createFolder,
+    'item': _createItem,
+    'file': _createFile
 }
 
 
-def createDocument(type, node):
+def _createDocument(type, node):
     """Create a generic document type from a spec.
 
     :param type: The type of document to create
@@ -241,10 +241,10 @@ def createDocument(type, node):
     :type node: dict
     :returns: An objected describing the document's children
     """
-    # automatically generate children specs from a local path
+    # automatically _generate children specs from a local path
     path = node.pop('import', None)
     if path:
-        importRecursive(type, node, path)
+        _importRecursive(type, node, path)
 
     # create the return object with all possible children
     children = {
@@ -263,8 +263,8 @@ def createDocument(type, node):
         del children['folder']
         del children['item']
 
-    # generate the document
-    doc = dispatch[type](**node)
+    # _generate the document
+    doc = _dispatch[type](**node)
 
     # set the type for certain models (collection) that don't do it
     # on their own
@@ -279,7 +279,7 @@ def createDocument(type, node):
     return children
 
 
-def createRecursive(type, node):
+def _createRecursive(type, node):
     """Generate all documents from a given node recursively.
 
     :param type: The type of the root node
@@ -287,16 +287,16 @@ def createRecursive(type, node):
     :param node: The root node spec
     :type node: dict
     """
-    children = createDocument(type, node)
+    children = _createDocument(type, node)
     for childType in children:
         for childNode in children[childType]:
-            createRecursive(childType, childNode)
+            _createRecursive(childType, childNode)
 
 
-def createUsers(users):
+def _createUsers(users):
     """Create a list of users.
 
-    This method is special because we need to generate all users
+    This method is special because we need to _generate all users
     before any other type in order to inject the ``creator``
     argument correctly.
 
@@ -310,11 +310,11 @@ def createUsers(users):
             # By default set the creator under a user to that user
             folder.setdefault('creator', user['login'])
 
-        folders.extend(createDocument('user', user)['folder'])
+        folders.extend(_createDocument('user', user)['folder'])
     return folders
 
 
-def importRecursive(type, parent, root):
+def _importRecursive(type, parent, root):
     """Generate a document tree from a local path.
 
     The parent object will be mutated to append the folders and
@@ -327,7 +327,7 @@ def importRecursive(type, parent, root):
     :param root: The local path where the import will begin
     :type root: str
     """
-    root = resolvePath(root)
+    root = _resolvePath(root)
     folders = {root: parent}
 
     for root, dirs, files in os.walk(root, followlinks=True):
@@ -355,34 +355,34 @@ def importRecursive(type, parent, root):
             })
 
 
-def generate(spec):
+def _generate(spec):
     """Generate documents from a nested object."""
-    global prefix
-    prefix = spec.get('prefix', prefix)
+    global _prefix
+    _prefix = spec.get('prefix', _prefix)
 
-    setAssetstore(spec.get('assetstore'))
+    _setAssetstore(spec.get('assetstore'))
 
-    # users have to generated first
-    spec['folders'] = createUsers(spec.get('users', []))
+    # users have to _generated first
+    spec['folders'] = _createUsers(spec.get('users', []))
 
     for collection in spec.get('collections', []):
-        createRecursive('collection', collection)
+        _createRecursive('collection', collection)
 
     for folder in spec.get('folders', []):
-        createRecursive('folder', folder)
+        _createRecursive('folder', folder)
 
 
-def main(file):
-    """Load a file into memory and generate the documents it describes."""
+def setupDatabase(file):
+    """Load a file into memory and _generate the documents it describes."""
     prefix = os.path.dirname(file)
     with open(file) as f:
         import yaml
         spec = yaml.safe_load(f)
         spec.setdefault('prefix', prefix)
-        generate(spec)
+        _generate(spec)
 
 
-# For standalone usage, this file can be called as a script to generate
+# For standalone usage, this file can be called as a script to _generate
 # a testing environment.  You should provide an empty database as an
 # environment variable.  For example:
 #
@@ -390,4 +390,4 @@ def main(file):
 #   GIRDER_MONGO_URI='mongodb://127.0.0.1:27017/import_test' girder serve
 if __name__ == '__main__':
     import sys
-    main(sys.argv[1])
+    setupDatabase(sys.argv[1])
