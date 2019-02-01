@@ -3,7 +3,6 @@ import os
 import six
 import subprocess
 import time
-from .utils import serverContext
 
 
 def _webClientResource():
@@ -111,26 +110,31 @@ def _webClientResource():
     return _WebClientTestEndpoints()
 
 
-def runWebClientTest(spec, plugins=()):
+def runWebClientTest(boundServer, spec):
+    """
+    Run a web client spec using the phantomjs specRunner.
+
+    :param boundServer: a boundServer fixture.
+    :param spec: path to the javascript spec file.
+    """
     from girder.constants import ROOT_DIR
 
-    with serverContext(plugins=plugins, bindPort=True) as server:
-        server.root.api.v1.webclienttest = _webClientResource()
+    boundServer.root.api.v1.webclienttest = _webClientResource()
 
-        cmd = (
-            'npx', 'phantomjs',
-            os.path.join(ROOT_DIR, 'girder', 'web_client', 'test', 'specRunner.js'),
-            'http://localhost:%s/static/built/testEnv.html' % server.boundPort,
-            spec)
+    cmd = (
+        'npx', 'phantomjs',
+        os.path.join(ROOT_DIR, 'girder', 'web_client', 'test', 'specRunner.js'),
+        'http://localhost:%s/static/built/testEnv.html' % boundServer.boundPort,
+        spec)
 
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        jasmineFinished = False
-        for line in iter(p.stdout.readline, b''):
-            print(line.rstrip())
-            if b'PHANTOM_TIMEOUT' in line or b'error loading source script' in line:
-                p.kill()
-                raise Exception('Phantomjs failure')
-            if b'Testing Finished' in line:
-                jasmineFinished = True
-        assert p.wait() == 0
-        assert jasmineFinished
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    jasmineFinished = False
+    for line in iter(p.stdout.readline, b''):
+        print(line.rstrip())
+        if b'PHANTOM_TIMEOUT' in line or b'error loading source script' in line:
+            p.kill()
+            raise Exception('Phantomjs failure')
+        if b'Testing Finished' in line:
+            jasmineFinished = True
+    assert p.wait() == 0
+    assert jasmineFinished
