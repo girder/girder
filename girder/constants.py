@@ -21,8 +21,10 @@
 Constants should be defined here.
 """
 import os
-import json
+import subprocess
 import sys
+
+import girder
 
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(PACKAGE_DIR)
@@ -41,18 +43,20 @@ GIRDER_STATIC_ROUTE_ID = 'core_static_root'
 TEXT_SCORE_SORT_MAX = 200
 
 # Get the version information
-VERSION = {  # Set defaults in case girder-version.json doesn't exist
-    'git': False,
-    'SHA': None,
-    'shortSHA': None,
-    'apiVersion': None,
-    'date': None
-}
+_gitSha = None
 try:
-    with open(os.path.join(PACKAGE_DIR, 'girder-version.json')) as f:
-        VERSION.update(json.load(f))
-except IOError:
+    # Get the current Git head
+    _gitSha = subprocess.check_output(
+        ['git', 'rev-parse', 'HEAD'],
+        cwd=ROOT_DIR
+    ).decode().strip()
+except subprocess.CalledProcessError:
+    # "gitSha" is None
     pass
+VERSION = {
+    'release': girder.__version__,
+    'git': _gitSha,
+}
 
 #: The local directory containing the static content.
 STATIC_PREFIX = os.path.join(sys.prefix, 'share', 'girder')

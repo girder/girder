@@ -28,7 +28,7 @@ from collections import OrderedDict
 
 from girder import constants, logprint
 from girder.api.rest import getCurrentUser, getBodyJson
-from girder.constants import SettingKey, SortDir
+from girder.constants import SettingKey, SortDir, VERSION
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 from girder.utility import config, toBool
@@ -42,15 +42,6 @@ if six.PY3:
     from inspect import signature, Parameter
 else:
     from funcsigs import signature, Parameter
-
-"""
-Whenever we add new return values or new options we should increment the
-maintenance value. Whenever we add new endpoints, we should increment the minor
-version. If we break backward compatibility in any way, we should increment the
-major version.  This value is derived from the version number given in
-the top level package.json.
-"""
-API_VERSION = constants.VERSION['apiVersion']
 
 SWAGGER_VERSION = '2.0'
 
@@ -541,7 +532,7 @@ class Describe(Resource):
             'swagger': SWAGGER_VERSION,
             'info': {
                 'title': 'Girder REST API',
-                'version': API_VERSION
+                'version': VERSION['release']
             },
             'host': host,
             'basePath': basePath,

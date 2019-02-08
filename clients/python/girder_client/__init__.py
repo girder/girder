@@ -255,6 +255,7 @@ class GirderClient(object):
         self.token = ''
         self._folderUploadCallbacks = []
         self._itemUploadCallbacks = []
+        self._serverVersion = []
         self._serverApiDescription = {}
         self.incomingMetadata = {}
         self.localMetadata = {}
@@ -377,9 +378,11 @@ class GirderClient(object):
         :type useCached: bool
         :return: The API version as a list (e.g. ``['1', '0', '0']``)
         """
-        description = self.getServerAPIDescription(useCached)
-        version = description.get('info', {}).get('version')
-        return version.split('.') if version else None
+        if not self._serverVersion or not useCached:
+            # Include any more than 3 version components in the patch version
+            self._serverVersion = self.get('system/version')['release'].split('.', 3)
+
+        return self._serverVersion
 
     def getServerAPIDescription(self, useCached=True):
         """

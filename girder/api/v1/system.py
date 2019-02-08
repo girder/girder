@@ -42,7 +42,7 @@ from girder.models.user import User
 from girder import plugin
 from girder.utility import config, system
 from girder.utility.progress import ProgressContext
-from ..describe import API_VERSION, Description, autoDescribeRoute
+from ..describe import Description, autoDescribeRoute
 from ..rest import Resource
 
 ModuleStartTime = datetime.datetime.utcnow()
@@ -185,21 +185,13 @@ class System(Resource):
             plugins['failed'] = failureInfo
         return plugins
 
-    # TODO: port #2776
     @access.public
     @autoDescribeRoute(
         Description('Get the version information for this server.')
-        # .param('fromGit', 'If true, use git to get the version of the server '
-        #        'and any plugins that are git repositories.  This supplements '
-        #        'the usual version information.',
-        #        required=False, dataType='boolean')
     )
-    def getVersion(self):  # , fromGit=False):
+    def getVersion(self):
         version = dict(**VERSION)
-        version['apiVersion'] = API_VERSION
         version['serverStartDate'] = ModuleStartTime
-        # if fromGit:
-        #     version['gitVersions'] = install._getGitVersions()
         return version
 
     @access.admin
