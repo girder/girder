@@ -80,10 +80,11 @@ class System(Resource):
         Description('Set the value for a system setting, or a list of them.')
         .notes('Must be a system administrator to call this. If the value passed is '
                'a valid JSON object, it will be parsed and stored as an object.')
-        .param('key', 'The key identifying this setting.', required=False)
-        .param('value', 'The value for this setting.', required=False)
+        .param('key', 'The key identifying this setting.', required=False, paramType='formData')
+        .param('value', 'The value for this setting.', required=False, paramType='formData')
         .jsonParam('list', 'A JSON list of objects with key and value representing '
-                   'a list of settings to set.', required=False, requireArray=True)
+                   'a list of settings to set.', required=False, requireArray=True,
+                   paramType='formData')
         .errorResponse('You are not a system administrator.', 403)
         .errorResponse('Failed to set system setting.', 500)
     )

@@ -1854,7 +1854,7 @@ class GirderClientModule(GirderClient):
             }
 
             try:
-                response = self.put('system/setting', parameters=params)
+                response = self.put('system/setting', data=params)
             except requests.HTTPError as e:
                 self.fail(e.response.json()['message'])
 
