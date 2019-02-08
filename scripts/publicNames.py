@@ -33,8 +33,15 @@ def addFileSymbols(filePath, symbolTree):
         'ctags',
         '-f', '-',
         '--languages=python',
-        # Skip imported symbols
-        '--python-kinds=-i',
+        '--python-kinds=%s' % ''.join([
+            # Skip imported symbols
+            '-i',
+            # Skip "as"-renamed imported modules
+            '-I'
+            # Skip unknown symbols (which are typically "as"-renamed imported symbols)
+            '-x',
+
+        ]),
         filePath
     ]).decode('utf-8')
 
@@ -50,8 +57,11 @@ def addFileSymbols(filePath, symbolTree):
             elif symbolScopeKind == 'function':
                 # Symbols defined inside functions are not visible
                 continue
+            elif symbolScopeKind == 'member':
+                # Symbols defined inside methods are not visible
+                continue
             else:
-                raise Exception('Unknown symbol scope')
+                raise Exception('Unknown symbol scope "%s" in %s' % (symbolScopeKind, filePath))
             symbolScope = symbolScope.split('.')
         else:
             symbolScope = []
