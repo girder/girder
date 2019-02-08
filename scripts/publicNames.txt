@@ -73,7 +73,6 @@ clients
             cli
                 GirderCli
                     sendRestRequest
-                help
                 main
 girder
     LogFormatter
@@ -343,9 +342,7 @@ girder
     auditLogger
     cli
         build
-            help
             main
-        context_settings
         main
         mount
             FUSELogError
@@ -363,17 +360,13 @@ girder
                 readdir
                 release
                 use_ns
-            help
             main
             mountServer
-            show_default
             unmountServer
         serve
             main
         sftpd
             DEFAULT_PORT
-            default
-            help
             main
         shell
             main
@@ -507,7 +500,9 @@ girder
         mongodb_proxy
             EXECUTABLE_MONGO_METHODS
             Executable
+            MongoClient
             MongoProxy
+            MongoReplicaSetClient
             get_methods
     getLogPaths
     logStdoutStderr
