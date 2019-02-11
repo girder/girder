@@ -35,7 +35,7 @@ from girder.utility.server import getStaticRoot
 if not six.PY3:
     import shutilwhich  # noqa
 
-_GIRDER_BUILD_ASSETS_PATH = os.path.realpath(resource_filename('girder', 'web_client'))
+_GIRDER_BUILD_ASSETS_PATH = resource_filename('girder', 'web_client')
 
 
 @click.command(name='build', help='Build web client static assets.')
