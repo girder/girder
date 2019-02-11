@@ -21,7 +21,6 @@
         "grunt-contrib-uglify": "^3.0.1",
         "grunt-gitinfo": "^0.1.8",
         "grunt-webpack": "^3.0.2",
-        "jquery": "~3.2.1",
         "mkdirp": "^0.5.1",
         "nib": "^1.1.2",
         "pug": "^2.0.0-rc.3",
@@ -31,7 +30,6 @@
         "stylus-loader": "^3.0.1",
         "toposort": "^1.0.3",
         "uglifyjs-webpack-plugin": "^1.1.6",
-        "underscore": "~1.8.3",
         "webpack": "^2.7.0",
         "whatwg-fetch": "^2.0.4"
     },
