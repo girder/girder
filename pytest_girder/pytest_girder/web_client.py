@@ -110,12 +110,14 @@ def _webClientResource():
     return _WebClientTestEndpoints()
 
 
-def runWebClientTest(boundServer, spec):
+def runWebClientTest(boundServer, spec, jasmineTimeout=None):
     """
     Run a web client spec using the phantomjs specRunner.
 
     :param boundServer: a boundServer fixture.
     :param spec: path to the javascript spec file.
+    :param jasmineTimeout: override for jasmine timeout in ms.  This defaults to
+        5000ms.
     """
     from girder.constants import ROOT_DIR
 
@@ -125,7 +127,9 @@ def runWebClientTest(boundServer, spec):
         'npx', 'phantomjs',
         os.path.join(ROOT_DIR, 'girder', 'web_client', 'test', 'specRunner.js'),
         'http://localhost:%s/static/built/testEnv.html' % boundServer.boundPort,
-        spec)
+        spec,
+        str(jasmineTimeout or ''),
+        )
 
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     jasmineFinished = False
