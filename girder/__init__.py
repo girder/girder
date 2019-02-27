@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-__version__ = '3.0.0a2'
+__version__ = '3.0.0a3'
 __license__ = 'Apache 2.0'
 
 import cherrypy
