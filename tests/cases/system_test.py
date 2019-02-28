@@ -23,8 +23,6 @@ import os
 import time
 import six
 
-from subprocess import check_output, CalledProcessError
-
 from .. import base
 from girder.api import access
 from girder.api.describe import describeRoute
@@ -88,16 +86,6 @@ class SystemTestCase(base.TestCase):
     def testGetVersion(self):
         resp = self.request(path='/system/version', method='GET')
         self.assertEqual(resp.json['release'], VERSION['release'])
-
-        gitSha = None
-        try:
-            gitSha = check_output(
-                ['git', 'rev-parse', 'HEAD'],
-                cwd=ROOT_DIR
-            ).decode().strip()
-        except CalledProcessError:
-            pass
-        self.assertEqual(resp.json['git'], gitSha)
 
     def testSettings(self):
         users = self.users
