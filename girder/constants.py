@@ -42,21 +42,28 @@ GIRDER_STATIC_ROUTE_ID = 'core_static_root'
 # that yield lots of results.
 TEXT_SCORE_SORT_MAX = 200
 
-# Get the version information
-_gitSha = None
-try:
-    # Get the current Git head
-    _gitSha = subprocess.check_output(
-        ['git', 'rev-parse', 'HEAD'],
-        cwd=ROOT_DIR
-    ).decode().strip()
-except subprocess.CalledProcessError:
-    # "gitSha" is None
-    pass
-VERSION = {
-    'release': girder.__version__,
-    'git': _gitSha,
-}
+
+class _LazyGitVersionCheck(dict):
+    def __init__(self, *args, **kwargs):
+        super(_LazyGitVersionCheck, self).__init__(*args, **kwargs)
+        self._checked = False
+
+    def __getitem__(self, item):
+        if item == 'git' and not self._checked:
+            self._checked = True
+            try:
+                with open(os.devnull, 'w') as stderr:
+                    self['git'] = subprocess.check_output(
+                        ['git', 'rev-parse', 'HEAD'],
+                        cwd=ROOT_DIR,
+                        stderr=stderr
+                    ).decode().strip()
+            except subprocess.CalledProcessError:
+                self['git'] = None
+        return super(_LazyGitVersionCheck, self).__getitem__(item)
+
+
+VERSION = _LazyGitVersionCheck(release=girder.__version__)
 
 #: The local directory containing the static content.
 STATIC_PREFIX = os.path.join(sys.prefix, 'share', 'girder')
