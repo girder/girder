@@ -301,7 +301,7 @@ class Item(Resource):
         .responseClass('Item')
         .modelParam('id', 'The ID of the original item.', model=ItemModel, level=AccessType.READ)
         .modelParam('folderId', 'The ID of the parent folder.', required=False, model=Folder,
-                    level=AccessType.WRITE)
+                    level=AccessType.WRITE, paramType='query')
         .param('name', 'Name for the new item.', required=False, strip=True)
         .param('description', 'Description for the new item.', required=False, strip=True)
         .errorResponse(('A parameter was invalid.',
