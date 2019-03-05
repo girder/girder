@@ -21,7 +21,6 @@
 Constants should be defined here.
 """
 import os
-import subprocess
 import sys
 
 import girder
@@ -41,21 +40,8 @@ GIRDER_STATIC_ROUTE_ID = 'core_static_root'
 # Setting this too high causes mongodb to use too many resources for searches
 # that yield lots of results.
 TEXT_SCORE_SORT_MAX = 200
-
-# Get the version information
-_gitSha = None
-try:
-    # Get the current Git head
-    _gitSha = subprocess.check_output(
-        ['git', 'rev-parse', 'HEAD'],
-        cwd=ROOT_DIR
-    ).decode().strip()
-except subprocess.CalledProcessError:
-    # "gitSha" is None
-    pass
 VERSION = {
-    'release': girder.__version__,
-    'git': _gitSha,
+    'release': girder.__version__
 }
 
 #: The local directory containing the static content.
