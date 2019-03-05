@@ -29,6 +29,6 @@ COPY requirements-dev.txt /girder/requirements-dev.txt
 # TODO: Do we want to create editable installs of plugins as well?  We
 # will need a plugin only requirements file for this.
 RUN pip install --upgrade --upgrade-strategy eager --editable .
-RUN girder build
+RUN girder build --static-root /static
 
 ENTRYPOINT ["girder", "serve"]
