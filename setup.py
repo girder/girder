@@ -45,7 +45,7 @@ installReqs = [
     'PyYAML',
     'psutil',
     'pyOpenSSL',
-    'python-dateutil<2.7',  # required for compatibility with botocore=1.9.8
+    'python-dateutil',
     'pytz',
     'requests',
     'shutilwhich ; python_version < \'3\'',
