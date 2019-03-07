@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-gravatar',
-    version='2.0.0a1',
+    version='2.0.0a2',
     description='Adds Gravatar URLs for users.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

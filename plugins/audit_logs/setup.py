@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-audit-logs',
-    version='0.2.0a1',
+    version='0.2.0a2',
     description='Keeps detailed logs of every REST request and low-level file download event.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
