@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-download-statistics',
-    version='0.2.0a1',
+    version='0.2.0a2',
     description='Record file download statistics',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

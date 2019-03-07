@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-ldap',
-    version='0.2.0a1',
+    version='0.2.0a2',
     description='Authenticate user credentials against LDAP or Active Directory servers.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

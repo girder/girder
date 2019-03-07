@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-oauth',
-    version='3.0.0a1',
+    version='3.0.0a2',
     description='Allow users to login via supported OAuth2 providers.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-autojoin',
-    version='0.2.0a1',
+    version='0.2.0a2',
     description='Automatically assign new users to groups based on their email domain',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

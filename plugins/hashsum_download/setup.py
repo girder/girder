@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-hashsum-download',
-    version='0.2.0a1',
+    version='0.2.0a2',
     description='Allows download of a file by its hashsum.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
