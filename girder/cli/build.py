@@ -49,7 +49,8 @@ _GIRDER_BUILD_ASSETS_PATH = os.path.realpath(resource_filename('girder', 'web_cl
               help='Full path to the npm executable to use.')
 @click.option('--reinstall/--no-reinstall', default=True,
               help='Force regenerate node_modules.')
-def main(dev, watch, watch_plugin, npm, reinstall):
+@click.option('--static-root', help='Runtime static root path in the web client.')
+def main(dev, watch, watch_plugin, npm, reinstall, static_root):
     if shutil.which(npm) is None:
         raise click.UsageError(
             'No npm executable was detected.  Please ensure the npm executable is in your '
@@ -81,7 +82,7 @@ def main(dev, watch, watch_plugin, npm, reinstall):
     buildCommand = [
         npm, 'run', 'build', '--',
         '--static-path=%s' % STATIC_ROOT_DIR,
-        '--static-url=%s' % getStaticRoot(),
+        '--static-url=%s' % static_root or getStaticRoot(),
         quiet
     ]
     if watch:
