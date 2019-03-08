@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-homepage',
-    version='2.0.0a2',
+    version='3.0.0a4',
     description='Customize the homepage using Markdown.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

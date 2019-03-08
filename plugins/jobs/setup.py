@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-jobs',
-    version='3.0.0a3',
+    version='3.0.0a4',
     description='A general purpose plugin for managing offline jobs.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

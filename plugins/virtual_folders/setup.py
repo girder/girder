@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-virtual-folders',
-    version='0.2.0a2',
+    version='3.0.0a4',
     description='Allows folders to list child items using arbitrary database queries',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

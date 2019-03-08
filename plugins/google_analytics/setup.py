@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-google-analytics',
-    version='0.2.0a2',
+    version='3.0.0a4',
     description='Allow the tracking of page views via Google Analytics.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

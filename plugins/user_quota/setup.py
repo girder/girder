@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-user-quota',
-    version='2.0.0a2',
+    version='3.0.0a4',
     description='Limits total file size stored for individual users and '
     'collections and can direct all files to a specific assetstore',
     author='Kitware, Inc.',
