@@ -45,16 +45,6 @@ _safeNameRegex = re.compile(r'^[/\\]+')
 _logger = logging.getLogger('girder_client.lib')
 
 
-def _compareDicts(x, y):
-    """
-    Compare two dictionaries with metadata.
-
-    :param x: First metadata item.
-    :param y: Second metadata item.
-    """
-    return len(x) == len(y) == len(set(x.items()) & set(y.items()))
-
-
 def _safeMakedirs(path):
     """
     Wraps os.makedirs in such a way that it will not raise exceptions if the
@@ -1373,8 +1363,7 @@ class GirderClient(object):
             for item in items:
                 _id = item['_id']
                 self.incomingMetadata[_id] = item
-                if (sync and _id in self.localMetadata and
-                        _compareDicts(item, self.localMetadata[_id])):
+                if sync and _id in self.localMetadata and item == self.localMetadata[_id]:
                     continue
                 self.downloadItem(item['_id'], dest, name=item['name'])
 
