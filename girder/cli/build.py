@@ -82,7 +82,7 @@ def main(dev, watch, watch_plugin, npm, reinstall, static_root):
     buildCommand = [
         npm, 'run', 'build', '--',
         '--static-path=%s' % STATIC_ROOT_DIR,
-        '--static-url=%s' % static_root or getStaticRoot(),
+        '--static-url=%s' % (static_root or getStaticRoot()),
         quiet
     ]
     if watch:
