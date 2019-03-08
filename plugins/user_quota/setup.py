@@ -16,14 +16,32 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 ###############################################################################
+import os
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
+
+
+def prerelease_local_scheme(version):
+    """Return local scheme version unless building on master in CircleCI.
+    This function returns the local scheme version number
+    (e.g. 0.0.0.dev<N>+g<HASH>) unless building on CircleCI for a
+    pre-release in which case it ignores the hash and produces a
+    PEP440 compliant pre-release version number (e.g. 0.0.0.dev<N>).
+    """
+
+    from setuptools_scm.version import get_local_node_and_date
+
+    if os.getenv('CIRCLE_BRANCH') == 'master':
+        return ''
+    else:
+        return get_local_node_and_date(version)
 
 
 # perform the install
 setup(
     name='girder-user-quota',
-    version='3.0.0a4',
+    use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
+    setup_requires=['setuptools-scm', 'setuptools-git'],
     description='Limits total file size stored for individual users and '
     'collections and can direct all files to a specific assetstore',
     author='Kitware, Inc.',
@@ -43,7 +61,6 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    setup_requires=['setuptools-git'],
     install_requires=['girder>=3.0.0a1'],
     entry_points={
         'girder.plugin': [

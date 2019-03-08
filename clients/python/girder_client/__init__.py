@@ -17,6 +17,16 @@
 #  limitations under the License.
 ###############################################################################
 
+from pkg_resources import DistributionNotFound, get_distribution
+
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+    # package is not installed
+    __version__ = None
+
+__license__ = 'Apache 2.0'
+
 import diskcache
 import errno
 import getpass
@@ -33,9 +43,6 @@ import tempfile
 
 from contextlib import contextmanager
 from requests_toolbelt import MultipartEncoder
-
-__version__ = '3.0.0a4'
-__license__ = 'Apache 2.0'
 
 DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
 REQ_BUFFER_SIZE = 65536  # Chunk size when iterating a download body

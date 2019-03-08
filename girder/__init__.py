@@ -17,7 +17,14 @@
 #  limitations under the License.
 ###############################################################################
 
-__version__ = '3.0.0a4'
+from pkg_resources import DistributionNotFound, get_distribution
+
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+    # package is not installed
+    __version__ = None
+
 __license__ = 'Apache 2.0'
 
 import cherrypy
