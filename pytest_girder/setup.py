@@ -16,7 +16,7 @@ setup(
         'mock',
         'mongomock',
         'pytest>=3.6',
-        'pytest-cov<2.6',
+        'pytest-cov',
         'pymongo'
     ],
     entry_points={
