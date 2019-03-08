@@ -1,5 +1,7 @@
 # Build outputs
 /build/
+**/dist/
+**/.eggs/
 girder-*.tar.gz
 node_modules/
 *.egg-info
