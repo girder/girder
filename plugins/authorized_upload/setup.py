@@ -23,7 +23,7 @@ from setuptools import setup, find_packages
 # perform the install
 setup(
     name='girder-authorized-upload',
-    version='0.2.0a2',
+    version='3.0.0a4',
     description='Allows registered users to authorize file uploads on their behalf '
     'via a secure one-use URL.',
     author='Kitware, Inc.',
