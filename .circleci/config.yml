@@ -34,7 +34,7 @@ jobs:
           command: pip install --upgrade pip setuptools virtualenv
       - run:
           name: Install Girder
-          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] --editable clients/python --requirement requirements-dev.txt
           # Until https://github.com/pypa/pip/pull/4208 is available in pip 10, the install of
           # "requirements-dev.txt" must be run from the "girder" working directory
           working_directory: girder
@@ -98,7 +98,7 @@ jobs:
           command: pip install --upgrade pip setuptools
       - run:
           name: Install Girder
-          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] --editable clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Reduce workspace size
@@ -269,7 +269,7 @@ jobs:
       - run:
           name: Install all pip modules
           # sftp and python client aren't installed by the ansible example
-          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] --editable clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Create Girder build directory
@@ -401,7 +401,7 @@ jobs:
       - run:
           name: Install all pip modules
           # sftp and python client aren't installed by the ansible example
-          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] --editable clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Create Girder build directory
@@ -492,6 +492,27 @@ jobs:
           command: tox -e public_names
           working_directory: girder
 
+  release:
+    docker:
+      - image: circleci/python:2.7
+    working_directory: /home/circleci/project
+    steps:
+      - checkout:
+          path: girder
+      - run:
+          name: Create virtual environment (if necessary)
+          command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
+      - run:
+          name: Activate virtual environment
+          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+      - run:
+          name: Install twine
+          command: pip install --upgrade pip tox
+      - run:
+          name: Publish python packages
+          command: tox -e release
+          working_directory: girder
+
   deploy:
     docker:
       - image: girder/girder_test:latest-py3
@@ -544,10 +565,19 @@ workflows:
             - py3_webBuild_webTest
             - py3_integrationTests
       - public_symbols
-      - deploy:
+      - release:
           requires:
+            - public_symbols
             - py2_coverage
             - py3_coverage
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only: master
+      - deploy:
+          requires:
+            - release
           filters:
             branches:
               only: master

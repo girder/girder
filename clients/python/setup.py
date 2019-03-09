@@ -18,8 +18,25 @@
 ###############################################################################
 
 import os
-import re
+
 from setuptools import setup, find_packages
+
+
+def prerelease_local_scheme(version):
+    """Return local scheme version unless building on master in CircleCI.
+    This function returns the local scheme version number
+    (e.g. 0.0.0.dev<N>+g<HASH>) unless building on CircleCI for a
+    pre-release in which case it ignores the hash and produces a
+    PEP440 compliant pre-release version number (e.g. 0.0.0.dev<N>).
+    """
+
+    from setuptools_scm.version import get_local_node_and_date
+
+    if os.getenv('CIRCLE_BRANCH') == 'master':
+        return ''
+    else:
+        return get_local_node_and_date(version)
+
 
 install_reqs = [
     'click>=6.7',
@@ -31,16 +48,11 @@ install_reqs = [
 with open('README.rst') as f:
     readme = f.read()
 
-init = os.path.join(os.path.dirname(__file__), 'girder_client', '__init__.py')
-with open(init) as fd:
-    version = re.search(
-        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
-        fd.read(), re.MULTILINE).group(1)
-
 # perform the install
 setup(
     name='girder-client',
-    version=version,
+    use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
+    setup_requires=['setuptools-scm'],
     description='Python client for interacting with Girder servers',
     long_description=readme,
     author='Kitware, Inc.',
