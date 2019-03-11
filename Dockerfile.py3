@@ -17,14 +17,7 @@ RUN apt-get update && apt-get install -qy \
 RUN wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py
 
 WORKDIR /girder
-COPY girder /girder/girder
-COPY clients /girder/clients
-COPY plugins /girder/plugins
-COPY scripts /girder/scripts
-COPY setup.py /girder/setup.py
-COPY package.json /girder/package.json
-COPY README.rst /girder/README.rst
-COPY requirements-dev.txt /girder/requirements-dev.txt
+COPY . /girder/
 
 # See http://click.pocoo.org/5/python3/#python-3-surrogate-handling for more detail on
 # why this is necessary.
