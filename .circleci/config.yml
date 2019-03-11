@@ -548,38 +548,38 @@ workflows:
       - py2_serverInstall_serverTest:
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.*/
       - py2_integrationTests:
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.*/
       - py2_coverage:
           requires:
             - py2_serverInstall_serverTest
             - py2_integrationTests
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.*/
       - py3_serverInstall:
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.*/
       - py3_serverTest:
           requires:
             - py3_serverInstall
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.*/
       - py3_webBuild_webTest:
           requires:
             - py3_serverInstall
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.*/
       - py3_integrationTests:
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.*/
       - py3_coverage:
           requires:
             - py3_serverTest
@@ -587,11 +587,11 @@ workflows:
             - py3_integrationTests
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.*/
       - public_symbols:
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.*/
       - release:
           requires:
             - public_symbols
@@ -599,7 +599,7 @@ workflows:
             - py3_coverage
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.*/
             branches:
               only: master
       - deploy:
@@ -607,6 +607,6 @@ workflows:
             - release
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.*/
             branches:
               only: master
