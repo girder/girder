@@ -506,7 +506,7 @@ jobs:
           name: Activate virtual environment
           command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
       - run:
-          name: Install twine
+          name: Install tox
           command: pip install --upgrade pip tox
       - run:
           name: Publish python packages
@@ -545,26 +545,53 @@ workflows:
   version: 2
   test_all:
     jobs:
-      - py2_serverInstall_serverTest
-      - py2_integrationTests
+      - py2_serverInstall_serverTest:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - py2_integrationTests:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
       - py2_coverage:
           requires:
             - py2_serverInstall_serverTest
             - py2_integrationTests
-      - py3_serverInstall
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - py3_serverInstall:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
       - py3_serverTest:
           requires:
             - py3_serverInstall
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
       - py3_webBuild_webTest:
           requires:
             - py3_serverInstall
-      - py3_integrationTests
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - py3_integrationTests:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
       - py3_coverage:
           requires:
             - py3_serverTest
             - py3_webBuild_webTest
             - py3_integrationTests
-      - public_symbols
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - public_symbols:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
       - release:
           requires:
             - public_symbols
@@ -572,12 +599,14 @@ workflows:
             - py3_coverage
           filters:
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.*/
             branches:
               only: master
       - deploy:
           requires:
             - release
           filters:
+            tags:
+              only: /^v[0-9]+.*/
             branches:
               only: master
