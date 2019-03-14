@@ -38,7 +38,7 @@ plugin:
     setup(
         name='example-plugin',            # The name registered on PyPI
         version='1.0.0',
-        description='An example plugin.'  # This text will be displayed on the plugin page
+        description='An example plugin.', # This text will be displayed on the plugin page
         packages=['example_plugin'],
         install_requires=['girder'],      # Add any plugin dependencies here
         entry_points={
