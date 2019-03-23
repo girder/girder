@@ -209,8 +209,9 @@ def setup(test=False, plugins=None, curConfig=None):
     # Mount static files
     cherrypy.tree.mount(None, routeTable[constants.GIRDER_STATIC_ROUTE_ID],
                         {'/':
-                         {'tools.staticdir.on': True,
-                          'tools.staticdir.dir': os.path.join(constants.STATIC_ROOT_DIR),
+                         # Only turn on if something has been created by 'girder build'
+                         {'tools.staticdir.on': os.path.exists(constants.STATIC_ROOT_DIR),
+                          'tools.staticdir.dir': constants.STATIC_ROOT_DIR,
                           'request.show_tracebacks': appconf['/']['request.show_tracebacks'],
                           'response.headers.server': 'Girder %s' % __version__,
                           'error_page.default': _errorDefault}})
