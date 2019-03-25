@@ -509,7 +509,7 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, plugins=None
 # will work.  If you specify a string that doesn't contain :// as the database
 # uri, then it will use the default girder configuration (e.g., use
 # "mount -t girder girder <path>").
-# If you have girder installed in a virtualenv, ifrequently prepending the
+# If you have girder installed in a virtualenv, frequently prepending the
 # virtualenv's bin directory to the path is enough to use it, so the
 # mount.girder file becomes
 #   #!/usr/bin/env bash

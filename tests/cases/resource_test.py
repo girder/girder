@@ -803,3 +803,35 @@ class ResourceTestCase(base.TestCase):
         c = Collection().load(self.collection['_id'], force=True)
         self.assertEqual(c['created'], created)
         self.assertEqual(c['updated'], updated)
+
+    def testResourcePathDownload(self):
+        self._createFiles()
+        resp = self.request(
+            path='/resource/path/download/user/goodlogin/Public/Item 1/File 1',
+            user=self.user, isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(self.getBody(resp, text=False)), 1024)
+        # Item 1 has multiple files, so we get more data for it
+        resp = self.request(
+            path='/resource/path/download/user/goodlogin/Public/Item 1',
+            user=self.user, isJson=False)
+        self.assertStatusOk(resp)
+        self.assertGreater(len(self.getBody(resp, text=False)), 1024)
+        # Item 2 has one file, so we just get the file
+        resp = self.request(
+            path='/resource/path/download/user/goodlogin/Public/Item 2',
+            user=self.user, isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(self.getBody(resp, text=False)), 1024)
+        # The user shouldn't be able to get a private file
+        privateFolder = self.collectionPrivateFolder['name']
+        resp = self.request(
+            path='/resource/path/download/collection/Test Collection/%s/Item 4' % privateFolder,
+            user=self.user, isJson=False)
+        self.assertStatus(resp, 400)
+        # But the admin should be able to get it
+        resp = self.request(
+            path='/resource/path/download/collection/Test Collection/%s/Item 4' % privateFolder,
+            user=self.admin, isJson=False)
+        self.assertStatusOk(resp)
+        self.assertEqual(len(self.getBody(resp, text=False)), 1024)

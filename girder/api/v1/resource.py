@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
 import six
 
 from ..describe import Description, autoDescribeRoute
@@ -24,6 +25,7 @@ from ..rest import Resource as BaseResource, setResponseHeader, setContentDispos
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
 from girder.api import access
+from girder.models.file import File
 from girder.utility import parseTimestamp
 from girder.utility.search import getSearchModeHandler
 from girder.utility import ziputil
@@ -49,6 +51,7 @@ class Resource(BaseResource):
         self.route('GET', (':id', 'path'), self.path)
         self.route('PUT', (':id', 'timestamp'), self.setTimestamp)
         self.route('GET', ('download',), self.download)
+        self.route('GET', ('path', 'download', '+path'), self.pathDownload)
         self.route('POST', ('download',), self.download)
         self.route('PUT', ('move',), self.moveResources)
         self.route('POST', ('copy',), self.copyResources)
@@ -204,6 +207,51 @@ class Resource(BaseResource):
                             doc=doc, user=user, includeMetadata=includeMetadata, subpath=True):
                         for data in zip.addFile(file, path):
                             yield data
+            yield zip.footer()
+        return stream
+
+    @access.public(scope=TokenScope.DATA_READ)
+    @autoDescribeRoute(
+        Description('Download a resource based on its path')
+        .param('path', 'The path of the resource.', paramType='path')
+        .errorResponse('Path is invalid.')
+        .errorResponse('Path refers to a resource that does not exist.')
+        .errorResponse('Read access was denied for the resource.', 403)
+    )
+    def pathDownload(self, path):
+        user = self.getCurrentUser()
+        path = '/'.join(path)
+        resource = path_util.lookUpPath(path, self.getCurrentUser())['document']
+        if resource['_modelType'] == 'file':
+            single_file = resource
+        else:
+            model = self._getResourceModel(resource['_modelType'], 'fileList')
+            single_file = None
+            for (path, file) in model.fileList(doc=resource, user=user, subpath=True, data=False):
+                if single_file is None:
+                    single_file = file
+                else:
+                    single_file = False
+                    break
+        if single_file is None:
+            return None
+        if single_file is not False:
+            offset, endByte = 0, None
+            rangeHeader = cherrypy.lib.httputil.get_ranges(
+                cherrypy.request.headers.get('Range'), single_file.get('size', 0))
+            if rangeHeader and len(rangeHeader):
+                offset, endByte = rangeHeader[0]
+            single_file = File().load(single_file['_id'], user=user, level=AccessType.READ)
+            return File().download(single_file, offset, endByte=endByte)
+        setResponseHeader('Content-Type', 'application/zip')
+        setContentDisposition(resource.get('name', 'Resources') + '.zip')
+
+        def stream():
+            zip = ziputil.ZipGenerator()
+            for (path, file) in model.fileList(
+                    doc=resource, user=user, subpath=True):
+                for data in zip.addFile(file, path):
+                    yield data
             yield zip.footer()
         return stream
 

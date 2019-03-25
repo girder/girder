@@ -283,6 +283,7 @@ girder
                     lookup
                     moveResources
                     path
+                    pathDownload
                     search
                     setTimestamp
                 allowedDeleteTypes

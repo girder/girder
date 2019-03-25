@@ -1011,6 +1011,20 @@ class Resource(object):
                     break
             else:
                 return route, handler, wildcards
+        # Handle routes with variable arguments
+        for routelen in range(len(path), 0, -1):
+            for route, handler in self._routes[method][routelen]:
+                wildcards = {}
+                if route[-1].startswith('+'):
+                    wildcards[route[-1][1:]] = path[routelen - 1:]
+                    for routeComponent, pathComponent in six.moves.zip(
+                            route[:-1], path[:routelen - 1]):
+                        if routeComponent[0] == ':':  # Wildcard token
+                            wildcards[routeComponent[1:]] = pathComponent
+                        elif routeComponent != pathComponent:  # Exact match token
+                            break
+                    else:
+                        return route, handler, wildcards
 
         raise RestException('No matching route for "%s %s"' % (method.upper(), '/'.join(path)))
 
