@@ -944,7 +944,6 @@ girder
         server
             configureServer
             getApiRoot
-            getApiStaticRoot
             getPlugins
             getStaticRoot
             loadRouteTable
