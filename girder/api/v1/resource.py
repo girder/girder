@@ -213,7 +213,12 @@ class Resource(BaseResource):
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
         Description('Download a resource based on its path')
-        .param('path', 'The path of the resource.', paramType='path')
+        .param('path',
+               'The path of the resource.  The path must be an absolute Unix '
+               'path starting with either "/user/[user name]", for a user\'s '
+               'resources or "/collection/[collection name]", for resources '
+               'under a collection.',
+               paramType='path')
         .errorResponse('Path is invalid.')
         .errorResponse('Path refers to a resource that does not exist.')
         .errorResponse('Read access was denied for the resource.', 403)
@@ -223,26 +228,24 @@ class Resource(BaseResource):
         path = '/'.join(path)
         resource = path_util.lookUpPath(path, self.getCurrentUser())['document']
         if resource['_modelType'] == 'file':
-            single_file = resource
+            singleFile = resource
         else:
             model = self._getResourceModel(resource['_modelType'], 'fileList')
-            single_file = None
+            singleFile = None
             for (path, file) in model.fileList(doc=resource, user=user, subpath=True, data=False):
-                if single_file is None:
-                    single_file = file
+                if singleFile is None:
+                    singleFile = file
                 else:
-                    single_file = False
+                    singleFile = False
                     break
-        if single_file is None:
-            return None
-        if single_file is not False:
+        if singleFile is not False and singleFile is not None:
             offset, endByte = 0, None
             rangeHeader = cherrypy.lib.httputil.get_ranges(
-                cherrypy.request.headers.get('Range'), single_file.get('size', 0))
+                cherrypy.request.headers.get('Range'), singleFile.get('size', 0))
             if rangeHeader and len(rangeHeader):
                 offset, endByte = rangeHeader[0]
-            single_file = File().load(single_file['_id'], user=user, level=AccessType.READ)
-            return File().download(single_file, offset, endByte=endByte)
+            singleFile = File().load(singleFile['_id'], user=user, level=AccessType.READ)
+            return File().download(singleFile, offset, endByte=endByte)
         setResponseHeader('Content-Type', 'application/zip')
         setContentDisposition(resource.get('name', 'Resources') + '.zip')
 
