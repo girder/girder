@@ -21,7 +21,6 @@ import cherrypy
 import mako
 import mimetypes
 import os
-import posixpath
 import six
 
 import girder.events
@@ -55,24 +54,6 @@ def getApiRoot():
 def getStaticRoot():
     routeTable = loadRouteTable()
     return routeTable[constants.GIRDER_STATIC_ROUTE_ID]
-
-
-def getApiStaticRoot():
-    routeTable = loadRouteTable()
-
-    # If the static route is a URL, leave it alone
-    if '://' in routeTable[constants.GIRDER_STATIC_ROUTE_ID]:
-        return routeTable[constants.GIRDER_STATIC_ROUTE_ID]
-    else:
-        # Make the staticRoot relative to the api_root, if possible.  The api_root
-        # could be relative or absolute, but it needs to be in an absolute form for
-        # relpath to behave as expected.  We always expect the api_root to
-        # contain at least two components, but the reference from static needs to
-        # be from only the first component.
-        apiRootBase = posixpath.split(posixpath.join('/',
-                                                     config.getConfig()['server']['api_root']))[0]
-        return posixpath.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
-                                 apiRootBase)
 
 
 def configureServer(test=False, plugins=None, curConfig=None):
