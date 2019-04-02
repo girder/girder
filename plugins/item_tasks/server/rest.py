@@ -5,8 +5,9 @@ from girder import events
 from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
 from girder.api.rest import ensureTokenScopes, filtermodel, Resource
-from girder.constants import AccessType, TokenScope
+from girder.constants import AccessType, TokenScope, SortDir
 from girder.exceptions import ValidationException
+from girder.models.file import File
 from girder.models.item import Item
 from girder.models.token import Token
 from girder.plugins.jobs.models.job import Job
@@ -130,8 +131,25 @@ class ItemTask(Resource):
                 if rtype not in {'file', 'item', 'folder'}:
                     raise ValidationException('Invalid input resource_type: %s.' % rtype)
 
-                resource = self.model(rtype).load(
-                    v['id'], level=AccessType.READ, user=self.getCurrentUser(), exc=True)
+                try:
+                    resource = self.model(rtype).load(
+                        v['id'], level=AccessType.READ, user=self.getCurrentUser(), exc=True)
+                except ValidationException:
+                    # if we asked for a file, we may have been given an item,
+                    # which case get the first file within it.  If the item's
+                    # metadata includes a dictionary that includes fileId, use
+                    # that file id.
+                    if rtype != 'file':
+                        raise
+                    item = Item().load(
+                        v['id'], level=AccessType.READ, user=self.getCurrentUser(), exc=True)
+                    fileIds = [v['fileId'] for k, v in six.iteritems(item)
+                               if isinstance(v, dict) if v.get('fileId')]
+                    if len(fileIds) == 1:
+                        resource = File().load(fileIds[0], force=True)
+                    else:
+                        resource = list(Item().childFiles(
+                            item, limit=1, sort=[('_id', SortDir.ASCENDING)]))[0]
 
                 transformed[k] = utils.girderInputSpec(
                     resource, resourceType=rtype, token=token, dataFormat='none')

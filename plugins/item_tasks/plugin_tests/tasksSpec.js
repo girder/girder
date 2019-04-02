@@ -239,7 +239,7 @@ describe('Run the item task', function () {
 
         runs(function () {
             // Make sure item name displays properly
-            expect($('input[name="InputImage"]').val()).toBe('PET phantom detector CLI');
+            expect($('input[name="InputFile"]').val()).toBe('PET phantom detector CLI');
         });
     });
 });
