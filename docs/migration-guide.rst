@@ -56,8 +56,6 @@ plugin:
   named ``example_plugin``.
 * Move your ``web_client`` directory under the directory created in the previous step,
   which was ``example_plugin`` in the previous step.
-* Delete the ``plugin.json`` file at the root of your plugin. Move the ``dependencies`` from that file to
-  the ``package.json`` file created in the following step.
 * Create a ``package.json`` file inside your ``web_client`` directory defining an npm package.
   A minimal example is as follows:
 
@@ -83,6 +81,8 @@ plugin:
         }
     }
 
+* Delete the ``plugin.json`` file at the root of your plugin. Move the ``dependencies`` from that file to
+  the top level ``dependencies`` key of the ``package.json`` file created in the previous step.
 * Create a subclass of :py:class:`girder.plugin.GirderPlugin` in your plugin package.  This class
   can be anywhere in your package, but a sensible place to put it is in the top-level ``__init__.py``.
   There are hooks for custom behavior in this class, but at a minimum you should move the old
