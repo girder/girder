@@ -54,8 +54,10 @@ plugin:
 * Move your plugin's python source code from the ``server`` directory to the package name defined
   in your ``setup.py``. In this example, you would move all python files from ``server`` to a new directory
   named ``example_plugin``.
-* Create a ``package.json`` file inside your ``web_client`` directory defining an npm package.  A minimal
-  example is as follows:
+* Move your ``web_client`` directory under the directory created in the previous step,
+  which was ``example_plugin`` in the previous step.
+* Create a ``package.json`` file inside your ``web_client`` directory defining an npm package.
+  A minimal example is as follows:
 
   .. code-block:: javascript
 
@@ -63,9 +65,12 @@ plugin:
         "name": "@girder/my-plugin",
         "version": "1.0.0",
         "peerDepencencies": {
-            "@girder/other_plugin": "*"       // Peer dependencies should be as relaxed as possible
+            "@girder/other_plugin": "*",      // Peer dependencies should be as relaxed as possible.
+                                              // Add in any other girder plugins your plugin depends
+                                              // on for web_client code.
                                               // Plugin dependencies should also be listed by entrypoint
                                               // name in "girderPlugin" as shown below.
+            "@girder/core": "*"               // Your plugin will likely depend on girder/core.
         },
         "dependencies": {},                   // Any other dependencies of the client code
         "girderPlugin": {
@@ -76,6 +81,8 @@ plugin:
         }
     }
 
+* Delete the ``plugin.json`` file at the root of your plugin. Move the ``dependencies`` from that file to
+  the top level ``dependencies`` key of the ``package.json`` file created in the previous step.
 * Create a subclass of :py:class:`girder.plugin.GirderPlugin` in your plugin package.  This class
   can be anywhere in your package, but a sensible place to put it is in the top-level ``__init__.py``.
   There are hooks for custom behavior in this class, but at a minimum you should move the old
