@@ -8,12 +8,6 @@ between major versions of Girder. Major version bumps contain breaking changes
 to the Girder core library, which are enumerated in this guide along with
 instructions on how to update your plugin code to work in the newer version.
 
-Existing installations may be upgraded by running ``pip install --upgrade --upgrade-strategy eager girder`` and
-re-running ``girder-install web``. You may need to remove ``node_modules`` directory
-from the installed girder package if you encounter problems while re-running
-``girder-install web``. Note that the prerequisites may have changed in the latest
-version: make sure to review the :doc:`dependencies guide <dependencies>` prior to the upgrade.
-
 2.x |ra| 3.x
 ------------
 
@@ -163,6 +157,14 @@ Other backwards incompatible changes affecting plugins
 * In the web client, ``girder.rest.restRequest`` no longer accepts the deprecated ``path``
   parameter; callers should use the ``url`` parameter instead. Callers are also encouraged to use
   the ``method`` parameter instead of ``type``.
+
+* The CMake function `add_standard_plugin_tests` can not detect the python package of your
+  plugin.  It now requires you pass the keyword argument `PACKAGE` with the package name.
+  For example, the jobs plugin ``plugin.cmake`` file contains the following line:
+
+  .. code-block:: cmake
+
+    add_standard_plugin_tests(PACKAGE "girder_jobs")
 
 Client build changes
 ++++++++++++++++++++
