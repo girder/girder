@@ -44,10 +44,6 @@ var LayoutGlobalNavView = View.extend({
                 icon: 'icon-sitemap',
                 target: 'collections'
             }, {
-                name: 'Users',
-                icon: 'icon-user',
-                target: 'users'
-            }, {
                 name: 'Groups',
                 icon: 'icon-users',
                 target: 'groups'
@@ -61,14 +57,21 @@ var LayoutGlobalNavView = View.extend({
             navItems = this.navItems;
         } else {
             navItems = this.defaultNavItems;
-            if (getCurrentUser() && getCurrentUser().get('admin')) {
+            if (getCurrentUser()) {
                 // copy navItems so that this.defaultNavItems is unchanged
                 navItems = navItems.slice();
                 navItems.push({
-                    name: 'Admin console',
-                    icon: 'icon-wrench',
-                    target: 'admin'
+                    name: 'Users',
+                    icon: 'icon-user',
+                    target: 'users'
                 });
+                if (getCurrentUser().get('admin')) {
+                    navItems.push({
+                        name: 'Admin console',
+                        icon: 'icon-wrench',
+                        target: 'admin'
+                    });
+                }
             }
         }
         this.$el.html(LayoutGlobalNavTemplate({

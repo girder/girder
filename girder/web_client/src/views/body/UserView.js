@@ -35,7 +35,7 @@ var UserView = View.extend({
                 escapedHtml: true,
                 confirmCallback: () => {
                     this.model.on('g:deleted', function () {
-                        router.navigate('users', {trigger: true});
+                        router.navigate('', {trigger: true});
                     }).destroy();
                 }
             });

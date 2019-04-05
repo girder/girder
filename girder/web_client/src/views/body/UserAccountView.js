@@ -104,7 +104,7 @@ var UserAccountView = View.extend({
         this.temporary = settings.temporary;
 
         if (!this.user || this.user.getAccessLevel() < AccessType.WRITE) {
-            router.navigate('users', {trigger: true});
+            router.navigate('', {trigger: true});
             return;
         }
 
@@ -125,7 +125,7 @@ var UserAccountView = View.extend({
 
     render: function () {
         if (getCurrentUser() === null) {
-            router.navigate('users', {trigger: true});
+            router.navigate('', {trigger: true});
             return;
         }
 
@@ -171,7 +171,7 @@ var UserAccountView = View.extend({
                 tab: tab
             });
         }, this).on('g:error', function () {
-            router.navigate('users', {trigger: true});
+            router.navigate('', {trigger: true});
         }, this).fetch();
     }
 });
