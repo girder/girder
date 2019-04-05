@@ -392,12 +392,12 @@ class UserTestCase(base.TestCase):
         """
         # Create some users.
         for x in ('c', 'a', 'b'):
-            User().createUser(
+            user = User().createUser(
                 'usr%s' % x, 'passwd', 'tst', '%s_usr' % x, 'u%s@u.com' % x)
         resp = self.request(path='/user', method='GET', params={
             'limit': 2,
             'offset': 1
-        })
+        }, user=user)
         self.assertStatusOk(resp)
 
         # Make sure the limit, order, and offset are respected, and that our
