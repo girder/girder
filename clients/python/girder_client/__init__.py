@@ -376,8 +376,14 @@ class GirderClient(object):
         :return: The API version as a list (e.g. ``['1', '0', '0']``)
         """
         if not self._serverVersion or not useCached:
-            # Include any more than 3 version components in the patch version
-            self._serverVersion = self.get('system/version')['release'].split('.', 3)
+            response = self.get('system/version')
+            if 'release' in response:
+                release = response['release']  # girder >= 3
+            else:
+                release = response['apiVersion']  # girder < 3
+
+            # Do not include any more than 3 version components in the patch version
+            self._serverVersion = release.split('.', 2)
 
         return self._serverVersion
 
