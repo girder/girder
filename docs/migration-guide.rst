@@ -279,6 +279,11 @@ In version 3.7 of python ``async`` is a `reserved keyword argument <https://www.
  * The event framework ``girder/events.py``
  * The built-in job plugin ``plugins/jobs/girder_jobs/models/job.py``
 
+The cookie access decorator has been removed
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``@access.cookie`` decorator has been removed.  To allow cookie authentication on an endpoint, include ``cookie=True`` as a parameter to one of the other access decorators (e.g., ``@access.user(cookie=True)``).
+
 Removed or moved plugins
 ++++++++++++++++++++++++
 

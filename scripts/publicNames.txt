@@ -85,7 +85,6 @@ girder
     api
         access
             admin
-            cookie
             public
             token
             user

@@ -234,8 +234,7 @@ class Item(Resource):
     def getFiles(self, item, limit, offset, sort):
         return self._model.childFiles(item=item, limit=limit, offset=offset, sort=sort)
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @autoDescribeRoute(
         Description('Download the contents of an item.')
         .modelParam('id', model=ItemModel, level=AccessType.READ)

@@ -57,8 +57,7 @@ class Notification(Resource):
         self.route('GET', ('stream',), self.stream)
         self.route('GET', (), self.listNotifications)
 
-    @access.cookie
-    @access.token
+    @access.token(cookie=True)
     @autoDescribeRoute(
         Description('Stream notifications for a given user via the SSE protocol.')
         .notes('This uses long-polling to keep the connection open for '
@@ -107,8 +106,7 @@ class Notification(Resource):
                 time.sleep(wait)
         return streamGen
 
-    @access.cookie
-    @access.token
+    @access.token(cookie=True)
     @autoDescribeRoute(
         Description('List notification events')
         .notes('This endpoint can be used for manual long-polling when '
