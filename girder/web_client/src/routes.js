@@ -154,7 +154,7 @@ router.route('useraccount/:id/token/:token', 'accountToken', function (id, token
                 temporary: token
             });
         }).fail(() => {
-            router.navigate('users', {trigger: true});
+            router.navigate('', {trigger: true});
         });
 });
 

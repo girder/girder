@@ -197,6 +197,13 @@ setting is changed, the web client must be immediately rebuilt. Also, note the A
 Server changes
 ++++++++++++++
 
+The ``GET /user`` API endpoint is only open to logged-in users
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This is a policy change from 2.x, in which this endpoint was publicly accessible. Since user name
+data may be considered sensitive, and many Girder instances have controlled registration policies,
+it made sense to change this access policy.
+
 ModelImporter behavior changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

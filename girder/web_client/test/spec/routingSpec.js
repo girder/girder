@@ -57,11 +57,11 @@ describe('Test routing paths', function () {
         });
         girderTest.testRoute('useraccount/' + ids.admin + '/info', false,
             function () {
-                return window.location.hash === '#users';
+                return window.location.hash === '';
             });
         girderTest.testRoute('useraccount/' + ids.admin + '/password', false,
             function () {
-                return window.location.hash === '#users';
+                return window.location.hash === '';
             });
         girderTest.testRoute('?dialog=login', true, function () {
             return $('label[for=g-login]').text() === 'Login or email';
