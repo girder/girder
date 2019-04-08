@@ -557,19 +557,16 @@ browser to a download endpoint that serves its content as an attachment.
 In such cases, you may allow specific REST API routes to authenticate using the
 Cookie. To avoid vulnerabilities to Cross-Site Request Forgery attacks, you
 should only do this if the endpoint is "read-only" (that is, the endpoint does
-not make modifications to data on the server). Accordingly, only routes for
-``HEAD`` and ``GET`` requests allow cookie authentication to be enabled (without
-an additional override).
+not make modifications to data on the server).
 
 In order to allow cookie authentication for your route, simply add the
-``cookie`` decorator to your route handler function. Example:
+``cookie=True`` option to the access decorator on your function. Example:
 
 .. code-block:: python
 
     from girder.api import access
 
-    @access.cookie
-    @access.public
+    @access.public(cookie=True)
     def download(self, params):
         ...
 

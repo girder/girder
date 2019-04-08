@@ -266,8 +266,7 @@ class File(Resource):
                 raise Exception('Failed to store upload.')
             raise
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @autoDescribeRoute(
         Description('Download a file.')
         .notes('This endpoint also accepts the HTTP "Range" header for partial '
@@ -306,8 +305,7 @@ class File(Resource):
             file, offset, endByte=endByte, contentDisposition=contentDisposition,
             extraParameters=extraParameters)
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @describeRoute(
         Description('Download a file.')
         .param('id', 'The ID of the file.', paramType='path')
