@@ -7,7 +7,6 @@ from girder.api.describe import autoDescribeRoute, Description
 from girder.api.rest import ensureTokenScopes, filtermodel, Resource
 from girder.constants import AccessType, TokenScope, SortDir
 from girder.exceptions import ValidationException
-from girder.models.file import File
 from girder.models.item import Item
 from girder.models.token import Token
 from girder.plugins.jobs.models.job import Job
@@ -136,20 +135,28 @@ class ItemTask(Resource):
                         v['id'], level=AccessType.READ, user=self.getCurrentUser(), exc=True)
                 except ValidationException:
                     # if we asked for a file, we may have been given an item,
-                    # which case get the first file within it.  If the item's
-                    # metadata includes a dictionary that includes fileId, use
-                    # that file id.
+                    # which case get the first file within it.
                     if rtype != 'file':
                         raise
                     item = Item().load(
                         v['id'], level=AccessType.READ, user=self.getCurrentUser(), exc=True)
-                    fileIds = [v['fileId'] for k, v in six.iteritems(item)
-                               if isinstance(v, dict) if v.get('fileId')]
-                    if len(fileIds) == 1:
-                        resource = File().load(fileIds[0], force=True)
+                    # Event handlers can add a response which contains
+                    # {'file': <file document>}.  Otherwise, the first file is
+                    # used.
+                    event = events.trigger('item_tasks.transforms.file', {
+                        'item': item,
+                        'input': v,
+                        'input_key': k
+                    })
+                    if (len(event.responses) and isinstance(event.responses[-1], dict) and
+                            'file' in event.responses[-1]):
+                        resource = event.responses[-1]['file']
                     else:
-                        resource = list(Item().childFiles(
-                            item, limit=1, sort=[('_id', SortDir.ASCENDING)]))[0]
+                        childFiles = list(Item().childFiles(
+                            item, limit=1, sort=[('_id', SortDir.ASCENDING)]))
+                        if not len(childFiles):
+                            raise ValidationException('Item %s has no files' % v['id'])
+                        resource = childFiles[0]
 
                 transformed[k] = utils.girderInputSpec(
                     resource, resourceType=rtype, token=token, dataFormat='none')
