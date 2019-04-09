@@ -663,6 +663,7 @@ What follows is a typical npm package file for a Girder client side extension:
         "name": "@girder/cats",
         "version": "1.0.0",
         "peerDependencies": {
+            "@girder/core": "*",
             "@girder/jobs": "*"
         },
         "dependencies": {
@@ -830,6 +831,78 @@ route to your plugin.
             router.navigate('/collections', {trigger: true});
         }, this).fetch();
     });
+
+Using another plugin inside a plugin
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Girder plugins can use and extend other plugins as well.  To do this, you need
+to add and load the other plugin explicitly so that it installs and initializes
+automatically.  There are a number of places that the dependency relationship
+needs to be specified.
+
+* Python package
+
+If you directly rely on another plugin for any reason, you should always add
+the dependency to your plugin's ``setup.py`` file.  This is done in the same
+way all python dependencies are specified and will ensure that all the required
+packages are installed when you plugin is "pip installed".
+
+.. code-block:: python
+
+    # setup.py depending on girder-jobs and girder-homepage
+    setup(
+        name='girder-example-plugin',
+        # ...
+        install_requires=['girder-jobs', 'girder-homepage']
+    )
+
+* Plugin loading
+
+Girder will not *automatically* load plugins you depend on, so your plugin
+should ensure dependent plugins are loaded during it's own loading method.
+This will ensure that the other plugins are enabled when a user enables your
+plugin.  It is also be possible to handle errors while loading other plugins to
+support fallback behavior or optional dependencies.
+
+.. code-block:: python
+
+    from girder.plugin import getPlugin, GirderPlugin
+    # An example of loading dependent plugins
+    class ExamplePlugin(GirderPlugin)
+        def load(self, info):
+            getPlugin('jobs').load(info)
+            getPlugin('homepage').load(info)
+            # ...
+
+
+* Javascript client
+
+If your plugin contains a javascript client and it imports code from another plugin, then
+you need to add this dependency relationship to your web client ``package.json`` file.  If
+you depend on another plugin, but do not directly import code from the other package in you
+javascript code, then this is not necessary.
+
+.. code-block:: javascript
+
+    // package.json depending on "girder-jobs"
+    {
+        "name": "@girder/example",
+        "peerDependencies": {
+            "@girder/core": "*",
+
+            // This ensures that `import '@girder/jobs'` can be resolved.
+            "@girder/jobs": "*"
+        },
+
+        "girderPlugin": {
+            "name": "example",
+            "main": "./main.js",
+
+            // This ensures that "girder-jobs" is built before this plugin.
+            "dependencies": ["jobs"]
+        }
+    }
+
 
 Automated testing for plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
