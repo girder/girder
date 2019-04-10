@@ -133,18 +133,22 @@ class OAuth(Resource):
         providerObj = provider(cherrypy.url())
         token = providerObj.getToken(code)
 
-        events.trigger('oauth.auth_callback.before', {
+        event = events.trigger('oauth.auth_callback.before', {
             'provider': provider,
             'token': token
         })
+        if event.defaultPrevented:
+            raise cherrypy.HTTPRedirect(redirect)
 
         user = providerObj.getUser(token)
 
-        events.trigger('oauth.auth_callback.after', {
+        event = events.trigger('oauth.auth_callback.after', {
             'provider': provider,
             'token': token,
             'user': user
         })
+        if event.defaultPrevented:
+            raise cherrypy.HTTPRedirect(redirect)
 
         girderToken = self.sendAuthTokenCookie(user)
         try:
