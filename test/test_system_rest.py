@@ -16,11 +16,11 @@ class Plugin2(GirderPlugin):
 
 class Plugin3(GirderPlugin):
     def load(self, info):
-        pass
+        raise Exception()
 
 
-@pytest.mark.plugin('plugin1', Plugin1, enabled=False)
-@pytest.mark.plugin('plugin2', Plugin2, enabled=False)
+@pytest.mark.plugin('plugin1', Plugin1)
+@pytest.mark.plugin('plugin2', Plugin2)
 @pytest.mark.plugin('plugin3', Plugin3)
 def testGetPlugins(server, admin):
     resp = server.request('/system/plugins', user=admin)

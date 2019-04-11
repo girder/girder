@@ -80,11 +80,9 @@ def _getPluginsFromMarker(request, registry):
     if request.node.get_closest_marker('plugin') is not None:
         for pluginMarker in request.node.iter_markers('plugin'):
             pluginName = pluginMarker.args[0]
-            shouldEnable = pluginMarker.kwargs.pop('enabled', True)
             if len(pluginMarker.args) > 1:
                 registry.registerTestPlugin(*pluginMarker.args, **pluginMarker.kwargs)
-            if shouldEnable:
-                plugins.append(pluginName)
+            plugins.append(pluginName)
     return plugins
 
 
