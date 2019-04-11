@@ -101,10 +101,3 @@ def testRouteTableBehavior(server, admin):
     table = Setting().get(SettingKey.ROUTE_TABLE)
     assert 'has_webroot' in table
     assert table['has_webroot'] == '/has_webroot'
-
-    # Disabling the plugin should remove it from the route table
-    assertStatusOk(server.request('/system/plugins', method='PUT', user=admin, params={
-        'plugins': json.dumps([])
-    }))
-    table = Setting().get(SettingKey.ROUTE_TABLE)
-    assert 'has_webroot' not in table

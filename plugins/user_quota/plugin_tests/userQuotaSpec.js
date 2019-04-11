@@ -193,7 +193,7 @@ describe('test the user quota plugin', function () {
         });
         girderTest.waitForLoad();
         waitsFor(function () {
-            return $('input.g-plugin-switch[key="user_quota"]').length > 0;
+            return $('.g-plugin-list-item[data-name="user_quota"]').length > 0;
         }, 'the plugins page to load');
         runs(function () {
             expect($('.g-plugin-config-link[g-route="plugins/user_quota/config"]').length > 0);
@@ -359,7 +359,7 @@ describe('test the user quota plugin', function () {
         });
         girderTest.waitForLoad();
         waitsFor(function () {
-            return $('input.g-plugin-switch[key="user_quota"]').length > 0;
+            return $('.g-plugin-list-item[data-name="user_quota"]').length > 0;
         }, 'the plugins page to load');
         runs(function () {
             expect($('.g-plugin-config-link[g-route="plugins/user_quota/config"]').length > 0);

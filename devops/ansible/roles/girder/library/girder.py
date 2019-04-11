@@ -176,14 +176,6 @@ options:
                           - If true,  make the user an administrator.
 
 
-    plugin:
-        required: false
-        description:
-            - Specify what plugins should be activated (state: present)
-              or deactivated (state: absent).
-            - Takes a list of plugin names,  incorrect names are silently
-              ignored
-
     assetstore:
         required: false
         description:
@@ -592,41 +584,6 @@ EXAMPLES = '''
         - login: chris
           type: admin
     state: present
-
-#############
-# Example using 'plugins'
-###
-
-# To enable or disable all plugins you may pass the "*"
-# argument.  This does not (yet) support arbitrary regexes
-- name: Disable all plugins
-  girder:
-    username: "admin"
-    password: "letmein"
-    plugins: "*"
-    state: absent
-
-- name: Enable thumbnails plugin
-  girder:
-    username: "admin"
-    password: "letmein"
-    port: 8080
-    plugins:
-      - thumbnails
-    state: present
-
-# Note that 'thumbnails'  is still enabled from the previous task,
-# the 'plugins' task ensures that plugins are enabled or disabled,
-# it does NOT define the complete list of enabled or disabled plugins.
-- name: Ensure jobs and gravatar plugins are enabled
-  girder:
-    username: "admin"
-    password: "letmein"
-    plugins:
-      - jobs
-      - gravatar
-    state: present
-
 
 
 ############
@@ -1098,7 +1055,7 @@ class GirderClientModule(GirderClient):
 
     # Exclude these methods from both 'raw' mode
     _include_methods = ['get', 'put', 'post', 'delete', 'patch',
-                        'plugins', 'user', 'assetstore',
+                        'user', 'assetstore',
                         'collection', 'folder', 'item', 'files',
                         'group', 'setting']
 
@@ -1572,48 +1529,6 @@ class GirderClientModule(GirderClient):
         elif self.module.params['state'] == 'absent':
             ret = r.delete_by_name(name)
 
-        return ret
-
-    def plugins(self, *plugins):
-        import json
-        ret = []
-
-        available_plugins = self.get("system/plugins")
-        self.message['debug']['available_plugins'] = available_plugins
-
-        plugins = set(plugins)
-        enabled_plugins = set(available_plugins['enabled'])
-
-        # Could maybe be expanded to handle all regular expressions?
-        if "*" in plugins:
-            plugins = set(available_plugins['all'].keys())
-
-        # Fail if plugins are passed in that are not available
-        if not plugins <= set(available_plugins["all"].keys()):
-            self.fail("%s, not available!" %
-                      ",".join(list(plugins -
-                                    set(available_plugins["all"].keys()))))
-
-        # If we're trying to ensure plugins are present
-        if self.module.params['state'] == 'present':
-            # If plugins is not a subset of enabled plugins:
-            if not plugins <= enabled_plugins:
-                # Put the union of enabled_plugins nad plugins
-                ret = self.put("system/plugins",
-                               {"plugins":
-                                json.dumps(list(plugins | enabled_plugins))})
-                self.changed = True
-
-        # If we're trying to ensure plugins are absent
-        elif self.module.params['state'] == 'absent':
-            # If there are plugins in the list that are enabled
-            if len(enabled_plugins & plugins):
-                self.changed = True
-
-            # Put the difference of enabled_plugins and plugins
-            ret = self.put("system/plugins",
-                           {"plugins":
-                            json.dumps(list(enabled_plugins - plugins))})
         return ret
 
     def user(self, login, password, firstName=None,

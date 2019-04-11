@@ -69,6 +69,7 @@ def startServer(mock=True, mockS3=False):
     dbName = cherrypy.config['database']['uri'].split('/')[-1]
     usedDBs[dbName] = True
 
+    # By default, this passes "[]" to "plugins", disabling any installed plugins
     server = setupServer(test=True, plugins=enabledPlugins)
 
     if mock:
@@ -218,7 +219,6 @@ class TestCase(unittest.TestCase):
         settings = Setting()
         settings.set(SettingKey.SMTP_HOST, addr)
         settings.set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
-        settings.set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
 
         if os.environ.get('GIRDER_TEST_DATABASE_CONFIG'):
             setup_database.main(os.environ['GIRDER_TEST_DATABASE_CONFIG'])

@@ -22,18 +22,8 @@ class Plugin3(GirderPlugin):
 @pytest.mark.plugin('plugin1', Plugin1, enabled=False)
 @pytest.mark.plugin('plugin2', Plugin2, enabled=False)
 @pytest.mark.plugin('plugin3', Plugin3)
-def testGetEnabledPlugins(server, admin):
+def testGetPlugins(server, admin):
     resp = server.request('/system/plugins', user=admin)
     assertStatusOk(resp)
-    assert set(resp.json['enabled']) == {'plugin3'}
-    assert set(resp.json['loaded']) == {'plugin3'}
-
-
-@pytest.mark.plugin('plugin1', Plugin1, enabled=False)
-@pytest.mark.plugin('plugin2', Plugin2)
-@pytest.mark.plugin('plugin3', Plugin3, enabled=False)
-def testGetEnabledPluginsWithDependency(server, admin):
-    resp = server.request('/system/plugins', user=admin)
-    assertStatusOk(resp)
-    assert set(resp.json['enabled']) == {'plugin2'}
+    assert set(resp.json['all'].keys()) >= {'plugin1', 'plugin2', 'plugin3'}
     assert set(resp.json['loaded']) == {'plugin1', 'plugin2'}

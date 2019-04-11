@@ -153,7 +153,7 @@ var SystemConfigurationView = View.extend({
 
         var enableCollectionCreationPolicy = this.settings['core.collection_create_policy'] ? this.settings['core.collection_create_policy'].open : false;
 
-        this.$('.g-plugin-switch')
+        this.$('.g-setting-switch')
             .bootstrapSwitch()
             .bootstrapSwitch('state', enableCollectionCreationPolicy)
             .off('switchChange.bootstrapSwitch')
@@ -193,8 +193,8 @@ var SystemConfigurationView = View.extend({
     _covertCollectionCreationPolicy: function () {
         // get collection creation policy from AccessWidget and format the result properly
         var settingValue = null;
-        if (this.$('.g-plugin-switch').bootstrapSwitch('state')) {
-            settingValue = { open: this.$('.g-plugin-switch').bootstrapSwitch('state') };
+        if (this.$('.g-setting-switch').bootstrapSwitch('state')) {
+            settingValue = { open: this.$('.g-setting-switch').bootstrapSwitch('state') };
             var accessList = this.accessWidget.getAccessList();
             _.each(_.keys(accessList), (key) => {
                 settingValue[key] = _.pluck(accessList[key], 'id');
