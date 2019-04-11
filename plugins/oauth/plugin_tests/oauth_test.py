@@ -31,6 +31,7 @@ from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
+import girder.events
 from tests import base
 
 from girder_oauth.constants import PluginSettings
@@ -135,6 +136,74 @@ class OauthTest(base.TestCase):
         self.assertStatusOk(resp)
         # No need to re-fetch and test all of these settings values; they will
         # be implicitly tested later
+
+    def _testOauthEventHandling(self, providerInfo):
+        self.accountType = 'existing'
+
+        def _getCallbackParams(providerInfo, redirect):
+            resp = self.request('/oauth/provider', params={
+                'redirect': redirect,
+                'list': True
+            })
+            providerResp = resp.json[0]
+            resp = requests.get(providerResp['url'], allow_redirects=False)
+            callbackLoc = urllib.parse.urlparse(resp.headers['location'])
+            callbackLocQuery = urllib.parse.parse_qs(callbackLoc.query)
+            callbackParams = {
+                key: val[0] for key, val in six.viewitems(callbackLocQuery)
+            }
+            return callbackParams
+
+        redirect = 'http://localhost/#foo/bar?token={girderToken}'
+
+        class EventHandler(object):
+            def __init__(self):
+                self.state = ''
+
+            def _oauth_before_stop(self, event):
+                self.state = 'been in "before"'
+                event.preventDefault()
+
+            def _oauth_before(self, event):
+                self.state = 'been in "before"'
+
+            def _oauth_after(self, event):
+                self.state = 'been in "after"'
+                event.preventDefault()
+
+        event_handler = EventHandler()
+
+        params = _getCallbackParams(providerInfo, redirect)
+        with girder.events.bound(
+            'oauth.auth_callback.before',
+            'oauth_before',
+            event_handler._oauth_before_stop
+        ), girder.events.bound(
+            'oauth.auth_callback.after',
+            'oauth_after',
+            event_handler._oauth_after
+        ):
+            resp = self.request(
+                '/oauth/%s/callback' % providerInfo['id'], params=params, isJson=False)
+            self.assertStatus(resp, 303)
+            self.assertTrue('girderToken' not in resp.cookie)
+            self.assertEqual(event_handler.state, 'been in "before"')
+
+        params = _getCallbackParams(providerInfo, redirect)
+        with girder.events.bound(
+            'oauth.auth_callback.before',
+            'oauth_before',
+            event_handler._oauth_before
+        ), girder.events.bound(
+            'oauth.auth_callback.after',
+            'oauth_after',
+            event_handler._oauth_after
+        ):
+            resp = self.request(
+                '/oauth/%s/callback' % providerInfo['id'], params=params, isJson=False)
+            self.assertStatus(resp, 303)
+            self.assertTrue('girderToken' not in resp.cookie)
+            self.assertEqual(event_handler.state, 'been in "after"')
 
     def _testOauthTokenAsParam(self, providerInfo):
         self.accountType = 'existing'
@@ -961,6 +1030,7 @@ class OauthTest(base.TestCase):
         ):
             self._testOauth(providerInfo)
             self._testOauthTokenAsParam(providerInfo)
+            self._testOauthEventHandling(providerInfo)
 
     def testLinkedinOauth(self):  # noqa
         providerInfo = {
