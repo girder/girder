@@ -7,13 +7,11 @@ import 'bootstrap/js/popover';
 import router from '@girder/core/router';
 import View from '@girder/core/views/View';
 import { getPluginConfigRoute } from '@girder/core/utilities/PluginUtils';
-import { restartServer } from '@girder/core/server';
 import { restRequest, cancelRestRequests } from '@girder/core/rest';
 
 import PluginFailedNoticeTemplate from '@girder/core/templates/widgets/pluginFailedNotice.pug';
 import PluginsTemplate from '@girder/core/templates/body/plugins.pug';
 
-import '@girder/core/utilities/jquery/girderEnable';
 import '@girder/core/stylesheets/body/plugins.styl';
 
 /**
@@ -24,63 +22,28 @@ var PluginsView = View.extend({
         'click a.g-plugin-config-link': function (evt) {
             var route = $(evt.currentTarget).attr('g-route');
             router.navigate(route, { trigger: true });
-        },
-        'click .g-restart': function (e) {
-            confirm({
-                text: `Are you sure you want to restart the server? This will interrupt all running tasks for all users.`,
-                yesText: 'Restart',
-                confirmCallback: function () {
-                    $(e.currentTarget).girderEnable(false);
-                    restartServer()
-                        .done(() => {
-                            events.trigger('g:alert', {
-                                text: 'Server restarted successfully',
-                                type: 'success',
-                                duration: 3000
-                            });
-                        })
-                        .always(() => {
-                            // Re-enable the button whether the chain succeeds or fails, though if
-                            // it succeeds, the page will probably be refreshed
-                            $(e.currentTarget).girderEnable(true);
-                        });
-                }
-            });
         }
     },
 
     initialize: function (settings) {
         cancelRestRequests('fetch');
         if (settings.all) {
-            this.cherrypyServer = (_.has(settings, 'cherrypyServer') ? settings.cherrypyServer : true);
             this.allPlugins = settings.all;
             this.failed = _.has(settings, 'failed') ? settings.failed : null;
             this.render();
         } else {
-            const promises = [
-                restRequest({
-                    url: 'system/plugins',
-                    method: 'GET'
-                }).then((resp) => resp),
-                restRequest({
-                    url: 'system/configuration',
-                    method: 'GET',
-                    data: {
-                        section: 'server',
-                        key: 'cherrypy_server'
-                    }
-                }).then((resp) => resp)
-            ];
-
             // Fetch the plugin list
-            $.when(...promises).done((plugins, cherrypyServer) => {
-                this.cherrypyServer = cherrypyServer;
-                this.allPlugins = plugins.all;
-                this.failed = plugins.failed;
-                this.render();
-            }).fail(() => {
-                router.navigate('/', { trigger: true });
-            });
+            restRequest({
+                url: 'system/plugins',
+                method: 'GET'
+            })
+                .done((resp) => {
+                    this.allPlugins = resp.all;
+                    this.failed = resp.failed;
+                    this.render();
+                }).fail(() => {
+                    router.navigate('/', { trigger: true });
+                });
         }
     },
 
@@ -94,7 +57,6 @@ var PluginsView = View.extend({
         }, this);
 
         this.$el.html(PluginsTemplate({
-            cherrypyServer: this.cherrypyServer,
             allPlugins: this._sortPlugins(this.allPlugins)
         }));
 

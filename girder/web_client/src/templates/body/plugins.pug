@@ -1,14 +1,4 @@
 .g-body-title Plugins
-  .g-restart-container(class=cherrypyServer ? '' : 'hide')
-    button.g-restart.btn.btn-primary(title="Restart the server",
-        disabled=!cherrypyServer)
-      i.icon-arrows-cw
-      | Restart
-    .g-clear
-.g-plugin-restart-text
-  | The selected plugins have changed.
-  br
-  | You must restart the server for the changes to take effect.
 .g-plugin-list-container
   each plugin in allPlugins
     - var experimental = plugin.value.version ? plugin.value.version.indexOf('0.') === 0 : true
