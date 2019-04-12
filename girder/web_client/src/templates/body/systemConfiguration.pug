@@ -167,6 +167,17 @@ form.g-settings-form(role="form")
           type="password", value=settings['core.smtp.password'] || '',
           placeholder=`Default: ${defaults['core.smtp.password'] || 'none'}`,
           title="The password, if any, used to authenticate to the SMTP server used to send emails.")
+
+  .g-settings-form-container
+    h4 Client configuration
+    .form-group
+      label(for="g-core-static-public-path") Static content root
+      input#g-core-static-public-path.form-control.input-sm(
+          type="text",
+          value=settings['core.static_public_path'] || '',
+          placeholder=`Default: ${defaults['core.static_public_path']}`,
+          title="The path where clients should expect to fetch static content.")
+
   .g-settings-form-container
     h4 Routing
     p.
@@ -179,12 +190,6 @@ form.g-settings-form(role="form")
           value=routes['core_girder'] || '',
           data-webroot-name="core_girder",
           title="The path to place core_girder.")
-      label core_static_root
-      input.g-core-route-table.form-control.input-sm(
-          type="text",
-          value=routes['core_static_root'] || '',
-          data-webroot-name="core_static_root",
-          title="The path to place core_static_root.")
     if routeKeys.length > 2
       .form-group
         h5 Other Routes

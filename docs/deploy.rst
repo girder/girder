@@ -28,7 +28,7 @@ example, we have the following:
 
     [server]
     api_root = "/girder/api/v1"
-    static_root = "/girder/static"
+    static_public_path = "/girder/static"
 
 .. note:: If your chosen proxy server does not add the appropriate
    ``X-Forwarded-Host`` header (containing the host used in http requests,
