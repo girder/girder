@@ -784,7 +784,6 @@ girder
             version
         allPlugins
         getPlugin
-        getPluginFailureInfo
         getPluginWebroots
         loadedPlugins
         registerPluginWebroot

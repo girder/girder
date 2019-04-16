@@ -24,7 +24,6 @@ import json
 import six
 import os
 import logging
-import traceback
 
 from girder.api import access
 from girder.constants import TokenScope, ACCESS_FLAGS, VERSION
@@ -167,18 +166,10 @@ class System(Resource):
                 'version': p.version
             }
 
-        plugins = {
+        return {
             'all': {name: _pluginNameToResponse(name) for name in plugin.allPlugins()},
             'loaded': plugin.loadedPlugins()
         }
-        failureInfo = {
-            plugin: ''.join(traceback.format_exception(*exc_info))
-            for plugin, exc_info in six.iteritems(plugin.getPluginFailureInfo())
-        }
-
-        if failureInfo:
-            plugins['failed'] = failureInfo
-        return plugins
 
     @access.public
     @autoDescribeRoute(

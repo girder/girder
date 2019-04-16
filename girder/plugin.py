@@ -23,11 +23,11 @@ from functools import wraps
 import json
 import os
 from pkg_resources import iter_entry_points, resource_filename
-import sys
 
 import six
 
 from girder import logprint
+from girder.exceptions import GirderException
 
 
 _NAMESPACE = 'girder.plugin'
@@ -69,25 +69,12 @@ class _PluginMeta(type):
 
             if not getattr(self, '_loaded', False):
                 # This block is executed on the first call to the function.
-                # The return value of the call (or exception raised) is saved
-                # as attributes on the wrapper for future invocations.
+                # The return value of the call is saved an attribute on the wrapper
+                # for future invocations.
+                self._return = func(self, *args, **kwargs)
+
                 self._loaded = True
-                self._return = None
-
-                try:
-                    result = func(self, *args, **kwargs)
-                except Exception:
-                    self._loaded = False
-
-                    # If any errors occur in loading the plugin, log the information, and
-                    # store failure information that can be queried through the api.
-                    logprint.exception('Failed to load plugin %s' % self.name)
-                    self._pluginFailureInfo = sys.exc_info()
-                    raise
-
                 _pluginLoadOrder.append(self.name)
-                self._return = result
-                self._success = True
                 logprint.success('Loaded plugin "%s"' % self.name)
 
             return self._return
@@ -178,7 +165,7 @@ class GirderPlugin(object):
     @property
     def loaded(self):
         """Return true if this plugin has been loaded."""
-        return getattr(self, '_success', False)
+        return getattr(self, '_loaded', False)
 
     def load(self, info):
         raise NotImplementedError('Plugins must define a load method')
@@ -217,42 +204,22 @@ def getPlugin(name):
     return registry.get(name)
 
 
-def getPluginFailureInfo():
-    """Return an object containing plugin failure information."""
-    return {
-        name: value._pluginFailureInfo
-        for name, value in six.iteritems(_getPluginRegistry())
-        if hasattr(value, '_pluginFailureInfo')
-    }
-
-
 def _loadPlugins(info, names=None):
     """Load plugins with the given app info object.
 
     If `names` is None, all installed plugins will be loaded. If `names` is a
     list, then only those plugins in the provided list will be loaded.
-
-    If an error occurs, it will be logged and the next plugin will be loaded.
-    A list of successfully loaded plugins is returned.
     """
     if names is None:
         names = allPlugins()
 
-    loadedPlugins = []
     for name in names:
         pluginObject = getPlugin(name)
 
         if pluginObject is None:
-            logprint.error('Plugin %s is not installed' % name)
-            continue
+            raise GirderException('Plugin %s is not installed' % name)
 
-        try:
-            pluginObject.load(info)
-        except Exception:
-            continue
-        loadedPlugins.append(name)
-
-    return loadedPlugins
+        pluginObject.load(info)
 
 
 def allPlugins():
