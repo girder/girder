@@ -27,6 +27,6 @@ ENV LANG=C.UTF-8
 # TODO: Do we want to create editable installs of plugins as well?  We
 # will need a plugin only requirements file for this.
 RUN pip install --upgrade --upgrade-strategy eager --editable .
-RUN girder build --static-root /static
+RUN girder build --static-public-path /static
 
 ENTRYPOINT ["girder", "serve"]

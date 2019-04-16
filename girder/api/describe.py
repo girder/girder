@@ -456,18 +456,12 @@ class ApiDocs(WebrootBase):
         super(ApiDocs, self).__init__(templatePath)
 
         curConfig = config.getConfig()
-        mode = curConfig['server'].get('mode', '')
-
-        self.vars = {
-            'apiRoot': '',
-            'staticRoot': '',
-            'mode': mode
-        }
+        self.vars['mode'] = curConfig['server'].get('mode', '')
 
     def _renderHTML(self):
         from girder.utility import server
         self.vars['apiRoot'] = server.getApiRoot()
-        self.vars['staticRoot'] = server.getStaticRoot()
+        self.vars['staticPublicPath'] = Setting().get(SettingKey.STATIC_PUBLIC_PATH)
         self.vars['brandName'] = Setting().get(SettingKey.BRAND_NAME)
         return super(ApiDocs, self)._renderHTML()
 

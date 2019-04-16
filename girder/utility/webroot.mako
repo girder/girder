@@ -3,16 +3,16 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${brandName | h}</title>
-    <link rel="stylesheet" href="${staticRoot}/built/girder_lib.min.css">
-    <link rel="icon" type="image/png" href="${staticRoot}/built/Girder_Favicon.png">
+    <link rel="stylesheet" href="${staticPublicPath}/built/girder_lib.min.css">
+    <link rel="icon" type="image/png" href="${staticPublicPath}/built/Girder_Favicon.png">
     % for plugin in pluginCss:
-    <link rel="stylesheet" href="${staticRoot}/built/plugins/${plugin}/plugin.min.css">
+    <link rel="stylesheet" href="${staticPublicPath}/built/plugins/${plugin}/plugin.min.css">
     % endfor
   </head>
   <body>
     <div id="g-global-info-apiroot" class="hide">${apiRoot}</div>
-    <script src="${staticRoot}/built/girder_lib.min.js"></script>
-    <script src="${staticRoot}/built/girder_app.min.js"></script>
+    <script src="${staticPublicPath}/built/girder_lib.min.js"></script>
+    <script src="${staticPublicPath}/built/girder_app.min.js"></script>
     <script type="text/javascript">
         $(function () {
             girder.events.trigger('g:appload.before');
@@ -30,7 +30,7 @@
         });
     </script>
     % for plugin in pluginJs:
-    <script src="${staticRoot}/built/plugins/${plugin}/plugin.min.js"></script>
+    <script src="${staticPublicPath}/built/plugins/${plugin}/plugin.min.js"></script>
     % endfor
   </body>
 </html>

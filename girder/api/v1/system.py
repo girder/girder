@@ -28,8 +28,7 @@ import logging
 import traceback
 
 from girder.api import access
-from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
-    SettingKey, TokenScope, ACCESS_FLAGS, VERSION
+from girder.constants import GIRDER_ROUTE_ID, SettingKey, TokenScope, ACCESS_FLAGS, VERSION
 from girder.exceptions import GirderException, ResourcePathNotFound, RestException
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -208,7 +207,7 @@ class System(Resource):
         setting = Setting()
         routeTable = setting.get(SettingKey.ROUTE_TABLE)
         oldPlugins = setting.get(SettingKey.PLUGINS_ENABLED)
-        reservedRoutes = {GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID}
+        reservedRoutes = {GIRDER_ROUTE_ID}
 
         routeTableChanged = False
         removedRoutes = (
