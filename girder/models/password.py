@@ -17,6 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
+import bcrypt
 import cherrypy
 import hashlib
 import re
@@ -54,12 +55,6 @@ class Password(Model):
         if alg == 'sha512':
             return hashlib.sha512((password + salt).encode('utf8')).hexdigest()
         elif alg == 'bcrypt':
-            try:
-                import bcrypt
-            except ImportError:
-                raise Exception(
-                    'Bcrypt module is not installed. See girder.local.cfg.')
-
             password = password.encode('utf8')
 
             if salt is None:
