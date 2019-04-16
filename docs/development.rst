@@ -92,9 +92,10 @@ object is: ::
 There is a configuration file for Girder located in **girder/conf**. The file
 **girder.dist.cfg** is the file distributed with the repository and containing
 the default configuration values. This file should not be edited when deploying
-Girder. Rather, edit the **girder.local.cfg** file. You only need to edit the
+Girder. Rather, create a custom **girder.cfg** file and place it in one of the supported
+locations (see :ref:`Configuration <configuration>`). You only need to edit the
 values in the file that you wish to change from their default values; the system
-loads the **dist** file first, then the **local** file, so your local settings
+loads the **dist** file first, then the custom file, so your local settings
 will override the defaults.
 
 .. _client_development_js:
