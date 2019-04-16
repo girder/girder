@@ -46,11 +46,6 @@ def getApiRoot():
     return config.getConfig()['server']['api_root']
 
 
-def getStaticRoot():
-    routeTable = loadRouteTable()
-    return routeTable[constants.GIRDER_STATIC_ROUTE_ID]
-
-
 def configureServer(test=False, plugins=None, curConfig=None):
     """
     Function to setup the cherrypy server. It configures it, but does
@@ -88,8 +83,6 @@ def configureServer(test=False, plugins=None, curConfig=None):
         curConfig.update({'server': {
             'mode': 'testing',
             'api_root': 'api/v1',
-            'static_root': 'static',
-            'api_static_root': '../static',
             'cherrypy_server': True
         }})
 
@@ -116,7 +109,6 @@ def configureServer(test=False, plugins=None, curConfig=None):
         'serverRoot': root,
         'serverRootPath': routeTable[constants.GIRDER_ROUTE_ID],
         'apiRoot': root.api.v1,
-        'staticRoot': routeTable[constants.GIRDER_STATIC_ROUTE_ID]
     }
 
     plugin._loadPlugins(info, plugins)
@@ -141,6 +133,11 @@ def loadRouteTable(reconcileRoutes=False):
 
     def reconcileRouteTable(routeTable):
         hasChanged = False
+
+        # Migration for the removed static root setting
+        if 'core_static_root' in routeTable:
+            del routeTable['core_static_root']
+            hasChanged = True
 
         for name in pluginWebroots.keys():
             if name not in routeTable:
@@ -180,11 +177,10 @@ def setup(test=False, plugins=None, curConfig=None):
         girderWebroot, str(routeTable[constants.GIRDER_ROUTE_ID]), appconf)
 
     # Mount static files
-    cherrypy.tree.mount(None, routeTable[constants.GIRDER_STATIC_ROUTE_ID],
+    cherrypy.tree.mount(None, '/static',
                         {'/':
-                         # Only turn on if something has been created by 'girder build'
-                         {'tools.staticdir.on': os.path.exists(constants.STATIC_ROOT_DIR),
-                          'tools.staticdir.dir': constants.STATIC_ROOT_DIR,
+                         {'tools.staticdir.on': True,
+                          'tools.staticdir.dir': os.path.join(constants.STATIC_ROOT_DIR),
                           'request.show_tracebacks': appconf['/']['request.show_tracebacks'],
                           'response.headers.server': 'Girder %s' % __version__,
                           'error_page.default': _errorDefault}})

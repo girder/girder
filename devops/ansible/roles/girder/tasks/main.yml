@@ -67,6 +67,7 @@
 
 - name: Install Girder 2 Plugins
   command: "{{ girder_build_executable|default('girder-install') }} plugin {{ item.args|default('') }} {{ item.path|default(item) }}"
+  with_items: "{{ girder_plugins }}"
   when: girder_major_version == "2"
 
 - name: Build Girder (web)

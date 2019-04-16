@@ -266,6 +266,11 @@ if this is the first time logging in with these OAuth credentials).
     from girder import events
     events.bind('oauth.auth_callback.after', 'my_plugin', readCircles)
 
+.. note:: If ``event.preventDefault()`` is called in the event handler for
+  ``oauth.auth_callback.before`` or ``oauth.auth_callback.after``, the OAuth
+  callback does not create a new Girder Token, nor sets a new authentication
+  cookie.
+
 Gravatar Portraits
 ------------------
 

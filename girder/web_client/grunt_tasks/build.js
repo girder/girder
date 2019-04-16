@@ -151,10 +151,10 @@ module.exports = function (grunt) {
         progress: progress
     });
 
-    // Set the publicPath based on Girder's static root
+    // Set the publicPath based on Girder's static public path
     updateWebpackConfig({
         output: {
-            publicPath: path.join(grunt.config.get('staticUrl'), 'built/')
+            publicPath: path.join(grunt.config.get('staticPublicPath'), 'built/')
         }
     });
 

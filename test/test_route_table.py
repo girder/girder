@@ -23,7 +23,7 @@ import pytest
 from pytest_girder.assertions import assertStatusOk
 from pytest_girder.utils import getResponseBody
 
-from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingKey
+from girder.constants import GIRDER_ROUTE_ID, SettingKey
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.plugin import GirderPlugin, registerPluginWebroot
@@ -42,22 +42,16 @@ class HasWebroot(GirderPlugin):
 
 
 @pytest.mark.parametrize('value,err', [
-    ({}, r'Girder and static root must be routable\.$'),
-    ({GIRDER_ROUTE_ID: '/'}, r'Girder and static root must be routable\.$'),
+    ({}, r'Girder root must be routable\.$'),
+    ({'other': '/some_route'}, r'Girder root must be routable\.$'),
     ({
         GIRDER_ROUTE_ID: '/some_route',
-        GIRDER_STATIC_ROUTE_ID: '/static',
         'other': '/some_route'
     }, r'Routes must be unique\.$'),
     ({
         GIRDER_ROUTE_ID: '/',
-        GIRDER_STATIC_ROUTE_ID: '/static',
         'other': 'route_without_a_leading_slash'
-    }, r'Routes must begin with a forward slash\.$'),
-    ({
-        GIRDER_ROUTE_ID: '/',
-        GIRDER_STATIC_ROUTE_ID: 'relative/static'
-    }, r'Static root must begin with a forward slash or contain a URL scheme\.$')
+    }, r'Routes must begin with a forward slash\.$')
 ])
 def testRouteTableValidationFailure(value, err):
     with pytest.raises(ValidationException, match=err):
@@ -70,7 +64,6 @@ def testRouteTableValidationFailure(value, err):
 @pytest.mark.parametrize('value', [
     {
         GIRDER_ROUTE_ID: '/',
-        GIRDER_STATIC_ROUTE_ID: 'http://127.0.0.1/static'
     }
 ])
 def testRouteTableValidationSuccess(value):
@@ -84,7 +77,6 @@ def testRouteTableValidationSuccess(value):
 def testRouteTableBehavior(server, admin):
     Setting().set(SettingKey.ROUTE_TABLE, {
         GIRDER_ROUTE_ID: '/',
-        GIRDER_STATIC_ROUTE_ID: '/static',
         'has_webroot': '/has_webroot'
     })
 

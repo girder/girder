@@ -388,7 +388,6 @@ girder
             USER_SELF_ACCESS
             WEBROOT_SETTING_CHANGE
         GIRDER_ROUTE_ID
-        GIRDER_STATIC_ROUTE_ID
         LOG_BACKUP_COUNT
         LOG_ROOT
         MAX_LOG_SIZE
@@ -426,6 +425,7 @@ girder
             SMTP_PASSWORD
             SMTP_PORT
             SMTP_USERNAME
+            STATIC_PUBLIC_PATH
             UPLOAD_MINIMUM_CHUNK_SIZE
             USER_DEFAULT_FOLDERS
         SortDir
@@ -723,6 +723,7 @@ girder
                 validateCoreSmtpPassword
                 validateCoreSmtpPort
                 validateCoreSmtpUsername
+                validateCoreStaticRoot
                 validateCoreUploadMinimumChunkSize
                 validateCoreUserDefaultFolders
                 validateEnableNotificationStream
@@ -940,7 +941,6 @@ girder
         server
             configureServer
             getApiRoot
-            getStaticRoot
             loadRouteTable
             setup
             staticFile

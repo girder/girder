@@ -39,7 +39,6 @@
           key: "core.route_table"
           value:
             core_girder: "/girder"
-            core_static_root: "/static"
 
     - name: Set multiple settings for email
       girder:

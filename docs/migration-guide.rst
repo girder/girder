@@ -8,12 +8,6 @@ between major versions of Girder. Major version bumps contain breaking changes
 to the Girder core library, which are enumerated in this guide along with
 instructions on how to update your plugin code to work in the newer version.
 
-Existing installations may be upgraded by running ``pip install --upgrade --upgrade-strategy eager girder`` and
-re-running ``girder-install web``. You may need to remove ``node_modules`` directory
-from the installed girder package if you encounter problems while re-running
-``girder-install web``. Note that the prerequisites may have changed in the latest
-version: make sure to review the :doc:`dependencies guide <dependencies>` prior to the upgrade.
-
 2.x |ra| 3.x
 ------------
 
@@ -164,6 +158,14 @@ Other backwards incompatible changes affecting plugins
   parameter; callers should use the ``url`` parameter instead. Callers are also encouraged to use
   the ``method`` parameter instead of ``type``.
 
+* The CMake function `add_standard_plugin_tests` can not detect the python package of your
+  plugin.  It now requires you pass the keyword argument `PACKAGE` with the package name.
+  For example, the jobs plugin ``plugin.cmake`` file contains the following line:
+
+  .. code-block:: cmake
+
+    add_standard_plugin_tests(PACKAGE "girder_jobs")
+
 Client build changes
 ++++++++++++++++++++
 
@@ -181,18 +183,26 @@ itself depends on the core web client and all plugin web clients. The build proc
 place (in the Girder Python package) in both development and production installs. The built assets
 are installed into a virtual environment specific static path ``{sys.prefix}/share/girder``.
 
-Static root is required during web client build
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The static root, indicating the base URL where web client files are served from,
-is now required when the web client is built. The primary implication is that if the static root
-setting is changed, the web client must be immediately rebuilt. Also, note the API changes:
+Static public path is required during web client build
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The static `public path <https://webpack.js.org/guides/public-path/>`_, indicating the base URL
+where web client files are served from, is now required when the web client is built. Most
+deployments can simply accept the default value of ``/static``, unless serving Girder from a CDN or
+mounting at a subpath using a reverse proxy.
 
+If the static public path setting is changed, the web client must be immediately rebuilt. When the
+web client is built without access to database settings, ``girder build --static-public-path ..``
+can be used to pass the static public path.
+
+The static public path setting replaces all previous "static root" functionality. Accordingly:
+
+* The server now serves all static content from ``/static``. The ``GIRDER_STATIC_ROUTE_ID`` constant
+  has been removed.
+* In the server, ``girder.utility.server.getStaticRoot`` has been removed.
 * In the web client, ``girder.rest.staticRoot``, ``girder.rest.getStaticRoot``, and
-  ``girder.rest.setStaticRoot`` have been removed
-* The ability to set the web client static root via the special element
+  ``girder.rest.setStaticRoot`` have been removed.
+* The ability to set the web client static root / public path via the special element
   ``<div id="g-global-info-staticroot">`` has been removed
-* In the server, the ``girder.utility.server.getStaticRoot()`` function now returns an absolute path
-  unless set otherwise (which is not recommended).
 
 Server changes
 ++++++++++++++
