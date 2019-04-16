@@ -788,12 +788,12 @@ EXAMPLES = '''
 # Supports get, post, put, delete methods,  but does
 # not guarantee idempotence on these methods!
 
-- name: Restart the server
+- name: Run a system check
   girder:
     username: "admin"
     password: "letmein"
     put:
-      path: "system/restart"
+      path: "system/check"
 
 # An example of posting an item to Girder
 # Note that this is NOT idempotent. Running

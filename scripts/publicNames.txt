@@ -300,10 +300,6 @@ girder
                     getPlugins
                     getSetting
                     getVersion
-                    restartServer
-                        Restart
-                            run
-                            start
                     setLogLevel
                     setSetting
                     systemConsistencyCheck
