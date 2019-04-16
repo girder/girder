@@ -1,5 +1,5 @@
-import Collection from 'girder/collections/Collection';
-import GroupModel from 'girder/models/GroupModel';
+import Collection from '@girder/core/collections/Collection';
+import GroupModel from '@girder/core/models/GroupModel';
 
 var GroupCollection = Collection.extend({
     resourceName: 'group',

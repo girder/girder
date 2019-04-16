@@ -1,10 +1,10 @@
 import _ from 'underscore';
 
-import View from 'girder/views/View';
-import { restRequest } from 'girder/rest';
+import View from '@girder/core/views/View';
+import { restRequest } from '@girder/core/rest';
 
-import PaginateWidgetTemplate from 'girder/templates/widgets/paginateWidget.pug';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
+import PaginateWidgetTemplate from '@girder/core/templates/widgets/paginateWidget.pug';
+import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
 /**
  * This widget is used to provide a consistent widget for iterating amongst
  * pages of a list of search results (using a search mode, a query, an unique type,

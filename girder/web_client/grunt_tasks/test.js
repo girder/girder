@@ -41,7 +41,7 @@ module.exports = function (grunt) {
             test: {
                 files: {
                     [resolveBuiltPath('testing.min.js')]: [
-                        require.resolve('core-js/client/shim'),
+                        require.resolve('babel-polyfill/dist/polyfill.js'),
                         require.resolve('whatwg-fetch/fetch.js'),
                         resolveTestPath('lib/jasmine-1.3.1/jasmine.js'),
                         resolveTestPath('lib/jasmine-1.3.1/ConsoleReporter.js'),
@@ -63,8 +63,6 @@ module.exports = function (grunt) {
                 options: {
                     data: {
                         cssFiles: [
-                            '/static/built/fontello/css/fontello.css',
-                            '/static/built/fontello/css/animation.css',
                             '/static/built/girder_lib.min.css',
                             '/static/built/testing/testing.min.css'
                         ],
@@ -73,7 +71,6 @@ module.exports = function (grunt) {
                             '/static/built/girder_app.min.js',
                             '/static/built/testing.min.js'
                         ],
-                        staticRoot: '/static',
                         apiRoot: '/api/v1'
                     },
                     pretty: true

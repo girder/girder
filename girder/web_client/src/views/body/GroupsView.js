@@ -1,19 +1,19 @@
 import $ from 'jquery';
 
-import EditGroupWidget from 'girder/views/widgets/EditGroupWidget';
-import GroupCollection from 'girder/collections/GroupCollection';
-import GroupModel from 'girder/models/GroupModel';
-import PaginateWidget from 'girder/views/widgets/PaginateWidget';
-import router from 'girder/router';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
-import View from 'girder/views/View';
-import { cancelRestRequests } from 'girder/rest';
-import { formatDate, DATE_DAY } from 'girder/misc';
-import { getCurrentUser } from 'girder/auth';
+import EditGroupWidget from '@girder/core/views/widgets/EditGroupWidget';
+import GroupCollection from '@girder/core/collections/GroupCollection';
+import GroupModel from '@girder/core/models/GroupModel';
+import PaginateWidget from '@girder/core/views/widgets/PaginateWidget';
+import router from '@girder/core/router';
+import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
+import View from '@girder/core/views/View';
+import { cancelRestRequests } from '@girder/core/rest';
+import { formatDate, DATE_DAY } from '@girder/core/misc';
+import { getCurrentUser } from '@girder/core/auth';
 
-import GroupListTemplate from 'girder/templates/body/groupList.pug';
+import GroupListTemplate from '@girder/core/templates/body/groupList.pug';
 
-import 'girder/stylesheets/body/groupList.styl';
+import '@girder/core/stylesheets/body/groupList.styl';
 
 /**
  * This view lists groups.

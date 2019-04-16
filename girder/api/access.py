@@ -26,7 +26,7 @@ from girder.utility import optionalArgumentDecorator
 
 
 @optionalArgumentDecorator
-def admin(fun, scope=None):
+def admin(fun, scope=None, cookie=False):
     """
     REST endpoints that require administrator access should be wrapped in this decorator.
 
@@ -35,6 +35,11 @@ def admin(fun, scope=None):
     :param scope: To also expose this endpoint for certain token scopes,
         pass those scopes here. If multiple are passed, all will be required.
     :type scope: str or list of str or None
+    :param cookie: if True, this rest endpoint allows the use of a cookie for
+        authentication.  If this is specified on routes that can alter the
+        system (those other than HEAD and GET), it can expose an application to
+        Cross-Site Request Forgery (CSRF) attacks.
+    :type cookie: bool
     """
     @six.wraps(fun)
     def wrapped(*args, **kwargs):
@@ -42,11 +47,13 @@ def admin(fun, scope=None):
         return fun(*args, **kwargs)
     wrapped.accessLevel = 'admin'
     wrapped.requiredScopes = scope
+    if cookie:
+        wrapped.cookieAuth = True
     return wrapped
 
 
 @optionalArgumentDecorator
-def user(fun, scope=None):
+def user(fun, scope=None, cookie=False):
     """
     REST endpoints that require a logged-in user should be wrapped with this access decorator.
 
@@ -55,6 +62,11 @@ def user(fun, scope=None):
     :param scope: To also expose this endpoint for certain token scopes,
         pass those scopes here. If multiple are passed, all will be required.
     :type scope: str or list of str or None
+    :param cookie: if True, this rest endpoint allows the use of a cookie for
+        authentication.  If this is specified on routes that can alter the
+        system (those other than HEAD and GET), it can expose an application to
+        Cross-Site Request Forgery (CSRF) attacks.
+    :type cookie: bool
     """
     @six.wraps(fun)
     def wrapped(*args, **kwargs):
@@ -63,11 +75,13 @@ def user(fun, scope=None):
         return fun(*args, **kwargs)
     wrapped.accessLevel = 'user'
     wrapped.requiredScopes = scope
+    if cookie:
+        wrapped.cookieAuth = True
     return wrapped
 
 
 @optionalArgumentDecorator
-def token(fun, scope=None, required=False):
+def token(fun, scope=None, required=False, cookie=False):
     """
     REST endpoints that require a token, but not necessarily a user authentication token, should use
     this access decorator.
@@ -78,6 +92,11 @@ def token(fun, scope=None, required=False):
     :type scope: str or list of str or None
     :param required: Whether all of the passed ``scope`` are required to access the endpoint at all.
     :type required: bool
+    :param cookie: if True, this rest endpoint allows the use of a cookie for
+        authentication.  If this is specified on routes that can alter the
+        system (those other than HEAD and GET), it can expose an application to
+        Cross-Site Request Forgery (CSRF) attacks.
+    :type cookie: bool
     """
     @six.wraps(fun)
     def wrapped(*args, **kwargs):
@@ -88,11 +107,13 @@ def token(fun, scope=None, required=False):
         return fun(*args, **kwargs)
     wrapped.accessLevel = 'token'
     wrapped.requiredScopes = scope
+    if cookie:
+        wrapped.cookieAuth = True
     return wrapped
 
 
 @optionalArgumentDecorator
-def public(fun, scope=None):
+def public(fun, scope=None, cookie=False):
     """
     Functions that allow any client access, including those that haven't logged
     in should be wrapped in this decorator.
@@ -101,30 +122,14 @@ def public(fun, scope=None):
     :type fun: callable
     :param scope: The scope or list of scopes required for this token.
     :type scope: str or list of str or None
+    :param cookie: if True, this rest endpoint allows the use of a cookie for
+        authentication.  If this is specified on routes that can alter the
+        system (those other than HEAD and GET), it can expose an application to
+        Cross-Site Request Forgery (CSRF) attacks.
+    :type cookie: bool
     """
     fun.accessLevel = 'public'
     fun.requiredScopes = scope
-    return fun
-
-
-@optionalArgumentDecorator
-def cookie(fun, force=False):
-    """
-    REST endpoints that allow the use of a cookie for authentication should be
-    wrapped in this decorator.
-
-    When used as a normal decorator, this is only effective on endpoints for
-    HEAD and GET routes (as these routes should be read-only in a RESTful API).
-
-    While allowing cookie authentication on other types of routes exposes an
-    application to Cross-Site Request Forgery (CSRF) attacks, an optional
-    ``force=True`` kwarg may be passed to the decorator to make it effective
-    on any type of route.
-
-    :param fun: A REST endpoint.
-    :type fun: callable
-    :param force: Allow this to apply to non-GET and non-HEAD endpoints.
-    :type force: bool
-    """
-    fun.cookieAuth = (True, force)
+    if cookie:
+        fun.cookieAuth = True
     return fun

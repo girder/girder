@@ -28,8 +28,7 @@ import logging
 import traceback
 
 from girder.api import access
-from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
-    SettingKey, TokenScope, ACCESS_FLAGS, VERSION
+from girder.constants import GIRDER_ROUTE_ID, SettingKey, TokenScope, ACCESS_FLAGS, VERSION
 from girder.exceptions import GirderException, ResourcePathNotFound, RestException
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -42,7 +41,7 @@ from girder.models.user import User
 from girder import plugin
 from girder.utility import config, system
 from girder.utility.progress import ProgressContext
-from ..describe import API_VERSION, Description, autoDescribeRoute
+from ..describe import Description, autoDescribeRoute
 from ..rest import Resource
 
 ModuleStartTime = datetime.datetime.utcnow()
@@ -80,10 +79,11 @@ class System(Resource):
         Description('Set the value for a system setting, or a list of them.')
         .notes('Must be a system administrator to call this. If the value passed is '
                'a valid JSON object, it will be parsed and stored as an object.')
-        .param('key', 'The key identifying this setting.', required=False)
-        .param('value', 'The value for this setting.', required=False)
+        .param('key', 'The key identifying this setting.', required=False, paramType='formData')
+        .param('value', 'The value for this setting.', required=False, paramType='formData')
         .jsonParam('list', 'A JSON list of objects with key and value representing '
-                   'a list of settings to set.', required=False, requireArray=True)
+                   'a list of settings to set.', required=False, requireArray=True,
+                   paramType='formData')
         .errorResponse('You are not a system administrator.', 403)
         .errorResponse('Failed to set system setting.', 500)
     )
@@ -184,21 +184,13 @@ class System(Resource):
             plugins['failed'] = failureInfo
         return plugins
 
-    # TODO: port #2776
     @access.public
     @autoDescribeRoute(
         Description('Get the version information for this server.')
-        # .param('fromGit', 'If true, use git to get the version of the server '
-        #        'and any plugins that are git repositories.  This supplements '
-        #        'the usual version information.',
-        #        required=False, dataType='boolean')
     )
-    def getVersion(self):  # , fromGit=False):
+    def getVersion(self):
         version = dict(**VERSION)
-        version['apiVersion'] = API_VERSION
         version['serverStartDate'] = ModuleStartTime
-        # if fromGit:
-        #     version['gitVersions'] = install._getGitVersions()
         return version
 
     @access.admin
@@ -215,7 +207,7 @@ class System(Resource):
         setting = Setting()
         routeTable = setting.get(SettingKey.ROUTE_TABLE)
         oldPlugins = setting.get(SettingKey.PLUGINS_ENABLED)
-        reservedRoutes = {GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID}
+        reservedRoutes = {GIRDER_ROUTE_ID}
 
         routeTableChanged = False
         removedRoutes = (

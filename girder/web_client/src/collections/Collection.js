@@ -1,10 +1,10 @@
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import { localeComparator } from 'girder/misc';
-import Model from 'girder/models/Model';
-import { restRequest } from 'girder/rest';
-import { SORT_ASC } from 'girder/constants';
+import { localeComparator } from '@girder/core/misc';
+import Model from '@girder/core/models/Model';
+import { restRequest } from '@girder/core/rest';
+import { SORT_ASC } from '@girder/core/constants';
 
 /**
  * All collections should descend from this collection base class, which

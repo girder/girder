@@ -24,7 +24,6 @@ var path = require('path');
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-const webSrc = require('./webpack.paths').web_src;
 const nodeModules = require('./webpack.paths').node_modules;
 
 // Resolving the Babel presets here is required to support symlinking plugin directories from
@@ -41,16 +40,13 @@ function fileLoader() {
     };
 }
 
-var loaderPaths = [webSrc];
+var loaderPaths = [path.dirname(require.resolve('@girder/core'))];
 var loaderPathsNodeModules = loaderPaths.concat([nodeModules]);
 
 module.exports = {
     output: {
         // pathinfo: true,  // for debugging
         filename: '[name].min.js'
-        // publicPath must be set to Girder's externally-served static path for built outputs
-        // (typically '/static/built/'). This will be done at runtime with
-        // '__webpack_public_path__', since it's not always known at build-time.
     },
     plugins: [
         // Exclude all of Moment.js's extra locale files except English
@@ -206,8 +202,9 @@ module.exports = {
         extensions: ['.js'],
         symlinks: false,
         alias: {
-            'girder': path.resolve('src'),
-            'jquery': require.resolve('jquery') // ensure that all plugins use the same "jquery"
+            'jquery': require.resolve('jquery'), // ensure that all plugins use the same "jquery"
+            // For some reason, this is necessary to ensure DllPlugin splitting works properly
+            '@girder/core': path.dirname(require.resolve('@girder/core'))
         }
     },
     node: {

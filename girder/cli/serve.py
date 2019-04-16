@@ -19,6 +19,7 @@
 
 import cherrypy
 import click
+import six
 
 from girder import _attachFileLogHandlers
 from girder.utility import server
@@ -33,12 +34,15 @@ from girder.utility import server
 @click.option('-p', '--port', type=int, default=cherrypy.config['server.socket_port'],
               show_default=True, help='The port to bind to')
 def main(testing, database, host, port):
-    if database:
-        cherrypy.config['database']['uri'] = database
-    if host:
-        cherrypy.config['server.socket_host'] = host
-    if port:
-        cherrypy.config['server.socket_port'] = port
+    # If the user provides no options, the existing config values get re-set through click
+    cherrypy.config['database']['uri'] = database
+    if six.PY2:
+        # On Python 2, click returns the value as unicode and CherryPy expects a str
+        # Keep this conversion explicitly for Python 2 only, so it can be removed when Python 2
+        # support is dropped
+        host = str(host)
+    cherrypy.config['server.socket_host'] = host
+    cherrypy.config['server.socket_port'] = port
 
     _attachFileLogHandlers()
     server.setup(testing)

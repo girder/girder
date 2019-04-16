@@ -1,4 +1,3 @@
-import cherrypy
 import hashlib
 import mock
 import mongomock
@@ -6,8 +5,8 @@ import os
 import pytest
 import shutil
 
-from .utils import uploadFile, MockSmtpReceiver, request as restRequest
 from .plugin_registry import PluginRegistry
+from .utils import MockSmtpReceiver, serverContext
 
 
 def _uid(node):
@@ -75,62 +74,53 @@ def db(request):
         pymongo.MongoClient = realMongoClient
 
 
+def _getPluginsFromMarker(request, registry):
+    plugins = []
+
+    if request.node.get_closest_marker('plugin') is not None:
+        for pluginMarker in request.node.iter_markers('plugin'):
+            pluginName = pluginMarker.args[0]
+            shouldEnable = pluginMarker.kwargs.pop('enabled', True)
+            if len(pluginMarker.args) > 1:
+                registry.registerTestPlugin(*pluginMarker.args, **pluginMarker.kwargs)
+            if shouldEnable:
+                plugins.append(pluginName)
+    return plugins
+
+
 @pytest.fixture
 def server(db, request):
     """
     Require a CherryPy embedded server.
 
-    Provides a started CherryPy embedded server with a request method for performing
-    local requests against it. Note: this fixture requires the db fixture.
+    Provides a started CherryPy embedded server with a request method for
+    performing local requests against it. Note: this fixture requires the db
+    fixture.
     """
-    # The event daemon cannot be restarted since it is a threading.Thread object, however
-    # all references to girder.events.daemon are a singular global daemon due to its side
-    # effect on import. We have to hack around this by creating a unique event daemon
-    # each time we startup the server and assigning it to the global.
-    import girder.events
-    from girder.api import docs
-    from girder.constants import SettingKey
-    from girder.models.setting import Setting
-    from girder.utility.server import setup as setupServer
+    registry = PluginRegistry()
+    with registry():
+        plugins = _getPluginsFromMarker(request, registry)
+        with serverContext(plugins) as server:
+            yield server
 
-    girder.events.daemon = girder.events.AsyncEventsThread()
 
-    enabledPlugins = []
-    hasPluginMarkers = request.node.get_closest_marker('plugin') is not None
-    pluginRegistry = PluginRegistry()
+@pytest.fixture
+def boundServer(db, request):
+    """
+    Require a CherryPy server that listens on a port.
 
-    with pluginRegistry():
-        if hasPluginMarkers:
-            for pluginMarker in request.node.iter_markers('plugin'):
-                pluginName = pluginMarker.args[0]
-                shouldEnable = pluginMarker.kwargs.pop('enabled', True)
-                if len(pluginMarker.args) > 1:
-                    pluginRegistry.registerTestPlugin(
-                        *pluginMarker.args, **pluginMarker.kwargs
-                    )
-                if shouldEnable:
-                    enabledPlugins.append(pluginName)
-
-        Setting().set(SettingKey.PLUGINS_ENABLED, enabledPlugins)
-
-        server = setupServer(test=True, plugins=enabledPlugins)
-        server.request = restRequest
-        server.uploadFile = uploadFile
-
-        cherrypy.server.unsubscribe()
-        cherrypy.config.update({'environment': 'embedded',
-                                'log.screen': False,
-                                'request.throw_errors': True})
-        cherrypy.engine.start()
-
-        yield server
-
-        cherrypy.engine.unsubscribe('start', girder.events.daemon.start)
-        cherrypy.engine.unsubscribe('stop', girder.events.daemon.stop)
-        cherrypy.engine.stop()
-        cherrypy.engine.exit()
-        cherrypy.tree.apps = {}
-        docs.routes.clear()
+    Provides a started CherryPy server with a bound port and a request method
+    for performing local requests against it. Note: this fixture requires the
+    db fixture.  The returned value has an `boundPort` property identifying
+    where the server can be reached.  The server can then be accessed via http
+    via an address like `'http://127.0.0.1:%d/api/v1/...' %
+    boundServer.boundPort`.
+    """
+    registry = PluginRegistry()
+    with registry():
+        plugins = _getPluginsFromMarker(request, registry)
+        with serverContext(plugins, bindPort=True) as server:
+            yield server
 
 
 @pytest.fixture
@@ -206,4 +196,4 @@ def fsAssetstore(db, request):
         shutil.rmtree(path)
 
 
-__all__ = ('admin', 'bcrypt', 'db', 'fsAssetstore', 'server', 'user', 'smtp')
+__all__ = ('admin', 'bcrypt', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp')

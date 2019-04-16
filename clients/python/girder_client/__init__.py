@@ -17,6 +17,16 @@
 #  limitations under the License.
 ###############################################################################
 
+from pkg_resources import DistributionNotFound, get_distribution
+
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+    # package is not installed
+    __version__ = None
+
+__license__ = 'Apache 2.0'
+
 import diskcache
 import errno
 import getpass
@@ -34,25 +44,12 @@ import tempfile
 from contextlib import contextmanager
 from requests_toolbelt import MultipartEncoder
 
-__version__ = '2.4.0'
-__license__ = 'Apache 2.0'
-
 DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
 REQ_BUFFER_SIZE = 65536  # Chunk size when iterating a download body
 
 _safeNameRegex = re.compile(r'^[/\\]+')
 
 _logger = logging.getLogger('girder_client.lib')
-
-
-def _compareDicts(x, y):
-    """
-    Compare two dictionaries with metadata.
-
-    :param x: First metadata item.
-    :param y: Second metadata item.
-    """
-    return len(x) == len(y) == len(set(x.items()) & set(y.items()))
 
 
 def _safeMakedirs(path):
@@ -255,6 +252,7 @@ class GirderClient(object):
         self.token = ''
         self._folderUploadCallbacks = []
         self._itemUploadCallbacks = []
+        self._serverVersion = []
         self._serverApiDescription = {}
         self.incomingMetadata = {}
         self.localMetadata = {}
@@ -377,9 +375,11 @@ class GirderClient(object):
         :type useCached: bool
         :return: The API version as a list (e.g. ``['1', '0', '0']``)
         """
-        description = self.getServerAPIDescription(useCached)
-        version = description.get('info', {}).get('version')
-        return version.split('.') if version else None
+        if not self._serverVersion or not useCached:
+            # Include any more than 3 version components in the patch version
+            self._serverVersion = self.get('system/version')['release'].split('.', 3)
+
+        return self._serverVersion
 
     def getServerAPIDescription(self, useCached=True):
         """
@@ -1370,8 +1370,7 @@ class GirderClient(object):
             for item in items:
                 _id = item['_id']
                 self.incomingMetadata[_id] = item
-                if (sync and _id in self.localMetadata and
-                        _compareDicts(item, self.localMetadata[_id])):
+                if sync and _id in self.localMetadata and item == self.localMetadata[_id]:
                     continue
                 self.downloadItem(item['_id'], dest, name=item['name'])
 

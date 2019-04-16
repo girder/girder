@@ -1,23 +1,23 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import EditItemWidget from 'girder/views/widgets/EditItemWidget';
-import FileListWidget from 'girder/views/widgets/FileListWidget';
-import ItemBreadcrumbWidget from 'girder/views/widgets/ItemBreadcrumbWidget';
-import ItemModel from 'girder/models/ItemModel';
-import MetadataWidget from 'girder/views/widgets/MetadataWidget';
-import router from 'girder/router';
-import UploadWidget from 'girder/views/widgets/UploadWidget';
-import View from 'girder/views/View';
-import { AccessType } from 'girder/constants';
-import { cancelRestRequests } from 'girder/rest';
-import { confirm, handleClose } from 'girder/dialog';
-import events from 'girder/events';
-import { formatSize, formatDate, renderMarkdown, DATE_SECOND } from 'girder/misc';
+import EditItemWidget from '@girder/core/views/widgets/EditItemWidget';
+import FileListWidget from '@girder/core/views/widgets/FileListWidget';
+import ItemBreadcrumbWidget from '@girder/core/views/widgets/ItemBreadcrumbWidget';
+import ItemModel from '@girder/core/models/ItemModel';
+import MetadataWidget from '@girder/core/views/widgets/MetadataWidget';
+import router from '@girder/core/router';
+import UploadWidget from '@girder/core/views/widgets/UploadWidget';
+import View from '@girder/core/views/View';
+import { AccessType } from '@girder/core/constants';
+import { cancelRestRequests } from '@girder/core/rest';
+import { confirm, handleClose } from '@girder/core/dialog';
+import events from '@girder/core/events';
+import { formatSize, formatDate, renderMarkdown, DATE_SECOND } from '@girder/core/misc';
 
-import ItemPageTemplate from 'girder/templates/body/itemPage.pug';
+import ItemPageTemplate from '@girder/core/templates/body/itemPage.pug';
 
-import 'girder/stylesheets/body/itemPage.styl';
+import '@girder/core/stylesheets/body/itemPage.styl';
 
 import 'bootstrap/js/dropdown';
 

@@ -1,22 +1,22 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import AccessWidget from 'girder/views/widgets/AccessWidget';
-import CollectionModel from 'girder/models/CollectionModel';
-import EditCollectionWidget from 'girder/views/widgets/EditCollectionWidget';
-import FolderModel from 'girder/models/FolderModel';
-import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
-import router from 'girder/router';
-import View from 'girder/views/View';
-import { AccessType } from 'girder/constants';
-import { cancelRestRequests } from 'girder/rest';
-import { confirm } from 'girder/dialog';
-import { renderMarkdown, formatSize } from 'girder/misc';
-import events from 'girder/events';
+import AccessWidget from '@girder/core/views/widgets/AccessWidget';
+import CollectionModel from '@girder/core/models/CollectionModel';
+import EditCollectionWidget from '@girder/core/views/widgets/EditCollectionWidget';
+import FolderModel from '@girder/core/models/FolderModel';
+import HierarchyWidget from '@girder/core/views/widgets/HierarchyWidget';
+import router from '@girder/core/router';
+import View from '@girder/core/views/View';
+import { AccessType } from '@girder/core/constants';
+import { cancelRestRequests } from '@girder/core/rest';
+import { confirm } from '@girder/core/dialog';
+import { renderMarkdown, formatSize } from '@girder/core/misc';
+import events from '@girder/core/events';
 
-import CollectionPageTemplate from 'girder/templates/body/collectionPage.pug';
+import CollectionPageTemplate from '@girder/core/templates/body/collectionPage.pug';
 
-import 'girder/stylesheets/body/collectionPage.styl';
+import '@girder/core/stylesheets/body/collectionPage.styl';
 
 import 'bootstrap/js/dropdown';
 

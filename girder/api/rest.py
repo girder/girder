@@ -558,7 +558,6 @@ def _handleAccessException(e):
         cherrypy.response.status = 401
     else:
         cherrypy.response.status = 403
-        logger.exception('403 Error')
     val = {'message': e.message, 'type': 'access'}
     if e.extra is not None:
         val['extra'] = e.extra
@@ -732,13 +731,12 @@ def _setCommonCORSHeaders():
         setResponseHeader(
             'Access-Control-Expose-Headers', Setting().get(SettingKey.CORS_EXPOSE_HEADERS))
 
-        allowed_list = [o.strip() for o in allowed.split(',')]
-        key = 'Access-Control-Allow-Origin'
+        allowedList = {o.strip() for o in allowed.split(',')}
 
-        if len(allowed_list) == 1:
-            setResponseHeader(key, allowed_list[0])
-        elif origin in allowed_list:
-            setResponseHeader(key, origin)
+        if origin in allowedList:
+            setResponseHeader('Access-Control-Allow-Origin', origin)
+        elif '*' in allowedList:
+            setResponseHeader('Access-Control-Allow-Origin', '*')
 
 
 class Resource(object):
@@ -822,16 +820,6 @@ class Resource(object):
             routePath = '/'.join([resource] + list(route))
             logprint.warning(
                 'WARNING: No access level specified for route %s %s' % (
-                    method, routePath))
-
-        if method.lower() not in ('head', 'get') \
-            and hasattr(handler, 'cookieAuth') \
-            and not (isinstance(handler.cookieAuth, tuple) and
-                     handler.cookieAuth[1]):
-            routePath = '/'.join([resource] + list(route))
-            logprint.warning(
-                'WARNING: Cannot allow cookie authentication for '
-                'route %s %s without specifying "force=True"' % (
                     method, routePath))
 
     def removeRoute(self, method, route, handler=None, resource=None):
@@ -939,18 +927,8 @@ class Resource(object):
         cherrypy.request.requiredScopes = getattr(
             handler, 'requiredScopes', None) or TokenScope.USER_AUTH
 
-        if hasattr(handler, 'cookieAuth'):
-            if isinstance(handler.cookieAuth, tuple):
-                cookieAuth, forceCookie = handler.cookieAuth
-            else:
-                # previously, cookieAuth was not set by a decorator, so the
-                # legacy way must be supported too
-                cookieAuth = handler.cookieAuth
-                forceCookie = False
-            if cookieAuth:
-                if forceCookie or method in ('head', 'get'):
-                    # Allow cookies for the rest of the request
-                    setattr(cherrypy.request, 'girderAllowCookie', True)
+        if getattr(handler, 'cookieAuth', False):
+            setattr(cherrypy.request, 'girderAllowCookie', True)
 
         kwargs['params'] = params
         # Add before call for the API method. Listeners can return

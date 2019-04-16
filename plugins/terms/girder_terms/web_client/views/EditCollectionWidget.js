@@ -1,9 +1,9 @@
 import $ from 'jquery';
 
-import { AccessType } from 'girder/constants';
-import EditCollectionWidget from 'girder/views/widgets/EditCollectionWidget';
-import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
-import { wrap } from 'girder/utilities/PluginUtils';
+import { AccessType } from '@girder/core/constants';
+import EditCollectionWidget from '@girder/core/views/widgets/EditCollectionWidget';
+import MarkdownWidget from '@girder/core/views/widgets/MarkdownWidget';
+import { wrap } from '@girder/core/utilities/PluginUtils';
 
 import EditCollectionTermsWidgetTemplate from '../templates/editCollectionTermsWidget.pug';
 import '../stylesheets/editCollectionTermsWidget.styl';

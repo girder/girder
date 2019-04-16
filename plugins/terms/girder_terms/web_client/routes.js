@@ -1,12 +1,12 @@
 import _ from 'underscore';
 
-import events from 'girder/events';
-import CollectionModel from 'girder/models/CollectionModel';
-import FolderModel from 'girder/models/FolderModel';
-import ItemModel from 'girder/models/ItemModel';
-import CollectionView from 'girder/views/body/CollectionView';
-import FolderView from 'girder/views/body/FolderView';
-import ItemView from 'girder/views/body/ItemView';
+import events from '@girder/core/events';
+import CollectionModel from '@girder/core/models/CollectionModel';
+import FolderModel from '@girder/core/models/FolderModel';
+import ItemModel from '@girder/core/models/ItemModel';
+import CollectionView from '@girder/core/views/body/CollectionView';
+import FolderView from '@girder/core/views/body/FolderView';
+import ItemView from '@girder/core/views/body/ItemView';
 
 import TermsAcceptanceView from './views/TermsAcceptanceView';
 

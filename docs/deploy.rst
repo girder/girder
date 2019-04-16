@@ -28,7 +28,6 @@ example, we have the following:
 
     [server]
     api_root = "/girder/api/v1"
-    static_root = "/girder/static"
 
 .. note:: If your chosen proxy server does not add the appropriate
    ``X-Forwarded-Host`` header (containing the host used in http requests,
@@ -117,7 +116,7 @@ information, see the
 `Docker Hub Page <https://registry.hub.docker.com/u/girder/girder/>`_. Since the
 container does not run a database, you'll need to run a command in the form: ::
 
-   $ docker run -p 8080:8080 girder/girder -d mongodb://db-server-external-ip:27017/girder
+   $ docker run -p 8080:8080 girder/girder -d mongodb://db-server-external-ip:27017/girder --host 0.0.0.0
 
 Google Container Engine
 -----------------------

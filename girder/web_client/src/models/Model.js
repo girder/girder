@@ -2,7 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 
-import { restRequest, getApiRoot } from 'girder/rest';
+import { restRequest, getApiRoot } from '@girder/core/rest';
 
 /**
  * All models should descend from this base model, which provides a number

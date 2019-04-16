@@ -155,8 +155,7 @@ class Resource(BaseResource):
             raise RestException('Invalid resource id.')
         return path_util.getResourcePath(type, doc, user=user)
 
-    @access.cookie(force=True)
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @autoDescribeRoute(
         Description('Download a set of items, folders, collections, and users '
                     'as a zip archive.')

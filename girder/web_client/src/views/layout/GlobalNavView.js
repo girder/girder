@@ -1,14 +1,14 @@
 import $ from 'jquery';
 import Backbone from 'backbone';
 
-import router from 'girder/router';
-import View from 'girder/views/View';
-import events from 'girder/events';
-import { getCurrentUser } from 'girder/auth';
+import router from '@girder/core/router';
+import View from '@girder/core/views/View';
+import events from '@girder/core/events';
+import { getCurrentUser } from '@girder/core/auth';
 
-import LayoutGlobalNavTemplate from 'girder/templates/layout/layoutGlobalNav.pug';
+import LayoutGlobalNavTemplate from '@girder/core/templates/layout/layoutGlobalNav.pug';
 
-import 'girder/stylesheets/layout/globalNav.styl';
+import '@girder/core/stylesheets/layout/globalNav.styl';
 
 /**
  * This view shows a list of global navigation links that should be
@@ -44,10 +44,6 @@ var LayoutGlobalNavView = View.extend({
                 icon: 'icon-sitemap',
                 target: 'collections'
             }, {
-                name: 'Users',
-                icon: 'icon-user',
-                target: 'users'
-            }, {
                 name: 'Groups',
                 icon: 'icon-users',
                 target: 'groups'
@@ -61,14 +57,21 @@ var LayoutGlobalNavView = View.extend({
             navItems = this.navItems;
         } else {
             navItems = this.defaultNavItems;
-            if (getCurrentUser() && getCurrentUser().get('admin')) {
+            if (getCurrentUser()) {
                 // copy navItems so that this.defaultNavItems is unchanged
                 navItems = navItems.slice();
                 navItems.push({
-                    name: 'Admin console',
-                    icon: 'icon-wrench',
-                    target: 'admin'
+                    name: 'Users',
+                    icon: 'icon-user',
+                    target: 'users'
                 });
+                if (getCurrentUser().get('admin')) {
+                    navItems.push({
+                        name: 'Admin console',
+                        icon: 'icon-wrench',
+                        target: 'admin'
+                    });
+                }
             }
         }
         this.$el.html(LayoutGlobalNavTemplate({

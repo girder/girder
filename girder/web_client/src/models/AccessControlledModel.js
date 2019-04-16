@@ -1,8 +1,8 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import Model from 'girder/models/Model';
-import { restRequest } from 'girder/rest';
+import Model from '@girder/core/models/Model';
+import { restRequest } from '@girder/core/rest';
 
 /**
  * Models corresponding to AccessControlledModels on the server should extend

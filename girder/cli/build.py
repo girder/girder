@@ -27,14 +27,15 @@ import sys
 import click
 import six
 
-from girder.constants import STATIC_ROOT_DIR
+from girder.constants import SettingKey, STATIC_ROOT_DIR
+from girder.models.setting import Setting
 from girder.plugin import allPlugins, getPlugin
 
 # monkey patch shutil for python < 3
 if not six.PY3:
     import shutilwhich  # noqa
 
-_GIRDER_BUILD_ASSETS_PATH = resource_filename('girder', 'web_client')
+_GIRDER_BUILD_ASSETS_PATH = os.path.realpath(resource_filename('girder', 'web_client'))
 
 
 @click.command(name='build', help='Build web client static assets.')
@@ -48,7 +49,8 @@ _GIRDER_BUILD_ASSETS_PATH = resource_filename('girder', 'web_client')
               help='Full path to the npm executable to use.')
 @click.option('--reinstall/--no-reinstall', default=True,
               help='Force regenerate node_modules.')
-def main(dev, watch, watch_plugin, npm, reinstall):
+@click.option('--static-public-path', help='URL public path of static content.')
+def main(dev, watch, watch_plugin, npm, reinstall, static_public_path):
     if shutil.which(npm) is None:
         raise click.UsageError(
             'No npm executable was detected.  Please ensure the npm executable is in your '
@@ -78,7 +80,12 @@ def main(dev, watch, watch_plugin, npm, reinstall):
 
     quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
     buildCommand = [
-        npm, 'run', 'build', '--', '--static-path=%s' % STATIC_ROOT_DIR, quiet]
+        npm, 'run', 'build', '--',
+        '--static-path=%s' % STATIC_ROOT_DIR,
+        '--static-public-path=%s' % (
+            static_public_path or Setting().get(SettingKey.STATIC_PUBLIC_PATH)),
+        quiet
+    ]
     if watch:
         buildCommand.append('--watch')
     if watch_plugin:
@@ -105,6 +112,7 @@ def _generatePackageJSON(staging, source):
     with open(source, 'r') as f:
         sourceJSON = json.load(f)
     deps = sourceJSON['dependencies']
+    deps['@girder/core'] = 'file:%s' % os.path.join(os.path.dirname(source), 'src')
     plugins = _collectPluginDependencies()
     deps.update(plugins)
     sourceJSON['girder'] = {

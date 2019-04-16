@@ -1,6 +1,6 @@
-import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
-import { restRequest } from 'girder/rest';
-import { wrap } from 'girder/utilities/PluginUtils';
+import HierarchyWidget from '@girder/core/views/widgets/HierarchyWidget';
+import { restRequest } from '@girder/core/rest';
+import { wrap } from '@girder/core/utilities/PluginUtils';
 
 /**
  * Allow selecting license when uploading an item.

@@ -1,8 +1,8 @@
 /* eslint-disable import/first */
 
-import events from 'girder/events';
-import router from 'girder/router';
-import { exposePluginConfig } from 'girder/utilities/PluginUtils';
+import events from '@girder/core/events';
+import router from '@girder/core/router';
+import { exposePluginConfig } from '@girder/core/utilities/PluginUtils';
 
 exposePluginConfig('ldap', 'plugins/ldap/config');
 

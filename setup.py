@@ -18,16 +18,32 @@
 ###############################################################################
 
 import os
-import re
 import itertools
 
 from setuptools import setup, find_packages
+
+
+def prerelease_local_scheme(version):
+    """Return local scheme version unless building on master in CircleCI.
+    This function returns the local scheme version number
+    (e.g. 0.0.0.dev<N>+g<HASH>) unless building on CircleCI for a
+    pre-release in which case it ignores the hash and produces a
+    PEP440 compliant pre-release version number (e.g. 0.0.0.dev<N>).
+    """
+
+    from setuptools_scm.version import get_local_node_and_date
+
+    if os.getenv('CIRCLE_BRANCH') == 'master':
+        return ''
+    else:
+        return get_local_node_and_date(version)
 
 
 with open('README.rst') as f:
     readme = f.read()
 
 installReqs = [
+    'bcrypt',
     'boto3',
     'botocore',
     # CherryPy version is restricted due to a bug in versions >=11.1
@@ -41,11 +57,11 @@ installReqs = [
     'jsonschema',
     'Mako',
     'passlib [bcrypt,totp]',
-    'pymongo>=3.5',
+    'pymongo>=3.6',
     'PyYAML',
     'psutil',
     'pyOpenSSL',
-    'python-dateutil<2.7',  # required for compatibility with botocore=1.9.8
+    'python-dateutil',
     'pytz',
     'requests',
     'shutilwhich ; python_version < \'3\'',
@@ -80,15 +96,10 @@ extrasReqs['mount'] = [
     'fusepy>=3.0',
 ]
 
-init = os.path.join(os.path.dirname(__file__), 'girder', '__init__.py')
-with open(init) as fd:
-    version = re.search(
-        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
-        fd.read(), re.MULTILINE).group(1)
-
 setup(
     name='girder',
-    version=version,
+    use_scm_version={'local_scheme': prerelease_local_scheme},
+    setup_requires=['setuptools-scm'],
     description='Web-based data management platform',
     long_description=readme,
     author='Kitware, Inc.',

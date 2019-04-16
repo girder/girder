@@ -10,10 +10,10 @@ import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkRenderWindow from 'vtk.js/Sources/Rendering/Core/RenderWindow';
 import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindowInteractor';
 
-import { restRequest } from 'girder/rest';
-import FileModel from 'girder/models/FileModel';
-import FileCollection from 'girder/collections/FileCollection';
-import View from 'girder/views/View';
+import { restRequest } from '@girder/core/rest';
+import FileModel from '@girder/core/models/FileModel';
+import FileCollection from '@girder/core/collections/FileCollection';
+import View from '@girder/core/views/View';
 
 import DicomItemTemplate from '../templates/dicomItem.pug';
 import '../stylesheets/dicomItem.styl';

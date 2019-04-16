@@ -223,7 +223,9 @@ class AsyncEventsThread(threading.Thread):
     def __del__(self):
         # Make sure we stop this thread if it's getting GCed, i.e. daemon was reassigned
         self.stop()
-        super(AsyncEventsThread, self).__del__()
+        # We had been calling the super class's __del__, but it doesn't have
+        # such a method, so doing so would raise an AttributeError.
+        # super(AsyncEventsThread, self).__del__()
 
 
 def bind(eventName, handlerName, handler):

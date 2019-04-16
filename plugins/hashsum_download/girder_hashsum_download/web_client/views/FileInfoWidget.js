@@ -1,7 +1,7 @@
-import FileInfoWidget from 'girder/views/widgets/FileInfoWidget';
-import { getApiRoot, restRequest } from 'girder/rest';
-import { AccessType } from 'girder/constants';
-import { wrap } from 'girder/utilities/PluginUtils';
+import FileInfoWidget from '@girder/core/views/widgets/FileInfoWidget';
+import { getApiRoot, restRequest } from '@girder/core/rest';
+import { AccessType } from '@girder/core/constants';
+import { wrap } from '@girder/core/utilities/PluginUtils';
 
 import template from '../templates/hashsumDownloadFileInfoWidget.pug';
 

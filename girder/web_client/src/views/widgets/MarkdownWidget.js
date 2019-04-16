@@ -1,15 +1,15 @@
 import _ from 'underscore';
 
-import FileModel from 'girder/models/FileModel';
-import View from 'girder/views/View';
-import events from 'girder/events';
-import { renderMarkdown, formatSize } from 'girder/misc';
+import FileModel from '@girder/core/models/FileModel';
+import View from '@girder/core/views/View';
+import events from '@girder/core/events';
+import { renderMarkdown, formatSize } from '@girder/core/misc';
 
-import MarkdownWidgetTemplate from 'girder/templates/widgets/markdownWidget.pug';
+import MarkdownWidgetTemplate from '@girder/core/templates/widgets/markdownWidget.pug';
 
-import 'girder/stylesheets/widgets/markdownWidget.styl';
+import '@girder/core/stylesheets/widgets/markdownWidget.styl';
 
-import 'girder/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderEnable';
 
 import 'bootstrap/js/tab';
 

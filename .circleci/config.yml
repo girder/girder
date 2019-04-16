@@ -6,7 +6,7 @@ jobs:
       # This image uses the oldest version of many dependencies
       - image: girder/girder_test:latest-py2
       # Use the oldest supported MongoDB
-      - image: circleci/mongo:3.2-ram
+      - image: circleci/mongo:3.4-ram
         # The "ephemeralForTest" storage engine https://docs.mongodb.com/v3.2/release-notes/3.2/#ephemeralfortest-storage-engine
         # is likely a free (and poorly documented) analogue to the enterprise-only "inMemory"
         # storage engine. We can pass alternate options to "mongod" by overwriting the default "CMD"
@@ -34,7 +34,7 @@ jobs:
           command: pip install --upgrade pip setuptools virtualenv
       - run:
           name: Install Girder
-          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] --editable clients/python --requirement requirements-dev.txt
           # Until https://github.com/pypa/pip/pull/4208 is available in pip 10, the install of
           # "requirements-dev.txt" must be run from the "girder" working directory
           working_directory: girder
@@ -98,7 +98,7 @@ jobs:
           command: pip install --upgrade pip setuptools
       - run:
           name: Install Girder
-          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] --editable clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Reduce workspace size
@@ -225,8 +225,14 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Update npm
-          command: npm install -g npm
+          name: Install NodeJS 8
+          # CircleCI resets the Bash environment between every step, so any steps using node or npm
+          # must first:
+          #   source $NVM_DIR/nvm.sh
+          command: |
+            source $NVM_DIR/nvm.sh
+            nvm install v8
+            nvm alias default v8
       - run:
           # Technically, we should add the circleci user to the fuse group, log
           # out, and log back in for it to take effect.  This allows fuse to be
@@ -263,14 +269,16 @@ jobs:
       - run:
           name: Install all pip modules
           # sftp and python client aren't installed by the ansible example
-          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] --editable clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
       - run:
           name: Build Girder web client
-          command: girder build --dev | cat
+          command: |
+            source $NVM_DIR/nvm.sh
+            girder build --dev | cat
       - run:
           name: CMake
           command: cmake ../girder -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
@@ -298,7 +306,7 @@ jobs:
   py2_coverage:
     docker:
       - image: girder/girder_test:latest-py2
-      - image: circleci/mongo:3.2-ram
+      - image: circleci/mongo:3.4-ram
         command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
     working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
     steps:
@@ -335,8 +343,14 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Update npm
-          command: npm install -g npm
+          name: Install NodeJS 10
+          # CircleCI resets the Bash environment between every step, so any steps using node or npm
+          # must first:
+          #   source $NVM_DIR/nvm.sh
+          command: |
+            source $NVM_DIR/nvm.sh
+            nvm install v10
+            nvm alias default v10
       - run:
           # Technically, we should add the circleci user to the fuse group, log
           # out, and log back in for it to take effect.  This allows fuse to be
@@ -387,14 +401,16 @@ jobs:
       - run:
           name: Install all pip modules
           # sftp and python client aren't installed by the ansible example
-          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] clients/python --requirement requirements-dev.txt
+          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] --editable clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
       - run:
           name: Build Girder web client
-          command: girder build --dev | cat
+          command: |
+            source $NVM_DIR/nvm.sh
+            girder build --dev | cat
       - run:
           name: CMake
           command: cmake ../girder -DPYTHON_VERSION=3.5 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
@@ -476,6 +492,27 @@ jobs:
           command: tox -e public_names
           working_directory: girder
 
+  release:
+    docker:
+      - image: circleci/python:2.7
+    working_directory: /home/circleci/project
+    steps:
+      - checkout:
+          path: girder
+      - run:
+          name: Create virtual environment (if necessary)
+          command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
+      - run:
+          name: Activate virtual environment
+          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+      - run:
+          name: Install tox
+          command: pip install --upgrade pip tox
+      - run:
+          name: Publish python packages
+          command: tox -e release
+          working_directory: girder
+
   deploy:
     docker:
       - image: girder/girder_test:latest-py3
@@ -508,30 +545,68 @@ workflows:
   version: 2
   test_all:
     jobs:
-      - py2_serverInstall_serverTest
-      - py2_integrationTests
+      - py2_serverInstall_serverTest:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - py2_integrationTests:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
       - py2_coverage:
           requires:
             - py2_serverInstall_serverTest
             - py2_integrationTests
-      - py3_serverInstall
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - py3_serverInstall:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
       - py3_serverTest:
           requires:
             - py3_serverInstall
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
       - py3_webBuild_webTest:
           requires:
             - py3_serverInstall
-      - py3_integrationTests
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - py3_integrationTests:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
       - py3_coverage:
           requires:
             - py3_serverTest
             - py3_webBuild_webTest
             - py3_integrationTests
-      - public_symbols
-      - deploy:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - public_symbols:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - release:
           requires:
+            - public_symbols
             - py2_coverage
             - py3_coverage
           filters:
+            tags:
+              only: /^v[0-9]+.*/
+            branches:
+              only: master
+      - deploy:
+          requires:
+            - release
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
             branches:
               only: master

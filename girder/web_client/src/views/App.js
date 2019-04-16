@@ -1,34 +1,37 @@
 import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
+import 'typeface-open-sans';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap/js/alert';
+import '@girder/fontello/dist/css/animation.css';
+import '@girder/fontello/dist/css/fontello.css';
 
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderModal';
 
-import events from 'girder/events';
-import eventStream from 'girder/utilities/EventStream';
-import LayoutFooterView from 'girder/views/layout/FooterView';
-import LayoutGlobalNavView from 'girder/views/layout/GlobalNavView';
-import LayoutHeaderView from 'girder/views/layout/HeaderView';
-import LoginView from 'girder/views/layout/LoginView';
-import ProgressListView from 'girder/views/layout/ProgressListView';
-import RegisterView from 'girder/views/layout/RegisterView';
-import ResetPasswordView from 'girder/views/layout/ResetPasswordView';
-import router from 'girder/router';
-import UserModel from 'girder/models/UserModel';
-import View from 'girder/views/View';
-import { fetchCurrentUser, setCurrentUser, getCurrentUser } from 'girder/auth';
-import { Layout } from 'girder/constants';
-import { splitRoute } from 'girder/misc';
+import events from '@girder/core/events';
+import eventStream from '@girder/core/utilities/EventStream';
+import LayoutFooterView from '@girder/core/views/layout/FooterView';
+import LayoutGlobalNavView from '@girder/core/views/layout/GlobalNavView';
+import LayoutHeaderView from '@girder/core/views/layout/HeaderView';
+import LoginView from '@girder/core/views/layout/LoginView';
+import ProgressListView from '@girder/core/views/layout/ProgressListView';
+import RegisterView from '@girder/core/views/layout/RegisterView';
+import ResetPasswordView from '@girder/core/views/layout/ResetPasswordView';
+import router from '@girder/core/router';
+import UserModel from '@girder/core/models/UserModel';
+import View from '@girder/core/views/View';
+import { fetchCurrentUser, setCurrentUser, getCurrentUser } from '@girder/core/auth';
+import { Layout } from '@girder/core/constants';
+import { splitRoute } from '@girder/core/misc';
 
-import AlertTemplate from 'girder/templates/layout/alert.pug';
-import LayoutTemplate from 'girder/templates/layout/layout.pug';
+import AlertTemplate from '@girder/core/templates/layout/alert.pug';
+import LayoutTemplate from '@girder/core/templates/layout/layout.pug';
 
-import 'girder/routes';
+import '@girder/core/routes';
 
-import 'girder/stylesheets/layout/global.styl';
-import 'girder/stylesheets/layout/layout.styl';
+import '@girder/core/stylesheets/layout/global.styl';
+import '@girder/core/stylesheets/layout/layout.styl';
 
 var App = View.extend({
     /**

@@ -21,7 +21,6 @@ import cherrypy
 import mako
 import mimetypes
 import os
-import posixpath
 import six
 
 import girder.events
@@ -50,40 +49,6 @@ def getPlugins():
 
 def getApiRoot():
     return config.getConfig()['server']['api_root']
-
-
-def getStaticRoot():
-    routeTable = loadRouteTable()
-
-    # If the static route is a URL, leave it alone
-    if '://' in routeTable[constants.GIRDER_STATIC_ROUTE_ID]:
-        return routeTable[constants.GIRDER_STATIC_ROUTE_ID]
-    else:
-        # Make the staticRoot relative to the api_root, if possible.  The api_root
-        # could be relative or absolute, but it needs to be in an absolute form for
-        # relpath to behave as expected.  We always expect the api_root to
-        # contain at least two components, but the reference from static needs to
-        # be from only the first component.
-        return posixpath.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
-                                 routeTable[constants.GIRDER_ROUTE_ID])
-
-
-def getApiStaticRoot():
-    routeTable = loadRouteTable()
-
-    # If the static route is a URL, leave it alone
-    if '://' in routeTable[constants.GIRDER_STATIC_ROUTE_ID]:
-        return routeTable[constants.GIRDER_STATIC_ROUTE_ID]
-    else:
-        # Make the staticRoot relative to the api_root, if possible.  The api_root
-        # could be relative or absolute, but it needs to be in an absolute form for
-        # relpath to behave as expected.  We always expect the api_root to
-        # contain at least two components, but the reference from static needs to
-        # be from only the first component.
-        apiRootBase = posixpath.split(posixpath.join('/',
-                                                     config.getConfig()['server']['api_root']))[0]
-        return posixpath.relpath(routeTable[constants.GIRDER_STATIC_ROUTE_ID],
-                                 apiRootBase)
 
 
 def configureServer(test=False, plugins=None, curConfig=None):
@@ -123,8 +88,6 @@ def configureServer(test=False, plugins=None, curConfig=None):
         curConfig.update({'server': {
             'mode': 'testing',
             'api_root': 'api/v1',
-            'static_root': 'static',
-            'api_static_root': '../static',
             'cherrypy_server': True
         }})
 
@@ -154,7 +117,6 @@ def configureServer(test=False, plugins=None, curConfig=None):
         'serverRoot': root,
         'serverRootPath': routeTable[constants.GIRDER_ROUTE_ID],
         'apiRoot': root.api.v1,
-        'staticRoot': routeTable[constants.GIRDER_STATIC_ROUTE_ID]
     }
 
     plugin._loadPlugins(plugins, info)
@@ -179,6 +141,11 @@ def loadRouteTable(reconcileRoutes=False):
 
     def reconcileRouteTable(routeTable):
         hasChanged = False
+
+        # Migration for the removed static root setting
+        if 'core_static_root' in routeTable:
+            del routeTable['core_static_root']
+            hasChanged = True
 
         for name in pluginWebroots.keys():
             if name not in routeTable:
@@ -218,7 +185,7 @@ def setup(test=False, plugins=None, curConfig=None):
         girderWebroot, str(routeTable[constants.GIRDER_ROUTE_ID]), appconf)
 
     # Mount static files
-    cherrypy.tree.mount(None, routeTable[constants.GIRDER_STATIC_ROUTE_ID],
+    cherrypy.tree.mount(None, '/static',
                         {'/':
                          {'tools.staticdir.on': True,
                           'tools.staticdir.dir': os.path.join(constants.STATIC_ROOT_DIR),

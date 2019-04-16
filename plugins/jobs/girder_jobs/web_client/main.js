@@ -1,4 +1,4 @@
-import { registerPluginNamespace } from 'girder/pluginUtils';
+import { registerPluginNamespace } from '@girder/core/pluginUtils';
 
 import './routes';
 

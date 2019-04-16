@@ -1,19 +1,19 @@
 import _ from 'underscore';
 
-import FolderModel from 'girder/models/FolderModel';
-import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
-import router from 'girder/router';
-import UserModel from 'girder/models/UserModel';
-import UsersView from 'girder/views/body/UsersView';
-import View from 'girder/views/View';
-import { AccessType } from 'girder/constants';
-import { cancelRestRequests } from 'girder/rest';
-import { confirm } from 'girder/dialog';
-import events from 'girder/events';
+import FolderModel from '@girder/core/models/FolderModel';
+import HierarchyWidget from '@girder/core/views/widgets/HierarchyWidget';
+import router from '@girder/core/router';
+import UserModel from '@girder/core/models/UserModel';
+import UsersView from '@girder/core/views/body/UsersView';
+import View from '@girder/core/views/View';
+import { AccessType } from '@girder/core/constants';
+import { cancelRestRequests } from '@girder/core/rest';
+import { confirm } from '@girder/core/dialog';
+import events from '@girder/core/events';
 
-import UserPageTemplate from 'girder/templates/body/userPage.pug';
+import UserPageTemplate from '@girder/core/templates/body/userPage.pug';
 
-import 'girder/stylesheets/body/userPage.styl';
+import '@girder/core/stylesheets/body/userPage.styl';
 
 import 'bootstrap/js/dropdown';
 
@@ -35,7 +35,7 @@ var UserView = View.extend({
                 escapedHtml: true,
                 confirmCallback: () => {
                     this.model.on('g:deleted', function () {
-                        router.navigate('users', {trigger: true});
+                        router.navigate('', {trigger: true});
                     }).destroy();
                 }
             });

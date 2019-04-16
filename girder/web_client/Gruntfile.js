@@ -53,6 +53,7 @@ module.exports = function (grunt) {
         pkg: grunt.file.readJSON('package.json'),
         staticDir: '.',
         builtPath: path.resolve(grunt.option('static-path') || '.', 'built'),
+        staticPublicPath: grunt.option('static-public-path') || '/static',
         default: {}
     });
 
@@ -71,11 +72,8 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-pug');
     grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-contrib-uglify');
-    grunt.loadNpmTasks('grunt-file-creator');
     grunt.loadNpmTasks('grunt-gitinfo');
-    grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-webpack');
-    grunt.loadNpmTasks('grunt-zip');
 
     /**
      * Load task modules inside `grunt_tasks`.

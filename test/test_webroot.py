@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingKey
+from girder.constants import GIRDER_ROUTE_ID, SettingKey
 from girder.models.setting import Setting
 from pytest_girder.assertions import assertStatusOk
 from pytest_girder.utils import getResponseBody
@@ -72,10 +72,7 @@ def testAccessWebRoot(server, db):
 
 
 def testWebRootProperlyHandlesStaticRouteUrls(server, db):
-    Setting().set(SettingKey.ROUTE_TABLE, {
-        GIRDER_ROUTE_ID: '/',
-        GIRDER_STATIC_ROUTE_ID: 'http://my-cdn-url.com/static'
-    })
+    Setting().set(SettingKey.STATIC_PUBLIC_PATH, 'http://my-cdn-url.com/static')
 
     resp = server.request(path='/', method='GET', isJson=False, prefix='')
     assertStatusOk(resp)

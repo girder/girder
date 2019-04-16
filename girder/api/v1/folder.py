@@ -118,8 +118,7 @@ class Folder(Resource):
                 folder, user=self.getCurrentUser(), level=AccessType.READ)
         }
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @autoDescribeRoute(
         Description('Download an entire folder as a zip archive.')
         .modelParam('id', model=FolderModel, level=AccessType.READ)

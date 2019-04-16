@@ -60,9 +60,9 @@ package we are going to create.
         'License :: OSI Approved :: Apache Software License'
       ],
       include_package_data=True,
-      package_data={ '': ['web_client'] },
       packages=find_packages(exclude=['plugin_tests']),
       zip_safe=False,
+      setup_requires=['setuptools-git'],
       install_requires=['girder>=3', 'girder-jobs'],
       entry_points={
           'girder.plugin': [ 'cats = girder_cats.CatsPlugin' ]
@@ -80,6 +80,11 @@ in this example are specific to a Girder plugin.  These are as follows:
     in the package distribution.  See the
     `setuptools documentation <https://setuptools.readthedocs.io/en/latest/setuptools.html#including-data-files>`_
     for details.
+
+``setup_requires=['setuptools-git']``
+    This works with the ``include_package_data`` option to automatically include all non-python
+    files that are checked into your git repository.  Alternatively, you can generate a
+    ``MANIFEST.in`` for more fine-grained control over which files are included.
 
 ``packages=find_packages(exclude=['plugin_tests'])``
     This will include all python "packages" found inside the local path in the distribution
@@ -658,6 +663,7 @@ What follows is a typical npm package file for a Girder client side extension:
         "name": "@girder/cats",
         "version": "1.0.0",
         "peerDependencies": {
+            "@girder/core": "*",
             "@girder/jobs": "*"
         },
         "dependencies": {
@@ -700,8 +706,8 @@ Girder's client build system.  The important keys in the object are as follows:
     easy to include additional transpilation rules.  For an example of this in
     use, see the built in ``dicom_viewer`` plugin.
 
-Core Girder code can be imported relative to the path **girder**, for example
-``import View from 'girder/views/View';``. The entry point defined in your
+Core Girder code can be imported relative to the path **@girder/core**, for example
+``import View from '@girder/core/views/View';``. The entry point defined in your
 "main" file will be loaded into the browser after Girder's core library, but
 before the application is initialized.
 
@@ -715,7 +721,7 @@ events object that can be imported like so:
 
 .. code-block:: javascript
 
-    import events from 'girder/events';
+    import events from '@girder/core/events';
 
     ...
 
@@ -737,8 +743,8 @@ function to `wrap` the method of the core prototype with our own function.
 
 .. code-block:: javascript
 
-    import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
-    import { wrap } from 'girder/utilities/PluginUtils';
+    import HierarchyWidget from '@girder/core/views/widgets/HierarchyWidget';
+    import { wrap } from '@girder/core/utilities/PluginUtils';
 
     // Import our template file from our plugin using a relative path
     import myTemplate from './templates/hierachyWidgetExtension.pug';
@@ -807,11 +813,11 @@ route to your plugin.
 
 .. code-block:: javascript
 
-    import events from 'girder/events';
-    import router from 'girder/router';
-    import { Layout } from 'girder/constants';
-    import CollectionModel from 'girder/models/CollectionModel';
-    import CollectionView from 'girder/views/body/CollectionView';
+    import events from '@girder/core/events';
+    import router from '@girder/core/router';
+    import { Layout } from '@girder/core/constants';
+    import CollectionModel from '@girder/core/models/CollectionModel';
+    import CollectionView from '@girder/core/views/body/CollectionView';
 
     router.route('collection/:id/frontPage', 'collectionFrontPage', function (collectionId, params) {
         var collection = new CollectionModel();
@@ -825,6 +831,78 @@ route to your plugin.
             router.navigate('/collections', {trigger: true});
         }, this).fetch();
     });
+
+Using another plugin inside a plugin
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Girder plugins can use and extend other plugins as well.  To do this, you need
+to add and load the other plugin explicitly so that it installs and initializes
+automatically.  There are a number of places that the dependency relationship
+needs to be specified.
+
+* Python package
+
+If you directly rely on another plugin for any reason, you should always add
+the dependency to your plugin's ``setup.py`` file.  This is done in the same
+way all python dependencies are specified and will ensure that all the required
+packages are installed when you plugin is "pip installed".
+
+.. code-block:: python
+
+    # setup.py depending on girder-jobs and girder-homepage
+    setup(
+        name='girder-example-plugin',
+        # ...
+        install_requires=['girder-jobs', 'girder-homepage']
+    )
+
+* Plugin loading
+
+Girder will not *automatically* load plugins you depend on, so your plugin
+should ensure dependent plugins are loaded during it's own loading method.
+This will ensure that the other plugins are enabled when a user enables your
+plugin.  It is also be possible to handle errors while loading other plugins to
+support fallback behavior or optional dependencies.
+
+.. code-block:: python
+
+    from girder.plugin import getPlugin, GirderPlugin
+    # An example of loading dependent plugins
+    class ExamplePlugin(GirderPlugin)
+        def load(self, info):
+            getPlugin('jobs').load(info)
+            getPlugin('homepage').load(info)
+            # ...
+
+
+* Javascript client
+
+If your plugin contains a javascript client and it imports code from another plugin, then
+you need to add this dependency relationship to your web client ``package.json`` file.  If
+you depend on another plugin, but do not directly import code from the other package in you
+javascript code, then this is not necessary.
+
+.. code-block:: javascript
+
+    // package.json depending on "girder-jobs"
+    {
+        "name": "@girder/example",
+        "peerDependencies": {
+            "@girder/core": "*",
+
+            // This ensures that `import '@girder/jobs'` can be resolved.
+            "@girder/jobs": "*"
+        },
+
+        "girderPlugin": {
+            "name": "example",
+            "main": "./main.js",
+
+            // This ensures that "girder-jobs" is built before this plugin.
+            "dependencies": ["jobs"]
+        }
+    }
+
 
 Automated testing for plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

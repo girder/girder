@@ -1,6 +1,6 @@
-import Collection from 'girder/collections/Collection';
-import UserModel from 'girder/models/UserModel';
-import { restRequest } from 'girder/rest';
+import Collection from '@girder/core/collections/Collection';
+import UserModel from '@girder/core/models/UserModel';
+import { restRequest } from '@girder/core/rest';
 
 var UserCollection = Collection.extend({
     resourceName: 'user',

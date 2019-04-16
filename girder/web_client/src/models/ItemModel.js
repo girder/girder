@@ -1,11 +1,11 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import FileCollection from 'girder/collections/FileCollection';
-import FolderModel from 'girder/models/FolderModel';
-import MetadataMixin from 'girder/models/MetadataMixin';
-import Model from 'girder/models/Model';
-import { restRequest } from 'girder/rest';
+import FileCollection from '@girder/core/collections/FileCollection';
+import FolderModel from '@girder/core/models/FolderModel';
+import MetadataMixin from '@girder/core/models/MetadataMixin';
+import Model from '@girder/core/models/Model';
+import { restRequest } from '@girder/core/rest';
 
 var ItemModel = Model.extend({
     resourceName: 'item',

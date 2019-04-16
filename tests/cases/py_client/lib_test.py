@@ -110,11 +110,11 @@ class PythonClientTestCase(base.TestCase):
                 self.client.get('describe')
 
     def getPublicFolder(self, user):
-            folders = list(self.client.listFolder(
-                parentId=user['_id'], parentFolderType='user', name='Public'))
-            self.assertEqual(len(folders), 1)
+        folders = list(self.client.listFolder(
+            parentId=user['_id'], parentFolderType='user', name='Public'))
+        self.assertEqual(len(folders), 1)
 
-            return folders[0]
+        return folders[0]
 
     def testAuthenticateRaisesHTTPError(self):
         # Test non "OK" responses throw HTTPError
@@ -823,15 +823,14 @@ class PythonClientTestCase(base.TestCase):
         self.assertEqual(uploadedFile['name'], 'g2')
 
     def testGetServerVersion(self):
-
         # track describe API calls
         hits = []
 
-        @httmock.urlmatch(path=r'.*/describe$')
+        @httmock.urlmatch(path=r'.*/system/version$')
         def mock(url, request):
             hits.append(url)
 
-        expected_version = girder.constants.VERSION['apiVersion']
+        expected_version = girder.constants.VERSION['release']
 
         with httmock.HTTMock(mock):
             self.assertEqual(
@@ -847,7 +846,6 @@ class PythonClientTestCase(base.TestCase):
             self.assertEqual(len(hits), 2)
 
     def testGetServerAPIDescription(self):
-
         # track system/version APIi calls
         hits = []
 
@@ -859,7 +857,7 @@ class PythonClientTestCase(base.TestCase):
             self.assertEqual(description['basePath'], '/api/v1')
             self.assertEqual(description['definitions'], {})
             self.assertEqual(description['info']['title'], 'Girder REST API')
-            self.assertEqual(description['info']['version'], girder.constants.VERSION['apiVersion'])
+            self.assertEqual(description['info']['version'], girder.constants.VERSION['release'])
             self.assertGreater(len(description['paths']), 0)
 
         with httmock.HTTMock(mock):

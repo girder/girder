@@ -1,6 +1,6 @@
-import RegisterView from 'girder/views/layout/RegisterView';
-import { getCurrentUser } from 'girder/auth';
-import { wrap } from 'girder/utilities/PluginUtils';
+import RegisterView from '@girder/core/views/layout/RegisterView';
+import { getCurrentUser } from '@girder/core/auth';
+import { wrap } from '@girder/core/utilities/PluginUtils';
 
 import OAuthLoginView from './OAuthLoginView';
 

@@ -1,0 +1,22 @@
+{
+  "name": "@girder/fontello",
+  "version": "3.0.0-alpha.1",
+  "description": "Built Fontello files for use in Girder.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/girder/girder.git"
+  },
+  "bugs": {
+    "url": "https://github.com/girder/girder/issues"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "grunt"
+  },
+  "devDependencies": {
+    "grunt": "^1.0.3",
+    "grunt-contrib-clean": "^2.0.0",
+    "grunt-fontello": "^0.3.6"
+  }
+}

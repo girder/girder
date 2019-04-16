@@ -23,13 +23,12 @@ import os
 import time
 import six
 
-from subprocess import check_output, CalledProcessError
-
 from .. import base
 from girder.api import access
-from girder.api.describe import describeRoute, API_VERSION
+from girder.api.describe import describeRoute
 from girder.api.rest import getApiUrl, loadmodel, Resource
-from girder.constants import AccessType, SettingKey, SettingDefault, registerAccessFlag, ROOT_DIR
+from girder.constants import AccessType, SettingKey, SettingDefault, registerAccessFlag, ROOT_DIR, \
+    VERSION
 from girder.exceptions import AccessException, ValidationException
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -85,29 +84,8 @@ class SystemTestCase(base.TestCase):
             del conf['plugins']
 
     def testGetVersion(self):
-        usingGit = True
         resp = self.request(path='/system/version', method='GET')
-        self.assertEqual(resp.json['apiVersion'], API_VERSION)
-
-        try:
-            # Get the current Git head
-            sha = check_output(
-                ['git', 'rev-parse', 'HEAD'],
-                cwd=ROOT_DIR
-            ).decode().strip()
-        except CalledProcessError:
-            usingGit = False
-
-        # Ensure a valid response
-        self.assertEqual(usingGit, resp.json['git'])
-        if usingGit:
-            self.assertEqual(resp.json['SHA'], sha)
-            self.assertEqual(sha.find(resp.json['shortSHA']), 0)
-
-            # TODO: port #2776
-            # resp = self.request(path='/system/version', method='GET', params={'fromGit': True})
-            # self.assertStatusOk(resp)
-            # self.assertEqual(resp.json['SHA'], resp.json['gitVersions']['core']['SHA'])
+        self.assertEqual(resp.json['release'], VERSION['release'])
 
     def testSettings(self):
         users = self.users

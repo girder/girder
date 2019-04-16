@@ -1,7 +1,7 @@
-import FolderModel from 'girder/models/FolderModel';
-import View from 'girder/views/View';
-import UploadWidget from 'girder/views/widgets/UploadWidget';
-import { setCurrentToken } from 'girder/auth';
+import FolderModel from '@girder/core/models/FolderModel';
+import View from '@girder/core/views/View';
+import UploadWidget from '@girder/core/views/widgets/UploadWidget';
+import { setCurrentToken } from '@girder/core/auth';
 
 import template from '../templates/authorizedUpload.pug';
 import '../stylesheets/authorizedUpload.styl';

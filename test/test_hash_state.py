@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.utility import hash_state
+from girder.utility import _hash_state
 import hashlib
 import pytest
 
@@ -49,17 +49,17 @@ def iterableBytes():
 def testSimpleHashing(iterableBytes, algorithmName):
     canonicalHash = hashlib.new(algorithmName)
     runningHash = hashlib.new(algorithmName)
-    runningState = hash_state.serializeHex(runningHash)
+    runningState = _hash_state.serializeHex(runningHash)
 
     for chunk in iterableBytes:
-        runningHash = hash_state.restoreHex(runningState, algorithmName)
+        runningHash = _hash_state.restoreHex(runningState, algorithmName)
         assert canonicalHash.hexdigest() == runningHash.hexdigest()
         assert canonicalHash.digest() == runningHash.digest()
 
         canonicalHash.update(chunk)
         runningHash.update(chunk)
-        runningState = hash_state.serializeHex(runningHash)
+        runningState = _hash_state.serializeHex(runningHash)
 
-    runningHash = hash_state.restoreHex(runningState, algorithmName)
+    runningHash = _hash_state.restoreHex(runningState, algorithmName)
     assert canonicalHash.hexdigest() == runningHash.hexdigest()
     assert canonicalHash.digest() == runningHash.digest()

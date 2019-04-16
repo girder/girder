@@ -86,7 +86,7 @@ Server Runtime
 --------------
 Running Girder's server has the following additional system dependencies:
 
-* `MongoDB <https://www.mongodb.org/>`_ v3.2+
+* `MongoDB <https://www.mongodb.org/>`_ v3.4+
 
   * This is necessary for Girder's primary application database.
 
@@ -123,10 +123,6 @@ Building Girder's web client has the following system dependencies:
 * `npm <https://www.npmjs.com/>`_ v5.2+
 
   * This is necessary to install web client packages.
-
-* `curl <https://curl.haxx.se/>`_
-
-  * This is necessary to download Fontello files as part of the web client build process.
 
 * `Git <https://git-scm.com/>`_
 

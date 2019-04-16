@@ -77,8 +77,7 @@ class AccessTestResource(Resource):
         self.route('GET', ('public_access', ), self.publicHandler)
         self.route('GET', ('cookie_auth', ), self.cookieHandler)
         self.route('POST', ('cookie_auth', ), self.cookieHandler)
-        self.route('GET', ('cookie_force_auth', ), self.cookieForceHandler)
-        self.route('POST', ('cookie_force_auth', ), self.cookieForceHandler)
+        self.route('GET', ('scoped_cookie_auth', ), self.cookieScopedHandler)
         self.route('GET', ('fn_admin', ), self.fnAdmin)
         self.route('GET', ('scoped_user', ), self.scopedUser)
         self.route('GET', ('fn_public', ), self.fnPublic)
@@ -100,14 +99,12 @@ class AccessTestResource(Resource):
     def publicHandler(self, **kwargs):
         return self.getCurrentUser()
 
-    @access.cookie
-    @access.user
+    @access.user(cookie=True)
     def cookieHandler(self, **kwargs):
         return
 
-    @access.cookie(force=True)
-    @access.user
-    def cookieForceHandler(self, **kwargs):
+    @access.user(scope=TokenScope.DATA_READ, cookie=True)
+    def cookieScopedHandler(self, **kwargs):
         return
 
     @access.admin()
@@ -218,40 +215,28 @@ def testAdminCanAccessAllEndpoints(server, admin, endpoint):
     assertStatusOk(resp)
 
 
-cookie_auth_endpoints = ['cookie_auth', 'cookie_force_auth']
-
-
-@pytest.mark.parametrize('endpoint', cookie_auth_endpoints)
 @pytest.mark.parametrize('method', ['GET', 'POST'])
-def testCookieAuthFailsWithNoAuth(server, endpoint, method):
-    resp = server.request(path='/accesstest/%s' % endpoint,
-                          method=method)
+def testCookieAuthFailsWithNoAuth(server, method):
+    resp = server.request(path='/accesstest/cookie_auth', method=method)
     assertStatus(resp, 401)
 
 
-@pytest.mark.parametrize('endpoint', cookie_auth_endpoints)
 @pytest.mark.parametrize('method', ['GET', 'POST'])
-def testTokenAuthSucceedsOnCookieAuthEndpoints(server, user, endpoint, method):
-    resp = server.request(path='/accesstest/%s' % endpoint,
-                          method=method, user=user)
-    assertStatusOk(resp)
-
-
-def testCookieAuthFailsOnPost(server, user, cookie):
-    resp = server.request(path='/accesstest/cookie_auth',
-                          method='POST', cookie=cookie)
-    assertStatus(resp, 401)
-
-
-@pytest.mark.parametrize('endpoint', cookie_auth_endpoints)
-def testCookieAuthWorksOnGet(server, user, cookie, endpoint):
-    resp = server.request(path='/accesstest/%s' % endpoint, cookie=cookie)
+def testTokenAuthSucceedsOnCookieAuthEndpoints(server, user, method):
+    resp = server.request(path='/accesstest/cookie_auth', method=method, user=user)
     assertStatusOk(resp)
 
 
 @pytest.mark.parametrize('method', ['GET', 'POST'])
-def testCookieForceAuthWorks(server, user, cookie, method):
-    resp = server.request(path='/accesstest/cookie_force_auth', method=method, cookie=cookie)
+def testCookieAuthWorks(server, user, cookie, method):
+    resp = server.request(path='/accesstest/cookie_auth', method=method, cookie=cookie)
+    assertStatusOk(resp)
+
+
+def testCookieScopedPrefersToken(server, user):
+    resp = server.request(
+        path='/accesstest/cookie_auth', user=user,
+        cookie='girderToken=thisisnotavalidtoken')
     assertStatusOk(resp)
 
 

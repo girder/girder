@@ -59,8 +59,7 @@ class HashedFile(File):
         node.route('GET', (':id', 'hashsum_file', ':algo'), self.downloadKeyFile)
         node.route('POST', (':id', 'hashsum'), self.computeHashes)
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @autoDescribeRoute(
         Description('Download the hashsum key file for a given file.')
         .modelParam('id', 'The ID of the file.', model=FileModel, level=AccessType.READ)
@@ -86,8 +85,7 @@ class HashedFile(File):
 
         return keyFileBody
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @autoDescribeRoute(
         Description('Download a file by its hashsum.')
         .param('algo', 'The type of the given hashsum (case insensitive).',
@@ -103,8 +101,7 @@ class HashedFile(File):
 
         return self.download(id=file['_id'], params=params)
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @filtermodel(FileModel)
     @autoDescribeRoute(
         Description('Return a list of files matching a hashsum.')

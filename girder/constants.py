@@ -21,8 +21,9 @@
 Constants should be defined here.
 """
 import os
-import json
 import sys
+
+import girder
 
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(PACKAGE_DIR)
@@ -33,26 +34,14 @@ ACCESS_FLAGS = {}
 
 # Identifier for Girder's entry in the route table
 GIRDER_ROUTE_ID = 'core_girder'
-GIRDER_STATIC_ROUTE_ID = 'core_static_root'
 
 # Threshold below which text search results will be sorted by their text score.
 # Setting this too high causes mongodb to use too many resources for searches
 # that yield lots of results.
 TEXT_SCORE_SORT_MAX = 200
-
-# Get the version information
-VERSION = {  # Set defaults in case girder-version.json doesn't exist
-    'git': False,
-    'SHA': None,
-    'shortSHA': None,
-    'apiVersion': None,
-    'date': None
+VERSION = {
+    'release': girder.__version__
 }
-try:
-    with open(os.path.join(PACKAGE_DIR, 'girder-version.json')) as f:
-        VERSION.update(json.load(f))
-except IOError:
-    pass
 
 #: The local directory containing the static content.
 STATIC_PREFIX = os.path.join(sys.prefix, 'share', 'girder')
@@ -185,6 +174,7 @@ class SettingKey(object):
     SMTP_PASSWORD = 'core.smtp.password'
     SMTP_PORT = 'core.smtp.port'
     SMTP_USERNAME = 'core.smtp.username'
+    STATIC_PUBLIC_PATH = 'core.static_public_path'
     UPLOAD_MINIMUM_CHUNK_SIZE = 'core.upload_minimum_chunk_size'
     USER_DEFAULT_FOLDERS = 'core.user_default_folders'
 
@@ -225,6 +215,7 @@ class SettingDefault(object):
         SettingKey.SMTP_HOST: 'localhost',
         SettingKey.SMTP_PORT: 25,
         SettingKey.SMTP_ENCRYPTION: 'none',
+        SettingKey.STATIC_PUBLIC_PATH: '/static',
         SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE: 1024 * 1024 * 5,
         SettingKey.USER_DEFAULT_FOLDERS: 'public_private'
     }

@@ -1,8 +1,8 @@
 /* eslint-disable import/first */
 
-import router from 'girder/router';
-import events from 'girder/events';
-import { exposePluginConfig } from 'girder/utilities/PluginUtils';
+import router from '@girder/core/router';
+import events from '@girder/core/events';
+import { exposePluginConfig } from '@girder/core/utilities/PluginUtils';
 
 exposePluginConfig('homepage', 'plugins/homepage/config');
 

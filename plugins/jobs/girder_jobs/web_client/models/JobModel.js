@@ -1,6 +1,6 @@
 import _ from 'underscore';
 
-import AccessControlledModel from 'girder/models/AccessControlledModel';
+import AccessControlledModel from '@girder/core/models/AccessControlledModel';
 
 import JobStatus from '../JobStatus';
 

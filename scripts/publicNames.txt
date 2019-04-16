@@ -73,7 +73,6 @@ clients
             cli
                 GirderCli
                     sendRestRequest
-                help
                 main
 girder
     LogFormatter
@@ -86,7 +85,6 @@ girder
     api
         access
             admin
-            cookie
             public
             token
             user
@@ -96,7 +94,6 @@ girder
                 exposed
             addApiToNode
         describe
-            API_VERSION
             ApiDocs
             Describe
                 listResources
@@ -343,9 +340,7 @@ girder
     auditLogger
     cli
         build
-            help
             main
-        context_settings
         main
         mount
             FUSELogError
@@ -363,17 +358,13 @@ girder
                 readdir
                 release
                 use_ns
-            help
             main
             mountServer
-            show_default
             unmountServer
         serve
             main
         sftpd
             DEFAULT_PORT
-            default
-            help
             main
         shell
             main
@@ -398,7 +389,6 @@ girder
             USER_SELF_ACCESS
             WEBROOT_SETTING_CHANGE
         GIRDER_ROUTE_ID
-        GIRDER_STATIC_ROUTE_ID
         LOG_BACKUP_COUNT
         LOG_ROOT
         MAX_LOG_SIZE
@@ -437,6 +427,7 @@ girder
             SMTP_PASSWORD
             SMTP_PORT
             SMTP_USERNAME
+            STATIC_PUBLIC_PATH
             UPLOAD_MINIMUM_CHUNK_SIZE
             USER_DEFAULT_FOLDERS
         SortDir
@@ -507,7 +498,9 @@ girder
         mongodb_proxy
             EXECUTABLE_MONGO_METHODS
             Executable
+            MongoClient
             MongoProxy
+            MongoReplicaSetClient
             get_methods
     getLogPaths
     logStdoutStderr
@@ -733,6 +726,7 @@ girder
                 validateCoreSmtpPassword
                 validateCoreSmtpPort
                 validateCoreSmtpUsername
+                validateCoreStaticRoot
                 validateCoreUploadMinimumChunkSize
                 validateCoreUserDefaultFolders
                 validateEnableNotificationStream
@@ -895,14 +889,6 @@ girder
                 validateInfo
             RECENT_CONNECTION_CACHE_MAX_SIZE
             RECENT_CONNECTION_CACHE_TIME
-        hash_state
-            initVectorFirstWord
-            restore
-            restoreHex
-            serialize
-            serializeHex
-            stateSize
-            type
         mail_utils
             addTemplateDirectory
             getEmailUrlPrefix
@@ -958,9 +944,7 @@ girder
         server
             configureServer
             getApiRoot
-            getApiStaticRoot
             getPlugins
-            getStaticRoot
             loadRouteTable
             setup
             staticFile
@@ -1334,6 +1318,7 @@ pytest_girder
         fixtures
             admin
             bcrypt
+            boundServer
             db
             fsAssetstore
             server
@@ -1361,4 +1346,7 @@ pytest_girder
             buildHeaders
             getResponseBody
             request
+            serverContext
             uploadFile
+        web_client
+            runWebClientTest

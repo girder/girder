@@ -1,8 +1,8 @@
 import _ from 'underscore';
 
-import { formatSize } from 'girder/misc';
-import Model from 'girder/models/Model';
-import { restRequest } from 'girder/rest';
+import { formatSize } from '@girder/core/misc';
+import Model from '@girder/core/models/Model';
+import { restRequest } from '@girder/core/rest';
 
 var AssetstoreModel = Model.extend({
     resourceName: 'assetstore',

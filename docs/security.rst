@@ -27,9 +27,12 @@ you to specify the CORS policies for the REST API. The most important setting is
 **CORS Allowed Origins** field, which is used to specify what origins are allowed
 to make cross-origin requests to the instance's REST API. By default, this is blank,
 meaning no cross-origin requests are allowed. To allow requests from *any* origin,
-simply set this to ``*``. Whatever you set here will be passed back to the browser
-in the ``Access-Control-Allow-Origin`` header, which the browser uses to allow
-or deny the cross-origin request.
+simply set this to ``*``. You can also specify this as a comma-separated list of
+explicit origins to allow. If the Origin header occurs in this explicit list, the
+``Access-Control-Allow-Origin`` header of the response will be set to the request's
+``Origin`` header value. You may also specify both ``*`` and a white list of explicit
+origins to allow. In this case, the response header will be set to the Origin header if
+it is explicitly listed, otherwise it will be set to ``*``.
 
 If you want more fine-grained control over the CORS policies, you can also restrict
 the allowed methods and allowed request headers by providing them in comma-separated

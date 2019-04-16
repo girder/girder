@@ -1,16 +1,16 @@
 import $ from 'jquery';
 
-import EditFileWidget from 'girder/views/widgets/EditFileWidget';
-import FileCollection from 'girder/collections/FileCollection';
-import FileInfoWidget from 'girder/views/widgets/FileInfoWidget';
-import UploadWidget from 'girder/views/widgets/UploadWidget';
-import View from 'girder/views/View';
-import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/dialog';
-import { formatSize } from 'girder/misc';
-import events from 'girder/events';
+import EditFileWidget from '@girder/core/views/widgets/EditFileWidget';
+import FileCollection from '@girder/core/collections/FileCollection';
+import FileInfoWidget from '@girder/core/views/widgets/FileInfoWidget';
+import UploadWidget from '@girder/core/views/widgets/UploadWidget';
+import View from '@girder/core/views/View';
+import { AccessType } from '@girder/core/constants';
+import { confirm } from '@girder/core/dialog';
+import { formatSize } from '@girder/core/misc';
+import events from '@girder/core/events';
 
-import FileListTemplate from 'girder/templates/widgets/fileList.pug';
+import FileListTemplate from '@girder/core/templates/widgets/fileList.pug';
 
 /**
  * This widget shows a list of files in a given item.

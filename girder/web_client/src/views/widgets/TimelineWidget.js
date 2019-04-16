@@ -1,10 +1,10 @@
 import _ from 'underscore';
 
-import View from 'girder/views/View';
+import View from '@girder/core/views/View';
 
-import TimelineTemplate from 'girder/templates/widgets/timeline.pug';
+import TimelineTemplate from '@girder/core/templates/widgets/timeline.pug';
 
-import 'girder/stylesheets/widgets/timelineWidget.styl';
+import '@girder/core/stylesheets/widgets/timelineWidget.styl';
 
 /**
  * This widget displays a timeline of events. This is visualized as a line (a bar)

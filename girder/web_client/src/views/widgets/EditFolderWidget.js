@@ -1,15 +1,15 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import FolderModel from 'girder/models/FolderModel';
-import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
-import View from 'girder/views/View';
-import { handleClose, handleOpen } from 'girder/dialog';
+import FolderModel from '@girder/core/models/FolderModel';
+import MarkdownWidget from '@girder/core/views/widgets/MarkdownWidget';
+import View from '@girder/core/views/View';
+import { handleClose, handleOpen } from '@girder/core/dialog';
 
-import EditFolderWidgetTemplate from 'girder/templates/widgets/editFolderWidget.pug';
+import EditFolderWidgetTemplate from '@girder/core/templates/widgets/editFolderWidget.pug';
 
-import 'girder/utilities/jquery/girderEnable';
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This widget is used to create a new folder or edit an existing one.

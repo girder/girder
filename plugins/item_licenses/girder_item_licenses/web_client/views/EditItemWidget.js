@@ -1,8 +1,8 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import EditItemWidget from 'girder/views/widgets/EditItemWidget';
-import { wrap } from 'girder/utilities/PluginUtils';
+import EditItemWidget from '@girder/core/views/widgets/EditItemWidget';
+import { wrap } from '@girder/core/utilities/PluginUtils';
 
 import SelectLicenseWidget from './SelectLicenseWidget';
 

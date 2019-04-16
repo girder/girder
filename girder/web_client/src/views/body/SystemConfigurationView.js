@@ -1,16 +1,16 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import AccessWidget from 'girder/views/widgets/AccessWidget';
-import View from 'girder/views/View';
-import events from 'girder/events';
-import { restRequest, cancelRestRequests } from 'girder/rest';
-import { restartServerPrompt } from 'girder/server';
-import CollectionCreationPolicyModel from 'girder/models/CollectionCreationPolicyModel';
+import AccessWidget from '@girder/core/views/widgets/AccessWidget';
+import View from '@girder/core/views/View';
+import events from '@girder/core/events';
+import { restRequest, cancelRestRequests } from '@girder/core/rest';
+import { restartServerPrompt } from '@girder/core/server';
+import CollectionCreationPolicyModel from '@girder/core/models/CollectionCreationPolicyModel';
 
-import SystemConfigurationTemplate from 'girder/templates/body/systemConfiguration.pug';
+import SystemConfigurationTemplate from '@girder/core/templates/body/systemConfiguration.pug';
 
-import 'girder/stylesheets/body/systemConfig.styl';
+import '@girder/core/stylesheets/body/systemConfig.styl';
 
 import 'bootstrap/js/collapse';
 import 'bootstrap/js/transition';
@@ -113,7 +113,8 @@ var SystemConfigurationView = View.extend({
             'core.add_to_group_policy',
             'core.collection_create_policy',
             'core.user_default_folders',
-            'core.route_table'
+            'core.route_table',
+            'core.static_public_path'
         ];
         this.settingsKeys = keys;
         restRequest({

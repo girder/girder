@@ -1,9 +1,9 @@
-import View from 'girder/views/View';
-import { getApiRoot } from 'girder/rest';
+import View from '@girder/core/views/View';
+import { getApiRoot } from '@girder/core/rest';
 
-import LayoutFooterTemplate from 'girder/templates/layout/layoutFooter.pug';
+import LayoutFooterTemplate from '@girder/core/templates/layout/layoutFooter.pug';
 
-import 'girder/stylesheets/layout/footer.styl';
+import '@girder/core/stylesheets/layout/footer.styl';
 
 /**
  * This view shows the footer in the layout.
