@@ -1,0 +1,34 @@
+---
+- name: Provision
+  hosts: all
+
+  vars:
+    girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
+
+  pre_tasks:
+    - name: Install python prereqs
+      apt:
+        name:
+          - python-setuptools
+          - python-virtualenv
+          - python-dev
+      become: true
+
+    - name: Create virtualenv
+      command: |
+        virtualenv "{{ girder_virtualenv }}"
+      args:
+        creates: "{{ girder_virtualenv }}"
+
+  roles:
+    - role: girder.mongodb
+
+    - role: ansible-role-girder
+      girder_daemonize: false
+
+  post_tasks:
+    # Needed for replicaset/sharded tests
+    - name: Install mongos
+      apt:
+        name: mongodb-org-mongos
+      become: true
