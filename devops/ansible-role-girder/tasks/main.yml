@@ -3,8 +3,6 @@
   apt:
     name:
       - build-essential
-      - curl
-      - gcc
   become: true
   become_user: root
 
