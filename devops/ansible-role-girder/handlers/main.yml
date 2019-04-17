@@ -1,6 +1,6 @@
 ---
 
-- name: Build Girder web assets
+- name: Build Girder web client
   environment:
     - LC_ALL: "C.UTF-8"
     - LANG: "C.UTF-8"

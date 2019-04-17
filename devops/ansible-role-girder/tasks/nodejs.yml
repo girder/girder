@@ -1,5 +1,4 @@
 ---
-
 - name: Add NodeJS PPA key
   apt_key:
     keyserver: "keyserver.ubuntu.com"
