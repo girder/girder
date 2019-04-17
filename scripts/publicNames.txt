@@ -726,7 +726,7 @@ girder
                 validateCoreSmtpPassword
                 validateCoreSmtpPort
                 validateCoreSmtpUsername
-                validateCoreStaticRoot
+                validateCoreStaticPublicPath
                 validateCoreUploadMinimumChunkSize
                 validateCoreUserDefaultFolders
                 validateEnableNotificationStream
