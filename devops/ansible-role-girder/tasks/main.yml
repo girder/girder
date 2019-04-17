@@ -26,7 +26,7 @@
         dest: "/etc/systemd/system/girder.service"
       notify: Restart Girder
 
-    - name: Enable/Disable Girder service on boot
+    - name: Enable Girder service on boot
       systemd:
         name: girder
         daemon_reload: true
