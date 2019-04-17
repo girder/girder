@@ -28,7 +28,7 @@
   pip:
     name: "{{ girder_package }}"
     version: "{{ girder_version|default(omit) }}"
-    extra_args: "{{ girder_pip_extra_args }}"
+    extra_args: "{{ girder_pip_extra_args|default(omit) }}"
     virtualenv: "{{ girder_virtualenv }}"
   notify:
     - Build Girder web assets
