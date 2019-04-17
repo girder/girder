@@ -49,8 +49,7 @@
       systemd:
         name: girder
         daemon_reload: true
-        state: "{{ 'started' if girder_start else 'stopped' }}"
-        enabled: "{{ girder_enabled }}"
+        enabled: true
   become: true
   become_user: root
   when: girder_daemonize

@@ -22,6 +22,4 @@ Role Variables
 | girder_virtualenv     | yes      | none    | Path to a Python virtual environment to install Girder in.                   |
 | girder_web            | no       | yes     | Whether to build the Girder web client.                                      |
 | girder_daemonize      | no       | no      | Whether to install the systemd service.                                      |
-| girder_start          | no       | yes     | Whether to start Girder at the end of the role (assumes ``girder_daemonize``). |
-| girder_enabled        | no       | no      | Whether to enable the installed service (assumes ``girder_daemonize``).        |
 | girder_pip_extra_args | no       |         | Any extra arguments to pass to ``pip`` when installing Girder.                 |
