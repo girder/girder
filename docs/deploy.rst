@@ -16,7 +16,7 @@ server.  For example, if you have a server accepting requests at
 
 Anytime you deploy behind a proxy, Girder must be configured properly in order to serve
 content correctly.  This can be accomplished by setting a few parameters in
-your local configuration file at ``girder/conf/girder.local.cfg``.  In this
+your local configuration file (see :ref:`Configuration <configuration>`).  In this
 example, we have the following:
 
 .. code-block:: ini

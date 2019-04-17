@@ -301,6 +301,13 @@ The cookie access decorator has been removed
 
 The ``@access.cookie`` decorator has been removed.  To allow cookie authentication on an endpoint, include ``cookie=True`` as a parameter to one of the other access decorators (e.g., ``@access.user(cookie=True)``).
 
+Storing girder.local.cfg inside the package directory is no longer supported
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In order to facilitate the ability to upgrade Girder using ``pip``, the user configuration file
+can no longer be stored inside the package directory since it would be deleted on upgrade. Users must
+now store their configuration in one of the approved locations, or use ``GIRDER_CONFIG`` to specify
+the exact location. See :ref:`the configuration documentation <configuration>` for more details.
+
 Removed or moved plugins
 ++++++++++++++++++++++++
 
