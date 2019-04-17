@@ -5,9 +5,6 @@
       - build-essential
       - curl
       - gcc
-      # Needed for 'ldap' plugin
-      - libldap2-dev
-      - libsasl2-dev
   become: true
   become_user: root
 
