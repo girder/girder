@@ -60,39 +60,6 @@ The girder ansible module relies on the girder-client to do most of the heavy li
 ```
 
 
-### Example using 'plugins'
-To enable or disable all plugins you may pass the "*" argument.  This does not (yet) support arbitrary regexes.
-
-```yaml
-
-- name: Disable all plugins
-  girder:
-    username: "admin"
-    password: "letmein"
-    plugins: "*"
-    state: absent
-
-- name: Enable thumbnails plugin
-  girder:
-    username: "admin"
-    password: "letmein"
-    port: 8080
-    plugins:
-      - thumbnails
-    state: present
-
-- name: Ensure jobs and gravatar plugins are enabled
-  girder:
-    username: "admin"
-    password: "letmein"
-    plugins:
-      - jobs
-      - gravatar
-    state: present
-```
-**Note:** that the list of enabled plugins is now ```thumbnails```, ```jobs```, ```gravatar```. The 'plugins' task ensures that plugins are enabled or disabled, it does *not* define the complete list of enabled or disabled plugins. Additionally,  while the plugins are enabled they will not be active until the server is restarted. This should be achieved through another task (either through setting up girder as a system level task,  or through posting to system/restart).
-
-
 ### Filesystem Assetstore Tests
 
 ```yaml

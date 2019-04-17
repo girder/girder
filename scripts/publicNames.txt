@@ -291,7 +291,6 @@ girder
                 ModuleStartTime
                 System
                     discardPartialUploads
-                    enablePlugins
                     getAccessFlags
                     getCollectionCreationPolicyAccess
                     getConfigurationOption
@@ -416,7 +415,6 @@ girder
             ENABLE_NOTIFICATION_STREAM
             ENABLE_PASSWORD_LOGIN
             GIRDER_MOUNT_INFORMATION
-            PLUGINS_ENABLED
             PRIVACY_NOTICE
             REGISTRATION_POLICY
             ROUTE_TABLE
@@ -453,7 +451,7 @@ girder
             EMAIL_VERIFICATION
             PARTIAL_UPLOAD_CLEAN
             PARTIAL_UPLOAD_READ
-            PLUGINS_ENABLED_READ
+            PLUGINS_READ
             SETTINGS_READ
             TEMPORARY_USER_AUTH
             USER_AUTH
@@ -716,7 +714,6 @@ girder
                 validateCoreEmailHost
                 validateCoreEmailVerification
                 validateCoreGirderMountInformation
-                validateCorePluginsEnabled
                 validateCorePrivacyNotice
                 validateCoreRegistrationPolicy
                 validateCoreRouteTable
@@ -944,7 +941,6 @@ girder
         server
             configureServer
             getApiRoot
-            getPlugins
             loadRouteTable
             setup
             staticFile

@@ -30,27 +30,6 @@
           - ret["gc_return"]["previous_value"] == "public_private"
           - ret["gc_return"]["current_value"] == "none"
 
-    # This serves as a good test for list values, but the plugin module
-    # should be used in this instance
-    - name: Alter the plugin setting
-      girder:
-        port: 8080
-        username: "admin"
-        password: "letmein"
-        setting:
-          key: "core.plugins_enabled"
-          value:
-            - "jobs"
-            - "gravatar"
-      register: ret
-
-    - name: Check that proper plugins are enabled
-      assert:
-        that:
-          - ret["changed"] == true
-          - ret["gc_return"]["previous_value"] == []
-          - ret["gc_return"]["current_value"] == ["jobs", "gravatar"]
-
     - name: Test setting a dict-valued setting (the route table)
       girder:
         port: 8080
@@ -100,7 +79,6 @@
         state: absent
       with_items:
         - "core.user_default_folders"
-        - "core.plugins_enabled"
         - "core.email_from_address"
         - "core.email_host"
         - "core.route_table"
@@ -115,7 +93,7 @@
           path: "system/setting"
           parameters:
             list: "{{ ['core.email_from_address', 'core.email_host',
-                       'core.user_default_folders', 'core.plugins_enabled'] | to_json }}"
+                       'core.user_default_folders'] | to_json }}"
             default: "none"
       register: ret
 

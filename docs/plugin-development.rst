@@ -380,7 +380,7 @@ access flag on data, have your plugin globally register the flag in the system:
 
     registerAccessFlag(key='cats.feed', name='Feed cats', description='Allows users to feed cats')
 
-When your plugin is enabled, a new checkbox will automatically appear in the access control
+When your plugin is installed, a new checkbox will automatically appear in the access control
 dialog allowing resource owners to specify what users and groups are allowed to feed
 cats (assuming cats are represented by data in the hierarchy). Additionally, if your resource is
 public, you will also be able to configure which access flags are available to the public.
@@ -645,8 +645,6 @@ Extending the Client-Side Application
 
 The web client may be extended independently of the server side. Plugins may
 import Pug templates, Stylus files, and JavaScript files into the application.
-The plugin loading system ensures that only content from enabled plugins gets
-loaded into the application at runtime.
 
 All of your plugin's extensions to the web client must live in a directory inside
 of your python package.  By convention, this is in a directory called **web_client**. ::
@@ -858,11 +856,14 @@ packages are installed when you plugin is "pip installed".
 
 * Plugin loading
 
-Girder will not *automatically* load plugins you depend on, so your plugin
-should ensure dependent plugins are loaded during it's own loading method.
-This will ensure that the other plugins are enabled when a user enables your
-plugin.  It is also be possible to handle errors while loading other plugins to
-support fallback behavior or optional dependencies.
+By default, Girder does not load its installed plugins in a deterministic order.
+If your plugin depends on other Girder being loaded prior to itself, your plugin
+must explicitly load the other dependant plugins during your plugin's own loading.
+
+Girder will guarantee that a given plugin is actually loaded only once, so multiple
+calls to load another plugin are safe and have no effect. Finally, it is possible
+to check for the existence of another plugin before loading it or performing other
+configuration, to support optional dependencies.
 
 .. code-block:: python
 
@@ -871,9 +872,11 @@ support fallback behavior or optional dependencies.
     class ExamplePlugin(GirderPlugin)
         def load(self, info):
             getPlugin('jobs').load(info)
-            getPlugin('homepage').load(info)
+            homepagePlugin = getPlugin('homepage')
+            if homepagePlugin:
+                # Optional dependency
+                homepagePlugin.load(info)
             # ...
-
 
 * Javascript client
 

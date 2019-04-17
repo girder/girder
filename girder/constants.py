@@ -164,7 +164,6 @@ class SettingKey(object):
     ENABLE_PASSWORD_LOGIN = 'core.enable_password_login'
     GIRDER_MOUNT_INFORMATION = 'core.girder_mount_information'
     ENABLE_NOTIFICATION_STREAM = 'core.enable_notification_stream'
-    PLUGINS_ENABLED = 'core.plugins_enabled'
     REGISTRATION_POLICY = 'core.registration_policy'
     ROUTE_TABLE = 'core.route_table'
     SECURE_COOKIE = 'core.secure_cookie'
@@ -210,7 +209,6 @@ class SettingDefault(object):
         SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',
         SettingKey.ENABLE_PASSWORD_LOGIN: True,
         SettingKey.ENABLE_NOTIFICATION_STREAM: True,
-        SettingKey.PLUGINS_ENABLED: [],
         SettingKey.REGISTRATION_POLICY: 'open',
         SettingKey.SMTP_HOST: 'localhost',
         SettingKey.SMTP_PORT: 25,
@@ -236,7 +234,7 @@ class TokenScope(object):
     USER_AUTH = 'core.user_auth'
     TEMPORARY_USER_AUTH = 'core.user_auth.temporary'
     EMAIL_VERIFICATION = 'core.email_verification'
-    PLUGINS_ENABLED_READ = 'core.plugins.read'
+    PLUGINS_READ = 'core.plugins.read'
     SETTINGS_READ = 'core.setting.read'
     ASSETSTORES_READ = 'core.assetstore.read'
     PARTIAL_UPLOAD_READ = 'core.partial_upload.read'
@@ -309,8 +307,8 @@ TokenScope.describeScope(
 )
 
 TokenScope.describeScope(
-    TokenScope.PLUGINS_ENABLED_READ, 'See enabled plugins', 'Allows clients '
-    'to see the list of plugins enabled on the server.', admin=True)
+    TokenScope.PLUGINS_READ, 'See installed plugins', 'Allows clients '
+    'to see the list of plugins installed on the server.', admin=True)
 TokenScope.describeScope(
     TokenScope.SETTINGS_READ, 'See system setting values', 'Allows clients to '
     'view the value of any system setting.', admin=True)
