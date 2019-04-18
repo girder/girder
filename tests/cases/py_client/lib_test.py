@@ -378,6 +378,28 @@ class PythonClientTestCase(base.TestCase):
                     self.client, 'getServerVersion', return_value=version.split('.')):
                 self._testUploadMethod(expected_non_multipart_hits=0, expected_multipart_hits=1)
 
+    def testGetServerVersion2(self):
+        @httmock.urlmatch(path=r'.*/system/version')
+        def mock(url, request):
+            return {
+                'status_code': 200,
+                'content-type': 'application/json',
+                'content': {'apiVersion': '2.5.0'}
+            }
+        with httmock.HTTMock(mock):
+            self.assertEqual(self.client.getServerVersion(), ['2', '5', '0'])
+
+    def testGetServerVersion3(self):
+        @httmock.urlmatch(path=r'.*/system/version')
+        def mock(url, request):
+            return {
+                'status_code': 200,
+                'content-type': 'application/json',
+                'content': {'release': '3.0.0a5.dev1'}
+            }
+        with httmock.HTTMock(mock):
+            self.assertEqual(self.client.getServerVersion(), ['3', '0', '0a5.dev1'])
+
     def _testUploadMethod(self, expected_non_multipart_hits=0, expected_multipart_hits=0):
 
         # track API calls
