@@ -69,32 +69,13 @@ installReqs = [
 ]
 
 extrasReqs = {
-    'authorized_upload': ['girder-authorized-upload'],
-    'autojoin': ['girder-autojoin'],
-    'dicom_viewer': ['girder-dicom-viewer'],
-    'download_statistics': ['girder-download-statistics'],
-    'google_analytics': ['girder-google-analytics'],
-    'gravatar': ['girder-gravatar'],
-    'hashsum_download': ['girder-hashsum-download'],
-    'homepage': ['girder-homepage'],
-    'item_licenses': ['girder-item-licenses'],
-    'jobs': ['girder-jobs'],
-    'ldap': ['girder-ldap'],
-    'oauth': ['girder-oauth'],
-    'terms': ['girder-terms'],
-    'thumbnails': ['girder-thumbnails'],
-    'quota': ['girder-user-quota'],
-    'worker': ['girder-worker'],
-    'virtual_folders': ['girder-virtual-folders']
+    'sftp': [
+        'paramiko'
+    ],
+    'mount': [
+        'fusepy>=3.0'
+    ]
 }
-
-extrasReqs['plugins'] = list(set(itertools.chain.from_iterable(extrasReqs.values())))
-extrasReqs['sftp'] = [
-    'paramiko',
-]
-extrasReqs['mount'] = [
-    'fusepy>=3.0',
-]
 
 setup(
     name='girder',
