@@ -5,7 +5,6 @@ import AccessWidget from '@girder/core/views/widgets/AccessWidget';
 import View from '@girder/core/views/View';
 import events from '@girder/core/events';
 import { restRequest, cancelRestRequests } from '@girder/core/rest';
-import { restartServerPrompt } from '@girder/core/server';
 import CollectionCreationPolicyModel from '@girder/core/models/CollectionCreationPolicyModel';
 
 import SystemConfigurationTemplate from '@girder/core/templates/body/systemConfiguration.pug';
@@ -78,7 +77,6 @@ var SystemConfigurationView = View.extend({
                 this.$('#g-settings-error-message').text(resp.responseJSON.message);
             });
         },
-        'click #g-restart-server': restartServerPrompt,
         'click #g-core-banner-default-color': function () {
             this.$('#g-core-banner-color').val(this.defaults['core.banner_color']);
         }

@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy.process.plugins
+import cherrypy
 import datetime
 import errno
 import girder
@@ -62,7 +62,6 @@ class System(Resource):
         self.route('GET', ('plugins',), self.getPlugins)
         self.route('GET', ('access_flag',), self.getAccessFlags)
         self.route('PUT', ('setting',), self.setSetting)
-        self.route('PUT', ('restart',), self.restartServer)
         self.route('GET', ('uploads',), self.getPartialUploads)
         self.route('DELETE', ('uploads',), self.discardPartialUploads)
         self.route('GET', ('check',), self.systemStatus)
@@ -296,36 +295,6 @@ class System(Resource):
         if includeUntracked:
             uploadList += Upload().untrackedUploads('delete', assetstoreId)
         return uploadList
-
-    @access.admin
-    @autoDescribeRoute(
-        Description('Restart the Girder REST server.')
-        .notes('Must be a system administrator to call this.')
-        .errorResponse('You are not a system administrator.', 403)
-    )
-    def restartServer(self):
-        if not config.getConfig()['server'].get('cherrypy_server', True):
-            raise RestException('Restarting of server is disabled.', 403)
-
-        class Restart(cherrypy.process.plugins.Monitor):
-            def __init__(self, bus, frequency=1):
-                cherrypy.process.plugins.Monitor.__init__(
-                    self, bus, self.run, frequency)
-
-            def start(self):
-                cherrypy.process.plugins.Monitor.start(self)
-
-            def run(self):
-                self.bus.log('Restarting.')
-                self.thread.cancel()
-                self.bus.restart()
-
-        restart = Restart(cherrypy.engine)
-        restart.subscribe()
-        restart.start()
-        return {
-            'restarted': datetime.datetime.utcnow()
-        }
 
     @access.public
     @autoDescribeRoute(

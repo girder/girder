@@ -112,12 +112,12 @@ Prints debugging messages with the emails of the users from the last task by acc
 Supports get, post, put, delete methods,  but does not guarantee idempotence on these methods!
 
 ```yaml
-- name: Restart the server
+- name: Run a system check
   girder:
     username: "admin"
     password: "letmein"
     put:
-      path: "system/restart"
+      path: "system/check"
 ```
 
 An example of posting an item to Girder Note that this is NOT idempotent. Running multiple times will create "An Item", "An Item (1)", "An Item (2)", etc..

@@ -271,11 +271,6 @@ Build Girder and its client-side assets locally: ::
 
    `Building specific plugins with pip <http://girder.readthedocs.io/en/latest/installation.html#installing-extra-dependencies-with-pip>`_.
 
-.. note:: Since Girder is unable to restart and load plugins in the Beanstalk environment,
-	  plugins may be enabled/disabled but will require a restart of Beanstalk application
-	  servers to take effect. Restarting application servers can be performed from the
-	  `Environment Management Console <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-console.html>`_.
-
 Create a requirements.txt for the Beanstalk application, overwriting the default Girder requirements.txt: ::
 
   $ pip freeze | grep -v 'girder\|^awscli\|^awsebcli' > requirements.txt

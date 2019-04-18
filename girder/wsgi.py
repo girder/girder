@@ -23,8 +23,7 @@ from girder.utility import server
 
 cherrypy.config.update({'engine.autoreload.on': False,
                         'environment': 'embedded'})
-cherrypy.config['server'].update({'cherrypy_server': False,
-                                  'disable_event_daemon': True})
+cherrypy.config['server'].update({'disable_event_daemon': True})
 
 # TODO The below line can be removed if we do away with girder.logprint
 girder._quiet = True  # This means we won't duplicate messages to stdout/stderr
