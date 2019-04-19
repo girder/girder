@@ -21,7 +21,9 @@
         creates: "{{ girder_virtualenv }}"
 
   roles:
-    - role: girder.mongodb
+    - role: Stouts.mongodb
+      mongodb_version: "3.2.4"
+      become: true
 
     - role: ansible-role-girder
       girder_daemonize: false
