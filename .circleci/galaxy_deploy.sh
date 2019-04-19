@@ -5,7 +5,7 @@ set -e
 readonly ANSIBLE_ROLE_GITHUB_ORG="girder"
 readonly ANSIBLE_ROLE_GITHUB_REPO="ansible-role-girder"
 
-readonly SUBTREE_PREFIX="devops/ansible/roles/girder"
+readonly SUBTREE_PREFIX="devops/ansible-role-girder"
 readonly SUBTREE_DEST_REPO="git@github.com:$ANSIBLE_ROLE_GITHUB_ORG/$ANSIBLE_ROLE_GITHUB_REPO.git"
 readonly SUBTREE_DEST_BRANCH="master"
 

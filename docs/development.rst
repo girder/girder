@@ -347,7 +347,7 @@ You can browse the result in Girder by running ::
 .. note::
 
     The ``setup_database`` module is meant to provision fixures for tests **only**.  If you want to provision
-    a Girder instance for deployment, see the `Girder ansible client <https://github.com/girder/girder/tree/master/devops/ansible/roles/girder/library>`_.
+    a Girder instance for deployment, see the `Girder ansible client <https://github.com/girder/girder/tree/master/devops/ansible-role-girder/library>`_.
 
 
 Code Review
