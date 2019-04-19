@@ -226,13 +226,18 @@ def getPluginFailureInfo():
     }
 
 
-def _loadPlugins(names, info):
-    """Load a list of plugins with the given app info object.
+def _loadPlugins(info, names=None):
+    """Load plugins with the given app info object.
 
-    This method will try to load **all** plugins in the provided list.  If
-    an error occurs, it will be logged and the next plugin will be loaded.  A
-    list of successfully loaded plugins will be returned.
+    If `names` is None, all installed plugins will be loaded. If `names` is a
+    list, then only those plugins in the provided list will be loaded.
+
+    If an error occurs, it will be logged and the next plugin will be loaded.
+    A list of successfully loaded plugins is returned.
     """
+    if names is None:
+        names = allPlugins()
+
     loadedPlugins = []
     for name in names:
         pluginObject = getPlugin(name)

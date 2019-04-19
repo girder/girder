@@ -304,7 +304,7 @@ def _findFreePort():
 
 
 @contextlib.contextmanager
-def serverContext(plugins=(), bindPort=False):
+def serverContext(plugins=None, bindPort=False):
     # The event daemon cannot be restarted since it is a threading.Thread
     # object, however all references to girder.events.daemon are a singular
     # global daemon due to its side effect on import. We have to hack around
@@ -312,14 +312,13 @@ def serverContext(plugins=(), bindPort=False):
     # and assigning it to the global.
     import girder.events
     from girder.api import docs
-    from girder.constants import SettingKey
-    from girder.models.setting import Setting
     from girder.utility.server import setup as setupServer
 
     girder.events.daemon = girder.events.AsyncEventsThread()
 
-    Setting().set(SettingKey.PLUGINS_ENABLED, list(plugins))
-
+    if plugins is None:
+        # By default, pass "[]" to "plugins", disabling any installed plugins
+        plugins = []
     server = setupServer(test=True, plugins=plugins)
     server.request = request
     server.uploadFile = uploadFile

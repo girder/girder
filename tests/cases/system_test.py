@@ -99,10 +99,9 @@ class SystemTestCase(base.TestCase):
             self.assertStatus(resp, 403)
 
         # Only valid setting keys should be allowed
-        obj = ['oauth', 'jobs', '_invalid_']
         resp = self.request(path='/system/setting', method='PUT', params={
             'key': 'foo',
-            'value': json.dumps(obj)
+            'value': 'bar'
         }, user=users[0])
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['field'], 'key')
@@ -120,45 +119,45 @@ class SystemTestCase(base.TestCase):
 
         # Set an invalid setting value, should fail
         resp = self.request(path='/system/setting', method='PUT', params={
-            'key': SettingKey.PLUGINS_ENABLED,
-            'value': json.dumps(obj)
+            'key': SettingKey.BANNER_COLOR,
+            'value': 'bar'
         }, user=users[0])
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'],
-                         'Required plugin _invalid_ does not exist.')
+                         'The banner color must be a hex color triplet')
 
         # Set a valid value
         resp = self.request(path='/system/setting', method='PUT', params={
-            'key': SettingKey.PLUGINS_ENABLED,
-            'value': json.dumps(['jobs', 'oauth'])
+            'key': SettingKey.BANNER_COLOR,
+            'value': '#121212'
         }, user=users[0])
         self.assertStatusOk(resp)
 
         # We should now be able to retrieve it
         resp = self.request(path='/system/setting', method='GET', params={
-            'key': SettingKey.PLUGINS_ENABLED
+            'key': SettingKey.BANNER_COLOR
         }, user=users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(set(resp.json), set(['jobs', 'oauth']))
+        self.assertEqual(resp.json, '#121212')
 
         # We should now clear the setting
         resp = self.request(path='/system/setting', method='DELETE', params={
-            'key': SettingKey.PLUGINS_ENABLED
+            'key': SettingKey.BANNER_COLOR
         }, user=users[0])
         self.assertStatusOk(resp)
 
-        # Setting should now be ()
-        setting = Setting().get(SettingKey.PLUGINS_ENABLED)
-        self.assertEqual(setting, [])
+        # Setting should now be default
+        setting = Setting().get(SettingKey.BANNER_COLOR)
+        self.assertEqual(setting, SettingDefault.defaults[SettingKey.BANNER_COLOR])
 
         # We should be able to ask for a different default
-        setting = Setting().get(SettingKey.PLUGINS_ENABLED, default=None)
+        setting = Setting().get(SettingKey.BANNER_COLOR, default=None)
         self.assertEqual(setting, None)
 
         # We should also be able to put several setting using a JSON list
         resp = self.request(path='/system/setting', method='PUT', params={
             'list': json.dumps([
-                {'key': SettingKey.PLUGINS_ENABLED, 'value': json.dumps(())},
+                {'key': SettingKey.BANNER_COLOR, 'value': '#121212'},
                 {'key': SettingKey.COOKIE_LIFETIME, 'value': None},
             ])
         }, user=users[0])
@@ -167,21 +166,21 @@ class SystemTestCase(base.TestCase):
         # We can get a list as well
         resp = self.request(path='/system/setting', method='GET', params={
             'list': json.dumps([
-                SettingKey.PLUGINS_ENABLED,
+                SettingKey.BANNER_COLOR,
                 SettingKey.COOKIE_LIFETIME,
             ])
         }, user=users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json[SettingKey.PLUGINS_ENABLED], [])
+        self.assertEqual(resp.json[SettingKey.BANNER_COLOR], '#121212')
 
         # We can get the default values, or ask for no value if the current
         # value is taken from the default
         resp = self.request(path='/system/setting', method='GET', params={
-            'key': SettingKey.PLUGINS_ENABLED,
+            'key': SettingKey.BANNER_COLOR,
             'default': 'default'
         }, user=users[0])
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json, [])
+        self.assertEqual(resp.json, SettingDefault.defaults[SettingKey.BANNER_COLOR])
 
         resp = self.request(path='/system/setting', method='GET', params={
             'key': SettingKey.COOKIE_LIFETIME,
@@ -236,20 +235,6 @@ class SystemTestCase(base.TestCase):
                 'default': 'default'
             }, user=users[0])
             self.assertStatusOk(resp)
-
-    def testRestart(self):
-        resp = self.request(path='/system/restart', method='PUT',
-                            user=self.users[0])
-        self.assertStatusOk(resp)
-
-    def testRestartWhenNotUsingCherryPyServer(self):
-        # Restart should be disallowed
-        conf = config.getConfig()
-        conf['server']['cherrypy_server'] = False
-
-        resp = self.request(path='/system/restart', method='PUT',
-                            user=self.users[0])
-        self.assertStatus(resp, 403)
 
     def testCheck(self):
         resp = self.request(path='/token/session', method='GET')

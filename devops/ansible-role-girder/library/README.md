@@ -1,7 +1,7 @@
 Girder Ansible Client
 =====================
 
-Use ansible to configure a running girder instance. Currently this supports configuring users plugins and assetstores. Additionally the module supports non-idempotent ```get```, ```put```, ```post```, and ```delete``` API requests.  You can install this module by copying ```girder.py``` out of the girder source tree and placing it in a ```library/``` folder alongside your top level playbooks. You may also modify the ```ANSIBLE_LIBRARY``` environment variable,  or pass a custom ```--module-path``` to ansible-playbook to provide access to the library.  For more information see [Developing Modules](http://docs.ansible.com/ansible/developing_modules.html) in the ansible documentation.
+Use ansible to configure a running girder instance. Currently this supports configuring users and assetstores. Additionally the module supports non-idempotent ```get```, ```put```, ```post```, and ```delete``` API requests.  You can install this module by copying ```girder.py``` out of the girder source tree and placing it in a ```library/``` folder alongside your top level playbooks. You may also modify the ```ANSIBLE_LIBRARY``` environment variable,  or pass a custom ```--module-path``` to ansible-playbook to provide access to the library.  For more information see [Developing Modules](http://docs.ansible.com/ansible/developing_modules.html) in the ansible documentation.
 
 ### Important Note:
 The girder ansible module relies on the girder-client to do most of the heavy lifting.  You must ensure that girder-client is installed in your environment before attempting to use the girder module. For most use cases this means simply installing the girder-client utility before using the girder module.
@@ -60,39 +60,6 @@ The girder ansible module relies on the girder-client to do most of the heavy li
 ```
 
 
-### Example using 'plugins'
-To enable or disable all plugins you may pass the "*" argument.  This does not (yet) support arbitrary regexes.
-
-```yaml
-
-- name: Disable all plugins
-  girder:
-    username: "admin"
-    password: "letmein"
-    plugins: "*"
-    state: absent
-
-- name: Enable thumbnails plugin
-  girder:
-    username: "admin"
-    password: "letmein"
-    port: 8080
-    plugins:
-      - thumbnails
-    state: present
-
-- name: Ensure jobs and gravatar plugins are enabled
-  girder:
-    username: "admin"
-    password: "letmein"
-    plugins:
-      - jobs
-      - gravatar
-    state: present
-```
-**Note:** that the list of enabled plugins is now ```thumbnails```, ```jobs```, ```gravatar```. The 'plugins' task ensures that plugins are enabled or disabled, it does *not* define the complete list of enabled or disabled plugins. Additionally,  while the plugins are enabled they will not be active until the server is restarted. This should be achieved through another task (either through setting up girder as a system level task,  or through posting to system/restart).
-
-
 ### Filesystem Assetstore Tests
 
 ```yaml
@@ -145,12 +112,12 @@ Prints debugging messages with the emails of the users from the last task by acc
 Supports get, post, put, delete methods,  but does not guarantee idempotence on these methods!
 
 ```yaml
-- name: Restart the server
+- name: Run a system check
   girder:
     username: "admin"
     password: "letmein"
     put:
-      path: "system/restart"
+      path: "system/check"
 ```
 
 An example of posting an item to Girder Note that this is NOT idempotent. Running multiple times will create "An Item", "An Item (1)", "An Item (2)", etc..

@@ -16,7 +16,7 @@ server.  For example, if you have a server accepting requests at
 
 Anytime you deploy behind a proxy, Girder must be configured properly in order to serve
 content correctly.  This can be accomplished by setting a few parameters in
-your local configuration file at ``girder/conf/girder.local.cfg``.  In this
+your local configuration file (see :ref:`Configuration <configuration>`).  In this
 example, we have the following:
 
 .. code-block:: ini
@@ -270,11 +270,6 @@ Build Girder and its client-side assets locally: ::
 .. seealso::
 
    `Building specific plugins with pip <http://girder.readthedocs.io/en/latest/installation.html#installing-extra-dependencies-with-pip>`_.
-
-.. note:: Since Girder is unable to restart and load plugins in the Beanstalk environment,
-	  plugins may be enabled/disabled but will require a restart of Beanstalk application
-	  servers to take effect. Restarting application servers can be performed from the
-	  `Environment Management Console <http://docs.aws.amazon.com/elasticbeanstalk/latest/dg/environments-console.html>`_.
 
 Create a requirements.txt for the Beanstalk application, overwriting the default Girder requirements.txt: ::
 

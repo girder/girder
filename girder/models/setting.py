@@ -27,7 +27,6 @@ from ..constants import GIRDER_ROUTE_ID, SettingDefault, SettingKey
 from .model_base import Model
 from girder import logprint
 from girder.exceptions import ValidationException
-from girder.plugin import getPlugin
 from girder.utility import config, setting_utilities
 from girder.utility._cache import cache
 from bson.objectid import ObjectId
@@ -213,21 +212,6 @@ class Setting(Model):
         return config.getConfig()['server']['mode'] == 'production'
 
     @staticmethod
-    @setting_utilities.validator(SettingKey.PLUGINS_ENABLED)
-    def validateCorePluginsEnabled(doc):
-        """
-        Ensures that the set of plugins passed in is a list of valid plugin
-        names. Removes any invalid plugin names, removes duplicates, and adds
-        all transitive dependencies to the enabled list.
-        """
-        if not isinstance(doc['value'], list):
-            raise ValidationException('Plugins enabled setting must be a list.', 'value')
-
-        for pluginName in doc['value']:
-            if getPlugin(pluginName) is None:
-                raise ValidationException('Required plugin %s does not exist.' % pluginName)
-
-    @staticmethod
     @setting_utilities.validator(SettingKey.ADD_TO_GROUP_POLICY)
     def validateCoreAddToGroupPolicy(doc):
         doc['value'] = doc['value'].lower()
@@ -277,11 +261,11 @@ class Setting(Model):
 
     @staticmethod
     @setting_utilities.validator(SettingKey.STATIC_PUBLIC_PATH)
-    def validateCoreStaticRoot(doc):
+    def validateCoreStaticPublicPath(doc):
         val = doc['value']
         if not (val.startswith('/') or re.match('^https?://', val)):
             raise ValidationException(
-                'Static root must begin with a forward slash or contain a URL scheme.')
+                'Static public path must begin with a forward slash or contain a URL scheme.')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.CORS_ALLOW_METHODS)

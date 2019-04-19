@@ -5,7 +5,6 @@ import AccessWidget from '@girder/core/views/widgets/AccessWidget';
 import View from '@girder/core/views/View';
 import events from '@girder/core/events';
 import { restRequest, cancelRestRequests } from '@girder/core/rest';
-import { restartServerPrompt } from '@girder/core/server';
 import CollectionCreationPolicyModel from '@girder/core/models/CollectionCreationPolicyModel';
 
 import SystemConfigurationTemplate from '@girder/core/templates/body/systemConfiguration.pug';
@@ -78,7 +77,6 @@ var SystemConfigurationView = View.extend({
                 this.$('#g-settings-error-message').text(resp.responseJSON.message);
             });
         },
-        'click #g-restart-server': restartServerPrompt,
         'click #g-core-banner-default-color': function () {
             this.$('#g-core-banner-color').val(this.defaults['core.banner_color']);
         }
@@ -154,7 +152,7 @@ var SystemConfigurationView = View.extend({
 
         var enableCollectionCreationPolicy = this.settings['core.collection_create_policy'] ? this.settings['core.collection_create_policy'].open : false;
 
-        this.$('.g-plugin-switch')
+        this.$('.g-setting-switch')
             .bootstrapSwitch()
             .bootstrapSwitch('state', enableCollectionCreationPolicy)
             .off('switchChange.bootstrapSwitch')
@@ -194,8 +192,8 @@ var SystemConfigurationView = View.extend({
     _covertCollectionCreationPolicy: function () {
         // get collection creation policy from AccessWidget and format the result properly
         var settingValue = null;
-        if (this.$('.g-plugin-switch').bootstrapSwitch('state')) {
-            settingValue = { open: this.$('.g-plugin-switch').bootstrapSwitch('state') };
+        if (this.$('.g-setting-switch').bootstrapSwitch('state')) {
+            settingValue = { open: this.$('.g-setting-switch').bootstrapSwitch('state') };
             var accessList = this.accessWidget.getAccessList();
             _.each(_.keys(accessList), (key) => {
                 settingValue[key] = _.pluck(accessList[key], 'id');

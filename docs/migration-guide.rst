@@ -301,14 +301,20 @@ The cookie access decorator has been removed
 
 The ``@access.cookie`` decorator has been removed.  To allow cookie authentication on an endpoint, include ``cookie=True`` as a parameter to one of the other access decorators (e.g., ``@access.user(cookie=True)``).
 
+Storing girder.local.cfg inside the package directory is no longer supported
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In order to facilitate the ability to upgrade Girder using ``pip``, the user configuration file
+can no longer be stored inside the package directory since it would be deleted on upgrade. Users must
+now store their configuration in one of the approved locations, or use ``GIRDER_CONFIG`` to specify
+the exact location. See :ref:`the configuration documentation <configuration>` for more details.
+
 Removed or moved plugins
 ++++++++++++++++++++++++
 
 Many plugins were either deleted from the main repository, or moved to other repositories. Plugins
-that were moved to other repositories will no longer be installed via the ``[plugins]`` extra when
-installing the ``girder`` python package, but can be installed by
-``pip install girder-[plugin_name]``. If you were depending on a plugin that was deleted
-altogether, please reach out to us on Discourse for discussion of a path forward.
+are no longer installable via a ``[plugins]`` extra when installing the ``girder`` Python package;
+rather, all are installed by ``pip install girder-[plugin_name]``. If you were depending on a plugin
+that was deleted altogether, please reach out to us on Discourse for discussion of a path forward.
 
 The following plugins were **deleted**:
 

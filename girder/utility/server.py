@@ -42,11 +42,6 @@ def _errorDefault(status, message, *args, **kwargs):
     return mako.template.Template(_errorTemplate).render(status=status, message=message)
 
 
-def getPlugins():
-    plugins = Setting().get(constants.SettingKey.PLUGINS_ENABLED, default=())
-    return plugins
-
-
 def getApiRoot():
     return config.getConfig()['server']['api_root']
 
@@ -60,7 +55,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
     :type test: bool
     :param plugins: If you wish to start the server with a custom set of
         plugins, pass this as a list of plugins to load. Otherwise,
-        will use the PLUGINS_ENABLED setting value from the db.
+        all installed plugins will be loaded.
     :param curConfig: The configuration dictionary to update.
     """
     if curConfig is None:
@@ -88,7 +83,6 @@ def configureServer(test=False, plugins=None, curConfig=None):
         curConfig.update({'server': {
             'mode': 'testing',
             'api_root': 'api/v1',
-            'cherrypy_server': True
         }})
 
     mode = curConfig['server']['mode'].lower()
@@ -108,9 +102,6 @@ def configureServer(test=False, plugins=None, curConfig=None):
     cherrypy.engine.subscribe('start', girder.events.daemon.start)
     cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
 
-    if plugins is None:
-        plugins = getPlugins()
-
     routeTable = loadRouteTable()
     info = {
         'config': appconf,
@@ -119,7 +110,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
         'apiRoot': root.api.v1,
     }
 
-    plugin._loadPlugins(plugins, info)
+    plugin._loadPlugins(info, plugins)
     root, appconf = info['serverRoot'], info['config']
 
     return root, appconf

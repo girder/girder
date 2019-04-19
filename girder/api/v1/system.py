@@ -17,7 +17,7 @@
 #  limitations under the License.
 ###############################################################################
 
-import cherrypy.process.plugins
+import cherrypy
 import datetime
 import errno
 import girder
@@ -28,7 +28,7 @@ import logging
 import traceback
 
 from girder.api import access
-from girder.constants import GIRDER_ROUTE_ID, SettingKey, TokenScope, ACCESS_FLAGS, VERSION
+from girder.constants import TokenScope, ACCESS_FLAGS, VERSION
 from girder.exceptions import GirderException, ResourcePathNotFound, RestException
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -62,8 +62,6 @@ class System(Resource):
         self.route('GET', ('plugins',), self.getPlugins)
         self.route('GET', ('access_flag',), self.getAccessFlags)
         self.route('PUT', ('setting',), self.setSetting)
-        self.route('PUT', ('plugins',), self.enablePlugins)
-        self.route('PUT', ('restart',), self.restartServer)
         self.route('GET', ('uploads',), self.getPartialUploads)
         self.route('DELETE', ('uploads',), self.discardPartialUploads)
         self.route('GET', ('check',), self.systemStatus)
@@ -154,9 +152,9 @@ class System(Resource):
             self.requireParams({'key': key})
             return getFunc(key, **funcParams)
 
-    @access.admin(scope=TokenScope.PLUGINS_ENABLED_READ)
+    @access.admin(scope=TokenScope.PLUGINS_READ)
     @autoDescribeRoute(
-        Description('Get the lists of all available and all enabled plugins.')
+        Description('Get the lists of all available and all loaded plugins.')
         .notes('Must be a system administrator to call this.')
         .errorResponse('You are not a system administrator.', 403)
     )
@@ -172,7 +170,6 @@ class System(Resource):
 
         plugins = {
             'all': {name: _pluginNameToResponse(name) for name in plugin.allPlugins()},
-            'enabled': Setting().get(SettingKey.PLUGINS_ENABLED),
             'loaded': plugin.loadedPlugins()
         }
         failureInfo = {
@@ -192,37 +189,6 @@ class System(Resource):
         version = dict(**VERSION)
         version['serverStartDate'] = ModuleStartTime
         return version
-
-    @access.admin
-    @autoDescribeRoute(
-        Description('Set the list of enabled plugins for the system.')
-        .responseClass('Setting')
-        .notes('Must be a system administrator to call this.')
-        .jsonParam('plugins', 'JSON array of plugins to enable.', requireArray=True)
-        .errorResponse('Required dependencies do not exist.', 500)
-        .errorResponse('You are not a system administrator.', 403)
-    )
-    def enablePlugins(self, plugins):
-        # Determine what plugins have been disabled and remove their associated routes.
-        setting = Setting()
-        routeTable = setting.get(SettingKey.ROUTE_TABLE)
-        oldPlugins = setting.get(SettingKey.PLUGINS_ENABLED)
-        reservedRoutes = {GIRDER_ROUTE_ID}
-
-        routeTableChanged = False
-        removedRoutes = (
-            set(oldPlugins) - set(plugins) - reservedRoutes)
-
-        for route in removedRoutes:
-            if route in routeTable:
-                del routeTable[route]
-                routeTableChanged = True
-
-        if routeTableChanged:
-            setting.set(SettingKey.ROUTE_TABLE, routeTable)
-
-        # Route cleanup is done; update list of enabled plugins.
-        return setting.set(SettingKey.PLUGINS_ENABLED, plugins)
 
     @access.admin
     @autoDescribeRoute(
@@ -329,36 +295,6 @@ class System(Resource):
         if includeUntracked:
             uploadList += Upload().untrackedUploads('delete', assetstoreId)
         return uploadList
-
-    @access.admin
-    @autoDescribeRoute(
-        Description('Restart the Girder REST server.')
-        .notes('Must be a system administrator to call this.')
-        .errorResponse('You are not a system administrator.', 403)
-    )
-    def restartServer(self):
-        if not config.getConfig()['server'].get('cherrypy_server', True):
-            raise RestException('Restarting of server is disabled.', 403)
-
-        class Restart(cherrypy.process.plugins.Monitor):
-            def __init__(self, bus, frequency=1):
-                cherrypy.process.plugins.Monitor.__init__(
-                    self, bus, self.run, frequency)
-
-            def start(self):
-                cherrypy.process.plugins.Monitor.start(self)
-
-            def run(self):
-                self.bus.log('Restarting.')
-                self.thread.cancel()
-                self.bus.restart()
-
-        restart = Restart(cherrypy.engine)
-        restart.subscribe()
-        restart.start()
-        return {
-            'restarted': datetime.datetime.utcnow()
-        }
 
     @access.public
     @autoDescribeRoute(
