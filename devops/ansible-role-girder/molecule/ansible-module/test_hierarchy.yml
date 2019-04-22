@@ -1,0 +1,421 @@
+---
+# Add an initial user - this user will be admin
+- name: Create 'admin' User
+  girder:
+    port: 8080
+    user:
+      firstName: "John"
+      lastName: "Doe"
+      login: "admin"
+      password: "letmein"
+      email: "john.doe@test.com"
+      admin: true
+    state: present
+
+#########
+#  Test: Create 'alice' User with a Test Folder
+###
+
+
+# Create an 'alice' user
+# Don't forget folder list is idempotent, if you
+# want alice to have public and private folders you
+# must make sure to specify them!
+- name: Create 'alice' User with a Test Folder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Alice"
+      lastName: "Doe"
+      login: "alice"
+      password: "letmein"
+      email: "alice.doe@test.com"
+      folders:
+        - name: "Public"
+        - name: "Private"
+          public: false
+        - name: "Test Folder"
+          description: "A test user folder"
+    state: present
+  register: alice
+
+- name: Get user info from girder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "user/{{ alice['gc_return']['_id'] }}"
+  register: ret
+
+- assert:
+    that:
+      - ret['gc_return']['login'] == 'alice'
+
+
+- name: Get user folder info from girder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "folder"
+      parameters:
+        parentType: "user"
+        parentId: "{{ alice['gc_return']['_id'] }}"
+  register: ret
+
+- set_fact:
+    folders: "{{ dict(ret['gc_return']|groupby('name')) }}"
+
+- assert:
+    that:
+      - ret['gc_return']|length == 3
+      - "{{ 'Public' in folders }}"
+      - "{{ folders['Public'][0]['public'] == true }}"
+      - "{{ folders['Public'][0]['parentId'] == alice['gc_return']['_id'] }}"
+
+      - "{{ 'Private' in folders }}"
+      - "{{ folders['Private'][0]['public'] == false }}"
+      - "{{ folders['Private'][0]['parentId'] == alice['gc_return']['_id'] }}"
+
+      - "{{ 'Test Folder' in folders }}"
+      - "{{ folders['Test Folder'][0]['public'] == true }}"
+      - "{{ folders['Test Folder'][0]['parentId'] == alice['gc_return']['_id'] }}"
+      - "{{ folders['Test Folder'][0]['description'] == 'A test user folder' }}"
+
+
+########## Create 'alice' User with a Test Folder ##########
+
+# Create an 'bill' user
+- name: Create 'bill' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Bill"
+      lastName: "Doe"
+      login: "bill"
+      password: "letmein"
+      email: "bill.doe@test.com"
+    state: present
+
+# Create an 'chris' user
+- name: Create 'chris' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Chris"
+      lastName: "Doe"
+      login: "chris"
+      password: "letmein"
+      email: "chris.doe@test.com"
+    state: present
+
+- name: Create a test group with users
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group"
+      users:
+        - login: alice
+          type: member
+        - login: chris
+          type: admin
+    state: present
+
+
+- name: Make sure collection is not present
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+    state: absent
+
+#########
+#  Test: Create collection with a folder
+###
+
+- name: Create collection with a folder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      folders:
+        - name: "test folder"
+          description: "A test folder"
+  register: test_collection
+
+
+- name: Get user folder info from girder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "folder"
+      parameters:
+        parentType: "collection"
+        parentId: "{{ test_collection['gc_return']['_id'] }}"
+  register: ret
+
+- set_fact:
+    folders: "{{ dict(ret['gc_return']|groupby('name')) }}"
+
+- assert:
+    that:
+      - ret['gc_return'] | length == 1
+      - "{{ 'test folder' in folders }}"
+      - "{{ folders['test folder'][0]['parentId'] == test_collection['gc_return']['_id'] }}"
+
+######## End Tests Create collection with a folder ###########
+
+
+#########
+# Test: Add a second folder
+###
+
+- name: Add a second folder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      folders:
+        - name: "test folder"
+          description: "A test folder"
+        - name: "test folder 2"
+          description: "A test folder"
+  register: test_collection
+
+- name: Get user folder info from girder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "folder"
+      parameters:
+        parentType: "collection"
+        parentId: "{{ test_collection['gc_return']['_id'] }}"
+  register: ret
+
+- set_fact:
+    folders: "{{ dict(ret['gc_return']|groupby('name')) }}"
+
+- assert:
+    that:
+      - ret['gc_return'] | length == 2
+      - "{{ 'test folder' in folders }}"
+      - "{{ folders['test folder'][0]['parentId'] == test_collection['gc_return']['_id'] }}"
+      - "{{ 'test folder 2' in folders }}"
+      - "{{ folders['test folder 2'][0]['parentId'] == test_collection['gc_return']['_id'] }}"
+
+########## End Tests Add a second folder ##########
+
+
+#########
+# Test: Remove a folder, add another folder
+###
+
+
+- name: Remove a folder, add another folder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      folders:
+        - name: "test folder"
+          description: "A test folder"
+        - name: "test folder 3"
+          description: "A test folder"
+  register: test_collection
+
+- name: Get user folder info from girder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "folder"
+      parameters:
+        parentType: "collection"
+        parentId: "{{ test_collection['gc_return']['_id'] }}"
+  register: ret
+
+- set_fact:
+    folders: "{{ dict(ret['gc_return']|groupby('name')) }}"
+
+- assert:
+    that:
+      - ret['gc_return'] | length == 2
+      - "{{ 'test folder' in folders }}"
+      - "{{ folders['test folder'][0]['parentId'] == test_collection['gc_return']['_id'] }}"
+      - "{{ 'test folder 2' not in folders }}"
+      - "{{ 'test folder 3' in folders }}"
+      - "{{ folders['test folder 3'][0]['parentId'] == test_collection['gc_return']['_id'] }}"
+
+
+########## End Tests Remove a folder, add another folder ##########
+
+#########
+# Test: Create collection with a subfolder
+###
+
+- name: Remove Test Collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+    state: absent
+
+
+- name: Create collection with a subfolder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      folders:
+        - name: "test folder"
+          description: "A test folder"
+          folders:
+            - name: "test subfolder"
+            - name: "test subfolder 2"
+  register: test_collection
+
+- name: Get user folder info from girder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "folder"
+      parameters:
+        parentType: "collection"
+        parentId: "{{ test_collection['gc_return']['_id'] }}"
+  register: folder_ret
+
+- set_fact:
+    folders: "{{ dict(folder_ret['gc_return']|groupby('name')) }}"
+
+- assert:
+    that:
+      - folder_ret['gc_return'] | length == 1
+      - "{{ 'test folder' in folders }}"
+      - "{{ folders['test folder'][0]['parentId'] == test_collection['gc_return']['_id'] }}"
+
+- name: Get sub folder info from girder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "folder"
+      parameters:
+        parentType: "folder"
+        parentId: "{{ folder_ret['gc_return'][0]['_id'] }}"
+  register: ret
+
+- set_fact:
+    folders: "{{ dict(ret['gc_return']|groupby('name')) }}"
+
+- assert:
+    that:
+      - folder_ret['gc_return'] | length == 1
+      - "{{ 'test subfolder' in folders }}"
+      - "{{ folders['test subfolder'][0]['parentId'] == folder_ret['gc_return'][0]['_id'] }}"
+      - "{{ 'test subfolder 2' in folders }}"
+      - "{{ folders['test subfolder 2'][0]['parentId'] == folder_ret['gc_return'][0]['_id'] }}"
+
+########## End Tests Create collection with a subfolder ##########
+
+
+#########
+# Clean up
+###
+
+- name: Remove Test Collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+    state: absent
+
+# Remove test Group
+- name: Remove test group
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group"
+    state: absent
+
+
+- name: Remove 'alice' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Alice"
+      lastName: "Doe"
+      login: "alice"
+      password: "letmein"
+      email: "alice.doe@test.com"
+    state: absent
+
+- name: Remove 'bill' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Bill"
+      lastName: "Doe"
+      login: "bill"
+      password: "letmein"
+      email: "bill.doe@test.com"
+    state: absent
+
+- name: Remove 'chris' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Chris"
+      lastName: "Doe"
+      login: "chris"
+      password: "letmein"
+      email: "chris.doe@test.com"
+    state: absent

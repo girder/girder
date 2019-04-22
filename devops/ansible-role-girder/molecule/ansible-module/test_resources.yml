@@ -1,0 +1,358 @@
+---
+# Add an initial user - this user will be admin
+- name: Create 'admin' User
+  girder:
+    port: 8080
+    user:
+      firstName: "John"
+      lastName: "Doe"
+      login: "admin"
+      password: "letmein"
+      email: "john.doe@test.com"
+      admin: true
+    state: present
+
+############
+# Collection tests
+#
+- name: Create collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+  register: test_collection
+
+- assert:
+    that:
+      - test_collection["gc_return"]["name"] == "Test Collection"
+      - test_collection["gc_return"]["description"] == "A test collection"
+
+- name: Create collection with same values (should not show changed)
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+  register: test_collection
+
+- assert:
+    that:
+      - test_collection.changed == false
+
+- name: Change test collection description
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection with a different description"
+  register: test_collection
+
+- assert:
+    that:
+      - test_collection.changed
+      - test_collection["gc_return"]["name"] == "Test Collection"
+      - test_collection["gc_return"]["description"] == "A test collection with a different description"
+
+# Get current collections
+- girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "collection"
+  register: ret
+
+- set_fact:
+    num_collections: '{{ ret["gc_return"]|length }}'
+
+- name: Delete the test collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      id: "{{ test_collection['gc_return']['_id'] }}"
+      name: "Test Collection"
+    state: absent
+
+# Get current collections
+- girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "collection"
+  register: ret
+
+- assert:
+    that:
+      - '{{ ret["gc_return"]|length == (num_collections|int - 1 ) }}'
+
+
+- name: Try to delete the text collection again (should show no change)
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      id: "{{ test_collection['gc_return']['_id'] }}"
+      name: "Test Collection"
+    state: absent
+  register: test_collection
+
+- assert:
+    that:
+      - test_collection.changed == false
+
+############
+# Folder tests
+#
+
+- name: Create collection for folder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+  register: test_collection
+
+
+- name: Create folder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    folder:
+      parentType: "collection"
+      parentId: "{{test_collection['gc_return']['_id'] }}"
+      name: "test folder"
+      description: "A test folder"
+  register: test_folder
+
+- girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "folder/{{ test_folder['gc_return']['_id'] }}"
+  register: ret
+
+- assert:
+    that:
+      - ret['gc_return']['name'] == 'test folder'
+      - ret['gc_return']['parentId'] == test_collection['gc_return']['_id']
+
+
+- name: Create a subfolder (test parent type 'folder')
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    folder:
+      parentType: "folder"
+      parentId: "{{test_folder['gc_return']['_id'] }}"
+      name: "test subfolder"
+      description: "A test subfolder"
+  register: test_subfolder
+
+- girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "folder/{{ test_subfolder['gc_return']['_id'] }}"
+  register: ret
+
+- assert:
+    that:
+      - ret['gc_return']['name'] == 'test subfolder'
+      - ret['gc_return']['parentId'] == test_folder['gc_return']['_id']
+
+
+- name: Try to create a subfolder (should show no change)
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    folder:
+      parentType: "folder"
+      parentId: "{{test_folder['gc_return']['_id'] }}"
+      name: "test subfolder"
+      description: "A test subfolder"
+
+- assert:
+    that:
+      - ret.changed == false
+
+- name: Update subfolder description (should show change)
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    folder:
+      parentType: "folder"
+      parentId: "{{test_folder['gc_return']['_id'] }}"
+      name: "test subfolder"
+      description: "A test subfolder (different description)"
+  register: subfolder
+
+- assert:
+    that:
+      - subfolder.changed
+
+
+- name: Delete the subfolder from the collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    folder:
+      parentType: "folder"
+      parentId: "{{test_folder['gc_return']['_id'] }}"
+      name: "test subfolder"
+    state: absent
+
+- girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "folder/{{ test_folder['gc_return']['_id'] }}/details"
+  register: ret
+
+- assert:
+    that:
+      - ret['gc_return']['nFolders'] == 0
+      - ret['gc_return']['nItems'] == 0
+
+- name: Delete the test collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      id: "{{ test_collection['gc_return']['_id'] }}"
+      name: "Test Collection"
+    state: absent
+
+############
+# Item tests
+#
+- name: Create collection for folder for an item
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+  register: test_collection
+
+
+- name: Create a folder for an item
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    folder:
+      parentType: "collection"
+      parentId: "{{test_collection['gc_return']['_id'] }}"
+      name: "test folder"
+      description: "A test folder"
+  register: test_folder
+
+- name: Create an item
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    item:
+      folderId: "{{test_folder['gc_return']['_id'] }}"
+      name: "test item"
+      description: "A test item"
+  register: test_item
+
+- girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "folder/{{ test_folder['gc_return']['_id'] }}/details"
+  register: ret
+
+- assert:
+    that:
+      - ret['gc_return']['nItems'] == 1
+
+- name: Create an item (should not show change)
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    item:
+      folderId: "{{test_folder['gc_return']['_id'] }}"
+      name: "test item"
+      description: "A test item"
+  register: test_item
+
+- assert:
+    that:
+      - test_item.changed == false
+
+- name: Update item (different description)
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    item:
+      folderId: "{{test_folder['gc_return']['_id'] }}"
+      name: "test item"
+      description: "A test item (different description)"
+  register: test_item
+
+- assert:
+    that:
+      - test_item.changed
+
+- name: Delete item
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    item:
+      folderId: "{{test_folder['gc_return']['_id'] }}"
+      name: "test item"
+    state: absent
+
+- girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "folder/{{ test_folder['gc_return']['_id'] }}/details"
+  register: ret
+
+- assert:
+    that:
+      - ret['gc_return']['nItems'] == 0
+
+
+- name: Delete collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+    state: absent
+  register: test_collection

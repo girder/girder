@@ -1,0 +1,16 @@
+---
+- name: Add NodeJS PPA key
+  apt_key:
+    keyserver: "keyserver.ubuntu.com"
+    id: "68576280"
+  become: true
+
+- name: Add NodeJS PPA
+  apt_repository:
+    repo: "deb https://deb.nodesource.com/node_10.x {{ ansible_distribution_release }} main"
+  become: true
+
+- name: Install NodeJS package
+  apt:
+    name: nodejs
+  become: true

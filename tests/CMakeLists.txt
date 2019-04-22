@@ -23,7 +23,7 @@ if(RUN_CORE_TESTS)
   add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/tests")
   add_python_style_test(python_static_analysis_core_pytest_girder "${PROJECT_SOURCE_DIR}/pytest_girder")
   add_python_style_test(python_static_analysis_ansible_client_tests
-    "${PROJECT_SOURCE_DIR}/devops/ansible/roles/girder/library")
+    "${PROJECT_SOURCE_DIR}/devops/ansible-role-girder/library")
 
   # These are performed approximately in the order listed.
   add_python_test(api_describe)

@@ -1,0 +1,143 @@
+---
+# Add an initial user - this user will be admin
+- name: Create 'admin' User
+  girder:
+    port: 8080
+    user:
+      firstName: "John"
+      lastName: "Doe"
+      login: "admin"
+      password: "letmein"
+      email: "john.doe@test.com"
+      admin: true
+    state: present
+  register: gc_return
+
+- name: Get current users
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "user"
+  register: ret
+
+# More than one user
+# First user's login is 'admin'
+# First user has admin priviledges
+- assert:
+    that:
+      - ret["gc_return"]|length > 0
+      - ret["gc_return"][0]["login"] == "admin"
+      - ret["gc_return"][0]["admin"]
+
+
+# Should show 'ok' rather than 'changed' because
+# There is no actual update
+- name: Update 'admin' User (No actual update)
+  girder:
+    port: 8080
+    user:
+      firstName: "John"
+      lastName: "Doe"
+      login: "admin"
+      password: "letmein"
+      email: "john.doe@test.com"
+      admin: true
+    state: present
+  register: ret
+
+# Last action reported no change
+- assert:
+    that:
+      - ret.changed == false
+
+
+# Should show 'changed'  because we update the name
+# Note that 'login' and 'password' cannot but updated
+- name: Update 'admin' User (John => Jack)
+  girder:
+    port: 8080
+    user:
+      firstName: "Jack"
+      lastName: "Doe"
+      login: "admin"
+      password: "letmein"
+      email: "john.doe@test.com"
+      admin: true
+    state: present
+  register: ret
+
+# Last action reported a change
+- assert:
+    that:
+      - ret.changed
+
+- name: Get current users
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "user"
+  register: ret
+
+# Capture number of current users
+- set_fact:
+    num_users: '{{ ret["gc_return"]|length|int }}'
+
+# Create a 'foobar' user
+- name: Create 'foobar' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Foo"
+      lastName: "Bar"
+      login: "foobar"
+      password: "foobarbaz"
+      email: "foo.bar@test.com"
+      admin: true
+    state: present
+
+- name: Get current users
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "user"
+  register: ret
+
+# Number of current users should be one more than previous
+#   number of users
+- assert:
+    that:
+      - '{{ ret["gc_return"]|length == (num_users|int + 1 ) }}'
+
+# Remove the 'foobar' user
+- name: Remove 'foobar' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      login: "foobar"
+      password: "foobarbaz"
+    state: absent
+
+- name: Get current users
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "user"
+  register: ret
+
+# Current number of users should be equal to the previous
+#  number of users
+- assert:
+    that:
+      - '{{ ret["gc_return"]|length == num_users|int }}'

@@ -1,0 +1,5 @@
+---
+girder_package: "girder"
+girder_pip_extra_args: "--pre"  # TODO Remove when Girder3 is released
+girder_web: true
+girder_daemonize: true

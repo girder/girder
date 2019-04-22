@@ -1,0 +1,36 @@
+---
+- name: Install Girder system dependencies
+  apt:
+    name:
+      - build-essential
+  become: true
+  become_user: root
+
+- import_tasks: nodejs.yml
+
+- name: Install Girder
+  pip:
+    name: "{{ girder_package }}"
+    version: "{{ girder_version|default(omit) }}"
+    extra_args: "{{ girder_pip_extra_args|default(omit) }}"
+    virtualenv: "{{ girder_virtualenv }}"
+  notify:
+    - Build Girder web client
+    - Restart Girder
+
+# Setup systemd service
+- block:
+    - name: Install Girder service
+      template:
+        src: "daemon/girder.service.j2"
+        dest: "/etc/systemd/system/girder.service"
+      notify: Restart Girder
+
+    - name: Enable Girder service on boot
+      systemd:
+        name: girder
+        daemon_reload: true
+        enabled: true
+  become: true
+  become_user: root
+  when: girder_daemonize

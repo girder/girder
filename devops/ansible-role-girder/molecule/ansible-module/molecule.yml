@@ -1,0 +1,34 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+lint:
+  name: yamllint
+platforms:
+  - name: instance
+    box: bento/ubuntu-18.04
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+    options:
+      x:
+        - "ANSIBLE0011"  # All tasks should be named
+scenario:
+  name: ansible-module
+  # Redefine the test_sequence to exclude idempotence and verify.
+  # Currently, the verification is just running the test* playbooks, and they
+  # are not idempotent.
+  test_sequence:
+    - lint
+    - destroy
+    - dependency
+    - syntax
+    - create
+    - prepare
+    - converge
+    - side_effect
+    - destroy
