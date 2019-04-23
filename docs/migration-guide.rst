@@ -308,6 +308,12 @@ can no longer be stored inside the package directory since it would be deleted o
 now store their configuration in one of the approved locations, or use ``GIRDER_CONFIG`` to specify
 the exact location. See :ref:`the configuration documentation <configuration>` for more details.
 
+Invoking Girder and Girder Client with python -m is no longer supported
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using ``python -m girder`` and ``python -m girder-cli`` was deprecated in Girder 2.5 and is no longer supported.
+Users are expected to have the appropriate packages installed and then use ``girder serve`` and ``girder-client``
+respectively.
+
 Removed or moved plugins
 ++++++++++++++++++++++++
 
