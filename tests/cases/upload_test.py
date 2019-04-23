@@ -113,17 +113,18 @@ class UploadTestCase(base.TestCase):
         if partial is not False and partial == 0:
             return upload
         if 's3' not in upload:
-            fields = [('offset', 0), ('uploadId', upload['_id'])]
-            files = [('chunk', 'helloWorld.txt', chunk1)]
-            resp = self.multipartRequest(
-                path='/file/chunk', user=self.user, fields=fields, files=files)
+            resp = self.request(
+                path='/file/chunk', method='POST', user=self.user, body=chunk1, params={
+                    'uploadId': upload['_id']
+                }, type='text/plain')
             self.assertStatusOk(resp)
             if partial is not False:
                 return resp.json
-            fields = [('offset', len(chunk1)), ('uploadId', upload['_id'])]
-            files = [('chunk', 'helloWorld.txt', chunk2)]
-            resp = self.multipartRequest(
-                path='/file/chunk', user=self.user, fields=fields, files=files)
+            resp = self.request(
+                path='/file/chunk', method='POST', user=self.user, body=chunk2, params={
+                    'offset': len(chunk1),
+                    'uploadId': upload['_id']
+                }, type='text/plain')
             self.assertStatusOk(resp)
             return upload
         # s3 uses a different method for uploading chunks

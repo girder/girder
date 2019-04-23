@@ -113,9 +113,10 @@ class AuthorizedUploadTest(base.TestCase):
         self.assertStatus(resp, 401)
 
         # Uploading a chunk should work with the token
-        fields = [('offset', 0), ('uploadId', str(upload['_id']))]
-        files = [('chunk', 'hello.txt', 'hello ')]
-        resp = self.multipartRequest(path='/file/chunk', token=tokenId, fields=fields, files=files)
+        resp = self.request(
+            path='/file/chunk', method='POST', token=tokenId, body='hello ', params={
+                'uploadId': str(upload['_id'])
+            }, type='text/plain')
         self.assertStatusOk(resp)
 
         # Requesting our offset should work with the token
@@ -127,15 +128,19 @@ class AuthorizedUploadTest(base.TestCase):
         self.assertEqual(resp.json['offset'], 6)
 
         # Upload the second chunk
-        fields = [('offset', 6), ('uploadId', str(upload['_id']))]
-        files = [('chunk', 'hello.txt', 'world')]
-        resp = self.multipartRequest(path='/file/chunk', token=tokenId, fields=fields, files=files)
+        resp = self.request(
+            path='/file/chunk', method='POST', token=tokenId, body='world', params={
+                'offset': 6,
+                'uploadId': str(upload['_id'])
+            }, type='text/plain')
         self.assertStatusOk(resp)
 
         # Trying to upload more chunks should fail
-        fields = [('offset', 11), ('uploadId', str(upload['_id']))]
-        files = [('chunk', 'hello.txt', 'more bytes')]
-        resp = self.multipartRequest(path='/file/chunk', token=tokenId, fields=fields, files=files)
+        resp = self.request(
+            path='/file/chunk', method='POST', token=tokenId, body='extra', params={
+                'offset': 11,
+                'uploadId': str(upload['_id'])
+            }, type='text/plain')
         self.assertStatus(resp, 401)
 
         # The token should be destroyed

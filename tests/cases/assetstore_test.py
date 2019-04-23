@@ -847,10 +847,10 @@ class AssetstoreTestCase(base.TestCase):
             path='/file', method='POST', user=self.admin, params=params)
         self.assertStatusOk(resp)
         upload = resp.json
-        fields = [('offset', 0), ('uploadId', upload['_id'])]
-        files = [('chunk', 'helloWorld.txt', uploadData)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.admin, fields=fields, files=files)
+        resp = self.request(
+            path='/file/chunk', method='POST', user=self.admin, body=uploadData, params={
+                'uploadId': upload['_id']
+            }, type='text/plain')
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['assetstoreId'], fs_assetstore['_id'])
         uploadedFiles = [resp.json]
@@ -861,10 +861,10 @@ class AssetstoreTestCase(base.TestCase):
             path='/file', method='POST', user=self.admin, params=params)
         self.assertStatusOk(resp)
         upload = resp.json
-        fields = [('offset', 0), ('uploadId', upload['_id'])]
-        files = [('chunk', 'helloWorld.txt', uploadData)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.admin, fields=fields, files=files)
+        resp = self.request(
+            path='/file/chunk', method='POST', user=self.admin, body=uploadData, params={
+                'uploadId': upload['_id']
+            }, type='text/plain')
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['assetstoreId'], gridfs_assetstore['_id'])
         uploadedFiles.append(resp.json)
@@ -880,9 +880,11 @@ class AssetstoreTestCase(base.TestCase):
             user=self.admin, params=replaceParams)
         self.assertStatusOk(resp)
         upload = resp.json
-        fields = [('offset', 0), ('uploadId', upload['_id'])]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.admin, fields=fields, files=files)
+
+        resp = self.request(
+            path='/file/chunk', method='POST', user=self.admin, body=uploadData, params={
+                'uploadId': upload['_id']
+            }, type='text/plain')
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['assetstoreId'], gridfs_assetstore['_id'])
         uploadedFiles[0] = resp.json
