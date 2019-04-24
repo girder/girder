@@ -26,9 +26,9 @@ import sys
 import click
 import six
 
-from girder.constants import SettingKey, STATIC_ROOT_DIR
-from girder.models.setting import Setting
+from girder.constants import STATIC_ROOT_DIR
 from girder.plugin import allPlugins, getPlugin
+from girder.utility import server
 
 # monkey patch shutil for python < 3
 if not six.PY3:
@@ -48,8 +48,7 @@ _GIRDER_BUILD_ASSETS_PATH = os.path.realpath(resource_filename('girder', 'web_cl
               help='Full path to the npm executable to use.')
 @click.option('--reinstall/--no-reinstall', default=True,
               help='Force regenerate node_modules.')
-@click.option('--static-public-path', help='URL public path of static content.')
-def main(dev, watch, watch_plugin, npm, reinstall, static_public_path):
+def main(dev, watch, watch_plugin, npm, reinstall):
     if shutil.which(npm) is None:
         raise click.UsageError(
             'No npm executable was detected.  Please ensure the npm executable is in your '
@@ -81,8 +80,7 @@ def main(dev, watch, watch_plugin, npm, reinstall, static_public_path):
     buildCommand = [
         npm, 'run', 'build', '--',
         '--static-path=%s' % STATIC_ROOT_DIR,
-        '--static-public-path=%s' % (
-            static_public_path or Setting().get(SettingKey.STATIC_PUBLIC_PATH)),
+        '--static-public-path=%s' % server.getStaticPublicPath(),
         quiet
     ]
     if watch:

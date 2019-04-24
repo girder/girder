@@ -45,6 +45,10 @@ def getApiRoot():
     return config.getConfig()['server']['api_root']
 
 
+def getStaticPublicPath():
+    return config.getConfig()['server']['static_public_path']
+
+
 def configureServer(test=False, plugins=None, curConfig=None):
     """
     Function to setup the cherrypy server. It configures it, but does

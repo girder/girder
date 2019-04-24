@@ -169,16 +169,6 @@ form.g-settings-form(role="form")
           title="The password, if any, used to authenticate to the SMTP server used to send emails.")
 
   .g-settings-form-container
-    h4 Client configuration
-    .form-group
-      label(for="g-core-static-public-path") Static public path
-      input#g-core-static-public-path.form-control.input-sm(
-          type="text",
-          value=settings['core.static_public_path'] || '',
-          placeholder=`Default: ${defaults['core.static_public_path']}`,
-          title="The path where clients should expect to fetch static content.")
-
-  .g-settings-form-container
     h4 Routing
     p.
       Altering routes requires a restart of the Girder server to take effect.

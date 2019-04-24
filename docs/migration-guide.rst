@@ -186,13 +186,18 @@ are installed into a virtual environment specific static path ``{sys.prefix}/sha
 Static public path is required during web client build
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The static `public path <https://webpack.js.org/guides/public-path/>`_, indicating the base URL
-where web client files are served from, is now required when the web client is built. Most
+where web client files are served from, must now be known when the web client is built. Most
 deployments can simply accept the default value of ``/static``, unless serving Girder from a CDN or
 mounting at a subpath using a reverse proxy.
 
-If the static public path setting is changed, the web client must be immediately rebuilt. When the
-web client is built without access to database settings, ``girder build --static-public-path ..``
-can be used to pass the static public path.
+The static public path may be changed via the config file:
+
+.. code-block:: ini
+
+    [server]
+    static_public_path = "/someprefix/static"
+
+If the static public path setting is changed, the web client must be immediately rebuilt.
 
 The static public path setting replaces all previous "static root" functionality. Accordingly:
 

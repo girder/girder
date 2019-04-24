@@ -460,7 +460,7 @@ class ApiDocs(WebrootBase):
     def _renderHTML(self):
         from girder.utility import server
         self.vars['apiRoot'] = server.getApiRoot()
-        self.vars['staticPublicPath'] = Setting().get(SettingKey.STATIC_PUBLIC_PATH)
+        self.vars['staticPublicPath'] = server.getStaticPublicPath()
         self.vars['brandName'] = Setting().get(SettingKey.BRAND_NAME)
         return super(ApiDocs, self)._renderHTML()
 
