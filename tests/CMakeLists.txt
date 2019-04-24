@@ -20,7 +20,8 @@ if(RUN_CORE_TESTS)
   add_eslint_test(swagger girder/web_client/static/girder-swagger.js)
 
   add_python_style_test(python_static_analysis_core "${PROJECT_SOURCE_DIR}/girder")
-  add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/tests")
+  add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/test")
+  add_python_style_test(python_static_analysis_core_tests_legacy "${PROJECT_SOURCE_DIR}/tests")
   add_python_style_test(python_static_analysis_core_pytest_girder "${PROJECT_SOURCE_DIR}/pytest_girder")
   add_python_style_test(python_static_analysis_ansible_client_tests
     "${PROJECT_SOURCE_DIR}/devops/ansible-role-girder/library")
