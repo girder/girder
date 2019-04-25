@@ -209,13 +209,12 @@ class User(Resource):
         self._model.remove(user)
         return {'message': 'Deleted user %s.' % user['login']}
 
-    @access.admin
+    @access.user
     @autoDescribeRoute(
-        Description('Get detailed information about all users.')
-        .errorResponse('You are not a system administrator.', 403)
+        Description('Get detailed information of accessible users.')
     )
     def getUsersDetails(self):
-        nUsers = self._model.find().count()
+        nUsers = self._model.findWithPermissions(user=self.getCurrentUser()).count()
         return {'nUsers': nUsers}
 
     @access.user

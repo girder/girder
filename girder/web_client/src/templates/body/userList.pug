@@ -2,7 +2,7 @@
 - const userTooltip = usersCount === 1 ? `${usersCount} total user` : `${usersCount} total users`;
 .g-user-list-header
   .g-user-pagination
-  if isAdmin
+  if currentUser
     .g-user-count-container(title=userTooltip)
       i.icon-user
       span.g-user-count= usersCount

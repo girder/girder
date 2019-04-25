@@ -87,7 +87,7 @@ describe('Create an admin and non-admin user', function () {
         }, 'front page to display');
     });
 
-    it('check the user count with an admin user', function () {
+    it('check the user count', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
         girderTest.goToUsersPage()();
         runs(function () {

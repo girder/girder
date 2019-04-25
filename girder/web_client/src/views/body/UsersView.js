@@ -60,7 +60,7 @@ var UsersView = View.extend({
             parentView: this
         }).on('g:resultClicked', this._gotoUser, this);
 
-        if (getCurrentUser() && getCurrentUser().get('admin')) {
+        if (getCurrentUser()) {
             const userCountPromise = UserCollection.getTotalCount()
                 .done((count) => {
                     this.usersCount = count;
