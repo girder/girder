@@ -127,13 +127,6 @@ def makeConfig(port=27070, replicaset='replicaset', servers=3, shard=False,
     :param dirroot: base temp directory name.
     :returns: a new configuration array.
     """
-    try:
-        cmd = [os.environ.get('MONGOD_EXECUTABLE', 'mongod'), '--version']
-        version = subprocess.Popen(cmd, stdout=subprocess.PIPE).stdout.read()
-        version = tuple(int(part) for part in version.split(
-            'db version v')[1].split()[0].strip().split('.'))
-    except Exception:
-        version = (0, 0, 0)
     config = []
     if shard:
         config.append({
@@ -142,8 +135,6 @@ def makeConfig(port=27070, replicaset='replicaset', servers=3, shard=False,
             'port': port + 1,
             'replicaset': replicaset
         })
-        if version < (3, 2):
-            del config[-1]['replicaset']
         for i in range(servers):
             config.append({
                 'dir': '%s%d' % (dirroot, i + 1),
