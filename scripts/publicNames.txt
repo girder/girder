@@ -203,6 +203,7 @@ girder
                     getCollection
                     getCollectionAccess
                     getCollectionDetails
+                    getCollectionsDetails
                     updateCollection
                     updateCollectionAccess
             file

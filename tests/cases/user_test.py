@@ -833,14 +833,16 @@ class UserTestCase(base.TestCase):
             email='admin@admin.com', password='adminadmin')
         # Create a couple of users
         users = [User().createUser(
-            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
+            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num, public=False)
             for num in [0, 1]]
         resp = self.request(path='/user/details', user=admin, method='GET')
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['nUsers'], 3)
         # test for a non-admin user
         resp = self.request(path='/user/details', user=users[0], method='GET')
-        self.assertStatus(resp, 403)
+        self.assertStatusOk(resp)
+        # will find the public admin user and the user itself
+        self.assertEqual(resp.json['nUsers'], 2)
         # test for a non-user
         resp = self.request(path='/user/details', method='GET')
         self.assertStatus(resp, 401)
