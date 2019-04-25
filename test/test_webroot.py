@@ -16,7 +16,7 @@
 #  limitations under the License.
 ###############################################################################
 
-from girder.constants import GIRDER_ROUTE_ID, SettingKey
+from girder.constants import SettingKey
 from girder.models.setting import Setting
 from pytest_girder.assertions import assertStatusOk
 from pytest_girder.utils import getResponseBody
@@ -34,7 +34,7 @@ def testEscapeJavascript():
         'ab\\u0027\\u0022\\u003C\\u003B\\u003E\\u005CYZ'
 
 
-def testAccessWebRoot(server, db):
+def testAccessWebRoot(server):
     """
     Requests the webroot and tests the existence of several
     elements in the returned html
@@ -70,7 +70,7 @@ def testAccessWebRoot(server, db):
     assert '<title>%s</title>' % defaultBrandName in body
 
 
-def testWebRootProperlyHandlesStaticRouteUrls(server, db):
+def testWebRootProperlyHandlesStaticRouteUrls(server):
     Setting().set(SettingKey.STATIC_PUBLIC_PATH, 'http://my-cdn-url.com/static')
 
     resp = server.request(path='/', method='GET', isJson=False, prefix='')
@@ -85,6 +85,7 @@ def testWebRootProperlyHandlesStaticRouteUrls(server, db):
     body = getResponseBody(resp)
 
     assert 'href="http://my-cdn-url.com/static/built/Girder_Favicon.png"' in body
+
 
 def testWebRootTemplateFilename():
     """

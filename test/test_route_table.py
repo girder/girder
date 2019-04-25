@@ -16,8 +16,6 @@
 #  limitations under the License.
 ###############################################################################
 
-import json
-
 import pytest
 from pytest_girder.assertions import assertStatusOk
 from pytest_girder.utils import getResponseBody
