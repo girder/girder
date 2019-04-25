@@ -4,11 +4,11 @@ from girder.utility import path
 
 @pytest.mark.parametrize('raw,encoded', [
     ('abcd', 'abcd'),
-    ('/', '\/'),
+    ('/', '\\/'),
     ('\\', '\\\\'),
-    ('/\\', '\/\\\\'),
-    ('\\//\\', '\\\\\/\/\\\\'),
-    ('a\\\\b//c\\d', 'a\\\\\\\\b\/\/c\\\\d')
+    ('/\\', '\\/\\\\'),
+    ('\\//\\', '\\\\\\/\\/\\\\'),
+    ('a\\\\b//c\\d', 'a\\\\\\\\b\\/\\/c\\\\d')
 ])
 def testCodec(raw, encoded):
     assert path.encode(raw) == encoded
@@ -21,9 +21,9 @@ def testCodec(raw, encoded):
     ('/ab/cd/ef/gh', ['', 'ab', 'cd', 'ef', 'gh']),
     ('/ab/cd//', ['', 'ab', 'cd', '', '']),
     ('ab\\/cd', ['ab/cd']),
-    ('ab\/c/d', ['ab/c', 'd']),
-    ('ab\//cd', ['ab/', 'cd']),
-    ('ab/\/cd', ['ab', '/cd']),
+    ('ab\\/c/d', ['ab/c', 'd']),
+    ('ab\\//cd', ['ab/', 'cd']),
+    ('ab/\\/cd', ['ab', '/cd']),
     ('ab\\\\/cd', ['ab\\', 'cd']),
     ('ab\\\\/\\\\cd', ['ab\\', '\\cd']),
     ('ab\\\\\\/\\\\cd', ['ab\\/\\cd']),
