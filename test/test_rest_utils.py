@@ -127,8 +127,8 @@ def testRequireParamsDictModeFailure(params):
 
 
 @pytest.mark.parametrize('name,disp,msg', [
-    ('filename', 'unknown', 'Error: Content-Disposition \(.*\) is not a recognized value.$'),
-    ('', 'attachment', 'Error: Content-Disposition filename is empty.$')
+    ('filename', 'unknown', r'Error: Content-Disposition \(.*\) is not a recognized value.$'),
+    ('', 'attachment', r'Error: Content-Disposition filename is empty.$')
 ])
 def testSetContentDispositionFails(name, disp, msg):
     with pytest.raises(rest.RestException, match=msg):

@@ -197,6 +197,7 @@ def testLoadSelectedPlugins(registry, logprint):
         mock.call('Loaded plugin "plugin2"')
     ], any_order=True)
 
+
 @pytest.mark.plugin('plugin0', DependsOnPlugin1and2)
 @pytest.mark.plugin('plugin1', NoDeps)
 @pytest.mark.plugin('plugin2', DependsOnPlugin1)
