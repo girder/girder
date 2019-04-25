@@ -37,6 +37,7 @@ class Collection(Resource):
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getCollection)
         self.route('GET', (':id', 'details'), self.getCollectionDetails)
+        self.route('GET', ('details',), self.getCollectionsDetails)
         self.route('GET', (':id', 'download'), self.downloadCollection)
         self.route('GET', (':id', 'access'), self.getCollectionAccess)
         self.route('POST', (), self.createCollection)
@@ -91,6 +92,16 @@ class Collection(Resource):
     )
     def getCollection(self, collection):
         return collection
+
+    @access.public(scope=TokenScope.DATA_READ)
+    @autoDescribeRoute(
+        Description('Get detailed information of accessible collections.')
+    )
+    def getCollectionsDetails(self):
+        count = self._model.findWithPermissions(user=self.getCurrentUser()).count()
+        return {
+            'nCollections': count
+        }
 
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(

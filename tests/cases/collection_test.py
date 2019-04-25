@@ -404,3 +404,20 @@ class CollectionTestCase(base.TestCase):
         # Changes should have been saved to the database
         coll = collModel.load(coll['_id'], force=True)
         self.assertEqual(acl, coll['access'])
+
+    def testCollectionsDetails(self):
+        """
+        Test that the collections count is correct.
+        """
+        Collection().createCollection('private collection', public=False)
+        resp = self.request(path='/collection/details', user=self.admin, method='GET')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nCollections'], 2)
+        # test for a non-admin user
+        resp = self.request(path='/collection/details', user=self.user, method='GET')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nCollections'], 1)
+        # test for a non-user
+        resp = self.request(path='/collection/details', method='GET')
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['nCollections'], 1)
