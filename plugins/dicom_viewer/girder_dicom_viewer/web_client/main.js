@@ -64,5 +64,7 @@ SearchFieldWidget.addMode(
     'DICOM metadata search',
     `You are searching for text in DICOM metadata. Only Girder items which have been preprocessed to
         extract DICOM images will be searched. The search text may appear anywhere within the common (i.e.
-        shared across slices) metadata keys or values of a DICOM image.`
+        shared across slices) metadata keys or values of a DICOM image. If text is xxx=yyy, then xxx
+        will be searched in keys and yyy in corresponding key value. Such behavior can be prevented by
+        preceding the equal sign with a backlash.`
 );

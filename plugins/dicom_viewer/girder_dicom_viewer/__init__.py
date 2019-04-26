@@ -278,17 +278,25 @@ def dicomSubstringSearchHandler(query, types, user=None, level=None, limit=0, of
 
     jsQuery = """
         function() {
-            var queryKey = %(query)s.toLowerCase();
-            var queryValue = queryKey;
+            var queryStrings = %(query)s.toLowerCase()
+                .replace('\\\\=', '{equal}')
+                .split('=')
+                .map(function(query) {
+                    return query.replace('{equal}', '=');
+                });
+            var keyValueSearch = queryStrings.length > 1;
+            var queryKey = queryStrings[0];
+            var queryValue = keyValueSearch ? queryStrings[1] : queryKey;
             var dicomMeta = obj.dicom.meta;
             return Object.keys(dicomMeta).some(
                 function(key) {
-                    return (key.toLowerCase().indexOf(queryKey) !== -1)  ||
-                        dicomMeta[key].toString().toLowerCase().indexOf(queryValue) !== -1;
+                    var keyMatch = key.toLowerCase().indexOf(queryKey) != -1;
+                    var valueMatch =
+                        dicomMeta[key].toString().toLowerCase().indexOf(queryValue) != -1;
+                    return keyValueSearch ? keyMatch && valueMatch : keyMatch || valueMatch;
                 })
             }
     """ % {
-        # This could eventually be a separately-defined key and value
         'query': json.dumps(query)
     }
 
