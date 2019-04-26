@@ -1,5 +1,8 @@
 {
     "name": "@girder/meta-build",
+    "description": "Girder meta-build",
+    "license": "SEE LICENSE IN OTHER MODULES",
+    "repository": {},
     "engines": {
         "node": ">=8.0",
         "npm": ">=5.2"
