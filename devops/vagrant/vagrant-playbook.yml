@@ -2,6 +2,7 @@
 
 - hosts: all
   vars:
+    ansible_python_interpreter: "/usr/bin/python3"
     girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
 
   pre_tasks:
@@ -40,9 +41,12 @@
           - python3-dev
       become: true
 
-    - name: Install MongoDB
+    - name: Install Girder plugin prerequisites
       apt:
-        name: mongodb-server
+        name:
+          # Needed for 'ldap'
+          - libldap2-dev
+          - libsasl2-dev
       become: true
 
     - name: Create virtualenv
@@ -52,6 +56,8 @@
         creates: "{{ girder_virtualenv }}"
 
   roles:
+    - role: girder.mongodb
+
     - role: ansible-role-girder
       girder_package: "{{ ansible_user_dir }}/girder"
       girder_pip_extra_args: "--editable"
