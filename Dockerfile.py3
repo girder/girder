@@ -4,7 +4,6 @@ MAINTAINER Kitware, Inc. <kitware@kitware.com>
 EXPOSE 8080
 
 RUN mkdir /girder
-RUN mkdir /girder/logs
 
 RUN apt-get update && apt-get install -qy \
     gcc \
