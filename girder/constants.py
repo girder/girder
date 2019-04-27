@@ -172,7 +172,6 @@ class SettingKey(object):
     SMTP_PASSWORD = 'core.smtp.password'
     SMTP_PORT = 'core.smtp.port'
     SMTP_USERNAME = 'core.smtp.username'
-    STATIC_PUBLIC_PATH = 'core.static_public_path'
     UPLOAD_MINIMUM_CHUNK_SIZE = 'core.upload_minimum_chunk_size'
     USER_DEFAULT_FOLDERS = 'core.user_default_folders'
 
@@ -212,7 +211,6 @@ class SettingDefault(object):
         SettingKey.SMTP_HOST: 'localhost',
         SettingKey.SMTP_PORT: 25,
         SettingKey.SMTP_ENCRYPTION: 'none',
-        SettingKey.STATIC_PUBLIC_PATH: '/static',
         SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE: 1024 * 1024 * 5,
         SettingKey.USER_DEFAULT_FOLDERS: 'public_private'
     }

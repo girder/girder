@@ -259,14 +259,6 @@ class Setting(Model):
             raise ValidationException('Server root must start with http:// or https://.', 'value')
 
     @staticmethod
-    @setting_utilities.validator(SettingKey.STATIC_PUBLIC_PATH)
-    def validateCoreStaticPublicPath(doc):
-        val = doc['value']
-        if not (val.startswith('/') or re.match('^https?://', val)):
-            raise ValidationException(
-                'Static public path must begin with a forward slash or contain a URL scheme.')
-
-    @staticmethod
     @setting_utilities.validator(SettingKey.CORS_ALLOW_METHODS)
     def validateCoreCorsAllowMethods(doc):
         if isinstance(doc['value'], six.string_types):

@@ -45,6 +45,10 @@ def getApiRoot():
     return config.getConfig()['server']['api_root']
 
 
+def getStaticPublicPath():
+    return config.getConfig()['server']['static_public_path']
+
+
 def configureServer(test=False, plugins=None, curConfig=None):
     """
     Function to setup the cherrypy server. It configures it, but does
@@ -78,11 +82,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
     curConfig.update(appconf)
 
     if test:
-        # Force some config params in testing mode
-        curConfig.update({'server': {
-            'mode': 'testing',
-            'api_root': 'api/v1',
-        }})
+        curConfig['server']['mode'] = 'testing'
 
     mode = curConfig['server']['mode'].lower()
     logprint.info('Running in mode: ' + mode)

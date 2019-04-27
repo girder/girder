@@ -422,7 +422,6 @@ girder
             SMTP_PASSWORD
             SMTP_PORT
             SMTP_USERNAME
-            STATIC_PUBLIC_PATH
             UPLOAD_MINIMUM_CHUNK_SIZE
             USER_DEFAULT_FOLDERS
         SortDir
@@ -720,7 +719,6 @@ girder
                 validateCoreSmtpPassword
                 validateCoreSmtpPort
                 validateCoreSmtpUsername
-                validateCoreStaticPublicPath
                 validateCoreUploadMinimumChunkSize
                 validateCoreUserDefaultFolders
                 validateEnableNotificationStream
@@ -938,6 +936,7 @@ girder
         server
             configureServer
             getApiRoot
+            getStaticPublicPath
             loadRouteTable
             setup
             staticFile

@@ -16,6 +16,8 @@
 #  limitations under the License.
 ###############################################################################
 
+import cherrypy
+
 from girder.constants import SettingKey
 from girder.models.setting import Setting
 from pytest_girder.assertions import assertStatusOk
@@ -70,8 +72,8 @@ def testAccessWebRoot(server):
     assert '<title>%s</title>' % defaultBrandName in body
 
 
-def testWebRootProperlyHandlesStaticRouteUrls(server):
-    Setting().set(SettingKey.STATIC_PUBLIC_PATH, 'http://my-cdn-url.com/static')
+def testWebRootProperlyHandlesCustomStaticPublicPath(server):
+    cherrypy.config['server']['static_public_path'] = 'http://my-cdn-url.com/static'
 
     resp = server.request(path='/', method='GET', isJson=False, prefix='')
     assertStatusOk(resp)
@@ -85,6 +87,8 @@ def testWebRootProperlyHandlesStaticRouteUrls(server):
     body = getResponseBody(resp)
 
     assert 'href="http://my-cdn-url.com/static/built/Girder_Favicon.png"' in body
+
+    cherrypy.config['server']['static_public_path'] = '/static'
 
 
 def testWebRootTemplateFilename():

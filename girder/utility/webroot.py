@@ -134,7 +134,7 @@ class Webroot(WebrootBase):
                 self.vars['pluginJs'].append(plugin)
 
         self.vars['apiRoot'] = server.getApiRoot()
-        self.vars['staticPublicPath'] = Setting().get(SettingKey.STATIC_PUBLIC_PATH)
+        self.vars['staticPublicPath'] = server.getStaticPublicPath()
         self.vars['brandName'] = Setting().get(SettingKey.BRAND_NAME)
         self.vars['contactEmail'] = Setting().get(
             SettingKey.CONTACT_EMAIL_ADDRESS)
