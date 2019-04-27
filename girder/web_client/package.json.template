@@ -1,7 +1,7 @@
 {
     "name": "@girder/meta-build",
     "description": "Girder meta-build",
-    "license": "SEE LICENSE IN OTHER MODULES",
+    "license": "Apache-2.0",
     "repository": {},
     "engines": {
         "node": ">=8.0",
