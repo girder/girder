@@ -392,38 +392,6 @@ girder
         ROOT_DIR
         STATIC_PREFIX
         STATIC_ROOT_DIR
-        SettingDefault
-            defaults
-        SettingKey
-            ADD_TO_GROUP_POLICY
-            API_KEYS
-            BANNER_COLOR
-            BRAND_NAME
-            COLLECTION_CREATE_POLICY
-            CONTACT_EMAIL_ADDRESS
-            COOKIE_LIFETIME
-            CORS_ALLOW_HEADERS
-            CORS_ALLOW_METHODS
-            CORS_ALLOW_ORIGIN
-            CORS_EXPOSE_HEADERS
-            EMAIL_FROM_ADDRESS
-            EMAIL_HOST
-            EMAIL_VERIFICATION
-            ENABLE_NOTIFICATION_STREAM
-            ENABLE_PASSWORD_LOGIN
-            GIRDER_MOUNT_INFORMATION
-            PRIVACY_NOTICE
-            REGISTRATION_POLICY
-            ROUTE_TABLE
-            SECURE_COOKIE
-            SERVER_ROOT
-            SMTP_ENCRYPTION
-            SMTP_HOST
-            SMTP_PASSWORD
-            SMTP_PORT
-            SMTP_USERNAME
-            UPLOAD_MINIMUM_CHUNK_SIZE
-            USER_DEFAULT_FOLDERS
         SortDir
             ASCENDING
             DESCENDING
@@ -685,9 +653,6 @@ girder
                 validate
         setting
             Setting
-                defaultCoreEmailHost
-                defaultCoreRouteTable
-                defaultSecureCookie
                 get
                 getDefault
                 initialize
@@ -695,35 +660,6 @@ girder
                 set
                 unset
                 validate
-                validateApiKeys
-                validateCoreAddToGroupPolicy
-                validateCoreBannerColor
-                validateCoreBrandName
-                validateCoreCollectionCreatePolicy
-                validateCoreContactEmailAddress
-                validateCoreCookieLifetime
-                validateCoreCorsAllowHeaders
-                validateCoreCorsAllowMethods
-                validateCoreCorsAllowOrigin
-                validateCoreCorsExposeHeaders
-                validateCoreEmailFromAddress
-                validateCoreEmailHost
-                validateCoreEmailVerification
-                validateCoreGirderMountInformation
-                validateCorePrivacyNotice
-                validateCoreRegistrationPolicy
-                validateCoreRouteTable
-                validateCoreServerRoot
-                validateCoreSmtpEncryption
-                validateCoreSmtpHost
-                validateCoreSmtpPassword
-                validateCoreSmtpPort
-                validateCoreSmtpUsername
-                validateCoreUploadMinimumChunkSize
-                validateCoreUserDefaultFolders
-                validateEnableNotificationStream
-                validateEnablePasswordLogin
-                validateSecureCookie
         token
             Token
                 addScope
@@ -787,6 +723,40 @@ girder
         getPluginWebroots
         loadedPlugins
         registerPluginWebroot
+    settings
+        SettingDefault
+            defaults
+        SettingKey
+            ADD_TO_GROUP_POLICY
+            API_KEYS
+            BANNER_COLOR
+            BRAND_NAME
+            COLLECTION_CREATE_POLICY
+            CONTACT_EMAIL_ADDRESS
+            COOKIE_LIFETIME
+            CORS_ALLOW_HEADERS
+            CORS_ALLOW_METHODS
+            CORS_ALLOW_ORIGIN
+            CORS_EXPOSE_HEADERS
+            EMAIL_FROM_ADDRESS
+            EMAIL_HOST
+            EMAIL_VERIFICATION
+            ENABLE_NOTIFICATION_STREAM
+            ENABLE_PASSWORD_LOGIN
+            GIRDER_MOUNT_INFORMATION
+            PRIVACY_NOTICE
+            REGISTRATION_POLICY
+            ROUTE_TABLE
+            SECURE_COOKIE
+            SERVER_ROOT
+            SMTP_ENCRYPTION
+            SMTP_HOST
+            SMTP_PASSWORD
+            SMTP_PORT
+            SMTP_USERNAME
+            UPLOAD_MINIMUM_CHUNK_SIZE
+            USER_DEFAULT_FOLDERS
+        SettingValidator
     utility
         JsonEncoder
             default
