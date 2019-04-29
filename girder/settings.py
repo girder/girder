@@ -85,6 +85,7 @@ class SettingDefault(object):
         SettingKey.REGISTRATION_POLICY: 'open',
         # SettingKey.ROUTE_TABLE is provided by a function
         # SettingKey.SECURE_COOKIE is provided by a function
+        SettingKey.SERVER_ROOT: '',
         SettingKey.SMTP_ENCRYPTION: 'none',
         SettingKey.SMTP_HOST: 'localhost',
         SettingKey.SMTP_PASSWORD: '',
