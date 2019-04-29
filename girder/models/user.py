@@ -477,7 +477,7 @@ class User(AccessControlledModel):
         from .folder import Folder
         from .setting import Setting
 
-        if Setting().get(SettingKey.USER_DEFAULT_FOLDERS, 'public_private') == 'public_private':
+        if Setting().get(SettingKey.USER_DEFAULT_FOLDERS) == 'public_private':
             user = event.info
 
             publicFolder = Folder().createFolder(
