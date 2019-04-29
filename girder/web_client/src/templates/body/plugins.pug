@@ -2,9 +2,7 @@
 .g-plugin-list-container
   each plugin in allPlugins
     - var experimental = plugin.value.version ? plugin.value.version.indexOf('0.') === 0 : true
-    - var failed = plugin.value.failed
-    .g-plugin-list-item(
-      class=failed ? 'g-plugin-list-item-failed' : undefined, data-name=plugin.key)
+    .g-plugin-list-item(data-name=plugin.key)
       .g-plugin-name()
         if plugin.value.url
           a(href=plugin.value.url, target='_blank')= plugin.value.name
@@ -16,11 +14,6 @@
           span.g-plugin-list-item-notice.g-plugin-list-item-experimental-notice(
             title="WARNING: this plugin is an alpha version and is subject " +
                   "to breaking changes; use at your own risk.") Experimental
-        if failed
-          span.g-plugin-list-item-notice.g-plugin-list-item-failed-notice(
-              native-title='Click to see traceback',
-              data-title='Failed to load entrypoint "' + plugin.value.name + '"',
-              data-content=failed) Error
         if plugin.value.configRoute
           a.g-plugin-config-link(g-route=plugin.value.configRoute, title="Configure Plugin")
             i.icon-cog
