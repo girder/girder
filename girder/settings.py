@@ -87,6 +87,7 @@ class SettingDefault(object):
         SettingKey.SMTP_ENCRYPTION: 'none',
         SettingKey.SMTP_HOST: 'localhost',
         SettingKey.SMTP_PORT: 25,
+        SettingKey.SMTP_USERNAME: '',
         SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE: 1024 * 1024 * 5,
         SettingKey.USER_DEFAULT_FOLDERS: 'public_private'
     }
@@ -346,8 +347,8 @@ class SettingValidator(object):
     @staticmethod
     @setting_utilities.validator(SettingKey.SMTP_USERNAME)
     def _validateSmtpUsername(doc):
-        # any string is acceptable
-        pass
+        if not isinstance(doc['value'], six.string_types):
+            raise ValidationException('SMTP username must be a string', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)

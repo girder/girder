@@ -190,6 +190,7 @@ class SystemTestCase(base.TestCase):
             SettingKey.CONTACT_EMAIL_ADDRESS: '',
             SettingKey.EMAIL_HOST: {},
             SettingKey.SMTP_HOST: '',
+            SettingKey.SMTP_USERNAME: {},
             SettingKey.CORS_ALLOW_ORIGIN: {},
             SettingKey.CORS_ALLOW_METHODS: {},
             SettingKey.CORS_ALLOW_HEADERS: {},

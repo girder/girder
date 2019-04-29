@@ -182,7 +182,7 @@ def _sendmail(event):
         host=setting.get(SettingKey.SMTP_HOST, 'localhost'),
         port=setting.get(SettingKey.SMTP_PORT, None),
         encryption=setting.get(SettingKey.SMTP_ENCRYPTION, 'none'),
-        username=setting.get(SettingKey.SMTP_USERNAME, None),
+        username=setting.get(SettingKey.SMTP_USERNAME),
         password=setting.get(SettingKey.SMTP_PASSWORD, None)
     )
 
