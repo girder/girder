@@ -406,8 +406,8 @@ class User(AccessControlledModel):
         yet verified their email address.
         """
         from .setting import Setting
-        return (not user['emailVerified']) and Setting().get(
-            SettingKey.EMAIL_VERIFICATION) == 'required'
+        return (not user['emailVerified']) and \
+            Setting().get(SettingKey.EMAIL_VERIFICATION) == 'required'
 
     def adminApprovalRequired(self, user):
         """

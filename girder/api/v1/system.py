@@ -8,6 +8,7 @@ import six
 import os
 import logging
 
+from girder import plugin
 from girder.api import access
 from girder.constants import TokenScope, ACCESS_FLAGS, VERSION
 from girder.exceptions import GirderException, ResourcePathNotFound, RestException
@@ -19,7 +20,7 @@ from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.models.upload import Upload
 from girder.models.user import User
-from girder import plugin
+from girder.settings import SettingKey
 from girder.utility import config, system
 from girder.utility.progress import ProgressContext
 from ..describe import Description, autoDescribeRoute
@@ -410,7 +411,7 @@ class System(Resource):
                'of collection, file, and group')
     )
     def getCollectionCreationPolicyAccess(self):
-        cpp = Setting().get('core.collection_create_policy')
+        cpp = Setting().get(SettingKey.COLLECTION_CREATE_POLICY)
 
         acList = {
             'users': [{'id': x} for x in cpp.get('users', [])],
