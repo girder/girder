@@ -1158,8 +1158,7 @@ class Resource(object):
         cherrypy.lib.caching.expires(0)
 
         allowHeaders = Setting().get(SettingKey.CORS_ALLOW_HEADERS)
-        allowMethods = Setting().get(SettingKey.CORS_ALLOW_METHODS)\
-            or 'GET, POST, PUT, HEAD, DELETE'
+        allowMethods = Setting().get(SettingKey.CORS_ALLOW_METHODS)
 
         setResponseHeader('Access-Control-Allow-Methods', allowMethods)
         setResponseHeader('Access-Control-Allow-Headers', allowHeaders)
