@@ -26,7 +26,7 @@ from ..constants import GIRDER_ROUTE_ID, SettingDefault, SettingKey
 from .model_base import Model
 from girder import logprint
 from girder.exceptions import ValidationException
-from girder.utility import config, setting_utilities
+from girder.utility import config, mail_utils, setting_utilities
 from girder.utility._cache import cache
 from bson.objectid import ObjectId
 
@@ -305,14 +305,18 @@ class Setting(Model):
     @staticmethod
     @setting_utilities.validator(SettingKey.EMAIL_FROM_ADDRESS)
     def validateCoreEmailFromAddress(doc):
+        # mail_utils.validateEmailAddress cannot be used here, as RFC 5322 allows this to accept an
+        # an address which includes a display name too
         if not doc['value']:
             raise ValidationException('Email from address must not be blank.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.CONTACT_EMAIL_ADDRESS)
     def validateCoreContactEmailAddress(doc):
-        if not doc['value']:
-            raise ValidationException('Contact email address must not be blank.', 'value')
+        # This is typically used within an RFC 6068 "mailto:" scheme, so no display name is allowed
+        if not mail_utils.validateEmailAddress(doc['value']):
+            raise ValidationException(
+                'Contact email address must be a valid email address.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.EMAIL_HOST)

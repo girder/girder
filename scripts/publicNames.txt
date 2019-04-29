@@ -885,6 +885,7 @@ girder
             getEmailUrlPrefix
             renderTemplate
             sendEmail
+            validateEmailAddress
         mkdir
         model_importer
             ModelImporter

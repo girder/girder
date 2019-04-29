@@ -18,6 +18,7 @@
 
 import cherrypy
 import os
+import re
 import six
 import smtplib
 
@@ -26,6 +27,25 @@ from mako.lookup import TemplateLookup
 from girder import events
 from girder import logger
 from girder.constants import SettingKey, PACKAGE_DIR
+
+
+def validateEmailAddress(address):
+    """
+    Determines whether a string is a valid email address.
+
+    This implements the grammar from 4.10.5.1.5 of the HTML Standard.
+
+    :param address: The string to test.
+    :type address: str
+    :rtype: bool
+    """
+    # https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
+    return re.match(
+        r'^[a-zA-Z0-9.!#$%&\'*+/=?^_`{|}~-]+'
+        r'@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?'
+        r'(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$',
+        address
+    ) is not None
 
 
 def getEmailUrlPrefix():

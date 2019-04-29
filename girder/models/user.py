@@ -105,7 +105,7 @@ class User(AccessControlledModel):
             raise ValidationException(
                 cur_config['users']['login_description'], 'login')
 
-        if not re.match(cur_config['users']['email_regex'], doc['email']):
+        if not mail_utils.validateEmailAddress(doc['email']):
             raise ValidationException('Invalid email address.', 'email')
 
         # Ensure unique logins
