@@ -183,7 +183,7 @@ def _sendmail(event):
         port=setting.get(SettingKey.SMTP_PORT, None),
         encryption=setting.get(SettingKey.SMTP_ENCRYPTION, 'none'),
         username=setting.get(SettingKey.SMTP_USERNAME),
-        password=setting.get(SettingKey.SMTP_PASSWORD, None)
+        password=setting.get(SettingKey.SMTP_PASSWORD)
     )
 
     logger.info('Sending email to %s through %s', ', '.join(recipients), smtp.host)
