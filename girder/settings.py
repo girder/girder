@@ -79,6 +79,7 @@ class SettingDefault(object):
         SettingKey.EMAIL_VERIFICATION: 'disabled',
         SettingKey.ENABLE_NOTIFICATION_STREAM: True,
         SettingKey.ENABLE_PASSWORD_LOGIN: True,
+        SettingKey.GIRDER_MOUNT_INFORMATION: None,
         SettingKey.PRIVACY_NOTICE: 'https://www.kitware.com/privacy',
         SettingKey.REGISTRATION_POLICY: 'open',
         # SettingKey.ROUTE_TABLE is provided by a function
