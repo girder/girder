@@ -9,8 +9,7 @@ from .. import base
 from girder.api import access
 from girder.api.describe import describeRoute
 from girder.api.rest import getApiUrl, loadmodel, Resource
-from girder.constants import AccessType, SettingKey, SettingDefault, registerAccessFlag, ROOT_DIR, \
-    VERSION
+from girder.constants import AccessType, registerAccessFlag, ROOT_DIR, VERSION
 from girder.exceptions import AccessException, ValidationException
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -19,6 +18,7 @@ from girder.models.group import Group
 from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.models.user import User
+from girder.settings import SettingDefault, SettingKey
 from girder.utility import config
 
 

@@ -10,9 +10,10 @@ from collections import OrderedDict
 
 from girder import constants, logprint
 from girder.api.rest import getCurrentUser, getBodyJson
-from girder.constants import SettingKey, SortDir, VERSION
+from girder.constants import SortDir, VERSION
 from girder.exceptions import RestException
 from girder.models.setting import Setting
+from girder.settings import SettingKey
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase

@@ -8,11 +8,11 @@ import httmock
 import requests
 import six
 
-from girder.constants import SettingKey
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
+from girder.settings import SettingKey
 import girder.events
 from tests import base
 

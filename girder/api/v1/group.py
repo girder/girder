@@ -2,11 +2,12 @@
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel
 from girder.api import access
-from girder.constants import AccessType, SettingKey
+from girder.constants import AccessType
 from girder.exceptions import AccessException
 from girder.models.group import Group as GroupModel
 from girder.models.setting import Setting
 from girder.models.user import User
+from girder.settings import SettingKey
 from girder.utility import mail_utils
 
 

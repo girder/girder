@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import pytest
 
-from girder.constants import SettingKey
 from girder.exceptions import AccessException
 from girder.models.setting import Setting
 from girder.models.user import User
+from girder.settings import SettingKey
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
 

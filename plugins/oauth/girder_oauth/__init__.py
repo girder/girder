@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from girder import events
-from girder.constants import SettingDefault, SortDir
+from girder.constants import SortDir
 from girder.exceptions import ValidationException
 from girder.models.user import User
 from girder.plugin import GirderPlugin
+from girder.settings import SettingDefault
 from girder.utility import setting_utilities
 from . import rest, constants, providers
 

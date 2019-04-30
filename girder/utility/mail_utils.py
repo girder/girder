@@ -9,7 +9,8 @@ from email.mime.text import MIMEText
 from mako.lookup import TemplateLookup
 from girder import events
 from girder import logger
-from girder.constants import SettingKey, PACKAGE_DIR
+from girder.constants import PACKAGE_DIR
+from girder.settings import SettingKey
 
 
 def validateEmailAddress(address):

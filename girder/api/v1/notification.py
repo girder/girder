@@ -6,10 +6,11 @@ from datetime import datetime
 
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, setResponseHeader
-from girder.constants import SettingKey, SortDir
+from girder.constants import SortDir
 from girder.exceptions import RestException
 from girder.models.notification import Notification as NotificationModel
 from girder.models.setting import Setting
+from girder.settings import SettingKey
 from girder.utility import JsonEncoder
 from girder.api import access
 

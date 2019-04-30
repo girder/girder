@@ -2,10 +2,11 @@
 from girder.api import access
 from girder.api.describe import describeRoute, Description
 from girder.api.rest import loadmodel, Resource
-from girder.constants import AccessType, SettingKey, TokenScope
+from girder.constants import AccessType, TokenScope
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.models.token import Token
+from girder.settings import SettingKey
 from girder.utility import mail_utils
 
 from .constants import TOKEN_SCOPE_AUTHORIZED_UPLOAD

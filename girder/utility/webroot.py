@@ -7,8 +7,8 @@ import cherrypy
 import mako
 
 from girder import constants
-from girder.constants import SettingKey
 from girder.models.setting import Setting
+from girder.settings import SettingKey
 from girder.utility import config
 
 

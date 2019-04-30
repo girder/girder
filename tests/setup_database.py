@@ -5,7 +5,7 @@ import tempfile
 import warnings
 
 from girder.exceptions import GirderException
-from girder.constants import SettingKey
+from girder.settings import SettingKey
 from girder.utility.model_importer import ModelImporter
 
 warnings.warn(

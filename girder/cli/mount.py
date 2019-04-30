@@ -12,12 +12,12 @@ import time
 
 import girder
 from girder import events, logger, logprint
-from girder.constants import SettingKey
 from girder.exceptions import AccessException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.setting import Setting
+from girder.settings import SettingKey
 from girder.utility import config
 from girder.utility.model_importer import ModelImporter
 from girder.utility import path as path_util

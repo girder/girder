@@ -3,12 +3,12 @@ import time
 
 from .. import base
 
-from girder.constants import SettingKey
 from girder.exceptions import ValidationException
 from girder.models.notification import ProgressState
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
+from girder.settings import SettingKey
 from girder.utility.progress import ProgressContext
 
 

@@ -2,11 +2,12 @@
 import six
 
 from girder import events
-from girder.constants import AccessType, SettingDefault
+from girder.constants import AccessType
 from girder.exceptions import ValidationException
 from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.plugin import GirderPlugin
+from girder.settings import SettingDefault
 from girder.utility import setting_utilities
 
 from .constants import PluginSettings, PluginSettingsDefaults

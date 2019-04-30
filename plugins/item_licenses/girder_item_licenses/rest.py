@@ -2,8 +2,8 @@
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import boundHandler
-from girder.constants import SettingDefault
 from girder.models.setting import Setting
+from girder.settings import SettingDefault
 
 from .constants import PluginSettings
 

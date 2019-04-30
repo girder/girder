@@ -19,11 +19,12 @@ from girder.external.mongodb_proxy import MongoProxy
 
 from . import docs
 from girder import auditLogger, events, logger, logprint
-from girder.constants import SettingKey, TokenScope, SortDir
+from girder.constants import TokenScope, SortDir
 from girder.exceptions import AccessException, GirderException, ValidationException, RestException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
+from girder.settings import SettingKey
 from girder.utility import toBool, config, JsonEncoder, optionalArgumentDecorator
 from girder.utility._cache import requestCache
 from girder.utility.model_importer import ModelImporter
