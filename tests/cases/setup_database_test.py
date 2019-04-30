@@ -168,9 +168,8 @@ class SetupDatabaseTestCase(base.TestCase):
             'creatorId': admin['_id']
         }, item, 'emptyfile')
 
-        # empty files only create items, not files
         file = File().findOne({'itemId': item['_id']})
-        self.assertEqual(file, None)
+        self.assertEqual(file['name'], 'emptyfile.txt')
 
         item = Item().findOne(
             {'name': 'file.txt', 'folderId': folder['_id']})
