@@ -9,7 +9,7 @@ gc.authenticate(username=GIRDER_LOGIN, apiKey=GIRDER_API_KEY)
 
 def handle_item(item, bc):
     bc = bc + (item['name'],)
-    print '/'.join(bc)
+    print('/'.join(bc))
 
 def handle_folder(folder, bc):
     bc = bc + (folder['name'],)
