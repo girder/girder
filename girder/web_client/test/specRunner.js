@@ -1,6 +1,4 @@
 /**
- * Copyright Kitware Inc.
- *
  * This is the PhantomJS runtime script that invokes the Girder app in test
  * mode. The test mode page is built with grunt and lives at:
  * girder/web_client/static/built/testing/testEnv.html. It then executes a Jasmine spec within
