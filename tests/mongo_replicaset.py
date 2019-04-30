@@ -70,7 +70,7 @@ def getMongoClient(config, uri=None, init=False, timeout=30):
         except pymongo.errors.ConnectionFailure:
             time.sleep(0.5)
     if not client:
-        raise
+        raise Exception('Could not connect to replica set after %d seconds' % timeout)
     return client
 
 
@@ -436,7 +436,7 @@ def _waitForStatus(uri, timeout):
             return stat
         except Exception:
             time.sleep(0.1)
-    raise
+    raise Exception('Could not get status after %d seconds' % timeout)
 
 
 if __name__ == '__main__':
