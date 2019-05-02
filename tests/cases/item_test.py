@@ -81,10 +81,10 @@ class ItemTestCase(base.TestCase):
         uploadId = resp.json['_id']
 
         # Send the first chunk
-        fields = [('offset', 0), ('uploadId', uploadId)]
-        files = [('chunk', name, contents)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=user, fields=fields, files=files)
+        resp = self.request(
+            path='/file/chunk', method='POST', body=contents, user=user, params={
+                'uploadId': uploadId
+            }, type='application/octet-stream')
         self.assertStatusOk(resp)
 
     def _testDownloadSingleFileItem(self, item, user, contents):

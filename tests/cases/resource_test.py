@@ -140,27 +140,12 @@ class ResourceTestCase(base.TestCase):
                   contents: the contents that were generated for the file.
         """
         contents = os.urandom(1024)
-        resp = self.request(
-            path='/file', method='POST', user=self.admin, params={
-                'parentType': 'item',
-                'parentId': item['_id'],
-                'name': name,
-                'size': len(contents),
-                'mimeType': 'application/octet-stream'
-            })
-        self.assertStatusOk(resp)
-        upload = resp.json
-        fields = [('offset', 0), ('uploadId', upload['_id'])]
-        files = [('chunk', name, contents)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.admin, fields=fields, files=files)
-        self.assertStatusOk(resp)
-        file = resp.json
+        file = self.uploadFile(name, contents, user=self.admin, parent=item, parentType='item')
         parents = Item().parentsToRoot(item, user=self.admin)
         path = os.path.join(*([part['object'].get(
             'name', part['object'].get('login', '')) for part in parents] +
             [item['name'], name]))
-        return (file, path, contents)
+        return file, path, contents
 
     def testDownloadResources(self):
         self._createFiles()

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import cherrypy
 import errno
-import os
 import six
 
 from ..describe import Description, autoDescribeRoute, describeRoute
@@ -193,13 +192,10 @@ class File(Resource):
         Description('Upload a chunk of a file.')
         .notes('The data for the chunk should be sent as the body of the '
                'request using an appropriate content-type and with the other '
-               'parameters as part of the query string.  Alternately, the '
-               'data can be sent as a file in the "chunk" field in multipart '
-               'form data.  Multipart uploads are much less efficient and '
-               'their use is deprecated.')
+               'parameters as part of the query string.')
         .modelParam('uploadId', paramType='formData', model=Upload)
         .param('offset', 'Offset of the chunk in the file.', dataType='integer',
-               paramType='formData')
+               paramType='query', required=False, default=0)
         .errorResponse(('ID was invalid.',
                         'Received too many bytes.',
                         'Chunk is smaller than the minimum size.'))
@@ -214,24 +210,14 @@ class File(Resource):
         the writer of the chunk is the same as the person who initiated the
         upload. The passed offset is a verification mechanism for ensuring the
         server and client agree on the number of bytes sent/received.
-
-        This method accepts both the legacy multipart content encoding, as
-        well as passing offset and uploadId as query parameters and passing
-        the chunk as the body, which is the recommended method.
-
-        .. deprecated :: 2.2.0
         """
         if 'chunk' in params:
+            # If we see the undocumented "chunk" query string parameter, then we abort trying to
+            # read the body, use the query string value as chunk, and pass it through to
+            # Upload().handleChunk. This case is used by the direct S3 upload process.
             chunk = params['chunk']
-            if isinstance(chunk, cherrypy._cpreqbody.Part):
-                # Seek is the only obvious way to get the length of the part
-                chunk.file.seek(0, os.SEEK_END)
-                size = chunk.file.tell()
-                chunk.file.seek(0, os.SEEK_SET)
-                chunk = RequestBodyStream(chunk.file, size=size)
         else:
             chunk = RequestBodyStream(cherrypy.request.body)
-
         user = self.getCurrentUser()
 
         if upload['userId'] != user['_id']:

@@ -257,6 +257,14 @@ you must convert a string to a model instance. The following base classes are af
 * :py:class:`girder.models.model_base.Model`
 * :py:class:`girder.utility.abstract_assetstore_adapter.AbstractAssetstoreAdapter`
 
+Multipart-encoded upload chunk support has been removed
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Prior to version 3, Girder supported ``multipart/form-data`` content type for passing fields into
+the ``POST /file/chunk`` endpoint. This has been deprecated since v2.2, and has been removed. Now,
+the ``uploadId`` and ``offset`` fields should be passed in the query string, and the chunk data
+should be passed as the request body.
+
 Event bindings are now unique by handler name
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

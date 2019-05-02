@@ -74,10 +74,10 @@ class ThumbnailsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         uploadId = resp.json['_id']
 
-        fields = [('offset', 0), ('uploadId', uploadId)]
-        files = [('chunk', 'test.png', self.image)]
-        resp = self.multipartRequest(
-            path='/file/chunk', fields=fields, files=files, user=self.admin)
+        resp = self.request(
+            path='/file/chunk', method='POST', user=self.admin, body=self.image, params={
+                'uploadId': uploadId
+            }, type='text/plain')
         self.assertStatusOk(resp)
         self.assertIn('itemId', resp.json)
         fileId = resp.json['_id']
@@ -170,10 +170,10 @@ class ThumbnailsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         uploadId = resp.json['_id']
 
-        fields = [('offset', 0), ('uploadId', uploadId)]
-        files = [('chunk', 'test.dcm', data)]
-        resp = self.multipartRequest(
-            path='/file/chunk', fields=fields, files=files, user=self.admin)
+        resp = self.request(
+            path='/file/chunk', method='POST', user=self.admin, body=data, params={
+                'uploadId': uploadId
+            }, type='text/plain')
         self.assertStatusOk(resp)
         self.assertIn('itemId', resp.json)
         fileId = resp.json['_id']
@@ -284,10 +284,10 @@ class ThumbnailsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         uploadId = resp.json['_id']
 
-        fields = [('offset', 0), ('uploadId', uploadId)]
-        files = [('chunk', 'test.png', self.image)]
-        resp = self.multipartRequest(
-            path='/file/chunk', fields=fields, files=files, user=self.admin)
+        resp = self.request(
+            path='/file/chunk', method='POST', user=self.admin, body=self.image, params={
+                'uploadId': uploadId
+            }, type='text/plain')
         self.assertStatusOk(resp)
         self.assertIn('itemId', resp.json)
         fileId = resp.json['_id']
