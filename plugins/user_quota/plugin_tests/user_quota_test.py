@@ -70,8 +70,8 @@ class QuotaTestCase(base.TestCase):
         :param size: size of the file to upload
         :param error: if set, expect this error.
         :param partial: if set, return before uploading the data.  This returns
-                        a kwargs for multipartRequest so that the caller can
-                        finishe the upload later.
+                        a kwargs for self.request so that the caller can
+                        finish the upload later.
         :returns: file: the created file object
         """
         if parentType != 'file':
@@ -105,24 +105,30 @@ class QuotaTestCase(base.TestCase):
         contents = os.urandom(size)
         self.assertStatusOk(resp)
         upload = resp.json
-        fields = [('offset', 0), ('uploadId', upload['_id'])]
-        if not partial:
-            files = [('chunk', name, contents)]
+        if partial:
+            body = contents[:-1]
         else:
-            files = [('chunk', name, contents[:-1])]
-        resp = self.multipartRequest(path='/file/chunk', user=self.admin,
-                                     fields=fields, files=files)
+            body = contents
+
+        resp = self.request(path='/file/chunk', method='POST', user=self.admin, body=body, params={
+            'uploadId': upload['_id']
+        }, type='application/octet-stream')
         self.assertStatusOk(resp)
         if partial:
-            fields = [('offset', len(contents)-1), ('uploadId', upload['_id'])]
-            files = [('chunk', name, contents[-1:])]
-            kwargs = {'path': '/file/chunk', 'user': self.admin,
-                      'fields': fields, 'files': files}
-            return kwargs
+            return {
+                'path': '/file/chunk',
+                'method': 'POST',
+                'user': self.admin,
+                'body': contents[-1:],
+                'type': 'application/octet-stream',
+                'params': {
+                    'offset': len(contents) - 1,
+                    'uploadId': upload['_id']
+                }
+            }
         return resp.json
 
-    def _setPolicy(self, policy, model, resource, user, error=None,
-                   results=None):
+    def _setPolicy(self, policy, model, resource, user, error=None, results=None):
         """
         Set the quota or assetstore policy and check that it was set.
 
@@ -269,10 +275,10 @@ class QuotaTestCase(base.TestCase):
                                        partial=True)
         file2kwargs = self._uploadFile('Second partial', folder, size=768,
                                        partial=True)
-        resp = self.multipartRequest(**file1kwargs)
+        resp = self.request(**file1kwargs)
         self.assertStatusOk(resp)
         try:
-            resp = self.multipartRequest(**file2kwargs)
+            resp = self.request(**file2kwargs)
             self.assertStatus(resp, 400)
         except AssertionError as exc:
             self.assertTrue('Upload exceeded' in exc.args[0])

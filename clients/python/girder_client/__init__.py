@@ -24,7 +24,6 @@ import six
 import tempfile
 
 from contextlib import contextmanager
-from requests_toolbelt import MultipartEncoder
 
 DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
 REQ_BUFFER_SIZE = 65536  # Chunk size when iterating a download body
@@ -101,7 +100,6 @@ class _NoopProgressReporter(object):
         pass
 
 
-# Used for fast non-multipart upload
 class _ProgressBytesIO(six.BytesIO):
     def __init__(self, *args, **kwargs):
         self.reporter = kwargs.pop('reporter')
@@ -109,18 +107,6 @@ class _ProgressBytesIO(six.BytesIO):
 
     def read(self, _size=-1):
         _chunk = six.BytesIO.read(self, _size)
-        self.reporter.update(len(_chunk))
-        return _chunk
-
-
-# Used for deprecated multipart upload
-class _ProgressMultiPartEncoder(MultipartEncoder):
-    def __init__(self, *args, **kwargs):
-        self.reporter = kwargs.pop('reporter')
-        MultipartEncoder.__init__(self, *args, **kwargs)
-
-    def read(self, _size=-1):
-        _chunk = MultipartEncoder.read(self, _size)
         self.reporter.update(len(_chunk))
         return _chunk
 
@@ -1022,24 +1008,9 @@ class GirderClient(object):
                 if isinstance(chunk, six.text_type):
                     chunk = chunk.encode('utf8')
 
-                if self.getServerVersion() >= ['2', '2']:
-                    uploadObj = self.post(
-                        'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId),
-                        data=_ProgressBytesIO(chunk, reporter=reporter))
-                else:
-                    # Prior to version 2.2 the server only supported multipart uploads
-                    parameters = {
-                        'offset': offset,
-                        'uploadId': uploadId
-                    }
-
-                    m = _ProgressMultiPartEncoder(
-                        reporter=reporter,
-                        fields={'chunk': ('chunk', chunk, 'application/octet-stream')},
-                    )
-
-                    uploadObj = self.post('file/chunk', parameters=parameters,
-                                          data=m, headers={'Content-Type': m.content_type})
+                uploadObj = self.post(
+                    'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId),
+                    data=_ProgressBytesIO(chunk, reporter=reporter))
 
                 if '_id' not in uploadObj:
                     raise Exception(

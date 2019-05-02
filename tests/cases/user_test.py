@@ -790,22 +790,8 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         itemId = resp.json['_id']
 
-        resp = self.request(
-            path='/file', method='POST', user=pvt, params={
-                'parentType': 'item',
-                'parentId': itemId,
-                'name': 'foo.txt',
-                'size': 5,
-                'mimeType': 'text/plain'
-            })
-        self.assertStatusOk(resp)
-
-        fields = [('offset', 0), ('uploadId', resp.json['_id'])]
-        files = [('chunk', 'foo.txt', 'hello')]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=pvt, fields=fields, files=files)
-        self.assertStatusOk(resp)
-        self.assertEqual(resp.json['itemId'], itemId)
+        file = self.uploadFile('hi.txt', 'hello', user=pvt, parent=resp.json, parentType='item')
+        self.assertEqual(str(file['itemId']), itemId)
 
     def testUsersDetails(self):
         """
