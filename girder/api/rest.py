@@ -825,6 +825,8 @@ class Resource(object):
                 handler = registeredHandler
                 del nLengthRoutes[i]
                 break
+        else:
+            raise GirderException('No such route: %s %s' % (method, '/'.join(route)))
 
         # Remove the api doc
         if resource is None:
