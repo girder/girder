@@ -1,6 +1,6 @@
 # See tox.ini for documentation on this file.
 funcsigs ; python_version < '3'
 six
-Sphinx
+Sphinx<2
 sphinx_rtd_theme
 sphinx-tabs
