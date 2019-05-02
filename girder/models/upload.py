@@ -79,6 +79,10 @@ class Upload(Model):
             user=user, name=name, parentType=parentType, parent=parent,
             size=size, mimeType=mimeType, reference=reference,
             assetstore=assetstore, attachParent=attachParent)
+
+        if size == 0:
+            return self.finalizeUpload(upload)
+
         # The greater of 32 MB or the the upload minimum chunk size.
         chunkSize = self._getChunkSize()
 
