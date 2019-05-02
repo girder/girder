@@ -9,7 +9,7 @@ from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource
 from girder.exceptions import GirderException, RestException
 from girder.models.setting import Setting
-from girder.constants import SettingKey, SettingDefault
+from girder.settings import SettingDefault, SettingKey
 
 testServer = None
 

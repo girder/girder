@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel
+from girder.api import access
 from girder.exceptions import RestException
 from girder.models.api_key import ApiKey as ApiKeyModel
 from girder.models.setting import Setting
 from girder.models.user import User
-from girder.constants import AccessType, SettingKey
-from girder.api import access
+from girder.constants import AccessType
+from girder.settings import SettingKey
 
 
 class ApiKey(Resource):

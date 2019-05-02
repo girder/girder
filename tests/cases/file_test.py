@@ -12,7 +12,6 @@ from hashlib import sha512
 from .. import base, mock_s3
 
 from girder import events
-from girder.constants import SettingKey
 from girder.models import getDbConnection
 from girder.exceptions import AccessException, GirderException, FilePathException
 from girder.models.assetstore import Assetstore
@@ -21,6 +20,7 @@ from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.setting import Setting
 from girder.models.user import User
+from girder.settings import SettingKey
 from girder.utility import gridfs_assetstore_adapter
 from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter

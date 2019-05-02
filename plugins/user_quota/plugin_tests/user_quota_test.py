@@ -4,13 +4,14 @@ import json
 import os
 
 from tests import base
-from girder.constants import AssetstoreType, SettingKey
+from girder.constants import AssetstoreType
 from girder.exceptions import ValidationException
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.setting import Setting
 from girder.models.user import User
+from girder.settings import SettingKey
 from girder.utility.system import formatSize
 
 from girder_user_quota import constants

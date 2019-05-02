@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import cherrypy
 
-from girder.constants import SettingKey
 from girder.models.setting import Setting
+from girder.settings import SettingKey
 from pytest_girder.assertions import assertStatusOk
 from pytest_girder.utils import getResponseBody
 from girder.utility.webroot import WebrootBase

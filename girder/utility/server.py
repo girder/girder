@@ -9,6 +9,7 @@ import girder.events
 from girder import constants, logprint, __version__, logStdoutStderr, _setupCache
 from girder.models.setting import Setting
 from girder import plugin
+from girder.settings import SettingKey
 from girder.utility import config
 from . import webroot
 
@@ -110,7 +111,7 @@ def loadRouteTable(reconcileRoutes=False):
               during Girder's setup phase.
     """
     pluginWebroots = plugin.getPluginWebroots()
-    routeTable = Setting().get(constants.SettingKey.ROUTE_TABLE)
+    routeTable = Setting().get(SettingKey.ROUTE_TABLE)
 
     def reconcileRouteTable(routeTable):
         hasChanged = False
@@ -126,7 +127,7 @@ def loadRouteTable(reconcileRoutes=False):
                 hasChanged = True
 
         if hasChanged:
-            Setting().set(constants.SettingKey.ROUTE_TABLE, routeTable)
+            Setting().set(SettingKey.ROUTE_TABLE, routeTable)
 
         return routeTable
 

@@ -3,11 +3,11 @@ import os
 
 import pytest
 
-from girder.constants import SettingKey
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.utility import mail_utils
 from girder.plugin import GirderPlugin
+from girder.settings import SettingKey
 
 
 class MailPlugin(GirderPlugin):

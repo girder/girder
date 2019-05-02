@@ -6,9 +6,10 @@ from .. import base
 
 from girder.api import access, describe, docs
 from girder.api.rest import Resource, filtermodel
-from girder.constants import AccessType, registerAccessFlag, SettingKey, VERSION
+from girder.constants import AccessType, registerAccessFlag, VERSION
 from girder.models.setting import Setting
 from girder.models.user import User
+from girder.settings import SettingKey
 
 server = None
 Routes = [

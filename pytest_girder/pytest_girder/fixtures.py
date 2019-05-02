@@ -130,8 +130,8 @@ def smtp(db, server):
     # depend on the events daemon, which is currently managed by the server fixture.
     # We should sort this out so that the daemon is its own fixture rather than being
     # started/stopped via the cherrypy server lifecycle.
-    from girder.constants import SettingKey
     from girder.models.setting import Setting
+    from girder.settings import SettingKey
 
     receiver = MockSmtpReceiver()
     receiver.start()

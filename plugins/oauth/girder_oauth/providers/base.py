@@ -4,10 +4,10 @@ import re
 import requests
 import six
 
-from girder.constants import SettingKey
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 from girder.models.user import User
+from girder.settings import SettingKey
 from girder.utility import config
 from ..constants import PluginSettings
 

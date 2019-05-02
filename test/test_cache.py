@@ -3,8 +3,8 @@ import mock
 import pytest
 
 from girder import _setupCache
-from girder.constants import SettingKey
 from girder.models.setting import Setting
+from girder.settings import SettingKey
 from girder.utility import config
 from girder.utility._cache import cache, requestCache
 

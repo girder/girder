@@ -3,8 +3,9 @@ import datetime
 import os
 
 from .model_base import AccessControlledModel
-from girder.constants import AccessType, SettingKey
+from girder.constants import AccessType
 from girder.exceptions import ValidationException
+from girder.settings import SettingKey
 from girder.utility.progress import noProgress
 
 

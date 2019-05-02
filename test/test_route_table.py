@@ -3,10 +3,11 @@ import pytest
 from pytest_girder.assertions import assertStatusOk
 from pytest_girder.utils import getResponseBody
 
-from girder.constants import GIRDER_ROUTE_ID, SettingKey
+from girder.constants import GIRDER_ROUTE_ID
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.plugin import GirderPlugin, registerPluginWebroot
+from girder.settings import SettingKey
 
 
 class SomeWebroot(object):

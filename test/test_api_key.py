@@ -3,11 +3,12 @@ import datetime
 import json
 import pytest
 
-from girder.constants import SettingKey, TokenScope
+from girder.constants import TokenScope
 from girder.exceptions import ValidationException
 from girder.models.api_key import ApiKey
 from girder.models.setting import Setting
 from girder.models.token import Token
+from girder.settings import SettingKey
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
 

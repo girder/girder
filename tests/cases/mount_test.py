@@ -10,11 +10,11 @@ import threading
 import time
 
 from girder.cli import mount
-from girder.constants import SettingKey
 from girder.exceptions import ValidationException
 from girder.models.file import File
 from girder.models.setting import Setting
 from girder.models.user import User
+from girder.settings import SettingKey
 from tests import base
 
 

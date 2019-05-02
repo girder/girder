@@ -327,6 +327,16 @@ Using ``python -m girder`` and ``python -m girder-cli`` was deprecated in Girder
 Users are expected to have the appropriate packages installed and then use ``girder serve`` and ``girder-client``
 respectively.
 
+Core setting constants now reside in settings.py
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The ``SettingKey`` and ``SettingDefault`` classes (which contain constants for core settings) must
+now be imported from the ``girder.settings`` module.
+
+.. code-block:: python
+
+    from girder.settings import SettingDefault, SettingKey
+
+
 Removed or moved plugins
 ++++++++++++++++++++++++
 
