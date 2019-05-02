@@ -39,7 +39,7 @@ describe('Unit test the file view augmentation', function () {
             expect(container.length).toBe(1);
             expect($('input.g-hash-textbox', container).val()).toBe(sha512);
             expect($('a.g-keyfile-download', container).attr('href')).toBe(
-                girder.rest.apiRoot + '/file/fake_id/hashsum_file/sha512'
+                girder.rest.getApiRoot() + '/file/fake_id/hashsum_file/sha512'
             );
         });
     });

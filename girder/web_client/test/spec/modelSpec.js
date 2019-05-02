@@ -120,8 +120,8 @@ describe('Test the model class', function () {
         triggerRestError = false;
 
         // test downloadUrl
-        expect(model.downloadUrl()).toBe(girder.rest.apiRoot + '/sampleResource/' + id + '/download');
-        expect(model.downloadUrl({foo: 'bar'})).toBe(girder.rest.apiRoot + '/sampleResource/' + id + '/download?foo=bar');
+        expect(model.downloadUrl()).toBe(girder.rest.getApiRoot() + '/sampleResource/' + id + '/download');
+        expect(model.downloadUrl({foo: 'bar'})).toBe(girder.rest.getApiRoot() + '/sampleResource/' + id + '/download?foo=bar');
 
         // test download
         window.location.assign.reset();
