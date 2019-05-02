@@ -1117,7 +1117,6 @@ plugins
                         getAllTypesAndStatuses
                         initialize
                         list
-                        listAll
                         listChildJobs
                         load
                         save
