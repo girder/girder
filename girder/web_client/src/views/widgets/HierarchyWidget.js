@@ -449,14 +449,6 @@ var HierarchyWidget = View.extend({
         confirm(params);
     },
 
-    /**
-     * Deprecated alias for showInfoDialog.
-     * @deprecated
-     */
-    folderInfoDialog: function () {
-        this.showInfoDialog();
-    },
-
     showInfoDialog: function () {
         var opts = {
             el: $('#g-dialog-container'),
@@ -921,14 +913,6 @@ var HierarchyWidget = View.extend({
                 this.refreshFolderList();
             }
         }, this);
-    },
-
-    /**
-     * Deprecated alias for editAccess.
-     * @deprecated
-     */
-    editFolderAccess: function () {
-        this.editAccess();
     },
 
     /**

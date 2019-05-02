@@ -127,20 +127,6 @@ class Job(AccessControlledModel):
             query, offset=offset, limit=limit, timeout=timeout, fields=fields,
             sort=sort, user=user, level=level, **kwargs)
 
-    def listAll(self, limit=0, offset=0, sort=None, currentUser=None):
-        """
-        List all jobs.
-
-        :param limit: The page limit.
-        :param offset: The page offset
-        :param sort: The sort field.
-        :param currentUser: User for access filtering.
-        .. deprecated :: 2.3.0
-           Use :func:`job.list` instead
-        """
-        return self.list(user='all', types=None, statuses=None, limit=limit,
-                         offset=offset, sort=sort, currentUser=currentUser)
-
     def cancelJob(self, job):
         """
         Revoke/cancel a job. This simply triggers the jobs.cancel event and

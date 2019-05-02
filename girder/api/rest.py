@@ -805,11 +805,9 @@ class Resource(object):
                 'WARNING: No access level specified for route %s %s' % (
                     method, routePath))
 
-    def removeRoute(self, method, route, handler=None, resource=None):
+    def removeRoute(self, method, route, resource=None):
         """
         Remove a route from the handler and documentation.
-
-        .. deprecated :: 2.3.0
 
         :param method: The HTTP method, e.g. 'GET', 'POST', 'PUT'
         :type method: str
@@ -817,9 +815,6 @@ class Resource(object):
                       resource root. Elements of this list starting with ':'
                       are assumed to be wildcards.
         :type route: tuple[str]
-        :param handler: The method called for the route; this is necessary to
-                        remove the documentation.
-        :type handler: Function
         :param resource: the name of the resource at the root of this route.
         """
         self._ensureInit()
