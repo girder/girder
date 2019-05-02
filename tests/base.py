@@ -534,7 +534,7 @@ class TestCase(unittest.TestCase):
             body = self.getBody(response)
             try:
                 response.json = json.loads(body)
-            except Exception:
+            except ValueError:
                 raise AssertionError('Received non-JSON response: ' + body)
 
         if not exception and response.output_status.startswith(b'500'):
