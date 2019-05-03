@@ -323,6 +323,8 @@ class GirderClient(object):
 
             self.setToken(resp['authToken']['token'])
 
+        return resp['user']
+
     def setToken(self, token):
         """
         Set a token on the GirderClient instance. This is useful in the case
