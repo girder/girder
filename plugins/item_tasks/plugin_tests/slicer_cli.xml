@@ -13,12 +13,12 @@
   </acknowledgements>
   <parameters>
     <label>Parameters</label>
-    <image type="scalar">
-      <longflag>InputImage</longflag>
-      <label>InputImage</label>
+    <file type="scalar">
+      <longflag>InputFile</longflag>
+      <label>InputFile</label>
       <channel>input</channel>
-      <description>Input image to be analysed.</description>
-    </image>
+      <description>Input file to be analysed.</description>
+    </file>
     <integer-enumeration>
       <longflag>SpheresPerPhantom</longflag>
       <label>SpheresPerPhantom</label>

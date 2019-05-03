@@ -69,11 +69,11 @@ class CliParserTest(base.TestCase):
 
         inputs = spec['inputs']
         for input in inputs:
-            if input['name'] == 'InputImage':
-                self.assertEqual(input['type'], 'image')
+            if input['name'] == 'InputFile':
+                self.assertEqual(input['type'], 'file')
                 break
         else:
-            raise Exception('InputImage not added to spec.')
+            raise Exception('InputFile not added to spec.')
 
     def test_output_directory(self):
         spec = self.parse_file('slicer_cli.xml')

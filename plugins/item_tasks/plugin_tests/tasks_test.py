@@ -485,7 +485,7 @@ class TasksTest(base.TestCase):
             'mode': 'docker',
             'docker_image': 'johndoe/foo:v5',
             'container_args': [
-                '--foo', 'bar', '--InputImage=$input{--InputImage}',
+                '--foo', 'bar', '--InputFile=$input{--InputFile}',
                 '--MaximumLineStraightnessDeviation=$input{--MaximumLineStraightnessDeviation}',
                 '--MaximumRadius=$input{--MaximumRadius}',
                 '--MaximumSphereDistance=$input{--MaximumSphereDistance}',
@@ -498,9 +498,9 @@ class TasksTest(base.TestCase):
                 '--OutputDirectory=$output{--OutputDirectory}'
             ],
             'inputs': [{
-                'description': 'Input image to be analysed.',
-                'format': 'image',
-                'name': 'InputImage', 'type': 'image', 'id': '--InputImage',
+                'description': 'Input file to be analysed.',
+                'format': 'file',
+                'name': 'InputFile', 'type': 'file', 'id': '--InputFile',
                 'target': 'filepath'
             }, {
                 'description': 'Used for eliminating detections which are not in a straight line. '
@@ -595,7 +595,7 @@ class TasksTest(base.TestCase):
             flags=ACCESS_FLAG_EXECUTE_TASK, currentUser=self.admin, save=True)
 
         inputs = {
-            '--InputImage': {
+            '--InputFile': {
                 'mode': 'girder',
                 'resource_type': 'item',
                 'id': str(item['_id'])
