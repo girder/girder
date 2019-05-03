@@ -323,10 +323,6 @@ class GirderClient(object):
 
             self.setToken(resp['authToken']['token'])
 
-        if not 'user' in resp.keys():
-            print('Error trying to retrieve the user id during authentication')
-            return None
-
         return resp['user']['_id']
 
     def setToken(self, token):
