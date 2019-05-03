@@ -27,27 +27,10 @@ import contextlib
 import girder
 import six
 import threading
-from functools import wraps
-import warnings
 
 from collections import OrderedDict
 from girder.utility import config
 from six.moves import queue
-
-
-def _deprecatedAsync(func):
-    """A decorator, that let's us keep our old API, but deprecate it"""
-    @wraps(func)
-    def inner(*args, **kwargs):
-        if 'async' in kwargs:
-            if 'async_' in kwargs:
-                raise ValueError('cannot use both async and async_ '
-                                 'keyword arguments! the latter obsoletes the first.')
-            warnings.warn('async keyword argumnt is deprecated, '
-                          'use async_ instead', DeprecationWarning)
-            kwargs['async_'] = kwargs.pop('async')
-        return func(*args, **kwargs)
-    return inner
 
 
 class Event(object):
@@ -70,7 +53,6 @@ class Event(object):
         'currentHandlerName'
     )
 
-    @_deprecatedAsync
     def __init__(self, name, info, async_=False):
         self.name = name
         self.info = info
@@ -277,7 +259,6 @@ def bound(eventName, handlerName, handler):
         unbind(eventName, handlerName)
 
 
-@_deprecatedAsync
 def trigger(eventName, info=None, pre=None, async_=False, daemon=False):
     """
     Fire an event with the given name. All listeners bound on that name will be

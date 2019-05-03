@@ -168,7 +168,6 @@ class Job(AccessControlledModel):
 
         return self.save(job)
 
-    @events._deprecatedAsync
     def createJob(self, title, type, args=(), kwargs=None, user=None, when=None,
                   interval=0, public=False, handler=None, async_=False,
                   save=True, parentJob=None, otherFields=None):
