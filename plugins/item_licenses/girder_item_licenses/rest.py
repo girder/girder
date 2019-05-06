@@ -3,9 +3,8 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import boundHandler
 from girder.models.setting import Setting
-from girder.settings import SettingDefault
 
-from .constants import PluginSettings
+from .settings import PluginSettings
 
 
 @access.user
@@ -17,7 +16,7 @@ from .constants import PluginSettings
 )
 def getLicenses(self, default):
     if default:
-        licenses = SettingDefault.defaults[PluginSettings.LICENSES]
+        licenses = Setting().getDefault(PluginSettings.LICENSES)
     else:
         licenses = Setting().get(PluginSettings.LICENSES)
 

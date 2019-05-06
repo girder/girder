@@ -10,19 +10,17 @@ from girder.api.rest import (
     filtermodel, setRawResponse, setResponseHeader, setContentDisposition)
 from girder.api.v1.file import File
 from girder.constants import AccessType, TokenScope
-from girder.exceptions import ValidationException, RestException
+from girder.exceptions import RestException
 from girder.models.file import File as FileModel
 from girder.models.setting import Setting
 from girder.plugin import GirderPlugin
-from girder.utility import setting_utilities
 from girder.utility.progress import ProgressContext, noProgress
+
+from .settings import PluginSettings
+
 
 SUPPORTED_ALGORITHMS = {'sha512'}
 _CHUNK_LEN = 65536
-
-
-class PluginSettings(object):
-    AUTO_COMPUTE = 'hashsum_download.auto_compute'
 
 
 class HashedFile(File):
@@ -156,7 +154,7 @@ def _computeHashHook(event):
     Event hook that computes the file hashes in the background after
     a completed upload. Only done if the AUTO_COMPUTE setting enabled.
     """
-    if Setting().get(PluginSettings.AUTO_COMPUTE, default=False):
+    if Setting().get(PluginSettings.AUTO_COMPUTE):
         _computeHash(event.info['file'])
 
 
@@ -192,12 +190,6 @@ def _computeHash(file, progress=noProgress):
     }, multi=False)
 
     return digests
-
-
-@setting_utilities.validator(PluginSettings.AUTO_COMPUTE)
-def _validateAutoCompute(doc):
-    if not isinstance(doc['value'], bool):
-        raise ValidationException('Auto-compute hash setting must be true or false.')
 
 
 class HashsumDownloadPlugin(GirderPlugin):

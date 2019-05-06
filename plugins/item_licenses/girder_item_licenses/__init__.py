@@ -7,11 +7,9 @@ from girder.exceptions import ValidationException
 from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.plugin import GirderPlugin
-from girder.settings import SettingDefault
-from girder.utility import setting_utilities
 
-from .constants import PluginSettings, PluginSettingsDefaults
 from .rest import getLicenses
+from .settings import PluginSettings
 
 
 def validateString(value):
@@ -79,28 +77,6 @@ def validateItem(event):
     item['license'] = validateString(item.get('license', None))
 
 
-@setting_utilities.validator(PluginSettings.LICENSES)
-def validateLicenses(doc):
-    val = doc['value']
-    if not isinstance(val, list):
-        raise ValidationException('Licenses setting must be a list.', 'value')
-    for item in val:
-        category = item.get('category', None)
-        if not category or not isinstance(category, six.string_types):
-            raise ValidationException(
-                'License category is required and must be a non-empty string.', 'category')
-        licenses = item.get('licenses', None)
-        if not isinstance(licenses, list):
-            raise ValidationException('Licenses in category must be a list.', 'licenses')
-        for license in licenses:
-            if not isinstance(license, dict):
-                raise ValidationException('License must be a dict.', 'license')
-            name = license.get('name', None)
-            if not name or not isinstance(name, six.string_types):
-                raise ValidationException(
-                    'License name is required and must be a non-empty string.', 'name')
-
-
 class ItemLicensesPlugin(GirderPlugin):
     DISPLAY_NAME = 'Item licenses'
     CLIENT_SOURCE_PATH = 'web_client'
@@ -119,7 +95,3 @@ class ItemLicensesPlugin(GirderPlugin):
 
         # Add endpoint to get list of licenses
         info['apiRoot'].item.route('GET', ('licenses',), getLicenses)
-
-        # Add default license settings
-        SettingDefault.defaults[PluginSettings.LICENSES] = \
-            PluginSettingsDefaults.defaults[PluginSettings.LICENSES]

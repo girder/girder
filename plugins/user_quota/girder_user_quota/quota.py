@@ -18,7 +18,8 @@ from girder.models.user import User
 from girder.utility import assetstore_utilities
 from girder.utility.model_importer import ModelImporter
 from girder.utility.system import formatSize
-from . import constants
+
+from .settings import PluginSettings
 
 
 QUOTA_FIELD = 'quota'
@@ -323,13 +324,13 @@ class QuotaPolicy(Resource):
         quota = resource[QUOTA_FIELD].get('fileSizeQuota', None)
         if useDefault:
             if model == 'user':
-                key = constants.PluginSettings.QUOTA_DEFAULT_USER_QUOTA
+                key = PluginSettings.DEFAULT_USER_QUOTA
             elif model == 'collection':
-                key = constants.PluginSettings.QUOTA_DEFAULT_COLLECTION_QUOTA
+                key = PluginSettings.DEFAULT_COLLECTION_QUOTA
             else:
                 key = None
             if key:
-                quota = Setting().get(key, None)
+                quota = Setting().get(key)
         if not quota or quota < 0 or not isinstance(quota, six.integer_types):
             return None
         return quota

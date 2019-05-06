@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import jsonschema
 import ldap
 import six
 
@@ -11,52 +10,13 @@ from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.plugin import GirderPlugin
-from girder.utility import setting_utilities
 
-from .constants import PluginSettings
+from .settings import PluginSettings
+
 
 _LDAP_ATTRS = ('uid', 'mail', 'cn', 'sn', 'givenName', 'distinguishedName')
 _MAX_NAME_ATTEMPTS = 10
 _CONNECT_TIMEOUT = 4  # seconds
-_serversSchema = {
-    'type': 'array',
-    'items': {
-        'type': 'object',
-        'properties': {
-            'uri': {
-                'type': 'string',
-                'minLength': 1
-            },
-            'bindName': {
-                'type': 'string',
-                'minLength': 1
-            },
-            'baseDn': {
-                'type': 'string'
-            }
-        },
-        'required': ['uri', 'bindName', 'baseDn']
-    }
-}
-
-
-@setting_utilities.default(PluginSettings.LDAP_SERVERS)
-def _defaultServers():
-    return []
-
-
-@setting_utilities.validator(PluginSettings.LDAP_SERVERS)
-def _validateLdapServers(doc):
-    try:
-        jsonschema.validate(doc['value'], _serversSchema)
-    except jsonschema.ValidationError as e:
-        raise ValidationException('Invalid LDAP servers list: ' + e.message)
-
-    for server in doc['value']:
-        if '://' not in server['uri']:
-            server['uri'] = 'ldap://' + server['uri']
-        server['password'] = server.get('password', '')
-        server['searchField'] = server.get('searchField', 'uid')
 
 
 def _registerLdapUser(attrs, email, server):
@@ -117,7 +77,7 @@ def _getLdapUser(attrs, server):
 
 def _ldapAuth(event):
     login, password = event.info['login'], event.info['password']
-    servers = Setting().get(PluginSettings.LDAP_SERVERS)
+    servers = Setting().get(PluginSettings.SERVERS)
 
     for server in servers:
         try:

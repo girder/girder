@@ -16,9 +16,9 @@ from girder.settings import SettingKey
 import girder.events
 from tests import base
 
-from girder_oauth.constants import PluginSettings
 from girder_oauth.providers.base import ProviderBase
 from girder_oauth.providers.google import Google
+from girder_oauth.settings import PluginSettings
 
 
 def setUpModule():

@@ -1,24 +1,8 @@
 # -*- coding: utf-8 -*-
 from girder import events
-from girder.exceptions import ValidationException
 from girder.plugin import GirderPlugin
-from girder.utility import setting_utilities
 
-from . import constants
-from .quota import QuotaPolicy, ValidateSizeQuota
-
-
-@setting_utilities.validator((
-    constants.PluginSettings.QUOTA_DEFAULT_USER_QUOTA,
-    constants.PluginSettings.QUOTA_DEFAULT_COLLECTION_QUOTA
-))
-def validateSettings(doc):
-    val = doc['value']
-
-    val, err = ValidateSizeQuota(val)
-    if err:
-        raise ValidationException(err, 'value')
-    doc['value'] = val
+from .quota import QuotaPolicy
 
 
 class UserQuotaPlugin(GirderPlugin):
