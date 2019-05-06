@@ -9,7 +9,7 @@ import six
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from pymongo.errors import WriteError
-from girder import events, logprint, auditLogger
+from girder import events, logprint, logger, auditLogger
 from girder.constants import AccessType, CoreEventHandler, ACCESS_FLAGS, TEXT_SCORE_SORT_MAX
 from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
@@ -1416,7 +1416,10 @@ class AccessControlledModel(Model):
         :raises ValidationException: If an invalid ObjectId is passed.
         :returns: The matching document, or None if no match exists.
         """
+        # Warn of str type deprecation for `fields` param
         if isinstance(fields, six.string_types):
+            logger.warning('String data type for fields param is deprecated, '
+                           'use a list or dict instead.')
             fields = [fields]
 
         # Ensure we include access and public, they are needed by requireAccess
