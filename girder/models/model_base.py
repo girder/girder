@@ -1418,8 +1418,8 @@ class AccessControlledModel(Model):
         """
         # Warn of str type deprecation for `fields` param
         if isinstance(fields, six.string_types):
-            logger.warning('String data type for fields param is deprecated, \
-                use a list or dict instead.')
+            logger.warning('String data type for fields param is deprecated, '
+                           'use a list or dict instead.')
             fields = [fields]
 
         # Ensure we include access and public, they are needed by requireAccess

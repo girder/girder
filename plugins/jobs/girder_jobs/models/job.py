@@ -29,7 +29,7 @@ class Job(AccessControlledModel):
 
         self.exposeFields(level=AccessType.READ, fields={
             'title', 'type', 'created', 'interval', 'when', 'status',
-            'progress', 'log', 'meta', '_id', 'public', 'parentId', 'async_',
+            'progress', 'log', 'meta', '_id', 'public', 'parentId', 'asynchronous',
             'updated', 'timestamps', 'handler', 'jobInfoSpec'})
 
         self.exposeFields(level=AccessType.SITE_ADMIN, fields={'args', 'kwargs'})
@@ -127,20 +127,6 @@ class Job(AccessControlledModel):
             query, offset=offset, limit=limit, timeout=timeout, fields=fields,
             sort=sort, user=user, level=level, **kwargs)
 
-    def listAll(self, limit=0, offset=0, sort=None, currentUser=None):
-        """
-        List all jobs.
-
-        :param limit: The page limit.
-        :param offset: The page offset
-        :param sort: The sort field.
-        :param currentUser: User for access filtering.
-        .. deprecated :: 2.3.0
-           Use :func:`job.list` instead
-        """
-        return self.list(user='all', types=None, statuses=None, limit=limit,
-                         offset=offset, sort=sort, currentUser=currentUser)
-
     def cancelJob(self, job):
         """
         Revoke/cancel a job. This simply triggers the jobs.cancel event and
@@ -182,9 +168,8 @@ class Job(AccessControlledModel):
 
         return self.save(job)
 
-    @events._deprecatedAsync
     def createJob(self, title, type, args=(), kwargs=None, user=None, when=None,
-                  interval=0, public=False, handler=None, async_=False,
+                  interval=0, public=False, handler=None, asynchronous=False,
                   save=True, parentJob=None, otherFields=None):
         """
         Create a new job record.
@@ -212,9 +197,9 @@ class Job(AccessControlledModel):
         :param externalToken: If an external token was created for updating this
         job, pass it in and it will have the job-specific scope set.
         :type externalToken: token (dict) or None.
-        :param async_: Whether the job is to be run asynchronously. For now this
+        :param asynchronous: Whether the job is to be run asynchronously. For now this
             only applies to jobs that are scheduled to run locally.
-        :type async_: bool
+        :type asynchronous: bool
         :param save: Whether the documented should be saved to the database.
         :type save: bool
         :param parentJob: The job which will be set as a parent
@@ -248,7 +233,7 @@ class Job(AccessControlledModel):
             'log': [],
             'meta': {},
             'handler': handler,
-            'async_': async_,
+            'asynchronous': asynchronous,
             'timestamps': [],
             'parentId': parentId
         }
@@ -324,7 +309,7 @@ class Job(AccessControlledModel):
         actually scheduling and/or executing the job, except in the case when
         the handler is 'local'.
         """
-        if job.get('async_', job.get('async')) is True:
+        if job.get('asynchronous', job.get('async')) is True:
             events.daemon.trigger('jobs.schedule', info=job)
         else:
             events.trigger('jobs.schedule', info=job)

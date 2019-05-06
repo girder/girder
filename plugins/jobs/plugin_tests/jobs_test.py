@@ -187,10 +187,6 @@ class JobsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 6)
 
-        # Test deprecated listAll method
-        jobs = list(self.jobModel.listAll(limit=0, offset=0, sort=None, currentUser=self.users[0]))
-        self.assertEqual(len(jobs), 6)
-
         # get with filter
         resp = self.request('/job/all', user=self.users[0], params={
             'types': json.dumps(['t']),

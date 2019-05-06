@@ -81,16 +81,6 @@ const EditCollectionWidget = View.extend({
         return this;
     },
 
-    createCollection: function (fields) {
-        console.warn('The createCollection method is deprecated; use _saveCollection instead');
-        this._saveCollection(fields);
-    },
-
-    updateCollection: function (fields) {
-        console.warn('The updateCollection method is deprecated; use _saveCollection instead');
-        this._saveCollection(fields);
-    },
-
     _saveCollection: function (fields) {
         this.model.set(fields);
         return this.model.save()

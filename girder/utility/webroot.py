@@ -98,10 +98,7 @@ class Webroot(WebrootBase):
             templatePath = os.path.join(constants.PACKAGE_DIR, 'utility', 'webroot.mako')
         super(Webroot, self).__init__(templatePath)
 
-        self.vars = {
-            # 'title' is deprecated use brandName instead
-            'title': 'Girder'
-        }
+        self.vars = {}
 
     def _renderHTML(self):
         from girder.utility import server

@@ -682,24 +682,6 @@ girderTest.importPlugin = function (pluginName) {
 };
 
 /**
- * An alias to addScript for backwards compatibility.
- * @deprecated
- */
-girderTest.addCoveredScript = function (url) {
-    console.warn('girderTest.addCoveredScript is deprecated, use girderTest.addScript instead');
-    girderTest.addScript(url);
-};
-
-/**
- * An alias to addScripts for backwards compatibility.
- * @deprecated
- */
-girderTest.addCoveredScripts = function (scripts) {
-    console.warn('girderTest.addCoveredScripts is deprecated, use girderTest.addScripts instead');
-    girderTest.addScripts(scripts);
-};
-
-/**
  * For the current folder, check if it is public or private and take an action.
  * :param current: either 'public' or 'private': expect this value to match.
  * :param action: if 'public' or 'private', switch to that setting.
@@ -1127,12 +1109,6 @@ girderTest.confirmDialog = function () {
     });
     girderTest.waitForLoad();
 };
-
-/**
- * @DEPRECATED TODO remove in major version
- * This is now a no-op since phantom 2.x has a Blob implementation
- */
-girderTest.shimBlobBuilder = $.noop;
 
 /*
  * Loads a particular fragment as anonymous and checks whether the login dialog

@@ -137,27 +137,8 @@ let restRequest = function (opts) {
         delete args.girderToken;
     }
 
-    let jqXHR = Backbone.$.ajax(args);
-    jqXHR.error = function () {
-        console.warn('Use of restRequest.error is deprecated, use restRequest.fail instead.');
-        return jqXHR.fail.apply(jqXHR, arguments);
-    };
-    return jqXHR;
+    return Backbone.$.ajax(args);
 };
-
-const _originalRestRequest = restRequest;
-/**
- * @deprecated: will be removed in v3
- */
-function mockRestRequest(mock) {
-    restRequest = mock;
-}
-/**
- * @deprecated: will be removed in v3
- */
-function unmockRestRequest() {
-    restRequest = _originalRestRequest;
-}
 
 // All requests from Backbone should go through restRequest, adding authentication and the API root.
 Backbone.ajax = restRequest;
@@ -222,15 +203,12 @@ function setUploadChunkSize(val) {
 }
 
 export {
-    apiRoot, // deprecated
     getApiRoot,
     setApiRoot,
     uploadHandlers,
     restRequest,
     numberOutstandingRestRequests,
     cancelRestRequests,
-    mockRestRequest,
-    unmockRestRequest,
     getUploadChunkSize,
     setUploadChunkSize
 };
