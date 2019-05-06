@@ -483,7 +483,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         :returns: a girder mount path to the file or None if no such path is
             available.
         """
-        mount = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION, None)
+        mount = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION)
         if mount:
             path = mount['path'].rstrip('/') + path_util.getResourcePath('file', file, force=True)
             if not validate or os.path.exists(path):

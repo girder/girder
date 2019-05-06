@@ -125,8 +125,7 @@ class ApiKey(AccessControlledModel):
         if apiKey is None or not apiKey['active']:
             raise ValidationException('Invalid API key.')
 
-        cap = apiKey['tokenDuration'] or Setting().get(
-            SettingKey.COOKIE_LIFETIME)
+        cap = apiKey['tokenDuration'] or Setting().get(SettingKey.COOKIE_LIFETIME)
         days = min(float(days or cap), cap)
 
         user = User().load(apiKey['userId'], force=True)

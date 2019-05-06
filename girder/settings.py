@@ -69,6 +69,8 @@ class SettingDefault(object):
         SettingKey.CORS_ALLOW_HEADERS:
             'Accept-Encoding, Authorization, Content-Disposition, '
             'Content-Type, Cookie, Girder-Authorization, Girder-OTP, Girder-Token',
+        SettingKey.CORS_ALLOW_METHODS: 'GET, POST, PUT, HEAD, DELETE',
+        SettingKey.CORS_ALLOW_ORIGIN: '',
         SettingKey.CORS_EXPOSE_HEADERS: 'Girder-Total-Count',
         # An apache server using reverse proxy would also need
         #  X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
@@ -78,13 +80,17 @@ class SettingDefault(object):
         SettingKey.EMAIL_VERIFICATION: 'disabled',
         SettingKey.ENABLE_NOTIFICATION_STREAM: True,
         SettingKey.ENABLE_PASSWORD_LOGIN: True,
+        SettingKey.GIRDER_MOUNT_INFORMATION: None,
         SettingKey.PRIVACY_NOTICE: 'https://www.kitware.com/privacy',
         SettingKey.REGISTRATION_POLICY: 'open',
         # SettingKey.ROUTE_TABLE is provided by a function
         # SettingKey.SECURE_COOKIE is provided by a function
+        SettingKey.SERVER_ROOT: '',
         SettingKey.SMTP_ENCRYPTION: 'none',
         SettingKey.SMTP_HOST: 'localhost',
+        SettingKey.SMTP_PASSWORD: '',
         SettingKey.SMTP_PORT: 25,
+        SettingKey.SMTP_USERNAME: '',
         SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE: 1024 * 1024 * 5,
         SettingKey.USER_DEFAULT_FOLDERS: 'public_private'
     }
@@ -327,8 +333,8 @@ class SettingValidator(object):
     @staticmethod
     @setting_utilities.validator(SettingKey.SMTP_PASSWORD)
     def _validateSmtpPassword(doc):
-        # any string is acceptable
-        pass
+        if not isinstance(doc['value'], six.string_types):
+            raise ValidationException('SMTP password must be a string', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.SMTP_PORT)
@@ -344,8 +350,8 @@ class SettingValidator(object):
     @staticmethod
     @setting_utilities.validator(SettingKey.SMTP_USERNAME)
     def _validateSmtpUsername(doc):
-        # any string is acceptable
-        pass
+        if not isinstance(doc['value'], six.string_types):
+            raise ValidationException('SMTP username must be a string', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)

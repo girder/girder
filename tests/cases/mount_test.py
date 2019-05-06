@@ -190,7 +190,7 @@ class ServerFuseTestCase(base.TestCase):
         """
         # Check that the setting for the mount location matches the current
         # mount and a file is reachable where we expect.
-        setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION, None)
+        setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION)
         self.assertEqual(setting['path'], self.mountPath)
         self.assertTrue(os.path.exists(os.path.join(self.mountPath, self.publicFileName)))
         self.assertFalse(os.path.exists(os.path.join(self.extraMountPath, self.publicFileName)))
@@ -199,18 +199,18 @@ class ServerFuseTestCase(base.TestCase):
         # instantly) and files shouldn't be reachable.
         endTime = time.time() + 10  # maximum time to wait
         while time.time() < endTime:
-            setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION, None)
+            setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION)
             if setting is None:
                 break
             time.sleep(0.05)
-        setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION, None)
+        setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION)
         self.assertIsNone(setting)
         self.assertFalse(os.path.exists(os.path.join(self.mountPath, self.publicFileName)))
         self.assertFalse(os.path.exists(os.path.join(self.extraMountPath, self.publicFileName)))
         # Remounting to a different path should update the setting and make
         # files visible again.
         self._mountServer(path=self.extraMountPath)
-        setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION, None)
+        setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION)
         self.assertEqual(setting['path'], self.extraMountPath)
         self.assertFalse(os.path.exists(os.path.join(self.mountPath, self.publicFileName)))
         self.assertTrue(os.path.exists(os.path.join(self.extraMountPath, self.publicFileName)))

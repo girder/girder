@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import cherrypy
 import os
 import re
 import six
@@ -39,15 +38,7 @@ def getEmailUrlPrefix():
     fragment value should be appended to this value.
     """
     from girder.models.setting import Setting
-
-    host = Setting().get(SettingKey.EMAIL_HOST, '')
-    if not host:
-        host = '://'.join((cherrypy.request.scheme,
-                           cherrypy.request.local.name))
-        if cherrypy.request.local.port != 80:
-            host += ':%d' % cherrypy.request.local.port
-
-    return host
+    return Setting().get(SettingKey.EMAIL_HOST)
 
 
 def renderTemplate(name, params=None):
@@ -120,7 +111,7 @@ def sendEmail(to=None, subject=None, text=None, toAdmins=False, bcc=None):
     if bcc:
         msg['Bcc'] = ', '.join(bcc)
 
-    msg['From'] = Setting().get(SettingKey.EMAIL_FROM_ADDRESS, 'Girder <no-reply@girder.org>')
+    msg['From'] = Setting().get(SettingKey.EMAIL_FROM_ADDRESS)
 
     events.daemon.trigger('_sendmail', info={
         'message': msg,
@@ -179,11 +170,11 @@ def _sendmail(event):
 
     setting = Setting()
     smtp = _SMTPConnection(
-        host=setting.get(SettingKey.SMTP_HOST, 'localhost'),
+        host=setting.get(SettingKey.SMTP_HOST),
         port=setting.get(SettingKey.SMTP_PORT, None),
-        encryption=setting.get(SettingKey.SMTP_ENCRYPTION, 'none'),
-        username=setting.get(SettingKey.SMTP_USERNAME, None),
-        password=setting.get(SettingKey.SMTP_PASSWORD, None)
+        encryption=setting.get(SettingKey.SMTP_ENCRYPTION),
+        username=setting.get(SettingKey.SMTP_USERNAME),
+        password=setting.get(SettingKey.SMTP_PASSWORD)
     )
 
     logger.info('Sending email to %s through %s', ', '.join(recipients), smtp.host)

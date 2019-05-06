@@ -406,8 +406,8 @@ class User(AccessControlledModel):
         yet verified their email address.
         """
         from .setting import Setting
-        return (not user['emailVerified']) and Setting().get(
-            SettingKey.EMAIL_VERIFICATION) == 'required'
+        return (not user['emailVerified']) and \
+            Setting().get(SettingKey.EMAIL_VERIFICATION) == 'required'
 
     def adminApprovalRequired(self, user):
         """
@@ -477,7 +477,7 @@ class User(AccessControlledModel):
         from .folder import Folder
         from .setting import Setting
 
-        if Setting().get(SettingKey.USER_DEFAULT_FOLDERS, 'public_private') == 'public_private':
+        if Setting().get(SettingKey.USER_DEFAULT_FOLDERS) == 'public_private':
             user = event.info
 
             publicFolder = Folder().createFolder(
