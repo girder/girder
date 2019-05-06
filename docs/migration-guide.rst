@@ -305,8 +305,8 @@ Async keyword arguments and properties changed to async\_ PR #2817
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In version 3.7 of python ``async`` is a `reserved keyword argument <https://www.python.org/dev/peps/pep-0492/#deprecation-plans/>`_.
-To mitigate any issues all instances of ``async`` in the codebase has changed to ``asynchronous``.
-If the functions are called with ``async`` a deprecation warning will be given. This affects:
+To mitigate any issues all instances of ``async`` in the codebase have changed to ``asynchronous``.
+This affects:
 
  * The event framework ``girder/events.py``
  * The built-in job plugin ``plugins/jobs/girder_jobs/models/job.py``
