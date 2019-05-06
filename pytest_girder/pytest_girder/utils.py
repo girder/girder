@@ -142,7 +142,7 @@ def request(path='/', method='GET', params=None, user=None,
             prefix='/api/v1', isJson=True, basicAuth=None, body=None,
             type=None, exception=False, cookie=None, token=None,
             additionalHeaders=None, useHttps=False,
-            authHeader='Girder-Authorization', appPrefix=''):
+            authHeader='Authorization', appPrefix=''):
     """
     Make an HTTP request.
 

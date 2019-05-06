@@ -109,13 +109,13 @@ class UserTestCase(base.TestCase):
         # Bad authentication header
         resp = self.request(
             path='/user/authentication', method='GET',
-            additionalHeaders=[('Girder-Authorization', 'Basic Not-Valid-64')])
+            additionalHeaders=[('Authorization', 'Basic Not-Valid-64')])
         self.assertStatus(resp, 401)
         self.assertEqual('Invalid HTTP Authorization header',
                          resp.json['message'])
         resp = self.request(
             path='/user/authentication', method='GET',
-            additionalHeaders=[('Girder-Authorization', 'Basic NotValid')])
+            additionalHeaders=[('Authorization', 'Basic NotValid')])
         self.assertStatus(resp, 401)
         self.assertEqual('Invalid HTTP Authorization header',
                          resp.json['message'])
@@ -147,10 +147,10 @@ class UserTestCase(base.TestCase):
         self.assertStatus(resp, 401)
         self.assertEqual('Login failed.', resp.json['message'])
 
-        # Login successfully with fallback Authorization header
+        # Login successfully with fallback Girder-Authorization header
         resp = self.request(path='/user/authentication', method='GET',
                             basicAuth='goodlogin:good:password',
-                            authHeader='Authorization')
+                            authHeader='Girder-Authorization')
         self.assertStatusOk(resp)
 
         # Test secure cookie validation
