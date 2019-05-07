@@ -19,10 +19,9 @@ login process requires the client to make an HTTP ``GET`` request to the
 ``api/v1/user/authentication`` route, using HTTP Basic Auth to pass the user
 credentials. For example, for a user with login "john" and password "hello",
 first base-64 encode the string ``"john:hello"`` which yields ``"am9objpoZWxsbw=="``.
-Then take the base-64 encoded value and pass it via the ``Girder-Authorization``
-header (The ``Authorization`` header will also work): ::
+Then take the base-64 encoded value and pass it via the ``Authorization`` header: ::
 
-    Girder-Authorization: Basic am9objpoZWxsbw==
+    Authorization: Basic am9objpoZWxsbw==
 
 If the username and password are correct, you will receive a 200 status code and
 a JSON document from which you can extract the authentication token, e.g.:

@@ -97,10 +97,10 @@ class User(Resource):
 
         # Only create and send new cookie if user isn't already sending a valid one.
         if not user:
-            authHeader = cherrypy.request.headers.get('Girder-Authorization')
+            authHeader = cherrypy.request.headers.get('Authorization')
 
             if not authHeader:
-                authHeader = cherrypy.request.headers.get('Authorization')
+                authHeader = cherrypy.request.headers.get('Girder-Authorization')
 
             if not authHeader or not authHeader[0:6] == 'Basic ':
                 raise RestException('Use HTTP Basic Authentication', 401)
