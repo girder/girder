@@ -4,7 +4,7 @@
   environment:
     - LC_ALL: "C.UTF-8"
     - LANG: "C.UTF-8"
-  command: "{{ girder_virtualenv }}/bin/girder build --static-public-path /static"
+  command: "{{ girder_virtualenv }}/bin/girder build"
   when: girder_web
 
 - name: Restart Girder
