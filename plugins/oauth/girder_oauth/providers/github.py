@@ -4,8 +4,9 @@ from six.moves import urllib
 from girder.api.rest import getApiUrl
 from girder.exceptions import RestException
 from girder.models.setting import Setting
+
 from .base import ProviderBase
-from .. import constants
+from ..settings import PluginSettings
 
 
 class GitHub(ProviderBase):
@@ -16,16 +17,16 @@ class GitHub(ProviderBase):
     _API_EMAILS_URL = 'https://api.github.com/user/emails'
 
     def getClientIdSetting(self):
-        return Setting().get(constants.PluginSettings.GITHUB_CLIENT_ID)
+        return Setting().get(PluginSettings.GITHUB_CLIENT_ID)
 
     def getClientSecretSetting(self):
-        return Setting().get(constants.PluginSettings.GITHUB_CLIENT_SECRET)
+        return Setting().get(PluginSettings.GITHUB_CLIENT_SECRET)
 
     @classmethod
     def getUrl(cls, state):
-        clientId = Setting().get(constants.PluginSettings.GITHUB_CLIENT_ID)
+        clientId = Setting().get(PluginSettings.GITHUB_CLIENT_ID)
 
-        if clientId is None:
+        if not clientId:
             raise Exception('No GitHub client ID setting is present.')
 
         callbackUrl = '/'.join((getApiUrl(), 'oauth', 'github', 'callback'))

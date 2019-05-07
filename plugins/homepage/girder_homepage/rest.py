@@ -7,6 +7,7 @@ from girder.models.folder import Folder
 from girder.models.setting import Setting
 
 from . import constants
+from .settings import PluginSettings
 
 
 class Homepage(Resource):
@@ -23,12 +24,11 @@ class Homepage(Resource):
     def getSettings(self):
         settings = Setting()
         return {
-            constants.PluginSettings.MARKDOWN: settings.get(constants.PluginSettings.MARKDOWN),
-            constants.PluginSettings.HEADER: settings.get(constants.PluginSettings.HEADER),
-            constants.PluginSettings.SUBHEADER: settings.get(constants.PluginSettings.SUBHEADER),
-            constants.PluginSettings.WELCOME_TEXT: settings.get(
-                constants.PluginSettings.WELCOME_TEXT),
-            constants.PluginSettings.LOGO: settings.get(constants.PluginSettings.LOGO),
+            PluginSettings.MARKDOWN: settings.get(PluginSettings.MARKDOWN),
+            PluginSettings.HEADER: settings.get(PluginSettings.HEADER),
+            PluginSettings.SUBHEADER: settings.get(PluginSettings.SUBHEADER),
+            PluginSettings.WELCOME_TEXT: settings.get(PluginSettings.WELCOME_TEXT),
+            PluginSettings.LOGO: settings.get(PluginSettings.LOGO),
         }
 
     @access.admin
@@ -38,9 +38,9 @@ class Homepage(Resource):
     def getAssets(self):
         return {
             # Keep MARKDOWN folder as 'Homepage Assets', for compatibility
-            constants.PluginSettings.MARKDOWN: self._getAssetsFolder('Homepage Assets')['_id'],
-            constants.PluginSettings.WELCOME_TEXT: self._getAssetsFolder('Welcome Text')['_id'],
-            constants.PluginSettings.LOGO: self._getAssetsFolder('Logo')['_id'],
+            PluginSettings.MARKDOWN: self._getAssetsFolder('Homepage Assets')['_id'],
+            PluginSettings.WELCOME_TEXT: self._getAssetsFolder('Welcome Text')['_id'],
+            PluginSettings.LOGO: self._getAssetsFolder('Logo')['_id'],
         }
 
     def _getAssetsFolder(self, folderName):

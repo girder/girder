@@ -4,8 +4,9 @@ from six.moves import urllib
 from girder.api.rest import getApiUrl
 from girder.exceptions import RestException
 from girder.models.setting import Setting
+
 from .base import ProviderBase
-from .. import constants
+from ..settings import PluginSettings
 
 
 class Globus(ProviderBase):
@@ -16,16 +17,16 @@ class Globus(ProviderBase):
     _API_USER_URL = 'https://auth.globus.org/v2/oauth2/userinfo'
 
     def getClientIdSetting(self):
-        return Setting().get(constants.PluginSettings.GLOBUS_CLIENT_ID)
+        return Setting().get(PluginSettings.GLOBUS_CLIENT_ID)
 
     def getClientSecretSetting(self):
-        return Setting().get(constants.PluginSettings.GLOBUS_CLIENT_SECRET)
+        return Setting().get(PluginSettings.GLOBUS_CLIENT_SECRET)
 
     @classmethod
     def getUrl(cls, state):
-        clientId = Setting().get(constants.PluginSettings.GLOBUS_CLIENT_ID)
+        clientId = Setting().get(PluginSettings.GLOBUS_CLIENT_ID)
 
-        if clientId is None:
+        if not clientId:
             raise Exception('No Globus client ID setting is present.')
 
         callbackUrl = '/'.join((getApiUrl(), 'oauth', 'globus', 'callback'))

@@ -11,7 +11,9 @@ from girder.api.rest import Resource
 from girder.api import access
 from girder.models.setting import Setting
 from girder.models.token import Token
-from . import constants, providers
+
+from . import providers
+from .settings import PluginSettings
 
 
 class OAuth(Resource):
@@ -63,7 +65,7 @@ class OAuth(Resource):
                required=False, dataType='boolean', default=False)
     )
     def listProviders(self, redirect, list):
-        enabledNames = Setting().get(constants.PluginSettings.PROVIDERS_ENABLED)
+        enabledNames = Setting().get(PluginSettings.PROVIDERS_ENABLED)
 
         enabledProviders = [
             provider

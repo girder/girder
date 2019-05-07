@@ -14,7 +14,7 @@ from girder.models.user import User
 from girder.settings import SettingKey
 from girder.utility.system import formatSize
 
-from girder_user_quota import constants
+from girder_user_quota.settings import PluginSettings
 
 
 def setUpModule():
@@ -175,9 +175,9 @@ class QuotaTestCase(base.TestCase):
         :param error: if set, this is a substring expected in an error message.
         """
         if model == 'user':
-            key = constants.PluginSettings.QUOTA_DEFAULT_USER_QUOTA
+            key = PluginSettings.DEFAULT_USER_QUOTA
         elif model == 'collection':
-            key = constants.PluginSettings.QUOTA_DEFAULT_COLLECTION_QUOTA
+            key = PluginSettings.DEFAULT_COLLECTION_QUOTA
         try:
             Setting().set(key, value)
         except ValidationException as err:

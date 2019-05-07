@@ -2,7 +2,7 @@
 from tests import base
 from girder.models.setting import Setting
 
-from girder_google_analytics.constants import PluginSettings
+from girder_google_analytics.settings import PluginSettings
 
 
 def setUpModule():
@@ -20,10 +20,10 @@ class GoogleAnalyticsTest(base.TestCase):
         # test without set
         resp = self.request('/google_analytics/id')
         self.assertStatusOk(resp)
-        self.assertIs(resp.json['google_analytics_id'], None)
+        self.assertEqual(resp.json['google_analytics_id'], '')
 
         # set tracking id
-        Setting().set(PluginSettings.GOOGLE_ANALYTICS_TRACKING_ID, 'testing-tracking-id')
+        Setting().set(PluginSettings.TRACKING_ID, 'testing-tracking-id')
 
         # verify we can get the tracking id without being authenticated.
         resp = self.request('/google_analytics/id')

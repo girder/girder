@@ -7,7 +7,7 @@ from girder.models.setting import Setting
 from girder.models.user import User
 from tests import base
 
-from girder_ldap.constants import PluginSettings
+from girder_ldap.settings import PluginSettings
 
 
 def setUpModule():
@@ -54,12 +54,12 @@ class LdapTestCase(base.TestCase):
     def testLdapLogin(self):
         settings = Setting()
 
-        self.assertEqual(settings.get(PluginSettings.LDAP_SERVERS), [])
+        self.assertEqual(settings.get(PluginSettings.SERVERS), [])
 
         with self.assertRaises(ValidationException):
-            settings.set(PluginSettings.LDAP_SERVERS, {})
+            settings.set(PluginSettings.SERVERS, {})
 
-        settings.set(PluginSettings.LDAP_SERVERS, [{
+        settings.set(PluginSettings.SERVERS, [{
             'baseDn': 'cn=Users,dc=foo,dc=bar,dc=org',
             'bindName': 'cn=foo,cn=Users,dc=foo,dc=bar,dc=org',
             'password': 'foo',
