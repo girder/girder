@@ -3,14 +3,15 @@
   hosts: all
 
   vars:
+    ansible_python_interpreter: "/usr/bin/python3"
     girder_virtualenv: "{{ ansible_user_dir }}/.venvs/girder"
 
   pre_tasks:
     - name: Install python prereqs
       apt:
         name:
-          - python-setuptools
           - python3-venv
+          - python3-setuptools
           - python3-dev
       become: true
 
@@ -21,5 +22,6 @@
         creates: "{{ girder_virtualenv }}"
 
   roles:
+    - role: girder.mongodb
+
     - role: ansible-role-girder
-      girder_daemonize: false

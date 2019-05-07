@@ -505,6 +505,29 @@ jobs:
           command: tox -e public_names
           working_directory: girder
 
+  ansible:
+    docker:
+      - image: girder/girder_test:latest-py3
+    working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
+    steps:
+      - checkout:
+          path: girder
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Create virtual environment (if necessary)
+          command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
+      - run:
+          name: Activate virtual environment
+          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+      - run:
+          name: Install tox
+          command: pip install --upgrade pip tox
+      - run:
+          name: Run Ansible tests
+          command: tox -e ansible
+          working_directory: girder
+
   release:
     docker:
       - image: circleci/python:2.7
@@ -602,6 +625,10 @@ workflows:
             tags:
               only: /^v[0-9]+.*/
       - public_symbols:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - ansible:
           filters:
             tags:
               only: /^v[0-9]+.*/

@@ -1,0 +1,16 @@
+---
+- name: Prepare
+  hosts: all
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
+  tasks:
+    # gpg is needed to add other APT repositories
+    - name: Install gnupg2
+      apt:
+        name: gnupg2
+        state: present
+    # The "ss" tool is needed by testinfra for socket inspection
+    - name: Install ss
+      apt:
+        name: iproute2
+        state: present
