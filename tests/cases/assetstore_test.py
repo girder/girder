@@ -187,11 +187,9 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
         resp = self.request('/resource/lookup', user=self.admin, params={
-            'path': '/user/admin/Public/world.txt/world.txt',
-            'test': True
+            'path': '/user/admin/Public/world.txt/world.txt'
         })
-        self.assertStatusOk(resp)
-        self.assertIsNone(resp.json)
+        self.assertStatus(resp, 400)
 
         # Do the import with the include regex on
         resp = self.request(
@@ -210,11 +208,9 @@ class AssetstoreTestCase(base.TestCase):
 
         # world.txt should not
         resp = self.request('/resource/lookup', user=self.admin, params={
-            'path': '/user/admin/Public/world.txt/world.txt',
-            'test': True
+            'path': '/user/admin/Public/world.txt/world.txt'
         })
-        self.assertStatusOk(resp)
-        self.assertIsNone(resp.json)
+        self.assertStatus(resp, 400)
 
         # Run import without any regexes specified, all files should be imported
         resp = self.request(path, method='POST', params=params, user=self.admin)
@@ -986,7 +982,7 @@ class AssetstoreTestCase(base.TestCase):
             progress=ProgressContext(False), user=self.admin, leafFoldersAsItems=False)
 
         file = path_util.lookUpPath('/user/admin/Public/world.txt/world.txt',
-                                    self.admin, False)['document']
+                                    self.admin)['document']
 
         # Move file
         params = {

@@ -106,16 +106,12 @@ def lookUpToken(token, parentType, parent):
         parentType, parent.get('name', parent.get('_id')), token))
 
 
-def lookUpPath(path, user=None, test=False, filter=True, force=False):
+def lookUpPath(path, user=None, filter=True, force=False):
     """
     Look up a resource in the data hierarchy by path.
 
     :param path: path of the resource
     :param user: user with correct privileges to access path
-    :param test: defaults to false, when set to true
-        will return None instead of throwing exception when
-        path doesn't exist
-    :type test: bool
     :param filter: Whether the returned model should be filtered.
     :type filter: bool
     :param force: if True, don't validate the access.
@@ -130,26 +126,14 @@ def lookUpPath(path, user=None, test=False, filter=True, force=False):
         parent = User().findOne({'login': username})
 
         if parent is None:
-            if test:
-                return {
-                    'model': None,
-                    'document': None
-                }
-            else:
-                raise ResourcePathNotFound('User not found: %s' % username)
+            raise ResourcePathNotFound('User not found: %s' % username)
 
     elif model == 'collection':
         collectionName = pathArray[1]
         parent = Collection().findOne({'name': collectionName})
 
         if parent is None:
-            if test:
-                return {
-                    'model': None,
-                    'document': None
-                }
-            else:
-                raise ResourcePathNotFound('Collection not found: %s' % collectionName)
+            raise ResourcePathNotFound('Collection not found: %s' % collectionName)
 
     else:
         raise ValidationException('Invalid path format')
@@ -166,13 +150,7 @@ def lookUpPath(path, user=None, test=False, filter=True, force=False):
         # We should not distinguish the response between access and validation errors so that
         # adversarial users cannot discover the existence of data they don't have access to by
         # looking up a path.
-        if test:
-            return {
-                'model': None,
-                'document': None
-            }
-        else:
-            raise ResourcePathNotFound('Path not found: %s' % path)
+        raise ResourcePathNotFound('Path not found: %s' % path)
 
     if filter:
         document = ModelImporter.model(model).filter(document, user)

@@ -181,7 +181,10 @@ def skip(bc):
 
 def lookup_resource(bc):
     path = '/' + '/'.join(bc)
-    return gc.resourceLookup(path, True)
+    try:
+        return gc.resourceLookup(path)
+    except requests.HTTPError:
+        return None
 
 def get_or_create(type, id, timestamp, bc, func, args):
     newObj = created(type, id)

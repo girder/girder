@@ -110,16 +110,12 @@ class Resource(BaseResource):
                'path starting with either "/user/[user name]", for a user\'s '
                'resources or "/collection/[collection name]", for resources '
                'under a collection.')
-        .param('test',
-               'Specify whether to return None instead of throwing an '
-               'exception when path doesn\'t exist.',
-               required=False, dataType='boolean', default=False)
         .errorResponse('Path is invalid.')
         .errorResponse('Path refers to a resource that does not exist.')
         .errorResponse('Read access was denied for the resource.', 403)
     )
-    def lookup(self, path, test):
-        return path_util.lookUpPath(path, self.getCurrentUser(), test)['document']
+    def lookup(self, path):
+        return path_util.lookUpPath(path, self.getCurrentUser())['document']
 
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
