@@ -48,8 +48,10 @@
       key: "{{ item.key }}"
       value: "{{ item.value }}"
   with_items:
-    - { key: "core.email_from_address", value: "girder@girder.girder" }
-    - { key: "core.email_host", value: "myemailhost" }
+    - key: "core.email_from_address"
+      value: "girder@girder.girder"
+    - key: "core.email_host"
+      value: "myemailhost"
 
 - name: Get email settings
   girder:

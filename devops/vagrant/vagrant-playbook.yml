@@ -18,8 +18,8 @@
         state: "{{ 'mounted' if bind_node_modules else 'absent' }}"
         fstype: none
         opts: bind
-        boot: yes
-      become: yes
+        boot: true
+      become: true
       become_user: root
 
     - name: Define WATCH_USEPOLLING environment variable

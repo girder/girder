@@ -88,7 +88,7 @@ collections:
           - name: 'Private folder'
             description: 'Private folder in a public folder'
             creator: 'defaultFolders'
-            public: False
+            public: false
             items:
               - name: 'Item in private folder'
 
