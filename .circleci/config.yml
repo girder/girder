@@ -242,13 +242,13 @@ jobs:
           name: Allow access to /etc/fuse.conf by all users
           command: sudo chmod a+r /etc/fuse.conf
       - run:
-          name: Get rid of existing versions of Mongo
+          name: Get rid of existing versions of MongoDB
           command: sudo rm --force /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
       - run:
-          # boto doesn't work as a library if there is a /etc/boto.cfg file
-          # from a different version of python, so remove the file.
+          # Boto doesn't work as a library if there is a /etc/boto.cfg file
+          # from a different version of Python, so remove the file.
           # https://github.com/boto/boto/issues/3741
-          name: allow boto to work with python 3
+          name: Allow Boto to work with Python 3
           command: sudo rm --force /etc/boto.cfg
       - run:
           name: Upgrade pip
@@ -369,17 +369,17 @@ jobs:
           name: Allow access to /etc/fuse.conf by all users
           command: sudo chmod a+r /etc/fuse.conf
       - run:
-          name: Get rid of existing versions of Mongo
+          name: Get rid of existing versions of MongoDB
           command: sudo rm --force /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
       - run:
           # The "d3" npm package (required by some Girder plugins) has an optional dependency of
           # "canvas", which requires "node-gyp" to build. node-gyp strictly requires Python 2
           # (https://www.npmjs.com/package/node-gyp), so install it first before switching to
           # Python 3.
-          name: install node-gyp
+          name: Install node-gyp
           command: npm install --global node-gyp
       - run:
-          name: allow boto to work with python 3
+          name: Allow Boto to work with Python 3
           command: sudo rm --force /etc/boto.cfg
       - run:
           name: Set up Python 3.5
@@ -413,7 +413,7 @@ jobs:
           command: echo '. /home/circleci/.virtualenvs/girder/bin/activate' >> $BASH_ENV
       - run:
           name: Install all pip modules
-          # sftp and python client aren't installed by the ansible example
+          # sftp and python client aren't installed by the Ansible role
           command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] --editable clients/python --requirement requirements-dev.txt
           working_directory: girder
       - run:
