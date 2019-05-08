@@ -8,7 +8,7 @@ def virtualenv_path(host):
     return os.path.join(
         host.user().home,
         # Molecule playbook vars can't be passed into Testinfra tests, so hardcode the path
-        '.venvs/girder'
+        '.virtualenvs/girder'
     )
 
 
