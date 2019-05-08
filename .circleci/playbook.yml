@@ -13,6 +13,7 @@
           - python-virtualenv
           - python-dev
       become: true
+      become_user: root
 
     - name: Create virtualenv
       command: |
@@ -34,3 +35,4 @@
       apt:
         name: mongodb-org-mongos
       become: true
+      become_user: root

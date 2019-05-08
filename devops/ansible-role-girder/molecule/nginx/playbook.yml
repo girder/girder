@@ -14,6 +14,7 @@
           - python3-dev
         update_cache: true
       become: true
+      become_user: root
 
     - name: Create virtualenv
       command: |
@@ -25,6 +26,7 @@
       apt:
         name: mongodb-server
       become: true
+      become_user: root
 
   roles:
     - role: geerlingguy.nginx
@@ -49,6 +51,7 @@
               proxy_send_timeout 600s;
             }
       become: true
+      become_user: root
 
     - role: ansible-role-girder
 
@@ -70,4 +73,5 @@
           option: "mode"
           value: '"production"'
       become: true
+      become_user: root
       notify: Restart Girder

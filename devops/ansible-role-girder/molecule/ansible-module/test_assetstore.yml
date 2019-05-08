@@ -97,6 +97,7 @@
     state: directory
     mode: 0777
   become: true
+  become_user: root
 
 # Update should trigger a change
 - name: Update filesystem assetstore
