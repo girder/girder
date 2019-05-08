@@ -62,9 +62,10 @@
     - role: girder.mongodb
 
     - role: ansible-role-girder
-      girder_package: "{{ ansible_user_dir }}/girder"
-      girder_pip_extra_args: "--editable"
-      girder_daemonize: false
+      vars:
+        girder_package: "{{ ansible_user_dir }}/girder"
+        girder_pip_extra_args: "--editable"
+        girder_daemonize: false
 
   post_tasks:
     - name: Configure Girder to bind to public interface

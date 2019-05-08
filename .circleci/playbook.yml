@@ -27,7 +27,8 @@
         mongodb_version: 3.6
 
     - role: ansible-role-girder
-      girder_daemonize: false
+      vars:
+        girder_daemonize: false
 
   post_tasks:
     # Needed for replicaset/sharded tests

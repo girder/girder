@@ -35,7 +35,8 @@
 
   roles:
     - role: ansible-role-girder
-      girder_web: false
+      vars:
+        girder_web: false
 
   post_tasks:
     - name: Install Girder plugins
