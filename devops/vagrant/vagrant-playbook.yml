@@ -33,6 +33,7 @@
         update_cache: true
       changed_when: false
       become: true
+      become_user: root
 
     - name: Install python prerequisites
       apt:
@@ -40,6 +41,7 @@
           - python3-venv
           - python3-dev
       become: true
+      become_user: root
 
     - name: Install Girder plugin prerequisites
       apt:
@@ -48,6 +50,7 @@
           - libldap2-dev
           - libsasl2-dev
       become: true
+      become_user: root
 
     - name: Create virtualenv
       command: |
@@ -59,9 +62,10 @@
     - role: girder.mongodb
 
     - role: ansible-role-girder
-      girder_package: "{{ ansible_user_dir }}/girder"
-      girder_pip_extra_args: "--editable"
-      girder_daemonize: false
+      vars:
+        girder_package: "{{ ansible_user_dir }}/girder"
+        girder_pip_extra_args: "--editable"
+        girder_daemonize: false
 
   post_tasks:
     - name: Configure Girder to bind to public interface
@@ -83,6 +87,7 @@
           - cmake
           - cmake-curses-gui
       become: true
+      become_user: root
 
     - name: Activate virtualenv on login
       lineinfile:

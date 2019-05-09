@@ -14,6 +14,7 @@
           - python3-dev
         update_cache: true
       become: true
+      become_user: root
 
     - name: Create virtualenv
       command: |
@@ -25,30 +26,33 @@
       apt:
         name: mongodb-server
       become: true
+      become_user: root
 
   roles:
     - role: geerlingguy.nginx
-      nginx_remove_default_vhost: true
-      nginx_vhosts:
-        - listen: "80"
-          server_name: "girder"
-          extra_parameters: |
-            location / {
-              proxy_set_header Host $proxy_host;
-              proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-              proxy_set_header X-Forwarded-Host $host;
-              proxy_set_header X-Forwarded-Proto $scheme;
-              proxy_pass http://localhost:8888/;
-              # Must set the following for SSE notifications to work
-              proxy_buffering off;
-              proxy_cache off;
-              proxy_set_header Connection '';
-              proxy_http_version 1.1;
-              chunked_transfer_encoding off;
-              proxy_read_timeout 600s;
-              proxy_send_timeout 600s;
-            }
+      vars:
+        nginx_remove_default_vhost: true
+        nginx_vhosts:
+          - listen: "80"
+            server_name: "girder"
+            extra_parameters: |
+              location / {
+                proxy_set_header Host $proxy_host;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Host $host;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_pass http://localhost:8888/;
+                # Must set the following for SSE notifications to work
+                proxy_buffering off;
+                proxy_cache off;
+                proxy_set_header Connection '';
+                proxy_http_version 1.1;
+                chunked_transfer_encoding off;
+                proxy_read_timeout 600s;
+                proxy_send_timeout 600s;
+              }
       become: true
+      become_user: root
 
     - role: ansible-role-girder
 
@@ -70,4 +74,5 @@
           option: "mode"
           value: '"production"'
       become: true
+      become_user: root
       notify: Restart Girder

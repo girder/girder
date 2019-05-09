@@ -13,6 +13,7 @@
           - python-virtualenv
           - python-dev
       become: true
+      become_user: root
 
     - name: Create virtualenv
       command: |
@@ -26,7 +27,8 @@
         mongodb_version: 3.6
 
     - role: ansible-role-girder
-      girder_daemonize: false
+      vars:
+        girder_daemonize: false
 
   post_tasks:
     # Needed for replicaset/sharded tests
@@ -34,3 +36,4 @@
       apt:
         name: mongodb-org-mongos
       become: true
+      become_user: root
