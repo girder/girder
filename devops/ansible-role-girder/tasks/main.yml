@@ -1,4 +1,13 @@
 ---
+- name: Install Python 3 prereqs
+  apt:
+    name:
+      - python3-venv
+      - python3-setuptools
+      - python3-dev
+  become: true
+  become_user: root
+
 - name: Install Girder system dependencies
   apt:
     name:
@@ -14,6 +23,8 @@
     version: "{{ girder_version|default(omit) }}"
     extra_args: "{{ girder_pip_extra_args|default(omit) }}"
     virtualenv: "{{ girder_virtualenv }}"
+    # Implicitly create a Python 3 virtualenv if it doesn't exist
+    virtualenv_command: "{{ ansible_python_interpreter }} -m venv"
   notify:
     - Build Girder web client
     - Restart Girder
