@@ -67,8 +67,6 @@ class User(AccessControlledModel):
         doc['lastName'] = doc.get('lastName', '').strip()
         doc['status'] = doc.get('status', 'enabled')
 
-        cur_config = config.getConfig()
-
         if 'salt' not in doc:
             # Internal error, this should not happen
             raise Exception('Tried to save user document with no salt.')
@@ -85,18 +83,11 @@ class User(AccessControlledModel):
             raise ValidationException(
                 'Status must be pending, enabled, or disabled.', 'status')
 
-        if '@' in doc['login']:
-            # Hard-code this constraint so we can always easily distinguish
-            # an email address from a login
-            raise ValidationException('Login may not contain "@".', 'login')
-
         if 'hashAlg' in doc:
             # This is a legacy field; hash algorithms are now inline with the password hash
             del doc['hashAlg']
 
-        if not re.match(cur_config['users']['login_regex'], doc['login']):
-            raise ValidationException(
-                cur_config['users']['login_description'], 'login')
+        self._validateLogin(doc['login'])
 
         if not mail_utils.validateEmailAddress(doc['email']):
             raise ValidationException('Invalid email address.', 'email')
@@ -128,6 +119,17 @@ class User(AccessControlledModel):
             doc['status'] = 'enabled'
 
         return doc
+
+    def _validateLogin(self, login):
+        if '@' in login:
+            # Hard-code this constraint so we can always easily distinguish
+            # an email address from a login
+            raise ValidationException('Login may not contain "@".', 'login')
+
+        if not re.match(r'^[a-z][\da-z\-\.]{3,}$', login):
+            raise ValidationException(
+                'Login must be at least 4 characters, start with a letter, and may only contain '
+                'letters, numbers, dashes, and dots.', 'login')
 
     def filter(self, doc, user, additionalKeys=None):
         filteredDoc = super(User, self).filter(doc, user, additionalKeys)

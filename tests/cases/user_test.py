@@ -83,8 +83,6 @@ class UserTestCase(base.TestCase):
         params['login'] = ' '
         resp = self.request(path='/user', method='POST', params=params)
         self.assertValidationError(resp, 'login')
-        self.assertEqual(cherrypy.config['users']['login_description'],
-                         resp.json['message'])
 
         params['login'] = 'goodlogin'
         resp = self.request(path='/user', method='POST', params=params)
