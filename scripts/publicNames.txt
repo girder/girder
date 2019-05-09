@@ -644,13 +644,6 @@ girder
                 QUEUED
                 SUCCESS
                 isComplete
-        password
-            Password
-                authenticate
-                encryptAndStore
-                hasPassword
-                initialize
-                validate
         setting
             Setting
                 get
@@ -697,6 +690,7 @@ girder
                 filter
                 getAdmins
                 hasOtpEnabled
+                hasPassword
                 initialize
                 initializeOtp
                 remove

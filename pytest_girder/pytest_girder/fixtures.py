@@ -21,9 +21,9 @@ def bcrypt():
     """
     Mock out bcrypt password hashing to avoid unnecessary testing bottlenecks.
     """
-    with mock.patch('bcrypt.hashpw') as hashpw:
-        hashpw.side_effect = lambda x, y: x
-        yield hashpw
+    from passlib.hash import bcrypt
+    with mock.patch('girder.models.user.bcrypt', new=bcrypt.using(rounds=4)) as fastBcrypt:
+        yield fastBcrypt
 
 
 @pytest.fixture
