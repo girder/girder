@@ -2,7 +2,6 @@
 import cherrypy
 import collections
 import datetime
-import mock
 import re
 import six
 
@@ -22,18 +21,14 @@ from girder.settings import SettingKey
 def setUpModule():
     base.startServer()
 
+    User()._cryptContext.update(schemes=['plaintext'])
+
 
 def tearDownModule():
     base.stopServer()
 
 
 class UserTestCase(base.TestCase):
-    def tearDown(self):
-        if hasattr(self, 'bcryptPatcher'):
-            # Created by testRegisterAndLogin
-            self.bcryptPatcher.stop()
-            delattr(self, 'bcryptPatcher')
-
     def _verifyAuthCookie(self, resp, secure=''):
         self.assertTrue('girderToken' in resp.cookie)
         self.cookieVal = resp.cookie['girderToken'].value
@@ -63,11 +58,6 @@ class UserTestCase(base.TestCase):
         """
         Test user registration and logging in.
         """
-        # Set this to minimum so test runs faster.
-        from passlib.hash import bcrypt
-        self.bcryptPatcher = mock.patch('girder.models.user.bcrypt', new=bcrypt.using(rounds=4))
-        self.bcryptPatcher.start()
-
         params = {
             'email': 'bad_email',
             'login': 'illegal@login',

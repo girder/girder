@@ -2,8 +2,8 @@
 import datetime
 import os
 import re
+from passlib.context import CryptContext
 from passlib.totp import TOTP, TokenError
-from passlib.hash import bcrypt
 import six
 
 from .model_base import AccessControlledModel
@@ -45,6 +45,10 @@ class User(AccessControlledModel):
         self._TotpFactory = TOTP.using(
             # An application secret could be set here, if it existed
             wallet=None
+        )
+
+        self._cryptContext = CryptContext(
+            schemes=['bcrypt']
         )
 
         events.bind('model.user.save.created',
@@ -186,7 +190,7 @@ class User(AccessControlledModel):
             password = password[:-otpTokenLength]
 
         # Verify password
-        if not bcrypt.verify(password, user['salt']):
+        if not self._cryptContext.verify(password, user['salt']):
             raise AccessException('Login failed.')
 
         # Verify OTP
@@ -312,7 +316,7 @@ class User(AccessControlledModel):
             if not re.match(cur_config['users']['password_regex'], password):
                 raise ValidationException(cur_config['users']['password_description'], 'password')
 
-            user['salt'] = bcrypt.hash(password)
+            user['salt'] = self._cryptContext.hash(password)
 
         if save:
             self.save(user)

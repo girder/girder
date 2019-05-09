@@ -2,7 +2,6 @@
 import base64
 import cherrypy
 import datetime
-from passlib.hash import bcrypt
 
 from ..describe import Description, autoDescribeRoute
 from girder.api import access
@@ -269,7 +268,8 @@ class User(Resource):
         if not old:
             raise RestException('Old password must not be empty.')
 
-        if not self._model.hasPassword(user) or not bcrypt.verify(old, user['salt']):
+        if not self._model.hasPassword(user) or \
+                not self._model._cryptContext.verify(old, user['salt']):
             # If not the user's actual password, check for temp access token
             token = Token().load(old, force=True, objectId=False, exc=False)
             if (not token or not token.get('userId') or

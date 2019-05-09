@@ -1269,9 +1269,9 @@ pytest_girder
             assertStatusOk
         fixtures
             admin
-            bcrypt
             boundServer
             db
+            fastCrypt
             fsAssetstore
             server
             smtp
