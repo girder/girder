@@ -25,7 +25,6 @@ with open('README.rst') as f:
     readme = f.read()
 
 installReqs = [
-    'bcrypt',
     'boto3',
     'botocore',
     # CherryPy version is restricted due to a bug in versions >=11.1

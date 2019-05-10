@@ -2,6 +2,7 @@
 import datetime
 import os
 import re
+from passlib.context import CryptContext
 from passlib.totp import TOTP, TokenError
 import six
 
@@ -46,6 +47,10 @@ class User(AccessControlledModel):
             wallet=None
         )
 
+        self._cryptContext = CryptContext(
+            schemes=['bcrypt']
+        )
+
         events.bind('model.user.save.created',
                     CoreEventHandler.USER_SELF_ACCESS, self._grantSelfAccess)
         events.bind('model.user.save.created',
@@ -84,6 +89,10 @@ class User(AccessControlledModel):
             # Hard-code this constraint so we can always easily distinguish
             # an email address from a login
             raise ValidationException('Login may not contain "@".', 'login')
+
+        if 'hashAlg' in doc:
+            # This is a legacy field; hash algorithms are now inline with the password hash
+            del doc['hashAlg']
 
         if not re.match(cur_config['users']['login_regex'], doc['login']):
             raise ValidationException(
@@ -144,8 +153,6 @@ class User(AccessControlledModel):
         :returns: The corresponding user if the login was successful.
         :rtype: dict
         """
-        from .password import Password
-
         event = events.trigger('model.user.authenticate', {
             'login': login,
             'password': password
@@ -161,6 +168,20 @@ class User(AccessControlledModel):
         if user is None:
             raise AccessException('Login failed.')
 
+        # Handle users with no password
+        if not self.hasPassword(user):
+            e = events.trigger('no_password_login_attempt', {
+                'user': user,
+                'password': password
+            })
+
+            if len(e.responses):
+                return e.responses[-1]
+
+            raise ValidationException(
+                'This user does not have a password. You must log in with an '
+                'external service, or reset your password.')
+
         # Handle OTP token concatenation
         if otpToken is True and self.hasOtpEnabled(user):
             # Assume the last (typically 6) characters are the OTP, so split at that point
@@ -169,7 +190,7 @@ class User(AccessControlledModel):
             password = password[:-otpTokenLength]
 
         # Verify password
-        if not Password().authenticate(user, password):
+        if not self._cryptContext.verify(password, user['salt']):
             raise AccessException('Login failed.')
 
         # Verify OTP
@@ -264,6 +285,18 @@ class User(AccessControlledModel):
             cursor=cursor, user=user, level=AccessType.READ, limit=limit,
             offset=offset)
 
+    def hasPassword(self, user):
+        """
+        Returns whether or not the given user has a password stored in the
+        database. If not, it is expected that the user will be authenticated by
+        an external service.
+
+        :param user: The user to test.
+        :type user: dict
+        :returns: bool
+        """
+        return user['salt'] is not None
+
     def setPassword(self, user, password, save=True):
         """
         Change a user's password.
@@ -274,13 +307,16 @@ class User(AccessControlledModel):
                          where an external system is responsible for
                          authenticating the user.
         """
-        from .password import Password
         if password is None:
             user['salt'] = None
         else:
-            salt, alg = Password().encryptAndStore(password)
-            user['salt'] = salt
-            user['hashAlg'] = alg
+            cur_config = config.getConfig()
+
+            # Normally this would go in validate() but password is a special case.
+            if not re.match(cur_config['users']['password_regex'], password):
+                raise ValidationException(cur_config['users']['password_description'], 'password')
+
+            user['salt'] = self._cryptContext.hash(password)
 
         if save:
             self.save(user)

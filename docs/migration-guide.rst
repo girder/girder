@@ -329,6 +329,13 @@ Using ``python -m girder`` and ``python -m girder-cli`` was deprecated in Girder
 Users are expected to have the appropriate packages installed and then use ``girder serve`` and ``girder-client``
 respectively.
 
+Removed insecure sha512 password hashing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The ``core.hash_alg`` and ``core.bcrypt_rounds`` configuration parameters were also removed.
+Password hashing now always occurs with 12-round bcrypt. Please reach out to us on Discourse if you
+have existing databases with sha512 passwords or believe you need to configure bcrypt to use
+additional rounds.
+
 Core setting constants now reside in settings.py
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The ``SettingKey`` and ``SettingDefault`` classes (which contain constants for core settings) must

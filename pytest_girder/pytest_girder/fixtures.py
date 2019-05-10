@@ -1,5 +1,4 @@
 import hashlib
-import mock
 import mongomock
 import os
 import pytest
@@ -16,14 +15,19 @@ def _uid(node):
     return '_'.join((node.module.__name__, node.cls.__name__ if node.cls else '', node.name))
 
 
-@pytest.fixture(autouse=True)
-def bcrypt():
+@pytest.fixture(scope='session', autouse=True)
+def fastCrypt():
     """
-    Mock out bcrypt password hashing to avoid unnecessary testing bottlenecks.
+    Use faster password hashing to avoid unnecessary testing bottlenecks.
     """
-    with mock.patch('bcrypt.hashpw') as hashpw:
-        hashpw.side_effect = lambda x, y: x
-        yield hashpw
+    from girder.models.user import User
+
+    # CryptContext.update could be used to mutate the existing instance, but if this fixture's scope
+    # is ever made more limited (so that the teardown matters), this approach is more maintainable
+    originalCryptContext = User()._cryptContext
+    User()._cryptContext = originalCryptContext.copy(schemes=['plaintext'])
+    yield
+    User()._cryptContext = originalCryptContext
 
 
 @pytest.fixture
@@ -194,4 +198,4 @@ def fsAssetstore(db, request):
         shutil.rmtree(path)
 
 
-__all__ = ('admin', 'bcrypt', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp')
+__all__ = ('admin', 'fastCrypt', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp')

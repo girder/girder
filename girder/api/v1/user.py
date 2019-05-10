@@ -8,7 +8,6 @@ from girder.api import access
 from girder.api.rest import Resource, filtermodel, setCurrentUser
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException, AccessException
-from girder.models.password import Password
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User as UserModel
@@ -269,7 +268,8 @@ class User(Resource):
         if not old:
             raise RestException('Old password must not be empty.')
 
-        if not Password().hasPassword(user) or not Password().authenticate(user, old):
+        if not self._model.hasPassword(user) or \
+                not self._model._cryptContext.verify(old, user['salt']):
             # If not the user's actual password, check for temp access token
             token = Token().load(old, force=True, objectId=False, exc=False)
             if (not token or not token.get('userId') or

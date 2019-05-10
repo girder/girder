@@ -21,13 +21,14 @@ from girder.settings import SettingKey
 def setUpModule():
     base.startServer()
 
+    User()._cryptContext.update(schemes=['plaintext'])
+
 
 def tearDownModule():
     base.stopServer()
 
 
 class UserTestCase(base.TestCase):
-
     def _verifyAuthCookie(self, resp, secure=''):
         self.assertTrue('girderToken' in resp.cookie)
         self.cookieVal = resp.cookie['girderToken'].value
@@ -53,14 +54,10 @@ class UserTestCase(base.TestCase):
 
         self.assertNotHasKeys(doc, ['salt'])
 
-    def testRegisterAndLoginBcrypt(self):
+    def testRegisterAndLogin(self):
         """
         Test user registration and logging in.
         """
-        cherrypy.config['auth']['hash_alg'] = 'bcrypt'
-        # Set this to minimum so test runs faster.
-        cherrypy.config['auth']['bcrypt_rounds'] = 4
-
         params = {
             'email': 'bad_email',
             'login': 'illegal@login',
@@ -100,7 +97,6 @@ class UserTestCase(base.TestCase):
         self._verifyUserDocument(resp.json)
 
         user = User().load(resp.json['_id'], force=True)
-        self.assertEqual(user['hashAlg'], 'bcrypt')
 
         # Try logging in without basic auth, should get 401
         resp = self.request(path='/user/authentication', method='GET')
@@ -171,61 +167,6 @@ class UserTestCase(base.TestCase):
         resp = self.request(path='/user/me', method='GET', user=user)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['login'], user['login'])
-
-    def testRegisterAndLoginSha512(self):
-        cherrypy.config['auth']['hash_alg'] = 'sha512'
-
-        params = {
-            'email': 'good@email.com',
-            'login': 'goodlogin',
-            'firstName': 'First',
-            'lastName': 'Last',
-            'password': 'goodpassword'
-        }
-
-        # Register a user with sha512 storage backend
-        resp = self.request(path='/user', method='POST', params=params)
-        self.assertStatusOk(resp)
-        self._verifyUserDocument(resp.json)
-
-        user = User().load(resp.json['_id'], force=True)
-        self.assertEqual(user['hashAlg'], 'sha512')
-
-        # Login unsuccessfully
-        resp = self.request(path='/user/authentication', method='GET',
-                            basicAuth='goodlogin:badpassword')
-        self.assertStatus(resp, 401)
-        self.assertEqual('Login failed.', resp.json['message'])
-
-        # Login successfully
-        resp = self.request(path='/user/authentication', method='GET',
-                            basicAuth='goodlogin:goodpassword')
-        self.assertStatusOk(resp)
-        self.assertEqual('Login succeeded.', resp.json['message'])
-        self.assertEqual('good@email.com', resp.json['user']['email'])
-        self._verifyUserDocument(resp.json['user'])
-
-        # Make sure we got a nice cookie
-        self._verifyAuthCookie(resp)
-
-        token = Token().load(self.cookieVal, objectId=False, force=True)
-        self.assertEqual(str(token['userId']), resp.json['user']['_id'])
-
-        # Hit the logout endpoint
-        resp = self.request(path='/user/authentication', method='DELETE',
-                            token=token['_id'])
-        self._verifyDeletedCookie(resp)
-
-        token = Token().load(token['_id'], objectId=False, force=True)
-        self.assertEqual(token, None)
-
-        # Test disabling password login
-        Setting().set(SettingKey.ENABLE_PASSWORD_LOGIN, False)
-
-        resp = self.request(
-            path='/user/authentication', method='GET', basicAuth='goodlogin:goodpassword')
-        self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], 'Password login is disabled on this instance.')
 
     def testGetAndUpdateUser(self):
         """

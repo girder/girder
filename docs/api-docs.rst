@@ -81,11 +81,6 @@ User
 .. automodule:: girder.models.user
    :members:
 
-Password
-~~~~~~~~
-.. automodule:: girder.models.password
-   :members:
-
 Token
 ~~~~~
 .. automodule:: girder.models.token
