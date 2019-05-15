@@ -1132,7 +1132,6 @@ class Resource(object):
 
         cookie = cherrypy.response.cookie
         cookie['girderToken'] = str(token['_id'])
-        cookie['girderToken']['path'] = '/'
         cookie['girderToken']['expires'] = int(days * 3600 * 24)
 
         if Setting().get(SettingKey.SECURE_COOKIE):
@@ -1146,7 +1145,6 @@ class Resource(object):
         """
         cookie = cherrypy.response.cookie
         cookie['girderToken'] = ''
-        cookie['girderToken']['path'] = '/'
         cookie['girderToken']['expires'] = 0
 
     # This is NOT wrapped in an endpoint decorator; we don't want that behavior
