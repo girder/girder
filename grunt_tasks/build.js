@@ -166,7 +166,8 @@ module.exports = function (grunt) {
             },
             core_app: {
                 entry: {
-                    girder_app: [path.join(paths.web_src, 'main.js')]
+                    // girder_app: [path.join(paths.web_src, 'main.js')]
+                    girder_app: ['babel-polyfill', path.join(paths.web_src, 'main.js')]
                 },
                 plugins: [
                     new webpack.DllReferencePlugin({
