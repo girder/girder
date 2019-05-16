@@ -142,6 +142,11 @@ class Folder(AccessControlledModel):
                 self.update({'_id': doc['_id']}, {'$set': {
                     'lowerName': doc['lowerName']
                 }})
+            if 'meta' not in doc:
+                doc['meta'] = {}
+                self.update({'_id': doc['_id']}, {'$set': {
+                    'meta': {}
+                }})
 
             self._removeSupplementalFields(doc, fields)
 
@@ -511,7 +516,8 @@ class Folder(AccessControlledModel):
             'creatorId': creatorId,
             'created': now,
             'updated': now,
-            'size': 0
+            'size': 0,
+            'meta': {}
         }
 
         if parentType in ('folder', 'collection'):
