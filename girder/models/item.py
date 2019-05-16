@@ -113,7 +113,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         doc = super(Item, self).load(
             id=id, level=level, user=user, objectId=objectId, force=force, fields=loadFields,
             exc=exc)
-        
+
         if doc is not None:
             if 'baseParentType' not in doc:
                 pathFromRoot = self.parentsToRoot(doc, user=user, force=True)
@@ -304,10 +304,10 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         # Validate and save the item
         return self.save(item)
-    
+
     def filter(self, doc, user=None, additionalKeys=None):
         """
-        Overrides the parent ``filter`` method to add an empty meta field 
+        Overrides the parent ``filter`` method to add an empty meta field
         (if it doesn't exist) to the returned folder.
         """
         filteredDoc = super(Item, self).filter(doc, user, additionalKeys=additionalKeys)
@@ -433,6 +433,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         newItem = self.createItem(
             folder=folder, name=name, creator=creator, description=description)
         # copy metadata and other extension values
+        newItem['meta'] = copy.deepcopy(srcItem['meta'])
         filteredItem = self.filter(newItem, creator)
         for key in srcItem:
             if key not in filteredItem and key not in newItem:

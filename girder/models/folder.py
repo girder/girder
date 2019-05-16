@@ -552,7 +552,7 @@ class Folder(AccessControlledModel):
 
     def filter(self, doc, user=None, additionalKeys=None):
         """
-        Overrides the parent ``filter`` method to add an empty meta field 
+        Overrides the parent ``filter`` method to add an empty meta field
         (if it doesn't exist) to the returned folder.
         """
         filteredDoc = super(Folder, self).filter(doc, user, additionalKeys=additionalKeys)
@@ -788,8 +788,12 @@ class Folder(AccessControlledModel):
         from .item import Item
 
         # copy metadata and other extension values
-        filteredFolder = self.filter(newFolder, creator)
         updated = False
+        if srcFolder['meta']:
+            newFolder['meta'] = copy.deepcopy(srcFolder['meta'])
+            updated = True
+
+        filteredFolder = self.filter(newFolder, creator)
         for key in srcFolder:
             if key not in filteredFolder and key not in newFolder:
                 newFolder[key] = copy.deepcopy(srcFolder[key])
