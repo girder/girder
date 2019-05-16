@@ -113,7 +113,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         doc = super(Item, self).load(
             id=id, level=level, user=user, objectId=objectId, force=force, fields=loadFields,
             exc=exc)
-
+        
         if doc is not None:
             if 'baseParentType' not in doc:
                 pathFromRoot = self.parentsToRoot(doc, user=user, force=True)
@@ -128,6 +128,11 @@ class Item(acl_mixin.AccessControlMixin, Model):
                 doc['lowerName'] = doc['name'].lower()
                 self.update({'_id': doc['_id']}, {'$set': {
                     'lowerName': doc['lowerName']
+                }})
+            if 'meta' not in doc:
+                doc['meta'] = {}
+                self.update({'_id': doc['_id']}, {'$set': {
+                    'meta': {}
                 }})
 
             self._removeSupplementalFields(doc, fields)
@@ -283,7 +288,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
             'baseParentId': folder['baseParentId'],
             'created': now,
             'updated': now,
-            'size': 0
+            'size': 0,
+            'meta': {}
         })
 
     def updateItem(self, item):
