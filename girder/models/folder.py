@@ -550,6 +550,17 @@ class Folder(AccessControlledModel):
         # Validate and save the folder
         return self.save(folder)
 
+    def filter(self, doc, user=None, additionalKeys=None):
+        """
+        Overrides the parent ``filter`` method to add an empty meta field 
+        (if it doesn't exist) to the returned folder.
+        """
+        filteredDoc = super(Folder, self).filter(doc, user, additionalKeys=additionalKeys)
+        if 'meta' not in filteredDoc:
+            filteredDoc['meta'] = {}
+
+        return filteredDoc
+
     def parentsToRoot(self, folder, curPath=None, user=None, force=False, level=AccessType.READ):
         """
         Get the path to traverse to a root of the hierarchy.
