@@ -132,6 +132,47 @@ class Collection(AccessControlledModel):
         # Validate and save the collection
         return self.save(collection)
 
+    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
+             force=False, fields=None, exc=False):
+        """
+        Override load to add empty meta tag and save, if it's not present.
+
+        :param id: The id of the resource.
+        :type id: string or ObjectId
+        :param user: The user to check access against.
+        :type user: dict or None
+        :param level: The required access type for the object.
+        :type level: AccessType
+        :param force: If you explicitly want to circumvent access
+                      checking on this resource, set this to True.
+        :type force: bool
+        """
+
+        doc = super(Collection, self).load(
+            id=id, level=level, user=user, objectId=objectId, force=force, fields=fields,
+            exc=exc)
+
+        if doc is not None:
+            if 'meta' not in doc:
+                doc['meta'] = {}
+                self.update({'_id': doc['_id']}, {'$set': {
+                    'meta': doc['meta']
+                }})
+
+        return doc
+
+    def filter(self, doc, user=None, additionalKeys=None):
+        """
+        Overrides the parent ``filter`` method to add an empty meta field
+        (if it doesn't exist) to the returned folder.
+        """
+
+        filteredDoc = super(Collection, self).filter(doc, user, additionalKeys=additionalKeys)
+        if 'meta' not in filteredDoc:
+            filteredDoc['meta'] = {}
+
+        return filteredDoc
+
     def setMetadata(self, collection, metadata, allowNull=False):
         """
         Set metadata on an collection.  A `ValidationException` is thrown in the
