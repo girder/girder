@@ -74,6 +74,13 @@ class Collection(Resource):
         .errorResponse('Read permission denied on the collection.', 403)
     )
     def getCollection(self, collection):
+        # Don't like this
+        if 'meta' not in collection:
+            collection['meta'] = {}
+            # collection.update({'_id': collection['_id']}, {'$set': {
+            #         'meta': collection['meta']
+            # }})
+
         return collection
 
     @access.public(scope=TokenScope.DATA_READ)

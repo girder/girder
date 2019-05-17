@@ -24,7 +24,7 @@ class Collection(AccessControlledModel):
         })
 
         self.exposeFields(level=AccessType.READ, fields={
-            '_id', 'name', 'description', 'public', 'publicFlags', 'created', 'updated', 'size'})
+            '_id', 'name', 'description', 'public', 'publicFlags', 'created', 'updated', 'size', 'meta'})
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
@@ -107,7 +107,8 @@ class Collection(AccessControlledModel):
             'creatorId': creator['_id'] if creator else None,
             'created': now,
             'updated': now,
-            'size': 0
+            'size': 0,
+            'meta': {}
         }
 
         self.setPublic(collection, public, save=False)
