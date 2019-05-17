@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import os
+import six
 
 from .model_base import AccessControlledModel
 from girder.constants import AccessType
@@ -129,6 +130,66 @@ class Collection(AccessControlledModel):
         collection['updated'] = datetime.datetime.utcnow()
 
         # Validate and save the collection
+        return self.save(collection)
+
+    def setMetadata(self, collection, metadata, allowNull=False):
+        """
+        Set metadata on an collection.  A `ValidationException` is thrown in the
+        cases where the metadata JSON object is badly formed, or if any of the
+        metadata keys contains a period ('.').
+
+        :param collection: The collection to set the metadata on.
+        :type collection: dict
+        :param metadata: A dictionary containing key-value pairs to add to
+                     the collections meta field
+        :type metadata: dict
+        :param allowNull: Whether to allow `null` values to be set in the collection's
+                     metadata. If set to `False` or omitted, a `null` value will cause that
+                     metadata field to be deleted.
+        :returns: the collection document
+        """
+        if 'meta' not in collection:
+            collection['meta'] = {}
+
+        # Add new metadata to existing metadata
+        collection['meta'].update(six.viewitems(metadata))
+
+        # Remove metadata fields that were set to null (use items in py3)
+        if not allowNull:
+            toDelete = [k for k, v in six.viewitems(metadata) if v is None]
+            for key in toDelete:
+                del collection['meta'][key]
+
+        self.validateKeys(collection['meta'])
+
+        collection['updated'] = datetime.datetime.utcnow()
+
+        # Validate and save the collection
+        return self.save(collection)
+
+    def deleteMetadata(self, collection, fields):
+        """
+        Delete metadata on an collection. A `ValidationException` is thrown if the
+        metadata field names contain a period ('.') or begin with a dollar sign
+        ('$').
+
+        :param collection: The collection to delete metadata from.
+        :type collection: dict
+        :param fields: An array containing the field names to delete from the
+            collection's meta field
+        :type field: list
+        :returns: the collection document
+        """
+        self.validateKeys(fields)
+
+        if 'meta' not in collection:
+            collection['meta'] = {}
+
+        for field in fields:
+            collection['meta'].pop(field, None)
+
+        collection['updated'] = datetime.datetime.utcnow()
+
         return self.save(collection)
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,

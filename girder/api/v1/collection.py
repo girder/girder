@@ -26,6 +26,8 @@ class Collection(Resource):
         self.route('POST', (), self.createCollection)
         self.route('PUT', (':id',), self.updateCollection)
         self.route('PUT', (':id', 'access'), self.updateCollectionAccess)
+        self.route('PUT', (':id', 'metadata'), self.setMetadata)
+        self.route('DELETE', (':id', 'metadata'), self.deleteMetadata)
 
     @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model=CollectionModel)
@@ -200,3 +202,45 @@ class Collection(Resource):
     def deleteCollection(self, collection):
         self._model.remove(collection)
         return {'message': 'Deleted collection %s.' % collection['name']}
+
+    @access.user(scope=TokenScope.DATA_WRITE)
+    @filtermodel(model=CollectionModel)
+    @autoDescribeRoute(
+        Description('Set metadata fields on a collection.')
+        .responseClass('Collection')
+        .notes('Set metadata fields to null in order to delete them.')
+        .modelParam('id', model=CollectionModel, level=AccessType.WRITE)
+        .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
+                   paramType='body', requireObject=True)
+        .param('allowNull', 'Whether "null" is allowed as a metadata value.', required=False,
+               dataType='boolean', default=False)
+        .errorResponse(('ID was invalid.',
+                        'Invalid JSON passed in request body.',
+                        'Metadata key name was invalid.'))
+        .errorResponse('Write access was denied for the collection.', 403)
+    )
+    def setMetadata(self, collection, metadata, allowNull):
+        return self._model.setMetadata(collection, metadata, allowNull=allowNull)
+
+    @access.user(scope=TokenScope.DATA_WRITE)
+    @filtermodel(CollectionModel)
+    @autoDescribeRoute(
+        Description('Delete metadata fields on a collection.')
+        .responseClass('Collection')
+        .modelParam('id', model=CollectionModel, level=AccessType.WRITE)
+        .jsonParam(
+            'fields', 'A JSON list containing the metadata fields to delete',
+            paramType='body', schema={
+                'type': 'array',
+                'items': {
+                    'type': 'string'
+                }
+            }
+        )
+        .errorResponse(('ID was invalid.',
+                        'Invalid JSON passed in request body.',
+                        'Metadata key name was invalid.'))
+        .errorResponse('Write access was denied for the collection.', 403)
+    )
+    def deleteMetadata(self, collection, fields):
+        return self._model.deleteMetadata(collection, fields)
