@@ -84,8 +84,8 @@ def testCollectionSetMetadata(server, collection, metadata, admin):
     assert newDoc.json['meta'] == metadata
 
 
-def testCollectionDeleteMetadata(server, collectionWithMeta, admin):
-    collection = collectionWithMeta()
+def testCollectionDeleteMetadata(server, collectionWithMeta, metadata, admin):
+    collection = collectionWithMeta(metadata)
     resp = server.request(
         path='/collection/%s/metadata' % collection['_id'],
         user=admin,
