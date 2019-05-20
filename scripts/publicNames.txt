@@ -493,17 +493,17 @@ girder
             Collection
                 countFolders
                 createCollection
+                deleteMetadata
                 fileList
+                filter
                 hasCreatePrivilege
                 initialize
+                load
                 remove
                 setAccessList
+                setMetadata
                 subtreeCount
                 updateCollection
-                load
-                filter
-                setMetadata
-                deleteMetadata
                 updateSize
                 validate
         file
