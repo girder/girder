@@ -44,4 +44,4 @@
         enabled: true
   become: true
   become_user: root
-  when: girder_daemonize
+  when: girder_daemonize|bool
