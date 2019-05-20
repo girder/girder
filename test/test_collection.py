@@ -12,18 +12,21 @@ def collections(db):
         Collection().createCollection('public collection', public=True)
     ]
 
+
 @pytest.fixture
 def collection(db):
     yield Collection().createCollection('public collection', public=True)
 
+
 @pytest.fixture
 def collectionWithMeta(db, collection, metadata):
     def _collectionWithMeta(_metadata=None):
-        if _metadata == None:
+        if _metadata is None:
             _metadata = metadata
         return Collection().setMetadata(collection, _metadata)
 
     yield _collectionWithMeta
+
 
 @pytest.fixture
 def metadata():
@@ -48,55 +51,77 @@ def testCollectionsCount(server, userIdx, expected, collections, users):
     assertStatusOk(resp)
     assert resp.json['nCollections'] == expected
 
+
 def testSingleCollectionMetaExists(server, collection, admin):
     resp = server.request(path='/collection/%s' % collection['_id'], user=admin)
     assertStatusOk(resp)
     assert 'meta' in resp.json
+
 
 def testListCollectionMetaExists(server, collection, admin):
     resp = server.request(path='/collection', user=admin)
     assertStatusOk(resp)
     assert all(('meta' in x) for x in resp.json)
 
+
 def testCollectionSetMetadata(server, collection, metadata, admin):
-    resp = server.request(path='/collection/%s/metadata' % collection['_id'],
-        user=admin, method='PUT', body=json.dumps(metadata), type='application/json')
+    resp = server.request(
+        path='/collection/%s/metadata' % collection['_id'],
+        user=admin,
+        method='PUT',
+        body=json.dumps(metadata),
+        type='application/json')
+
     assertStatusOk(resp)
     assert resp.json['meta'] == metadata
 
     # Check that fetching the object again yields the same result
-    newDoc = server.request(path='/collection/%s' % collection['_id'],
-        user=admin, method='GET')
+    newDoc = server.request(
+        path='/collection/%s' % collection['_id'],
+        user=admin,
+        method='GET')
+
     assert newDoc.json['meta'] == metadata
+
 
 def testCollectionDeleteMetadata(server, collectionWithMeta, admin):
     collection = collectionWithMeta()
-    resp = server.request(path='/collection/%s/metadata' % collection['_id'],
-        user=admin, method='DELETE', body=json.dumps(list(metadata.keys())), type='application/json')
+    resp = server.request(
+        path='/collection/%s/metadata' % collection['_id'],
+        user=admin,
+        method='DELETE',
+        body=json.dumps(list(metadata.keys())),
+        type='application/json')
     assertStatusOk(resp)
     assert resp.json['meta'] != metadata
     assert resp.json['meta'] == {}
 
-    newDoc = server.request(path='/collection/%s' % collection['_id'],
-        user=admin, method='GET')
+    newDoc = server.request(
+        path='/collection/%s' % collection['_id'],
+        user=admin,
+        method='GET')
     assert newDoc.json['meta'] != metadata
     assert newDoc.json['meta'] == {}
 
+
 # Model Layer
-def testCollectionSetMetadata(collection, metadata):
+def testCollectionModelSetMetadata(collection, metadata):
     updatedCollection = Collection().setMetadata(collection, metadata)
     assert updatedCollection['meta'] == metadata
 
+
 # Model Layer
-def testCollectionDeleteMetadata(collectionWithMeta, metadata):
+def testCollectionModelDeleteMetadata(collectionWithMeta, metadata):
     collection = collectionWithMeta(metadata)
     noMeta = Collection().deleteMetadata(collection, list(metadata.keys()))
     assert noMeta['meta'] == {}
+
 
 # Model Layer
 def testCollectionLoad(collection, admin):
     loadedCollection = Collection().load(collection['_id'], user=admin)
     assert 'meta' in loadedCollection
+
 
 # Model Layer
 def testCollectionFilter(collection):
