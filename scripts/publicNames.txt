@@ -198,12 +198,14 @@ girder
                 Collection
                     createCollection
                     deleteCollection
+                    deleteMetadata
                     downloadCollection
                     find
                     getCollection
                     getCollectionAccess
                     getCollectionDetails
                     getCollectionsDetails
+                    setMetadata
                     updateCollection
                     updateCollectionAccess
             file
