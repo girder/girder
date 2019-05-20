@@ -500,6 +500,10 @@ girder
                 setAccessList
                 subtreeCount
                 updateCollection
+                load
+                filter
+                setMetadata
+                deleteMetadata
                 updateSize
                 validate
         file
