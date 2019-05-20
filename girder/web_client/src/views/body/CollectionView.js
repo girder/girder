@@ -3,6 +3,7 @@ import _ from 'underscore';
 
 import AccessWidget from '@girder/core/views/widgets/AccessWidget';
 import CollectionModel from '@girder/core/models/CollectionModel';
+import MetadataWidget from '@girder/core/views/widgets/MetadataWidget';
 import EditCollectionWidget from '@girder/core/views/widgets/EditCollectionWidget';
 import FolderModel from '@girder/core/models/FolderModel';
 import HierarchyWidget from '@girder/core/views/widgets/HierarchyWidget';
@@ -117,6 +118,13 @@ var CollectionView = View.extend({
         this.folderEdit = false;
         this.folderCreate = false;
         this.itemCreate = false;
+
+        this.metadataWidget = new MetadataWidget({
+            el: this.$('.g-collection-metadata'),
+            item: this.model,
+            accessLevel: this.model.getAccessLevel(),
+            parentView: this
+        });
 
         if (this.edit) {
             this.editCollection();
