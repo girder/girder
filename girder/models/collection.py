@@ -144,19 +144,11 @@ class Collection(AccessControlledModel):
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
              force=False, fields=None, exc=False):
         """
-        Override load to add empty meta tag and save, if it's not present.
+        Calls AccessControlMixin.load, and if no meta field is present, adds an empty meta field and saves.
 
-        :param id: The id of the resource.
-        :type id: string or ObjectId
-        :param user: The user to check access against.
-        :type user: dict or None
-        :param level: The required access type for the object.
-        :type level: AccessType
-        :param force: If you explicitly want to circumvent access
-                      checking on this resource, set this to True.
-        :type force: bool
+        Takes the same parameters as
+        :py:func:`girder.models.model_base.AccessControlMixin.load`.
         """
-
         doc = super(Collection, self).load(
             id=id, level=level, user=user, objectId=objectId, force=force, fields=fields,
             exc=exc)
@@ -173,9 +165,8 @@ class Collection(AccessControlledModel):
     def filter(self, doc, user=None, additionalKeys=None):
         """
         Overrides the parent ``filter`` method to add an empty meta field
-        (if it doesn't exist) to the returned folder.
+        (if it doesn't exist) to the returned collection.
         """
-
         filteredDoc = super(Collection, self).filter(doc, user, additionalKeys=additionalKeys)
         if 'meta' not in filteredDoc:
             filteredDoc['meta'] = {}
@@ -191,7 +182,7 @@ class Collection(AccessControlledModel):
         :param collection: The collection to set the metadata on.
         :type collection: dict
         :param metadata: A dictionary containing key-value pairs to add to
-                     the collections meta field
+                     the collection's meta field
         :type metadata: dict
         :param allowNull: Whether to allow `null` values to be set in the collection's
                      metadata. If set to `False` or omitted, a `null` value will cause that
