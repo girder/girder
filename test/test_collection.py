@@ -9,6 +9,7 @@ METADATA = {
     'apple': 'fruit'
 }
 
+
 @pytest.fixture
 def collections(db):
     yield [
