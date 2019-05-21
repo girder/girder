@@ -4,6 +4,10 @@ import json
 from girder.models.collection import Collection
 from pytest_girder.assertions import assertStatusOk
 
+METADATA = {
+    'key': 'value',
+    'apple': 'fruit'
+}
 
 @pytest.fixture
 def collections(db):
@@ -33,14 +37,6 @@ def oldCollections(db, collections):
         collections[i] = Collection().save(collection)
         assert 'meta' not in collections[i]
     yield collections
-
-
-@pytest.fixture
-def metadata():
-    yield {
-        'key': 'value',
-        'apple': 'fruit'
-    }
 
 
 @pytest.fixture
@@ -83,16 +79,16 @@ def testListOldCollectionMetaExists(server, oldCollections, admin):
     assert all(('meta' in x) for x in resp.json)
 
 
-def testCollectionSetMetadata(server, collection, metadata, admin):
+def testCollectionSetMetadata(server, collection, admin):
     resp = server.request(
         path='/collection/%s/metadata' % collection['_id'],
         user=admin,
         method='PUT',
-        body=json.dumps(metadata),
+        body=json.dumps(METADATA),
         type='application/json')
 
     assertStatusOk(resp)
-    assert resp.json['meta'] == metadata
+    assert resp.json['meta'] == METADATA
 
     # Check that fetching the object again yields the same result
     newDoc = server.request(
@@ -100,39 +96,39 @@ def testCollectionSetMetadata(server, collection, metadata, admin):
         user=admin,
         method='GET')
 
-    assert newDoc.json['meta'] == metadata
+    assert newDoc.json['meta'] == METADATA
 
 
-def testCollectionDeleteMetadata(server, collection, metadata, admin):
-    collection = Collection().setMetadata(collection, metadata)
+def testCollectionDeleteMetadata(server, collection, admin):
+    collection = Collection().setMetadata(collection, METADATA)
     resp = server.request(
         path='/collection/%s/metadata' % collection['_id'],
         user=admin,
         method='DELETE',
-        body=json.dumps(list(metadata.keys())),
+        body=json.dumps(list(METADATA.keys())),
         type='application/json')
     assertStatusOk(resp)
-    assert resp.json['meta'] != metadata
+    assert resp.json['meta'] != METADATA
     assert resp.json['meta'] == {}
 
     newDoc = server.request(
         path='/collection/%s' % collection['_id'],
         user=admin,
         method='GET')
-    assert newDoc.json['meta'] != metadata
+    assert newDoc.json['meta'] != METADATA
     assert newDoc.json['meta'] == {}
 
 
 # Model Layer
-def testCollectionModelSetMetadata(collection, metadata):
-    updatedCollection = Collection().setMetadata(collection, metadata)
-    assert updatedCollection['meta'] == metadata
+def testCollectionModelSetMetadata(collection):
+    updatedCollection = Collection().setMetadata(collection, METADATA)
+    assert updatedCollection['meta'] == METADATA
 
 
 # Model Layer
-def testCollectionModelDeleteMetadata(collection, metadata):
-    collection = Collection().setMetadata(collection, metadata)
-    noMeta = Collection().deleteMetadata(collection, list(metadata.keys()))
+def testCollectionModelDeleteMetadata(collection):
+    collection = Collection().setMetadata(collection, METADATA)
+    noMeta = Collection().deleteMetadata(collection, list(METADATA.keys()))
     assert noMeta['meta'] == {}
 
 
