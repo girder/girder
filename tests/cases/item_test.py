@@ -156,7 +156,7 @@ class ItemTestCase(base.TestCase):
         item = Item().save(item)
         assert 'meta' not in item
 
-        item = Item().load(item['_id'], user=self.admin)
+        item = Item().load(item['_id'], user=self.users[0])
         assert 'meta' in item
 
     def testItemDownloadAndChildren(self):
