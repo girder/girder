@@ -17,20 +17,26 @@ def collections(db):
 def collection(db):
     yield Collection().createCollection('public collection', public=True)
 
+@pytest.fixture
+def oldCollection(db, collection):
+    del collection['meta']
+    collection = Collection().save(collection)
+    assert 'meta' not in collection
+    yield collection
+
 
 @pytest.fixture
-def collectionWithMeta(db, collection, metadata):
-    def _collectionWithMeta(_metadata=None):
-        if _metadata is None:
-            _metadata = metadata
-        return Collection().setMetadata(collection, _metadata)
-
-    yield _collectionWithMeta
+def oldCollections(db, collections):
+    for i, collection in enumerate(collections):
+        del collection['meta']
+        collections[i] = Collection().save(collection)
+        assert 'meta' not in collections[i]
+    yield collections
 
 
 @pytest.fixture
 def metadata():
-    return {
+    yield {
         'key': 'value',
         'apple': 'fruit'
     }
@@ -58,7 +64,19 @@ def testSingleCollectionMetaExists(server, collection, admin):
     assert 'meta' in resp.json
 
 
-def testListCollectionMetaExists(server, collection, admin):
+def testSingleOldCollectionMetaExists(server, oldCollection, admin):
+    resp = server.request(path='/collection/%s' % oldCollection['_id'], user=admin)
+    assertStatusOk(resp)
+    assert 'meta' in resp.json
+
+
+def testListCollectionMetaExists(server, collections, admin):
+    resp = server.request(path='/collection', user=admin)
+    assertStatusOk(resp)
+    assert all(('meta' in x) for x in resp.json)
+
+
+def testListOldCollectionMetaExists(server, oldCollections, admin):
     resp = server.request(path='/collection', user=admin)
     assertStatusOk(resp)
     assert all(('meta' in x) for x in resp.json)
@@ -84,8 +102,8 @@ def testCollectionSetMetadata(server, collection, metadata, admin):
     assert newDoc.json['meta'] == metadata
 
 
-def testCollectionDeleteMetadata(server, collectionWithMeta, metadata, admin):
-    collection = collectionWithMeta(metadata)
+def testCollectionDeleteMetadata(server, collection, metadata, admin):
+    collection = Collection().setMetadata(collection, metadata)
     resp = server.request(
         path='/collection/%s/metadata' % collection['_id'],
         user=admin,
@@ -111,8 +129,8 @@ def testCollectionModelSetMetadata(collection, metadata):
 
 
 # Model Layer
-def testCollectionModelDeleteMetadata(collectionWithMeta, metadata):
-    collection = collectionWithMeta(metadata)
+def testCollectionModelDeleteMetadata(collection, metadata):
+    collection = Collection().setMetadata(collection, metadata)
     noMeta = Collection().deleteMetadata(collection, list(metadata.keys()))
     assert noMeta['meta'] == {}
 
