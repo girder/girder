@@ -62,6 +62,7 @@ class ItemTestCase(base.TestCase):
         resp = self.request(path='/item', method='POST', params=params,
                             user=user)
         self.assertStatusOk(resp)
+        assert 'meta' in resp.json
         return resp.json
 
     def _testUploadFileToItem(self, item, name, user, contents):
@@ -141,6 +142,22 @@ class ItemTestCase(base.TestCase):
             if not isinstance(expected, six.binary_type):
                 expected = expected.encode('utf8')
             self.assertEqual(expected, zipFile.read(name))
+
+    def testLegacyItems(self):
+        folder = Folder().createFolder(
+            parent=self.users[0], parentType='user', creator=self.users[0],
+            name='New Folder')
+        item = Item().createItem(
+            name='LegacyItem',
+            creator=self.users[0],
+            folder=folder)
+
+        del item['meta']
+        item = Item().save(item)
+        assert 'meta' not in item
+
+        item = Item().load(item['_id'], user=self.admin)
+        assert 'meta' in item
 
     def testItemDownloadAndChildren(self):
         curItem = self._createItem(self.publicFolder['_id'],

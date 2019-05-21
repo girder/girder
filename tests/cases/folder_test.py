@@ -40,6 +40,18 @@ class FolderTestCase(base.TestCase):
         })
         self.admin, self.user = [User().createUser(**user) for user in users]
 
+    def testLegacyFolders(self):
+        folder = Folder().createFolder(
+            parent=self.admin, parentType='user', creator=self.admin,
+            name='LegacyFolder')
+
+        del folder['meta']
+        folder = Folder().save(folder)
+        assert 'meta' not in folder
+
+        folder = Folder().load(folder['_id'], user=self.admin)
+        assert 'meta' in folder
+
     def testChildFolders(self):
         # Test with some bad parameters
         resp = self.request(path='/folder', method='GET', params={})
@@ -222,6 +234,7 @@ class FolderTestCase(base.TestCase):
                 'parentId': str(self.admin['_id'])
             })
         self.assertStatus(resp, 200)
+        assert 'meta' in resp.json
 
     def testReuseExisting(self):
         self.ensureRequiredParams(
