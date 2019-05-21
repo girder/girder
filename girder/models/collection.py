@@ -144,7 +144,8 @@ class Collection(AccessControlledModel):
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
              force=False, fields=None, exc=False):
         """
-        Calls AccessControlMixin.load, and if no meta field is present, adds an empty meta field and saves.
+        Calls AccessControlMixin.load, and if no meta field is present,
+        adds an empty meta field and saves.
 
         Takes the same parameters as
         :py:func:`girder.models.model_base.AccessControlMixin.load`.

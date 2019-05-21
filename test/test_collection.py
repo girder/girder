@@ -17,6 +17,7 @@ def collections(db):
 def collection(db):
     yield Collection().createCollection('public collection', public=True)
 
+
 @pytest.fixture
 def oldCollection(db, collection):
     del collection['meta']
