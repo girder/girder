@@ -36,6 +36,7 @@ eos
   config.vm.synced_folder ".", "/home/vagrant/girder"
 
   config.vm.provision "ansible_local" do |ansible|
+    ansible.compatibility_mode = '2.0'
     ansible.galaxy_role_file = 'devops/vagrant/vagrant-requirements.yml'
     ansible.playbook = "devops/vagrant/vagrant-playbook.yml"
     ansible.provisioning_path = "/home/vagrant/girder"
