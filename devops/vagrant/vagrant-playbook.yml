@@ -51,9 +51,9 @@
 
     - role: ansible-role-girder
       vars:
+        girder_daemonize: false
         girder_package: "{{ ansible_user_dir }}/girder"
         girder_pip_extra_args: "--editable"
-        girder_daemonize: false
         # girder_virtualenv is overridden too
 
   post_tasks:
