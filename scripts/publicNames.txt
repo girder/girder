@@ -537,6 +537,7 @@ girder
                 createFolder
                 deleteMetadata
                 fileList
+                filter
                 getSizeRecursive
                 initialize
                 isOrphan
@@ -579,6 +580,7 @@ girder
                 createItem
                 deleteMetadata
                 fileList
+                filter
                 initialize
                 isOrphan
                 load
