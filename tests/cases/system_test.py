@@ -132,10 +132,6 @@ class SystemTestCase(base.TestCase):
         setting = Setting().get(SettingKey.BANNER_COLOR)
         self.assertEqual(setting, SettingDefault.defaults[SettingKey.BANNER_COLOR])
 
-        # We should be able to ask for a different default
-        setting = Setting().get(SettingKey.BANNER_COLOR, default=None)
-        self.assertEqual(setting, None)
-
         # We should also be able to put several setting using a JSON list
         resp = self.request(path='/system/setting', method='PUT', params={
             'list': json.dumps([
@@ -154,29 +150,6 @@ class SystemTestCase(base.TestCase):
         }, user=users[0])
         self.assertStatusOk(resp)
         self.assertEqual(resp.json[SettingKey.BANNER_COLOR], '#121212')
-
-        # We can get the default values, or ask for no value if the current
-        # value is taken from the default
-        resp = self.request(path='/system/setting', method='GET', params={
-            'key': SettingKey.BANNER_COLOR,
-            'default': 'default'
-        }, user=users[0])
-        self.assertStatusOk(resp)
-        self.assertEqual(resp.json, SettingDefault.defaults[SettingKey.BANNER_COLOR])
-
-        resp = self.request(path='/system/setting', method='GET', params={
-            'key': SettingKey.COOKIE_LIFETIME,
-            'default': 'none'
-        }, user=users[0])
-        self.assertStatusOk(resp)
-        self.assertEqual(resp.json, None)
-
-        # But we have to ask for a sensible value in the default parameter
-        resp = self.request(path='/system/setting', method='GET', params={
-            'key': SettingKey.COOKIE_LIFETIME,
-            'default': 'bad_value'
-        }, user=users[0])
-        self.assertStatus(resp, 400)
 
         # Try to set each key in turn to test the validation.  First test with
         # am invalid value, then test with the default value.  If the value
@@ -212,11 +185,6 @@ class SystemTestCase(base.TestCase):
             self.assertStatusOk(resp)
             resp = self.request(path='/system/setting', method='PUT', params={
                 'list': json.dumps([{'key': key, 'value': None}])
-            }, user=users[0])
-            self.assertStatusOk(resp)
-            resp = self.request(path='/system/setting', method='GET', params={
-                'key': key,
-                'default': 'default'
             }, user=users[0])
             self.assertStatusOk(resp)
 
