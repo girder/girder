@@ -51,19 +51,14 @@
 
     - role: ansible-role-girder
       vars:
+        girder_bind_public: true
         girder_daemonize: false
+        girder_development_mode: true
         girder_package: "{{ ansible_user_dir }}/girder"
         girder_pip_extra_args: "--editable"
         # girder_virtualenv is overridden too
 
   post_tasks:
-    - name: Configure Girder to bind to public interface
-      ini_file:
-        dest: "{{ ansible_user_dir }}/.girder/girder.cfg"
-        section: "global"
-        option: "server.socket_host"
-        value: '"0.0.0.0"'
-
     - name: Install Girder Python development requirements
       pip:
         requirements: "requirements-dev.txt"

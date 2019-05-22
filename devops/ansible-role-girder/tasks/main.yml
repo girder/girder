@@ -31,6 +31,26 @@
     - Build Girder web client
     - Restart Girder
 
+- name: Configure Girder config file
+  ini_file:
+    path: "{{ ansible_user_dir }}/.girder/girder.cfg"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  loop:
+    - section: global
+      option: server.socket_host
+      value: "\"{{ '0.0.0.0' if girder_bind_public else '127.0.0.1' }}\""
+    - section: global
+      option: tools.proxy.on
+      value: "{{ 'False' if girder_development_mode else 'True' }}"
+    - section: database
+      option: uri
+      value: "\"{{ girder_database_uri }}\""
+    - section: server
+      option: mode
+      value: "\"{{ 'development' if girder_development_mode else 'production' }}\""
+
 # Setup systemd service
 - block:
     - name: Install Girder service
