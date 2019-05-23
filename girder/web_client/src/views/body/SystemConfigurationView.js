@@ -118,32 +118,20 @@ var SystemConfigurationView = View.extend({
             url: 'system/setting',
             method: 'GET',
             data: {
-                list: JSON.stringify(keys),
-                default: 'none'
+                list: JSON.stringify(keys)
             }
         }).done((resp) => {
             this.settings = resp;
-            restRequest({
-                url: 'system/setting',
-                method: 'GET',
-                data: {
-                    list: JSON.stringify(keys),
-                    default: 'default'
-                }
-            }).done((resp) => {
-                this.defaults = resp;
-                this.render();
-            });
+            this.render();
         });
     },
 
     render: function () {
         this.$el.html(SystemConfigurationTemplate({
             settings: this.settings,
-            defaults: this.defaults,
-            routes: this.settings['core.route_table'] || this.defaults['core.route_table'],
+            routes: this.settings['core.route_table'],
             routeKeys: _.sortBy(
-                _.keys(this.settings['core.route_table'] || this.defaults['core.route_table']),
+                _.keys(this.settings['core.route_table']),
                 (a) => a.indexOf('core_') === 0 ? -1 : 0
             ),
             JSON: window.JSON
@@ -198,7 +186,7 @@ var SystemConfigurationView = View.extend({
                 settingValue[key] = _.pluck(accessList[key], 'id');
             });
         } else {
-            settingValue = this.settings['core.collection_create_policy'] || this.defaults['core.collection_create_policy'];
+            settingValue = this.settings['core.collection_create_policy'];
             settingValue['open'] = false;
         }
         return settingValue;
