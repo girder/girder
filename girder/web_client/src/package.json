@@ -1,6 +1,6 @@
 {
     "name": "@girder/core",
-    "version": "3.0.0-alpha.1",
+    "version": "3.0.0-rc1",
     "description": "Extensible data management platform",
     "homepage": "https://girder.readthedocs.org",
     "bugs": {
