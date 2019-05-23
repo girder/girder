@@ -26,6 +26,13 @@ For more options for building the web client, run: ::
 
     girder build --help
 
+Finally, you'll want to set your server into development mode. Add the following entry into your
+local config file (see :ref:`Configuration <configuration>` for instructions):
+
+.. code-block:: ini
+
+    [server]
+    mode="development"
 
 Vagrant
 ^^^^^^^
