@@ -26,7 +26,7 @@
     extra_args: "{{ girder_pip_extra_args|default(omit) }}"
     virtualenv: "{{ girder_virtualenv }}"
     # Implicitly create a Python 3 virtualenv if it doesn't exist
-    virtualenv_command: "{{ ansible_python_interpreter }} -m venv"
+    virtualenv_command: "/usr/bin/python3 -m venv"
   notify:
     - Build Girder web client
     - Restart Girder
@@ -59,7 +59,7 @@
         dest: "/etc/systemd/system/girder.service"
       notify: Restart Girder
 
-    - name: Enable Girder service on boot
+    - name: Enable Girder service
       systemd:
         name: girder
         daemon_reload: true
