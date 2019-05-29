@@ -9,7 +9,7 @@ from .settings import PluginSettings
 
 class SentryPlugin(GirderPlugin):
     DISPLAY_NAME = 'Sentry'
-    # CLIENT_SOURCE_PATH = 'web_client'
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         info['apiRoot'].sentry = rest.Sentry()

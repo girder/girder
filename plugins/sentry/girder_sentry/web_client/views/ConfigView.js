@@ -14,7 +14,7 @@ var ConfigView = View.extend({
 
             this._saveSettings([{
                 key: 'sentry.dsn',
-                value: this.$('#g-google-analytics-tracking-id').val().trim()
+                value: this.$('#g-sentry-dsn').val().trim()
             }]);
         }
     },
@@ -27,7 +27,7 @@ var ConfigView = View.extend({
             }
         }).done((resp) => {
             this.render();
-            this.$('#g-google-analytics-tracking-id').val(
+            this.$('#g-sentry-dsn').val(
                 resp['sentry.dsn']
             );
         });
@@ -38,7 +38,7 @@ var ConfigView = View.extend({
 
         if (!this.breadcrumb) {
             this.breadcrumb = new PluginConfigBreadcrumbWidget({
-                pluginName: 'Google Analytics',
+                pluginName: 'Sentry',
                 el: this.$('.g-config-breadcrumb-container'),
                 parentView: this
             }).render();

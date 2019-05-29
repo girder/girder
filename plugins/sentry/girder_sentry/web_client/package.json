@@ -1,8 +1,8 @@
 {
     "name": "@girder/sentry",
     "version": "0.2.0-alpha.1",
-    "description": "Allow the tracking of page views via Google Analytics.",
-    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#google-analytics",
+    "description": "Allow the tracking of errors via Sentry.",
+    "homepage": "https://github.com/girder/girder",
     "bugs": {
         "url": "https://github.com/girder/girder/issues"
     },
