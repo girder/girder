@@ -17,5 +17,8 @@
     "girderPlugin": {
         "name": "sentry",
         "main": "./main.js"
+    },
+    "dependencies": {
+        "@sentry/browser": "^5.3.0"
     }
 }
