@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+import sentry_sdk
 from girder.plugin import GirderPlugin
+from girder.models.setting import Setting
 
 from . import rest
+from .settings import PluginSettings
 
 
 class SentryPlugin(GirderPlugin):
@@ -10,3 +13,6 @@ class SentryPlugin(GirderPlugin):
 
     def load(self, info):
         info['apiRoot'].sentry = rest.Sentry()
+
+        # Not sure if I should be getting from Setting here
+        sentry_sdk.init(dsn=Setting().get(PluginSettings.DSN))

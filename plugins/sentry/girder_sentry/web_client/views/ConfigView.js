@@ -8,12 +8,12 @@ import '../stylesheets/configView.styl';
 
 var ConfigView = View.extend({
     events: {
-        'submit #g-google_analytics-form': function (event) {
+        'submit #g-sentry-form': function (event) {
             event.preventDefault();
-            this.$('#g-google_analytics-error-message').empty();
+            this.$('#g-sentry-error-message').empty();
 
             this._saveSettings([{
-                key: 'google_analytics.tracking_id',
+                key: 'sentry.dsn',
                 value: this.$('#g-google-analytics-tracking-id').val().trim()
             }]);
         }
@@ -23,12 +23,12 @@ var ConfigView = View.extend({
             method: 'GET',
             url: 'system/setting',
             data: {
-                list: JSON.stringify(['google_analytics.tracking_id'])
+                list: JSON.stringify(['sentry.dsn'])
             }
         }).done((resp) => {
             this.render();
             this.$('#g-google-analytics-tracking-id').val(
-                resp['google_analytics.tracking_id']
+                resp['sentry.dsn']
             );
         });
     },
@@ -63,7 +63,7 @@ var ConfigView = View.extend({
                 timeout: 4000
             });
         }).fail((resp) => {
-            this.$('#g-google_analytics-error-message').text(
+            this.$('#g-sentry-error-message').text(
                 resp.responseJSON.message
             );
         });

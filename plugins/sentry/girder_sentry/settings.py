@@ -8,7 +8,7 @@ class PluginSettings(object):
 
 @setting_utilities.default(PluginSettings.DSN)
 def _defaultDSN():
-    return ''
+    return 'https://f2baa71b36094c31a60fc8039e0ad7de@sentry.io/1470862'
 
 
 @setting_utilities.validator(PluginSettings.DSN)
