@@ -12,7 +12,7 @@ events.on('g:appload.after', function () {
         if (resp.sentry_dsn) {
             // ga('create', resp.sentry_dsn, 'none');
             sentryInit({dsn: resp.sentry_dsn});
-            captureException(new Error("This is my fake error message"));
+            // captureException(new Error("This is my fake error message"));
         }
     });
 });
