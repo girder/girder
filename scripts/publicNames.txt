@@ -1218,6 +1218,19 @@ plugins
                     LINKEDIN_CLIENT_ID
                     LINKEDIN_CLIENT_SECRET
                     PROVIDERS_ENABLED
+    sentry
+        girder_sentry
+            SentryPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                DSN
+                load
+            rest
+                Sentry
+                    getDSN
+            settings
+                PluginSettings
+                    DSN
     terms
         girder_terms
             TermsPlugin

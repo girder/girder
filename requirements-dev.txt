@@ -16,6 +16,7 @@
 -e plugins/item_licenses
 -e plugins/ldap
 -e plugins/oauth
+-e plugins/sentry
 -e plugins/terms
 -e plugins/thumbnails
 -e plugins/user_quota
