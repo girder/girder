@@ -65,7 +65,7 @@ package we are going to create.
       setup_requires=['setuptools-git'],
       install_requires=['girder>=3', 'girder-jobs'],
       entry_points={
-          'girder.plugin': [ 'cats = girder_cats.CatsPlugin' ]
+          'girder.plugin': [ 'cats = girder_cats:CatsPlugin' ]
       }
   )
 
