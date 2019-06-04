@@ -1227,7 +1227,7 @@ plugins
                 load
             rest
                 Sentry
-                    getDSN
+                    getDsn
             settings
                 PluginSettings
                     DSN

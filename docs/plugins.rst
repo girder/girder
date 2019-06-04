@@ -377,7 +377,7 @@ provide a local file path to access the data file contents.
 Sentry
 ----------------
 
-The Sentry plugin enables the use of sentry.io to detect and report errors in girder.
+The Sentry plugin enables the use of `Sentry <https://sentry.io>`_ to detect and report errors in Girder.
 
 Usage by a software project maintainer
 **************************************

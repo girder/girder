@@ -1,6 +1,6 @@
 import events from '@girder/core/events';
 import { restRequest } from '@girder/core/rest';
-import {init as sentryInit, captureException} from '@sentry/browser';
+import { init as sentryInit } from '@sentry/browser';
 
 import './routes';
 

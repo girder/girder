@@ -7,11 +7,11 @@ class PluginSettings(object):
 
 
 @setting_utilities.default(PluginSettings.DSN)
-def _defaultDSN():
+def _defaultDsn():
     return ''
 
 
 @setting_utilities.validator(PluginSettings.DSN)
-def _validateDSN(doc):
+def _validateDsn(doc):
     if not doc['value']:
         raise ValidationException('Sentry DSN must not be empty.', 'value')

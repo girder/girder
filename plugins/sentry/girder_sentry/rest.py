@@ -11,12 +11,12 @@ class Sentry(Resource):
     def __init__(self):
         super(Sentry, self).__init__()
         self.resourceName = 'sentry'
-        self.route('GET', ('dsn',), self.getDSN)
+        self.route('GET', ('dsn',), self.getDsn)
 
     @access.public
     @describeRoute(
-        Description('Public url for getting the sentry dsn.')
+        Description('Public URL for getting the Sentry DSN.')
     )
-    def getDSN(self, params):
+    def getDsn(self, params):
         dsn = Setting().get(PluginSettings.DSN)
         return {'sentry_dsn': dsn}
