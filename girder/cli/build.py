@@ -9,6 +9,7 @@ import sys
 import click
 import six
 
+import girder
 from girder.constants import STATIC_ROOT_DIR
 from girder.plugin import allPlugins, getPlugin
 from girder.utility import server
@@ -62,6 +63,7 @@ def main(dev, watch, watch_plugin, npm, reinstall):
     quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
     buildCommand = [
         npm, 'run', 'build', '--',
+        '--girder-version=%s' % girder.__version__,
         '--static-path=%s' % STATIC_ROOT_DIR,
         '--static-public-path=%s' % server.getStaticPublicPath(),
         quiet
