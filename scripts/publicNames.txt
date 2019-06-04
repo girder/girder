@@ -1223,7 +1223,6 @@ plugins
             SentryPlugin
                 CLIENT_SOURCE_PATH
                 DISPLAY_NAME
-                DSN
                 load
             rest
                 Sentry
