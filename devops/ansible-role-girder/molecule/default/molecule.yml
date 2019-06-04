@@ -21,6 +21,12 @@ provisioner:
   name: ansible
   lint:
     name: ansible-lint
+  inventory:
+    group_vars:
+      all:
+        # Defining this here, instead of in playbooks, also ensures it's picked
+        # up by Testinfra
+        ansible_python_interpreter: "/usr/bin/python3"
   playbooks:
     prepare: prepare.yml
     converge: playbook.yml
