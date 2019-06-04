@@ -113,7 +113,7 @@ class GirderPlugin(object):
             os.path.join(self.CLIENT_SOURCE_PATH, 'package.json')
         )
         if not os.path.isfile(packageJsonFile):
-            raise Exception('Invalid web client path provided')
+            raise Exception('Invalid web client path provided: %s' % packageJsonFile)
 
         with open(packageJsonFile, 'r') as f:
             packageJson = json.load(f)
