@@ -33,11 +33,13 @@ def getStaticPublicPath():
     return config.getConfig()['server']['static_public_path']
 
 
-def configureServer(test=False, plugins=None, curConfig=None):
+def configureServer(dev=False, test=False, plugins=None, curConfig=None):
     """
     Function to setup the cherrypy server. It configures it, but does
     not actually start it.
 
+    :param dev: Set to True when running in development.
+    :type dev: bool
     :param test: Set to True when running in the tests.
     :type test: bool
     :param plugins: If you wish to start the server with a custom set of
@@ -67,6 +69,8 @@ def configureServer(test=False, plugins=None, curConfig=None):
 
     if test:
         curConfig['server']['mode'] = 'testing'
+    elif dev:
+        curConfig['server']['mode'] = 'development'
 
     mode = curConfig['server']['mode'].lower()
     logprint.info('Running in mode: ' + mode)
@@ -137,13 +141,14 @@ def loadRouteTable(reconcileRoutes=False):
     return {name: route for (name, route) in six.viewitems(routeTable) if route}
 
 
-def setup(test=False, plugins=None, curConfig=None):
+def setup(dev=False, test=False, plugins=None, curConfig=None):
     """
     Configure and mount the Girder server and plugins under the
     appropriate routes.
 
     See ROUTE_TABLE setting.
 
+    :param dev: Whether to start in development mode.
     :param test: Whether to start in test mode.
     :param plugins: List of plugins to enable.
     :param curConfig: The config object to update.
@@ -151,7 +156,7 @@ def setup(test=False, plugins=None, curConfig=None):
     logStdoutStderr()
 
     pluginWebroots = plugin.getPluginWebroots()
-    girderWebroot, appconf = configureServer(test, plugins, curConfig)
+    girderWebroot, appconf = configureServer(dev, test, plugins, curConfig)
     routeTable = loadRouteTable(reconcileRoutes=True)
 
     # Mount Girder
@@ -178,6 +183,8 @@ def setup(test=False, plugins=None, curConfig=None):
 
     if test:
         application.merge({'server': {'mode': 'testing'}})
+    elif dev:
+        application.merge({'server': {'mode': 'development'}})
 
     return application
 
