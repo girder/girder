@@ -374,6 +374,11 @@ of the data. CMake ExternalData provides tooling to connect with a Girder instan
 actual data file pointed to by the content link (key) file by passing the hash to Girder, and
 provide a local file path to access the data file contents.
 
+Sentry
+----------------
+
+The Sentry plugin enables the use of `Sentry <https://sentry.io>`_ to detect and report errors in Girder.
+
 Usage by a software project maintainer
 **************************************
 

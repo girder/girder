@@ -18,5 +18,6 @@ __pycache__
 .DS_Store
 .idea/
 .PyCharm50/
+.vscode/
 .*.swo
 .*.swp

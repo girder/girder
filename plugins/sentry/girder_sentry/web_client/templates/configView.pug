@@ -1,0 +1,10 @@
+.g-config-breadcrumb-container
+p.g-sentry-description
+  | To track errors in Sentry, enter your Sentry project DSN here.
+form#g-sentry-form(role="form")
+  .form-group
+    label.control-label(for="g-sentry-dsn") Sentry DSN
+    input#g-sentry-dsn.input-sm.form-control(
+      type="text", placeholder="Tracking ID")
+  p#g-sentry-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")
