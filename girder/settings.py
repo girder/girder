@@ -8,7 +8,7 @@ import six
 
 from girder.constants import GIRDER_ROUTE_ID
 from girder.exceptions import ValidationException
-from girder.utility import config, setting_utilities
+from girder.utility import setting_utilities
 
 
 class SettingKey(object):
@@ -36,7 +36,6 @@ class SettingKey(object):
     PRIVACY_NOTICE = 'core.privacy_notice'
     REGISTRATION_POLICY = 'core.registration_policy'
     ROUTE_TABLE = 'core.route_table'
-    SECURE_COOKIE = 'core.secure_cookie'
     SERVER_ROOT = 'core.server_root'
     SMTP_ENCRYPTION = 'core.smtp.encryption'
     SMTP_HOST = 'core.smtp_host'
@@ -84,7 +83,6 @@ class SettingDefault(object):
         SettingKey.PRIVACY_NOTICE: 'https://www.kitware.com/privacy',
         SettingKey.REGISTRATION_POLICY: 'open',
         # SettingKey.ROUTE_TABLE is provided by a function
-        # SettingKey.SECURE_COOKIE is provided by a function
         SettingKey.SERVER_ROOT: '',
         SettingKey.SMTP_ENCRYPTION: 'none',
         SettingKey.SMTP_HOST: 'localhost',
@@ -110,11 +108,6 @@ class SettingDefault(object):
         return {
             GIRDER_ROUTE_ID: '/'
         }
-
-    @staticmethod
-    @setting_utilities.default(SettingKey.SECURE_COOKIE)
-    def _defaultSecureCookie():
-        return config.getConfig()['server']['mode'] == 'production'
 
 
 class SettingValidator(object):
@@ -303,12 +296,6 @@ class SettingValidator(object):
 
         if len(nonEmptyRoutes) > len(set(nonEmptyRoutes)):
             raise ValidationException('Routes must be unique.', 'value')
-
-    @staticmethod
-    @setting_utilities.validator(SettingKey.SECURE_COOKIE)
-    def _validateSecureCookie(doc):
-        if not isinstance(doc['value'], bool):
-            raise ValidationException('Secure cookie option must be boolean.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.SERVER_ROOT)

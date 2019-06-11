@@ -9,7 +9,6 @@ from .. import base
 
 from girder import events
 from girder.constants import AccessType, TokenScope
-from girder.exceptions import ValidationException
 from girder.models.folder import Folder
 from girder.models.group import Group
 from girder.models.setting import Setting
@@ -29,7 +28,7 @@ def tearDownModule():
 
 
 class UserTestCase(base.TestCase):
-    def _verifyAuthCookie(self, resp, secure=''):
+    def _verifyAuthCookie(self, resp, secure=False):
         self.assertTrue('girderToken' in resp.cookie)
         self.cookieVal = resp.cookie['girderToken'].value
         self.assertFalse(not self.cookieVal)
@@ -37,7 +36,7 @@ class UserTestCase(base.TestCase):
         self.assertEqual(
             resp.cookie['girderToken']['expires'],
             lifetime * 3600 * 24)
-        self.assertEqual(resp.cookie['girderToken']['secure'], secure)
+        self.assertEqual(resp.cookie['girderToken']['secure'], True if secure else '')
 
     def _verifyDeletedCookie(self, resp):
         self.assertTrue('girderToken' in resp.cookie)
@@ -147,18 +146,16 @@ class UserTestCase(base.TestCase):
                             authHeader='Girder-Authorization')
         self.assertStatusOk(resp)
 
-        # Test secure cookie validation
-        with self.assertRaises(ValidationException):
-            Setting().set(SettingKey.SECURE_COOKIE, 'bad value')
-        # Set secure cookie value
-        Setting().set(SettingKey.SECURE_COOKIE, True)
-
         # Login successfully with login
         resp = self.request(path='/user/authentication', method='GET',
                             basicAuth='goodlogin:good:password')
         self.assertStatusOk(resp)
+        self._verifyAuthCookie(resp)
 
-        # Make sure we got a nice (secure) cookie
+        # Login with HTTPS login
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='goodlogin:good:password', useHttps=True)
+        self.assertStatusOk(resp)
         self._verifyAuthCookie(resp, secure=True)
 
         # Test user/me

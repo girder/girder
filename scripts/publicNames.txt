@@ -749,7 +749,6 @@ girder
             PRIVACY_NOTICE
             REGISTRATION_POLICY
             ROUTE_TABLE
-            SECURE_COOKIE
             SERVER_ROOT
             SMTP_ENCRYPTION
             SMTP_HOST
