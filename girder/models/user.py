@@ -463,20 +463,19 @@ class User(AccessControlledModel):
             'user': user,
             'url': url
         })
-        mail_utils.sendEmail(
-            toAdmins=True,
-            subject='Girder: Account pending approval',
-            text=text)
+        mail_utils.sendMailToAdmins(
+            'Girder: Account pending approval',
+            text)
 
     def _sendApprovedEmail(self, user):
         text = mail_utils.renderTemplate('accountApproved.mako', {
             'user': user,
             'url': mail_utils.getEmailUrlPrefix()
         })
-        mail_utils.sendEmail(
-            to=user.get('email'),
-            subject='Girder: Account approved',
-            text=text)
+        mail_utils.sendMail(
+            'Girder: Account approved',
+            text,
+            [user.get('email')])
 
     def _sendVerificationEmail(self, user):
         from .token import Token
@@ -488,10 +487,10 @@ class User(AccessControlledModel):
         text = mail_utils.renderTemplate('emailVerification.mako', {
             'url': url
         })
-        mail_utils.sendEmail(
-            to=user.get('email'),
-            subject='Girder: Email verification',
-            text=text)
+        mail_utils.sendMail(
+            'Girder: Email verification',
+            text,
+            [user.get('email')])
 
     def _grantSelfAccess(self, event):
         """

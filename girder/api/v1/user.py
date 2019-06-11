@@ -307,9 +307,10 @@ class User(Resource):
             'url': url,
             'token': str(token['_id'])
         })
-        mail_utils.sendEmail(
-            to=email, subject='%s: Temporary access' % Setting().get(SettingKey.BRAND_NAME),
-            text=html
+        mail_utils.sendMail(
+            '%s: Temporary access' % Setting().get(SettingKey.BRAND_NAME),
+            html,
+            [email]
         )
         return {'message': 'Sent temporary access email.'}
 

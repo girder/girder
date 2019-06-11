@@ -345,6 +345,12 @@ now be imported from the ``girder.settings`` module.
 
     from girder.settings import SettingDefault, SettingKey
 
+The API for sending email has changed
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The ``mail_utils.sendEmail`` function has been replaced with several new functions:
+``mail_utils.sendMailSync``, ``mail_utils.sendMail``, ``mail_utils.sendMailToAdmins``,
+``mail_utils.sendMailIndividually``. Note that the argument order and expected types have changed.
+See function documentation for details on the new usage.
 
 Removed or moved plugins
 ++++++++++++++++++++++++
