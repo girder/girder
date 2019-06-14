@@ -119,13 +119,6 @@ var CollectionView = View.extend({
         this.folderCreate = false;
         this.itemCreate = false;
 
-        this.metadataWidget = new MetadataWidget({
-            el: this.$('.g-collection-metadata'),
-            item: this.model,
-            accessLevel: this.model.getAccessLevel(),
-            parentView: this
-        });
-
         if (this.edit) {
             this.editCollection();
         } else if (this.access) {
