@@ -1204,7 +1204,7 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
 /*
  * Provide an alternate path to injecting a test spec as a url query parameter.
  *
- * To use, start girder in testing mode: `girder serve --testing` and
+ * To use, start girder in testing mode: `girder serve --mode=testing` and
  * browse to the test html with a spec provided:
  *
  *   http://localhost:8080/static/built/testing/testEnv.html?spec=%2Fclients%2Fweb%2Ftest%2Fspec%2FversionSpec.js

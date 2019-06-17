@@ -20,7 +20,7 @@ provide helpful development tools and to allow the test suite to run: ::
 
 Install front-end web client development dependencies. This will install npm modules eslint and pug-lint, which are needed to run tests. This will also build the web client code: ::
 
-    girder build --dev
+    girder build --mode=development
 
 For more options for building the web client, run: ::
 

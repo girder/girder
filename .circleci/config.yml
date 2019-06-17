@@ -177,7 +177,7 @@ jobs:
           working_directory: girder
       - run:
           name: Build Girder web client
-          command: girder build --dev | cat
+          command: girder build --mode=development | cat
           environment:
             - npm_config_cache: /home/circleci/project/npm_cache
       - save_cache:
@@ -287,7 +287,7 @@ jobs:
           name: Build Girder web client
           command: |
             source $NVM_DIR/nvm.sh
-            girder build --dev | cat
+            girder build --mode=development | cat
       - run:
           name: CMake
           command: cmake ../girder -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
@@ -416,7 +416,7 @@ jobs:
           name: Build Girder web client
           command: |
             source $NVM_DIR/nvm.sh
-            girder build --dev | cat
+            girder build --mode=development | cat
       - run:
           name: CMake
           command: cmake ../girder -DPYTHON_VERSION=3.5 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
