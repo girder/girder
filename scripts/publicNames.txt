@@ -386,17 +386,20 @@ girder
             USER_DEFAULT_FOLDERS
             USER_SELF_ACCESS
             WEBROOT_SETTING_CHANGE
+        DEVELOPMENT_MODE
         GIRDER_ROUTE_ID
         LOG_BACKUP_COUNT
         LOG_ROOT
         MAX_LOG_SIZE
         PACKAGE_DIR
+        PRODUCTION_MODE
         ROOT_DIR
         STATIC_PREFIX
         STATIC_ROOT_DIR
         SortDir
             ASCENDING
             DESCENDING
+        TESTING_MODE
         TEXT_SCORE_SORT_MAX
         TerminalColor
             ENDC
@@ -817,6 +820,7 @@ girder
         camelcase
         config
             getConfig
+            getServerMode
             loadConfig
         filesystem_assetstore_adapter
             BUF_SIZE
