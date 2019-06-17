@@ -137,7 +137,7 @@ Other backwards incompatible changes affecting plugins
     @pytest.mark.plugin('failing_plugin', FailingPlugin)
     def test_with_failing_plugin(server):
         # the test plugin will be installed in this context
-* When running the server in testing mode (``girder serve --testing``), the source directory
+* When running the server in testing mode (``girder serve --mode=testing``), the source directory
   is no longer served.  If you need any assets for testing, they have to be installed into
   the static directory during the client build process.
 * Automatic registration of plugin models is no longer provided.  If your plugin contains any
@@ -174,7 +174,7 @@ used to install plugins and run the client build.  Plugins should now be
 installed (and uninstalled) using ``pip`` directly.  For the client build,
 there is a new command, ``girder build``.  Without any arguments this command
 will execute a production build of all installed plugins.  Executing ``girder
-build --dev`` will build a *development* install of Girder's static assets as
+build --mode=development`` will build a *development* install of Girder's static assets as
 well as building targets only necessary when running testing.
 
 The new build process works by generating a ``package.json`` file in ``girder/web_client``

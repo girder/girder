@@ -45,6 +45,6 @@ To rebuild the web client:
 
 .. code-block:: bash
 
-    girder build --dev
+    girder build --mode=development
 
 For more development documentation, see `During Development <development.html#during-development>`__
