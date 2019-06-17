@@ -6,7 +6,7 @@ from bson import ObjectId
 import re
 import six
 
-from girder.constants import GIRDER_ROUTE_ID
+from girder.constants import GIRDER_ROUTE_ID, PRODUCTION_MODE
 from girder.exceptions import ValidationException
 from girder.utility import config, setting_utilities
 
@@ -114,7 +114,7 @@ class SettingDefault(object):
     @staticmethod
     @setting_utilities.default(SettingKey.SECURE_COOKIE)
     def _defaultSecureCookie():
-        return config.getConfig()['server']['mode'] == 'production'
+        return config.getServerMode() == PRODUCTION_MODE
 
 
 class SettingValidator(object):

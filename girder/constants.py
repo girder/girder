@@ -29,6 +29,11 @@ VERSION = {
 STATIC_PREFIX = os.path.join(sys.prefix, 'share', 'girder')
 STATIC_ROOT_DIR = os.path.join(STATIC_PREFIX, 'static')
 
+# Server modes
+PRODUCTION_MODE = 'production'
+DEVELOPMENT_MODE = 'development'
+TESTING_MODE = 'testing'
+
 
 def registerAccessFlag(key, name, description=None, admin=False):
     """
