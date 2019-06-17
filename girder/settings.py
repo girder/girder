@@ -6,7 +6,7 @@ from bson import ObjectId
 import re
 import six
 
-from girder.constants import GIRDER_ROUTE_ID
+from girder.constants import GIRDER_ROUTE_ID, PRODUCTION_MODE
 from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 
