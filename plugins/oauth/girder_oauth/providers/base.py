@@ -4,11 +4,10 @@ import re
 import requests
 import six
 
-from girder.exceptions import RestException
+from girder.exceptions import RestException, ValidationException
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.settings import SettingKey
-from girder.utility import config
 
 from ..settings import PluginSettings
 
@@ -241,10 +240,10 @@ class ProviderBase(object):
         When attempting to generate a username, use this to test if the given
         name is valid.
         """
-        regex = config.getConfig()['users']['login_regex']
-
-        # Still doesn't match regex, we're hosed
-        if not re.match(regex, login):
+        try:
+            User()._validateLogin(login)
+        except ValidationException:
+            # Still doesn't match regex, we're hosed
             return False
 
         # See if this is already taken.

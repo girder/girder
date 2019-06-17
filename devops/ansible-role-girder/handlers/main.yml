@@ -5,7 +5,7 @@
     - LC_ALL: "C.UTF-8"
     - LANG: "C.UTF-8"
   command: "{{ girder_virtualenv }}/bin/girder build"
-  when: girder_web
+  when: girder_web|bool
 
 - name: Restart Girder
   systemd:
@@ -14,4 +14,4 @@
     state: restarted
   become: true
   become_user: root
-  when: girder_daemonize
+  when: girder_daemonize|bool

@@ -77,12 +77,8 @@
         a(href=apiRoot)  interactive web API docs
         | .
 
-      li This instance of #{brandName} was built
-        if versionInfo.gitSha
-          |  from Git version&nbsp;
-          a.g-git-sha(target="_blank", href=`https://github.com/girder/girder/tree/${versionInfo.gitSha}`) #{versionInfo.gitSha.slice(0, 8)}
-        if versionInfo.buildDate
-          |  at #{versionInfo.buildDate.toLocaleDateString()}
-        if versionInfo.release
-          |  from release #{versionInfo.release}
-        | .
+      if version
+        li
+          | This instance of #{brandName} was built from version
+          code.g-version= version
+          | .

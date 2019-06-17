@@ -1,10 +1,6 @@
 ---
 - name: Converge
   hosts: all
-
-  vars:
-    ansible_python_interpreter: "/usr/bin/python3"
-
   roles:
     - role: girder.mongodb
     - role: ansible-role-girder

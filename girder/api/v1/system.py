@@ -11,7 +11,7 @@ import logging
 from girder import plugin
 from girder.api import access
 from girder.constants import TokenScope, ACCESS_FLAGS, VERSION
-from girder.exceptions import GirderException, ResourcePathNotFound, RestException
+from girder.exceptions import GirderException, ResourcePathNotFound
 from girder.models.collection import Collection
 from girder.models.file import File
 from girder.models.folder import Folder
@@ -112,27 +112,14 @@ class System(Resource):
         .param('key', 'The key identifying this setting.', required=False)
         .jsonParam('list', 'A JSON list of keys representing a set of settings to return.',
                    required=False, requireArray=True)
-        .param('default', 'If "none", return a null value if a setting is '
-               'currently the default value. If "default", return the '
-               'default value of the setting(s).', required=False)
         .errorResponse('You are not a system administrator.', 403)
     )
-    def getSetting(self, key, list, default):
-        getFuncName = 'get'
-        funcParams = {}
-        if default is not None:
-            if default == 'none':
-                funcParams['default'] = None
-            elif default == 'default':
-                getFuncName = 'getDefault'
-            elif default:
-                raise RestException("Default was not 'none', 'default', or blank.")
-        getFunc = getattr(Setting(), getFuncName)
+    def getSetting(self, key, list):
         if list is not None:
-            return {k: getFunc(k, **funcParams) for k in list}
+            return {k: Setting().get(k) for k in list}
         else:
             self.requireParams({'key': key})
-            return getFunc(key, **funcParams)
+            return Setting().get(key)
 
     @access.admin(scope=TokenScope.PLUGINS_READ)
     @autoDescribeRoute(

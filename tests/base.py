@@ -194,10 +194,10 @@ class TestCase(unittest.TestCase):
             self.assetstore = Assetstore().createFilesystemAssetstore(
                 name='Test', root=assetstorePath)
 
-        addr = ':'.join(map(str, mockSmtp.address or ('localhost', 25)))
-        settings = Setting()
-        settings.set(SettingKey.SMTP_HOST, addr)
-        settings.set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
+        host, port = mockSmtp.address or ('localhost', 25)
+        Setting().set(SettingKey.SMTP_HOST, host)
+        Setting().set(SettingKey.SMTP_PORT, port)
+        Setting().set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
 
         if os.environ.get('GIRDER_TEST_DATABASE_CONFIG'):
             setup_database.main(os.environ['GIRDER_TEST_DATABASE_CONFIG'])

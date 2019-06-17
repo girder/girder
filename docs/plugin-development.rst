@@ -65,7 +65,7 @@ package we are going to create.
       setup_requires=['setuptools-git'],
       install_requires=['girder>=3', 'girder-jobs'],
       entry_points={
-          'girder.plugin': [ 'cats = girder_cats.CatsPlugin' ]
+          'girder.plugin': [ 'cats = girder_cats:CatsPlugin' ]
       }
   )
 
@@ -358,7 +358,7 @@ you will need to explicitly register the model type to a string, e.g.
 .. code-block:: python
 
     from girder.plugin import GirderPlugin
-    from girder.utilities.model_importer import ModelImporter
+    from girder.utility.model_importer import ModelImporter
     from .models.cat import Cat
 
     class CatsPlugin(GirderPlugin):

@@ -129,6 +129,11 @@ class Item(acl_mixin.AccessControlMixin, Model):
                 self.update({'_id': doc['_id']}, {'$set': {
                     'lowerName': doc['lowerName']
                 }})
+            if 'meta' not in doc:
+                doc['meta'] = {}
+                self.update({'_id': doc['_id']}, {'$set': {
+                    'meta': {}
+                }})
 
             self._removeSupplementalFields(doc, fields)
 
@@ -283,7 +288,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
             'baseParentId': folder['baseParentId'],
             'created': now,
             'updated': now,
-            'size': 0
+            'size': 0,
+            'meta': {}
         })
 
     def updateItem(self, item):
@@ -298,6 +304,17 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         # Validate and save the item
         return self.save(item)
+
+    def filter(self, doc, user=None, additionalKeys=None):
+        """
+        Overrides the parent ``filter`` method to add an empty meta field
+        (if it doesn't exist) to the returned folder.
+        """
+        filteredDoc = super(Item, self).filter(doc, user, additionalKeys=additionalKeys)
+        if 'meta' not in filteredDoc:
+            filteredDoc['meta'] = {}
+
+        return filteredDoc
 
     def setMetadata(self, item, metadata, allowNull=False):
         """
@@ -416,6 +433,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         newItem = self.createItem(
             folder=folder, name=name, creator=creator, description=description)
         # copy metadata and other extension values
+        newItem['meta'] = copy.deepcopy(srcItem['meta'])
         filteredItem = self.filter(newItem, creator)
         for key in srcItem:
             if key not in filteredItem and key not in newItem:

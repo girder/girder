@@ -15,5 +15,6 @@
 - name: Install NodeJS package
   apt:
     name: nodejs
+    force_apt_get: true
   become: true
   become_user: root

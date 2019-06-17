@@ -84,21 +84,17 @@ class Setting(Model):
         """
         return self.findOne({'key': key})
 
-    def get(self, key, default='__default__'):
+    def get(self, key):
         """
         Retrieve a setting by its key.
 
         :param key: The key identifying the setting.
         :type key: str
-        :param default: If no such setting exists, returns this value instead.
-        :returns: The value, or the default value if the key is not found.
         """
         setting = self._get(key)
 
         if setting is None:
-            if default == '__default__':
-                default = self.getDefault(key)
-            return default
+            return self.getDefault(key)
         else:
             return setting['value']
 

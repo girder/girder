@@ -9,8 +9,6 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const webpackPlugins = require('./webpack.plugins.js');
-const { version: girderVersion } = require('@girder/core/package.json');
-const { getGitSha } = require('./git.js');
 
 const isTrue = (str) => !!str && !['false', 'off', '0'].includes(str.toString().toLowerCase());
 
@@ -123,9 +121,7 @@ module.exports = function (grunt) {
         plugins: [
             new webpack.EnvironmentPlugin({
                 NODE_ENV: null,
-                GIRDER_VERSION_RELEASE: girderVersion,
-                GIRDER_VERSION_GIT: getGitSha(),
-                GIRDER_VERSION_DATE: new Date().toISOString(),
+                GIRDER_VERSION: grunt.config.get('girderVersion'),
             })
         ]
     });
