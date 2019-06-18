@@ -294,6 +294,19 @@ var HierarchyWidget = View.extend({
             }
         }
 
+        if (this.parentModel.resourceName === 'collection' && this._showMetadata) {
+            if (!this.metadataWidget) {
+                this.metadataWidget = new MetadataWidget({
+                    item: this.parentModel,
+                    parentView: this,
+                    accessLevel: this.parentModel.getAccessLevel()
+                });
+            }
+            this.metadataWidget.setItem(this.parentModel);
+            this.metadataWidget.accessLevel = this.parentModel.getAccessLevel();
+            this.metadataWidget.setElement(this.$('.g-folder-metadata')).render();
+        }
+
         if (this.upload) {
             this.uploadDialog();
         } else if (this.folderAccess) {
