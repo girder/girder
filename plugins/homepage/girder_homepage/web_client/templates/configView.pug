@@ -1,0 +1,46 @@
+.g-config-breadcrumb-container
+
+form.g-settings-form(role="form")
+  .g-settings-form-container
+    h4 Instance Branding
+
+  p.g-homepage-description
+  | To configure elements of the default homepage
+
+  .form-group
+    label(for="g-homepage-header") Header
+    input#g-homepage-header.form-control.input-sm(
+        type="text", value= header || '',
+        placeholder=`Default: ${defaultHeader || 'none'}`,
+        title="The homepage header.")
+  .form-group
+    label(for="g-homepage-subheader") Subheader
+    input#g-homepage-subheader.form-control.input-sm(
+        type="text", value= subHeader || '',
+        placeholder=`Default: ${defaultSubHeader || 'none'}`,
+        title="The homepage subheader.")
+  .form-group
+    label(for="g-homepage-welcome-text") Welcome Text
+    #g-homepage-welcome-text.g-homepage-welcome-text-container
+
+  .form-group
+    label Logo
+    .g-homepage-logo-container
+      .g-homepage-logo-preview-container
+        .g-homepage-logo-preview
+          img(alt="Logo")
+        button#g-homepage-logo-reset.btn.btn-sm.btn-default(
+            type="button", title="Reset default logo") Use default
+      .g-homepage-logo-upload-container
+
+hr
+
+p.g-homepage-description
+  | To completely replace the homepage content (ignoring the other settings), enter Markdown here.
+
+.g-homepage-container
+
+p#g-homepage-error-message.g-validation-failed-message
+
+form#g-homepage-form(role="form")
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")

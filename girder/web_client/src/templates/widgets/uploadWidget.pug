@@ -1,0 +1,15 @@
+include uploadWidgetMixins
+
+.modal-dialog
+  .modal-content
+    form#g-upload-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title= title
+        +g-upload-widget-subtitle
+      .modal-body
+        +g-upload-widget-browse-or-drop
+        +g-upload-widget-progress
+      .modal-footer
+        a.btn.btn-small.btn-default(data-dismiss="modal") Close
+        +g-upload-widget-start-button

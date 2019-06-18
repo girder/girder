@@ -1,0 +1,10 @@
+include uploadWidgetMixins
+
+form#g-upload-form
+  if title
+    h4= title
+  +g-upload-widget-subtitle
+  +g-upload-widget-browse-or-drop
+  +g-upload-widget-progress
+  .g-nonmodal-upload-buttons-container
+    +g-upload-widget-start-button

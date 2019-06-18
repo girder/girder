@@ -1,0 +1,12 @@
+p.g-search-help-text= modeHelp
+if mode === 'text'
+  ul.g-search-examples-list
+    li
+      code cat dog
+      |  returns documents containing either "cat" or "dog".
+    li
+      code "cat" "dog"
+      |  returns documents containing both "cat" and "dog".
+    li
+      code "cat dog"
+      |  returns documents containing the phrase "cat dog".

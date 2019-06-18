@@ -1,0 +1,35 @@
+if showFilters
+  .g-page-size-container
+    span Page size
+    select.g-page-size
+      each val in pageSizes
+        option(selected=val===pageSize)= val
+
+if showPageSizeSelector
+  .g-job-filter-container.clearfix
+    .type
+    .status
+
+button.g-job-worker-task-info.btn.btn-default(title="Task information")
+  | Task information
+
+if showGraphs
+  ul.g-jobs.nav.nav-tabs
+    li(class=(currentView==='list' ? 'active' : ''))
+      a(data-toggle="tab", name="list")
+        i.icon-th-list
+        |  List
+    li(class=(currentView==='timing-history' ? 'active' : ''))
+      a(data-toggle="tab", name="timing-history")
+        i.icon-chart-bar
+        |  Timing history
+    li(class=(currentView==='time' ? 'active' : ''))
+      a(data-toggle="tab", name="time")
+        i.icon-chart-line
+        |  Time series
+
+.g-main-content
+
+.g-job-pagination
+
+.g-no-job-record No records found

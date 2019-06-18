@@ -1,0 +1,50 @@
+table.g-jobs-list-table
+  if showHeader
+    thead
+      tr
+        if columns & columnEnum.COLUMN_ACTION_CHECKBOX
+          th
+            .dropdown.check-menu-dropdown
+              button.btn.btn-sm.btn-default.dropdown-toggle.g-job-check-menu-button(data-toggle="dropdown", disabled=!anyJobChecked)
+                input.g-job-checkbox-all(type="checkbox", checked=allJobChecked)
+                i.icon-down-dir
+              ul.dropdown-menu
+                li
+                  a.g-jobs-list-cancel
+                    i.icon-cancel
+                    | Cancel
+        if columns & columnEnum.COLUMN_STATUS_ICON
+          th
+        if columns & columnEnum.COLUMN_TITLE
+          th Title
+        if columns & columnEnum.COLUMN_UPDATED
+          th Last update
+        if columns & columnEnum.COLUMN_TYPE
+          th Type
+        if columns & columnEnum.COLUMN_STATUS
+          th Status
+
+  tbody
+    each job in jobs
+      tr(g-job-id=job.id, class=jobHighlightStates[job.id]?"g-highlight":"")
+        if columns & columnEnum.COLUMN_ACTION_CHECKBOX
+          td
+            input.g-job-checkbox(type="checkbox", checked=jobCheckedStates[job.id])
+        if columns & columnEnum.COLUMN_STATUS_ICON
+          td(style='color: ' + JobStatus.color(job.get('status')))
+            i(class=JobStatus.icon(job.get('status')))
+        if columns & columnEnum.COLUMN_TITLE
+          if triggerJobClick
+            td
+              a.g-job-trigger-link(cid=job.cid)= job.get('title')
+          else if linkToJob
+            td
+              a(href=`#job/${job.id}`)= job.get('title')
+          else
+            td= job.get('title')
+        if columns & columnEnum.COLUMN_UPDATED
+          td.g-job-updated-cell= formatDate(job.get('updated'), DATE_SECOND)
+        if columns & columnEnum.COLUMN_TYPE
+          td= job.get('type')
+        if columns & columnEnum.COLUMN_STATUS
+          td.g-job-status-cell= JobStatus.text(job.get('status'))

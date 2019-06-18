@@ -1,0 +1,27 @@
+ul.g-item-list
+  each item in items
+    li.g-item-list-entry(public=(isParentPublic ? 'true' : 'false'))
+      if checkboxes
+        input.g-list-checkbox(type="checkbox", g-item-cid=item.cid)
+      if downloadLinks || viewLinks
+        a.g-item-list-link.g-right-border(g-item-cid=item.cid, href=`#item/${item.id}`)
+          i.icon-doc-text-inv
+          = item.name()
+      else
+        a.g-item-list-link(g-item-cid=item.cid, href='#item/' + item.id)
+          i.icon-doc-text-inv
+          = item.name()
+      if downloadLinks
+        a(title="Download item", href=item.downloadUrl())
+          i.icon-download
+      if viewLinks
+        a.g-view-inline(title="View in browser", target="_blank", rel="noopener noreferrer",
+            href=item.downloadUrl({contentDisposition: 'inline'}))
+          i.icon-eye
+      if showSizes
+        .g-item-size= formatSize(item.get('size'))
+  if (hasMore)
+    li.g-show-more
+      a.g-show-more-items
+        i.icon-level-down
+        | Show more items...

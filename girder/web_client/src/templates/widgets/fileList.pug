@@ -1,0 +1,33 @@
+ul.g-file-list
+  each file in files
+    li.g-file-list-entry
+      a.g-file-list-link(cid=file.cid, title="Download file",
+          target=file.get('linkUrl') ? '_blank' : '_self', href=file.downloadUrl(),
+          rel="noopener noreferrer")
+        if file.get('linkUrl')
+          i.icon-link
+          span.g-file-name= file.name()
+          i.icon-link-ext
+        else
+          i.icon-doc-inv
+          = file.name()
+      a.g-view-inline(title="View in browser", target="_blank", rel="noopener noreferrer",
+          href=file.downloadUrl({contentDisposition: 'inline'}))
+        i.icon-eye
+      a.g-show-info(file-cid=file.cid, title="Show info")
+        i.icon-info
+      if file.has('size')
+        .g-file-size= formatSize(file.get('size'))
+      .g-file-actions-container(file-cid=file.cid)
+        if parentItem && parentItem.get('_accessLevel') >= AccessType.WRITE
+          a.g-update-info(title="Edit file info")
+            i.icon-edit
+          a.g-update-contents(title="Replace file contents")
+            i.icon-upload
+          a.g-delete-file(title="Delete file")
+            i.icon-cancel
+  if hasMore
+    li.g-show-more
+      a.g-show-more-files
+        i.icon-level-down
+        | Show more files...

@@ -1,0 +1,69 @@
+---
+- name: Install Python 3 prereqs
+  apt:
+    name:
+      - python3-venv
+      - python3-setuptools
+      - python3-dev
+    force_apt_get: true
+  become: true
+  become_user: root
+
+- name: Install Girder system dependencies
+  apt:
+    name:
+      - build-essential
+    force_apt_get: true
+  become: true
+  become_user: root
+
+- import_tasks: nodejs.yml
+
+- name: Install Girder
+  pip:
+    name: "{{ girder_package }}"
+    version: "{{ girder_version|default(omit) }}"
+    extra_args: "{{ girder_pip_extra_args|default(omit) }}"
+    virtualenv: "{{ girder_virtualenv }}"
+    # Implicitly create a Python 3 virtualenv if it doesn't exist
+    virtualenv_command: "/usr/bin/python3 -m venv"
+  notify:
+    - Build Girder web client
+    - Restart Girder
+
+- name: Configure Girder config file
+  ini_file:
+    path: "{{ ansible_user_dir }}/.girder/girder.cfg"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  loop:
+    - section: global
+      option: server.socket_host
+      value: "\"{{ '0.0.0.0' if girder_bind_public else '127.0.0.1' }}\""
+    - section: global
+      option: tools.proxy.on
+      value: "{{ 'False' if girder_development_mode else 'True' }}"
+    - section: database
+      option: uri
+      value: "\"{{ girder_database_uri }}\""
+    - section: server
+      option: mode
+      value: "\"{{ 'development' if girder_development_mode else 'production' }}\""
+
+# Setup systemd service
+- block:
+    - name: Install Girder service
+      template:
+        src: "daemon/girder.service.j2"
+        dest: "/etc/systemd/system/girder.service"
+      notify: Restart Girder
+
+    - name: Enable Girder service
+      systemd:
+        name: girder
+        daemon_reload: true
+        enabled: true
+  become: true
+  become_user: root
+  when: girder_daemonize|bool

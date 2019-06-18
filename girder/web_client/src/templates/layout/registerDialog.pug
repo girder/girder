@@ -1,0 +1,35 @@
+.modal-dialog
+  .modal-content
+    form#g-register-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title= title
+      .modal-body
+        #g-group-login.form-group
+          label.control-label(for="g-login") Choose a login name
+          input#g-login.input-sm.form-control(type="text", placeholder="Login")
+        #g-group-email.form-group
+          label.control-label(for="g-email") Enter email address
+          input#g-email.input-sm.form-control(type="text", placeholder="Email")
+        #g-group-firstName.form-group
+          label.control-label(for="g-firstName") Enter first name
+          input#g-firstName.input-sm.form-control(type="text", placeholder="First name")
+        #g-group-lastName.form-group
+          label.control-label(for="g-lastName") Enter last name
+          input#g-lastName.input-sm.form-control(type="text", placeholder="Last name")
+        #g-group-password.form-group
+          label.control-label(for="g-password") Choose a password
+          input#g-password.input-sm.form-control(type="password", placeholder="Password")
+        #g-group-password2.form-group
+          label.control-label(for="g-password2") Retype password
+          input#g-password2.input-sm.form-control(type="password", placeholder="Password")
+        .g-validation-failed-message
+        if !currentUser
+          .g-bottom-message
+            | Already have an account?
+            a.g-login-link  Log in here.
+      .modal-footer
+        a.btn.btn-default(data-dismiss="modal") Close
+        button#g-register-button.btn.btn-primary(type="submit")
+          i.icon-plus-circled
+          |  Register

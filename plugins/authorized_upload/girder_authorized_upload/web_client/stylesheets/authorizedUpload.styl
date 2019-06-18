@@ -1,0 +1,48 @@
+.g-authorized-upload-page-wrapper
+  max-width 770px
+  margin 100px auto 0
+
+  p
+    font-size 16px
+
+  #g-authorized-upload-email
+    margin-bottom 15px
+
+  .g-upload-widget-container
+    margin-top 40px
+
+    .g-dialog-subtitle
+      display none
+
+    .g-drop-zone
+      width 100%
+      text-align center
+      line-height 60px
+      height 60px
+      box-shadow 0 2px 5px rgba(0, 0, 0, 0.2)
+      background-color #5cb897
+      border 1px solid #4a8
+      padding 0
+
+      &:hover
+        background-color #6cc8a7
+        background linear-gradient(to bottom, #6cc8a7 50%, #5cb897 100%)
+
+      &:active
+        background #6cc8a7
+        box-shadow inset 0 3px 5px rgba(0, 0, 0, 0.125)
+
+      &.g-dropzone-show
+        background white
+        border 2px dashed #bbb
+        box-shadow none
+        padding 0
+
+    button.g-start-upload
+      font-size 18px
+      padding 10px 15px
+      margin 0 auto
+
+  .g-complete-wrapper p
+    text-align center
+    font-size 20px

@@ -1,0 +1,149 @@
+.g-hierarchy-widget
+  border 1px solid #eaeaea
+
+  .g-hierarchy-actions-header
+    background linear-gradient(to bottom, #e6e6e6 0, #f7f7f7 8px)
+    padding 4px 5px 3px
+    background-color #f6f6f6
+    border-top 1px solid #ddd
+
+    .g-select-all
+      font-size 16px
+      background-color green
+
+    .btn-group
+      margin-left 10px
+
+    button
+      margin-left 10px
+      padding 4px 8px
+
+  .g-folder-header-buttons
+    float right
+
+  .g-hierarchy-breadcrumb-bar
+    ol.breadcrumb
+      margin-bottom 0
+      background-color #eaebea
+      border-radius 0
+      padding-left 5px
+      padding-right 5px
+      text-overflow ellipsis
+      overflow hidden
+      white-space nowrap
+
+      .g-description-preview
+        margin-left 8px
+        font-size 11px
+        vertical-align middle
+        color #999
+
+        &:hover
+          text-decoration underline !important
+
+      >li.active
+        color #555
+
+    .g-child-count-container
+      display inline-block
+      margin-right 10px
+      color #888
+      font-size 16px
+      user-select none
+      cursor default
+
+      .g-subfolder-count-container, .g-item-count-container
+        display inline-block
+        position relative
+        margin-left 8px
+
+      .g-subfolder-count, .g-item-count
+        display inline-block
+        border-radius 3px
+        color black
+        background-color rgba(255, 255, 255, 0.75)
+        position absolute
+        font-size 9px
+        bottom -2px
+        right -3px
+        padding 0 0.3em
+
+  .g-folder-list, .g-item-list, .g-file-list
+    margin 0
+    padding 0
+    list-style-type none
+
+    >li
+      border-top 1px solid #efefef
+      box-sizing border-box
+      padding 4px 5px 3px
+
+    >.g-folder-list-entry, >.g-item-list-entry
+      font-size 15px
+
+      &:hover
+        background-color #fbfbf7
+
+      &[public="false"]
+        background-color #fff9ea
+
+        &:hover
+          background-color #f4eedf
+
+    >.g-show-more
+      background-image linear-gradient(to bottom, #f6f6f6 0, #fff 10px)
+
+    .g-list-checkbox
+      font-size 16px
+      margin-right 7px
+      position relative
+      top -1px
+
+  .g-checked-folder-count, .g-checked-item-count
+    margin-right 23px
+
+  .g-level-up-button-container
+    display inline-block
+
+    .g-hierarchy-level-up
+      border 1px solid #d5d5d5
+      border-radius 3px
+      padding 2px 3px
+      position relative
+      top -1px
+
+      &:hover
+        border 1px solid #aaa
+        background-color #dadada
+
+  .g-item-size, .g-folder-privacy
+    display inline-block
+    padding 1px 5px
+    margin-left 10px
+    float right
+    color #808080
+    font-size 13px
+  .g-folder-privacy
+    padding 1px 5px 1px 3px
+
+  li.g-selected
+    background-color #f2f2f8 !important
+    box-shadow 0 0 0 1px #99b inset
+
+.g-folder-metadata
+  margin-top 20px
+
+.g-folder-info-line, .g-collection-info-line, .g-file-info-line
+  color #808080
+  margin-bottom 2px
+  padding 2px 4px
+  border-left 5px solid #5cb85c
+  background-color #f4f4f4
+
+  .g-bold-part
+    color #555
+    font-weight bold
+
+.g-info-dialog-description
+  margin 0 0 10px
+  border-bottom 1px solid #eee

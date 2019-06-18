@@ -1,0 +1,82 @@
+.modal-dialog
+  .modal-content
+    form#g-assetstore-edit-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title
+          | Edit assetstore
+      .modal-body
+        .g-assetstore-form-fields
+          .form-group
+            label.control-label(for="g-edit-name") Assetstore Name
+            input#g-edit-name.input-sm.form-control(type="text", placeholder="Name")
+          if assetstore.get('type') === types.FILESYSTEM
+            .form-group
+              label.control-label(for="g-edit-fs-root") Root directory
+              input#g-edit-fs-root.input-sm.form-control(type="text", placeholder="Root directory")
+            .form-group
+              label.control-label(for="g-edit-fs-perms") File creation permissions (octal)
+              input#g-edit-fs-perms.input-sm.form-control(type="text", placeholder="600")
+          if assetstore.get('type') === types.GRIDFS
+            .form-group
+              label.control-label(for="g-edit-gridfs-db") Database name
+              input#g-edit-gridfs-db.input-sm.form-control(type="text", placeholder="Database name")
+            .form-group
+              label.control-label(for="g-edit-gridfs-mongohost") Mongo Host URI
+              input#g-edit-gridfs-mongohost.input-sm.form-control(
+                  type="text", placeholder="Mongo host uri (defaults to the main Girder database)",
+                  title="The URI is of the form mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]")
+            .form-group
+              label.control-label(for="g-edit-gridfs-replicaset") Replica Set
+              input#g-edit-gridfs-replicaset.input-sm.form-control(type="text", placeholder="Replica set name (blank if not using a replica set)")
+            .checkbox
+              label(title="If the Mongo Host supports sharding, this requests that the database support sharding and shards the GridFS collection using an appropriate index.")
+                input#g-edit-gridfs-shard-auto(type="checkbox")
+                | Shard collection
+          if assetstore.get('type') === types.S3
+            .form-group
+              label.control-label(for="g-edit-s3-bucket") S3 bucket name
+              input#g-edit-s3-bucket.input-sm.form-control(type="text", placeholder="Bucket")
+            .form-group
+              label.control-label(for="g-edit-s3-prefix") Path prefix (optional)
+              input#g-edit-s3-prefix.input-sm.form-control(type="text", placeholder="Prefix")
+            .form-group
+              label.control-label(for="g-edit-s3-access-key-id") Access key ID
+              input#g-edit-s3-access-key-id.input-sm.form-control(type="text", placeholder="Access key ID")
+            .form-group
+              label.control-label(for="g-edit-s3-secret") Secret access key
+              input#g-edit-s3-secret.input-sm.form-control(type="text", placeholder="Secret access key")
+            .form-group
+              label.control-label(for="g-edit-s3-service") Service
+              input#g-edit-s3-service.input-sm.form-control(type="text", placeholder="Service", title="The service if different from s3.amazonaws.com, such as storage.googleapis.com.")
+            .form-group
+              label.control-label(for="g-edit-s3-region") Region
+              input#g-edit-s3-region.input-sm.form-control(type="text", placeholder="Region")
+            .checkbox
+              label
+                input#g-edit-s3-infercredentials(type="checkbox")
+                | Infer Credentials
+            .checkbox
+              label
+                input#g-edit-s3-readonly(type="checkbox")
+                | Read only
+            .checkbox
+              label
+                input#g-edit-s3-sse(type="checkbox")
+                | Server side encryption
+        if assetstore.get('hasFiles')
+          div
+            i.icon-attention
+            | #[b Warning:] This assetstore contains files.  If you edit where the assetstore is located or how it is reached, those files may become unreachable.
+        .g-validation-failed-message
+      .modal-footer
+        a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
+        if !assetstore.get('hasFiles')
+          button.g-save-assetstore.btn.btn-small.btn-primary(type="submit")
+            i.icon-edit
+            | Save
+        else
+          button.g-save-assetstore.btn.btn-small.btn-primary.btn-danger(type="submit")
+            i.icon-edit
+            | Save
+            i.icon-attention

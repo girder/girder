@@ -1,0 +1,14 @@
+[Unit]
+Description=Girder
+After=network.target
+
+[Service]
+User={{ ansible_user_id }}
+Group={{ ansible_user_id }}
+Restart=always
+ExecStart={{ girder_virtualenv }}/bin/girder serve
+Environment=LC_ALL=C.UTF-8
+Environment=LANG=C.UTF-8
+
+[Install]
+WantedBy=multi-user.target

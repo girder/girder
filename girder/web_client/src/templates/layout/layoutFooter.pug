@@ -1,0 +1,11 @@
+.g-footer-links
+  a#g-about-link(href="http://girder.readthedocs.org/en/latest/user-guide.html") About
+  if contactHref
+    a#g-contact-link(href=contactHref) Contact
+  a(href=apiRoot) Web API
+  a#g-bug-link(href="https://github.com/girder/girder/issues/new") Report a bug
+  if privacyNoticeLink
+    a#g-privacy-notice-link(href=privacyNoticeLink) Privacy Notice
+
+.g-footer-info
+  | &copy; Kitware, Inc.

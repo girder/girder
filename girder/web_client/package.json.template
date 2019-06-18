@@ -1,0 +1,50 @@
+{
+    "name": "@girder/meta-build",
+    "description": "Girder meta-build",
+    "license": "Apache-2.0",
+    "repository": {},
+    "engines": {
+        "node": ">=8.0",
+        "npm": ">=5.2"
+    },
+    "dependencies": {
+        "babel-core": "^6.25.0",
+        "babel-loader": "^7.1.1",
+        "babel-preset-env": "^1.6.1",
+        "colors": "^1.1.2",
+        "copy-webpack-plugin": "^4.5.2",
+        "css-loader": "^0.26.1",
+        "extendify": "^1.0.0",
+        "extract-text-webpack-plugin": "^2.1.2",
+        "file-loader": "^0.11.2",
+        "grunt": "^1.0.1",
+        "grunt-contrib-copy": "^1.0.0",
+        "grunt-contrib-pug": "^1.0.0",
+        "grunt-contrib-stylus": "^1.2.0",
+        "grunt-contrib-uglify": "^3.0.1",
+        "grunt-webpack": "^3.0.2",
+        "mkdirp": "^0.5.1",
+        "nib": "^1.1.2",
+        "pug": "^2.0.0-rc.3",
+        "pug-loader": "^2.3.0",
+        "style-loader": "^0.13.2",
+        "stylus": "^0.54.5",
+        "stylus-loader": "^3.0.1",
+        "toposort": "^1.0.3",
+        "uglifyjs-webpack-plugin": "^1.1.6",
+        "webpack": "^2.7.0",
+        "whatwg-fetch": "^2.0.4"
+    },
+    "devDependencies": {
+        "babel-plugin-istanbul": "^4.1.5",
+        "babel-polyfill": "^6.26.0",
+        "event-source": "^0.1.1"
+    },
+    "scripts": {
+        "build": "grunt",
+        "watch": "grunt --watch"
+    },
+    "girder": {
+        "plugins": []
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "name": "@girder/homepage",
+    "version": "2.0.0-alpha.1",
+    "description": "Customize the homepage using Markdown.",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#homepage",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "peerDependencies": {
+        "@girder/core": "*"
+    },
+    "girderPlugin": {
+        "name": "homepage",
+        "main": "./main.js"
+    }
+}

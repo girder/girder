@@ -1,0 +1,20 @@
+{
+    "name": "@girder/user_quota",
+    "version": "2.0.0-alpha.1",
+    "description": "Limits total file size stored for individual users and collections and can direct all files to a specific assetstore",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "peerDependencies": {
+        "@girder/core": "*"
+    },
+    "girderPlugin": {
+        "name": "user_quota",
+        "main": "./main.js"
+    }
+}

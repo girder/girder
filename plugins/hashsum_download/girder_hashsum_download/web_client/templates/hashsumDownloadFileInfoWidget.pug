@@ -1,0 +1,12 @@
+if file.has('sha512')
+  .g-file-info-line(property="sha512")
+    i.icon-barcode
+    span SHA-512:
+    input.g-hash-textbox(readonly, type="text", value=file.get('sha512'))
+    a.g-keyfile-download(title="Download key file", href=keyfileUrl(file.id, 'sha512'))
+      i.icon-key-inv
+else if parentItem.getAccessLevel() >= AccessType.WRITE
+  .g-file-info-line(property="hash-compute")
+    i.icon-barcode
+    span Hash unknown &mdash;
+    a.g-hashsum-compute  click to compute

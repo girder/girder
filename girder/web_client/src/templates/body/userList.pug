@@ -1,0 +1,43 @@
+- const isAdmin = currentUser && currentUser.get('admin');
+- const userTooltip = usersCount === 1 ? `${usersCount} total user` : `${usersCount} total users`;
+.g-user-list-header
+  .g-user-pagination
+  if currentUser
+    .g-user-count-container(title=userTooltip)
+      i.icon-user
+      span.g-user-count= usersCount
+
+  .g-user-sort
+  form.g-user-search-form.form-inline(role="form")
+    .form-group.g-users-search-container
+  if isAdmin
+    button.g-user-create-button.btn.btn-sm.btn-default
+      i.icon-plus-squared
+      |  Create user
+
+each user in users
+  .g-user-list-entry
+    .g-user-right-column
+      .g-user-joined
+        i.icon-clock
+        | Joined on
+        span.g-user-joined-date  #{formatDate(user.get('created'), DATE_DAY)}
+      if user.get('size') !== undefined
+        .g-space-used
+          i.icon-floppy
+          | Currently using
+          span.g-user-space-used  #{formatSize(user.get('size'))}
+      if user.get('status') === 'disabled'
+        .g-user-status
+          i.icon-cancel-circled
+          | Account disabled
+      else if user.get('status') === 'pending'
+        .g-user-status
+          i.icon-attention-circled
+          | Account pending approval
+    .g-user-title
+      a.g-user-link(g-user-cid=user.cid)
+        b= user.name()
+    .g-user-subtitle
+      span.g-user-login  #{user.get('login')}
+    .g-clear-right

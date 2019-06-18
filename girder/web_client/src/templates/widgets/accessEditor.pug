@@ -1,0 +1,23 @@
+include accessEditorMixins
+
+.modal-dialog
+  .modal-content
+    .modal-header
+      button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+      h4.modal-title Access control
+      .g-dialog-subtitle
+        if (modelType === 'folder')
+          i.icon-folder
+        else if (modelType === 'collection')
+          i.icon-sitemap
+        = model.name()
+    .modal-body.g-access-modal-body
+      if !hidePrivacyEditor
+        +privacyEditor(modelType)
+      +permissionsEditor
+      if !hideRecurseOption
+        +recurseOption(modelType)
+
+    .modal-footer
+      a.btn.btn-small.btn-default(data-dismiss="modal") Close
+      +saveAccessButton

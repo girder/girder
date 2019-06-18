@@ -1,0 +1,61 @@
+$warnColor = #f0ad4e
+
+.g-plugin-list-container
+  border 1px solid #e2e2e2
+  border-radius 3px
+  margin-top 10px
+
+  .g-plugin-list-item
+    padding 10px
+    border-bottom 1px solid #e2e2e2
+
+    &:hover
+      background-color #f4f4f4
+
+    .g-plugin-name
+      font-weight bold
+      font-size 16px
+      color #666
+
+    .g-plugin-version
+      font-weight normal
+      font-variant small-caps
+      font-size 14px
+      color #999
+      margin-left 7px
+
+    a.g-plugin-config-link
+      margin-left 7px
+
+    .g-plugin-description
+      margin-top 7px
+      color #999
+
+    .g-plugin-error-message
+      margin-top 10px
+      color #d9534f
+
+    &:last-child
+      border-bottom none
+
+  .g-plugin-list-item-notice
+    font-size 13px
+    text-transform uppercase
+    color white
+    border-radius 3px
+    padding 2px 5px
+    margin-left 8px
+    cursor default
+
+    &.g-plugin-list-item-experimental-notice
+      background-color $warnColor
+
+.g-plugin-config-breadcrumbs > ol.breadcrumb
+  padding 6px 10px
+  border-radius 3px
+  background-color #f1f1f1
+  border 1px solid #e0e0e0
+  margin-bottom 15px
+
+  > li.active
+    color #555

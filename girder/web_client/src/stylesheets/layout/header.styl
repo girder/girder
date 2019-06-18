@@ -1,0 +1,29 @@
+@import "layoutVars"
+
+.g-header-wrapper
+  height $headerHeight
+  vertical-align middle
+  padding 0 15px
+
+.g-app-title
+  display inline
+  font-size 25px
+  font-weight bold
+  margin-right 35px
+  line-height $headerHeight
+  cursor pointer
+
+.g-quick-search-form
+  display inline-block
+  margin-right 12px
+  vertical-align top
+  margin-top (($headerHeight - 30px) / 2)
+  width $quickSearchWidth
+
+.g-current-user-wrapper
+  display inline
+  float right
+
+@media (max-width: 720px)
+  .g-app-title
+    display none

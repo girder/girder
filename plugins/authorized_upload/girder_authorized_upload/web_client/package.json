@@ -1,0 +1,22 @@
+{
+    "name": "@girder/authorized_upload",
+    "version": "0.2.0-alpha.1",
+    "description": "Allows registered users to authorize file uploads on their behalf via a secure one-use URL.",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#authorized-uploads",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "peerDependencies": {
+        "@girder/core": "*"
+    },
+    "main": "./index.js",
+    "girderPlugin": {
+        "name": "authorized_upload",
+        "main": "./main.js"
+    }
+}

@@ -1,0 +1,48 @@
+.g-config-breadcrumb-container
+
+.g-reg-policy-config-container
+  p.
+    Normally, if the core registration policy is set to closed, OAuth
+    users are also not allowed to be created. If you want to override this
+    policy and allow OAuth users to register even if the core registration
+    policy is closed, check the box below.
+  .checkbox
+    label
+      input.g-ignore-registration-policy(type="checkbox")
+      | Ignore closed registration policy
+
+.g-oauth-provider-list-title Configure supported providers below
+p Only fill in the information for the OAuth2 providers you wish to enable.
+
+#g-oauth-provider-accordion.panel-group
+  each provider in providers
+    .panel.panel-default
+      .panel-heading(data-toggle="collapse",
+          data-parent="#g-oauth-provider-accordion",
+          data-target=`#g-oauth-provider-${provider.id}`)
+        .panel-title
+          a
+            i(class=`icon-${provider.icon}`)
+            span= provider.name
+      .panel-collapse.collapse(id=`g-oauth-provider-${provider.id}`)
+        .panel-body
+          p= provider.instructions
+          if provider.hasAuthorizedOrigins
+            .g-oauth-value-container
+              b Authorized javascript origins:
+              span.g-oauth-value= origin
+          .g-oauth-value-container
+            b Authorized redirect URI:
+            span.g-oauth-value= `${origin}${apiRoot}/oauth/${provider.id}/callback`
+          form.g-oauth-provider-form(role="form",
+              id=`g-oauth-provider-${provider.id}-form`, provider-id=provider.id)
+            .form-group
+              label.control-label(for=`g-oauth-provider-${provider.id}-client-id`) #{provider.name} client ID
+              input.input-sm.form-control(id=`g-oauth-provider-${provider.id}-client-id`,
+                  type="text", placeholder="Client ID")
+            .form-group
+              label.control-label(for=`g-oauth-provider-${provider.id}-client-secret`) #{provider.name} client secret
+              input.input-sm.form-control(id=`g-oauth-provider-${provider.id}-client-secret`,
+                  type="text", placeholder="Client secret")
+            p.g-validation-failed-message(id=`g-oauth-provider-${provider.id}-error-message`)
+            input.btn.btn-sm.btn-primary(type="submit", value="Save", provider-id=provider.id)

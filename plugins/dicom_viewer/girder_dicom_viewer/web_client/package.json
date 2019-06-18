@@ -1,0 +1,27 @@
+{
+    "name": "@girder/dicom-viewer",
+    "version": "0.2.0-alpha.1",
+    "description": "View DICOM images in the browser",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#dicom-viewer",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "peerDependencies": {
+        "@girder/core": "*"
+    },
+    "dependencies": {
+        "daikon": "^1.2.15",
+        "shader-loader": "1.3.0",
+        "vtk.js": "5.10.3"
+    },
+    "girderPlugin": {
+        "name": "dicom_viewer",
+        "main": "./main.js",
+        "webpack": "webpack.helper"
+    }
+}

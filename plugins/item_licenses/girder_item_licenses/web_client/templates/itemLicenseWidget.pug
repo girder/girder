@@ -1,0 +1,7 @@
+.g-item-license.g-info-list-entry
+  i.icon-shield
+  | License:&nbsp;
+  if item.has('license') && item.get('license').length
+    = item.get('license')
+  else
+    | Unspecified

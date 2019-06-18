@@ -1,0 +1,84 @@
+.g-frontpage-header
+  .g-frontpage-logo-container
+    img.g-frontpage-logo(src=require('@girder/core/assets/Girder_Mark.png'))
+  .g-frontpage-title-container
+    .g-frontpage-title #{brandName}
+    .g-frontpage-subtitle Data management platform
+
+.g-frontpage-body
+  .g-frontpage-paragraph
+    .g-frontpage-welcome-text-content
+      b.g-frontpage-welcome-text Welcome to #{brandName}!
+
+    ul
+      if !currentUser
+        li You are currently browsing anonymously.
+        ul
+          li
+            | To explore the data hosted on this server, start with the
+            a.g-collections-link(href="#collections")  Collections
+            |  page.
+
+          li
+            | To create an account, use the
+            a.g-register-link  Register
+            |  link in the upper right corner.
+
+          li
+            | If you already have an account you can
+            a.g-login-link  log in
+            |  with the link in the upper right corner.
+      else
+        li
+          | You are currently logged in as
+          b  #{currentUser.get('login')}
+          | .
+
+          ul
+            li
+              | To explore the data hosted on this server, start with the
+              a.g-collections-link(href="#collections")  Collections
+              |  page.
+
+            li
+              | To explore your data, go to your
+              a.g-my-folders-link(href=`#user/${currentUser.id}`)  personal data space
+              |  or your
+              a.g-my-account-link(href=`#useraccount/${currentUser.id}/info`)  user account page
+              | .
+
+      li
+        if brandName === 'Girder'
+          | Girder is
+        else
+          | #{brandName} is powered by Girder,
+        |  a part of
+        a(target="_blank", href="http://resonant.kitware.com")  Resonant
+        | , Kitware's open-source platform for data management, analytics, and
+        | visualization. To learn more, you can read our series of
+        a(target="_blank", href="https://blog.kitware.com/tag/resonant/")  blog posts
+        |  about Resonant, or
+        a(target="_blank", href="http://www.kitware.com/contact-us")  contact us
+        |  to learn how we can help you solve your data problems.
+
+        ul
+          li
+            | To learn more about Girder, including how you can host your own
+            | instance either locally or in the cloud, see the
+            a(target="_blank", href="http://girder.readthedocs.io/en/latest/user-guide.html")  User Guide
+            | , the
+            a(target="_blank", href="http://girder.readthedocs.io/en/latest")  full documentation
+            | , or visit the
+            a(target="_blank", href="https://github.com/girder/girder")  GitHub repository
+            | .
+
+      li
+        | To use the REST API to interact with this server, check out the
+        a(href=apiRoot)  interactive web API docs
+        | .
+
+      if version
+        li
+          | This instance of #{brandName} was built from version
+          code.g-version= version
+          | .

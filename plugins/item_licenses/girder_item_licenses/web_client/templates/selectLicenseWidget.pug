@@ -1,0 +1,10 @@
+.g-select-license.form-group
+  label(for="g-license") License
+  select#g-license.form-control.input-sm
+    option(value="") Unspecified
+    if licenses
+      each item in licenses
+        optgroup(label=item.category)
+          each license in item.licenses
+            - var sel=null; if (license.name === currentLicense) sel="selected";
+            option(value=license.name, selected=sel)= license.name

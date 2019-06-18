@@ -1,0 +1,33 @@
+@import "layoutVars"
+
+.g-user-text
+  line-height $headerHeight
+
+  a
+    color white
+    display inline-block
+
+    &:hover
+      color #e0e0e0
+
+  .g-user-dropdown-link
+    display inline-block
+    max-width calc(100vw - 300px)
+    overflow hidden
+    text-overflow ellipsis
+    white-space nowrap
+
+    i
+      margin-left 2px
+
+  .g-or-text
+    vertical-align top
+    display inline-block
+    margin 0 5px
+
+#g-user-action-menu
+  display inline
+
+  .dropdown-menu
+    right 0
+    left auto

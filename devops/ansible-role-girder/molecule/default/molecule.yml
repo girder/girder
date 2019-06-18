@@ -1,0 +1,40 @@
+---
+lint:
+  name: yamllint
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: ubuntu18
+    image: solita/ubuntu-systemd:18.04
+    privileged: false
+    override_command: false
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    tmpfs:
+      - /run
+      - /run/lock
+    security_opts:
+      - seccomp=unconfined
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+  inventory:
+    group_vars:
+      all:
+        # Defining this here, instead of in playbooks, also ensures it's picked
+        # up by Testinfra
+        ansible_python_interpreter: "/usr/bin/python3"
+  playbooks:
+    prepare: prepare.yml
+    converge: playbook.yml
+scenario:
+  name: default
+verifier:
+  name: testinfra
+  options:
+    W: ignore::DeprecationWarning
+  lint:
+    name: flake8

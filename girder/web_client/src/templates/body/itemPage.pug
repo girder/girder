@@ -1,0 +1,61 @@
+.g-item-breadcrumb-container
+.g-item-header
+
+  .pull-right
+    if (accessLevel >= AccessType.WRITE)
+      button.g-upload-into-item.btn.btn-sm.btn-success(title="Upload files into item")
+        i.icon-upload
+    .btn-group
+      button.g-item-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
+          data-toggle="dropdown", title="Item actions")
+        i.icon-doc-text-inv
+        |  Actions
+        i.icon-down-dir
+      ul.g-item-actions-menu.dropdown-menu.pull-right(role="menu")
+        li(role="presentation")
+          a.g-download-item(role="menuitem", href=item.downloadUrl())
+            i.icon-download
+            | Download item
+        if (accessLevel >= AccessType.WRITE)
+          li.divider(role="presentation")
+          li(role="presentation")
+            a.g-edit-item(role="menuitem")
+              i.icon-edit
+              | Edit item
+          li.divider(role="presentation")
+          li(role="presentation")
+            a.g-delete-item(role="menuitem")
+              i.icon-trash
+              | Delete item
+
+  .g-item-name.g-body-title= item.name()
+
+.g-item-description!= renderMarkdown(item.get('description'))
+
+.g-item-info
+  .g-item-info-header
+    i.icon-info
+    | Info
+  .g-item-size.g-info-list-entry
+    i.icon-hdd
+    if item.get('size') < 1024
+      | #{item.get('size')} bytes
+    else
+      | #{formatSize(item.get('size'))} (#{item.get('size')} bytes)
+  .g-item-created.g-info-list-entry
+    i.icon-clock
+    | Created on #{formatDate(item.get('created'), DATE_SECOND)}
+  .g-item-updated.g-info-list-entry
+    i.icon-clock
+    | Updated on #{formatDate(item.get('updated'), DATE_SECOND)}
+  .g-item-id.g-info-list-entry
+    i.icon-share
+    | Unique ID: #{item.id}
+
+.g-item-metadata
+
+.g-item-files
+  .g-item-files-header
+    i.icon-docs
+    |  Files &amp; links
+  .g-item-files-container

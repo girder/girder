@@ -1,0 +1,75 @@
+@import "layoutVars"
+
+#g-app-header-container
+  position fixed
+  top 0
+  width 100%
+  z-index $headerZ
+  height $headerHeight
+
+#g-app-body-container.g-default-layout
+  min-height $minHeight
+
+#g-app-body-container.g-empty-layout
+  margin 0
+  padding 0
+
+#g-alerts-container
+  position fixed
+  top 65px
+  right 10px
+  width 320px
+  z-index $alertsZ
+
+  .alert
+    display none
+    padding-top 10px
+    padding-bottom 10px
+    border-color #aaa
+    border-radius 0
+    box-shadow 0 0 0 5px rgba(180, 180, 180, 0.33)
+
+.g-validation-failed-message
+  font-weight bold
+  color #dd2222
+
+.g-bottom-message
+  margin-top 15px
+  font-size 12px
+  color #878080
+
+.g-password-reset-explanation
+  font-size 13px
+  color #505050
+  margin-bottom 10px
+
+#g-app-progress-container
+  position fixed
+  right 10px
+  bottom 0
+  width 400px
+  z-index $progressZ
+
+.modal-body p
+  overflow hidden
+  text-overflow ellipsis
+
+@media (min-width: 721px)
+  #g-app-body-container.g-default-layout
+    padding 10px + $headerHeight 10px 10px 10px
+    margin-left $navWidth + 1px
+
+  #g-global-nav-container
+    position fixed
+    top $headerHeight
+    width $navWidth
+
+@media (max-width: 720px)
+  #g-global-nav-container
+    width 100%
+    position static
+    margin-top $headerHeight
+
+  #g-app-body-container.g-default-layout
+    margin-left 0
+    padding 10px

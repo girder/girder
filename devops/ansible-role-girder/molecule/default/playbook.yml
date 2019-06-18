@@ -1,0 +1,6 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: girder.mongodb
+    - role: ansible-role-girder

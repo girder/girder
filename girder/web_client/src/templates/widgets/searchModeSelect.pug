@@ -1,0 +1,9 @@
+p Choose search mode:
+
+for mode in modes
+  .radio
+    label
+      input.g-search-mode-radio(
+          type="radio", name="search-mode", value=mode,
+          checked=(mode === currentMode ? 'checked' : undefined))
+      = getModeDescription(mode)

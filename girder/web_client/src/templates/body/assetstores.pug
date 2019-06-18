@@ -1,0 +1,98 @@
+.g-current-assetstores-container
+  .g-body-title Assetstores
+  if !assetstores.length
+    .g-bottom-message.
+      You must create an assetstore before you can upload files to the server.
+      Select from the options below to create one.
+  else
+    .g-bottom-message.
+      Below is a list of all of the assetstores available to the server. The
+      one set as "current" is the one that uploaded files will be written to.
+  each assetstore in assetstores
+    .g-assetstore-container.panel.panel-default(class=assetstore.get('current') ? 'g-assetstore-current' : undefined)
+      .panel-body
+        .g-assetstore-info-section(assetstore-type=assetstore.get('type'), cid=assetstore.cid)
+          div
+            b Name:
+            span.g-assetstore-name  #{assetstore.get('name')}
+            if assetstore.get('current')
+              span.g-assetstore-current-text
+                |  (Current assetstore)
+          div
+            b Unique ID:
+            span.g-assetstore-id  #{assetstore.id}
+          if assetstore.get('type') === types.FILESYSTEM
+            div
+              b Type:
+              span.g-assetstore-type  Filesystem
+            div
+              b Root path:
+              span.g-assetstore-root  #{assetstore.get('root')}
+            div
+              b File creation permissions (octal):
+              span.g-assetstore-perms  #{(assetstore.get('perms') || 0o600).toString(8)}
+          else if assetstore.get('type') === types.GRIDFS
+            div
+              b Type:
+              span.g-assetstore-type  GridFS
+            div
+              b Database name:
+              span.g-assetstore-root  #{assetstore.get('db')}
+            if assetstore.get('mongohost')
+              div
+                b Mongo Host URI:
+                span.g-assetstore-mongohost  #{assetstore.get('mongohost')}
+              if assetstore.get('replicaset')
+                div
+                  b Replica Set:
+                  span.g-assetstore-replicaset  #{assetstore.get('replicaset')}
+          else if assetstore.get('type') === types.S3
+            div
+              b Type:
+              span.g-assetstore-type  S3
+            div
+              b Bucket:
+              span.g-assetstore-bucket  #{assetstore.get('bucket')}
+            if assetstore.get('prefix')
+              div
+                b Path prefix:
+                span.g-assetstore-prefix  #{assetstore.get('prefix')}
+            div
+              b Access key ID:
+              span.g-access-key-id  #{assetstore.get('accessKeyId')}
+            div
+              b Secret access key:
+              span.g-secret-key  #{assetstore.get('secret') && '[hidden]'}
+            div
+              b Service:
+              span.g-service-key  #{assetstore.get('service')}
+            div
+              b Region:
+              span.g-region-key  #{assetstore.get('region')}
+
+        if assetstore.capacityKnown()
+          div
+            b Capacity:
+            span.g-assetstore-capacity  #{assetstore.capacityString()}
+            .g-assetstore-capacity-chart(cid=assetstore.cid)
+        .g-assetstore-buttons
+          button.g-edit-assetstore.btn.btn-sm.btn-default(
+              cid=assetstore.cid) Edit
+          if !assetstore.get('hasFiles')
+            button.g-delete-assetstore.btn.btn-sm.btn-danger(
+                cid=assetstore.cid) Delete
+          else
+            .g-assetstore-button-container(title="You must delete all files from the assetstore before you can delete the assetstore.")
+              button.g-delete-assetstore.btn.btn-sm.btn-danger.disabled(
+                  cid=assetstore.cid, disabled) Delete
+          if !assetstore.get('current') && !assetstore.get('readOnly')
+            button.g-set-current.btn.btn-sm.btn-primary(
+              cid=assetstore.cid) Set as current
+
+          if importableTypes.indexOf(assetstore.get('type')) !== -1
+            .g-assetstore-import-button-container
+              a.g-import-button.btn.btn-sm.btn-success(href=`#assetstore/${assetstore.id}/import`)
+                i.icon-link-ext
+                |  Import data
+
+#g-new-assetstore-container

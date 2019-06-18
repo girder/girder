@@ -1,0 +1,11 @@
+.g-config-breadcrumb-container
+p.g-item-licenses-description
+  | Configure the available licenses for items.
+form#g-item-licenses-settings-form(role="form")
+  .form-group
+    label.control-label(for="g-item-licenses") Licenses
+    textarea#g-item-licenses.form-control= licenses
+  p#g-item-licenses-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")
+  input#g-item-licenses-defaults.btn.btn-sm.btn-default(
+    type="button", value="Reset to defaults")

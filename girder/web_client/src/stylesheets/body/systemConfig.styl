@@ -1,0 +1,55 @@
+.g-settings-form
+  margin-top 10px
+
+  .bootstrap-switch-handle-on,
+  .bootstrap-switch-handle-off
+      word-wrap normal
+
+#g-core-banner-color
+  display inline
+  max-width 160px
+
+#g-core-banner-default-color
+  width 65px
+  display inline
+  // Vertical-align is useful to avoid an 5px offset in Mozilla
+  vertical-align top
+
+#g-core-collection-create-policy
+  font-family monospace
+  margin-bottom 3px
+  height 120px
+
+.g-settings-form-container
+  $bgColor = #fcfaf3
+  border 1px solid #d7d7d7
+  background-color $bgColor
+  border-radius 3px
+  margin-bottom 10px
+  padding 10px
+
+  > :first-child
+    margin-top 0
+  > :last-child
+    margin-bottom 0
+  .g-settings-form-container
+    background-color darken($bgColor, 3%)
+
+.panel-heading
+  cursor pointer
+
+.g-collection-create-policy-container
+  // this class is deprecated
+  @extend .g-settings-form-container
+
+  .access-widget-container
+    width 420px
+    margin-top 15px
+
+    .g-grant-access-container
+      div.form-group
+        margin-bottom 0
+
+  .g-search-container
+    .g-search-wrapper, input[type="text"]
+      width 200px

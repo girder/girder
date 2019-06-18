@@ -1,0 +1,23 @@
+{
+    "name": "@girder/ldap",
+    "version": "0.2.0-alpha.1",
+    "description": "Authenticate user credentials against LDAP or Active Directory servers.",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "peerDependencies": {
+        "@girder/core": "*"
+    },
+    "dependencies": {
+        "sortablejs": "1.5.1"
+    },
+    "girderPlugin": {
+        "name": "ldap",
+        "main": "./main.js"
+    }
+}

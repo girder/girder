@@ -1,0 +1,39 @@
+root = true
+
+[*]
+indent_style = space
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+charset = utf-8
+
+[{*.cmake,CMakeLists.txt}]
+indent_size = 2
+
+[*.js]
+indent_size = 4
+
+[{*.json}]
+indent_size = 4
+
+[Makefile]
+indent_style = tab
+
+[*.pug]
+indent_size = 2
+
+[*.py]
+indent_size = 4
+max_line_length = 100
+
+[{*.rb,Vagrantfile}]
+indent_size = 2
+
+[{*.sh,*.bat}]
+indent_size = 4
+
+[*.styl]
+indent_size = 2
+
+[*.yml]
+indent_size = 2

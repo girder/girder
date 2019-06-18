@@ -1,0 +1,12 @@
+.g-oauth-container
+  .g-oauth-section-header
+    .g-oauth-section-header-text
+      if enablePasswordLogin
+        | Or #{modeText} with
+      else
+        | Log in with
+  each button in buttons
+    .g-oauth-button(class=button.class, g-provider=button.providerId)
+      .g-oauth-button-icon
+        i(class=`icon-${button.icon}`)
+      .g-oauth-button-text= button.text || button.providerId

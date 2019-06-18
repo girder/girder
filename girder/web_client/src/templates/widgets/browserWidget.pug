@@ -1,0 +1,32 @@
+.modal-dialog
+  .modal-content
+    .modal-header
+      button.close(data-dismiss='modal', aria-hidden='true', type='button') &times;
+      h4.modal-title
+        = title
+
+    .modal-body.g-browser-widget
+      .g-hierarchy-root-container.form-group
+      .g-hierarchy-widget-container.g-wait-for-root.form-group.hidden
+
+      if input
+        .g-input-element.form-group
+          label.control-label(for='g-input-element') #{input.label}
+          input#g-input-element.form-control(
+            type='text', placeholder=input.placeholder, value=input.default)
+
+      .help-block.g-wait-for-root.hidden
+        = help
+
+      if preview
+        .g-selected-model.g-wait-for-root.form-group.hidden
+          label.control-label(for='g-selected-model') Selected #{selectItem ? 'item' : 'folder'}
+          input#g-selected-model.form-control(type='text', readonly)
+
+      .g-validation-failed-message.hidden
+
+    .modal-footer
+      a.btn.btn-small.btn-default(data-dismiss='modal') Cancel
+      button.g-submit-button.btn.btn-small.btn-primary(type='submit')
+        i.icon-edit
+        = submit

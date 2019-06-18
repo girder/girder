@@ -1,0 +1,32 @@
+div(class=`g-${type}-access-entry`, resourceid=entry.id)
+  .g-access-col-left
+    - var icon = type === 'group' ? 'users' : 'user';
+    .g-access-icon
+      i(class=`icon-${icon}`)
+    .g-access-desc
+      .g-desc-title= entry.title
+      .g-desc-subtitle= entry.subtitle
+  .g-access-col-right
+    if !hideAccessType
+      select.form-control.input-sm
+        option(value=accessTypes.READ, selected=(entry.level === accessTypes.READ ? 'selected' : null)) Can view
+        option(value=accessTypes.WRITE, selected=(entry.level === accessTypes.WRITE ? 'selected' : null)) Can edit
+        option(value=accessTypes.ADMIN, selected=(entry.level === accessTypes.ADMIN ? 'selected' : null)) Is owner
+    .g-access-action-container
+      if !noAccessFlag && _.keys(flagList).length
+        a.g-action-manage-flags(title="Access flags")
+          i.g-flag-icon.icon-flag
+            .g-flag-count-indicator(class=(entry.flags && entry.flags.length ? null : "hide"))= (entry.flags || []).length
+        .g-flags-popover-container.hide(resourcetype=type, resourceid=entry.id, title="Access flags")
+          each flag, key in flagList
+            - var checked = _.contains(entry.flags, key) ? 'checked' : null;
+            - var disabled = (!isAdmin && flag.admin) ? 'disabled' : null;
+            .checkbox(class=disabled)
+              label.g-flag-label(title=flag.description)
+                input.g-flag-checkbox(resourcetype=type, resourceid=entry.id, flag=key, type="checkbox",
+                    checked=checked, disabled=disabled)
+                span= flag.name
+          button.g-close-flags-popover.btn.btn-xs.btn-default Close
+
+      a.g-action-remove-access(title="Remove access")
+        i.icon-cancel

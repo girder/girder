@@ -1,0 +1,159 @@
+#g-account-tab-otp
+// Included parent ID to avoid using !important for style overrides
+  .g-user-settings-container
+    background none
+    border none
+.g-account-otp-info-text
+  border-bottom 1px solid #cccccc
+  margin-top 10px
+  padding-bottom 35px
+.g-account-otp-container
+  padding-top 35px
+  h2
+    margin 0 20px 10px 0
+    display inline-block
+    &.g-user-otp-heading-enable
+      background #EFFFF0
+      border 1px solid #4CAF50
+      border-radius 5px
+      color #4CAF50
+      font-size 26px
+      padding 20px 26px
+      &:before
+        display inline-block
+        content "\e830"
+        font-family "fontello"
+        margin-right 10px
+  h3
+    color #333
+    font-size 20px
+    font-weight bold
+    margin 0 0 5px
+    &.g-user-otp-heading-disable
+      margin-bottom 5px
+      margin-top 25px
+  #g-user-otp-initialize-enable
+    display block
+    margin-top 6px
+  .g-account-otp-steps
+    background-color #fafafa
+    border 1px solid #e3e3e3
+    border-radius 4px 4px 0 0
+    margin-bottom 0
+    margin-top 10px
+    overflow visible
+    padding-right 40px
+    position relative
+    &:before
+      background-color #337ab7
+      border 1px solid #2e6da4
+      border-radius 4px 4px 0 0
+      content ""
+      display block
+      height 6px
+      position absolute
+      left -1px
+      right -1px
+      top -1px
+    .g-account-otp-step
+      border-bottom 1px solid #e3e3e3
+      color #bbb
+      font-size 20px
+      font-weight 600
+      padding 35px 0
+      // clearfix
+      &:after
+        clear both
+        content ""
+        display table
+      &:first-of-type
+        padding-top 30px
+      &:last-of-type
+        border-bottom none
+      div
+        color #333
+        font-size 14px
+        font-weight normal
+        padding-top 5px
+        h4
+          font-size 16px
+          font-weight bold
+          color #666
+          margin-bottom 20px
+      // Styles for only step 2
+      &:nth-child(2)
+        div
+          float left
+          padding-top 20px
+          width 45%
+          &.g-account-otp-scan-qr
+            margin-right 4%
+            width 51%
+            // Mobile Phone Icon
+            &:before
+              color rgba(51, 122, 183, 0.25)
+              content "\e8fd"
+              display block
+              float left
+              font-family  "fontello"
+              font-size 26em
+              font-style normal
+              font-weight normal
+              line-height 280px
+              margin-right 40px
+          &.g-account-otp-enter-manual
+            background #fff
+            border 1px solid #e3e3e3
+            border-radius 4px
+            margin-top 26px
+            padding 20px
+            h4
+              margin-top 0
+              span
+                font-weight normal
+                display block
+                padding-top 10px
+            table
+              tr
+                th
+                  min-width 80px
+      #g-user-otp-token
+        padding 16px 20px
+        margin-top 12px
+  .g-user-otp-footer
+    background-color #3F3B3B
+    border-radius 0 0 4px 4px
+    padding 15px 20px 18px
+    // clearfix
+    &:after
+      clear both
+      content ""
+      display table
+    .btn-default
+      margin 5px 0 0 5px
+    .btn-primary
+      float right
+      font-size 20px
+
+// Responsive Goodness
+@media screen and (max-width:1156px)
+  .g-account-otp-container
+    .g-account-otp-steps
+      .g-account-otp-step
+        &:nth-child(2)
+          div
+            &.g-account-otp-scan-qr
+              &:before
+                display none
+
+@media screen and (max-width:960px)
+  .g-account-otp-container
+    .g-account-otp-steps
+      .g-account-otp-step
+        &:nth-child(2)
+          div
+            float none
+            width 100%
+            &.g-account-otp-scan-qr
+              margin-right 0
+              width 100%

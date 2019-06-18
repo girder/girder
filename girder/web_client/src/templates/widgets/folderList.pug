@@ -1,0 +1,21 @@
+ul.g-folder-list
+  each folder in folders
+    li.g-folder-list-entry(public=(folder.get('public') ? 'true' : 'false'))
+      if checkboxes
+        input.g-list-checkbox(type="checkbox", g-folder-cid=folder.cid)
+      a.g-folder-list-link(g-folder-cid=folder.cid, href=`#folder/${folder.id}`)
+        i.icon-folder
+        = folder.get('name')
+        i.icon-right-dir
+      .g-folder-privacy
+        if folder.get('public')
+          i.icon-globe
+          | Public
+        else
+          i.icon-lock
+          | Private
+  if hasMore
+    li.g-show-more
+      a.g-show-more-folders
+        i.icon-level-down
+        | Show more folders...

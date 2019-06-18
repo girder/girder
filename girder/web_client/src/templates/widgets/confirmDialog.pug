@@ -1,0 +1,14 @@
+.modal-dialog
+  .modal-content
+    .modal-body
+      p
+      if params.msgConfirmation
+        p.g-additional-text
+        p.g-additional-instruction
+          | You need to enter '#{params.yesText.toUpperCase()} #{params.name}'
+          | and then click on the "#{params.yesText}" button
+        input#g-confirm-text.input-sm.form-control(type='text', name='confirmMsg')
+        spam.g-msg-error
+    .modal-footer
+      a.btn.btn-small.btn-default(data-dismiss="modal")= params.noText
+      a#g-confirm-button.btn.btn-small(class=params.yesClass)= params.yesText

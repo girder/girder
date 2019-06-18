@@ -1,0 +1,33 @@
+.g-group-admins-header.g-group-list-header(title="Group administrators can edit group properties and can add, invite, and remove group members, moderators, and administrators.")
+  i.icon-star
+  span Administrators
+
+.g-group-admins-body
+  ul.g-group-admins
+    each userAccess in admins
+      li(userid=userAccess.id, username=userAccess.name)
+        a.g-member-name
+          i.icon-user
+          span #{userAccess.name} (#{userAccess.login})
+        .g-group-member-controls.pull-right
+          if level >= accessType.ADMIN
+            span.dropdown
+              a.g-group-admin-demote.dropdown-toggle(title="Demote user",
+                  data-toggle="dropdown")
+                i.icon-down-big
+                i.icon-down-dir
+              ul.dropdown-menu.pull-right(role="menu")
+                li(role="presentation")
+                  a.g-demote-moderator(role="menuitem")
+                    i.icon-minus
+                    span Demote to moderator
+                li(role="presentation")
+                  a.g-demote-member(role="menuitem")
+                    i.icon-minus
+                    span Demote to member
+            a.g-group-admin-remove(title="Remove user from the group")
+              i.icon-block
+    if (!admins.length)
+      .g-member-list-empty
+        i.icon-info-circled
+        span There are no administrators in this group.

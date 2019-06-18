@@ -1,0 +1,10 @@
+.g-config-breadcrumb-container
+form#g-hashsum-download-config-form(role="form")
+  .checkbox
+    label.control-label(for="g-hashsum-download-auto-compute")
+      input#g-hashsum-download-auto-compute(type="checkbox",
+          checked=(settings['hashsum_download.auto_compute'] ? 'checked' : null))
+      span Automatically compute file checksums on upload
+
+  p#g-hashsum-download-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")

@@ -1,0 +1,57 @@
+mixin privacyEditor(typeName)
+  .g-public-container
+    .radio
+      label
+        input#g-access-private(type="radio", name="privacy",
+            checked=(publicFlag ? undefined : "checked"))
+        i.icon-lock
+        | #[b Private] &mdash; Access is required to view this #{typeName}
+    .radio
+      label
+        input#g-access-public(type="radio", name="privacy",
+            checked=(publicFlag ? "checked" : undefined))
+        i.icon-globe
+        | #[b Public] &mdash; Anyone can view this #{typeName}
+
+    if _.keys(flagList).length
+      a.g-action-manage-public-flags.hide(title="Public access flags")
+        i.g-flag-icon.icon-flag
+          - var flagLen = (publicFlags && publicFlags.length) || 0
+          .g-flag-count-indicator(class=(flagLen ? null : "hide"))= flagLen
+        |  Manage public access flags...
+      .g-public-flags-popover-container.hide
+        each flag, key in flagList
+          - var checked = _.contains(publicFlags, key) ? 'checked' : null;
+          - var disabled = (!isAdmin && flag.admin) ? 'disabled' : null;
+          .checkbox(class=disabled)
+            label.g-flag-label(title=flag.description)
+              input.g-public-flag-checkbox(flag=key, type="checkbox", checked=checked, disabled=disabled)
+              span= flag.name
+        button.g-close-public-flags-popover.btn.btn-xs.btn-default Close
+
+mixin permissionsEditor
+  .g-permissions-editor
+    .g-ac-list-title #[i.icon-key-1]  Permissions
+    .g-ac-list
+      #g-ac-list-groups
+      #g-ac-list-users
+
+    .g-grant-access-container
+      form(role="form")
+        .form-group
+          label(for="addAccess") Grant access to another group or user
+          .g-search-field-container
+
+mixin recurseOption(typeName)
+  .g-recursive-container
+    .radio
+      label
+        input#g-apply-nonrecursive(type="radio", name="recurse", checked="checked")
+        | Apply permissions only to this #{typeName}, not its subfolders
+    .radio
+      label
+        input#g-apply-recursive(type="radio", name="recurse")
+        | Also set permissions on all subfolders to match this #{typeName}'s permissions
+
+mixin saveAccessButton
+  button.g-save-access-list.btn.btn-small.btn-primary #[i.icon-ok]  Save

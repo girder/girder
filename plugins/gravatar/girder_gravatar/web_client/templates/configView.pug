@@ -1,0 +1,11 @@
+.g-config-breadcrumb-container
+p.g-gravatar-description
+  | The default image can be a URL, or one of the special defaults mentioned&nbsp;
+  a(href="https://en.gravatar.com/site/implement/images/") here.
+form#g-gravatar-settings-form(role="form")
+  .form-group
+    label.control-label(for="g-gravatar-default-image") Default image
+    input#g-gravatar-default-image.input-sm.form-control(
+      type="text", placeholder="Default image")
+  p#g-gravatar-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")

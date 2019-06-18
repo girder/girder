@@ -1,0 +1,976 @@
+---
+# Add an initial user - this user will be admin
+- name: Create 'admin' User
+  girder:
+    port: 8080
+    user:
+      firstName: "John"
+      lastName: "Doe"
+      login: "admin"
+      password: "letmein"
+      email: "john.doe@test.com"
+      admin: true
+    state: present
+
+# Create an 'alice' user
+- name: Create 'alice' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Alice"
+      lastName: "Doe"
+      login: "alice"
+      password: "letmein"
+      email: "alice.doe@test.com"
+    state: present
+
+# Create an 'bill' user
+- name: Create 'bill' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Bill"
+      lastName: "Doe"
+      login: "bill"
+      password: "letmein"
+      email: "bill.doe@test.com"
+    state: present
+
+# Create an 'chris' user
+- name: Create 'chris' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Chris"
+      lastName: "Doe"
+      login: "chris"
+      password: "letmein"
+      email: "chris.doe@test.com"
+    state: present
+
+- girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "user"
+  register: ret
+
+- assert:
+    that:
+      - ret['gc_return']|length == 4
+      - "{{ 'alice' in ret['gc_return']|map(attribute='login')|list }}"
+      - "{{ 'bill' in ret['gc_return']|map(attribute='login')|list }}"
+      - "{{ 'chris' in ret['gc_return']|map(attribute='login')|list }}"
+
+###
+# Groups
+
+- name: Create a test group
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group"
+    state: present
+  register: ret
+
+- assert:
+    that:
+      - ret['gc_return']['public'] == false
+      - ret['gc_return']['name'] == "Test Group"
+      - ret['gc_return']['description'] == "Basic test group"
+
+# Should show no change
+- name: Create a test group (should show no change)
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group"
+    state: present
+  register: ret
+
+- assert:
+    that:
+      - ret['changed'] == false
+
+
+# Change group description
+- name: Change group description
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group (different description)"
+    state: present
+  register: ret
+
+- assert:
+    that:
+      - ret['changed']
+      - ret['gc_return']['description'] == "Basic test group (different description)"
+
+# Remove test Group
+- name: Remove test group
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group (different description)"
+    state: absent
+  register: ret
+
+
+# Remove test Group
+- name: Get group information
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "group"
+  register: ret
+
+- assert:
+    that:
+      - ret['gc_return']|length == 0
+
+
+###
+# Users
+
+#########
+#  Test: Create a test group with users
+###
+
+- name: Create a test group with users
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group"
+      users:
+        - login: alice
+          type: member
+        - login: bill
+          type: moderator
+        - login: chris
+          type: admin
+    state: present
+  register: group_ret
+
+######## Tests for 'Create a test group with users' ###########
+
+- assert:
+    that:
+      - group_ret['gc_return']['added'] | length == 3
+
+
+- name: Get group members
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "group/{{ group_ret['gc_return']['_id'] }}/member"
+  register:
+    ret
+
+- assert:
+    that:
+      - ret['gc_return']|length == 3
+      - "{{ 'alice' in ret['gc_return']|map(attribute='login')|list }}"
+      - "{{ 'bill' in ret['gc_return']|map(attribute='login')|list }}"
+      - "{{ 'chris' in ret['gc_return']|map(attribute='login')|list }}"
+
+- name: Get group access
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "group/{{ group_ret['gc_return']['_id'] }}/access"
+  register:
+    ret
+
+- set_fact:
+    group_access: "{{ dict(ret['gc_return']['access']['users']|groupby('login')) }}"
+
+- assert:
+    that:
+      - ret['gc_return']['access']['users']|length == 2
+      # members are not shown in access
+      - "{{ 'alice' not in group_access }}"
+      # bill should be a moderator
+      - "{{ 'bill' in  group_access }}"
+      # Note that groupby gives us a dict of lists - thats why we
+      # do group_access[...][0][...].
+      - "{{ group_access['bill'][0]['level'] == 1 }}"
+      # chris should be an admin
+      - "{{ 'chris' in  group_access }}"
+      - "{{ group_access['chris'][0]['level'] == 2 }}"
+
+######## End Tests for 'Create a test group with users' ###########
+
+#########
+#  Test: Recreate a test group with users (should show no change)
+###
+
+- name: Recreate a test group with users (should show no change)
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group"
+      users:
+        - login: alice
+          type: member
+        - login: bill
+          type: moderator
+        - login: chris
+          type: admin
+    state: present
+  register: ret
+
+- assert:
+    that:
+      - ret['changed'] == false
+
+
+#########
+#  Test: Remove bill from group
+###
+
+- name: Remove bill from group
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group"
+      users:
+        - login: alice
+          type: member
+        - login: chris
+          type: admin
+    state: present
+  register: group_ret
+
+######## Tests for 'Remove bill from group' ###########
+
+- assert:
+    that:
+      - group_ret['changed']
+      - group_ret['gc_return']['removed']|length == 1
+
+- name: Get group members
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "group/{{ group_ret['gc_return']['_id'] }}/member"
+  register:
+    ret
+
+- assert:
+    that:
+      - ret['gc_return']|length == 2
+      - "{{ 'alice' in ret['gc_return']|map(attribute='login')|list }}"
+      - "{{ 'chris' in ret['gc_return']|map(attribute='login')|list }}"
+
+- name: Get group access
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "group/{{ group_ret['gc_return']['_id'] }}/access"
+  register:
+    ret
+
+- set_fact:
+    group_access: "{{ dict(ret['gc_return']['access']['users']|groupby('login')) }}"
+
+- assert:
+    that:
+      - ret['gc_return']['access']['users']|length == 1
+      # members are not shown in access
+      - "{{ 'alice' not in group_access }}"
+      # bill should NOT be in the group
+      - "{{ 'bill' not in group_access }}"
+      # chris should be an admin
+      - "{{ 'chris' in  group_access }}"
+      - "{{ group_access['chris'][0]['level'] == 2 }}"
+
+######### End tests for 'Remove bill from group' ##########
+
+
+#########
+#  Test: Add bill back in
+###
+
+- name: Add bill back in
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group"
+      users:
+        - login: alice
+          type: member
+        - login: bill
+          type: moderator
+        - login: chris
+          type: admin
+    state: present
+  register: group_ret
+
+######## Tests for 'Add bill back in' ###########
+
+- assert:
+    that:
+      - group_ret['gc_return']['added'] | length == 1
+
+
+- name: Get group members
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "group/{{ group_ret['gc_return']['_id'] }}/member"
+  register:
+    ret
+
+- assert:
+    that:
+      - ret['gc_return']|length == 3
+      - "{{ 'alice' in ret['gc_return']|map(attribute='login')|list }}"
+      - "{{ 'bill' in ret['gc_return']|map(attribute='login')|list }}"
+      - "{{ 'chris' in ret['gc_return']|map(attribute='login')|list }}"
+
+- name: Get group access
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "group/{{ group_ret['gc_return']['_id'] }}/access"
+  register:
+    ret
+
+- set_fact:
+    group_access: "{{ dict(ret['gc_return']['access']['users']|groupby('login')) }}"
+
+- assert:
+    that:
+      - ret['gc_return']['access']['users']|length == 2
+      # members are not shown in access
+      - "{{ 'alice' not in group_access }}"
+      # bill should be a moderator
+      - "{{ 'bill' in  group_access }}"
+      # Note that groupby gives us a dict of lists - thats why we
+      # do group_access[...][0][...].
+      - "{{ group_access['bill'][0]['level'] == 1 }}"
+      # chris should be an admin
+      - "{{ 'chris' in  group_access }}"
+      - "{{ group_access['chris'][0]['level'] == 2 }}"
+
+######## End Tests for 'Add bill back in' ###########
+
+
+#########
+#  Test: Shuffle roles in the group
+#
+#  user:   was:         becomes:
+#  -----------------------------
+#  alice:  member    -> admin
+#  bill:   moderator -> member
+#  chris:  admin     -> moderator
+###
+
+- name: Shuffle roles in the group
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group"
+      users:
+        - login: alice
+          type: admin
+        - login: bill
+          type: member
+        - login: chris
+          type: moderator
+    state: present
+  register: group_ret
+
+######## Tests for 'Shuffle roles in the group' ###########
+
+- assert:
+    that:
+      - group_ret['changed']
+      # Note: we change the level on all three members but because
+      # member is handled differently than moderator and admin we only
+      # see 'updated' values for alice (to_level: 2)  and chris (to_level: 1)
+      - group_ret['gc_return']['updated']|length == 2
+
+- name: Get group access
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "group/{{ group_ret['gc_return']['_id'] }}/access"
+  register:
+    ret
+
+- set_fact:
+    group_access: "{{ dict(ret['gc_return']['access']['users']|groupby('login')) }}"
+
+- assert:
+    that:
+      - ret['gc_return']['access']['users']|length == 2
+      # members are not shown in access
+      - "{{ 'bill' not in group_access }}"
+      # alice should be an admin
+      - "{{ 'alice' in  group_access }}"
+      - "{{ group_access['alice'][0]['level'] == 2 }}"
+      # chris should be a moderator
+      - "{{ 'chris' in  group_access }}"
+      - "{{ group_access['chris'][0]['level'] == 1 }}"
+
+######## End Tests for 'Shuffle roles in the group' ###########
+
+
+#########
+#  Test: Shuffle roles in the group again
+#
+#  user:   was:         becomes:
+#  -----------------------------
+#  alice   admin     -> moderator
+#  bill    member    -> admin
+#  chris   moderator -> member
+###
+
+
+- name: Shuffle roles in the group again
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group"
+      users:
+        - login: alice
+          type: moderator
+        - login: bill
+          type: admin
+        - login: chris
+          type: member
+    state: present
+  register: group_ret
+
+######## Tests for 'Shuffle roles in the group again' ###########
+
+- assert:
+    that:
+      - group_ret['changed']
+      - group_ret['gc_return']['updated']|length == 2
+
+- name: Get group access
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "group/{{ group_ret['gc_return']['_id'] }}/access"
+  register:
+    ret
+
+- set_fact:
+    group_access: "{{ dict(ret['gc_return']['access']['users']|groupby('login')) }}"
+
+- assert:
+    that:
+      - ret['gc_return']['access']['users']|length == 2
+      # members are not shown in access
+      - "{{ 'chris' not in group_access }}"
+      # alice should be an admin
+      - "{{ 'alice' in  group_access }}"
+      - "{{ group_access['alice'][0]['level'] == 1 }}"
+      # chris should be a moderator
+      - "{{ 'bill' in  group_access }}"
+      - "{{ group_access['bill'][0]['level'] == 2 }}"
+
+######## End Tests for 'Shuffle roles in the group again' ###########
+
+####
+#  Test access control
+- name: Make sure there is no Test Collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+    state: absent
+  register: test_collection
+
+- name: Create collection with public access
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      public: true
+  register: test_collection
+
+# Check that test_collection is public
+- assert:
+    that:
+      - test_collection['changed']
+      - test_collection['gc_return']['public']
+
+
+- name: Make the collection private
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      public: false
+      access:
+        users:
+          - login: alice
+            type: admin
+          - login: chris
+            type: member
+  register: test_collection
+
+- assert:
+    that:
+      - test_collection['changed']
+      - test_collection['gc_return']['public'] == false
+
+
+- name: Get collection from girder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "collection/{{ test_collection['gc_return']['_id'] }}"
+  register: ret
+
+# Assert that the collection is now private
+# Note: We have to do some hacking around 'public' in the girder source code
+# this is just an extra check to make sure that the collection endpoint also
+# returns public as 'false' (it might be possible that what comes back from
+# the update is different from what is actually stored in mongo).
+- assert:
+    that:
+      - ret['gc_return']['public'] == false
+
+
+- name: Make the collection public again
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      public: true
+  register: test_collection
+
+- assert:
+    that:
+      - test_collection['changed']
+      - test_collection['gc_return']['public']
+
+- name: Get collection from girder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "collection/{{ test_collection['gc_return']['_id'] }}"
+  register: ret
+
+- assert:
+    that:
+      - ret['gc_return']['public']
+
+- name: Reset the state of the collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      public: false
+      access:
+        users:
+          - login: alice
+            type: admin
+          - login: chris
+            type: member
+  register: test_collection
+
+- name: Recereate collection with access (should show no change)
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      public: false
+      access:
+        users:
+          - login: alice
+            type: admin
+          - login: chris
+            type: member
+  register: test_collection
+
+# Test that no change was recorded
+- assert:
+    that:
+      - test_collection['changed'] == false
+
+#########
+#  Test: Add bill to Test Collection
+###
+
+- name: Add bill to Test Collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      public: false
+      access:
+        users:
+          - login: alice
+            type: admin
+          - login: bill
+            type: moderator
+          - login: chris
+            type: member
+  register: test_collection
+
+
+######## Tests for 'Add bill to Test Collection' ###########
+
+- assert:
+    that:
+      - test_collection['changed']
+
+- name: Get collection access
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "collection/{{ test_collection['gc_return']['_id'] }}/access"
+  register: ret
+
+- set_fact:
+    user_access: "{{ dict(ret['gc_return']['users']|groupby('login')) }}"
+
+- assert:
+    that:
+      - ret['gc_return']['users']|length == 3
+      - ret['gc_return']['groups'] | length == 0
+      # Alice
+      - "{{ 'alice' in user_access }}"
+      - "{{ user_access['alice'][0]['level'] == 2 }}"
+      # Bill
+      - "{{ 'bill' in  user_access }}"
+      - "{{ user_access['bill'][0]['level'] == 1 }}"
+      # Chris
+      - "{{ 'chris' in user_access }}"
+      - "{{ user_access['chris'][0]['level'] == 0 }}"
+
+######## End Tests for 'Add bill to Test Collection' ###########
+
+#########
+#  Test: Add group to Test Collection
+###
+
+- name: Add group to Test Collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      public: false
+      access:
+        users:
+          - login: alice
+            type: admin
+          - login: bill
+            type: moderator
+          - login: chris
+            type: member
+        groups:
+          - name: Test Group
+            type: member
+  register: test_collection
+
+- assert:
+    that:
+      - test_collection['changed']
+
+- name: Get collection access
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "collection/{{ test_collection['gc_return']['_id'] }}/access"
+  register:
+    ret
+
+- set_fact:
+    user_access: "{{ dict(ret['gc_return']['users']|groupby('login')) }}"
+    group_access: "{{ dict(ret['gc_return']['groups']|groupby('name')) }}"
+
+- assert:
+    that:
+      - ret['gc_return']['users']|length == 3
+      - ret['gc_return']['groups'] | length == 1
+      # Alice
+      - "{{ 'alice' in  user_access }}"
+      - "{{ user_access['alice'][0]['level'] == 2 }}"
+      # Bill
+      - "{{ 'bill' in  user_access }}"
+      - "{{ user_access['bill'][0]['level'] == 1 }}"
+      # Chris
+      - "{{ 'chris' in user_access }}"
+      - "{{ user_access['chris'][0]['level'] == 0 }}"
+      # Test Group
+      - "{{ 'Test Group' in group_access }}"
+      - "{{ group_access['Test Group'][0]['level'] == 0 }}"
+
+
+######## End Tests for 'Add group to Test Collection' ###########
+
+#########
+#  Test: Remove chris, bill, Test Group and make public
+###
+
+
+- name: Remove chris, bill, Test Group and make public
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+      public: true
+      access:
+        users:
+          - login: alice
+            type: admin
+  register: test_collection
+
+- assert:
+    that:
+      - test_collection['changed']
+
+- name: Get collection access
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "collection/{{ test_collection['gc_return']['_id'] }}/access"
+  register: ret
+
+- set_fact:
+    user_access: "{{ dict(ret['gc_return']['users']|groupby('login')) }}"
+
+- assert:
+    that:
+      - ret['gc_return']['users']|length == 1
+      - ret['gc_return']['groups'] | length == 0
+      # Alice
+      - "{{ 'alice' in  user_access }}"
+      - "{{ user_access['alice'][0]['level'] == 2 }}"
+      # Bill
+      - "{{ 'bill' not in user_access }}"
+      # Chris
+      - "{{ 'chris' not in user_access }}"
+
+######## End Tests for 'Remove chris, bill, Test Group and make public' ###########
+
+
+#########
+#  Test: Add Test Folder with access
+###
+
+- name: Add Test Folder with access
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    folder:
+      parentType: "collection"
+      parentId: "{{test_collection['gc_return']['_id'] }}"
+      name: "test folder"
+      description: "A test folder"
+      access:
+        users:
+          - login: bill
+            type: admin
+        groups:
+          - name: Test Group
+            type: member
+  register: test_folder
+
+- assert:
+    that:
+      - test_folder['changed']
+
+- name: Get folder access
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "folder/{{ test_folder['gc_return']['_id'] }}/access"
+  register: ret
+
+- set_fact:
+    user_access: "{{ dict(ret['gc_return']['users']|groupby('login')) }}"
+    group_access: "{{ dict(ret['gc_return']['groups']|groupby('name')) }}"
+
+- assert:
+    that:
+      - ret['gc_return']['users']|length == 1
+      - ret['gc_return']['groups']|length == 1
+      # Bill
+      - "{{ 'bill' in user_access }}"
+      - "{{ user_access['bill'][0]['level'] == 2 }}"
+
+      # Test Group
+      - "{{ 'Test Group' in group_access }}"
+      - "{{ group_access['Test Group'][0]['level'] == 0 }}"
+
+######## End Tests for 'Add Test Folder with access' ###########
+
+#########
+#  Clean up
+###
+
+- name: Remove Test Folder
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    folder:
+      parentType: "collection"
+      parentId: "{{test_collection['gc_return']['_id'] }}"
+      name: "test folder"
+      description: "A test folder"
+    state: absent
+
+- name: Remove Test Collection
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    collection:
+      name: "Test Collection"
+      description: "A test collection"
+    state: absent
+
+# Remove test Group
+- name: Remove test group
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    group:
+      name: "Test Group"
+      description: "Basic test group"
+    state: absent
+
+- name: Remove 'alice' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Alice"
+      lastName: "Doe"
+      login: "alice"
+      password: "letmein"
+      email: "alice.doe@test.com"
+    state: absent
+
+- name: Remove 'bill' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Bill"
+      lastName: "Doe"
+      login: "bill"
+      password: "letmein"
+      email: "bill.doe@test.com"
+    state: absent
+
+- name: Remove 'chris' User
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    user:
+      firstName: "Chris"
+      lastName: "Doe"
+      login: "chris"
+      password: "letmein"
+      email: "chris.doe@test.com"
+    state: absent

@@ -1,0 +1,11 @@
+include LICENSE
+include setup.py
+include README.rst
+graft girder
+prune test
+prune tests
+prune girder/web_client/node_modules
+prune girder/web_client/test/spec
+exclude girder/web_client/package.json
+exclude girder/web_client/package-lock.json
+global-exclude *.pyc *.pyo *.cmake __pycache__

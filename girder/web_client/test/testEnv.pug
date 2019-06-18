@@ -1,0 +1,23 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    title Girder test environment
+    each css in cssFiles
+      link(href=css, rel='stylesheet', type='text/css')
+
+  body
+    #g-global-info-apiroot.hide %HOST%#{apiRoot}
+
+    each js in jsFiles
+      script(src=js)
+
+    script(type='text/javascript').
+      (function () {
+        var consoleReporter = new jasmine.ConsoleReporter();
+
+        window.jasmine_phantom_reporter = consoleReporter;
+        jasmine.getEnv().addReporter(consoleReporter);
+
+        girder.utilities.eventStream.settings.timeout = 10;
+      })();

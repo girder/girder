@@ -1,0 +1,35 @@
+.modal-dialog
+  .modal-content
+    form#g-create-thumbnail-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title Create thumbnail
+        .g-dialog-subtitle
+          i.icon-doc-inv
+          |  #{file.get('name')}
+      .modal-body
+        label Thumbnail size (px)
+        .g-thumbnail-size-form-container
+          input#g-thumbnail-width.g-thumbnail-size-input(placeholder="width")
+          span.g-thumbnail-size-between &times;
+          input#g-thumbnail-height.g-thumbnail-size-input(placeholder="height")
+          label.g-thumbnail-crop-container.checkbox-inline
+            input#g-thumbnail-crop(type="checkbox")
+            | Crop
+        label Attach to
+          .g-thumbnail-attach-container
+            label.radio-inline
+              input.g-thumbnail-attach-this-item(type="radio", name="g-thumbnail-attach-to", checked="on")
+              | This item
+            label.radio-inline
+              input.g-thumbnail-attach-something-else(type="radio", name="g-thumbnail-attach-to")
+              | Something else...
+        .g-thumbnail-custom-target-container.hide
+          .g-target-result-container
+          .g-search-field-container
+        .g-validation-failed-message
+      .modal-footer
+        a.btn.btn-small.btn-default(data-dismiss="modal") Close
+        button.g-submit-create-thumbnail.btn.btn-small.btn-primary(type="submit")
+          i.icon-picture
+          |  Create

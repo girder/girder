@@ -1,0 +1,14 @@
+ul.g-group-invites
+  each user in invitees
+    li(cid=user.cid, username=user.name())
+      a.g-member-name
+        i.icon-user
+        span #{user.name()} (#{user.get('login')})
+      .g-group-member-controls.pull-right
+        if level >= accessType.WRITE
+          a.g-group-uninvite(title="Uninvite this user")
+            i.icon-block
+  if (!invitees.length)
+    .g-member-list-empty
+      i.icon-info-circled
+      span There are no pending invitations to this group.

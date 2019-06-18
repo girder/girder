@@ -1,0 +1,20 @@
+.g-body-title Plugins
+.g-plugin-list-container
+  each plugin in allPlugins
+    - var experimental = plugin.value.version ? plugin.value.version.indexOf('0.') === 0 : true
+    .g-plugin-list-item(data-name=plugin.key)
+      .g-plugin-name()
+        if plugin.value.url
+          a(href=plugin.value.url, target='_blank')= plugin.value.name
+        else
+          span= plugin.value.name
+        if plugin.value.version
+          span.g-plugin-version Version #{plugin.value.version}
+        if experimental
+          span.g-plugin-list-item-notice.g-plugin-list-item-experimental-notice(
+            title="WARNING: this plugin is an alpha version and is subject " +
+                  "to breaking changes; use at your own risk.") Experimental
+        if plugin.value.configRoute
+          a.g-plugin-config-link(g-route=plugin.value.configRoute, title="Configure Plugin")
+            i.icon-cog
+      .g-plugin-description= plugin.value.description

@@ -1,0 +1,49 @@
+@import "nib"
+
+$radius = 6px
+$border = 1px solid #d7d7d7
+
+body
+  font-family "Open Sans", sans-serif
+  background-color #adada1
+
+.right
+  float right
+
+.docs-header
+  color white
+  background-color #3f3b3b
+  padding 11px 18px
+  font-size 24px
+  font-weight bold
+
+.docs-body
+  background-color white
+  padding 15px 18px 5px
+
+  p
+    margin-bottom 13px
+
+.docs-swagger-container
+  background-color #f0fafc
+  padding 5px 18px 12px
+  border-top $border
+
+@media screen and (min-width: 990px)
+  .docs-header
+  .docs-body
+  .docs-swagger-container
+    max-width 960px
+    margin-left auto
+    margin-right auto
+    box-shadow 0 5px 12px 0 rgba(0, 0, 0, 0.2)
+
+  body
+    padding-bottom 25px
+    padding-top 25px
+
+  .docs-header
+    border-radius $radius $radius 0 0
+
+  .docs-swagger-container
+    border-radius 0 0 $radius $radius

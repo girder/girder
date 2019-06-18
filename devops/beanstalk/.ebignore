@@ -1,0 +1,30 @@
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# From .gitignore
+*.py[cod]
+node_modules
+girder.egg-info
+.DS_Store
+.*.swp
+.*.swo
+.vagrant
+girder-*.tar.gz
+__pycache__
+### PyCharm ###
+.idea/
+.PyCharm50/
+.eslintcache
+/npm-debug.log
+**/*.retry
+
+/clients/python
+/clients/web-external
+/cmake
+/devops
+/docs
+/node_modules
+/scripts
+/tests

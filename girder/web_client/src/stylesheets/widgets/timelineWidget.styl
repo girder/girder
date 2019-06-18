@@ -1,0 +1,40 @@
+$height = 14px
+
+.g-timeline-container
+  height $height
+  width calc(100% - 20px)
+  margin-left 10px
+  background-color #e4e4e4
+  position relative
+  box-shadow inset 0 3px 3px rgba(0, 0, 0, 0.08)
+
+  .g-timeline-segment
+    position absolute
+    z-index 5
+    height $height
+    box-shadow 0 2px 4px rgba(0, 0, 0, 0.15)
+
+  .g-timeline-point
+    position absolute
+    height $height + 6px
+    width $height + 6px
+    border-radius 50%
+    z-index 10
+    top -3px
+    box-shadow 0 2px 4px rgba(0, 0, 0, 0.15)
+
+  .g-point-default, .g-segment-default
+    background-color #4c4
+
+.g-timeline-labels-container
+  margin 4px 5px 0
+  color #888
+  height 15px
+  position relative
+
+  .g-timeline-start-label
+    position absolute
+    left 0
+  .g-timeline-end-label
+    position absolute
+    right 0

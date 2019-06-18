@@ -1,0 +1,8 @@
+if collection.getAccessLevel() >= AccessType.ADMIN
+  li(role="presentation")
+    a.g-collection-policies(role="menuitem")
+      i.icon-box
+      if currentUser.get('admin')
+        | Quota and assetstore policies
+      else
+        | Quota

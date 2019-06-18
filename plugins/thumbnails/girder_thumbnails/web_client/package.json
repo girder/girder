@@ -1,0 +1,22 @@
+{
+    "name": "@girder/thumbnails",
+    "version": "0.2.0-alpha.1",
+    "description": "Generate thumbnails from files.",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "peerDependencies": {
+        "@girder/core": "*",
+        "@girder/jobs": "*"
+    },
+    "girderPlugin": {
+        "name": "thumbnails",
+        "main": "./main.js",
+        "dependencies": ["jobs"]
+    }
+}

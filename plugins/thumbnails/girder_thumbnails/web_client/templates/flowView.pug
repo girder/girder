@@ -1,0 +1,8 @@
+.g-thumbnail-flow-container
+  each thumbnail in thumbnails
+    .g-thumbnail-container(g-file-id=thumbnail.id)
+      if accessLevel >= AccessType.WRITE
+        .g-thumbnail-actions-container
+          a.g-thumbnail-delete(title="Delete")
+            i.icon-cancel
+      img.g-thumbnail(src=thumbnail.downloadUrl())

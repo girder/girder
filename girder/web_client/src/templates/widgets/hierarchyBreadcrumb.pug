@@ -1,0 +1,37 @@
+- var idx = 0
+each obj in links
+  li
+    a.g-breadcrumb-link(g-index=idx)
+      if obj.resourceName === 'user'
+        i.icon-user
+      else if obj.resourceName === 'collection'
+        i.icon-sitemap
+      = obj.name()
+  - idx += 1
+
+if current
+  li.active
+    if current.resourceName === 'user'
+      i.icon-user
+    else if current.resourceName === 'collection'
+      i.icon-sitemap
+    = current.name()
+
+if descriptionText
+  a.g-description-preview= descriptionText
+
+.pull-right
+  .g-child-count-container.hide
+    .g-subfolder-count-container(title='total folders')
+      i.icon-folder
+      .g-subfolder-count
+
+    if idx > 0
+      .g-item-count-container(title='total items')
+        i.icon-doc-text-inv
+        .g-item-count
+
+  if idx > 0
+    .g-level-up-button-container
+      a.g-hierarchy-level-up(title="Go up one level")
+        i.icon-level-up

@@ -1,0 +1,11 @@
+.checkbox.g-job-checkall
+  label
+    input(type="checkbox", checked=checkAllChecked)
+    | Check all
+ul
+  each checked, name in items
+    li(role="presentation")
+      .checkbox
+        label
+          input.g-job-filter-checkbox(type="checkbox", id=name, checked=checked)
+          = name

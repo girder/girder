@@ -1,0 +1,43 @@
+.g-homepage-container
+  margin-bottom 10px
+
+
+.g-homepage-logo-container
+  min-height 200px
+  border 1px solid #ccc
+  border-radius 5px
+
+  .g-homepage-logo-upload-container
+    display inline-block
+    font-size 0.9em
+    width 350px
+    padding 0 10px 10px
+
+  .g-homepage-logo-preview-container
+    border-right 1px solid  #ccc
+    margin-right 20px
+    display inline-block
+    vertical-align top
+    height 200px
+
+    .g-homepage-logo-preview
+      margin 30px 30px 20px
+      width 100px
+      height 100px
+      position relative
+
+      img
+        max-width 100px
+        max-height 100px
+        // absolute allows top / transform to work
+        position absolute
+        // center image vertically and horizontally
+        left 50%
+        top 50%
+        transform translate(-50%, -50%)
+
+    #g-homepage-logo-reset
+      display block
+      width 90px
+      margin-left 30px
+      vertical-align bottom

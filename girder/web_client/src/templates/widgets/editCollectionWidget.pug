@@ -1,0 +1,27 @@
+.modal-dialog
+  .modal-content
+    form#g-collection-edit-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title
+          if (create)
+            | Create collection
+          else
+            | Edit collection
+      .modal-body
+        .form-group
+          label.control-label(for="g-name") Name
+          input#g-name.input-sm.form-control(type="text", placeholder="Enter collection name")
+        .form-group
+          label.control-label Description (optional)
+          .g-description-editor-container
+        .g-validation-failed-message
+      .modal-footer
+        a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
+        button.g-save-collection.btn.btn-small.btn-primary(type="submit")
+          if (create)
+            i.icon-plus-squared
+            | Create
+          else
+            i.icon-edit
+            | Save

@@ -1,0 +1,85 @@
+@import "~nib/index.styl"
+
+.check-menu-dropdown
+  position relative
+  width 20px
+  left -2px
+
+  .g-job-check-menu-button
+    padding 2px 1px 0 2px
+
+    i
+      position relative
+      top -3px
+
+.g-jobs-list-table
+  width 100%
+
+  th
+    border-bottom 1px solid #d7d7d7
+  tbody>tr
+    transition background 0.4s linear
+
+    td
+      padding 3px 0
+
+    &:hover
+      background-color #f6f6f6
+
+    &.g-highlight
+      background-color #f1db74
+
+.g-job-list-header
+  padding-bottom 10px
+
+#g-job-checkbox-menu
+  display inline
+
+a.g-job-checkbox-menu-link
+  display inline-block
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
+  color #333
+
+
+.g-job-filter-container
+  margin-top 7px
+  > div
+    float left
+    margin-right 10px
+  > .checkbox
+    margin 0 0 0 10px
+
+  .dropdown
+    .dropdown-menu
+      ul
+        list-style-type none
+        padding 0
+        margin 0
+    .checkbox
+      margin 8px
+    .checkbox.g-job-checkall
+      padding-bottom 8px
+      border-bottom 1px solid #ddd
+
+.g-page-size-container
+  float right
+  margin-top 7px
+  > span
+    margin-right 10px
+
+
+ul.g-jobs
+  margin 10px 0
+
+.g-jobs-graph
+  height calc(100vh - 230px)
+  overflow-y hidden
+  overflow-x auto
+
+.g-no-job-record
+  text-align center
+
+.g-job-worker-task-info
+  margin-top 10px

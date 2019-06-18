@@ -1,0 +1,10 @@
+.g-search-wrapper
+  a.g-search-options-button.btn.btn-sm(title="Show search help")
+    i.g-search-state.icon-search
+  input.g-search-field.form-control.input-sm(
+    type="text", placeholder=placeholder, mode-select=(modes.length > 1 ? "on" : "off"))
+  .g-search-results.dropdown
+    ul.dropdown-menu(role="menu")
+  if modes.length > 1
+    a.g-search-mode-choose.btn.btn-sm(title="Search mode")
+      i.icon-down-dir

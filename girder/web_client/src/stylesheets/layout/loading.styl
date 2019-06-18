@@ -1,0 +1,37 @@
+/* CSS for the loading animation */
+
+#g-loading-animation
+  margin 4px
+  width 30px
+  height 22px
+
+.g-loading-block
+  background-color #808080
+  border 1px solid #808080
+  float left
+  height 21px
+  margin-left 1px
+  width 6px
+  opacity 0.1
+  animation-name bounceG
+  animation-duration 1.3s
+  animation-iteration-count infinite
+  animation-direction linear
+  transform scale(0.7)
+
+#g-loading-block-1
+  animation-delay 0.39s
+
+#g-loading-block-2
+  animation-delay 0.52s
+
+#g-loading-block-3
+  animation-delay 0.65s
+
+@keyframes bounceG
+  0%
+    transform scale(1.1)
+    opacity 1
+  100%
+    transform scale(0.7)
+    opacity 0.1

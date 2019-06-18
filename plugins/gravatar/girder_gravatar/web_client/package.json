@@ -1,0 +1,21 @@
+{
+    "name": "@girder/gravatar",
+    "version": "2.0.0-alpha.1",
+    "description": "Adds Gravatar URLs for users.",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#gravatar-portraits",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "peerDependencies": {
+        "@girder/core": "*"
+    },
+    "girderPlugin": {
+        "name": "gravatar",
+        "main": "./main.js"
+    }
+}

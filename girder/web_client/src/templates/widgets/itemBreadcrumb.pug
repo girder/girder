@@ -1,0 +1,16 @@
+ol.breadcrumb
+  each parent in parentChain
+    li
+      a.g-item-breadcrumb-link(data-id=parent.object._id, data-type=parent.type)
+        if (parent.type === "user")
+          i.icon-user
+          = parent.object.login
+        else if (parent.type === "collection")
+          i.icon-sitemap
+          = parent.object.name
+        else
+          = parent.object.name
+
+  .pull-right
+    a.g-hierarchy-level-up(title="Go to parent folder")
+      i.icon-level-up

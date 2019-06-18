@@ -1,0 +1,21 @@
+{
+    "name": "@girder/oauth",
+    "version": "3.0.0-alpha.1",
+    "description": "Allow users to login via supported OAuth2 providers.",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#oauth-login",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "peerDependencies": {
+        "@girder/core": "*"
+    },
+    "girderPlugin": {
+        "name": "oauth",
+        "main": "./main.js"
+    }
+}
