@@ -61,7 +61,7 @@ var EditAssetstoreWidget = View.extend({
         }).on('hidden.bs.modal', () => {
             handleClose('assetstoreedit', undefined, this.model.get('id'));
         });
-        modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
+        modal.trigger($.Event('ready.girder.modal', { relatedTarget: modal }));
         return this;
     },
 

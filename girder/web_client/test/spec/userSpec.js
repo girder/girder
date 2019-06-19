@@ -127,7 +127,7 @@ describe('Create an admin and non-admin user', function () {
     it('test changing other user\'s password', function () {
         runs(function () {
             girder.router.navigate('useraccount/' + registeredUsers[1].id + '/password',
-                {trigger: true});
+                { trigger: true });
         });
 
         waitsFor(function () {
@@ -184,7 +184,7 @@ describe('Create an admin and non-admin user', function () {
         waitsFor(function () {
             var msg = window.callPhantom({
                 action: 'fetchEmail',
-                suffix: girderTest.getCallbackSuffix()});
+                suffix: girderTest.getCallbackSuffix() });
             if (!msg || msg.indexOf('<a href="') < 0) {
                 return false;
             }
@@ -226,8 +226,8 @@ describe('Create an admin and non-admin user', function () {
             return $('#g-password-new').val() === '';
         }, 'new password to be accepted');
         runs(function () {
-            window.callPhantom({action: 'uploadCleanup',
-                suffix: girderTest._uploadSuffix});
+            window.callPhantom({ action: 'uploadCleanup',
+                suffix: girderTest._uploadSuffix });
         });
     });
 });
@@ -475,7 +475,7 @@ describe('test account approval', function () {
         }, 'dialog rest requests to finish');
         runs(function () {
             girder.router.navigate('user/' + registeredUsers[1].id,
-                {trigger: true});
+                { trigger: true });
         });
         waitsFor(function () {
             return $('.g-disable-user').length > 0;

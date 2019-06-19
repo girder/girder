@@ -22,7 +22,7 @@ var GroupsView = View.extend({
     events: {
         'click a.g-group-link': function (event) {
             var cid = $(event.currentTarget).attr('g-group-cid');
-            router.navigate('group/' + this.collection.get(cid).id, {trigger: true});
+            router.navigate('group/' + this.collection.get(cid).id, { trigger: true });
         },
         'submit .g-group-search-form': function (event) {
             event.preventDefault();
@@ -86,7 +86,7 @@ var GroupsView = View.extend({
             userGroups.push(group.get('_id'));
             getCurrentUser().set('groups', userGroups);
 
-            router.navigate('group/' + group.get('_id'), {trigger: true});
+            router.navigate('group/' + group.get('_id'), { trigger: true });
         }, this).render();
     },
 
@@ -97,7 +97,7 @@ var GroupsView = View.extend({
     _gotoGroup: function (result) {
         var group = new GroupModel();
         group.set('_id', result.id).on('g:fetched', function () {
-            router.navigate('group/' + group.get('_id'), {trigger: true});
+            router.navigate('group/' + group.get('_id'), { trigger: true });
         }, this).fetch();
     }
 

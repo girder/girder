@@ -33,7 +33,7 @@ var GroupInvitesWidget = View.extend({
 
         'click a.g-member-name': function (e) {
             var user = this.collection.get($(e.currentTarget).parents('li').attr('cid'));
-            router.navigate('user/' + user.get('_id'), {trigger: true});
+            router.navigate('user/' + user.get('_id'), { trigger: true });
         }
     },
 

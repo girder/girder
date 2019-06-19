@@ -18,11 +18,11 @@ var minUploadSize;
 function _setMinimumChunkSize(minSize) {
     var uploadChunkSize, settingSize;
     if (!minUploadSize) {
-        minUploadSize = {UPLOAD_CHUNK_SIZE: girder.rest.getUploadChunkSize()};
+        minUploadSize = { UPLOAD_CHUNK_SIZE: girder.rest.getUploadChunkSize() };
         var resp = girder.rest.restRequest({
             url: 'system/setting',
             method: 'GET',
-            data: {key: 'core.upload_minimum_chunk_size'},
+            data: { key: 'core.upload_minimum_chunk_size' },
             async: false
         });
         minUploadSize.setting = resp.responseText;
@@ -38,7 +38,7 @@ function _setMinimumChunkSize(minSize) {
     girder.rest.restRequest({
         url: 'system/setting',
         method: 'PUT',
-        data: {key: 'core.upload_minimum_chunk_size', value: settingSize},
+        data: { key: 'core.upload_minimum_chunk_size', value: settingSize },
         async: false
     });
 }
@@ -328,7 +328,7 @@ describe('Create a data hierarchy', function () {
     });
 
     it('download checked items', function () {
-        var redirect = {method: null, url: null, data: {resources: null}}, widget;
+        var redirect = { method: null, url: null, data: { resources: null } }, widget;
         /* select a folder and the first item */
         runs(function () {
             $('.g-list-checkbox').slice(0, 2).click();
@@ -342,7 +342,7 @@ describe('Create a data hierarchy', function () {
              * through some internal objects to get to it */
             widget = girder.events._events['g:navigateTo'][0].ctx.bodyView.hierarchyWidget;
             spyOn(girder.views.widgets.HierarchyWidget.prototype, 'redirectViaForm').andCallFake(function (method, url, data) {
-                redirect = {method: method, url: url, data: data};
+                redirect = { method: method, url: url, data: data };
                 widget.redirectViaForm.originalValue(method, 'javascript: void(0)', data);
             });
             $('a.g-download-checked').click();
@@ -558,8 +558,8 @@ describe('Create a data hierarchy', function () {
             return $('.g-list-checkbox').length === 0;
         }, 'items to be deleted');
         runs(function () {
-            window.callPhantom({action: 'uploadCleanup',
-                suffix: girderTest._uploadSuffix});
+            window.callPhantom({ action: 'uploadCleanup',
+                suffix: girderTest._uploadSuffix });
         });
     });
 
@@ -789,7 +789,7 @@ describe('Create a data hierarchy', function () {
         var dropActiveSelector = '.g-dropzone-show:visible';
 
         runs(function () {
-            $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));
+            $(selector).trigger($.Event('dragenter', { originalEvent: $.Event('dragenter', { dataTransfer: {} }) }));
         });
 
         waitsFor(function () {
@@ -797,11 +797,11 @@ describe('Create a data hierarchy', function () {
         }, 'the drop bullseye to appear');
 
         runs(function () {
-            $(selector).trigger($.Event('drop', {originalEvent: $.Event('drop', {
+            $(selector).trigger($.Event('drop', { originalEvent: $.Event('drop', {
                 dataTransfer: {
                     files: files,
                     items: items
-                }})}));
+                } }) }));
         });
 
         waitsFor(function () {

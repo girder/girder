@@ -11,20 +11,20 @@ import ItemView from '@girder/core/views/body/ItemView';
 import TermsAcceptanceView from './views/TermsAcceptanceView';
 
 CollectionView.fetchAndInit = function (cid, params) {
-    const collection = new CollectionModel({_id: cid});
+    const collection = new CollectionModel({ _id: cid });
     collection.fetch()
         .done(() => {
             if (collection.hasTerms() && !collection.currentUserHasAcceptedTerms()) {
                 events.trigger(
                     'g:navigateTo',
                     TermsAcceptanceView,
-                    {collection: collection}
+                    { collection: collection }
                 );
             } else {
                 events.trigger(
                     'g:navigateTo',
                     CollectionView,
-                    _.extend({collection: collection}, params || {})
+                    _.extend({ collection: collection }, params || {})
                 );
             }
         });
@@ -32,11 +32,11 @@ CollectionView.fetchAndInit = function (cid, params) {
 
 FolderView.fetchAndInit = function (id, params) {
     let collection;
-    const folder = new FolderModel({_id: id});
+    const folder = new FolderModel({ _id: id });
     folder.fetch()
         .then(() => {
             if (folder.get('baseParentType') === 'collection') {
-                collection = new CollectionModel({_id: folder.get('baseParentId')});
+                collection = new CollectionModel({ _id: folder.get('baseParentId') });
                 return collection.fetch();
             } else {
                 return undefined;
@@ -47,13 +47,13 @@ FolderView.fetchAndInit = function (id, params) {
                 events.trigger(
                     'g:navigateTo',
                     TermsAcceptanceView,
-                    {collection: collection}
+                    { collection: collection }
                 );
             } else {
                 events.trigger(
                     'g:navigateTo',
                     FolderView,
-                    _.extend({folder: folder}, params || {})
+                    _.extend({ folder: folder }, params || {})
                 );
             }
         });
@@ -61,11 +61,11 @@ FolderView.fetchAndInit = function (id, params) {
 
 ItemView.fetchAndInit = function (itemId, params) {
     let collection;
-    const item = new ItemModel({_id: itemId});
+    const item = new ItemModel({ _id: itemId });
     item.fetch()
         .then(() => {
             if (item.get('baseParentType') === 'collection') {
-                collection = new CollectionModel({_id: item.get('baseParentId')});
+                collection = new CollectionModel({ _id: item.get('baseParentId') });
                 return collection.fetch();
             } else {
                 return undefined;
@@ -76,13 +76,13 @@ ItemView.fetchAndInit = function (itemId, params) {
                 events.trigger(
                     'g:navigateTo',
                     TermsAcceptanceView,
-                    {collection: collection}
+                    { collection: collection }
                 );
             } else {
                 events.trigger(
                     'g:navigateTo',
                     ItemView,
-                    _.extend({item: item}, params || {})
+                    _.extend({ item: item }, params || {})
                 );
             }
         });

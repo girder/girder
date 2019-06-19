@@ -326,7 +326,7 @@ const DicomSliceImageWidget = View.extend({
         imageData.setExtent(0, cols - 1, 0, rows - 1, 0, 0);
 
         const values = this._slice.getInterpretedData();
-        const dataArray = vtkDataArray.newInstance({values: values});
+        const dataArray = vtkDataArray.newInstance({ values: values });
         imageData.getPointData().setScalars(dataArray);
 
         return imageData;

@@ -15,7 +15,7 @@ import '@girder/core/stylesheets/layout/header.styl';
 var LayoutHeaderView = View.extend({
     events: {
         'click .g-app-title': function () {
-            router.navigate('', {trigger: true});
+            router.navigate('', { trigger: true });
         }
     },
 

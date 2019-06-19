@@ -31,17 +31,17 @@ describe('Test routing paths', function () {
         _getFirstId(girder.collections.FolderCollection, ids,
             'collectionFolder',
             function () {
-                return {parentId: ids.collection, parentType: 'collection'};
+                return { parentId: ids.collection, parentType: 'collection' };
             });
         _getFirstId(girder.collections.FolderCollection, ids, 'userFolder',
             function () {
-                return {parentId: ids.admin, parentType: 'user'};
+                return { parentId: ids.admin, parentType: 'user' };
             });
         _getFirstId(girder.collections.GroupCollection, ids, 'group');
         _getFirstId(girder.collections.AssetstoreCollection, ids, 'assetstore');
         _getFirstId(girder.collections.ItemCollection, ids, 'item',
             function () {
-                return {folderId: ids.userFolder};
+                return { folderId: ids.userFolder };
             });
         _getFirstId(girder.collections.ItemCollection, ids, 'file',
             function (coll) {
@@ -311,8 +311,8 @@ describe('Test internal javascript functions', function () {
     it('check parseQueryString', function () {
         runs(function () {
             var testVals = [
-                {plain: 'strings'},
-                {altchar: 'a~`!@#$%^&*()_+{}|[]\\:";\'<>?,./'}
+                { plain: 'strings' },
+                { altchar: 'a~`!@#$%^&*()_+{}|[]\\:";\'<>?,./' }
             ];
             for (var i = 0; i < testVals.length; i += 1) {
                 var encode = $.param(testVals[i]);
@@ -330,7 +330,7 @@ describe('Test disabling the router at runtime', function () {
     });
 
     it('router should be enabled by default', function () {
-        girder.router.navigate('collections', {trigger: true});
+        girder.router.navigate('collections', { trigger: true });
 
         expect(router.navigate).toHaveBeenCalled();
     });
@@ -338,7 +338,7 @@ describe('Test disabling the router at runtime', function () {
     it('disabling router should make navigate() a no-op', function () {
         girder.router.enabled(false);
 
-        girder.router.navigate('users', {trigger: true});
+        girder.router.navigate('users', { trigger: true });
 
         expect(router.navigate).not.toHaveBeenCalled();
     });

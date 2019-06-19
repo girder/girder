@@ -15,7 +15,7 @@ var FolderInfoWidget = View.extend({
             this.model.once('g:fetched.details', function () {
                 this.needToFetch = false;
                 this.render();
-            }, this).fetch({extraPath: 'details'});
+            }, this).fetch({ extraPath: 'details' });
         }
     },
 

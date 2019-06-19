@@ -82,7 +82,7 @@ var EditGroupWidget = View.extend({
                 this.create = true;
             }
         });
-        modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
+        modal.trigger($.Event('ready.girder.modal', { relatedTarget: modal }));
         this.$('#g-name').focus();
 
         this.privacyChanged();

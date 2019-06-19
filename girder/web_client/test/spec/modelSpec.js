@@ -91,14 +91,14 @@ describe('Test the model class', function () {
         });
 
         girder.rest.restRequest.reset();
-        model.fetch({extraPath: 'abc'});
+        model.fetch({ extraPath: 'abc' });
         expect(girder.rest.restRequest.callCount).toBe(1);
         expect(girder.rest.restRequest).toHaveBeenCalledWith({
             url: 'sampleResource/' + id + '/abc'
         });
 
         girder.rest.restRequest.reset();
-        model.fetch({ignoreError: true});
+        model.fetch({ ignoreError: true });
         expect(girder.rest.restRequest.callCount).toBe(1);
         expect(girder.rest.restRequest).toHaveBeenCalledWith({
             url: 'sampleResource/' + id,
@@ -106,11 +106,11 @@ describe('Test the model class', function () {
         });
 
         girder.rest.restRequest.reset();
-        model.fetch({data: {param1: 'value1'}});
+        model.fetch({ data: { param1: 'value1' } });
         expect(girder.rest.restRequest.callCount).toBe(1);
         expect(girder.rest.restRequest).toHaveBeenCalledWith({
             url: 'sampleResource/' + id,
-            data: {param1: 'value1'}
+            data: { param1: 'value1' }
         });
 
         girder.rest.restRequest.reset();
@@ -121,7 +121,7 @@ describe('Test the model class', function () {
 
         // test downloadUrl
         expect(model.downloadUrl()).toBe(girder.rest.getApiRoot() + '/sampleResource/' + id + '/download');
-        expect(model.downloadUrl({foo: 'bar'})).toBe(girder.rest.getApiRoot() + '/sampleResource/' + id + '/download?foo=bar');
+        expect(model.downloadUrl({ foo: 'bar' })).toBe(girder.rest.getApiRoot() + '/sampleResource/' + id + '/download?foo=bar');
 
         // test download
         window.location.assign.reset();
@@ -150,7 +150,7 @@ describe('Test the model class', function () {
         });
 
         girder.rest.restRequest.reset();
-        model.destroy({progress: true});
+        model.destroy({ progress: true });
         expect(girder.rest.restRequest.callCount).toBe(1);
         expect(girder.rest.restRequest).toHaveBeenCalledWith({
             url: 'sampleResource/012345678901234567890123?progress=true',
@@ -159,7 +159,7 @@ describe('Test the model class', function () {
         });
 
         girder.rest.restRequest.reset();
-        model.destroy({throwError: false});
+        model.destroy({ throwError: false });
         expect(girder.rest.restRequest.callCount).toBe(1);
         expect(girder.rest.restRequest).toHaveBeenCalledWith({
             url: 'sampleResource/012345678901234567890123',

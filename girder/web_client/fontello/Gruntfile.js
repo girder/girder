@@ -1,7 +1,7 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
     grunt.initConfig({
         clean: [
-            'dist',
+            'dist'
         ],
         fontello: {
             dist: {
@@ -13,12 +13,12 @@ module.exports = function(grunt) {
                         'fontello-codes.css',
                         'fontello-embedded.css',
                         'fontello-ie7.css',
-                        'fontello-ie7-codes.css',
+                        'fontello-ie7-codes.css'
                     ],
                     force: true
                 }
             }
-        },
+        }
     });
 
     grunt.loadNpmTasks('grunt-contrib-clean');

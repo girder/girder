@@ -13,11 +13,11 @@ var ItemBreadcrumbWidget = View.extend({
         'click a.g-item-breadcrumb-link': function (event) {
             var link = $(event.currentTarget);
             router.navigate(link.data('type') + '/' + link.data('id'),
-                {trigger: true});
+                { trigger: true });
         },
         'click a.g-hierarchy-level-up': function () {
             var folder = this.parentChain.pop().object;
-            router.navigate('folder/' + folder._id, {trigger: true});
+            router.navigate('folder/' + folder._id, { trigger: true });
         }
     },
 

@@ -154,7 +154,7 @@ var CollectionView = View.extend({
                         type: 'success',
                         timeout: 4000
                     });
-                    router.navigate('collections', {trigger: true});
+                    router.navigate('collections', { trigger: true });
                 }).destroy();
             }
         };
