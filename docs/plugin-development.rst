@@ -926,11 +926,10 @@ plugin, you can make use of a handy CMake function provided by the core system. 
 
     add_standard_plugin_tests(PACKAGE "girder_cats")
 
-This will automatically run static analysis tools on most parts of your plugin, including the
-server, client, and testing files. Additionally, it will detect and run any tests in the special
-``plugin_tests`` directory of your plugin, provided that server-side tests are named with the suffix
-``_test.py`` (and the directory contains a ``__init__.py`` to make it a Python module) and
-client-side tests are named with the suffix ``Spec.js``. For example:
+This will automatically detect and run any tests in the special ``plugin_tests`` directory of your
+plugin, provided that server-side tests are named with the suffix ``_test.py`` (and the directory
+contains a ``__init__.py`` to make it a Python module) and client-side tests are named with the
+suffix ``Spec.js``. For example:
 
 .. code-block:: bash
 
@@ -983,6 +982,12 @@ the main Girder coverage results.
 .. note:: Only files residing under the plugin's package directory will be included in coverage.
           See :ref:`python-coverage-paths` to change the paths used to generate Python coverage
           reports.
+
+Linting Client-Side Code
+************************
+To perform static analysis and style checking of web client code with the same rules as upstream
+Girder, external plugins may apply the
+`@girder/eslint-config <https://www.npmjs.com/package/@girder/eslint-config>`_ rules.
 
 Testing Client-Side Code
 ************************
@@ -1046,32 +1051,3 @@ file can be loaded at the path:
 .. code-block:: python
 
     os.path.join(os.environ['GIRDER_TEST_DATA_PREFIX'], 'plugins', 'cats', 'test_file.txt')
-
-
-Customizing Static Analysis of Client-Side Code
-***********************************************
-
-Girder uses `ESLint <http://eslint.org/>`_ to perform static analysis of its own JavaScript files.
-If the ``add_standard_plugin_tests`` CMake macro is used, these same tests are run on all
-Javascript code in the ``web_client`` and ``plugin_tests`` directories of a plugin.
-
-Additionally, plugin developers can choose to extend or even entirely override Girder's default
-static analysis rules, using
-`ESLint's built-in configuration cascading <https://eslint.org/docs/user-guide/configuring#configuration-cascading-and-hierarchy>`_
-(which is more fully documented in ESLint):
-
-1. To extend or override some of Girder's default static analysis rules, place an ``.eslintrc.json``
-   file in a directory with or above the target Javascript files.
-2. To completely override all of Girder's default static analysis rules (i.e. disabling
-   cascading), add root ``"root": true`` to an ``.eslintrc.json``.
-3. To natively utilize Girder's default static analysis rules (from
-   `their published location <https://www.npmjs.com/package/eslint-config-girder>`_) within code
-   outside of Girder's ``plugins/`` directory structure, add ``"extends": "girder"`` to an
-   ``.eslintrc.json``. However, this is not strictly necessary for an external Girder plugins that
-   will be installed and tested under Girder's test framework (including the
-   ``add_standard_plugin_tests`` CMake macro).
-
-Finally, Javascript files within plugins' ``web_client/extra/`` directory will automatically
-excluded from ESLint static analysis. To
-`exclude additional Javascript files <https://eslint.org/docs/user-guide/configuring#disabling-rules-with-inline-comments>`_,
-place an ``/* eslint-disable */`` block comment at the top of files to be excluded.
