@@ -1,24 +1,19 @@
-eslint-config-girder
-===================
+# @girder/eslint-config
 
-This repository contains a standalone package for
-[Girder's](https://github.com/girder/girder) ESLint configuration.
-It uses several ESLint plugins that must be installed at the top
-level.  See the `peerDependencies` section of the `package.json`.
+This npm package contains a sharable ESLint config for use with Girder's
+Backbone-based web clients and plugins.
 
-Install
--------
-
+## Usage
+Typically, users of this package should depend on
+`@girder/eslint-config` and its peerDependencies via:
+```bash
+npm install --save-dev @girder/eslint-config eslint@^5 eslint-config-semistandard@^13 eslint-config-standard@^12 eslint-plugin-backbone eslint-plugin-import eslint-plugin-node eslint-plugin-promise eslint-plugin-standard eslint-plugin-underscore
 ```
-npm install --save-dev eslint-config-girder eslint@3.3.1 eslint-config-semistandard@6.0.2 eslint-config-standard@5.3.5 eslint-plugin-backbone@2.0.2 eslint-plugin-promise@2.0.1 eslint-plugin-standard@2.0.0 eslint-plugin-underscore@0.0.10
-```
-
-Usage
------
-
-In `.eslintrc`:
-```json
-{
-  "extends": "girder"
+then add `"extends": "@girder"`
+[to their project's local ESLint config](https://eslint.org/docs/developer-guide/shareable-configs#using-a-shareable-config).
+For example, within `package.json`:
+```javascript
+"eslintConfig": {
+    "extends": "@girder"
 }
 ```
