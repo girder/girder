@@ -19,7 +19,9 @@ events.on('g:appload.after', function () {
             url: 'google_analytics/id'
         }).done((resp) => {
             if (resp.google_analytics_id) {
-                ga('create', resp.google_analytics_id, 'none');
+                if (typeof ga !== 'undefined') {
+                    ga('create', resp.google_analytics_id, 'none');
+                }
             }
         });
     }
@@ -34,6 +36,8 @@ events.on('g:hierarchy.route', function (args) {
     if (!/^\//.test(curRoute)) {
         curRoute = '/' + curRoute;
     }
-    /* global ga:false */
-    ga('send', 'pageview', curRoute);
+    if (typeof ga !== 'undefined') {
+        /* global ga:false */
+        ga('send', 'pageview', curRoute);
+    }
 });
