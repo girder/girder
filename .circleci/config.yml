@@ -184,6 +184,10 @@ jobs:
           paths: npm_cache
           key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
       - run:
+          name: Run Javascript linting
+          command: npm run lint
+          working_directory: girder
+      - run:
           name: Create Girder build directory
           command: mkdir girder_build
       - run:
