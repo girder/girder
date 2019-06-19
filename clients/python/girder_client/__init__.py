@@ -1632,7 +1632,7 @@ class GirderClient(object):
                     # pass that as the parent_type
                     self._uploadFolderRecursive(
                         fullEntry, folder['_id'], 'folder', leafFoldersAsItems, reuseExisting,
-                        dryRun=dryRun, reference=reference)
+                        blacklist=blacklist, dryRun=dryRun, reference=reference)
                 else:
                     self._uploadAsItem(
                         entry, folder['_id'], fullEntry, reuseExisting, dryRun=dryRun,
