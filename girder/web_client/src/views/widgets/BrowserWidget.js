@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import _ from 'underscore';
 
 import HierarchyWidget from '@girder/core/views/widgets/HierarchyWidget';

@@ -91,8 +91,7 @@ module.exports = {
         'underscore/prop-shorthand': ['error', 'always']
     },
     'env': {
-        'browser': true,
-        'jquery': true
+        'browser': true
     },
     'plugins': [
         'backbone',

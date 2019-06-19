@@ -1,3 +1,4 @@
+/* eslint-env jquery */
 /* global _ SwaggerUi SwaggerClient hljs */
 $(function () {
     var apiRoot = $('#g-global-info-apiroot').text().replace(

@@ -71,7 +71,8 @@
                     "moment": true
                 },
                 "env": {
-                    "jasmine": true
+                    "jasmine": true,
+                    "jquery": true
                 }
             }
         ],

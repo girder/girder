@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 import FolderModel from '@girder/core/models/FolderModel';
 import MarkdownWidget from '@girder/core/views/widgets/MarkdownWidget';
 import PluginConfigBreadcrumbWidget from '@girder/core/views/widgets/PluginConfigBreadcrumbWidget';
