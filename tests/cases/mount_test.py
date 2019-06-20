@@ -1,6 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import datetime
 import fuse
 import mock
@@ -12,11 +10,11 @@ import threading
 import time
 
 from girder.cli import mount
-from girder.constants import SettingKey
 from girder.exceptions import ValidationException
 from girder.models.file import File
 from girder.models.setting import Setting
 from girder.models.user import User
+from girder.settings import SettingKey
 from tests import base
 
 
@@ -192,7 +190,7 @@ class ServerFuseTestCase(base.TestCase):
         """
         # Check that the setting for the mount location matches the current
         # mount and a file is reachable where we expect.
-        setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION, None)
+        setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION)
         self.assertEqual(setting['path'], self.mountPath)
         self.assertTrue(os.path.exists(os.path.join(self.mountPath, self.publicFileName)))
         self.assertFalse(os.path.exists(os.path.join(self.extraMountPath, self.publicFileName)))
@@ -201,18 +199,18 @@ class ServerFuseTestCase(base.TestCase):
         # instantly) and files shouldn't be reachable.
         endTime = time.time() + 10  # maximum time to wait
         while time.time() < endTime:
-            setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION, None)
+            setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION)
             if setting is None:
                 break
             time.sleep(0.05)
-        setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION, None)
+        setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION)
         self.assertIsNone(setting)
         self.assertFalse(os.path.exists(os.path.join(self.mountPath, self.publicFileName)))
         self.assertFalse(os.path.exists(os.path.join(self.extraMountPath, self.publicFileName)))
         # Remounting to a different path should update the setting and make
         # files visible again.
         self._mountServer(path=self.extraMountPath)
-        setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION, None)
+        setting = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION)
         self.assertEqual(setting['path'], self.extraMountPath)
         self.assertFalse(os.path.exists(os.path.join(self.mountPath, self.publicFileName)))
         self.assertTrue(os.path.exists(os.path.join(self.extraMountPath, self.publicFileName)))

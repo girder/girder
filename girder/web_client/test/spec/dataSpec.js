@@ -292,7 +292,7 @@ describe('Create a data hierarchy', function () {
          * twice the general upload chunk size.  We do this by artificially
          * changing these chunk sizes to make the test faster.  There is a bug
          * in phantomjs that fails to parse the response headers from the
-         * multipart uploads.  As such, when this is run on the S3 assetstore,
+         * S3 multipart uploads.  As such, when this is run on the S3 assetstore,
          * this test will fail unless phantomjs is run with
          * --web-security=false */
         _setMinimumChunkSize(1024 * 256);

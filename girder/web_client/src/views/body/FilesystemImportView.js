@@ -1,11 +1,11 @@
 import $ from 'jquery';
 
-import BrowserWidget from 'girder/views/widgets/BrowserWidget';
-import router from 'girder/router';
-import View from 'girder/views/View';
-import { restRequest } from 'girder/rest';
+import BrowserWidget from '@girder/core/views/widgets/BrowserWidget';
+import router from '@girder/core/router';
+import View from '@girder/core/views/View';
+import { restRequest } from '@girder/core/rest';
 
-import FilesystemImportTemplate from 'girder/templates/body/filesystemImport.pug';
+import FilesystemImportTemplate from '@girder/core/templates/body/filesystemImport.pug';
 
 var FilesystemImportView = View.extend({
     events: {

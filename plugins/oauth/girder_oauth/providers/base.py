@@ -1,36 +1,18 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import json
 import re
 import requests
 import six
 
-from girder.constants import SettingKey
-from girder.exceptions import RestException
+from girder.exceptions import RestException, ValidationException
 from girder.models.setting import Setting
 from girder.models.user import User
-from girder.utility import config, model_importer
-from ..constants import PluginSettings
+from girder.settings import SettingKey
+
+from ..settings import PluginSettings
 
 
-class ProviderBase(model_importer.ModelImporter):
+class ProviderBase(object):
     _AUTH_SCOPES = []
 
     def __init__(self, redirectUri, clientId=None, clientSecret=None):
@@ -213,7 +195,7 @@ class ProviderBase(model_importer.ModelImporter):
         # If they have a username on the other service, try that
         if userName:
             yield userName
-            userName = re.sub('[\W_]+', '', userName)
+            userName = re.sub(r'[\W_]+', '', userName)
             yield userName
 
             for i in range(1, 6):
@@ -222,7 +204,7 @@ class ProviderBase(model_importer.ModelImporter):
         # Next try to use the prefix from their email address
         prefix = email.split('@')[0]
         yield prefix
-        yield re.sub('[\W_]+', '', prefix)
+        yield re.sub(r'[\W_]+', '', prefix)
 
         # Finally try to use their first and last name
         yield '%s%s' % (firstName, lastName)
@@ -258,10 +240,10 @@ class ProviderBase(model_importer.ModelImporter):
         When attempting to generate a username, use this to test if the given
         name is valid.
         """
-        regex = config.getConfig()['users']['login_regex']
-
-        # Still doesn't match regex, we're hosed
-        if not re.match(regex, login):
+        try:
+            User()._validateLogin(login)
+        except ValidationException:
+            # Still doesn't match regex, we're hosed
             return False
 
         # See if this is already taken.

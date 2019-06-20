@@ -1,39 +1,9 @@
-import jsonschema
-
 from girder import events
-from girder.exceptions import ValidationException
-from girder.utility import setting_utilities
 from girder.models.group import Group
 from girder.models.setting import Setting
 from girder.plugin import GirderPlugin
 
-_autojoinSchema = {
-    'type': 'array',
-    'items': {
-        'type': 'object',
-        'properties': {
-            'pattern': {
-                'type': 'string'
-            },
-            'groupId': {
-                'type': 'string',
-                'minLength': 1
-            },
-            'level': {
-                'type': 'number'
-            }
-        },
-        'required': ['pattern', 'groupId', 'level']
-    }
-}
-
-
-@setting_utilities.validator('autojoin')
-def validateSettings(doc):
-    try:
-        jsonschema.validate(doc['value'], _autojoinSchema)
-    except jsonschema.ValidationError as e:
-        raise ValidationException('Invalid autojoin rules: ' + e.message)
+from .settings import PluginSettings
 
 
 def userCreated(event):
@@ -43,7 +13,7 @@ def userCreated(event):
     """
     user = event.info
     email = user.get('email').lower()
-    rules = Setting().get('autojoin', [])
+    rules = Setting().get(PluginSettings.AUTOJOIN)
     for rule in rules:
         if rule['pattern'].lower() not in email:
             continue

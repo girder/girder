@@ -1,24 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import cherrypy
 
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
-from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, SettingKey
 from girder.models.setting import Setting
+from girder.settings import SettingKey
 from pytest_girder.assertions import assertStatusOk
 from pytest_girder.utils import getResponseBody
 from girder.utility.webroot import WebrootBase
@@ -35,7 +19,7 @@ def testEscapeJavascript():
         'ab\\u0027\\u0022\\u003C\\u003B\\u003E\\u005CYZ'
 
 
-def testAccessWebRoot(server, db):
+def testAccessWebRoot(server):
     """
     Requests the webroot and tests the existence of several
     elements in the returned html
@@ -71,11 +55,8 @@ def testAccessWebRoot(server, db):
     assert '<title>%s</title>' % defaultBrandName in body
 
 
-def testWebRootProperlyHandlesStaticRouteUrls(server, db):
-    Setting().set(SettingKey.ROUTE_TABLE, {
-        GIRDER_ROUTE_ID: '/',
-        GIRDER_STATIC_ROUTE_ID: 'http://my-cdn-url.com/static'
-    })
+def testWebRootProperlyHandlesCustomStaticPublicPath(server):
+    cherrypy.config['server']['static_public_path'] = 'http://my-cdn-url.com/static'
 
     resp = server.request(path='/', method='GET', isJson=False, prefix='')
     assertStatusOk(resp)
@@ -89,6 +70,9 @@ def testWebRootProperlyHandlesStaticRouteUrls(server, db):
     body = getResponseBody(resp)
 
     assert 'href="http://my-cdn-url.com/static/built/Girder_Favicon.png"' in body
+
+    cherrypy.config['server']['static_public_path'] = '/static'
+
 
 def testWebRootTemplateFilename():
     """

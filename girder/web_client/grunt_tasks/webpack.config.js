@@ -1,20 +1,4 @@
 /**
- * Copyright 2015 Kitware Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/**
  * This file contains options that apply to ALL target build configurations. Because we use
  * the DllPlugin for dynamic loading, each individual bundle has its own config options
  * that can extend these.
@@ -24,7 +8,6 @@ var path = require('path');
 var webpack = require('webpack');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-const webSrc = require('./webpack.paths').web_src;
 const nodeModules = require('./webpack.paths').node_modules;
 
 // Resolving the Babel presets here is required to support symlinking plugin directories from
@@ -41,16 +24,13 @@ function fileLoader() {
     };
 }
 
-var loaderPaths = [webSrc];
+var loaderPaths = [path.dirname(require.resolve('@girder/core'))];
 var loaderPathsNodeModules = loaderPaths.concat([nodeModules]);
 
 module.exports = {
     output: {
         // pathinfo: true,  // for debugging
         filename: '[name].min.js'
-        // publicPath must be set to Girder's externally-served static path for built outputs
-        // (typically '/static/built/'). This will be done at runtime with
-        // '__webpack_public_path__', since it's not always known at build-time.
     },
     plugins: [
         // Exclude all of Moment.js's extra locale files except English
@@ -206,8 +186,9 @@ module.exports = {
         extensions: ['.js'],
         symlinks: false,
         alias: {
-            'girder': path.resolve('src'),
-            'jquery': require.resolve('jquery') // ensure that all plugins use the same "jquery"
+            'jquery': require.resolve('jquery'), // ensure that all plugins use the same "jquery"
+            // For some reason, this is necessary to ensure DllPlugin splitting works properly
+            '@girder/core': path.dirname(require.resolve('@girder/core'))
         }
     },
     node: {

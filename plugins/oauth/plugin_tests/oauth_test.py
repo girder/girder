@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2014 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import datetime
 import json
 import re
@@ -26,16 +8,17 @@ import httmock
 import requests
 import six
 
-from girder.constants import SettingKey
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
+from girder.settings import SettingKey
+import girder.events
 from tests import base
 
-from girder_oauth.constants import PluginSettings
 from girder_oauth.providers.base import ProviderBase
 from girder_oauth.providers.google import Google
+from girder_oauth.settings import PluginSettings
 
 
 def setUpModule():
@@ -135,6 +118,74 @@ class OauthTest(base.TestCase):
         self.assertStatusOk(resp)
         # No need to re-fetch and test all of these settings values; they will
         # be implicitly tested later
+
+    def _testOauthEventHandling(self, providerInfo):
+        self.accountType = 'existing'
+
+        def _getCallbackParams(providerInfo, redirect):
+            resp = self.request('/oauth/provider', params={
+                'redirect': redirect,
+                'list': True
+            })
+            providerResp = resp.json[0]
+            resp = requests.get(providerResp['url'], allow_redirects=False)
+            callbackLoc = urllib.parse.urlparse(resp.headers['location'])
+            callbackLocQuery = urllib.parse.parse_qs(callbackLoc.query)
+            callbackParams = {
+                key: val[0] for key, val in six.viewitems(callbackLocQuery)
+            }
+            return callbackParams
+
+        redirect = 'http://localhost/#foo/bar?token={girderToken}'
+
+        class EventHandler(object):
+            def __init__(self):
+                self.state = ''
+
+            def _oauth_before_stop(self, event):
+                self.state = 'been in "before"'
+                event.preventDefault()
+
+            def _oauth_before(self, event):
+                self.state = 'been in "before"'
+
+            def _oauth_after(self, event):
+                self.state = 'been in "after"'
+                event.preventDefault()
+
+        event_handler = EventHandler()
+
+        params = _getCallbackParams(providerInfo, redirect)
+        with girder.events.bound(
+            'oauth.auth_callback.before',
+            'oauth_before',
+            event_handler._oauth_before_stop
+        ), girder.events.bound(
+            'oauth.auth_callback.after',
+            'oauth_after',
+            event_handler._oauth_after
+        ):
+            resp = self.request(
+                '/oauth/%s/callback' % providerInfo['id'], params=params, isJson=False)
+            self.assertStatus(resp, 303)
+            self.assertTrue('girderToken' not in resp.cookie)
+            self.assertEqual(event_handler.state, 'been in "before"')
+
+        params = _getCallbackParams(providerInfo, redirect)
+        with girder.events.bound(
+            'oauth.auth_callback.before',
+            'oauth_before',
+            event_handler._oauth_before
+        ), girder.events.bound(
+            'oauth.auth_callback.after',
+            'oauth_after',
+            event_handler._oauth_after
+        ):
+            resp = self.request(
+                '/oauth/%s/callback' % providerInfo['id'], params=params, isJson=False)
+            self.assertStatus(resp, 303)
+            self.assertTrue('girderToken' not in resp.cookie)
+            self.assertEqual(event_handler.state, 'been in "after"')
 
     def _testOauthTokenAsParam(self, providerInfo):
         self.accountType = 'existing'
@@ -961,6 +1012,7 @@ class OauthTest(base.TestCase):
         ):
             self._testOauth(providerInfo)
             self._testOauthTokenAsParam(providerInfo)
+            self._testOauthEventHandling(providerInfo)
 
     def testLinkedinOauth(self):  # noqa
         providerInfo = {
@@ -1089,7 +1141,7 @@ class OauthTest(base.TestCase):
             })
 
         @httmock.urlmatch(scheme='https', netloc='^api.linkedin.com$',
-                          path='^/v1/people/~(?::\(.+\)?)$', method='GET')
+                          path=r'^/v1/people/~(?::\(.+\)?)$', method='GET')
         def mockLinkedinApi(url, request):
             try:
                 for account in six.viewvalues(providerInfo['accounts']):

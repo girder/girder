@@ -70,7 +70,7 @@ collections:
         items:
           - name: 'Collection Item'
             files:
-            - name: 'Collection File'
-              path: 'mount_test_files/file1a.txt'
-            - name: 'файл коллекции'
-              path: 'mount_test_files/file1a.txt'
+              - name: 'Collection File'
+                path: 'mount_test_files/file1a.txt'
+              - name: 'файл коллекции'
+                path: 'mount_test_files/file1a.txt'

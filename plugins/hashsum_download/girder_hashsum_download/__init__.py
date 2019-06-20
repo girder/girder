@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import hashlib
 import six
 
@@ -28,19 +10,17 @@ from girder.api.rest import (
     filtermodel, setRawResponse, setResponseHeader, setContentDisposition)
 from girder.api.v1.file import File
 from girder.constants import AccessType, TokenScope
-from girder.exceptions import ValidationException, RestException
+from girder.exceptions import RestException
 from girder.models.file import File as FileModel
 from girder.models.setting import Setting
 from girder.plugin import GirderPlugin
-from girder.utility import setting_utilities
 from girder.utility.progress import ProgressContext, noProgress
+
+from .settings import PluginSettings
+
 
 SUPPORTED_ALGORITHMS = {'sha512'}
 _CHUNK_LEN = 65536
-
-
-class PluginSettings(object):
-    AUTO_COMPUTE = 'hashsum_download.auto_compute'
 
 
 class HashedFile(File):
@@ -59,8 +39,7 @@ class HashedFile(File):
         node.route('GET', (':id', 'hashsum_file', ':algo'), self.downloadKeyFile)
         node.route('POST', (':id', 'hashsum'), self.computeHashes)
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @autoDescribeRoute(
         Description('Download the hashsum key file for a given file.')
         .modelParam('id', 'The ID of the file.', model=FileModel, level=AccessType.READ)
@@ -86,8 +65,7 @@ class HashedFile(File):
 
         return keyFileBody
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @autoDescribeRoute(
         Description('Download a file by its hashsum.')
         .param('algo', 'The type of the given hashsum (case insensitive).',
@@ -103,8 +81,7 @@ class HashedFile(File):
 
         return self.download(id=file['_id'], params=params)
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @filtermodel(FileModel)
     @autoDescribeRoute(
         Description('Return a list of files matching a hashsum.')
@@ -177,7 +154,7 @@ def _computeHashHook(event):
     Event hook that computes the file hashes in the background after
     a completed upload. Only done if the AUTO_COMPUTE setting enabled.
     """
-    if Setting().get(PluginSettings.AUTO_COMPUTE, default=False):
+    if Setting().get(PluginSettings.AUTO_COMPUTE):
         _computeHash(event.info['file'])
 
 
@@ -213,12 +190,6 @@ def _computeHash(file, progress=noProgress):
     }, multi=False)
 
     return digests
-
-
-@setting_utilities.validator(PluginSettings.AUTO_COMPUTE)
-def _validateAutoCompute(doc):
-    if not isinstance(doc['value'], bool):
-        raise ValidationException('Auto-compute hash setting must be true or false.')
 
 
 class HashsumDownloadPlugin(GirderPlugin):

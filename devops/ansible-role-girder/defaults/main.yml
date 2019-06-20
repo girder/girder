@@ -1,0 +1,9 @@
+---
+girder_bind_public: false
+girder_daemonize: true
+girder_database_uri: "mongodb://localhost:27017/girder"
+girder_development_mode: false
+girder_package: "girder"
+girder_pip_extra_args: "--pre"  # TODO Remove when Girder3 is released
+girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
+girder_web: true

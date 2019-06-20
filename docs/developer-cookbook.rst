@@ -19,10 +19,9 @@ login process requires the client to make an HTTP ``GET`` request to the
 ``api/v1/user/authentication`` route, using HTTP Basic Auth to pass the user
 credentials. For example, for a user with login "john" and password "hello",
 first base-64 encode the string ``"john:hello"`` which yields ``"am9objpoZWxsbw=="``.
-Then take the base-64 encoded value and pass it via the ``Girder-Authorization``
-header (The ``Authorization`` header will also work): ::
+Then take the base-64 encoded value and pass it via the ``Authorization`` header: ::
 
-    Girder-Authorization: Basic am9objpoZWxsbw==
+    Authorization: Basic am9objpoZWxsbw==
 
 If the username and password are correct, you will receive a 200 status code and
 a JSON document from which you can extract the authentication token, e.g.:
@@ -59,14 +58,14 @@ Upload a file
 ^^^^^^^^^^^^^
 
 If you are using the Girder javascript client library, you can simply call the ``upload``
-method of the ``girder/models/FileModel``. The first argument is the parent model
+method of the ``@girder/core/models/FileModel``. The first argument is the parent model
 object (an ``ItemModel`` or ``FolderModel`` instance) to upload into, and the second
 is a browser ``File`` object that was selected via a file input element. You can
 bind to several events of that model, as in the example below.
 
 .. code-block:: javascript
 
-    import FileModel from 'girder/models/FileModel';
+    import FileModel from '@girder/core/models/FileModel';
 
     var fileModel = new FileModel();
     fileModel.on('g:upload.complete', function () {
@@ -83,7 +82,7 @@ bind to several events of that model, as in the example below.
     fileModel.upload(parentFolder, fileObject);
 
 If you don't feel like making your own upload interface, you can simply use
-the ``girder/views/widgets/UploadWidget`` to provide a nice GUI interface for uploading.
+the ``@girder/core/views/widgets/UploadWidget`` to provide a nice GUI interface for uploading.
 It will prompt the user to drag and drop or browse for files, and then shows
 a current and overall progress bar and also provides controls for resuming a
 failed upload.
@@ -105,7 +104,7 @@ by passing in options like so:
 
 .. code-block:: javascript
 
-    import UploadWidget from 'girder/views/widgets/UploadWidget';
+    import UploadWidget from '@girder/core/views/widgets/UploadWidget';
 
     new UploadWidget({
         option: value,
@@ -557,19 +556,16 @@ browser to a download endpoint that serves its content as an attachment.
 In such cases, you may allow specific REST API routes to authenticate using the
 Cookie. To avoid vulnerabilities to Cross-Site Request Forgery attacks, you
 should only do this if the endpoint is "read-only" (that is, the endpoint does
-not make modifications to data on the server). Accordingly, only routes for
-``HEAD`` and ``GET`` requests allow cookie authentication to be enabled (without
-an additional override).
+not make modifications to data on the server).
 
 In order to allow cookie authentication for your route, simply add the
-``cookie`` decorator to your route handler function. Example:
+``cookie=True`` option to the access decorator on your function. Example:
 
 .. code-block:: python
 
     from girder.api import access
 
-    @access.cookie
-    @access.public
+    @access.public(cookie=True)
     def download(self, params):
         ...
 

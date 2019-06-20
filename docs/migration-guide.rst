@@ -8,12 +8,6 @@ between major versions of Girder. Major version bumps contain breaking changes
 to the Girder core library, which are enumerated in this guide along with
 instructions on how to update your plugin code to work in the newer version.
 
-Existing installations may be upgraded by running ``pip install --upgrade --upgrade-strategy eager girder`` and
-re-running ``girder-install web``. You may need to remove ``node_modules`` directory
-from the installed girder package if you encounter problems while re-running
-``girder-install web``. Note that the prerequisites may have changed in the latest
-version: make sure to review the :doc:`dependencies guide <dependencies>` prior to the upgrade.
-
 2.x |ra| 3.x
 ------------
 
@@ -38,7 +32,7 @@ plugin:
     setup(
         name='example-plugin',            # The name registered on PyPI
         version='1.0.0',
-        description='An example plugin.'  # This text will be displayed on the plugin page
+        description='An example plugin.', # This text will be displayed on the plugin page
         packages=['example_plugin'],
         install_requires=['girder'],      # Add any plugin dependencies here
         entry_points={
@@ -52,9 +46,12 @@ plugin:
     )
 
 * Move your plugin's python source code from the ``server`` directory to the package name defined
-  in your ``setup.py``.
-* Create a ``package.json`` file inside your ``web_client`` directory defining an npm package.  A minimal
-  example is as follows:
+  in your ``setup.py``. In this example, you would move all python files from ``server`` to a new directory
+  named ``example_plugin``.
+* Move your ``web_client`` directory under the directory created in the previous step,
+  which was ``example_plugin`` in the previous step.
+* Create a ``package.json`` file inside your ``web_client`` directory defining an npm package.
+  A minimal example is as follows:
 
   .. code-block:: javascript
 
@@ -62,9 +59,12 @@ plugin:
         "name": "@girder/my-plugin",
         "version": "1.0.0",
         "peerDepencencies": {
-            "@girder/other_plugin": "*"       // Peer dependencies should be as relaxed as possible
+            "@girder/other_plugin": "*",      // Peer dependencies should be as relaxed as possible.
+                                              // Add in any other girder plugins your plugin depends
+                                              // on for web_client code.
                                               // Plugin dependencies should also be listed by entrypoint
                                               // name in "girderPlugin" as shown below.
+            "@girder/core": "*"               // Your plugin will likely depend on girder/core.
         },
         "dependencies": {},                   // Any other dependencies of the client code
         "girderPlugin": {
@@ -75,6 +75,8 @@ plugin:
         }
     }
 
+* Delete the ``plugin.json`` file at the root of your plugin. Move the ``dependencies`` from that file to
+  the top level ``dependencies`` key of the ``package.json`` file created in the previous step.
 * Create a subclass of :py:class:`girder.plugin.GirderPlugin` in your plugin package.  This class
   can be anywhere in your package, but a sensible place to put it is in the top-level ``__init__.py``.
   There are hooks for custom behavior in this class, but at a minimum you should move the old
@@ -97,9 +99,23 @@ plugin:
 .. warning:: The plugin name was removed from the info object.  Where previously used, plugins should
              replace references to ``info['name']`` with a hard-coded string.
 
-* Migrate all imports in python and javascript source files.  The old plugin module paths are no longer
-  valid.  Any reference to ``girder.plugins`` in python or ``girder.plugin`` in javascript should be changed
-  to the actual installed module names.
+* Migrate all imports in Python and Javascript source files.  The old plugin module paths are no longer
+  valid.  Any import reference to:
+
+  * ``girder.plugins`` in Python must be changed to the actual installed module name
+
+    * For example, change ``from girder.plugins.jobs.models.job import Job`` to
+      ``from girder_jobs.models.job import Job``
+
+  * ``girder_plugins`` in Javascript must be changed to the actual installed package name
+
+    * For example, change ``import { JobListWidget } from 'girder_plugins/jobs/views';`` to
+      ``import { JobListWidget } from '@girder/jobs/views';``
+
+  * ``girder`` in Javascript must be changed to ``@girder/core``
+
+    * For example, change ``import { restRequest } from 'girder/rest';`` to
+      ``import { restRequest } from '@girder/core/rest';``
 
 
 Other backwards incompatible changes affecting plugins
@@ -136,8 +152,19 @@ Other backwards incompatible changes affecting plugins
 
     class JobsPlugin(GirderPlugin):
         def load(self, info):
-            ModelImporter.registerModel('job', Job(), 'jobs')
+            ModelImporter.registerModel('job', Job, 'jobs')
 
+* In the web client, ``girder.rest.restRequest`` no longer accepts the deprecated ``path``
+  parameter; callers should use the ``url`` parameter instead. Callers are also encouraged to use
+  the ``method`` parameter instead of ``type``.
+
+* The CMake function `add_standard_plugin_tests` can not detect the python package of your
+  plugin.  It now requires you pass the keyword argument `PACKAGE` with the package name.
+  For example, the jobs plugin ``plugin.cmake`` file contains the following line:
+
+  .. code-block:: cmake
+
+    add_standard_plugin_tests(PACKAGE "girder_jobs")
 
 Client build changes
 ++++++++++++++++++++
@@ -151,12 +178,202 @@ build --dev`` will build a *development* install of Girder's static assets as
 well as building targets only necessary when running testing.
 
 The new build process works by generating a ``package.json`` file in ``girder/web_client``
-from the template (``girder/web_client/package.json.template``).  The generated
-``package.json`` includes all plugin web client dependencies as well as a list of
-npm packages containing web client extensions.  The build process is executed in
-place (in the Girder python package) in both development and production installs.
-The built assets are installed into a virtual environment specific static path
-``{sys.prefix}/share/girder``.
+from the template (``girder/web_client/package.json.template``). The generated ``package.json``
+itself depends on the core web client and all plugin web clients. The build process is executed in
+place (in the Girder Python package) in both development and production installs. The built assets
+are installed into a virtual environment specific static path ``{sys.prefix}/share/girder``.
+
+Static public path is required during web client build
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The static `public path <https://webpack.js.org/guides/public-path/>`_, indicating the base URL
+where web client files are served from, must now be known when the web client is built. Most
+deployments can simply accept the default value of ``/static``, unless serving Girder from a CDN or
+mounting at a subpath using a reverse proxy.
+
+The static public path may be changed via the config file:
+
+.. code-block:: ini
+
+    [server]
+    static_public_path = "/someprefix/static"
+
+If the static public path setting is changed, the web client must be immediately rebuilt.
+
+The static public path setting replaces all previous "static root" functionality. Accordingly:
+
+* The server now serves all static content from ``/static``. The ``GIRDER_STATIC_ROUTE_ID`` constant
+  has been removed.
+* In the server, ``girder.utility.server.getStaticRoot`` has been removed.
+* In the web client, ``girder.rest.staticRoot``, ``girder.rest.getStaticRoot``, and
+  ``girder.rest.setStaticRoot`` have been removed.
+* The ability to set the web client static root / public path via the special element
+  ``<div id="g-global-info-staticroot">`` has been removed
+
+Server changes
+++++++++++++++
+
+The ``GET /user`` API endpoint is only open to logged-in users
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This is a policy change from 2.x, in which this endpoint was publicly accessible. Since user name
+data may be considered sensitive, and many Girder instances have controlled registration policies,
+it made sense to change this access policy.
+
+ModelImporter behavior changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :py:class:`girder.utility.model_importer.ModelImporter` class allows model types to be mapped
+from strings, which is useful when model types must be provided by users via the REST API. In Girder
+2, there was logic to infer automatically where a model class resides without having to explicitly
+register it, but that logic was removed. If your plugin needs to expose a ``Model`` subclass for
+string-based lookup, it must be explicitly registered, e.g.
+
+.. code-block:: python
+
+  class MyModel(Model):
+     ...
+
+  ModelImporter.registerModel('my_plugin_model', MyModel, plugin='my_plugin')
+
+The ``load`` method of your plugin is a good place to register your plugin's models.
+
+In addition to explicitly requiring registration, the API of
+:py:meth:`~girder.utility.model_importer.ModelImporter.registerModel` has also changed. Before, one
+would pass the model *instance*, but now, one passes the model *class*.
+
+.. code-block:: python
+
+   # Girder 2:
+   ModelImporter.registerModel('my_thing', MyThing())
+
+   # Girder 3:
+   ModelImporter.registerModel('my_thing', MyThing)
+
+Additionally, several key base classes in Girder no longer mixin ``ModelImporter``, and mixing it
+in is now generally discouraged. So instead of ``self.model``, just use ``ModelImporter.model`` if
+you must convert a string to a model instance. The following base classes are affected:
+
+* :py:class:`girder.api.rest.Resource`
+* :py:class:`girder.models.model_base.Model`
+* :py:class:`girder.utility.abstract_assetstore_adapter.AbstractAssetstoreAdapter`
+
+Multipart-encoded upload chunk support has been removed
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Prior to version 3, Girder supported ``multipart/form-data`` content type for passing fields into
+the ``POST /file/chunk`` endpoint. This has been deprecated since v2.2, and has been removed. Now,
+the ``uploadId`` and ``offset`` fields should be passed in the query string, and the chunk data
+should be passed as the request body.
+
+Event bindings are now unique by handler name
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In Girder 2, it was possible to bind multiple handler callbacks to the same event with
+the same handler name. This has changed in Girder 3; for any given event identifier, each callback
+must be bound to it with a unique handler name. Example:
+
+.. code-block:: python
+
+    def cb(event):
+       print('hello')
+
+    for _ in range(5):
+      events.bind('an_event', 'my_handler', cb)
+
+    # Prints 'hello' five times in Girder 2, but only once in Girder 3
+    events.trigger('an_event')
+
+In the new behavior, a call to ``bind`` with the same event name and handler name as an existing
+handler will be ignored, and will emit a warning to the log. If you wish to overwrite the existing
+handler, you must call :py:func:`girder.events.unbind` on the existing mapping first.
+
+.. code-block:: python
+
+    def a(event):
+      print('a')
+
+    def b(event):
+      print('b')
+
+    events.bind('an_event', 'my_handler', a)
+    events.bind('an_event', 'my_handler', b)
+
+    # Prints 'a' and 'b' in Girder 2, but only 'a' in Girder 3
+    events.trigger('an_event')
+
+Async keyword arguments and properties changed to async\_ PR #2817
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In version 3.7 of python ``async`` is a `reserved keyword argument <https://www.python.org/dev/peps/pep-0492/#deprecation-plans/>`_.
+To mitigate any issues all instances of ``async`` in the codebase have changed to ``asynchronous``.
+This affects:
+
+ * The event framework ``girder/events.py``
+ * The built-in job plugin ``plugins/jobs/girder_jobs/models/job.py``
+
+The cookie access decorator has been removed
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``@access.cookie`` decorator has been removed.  To allow cookie authentication on an endpoint, include ``cookie=True`` as a parameter to one of the other access decorators (e.g., ``@access.user(cookie=True)``).
+
+Storing girder.local.cfg inside the package directory is no longer supported
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+In order to facilitate the ability to upgrade Girder using ``pip``, the user configuration file
+can no longer be stored inside the package directory since it would be deleted on upgrade. Users must
+now store their configuration in one of the approved locations, or use ``GIRDER_CONFIG`` to specify
+the exact location. See :ref:`the configuration documentation <configuration>` for more details.
+
+Invoking Girder and Girder Client with python -m is no longer supported
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using ``python -m girder`` and ``python -m girder-cli`` was deprecated in Girder 2.5 and is no longer supported.
+Users are expected to have the appropriate packages installed and then use ``girder serve`` and ``girder-client``
+respectively.
+
+Removed insecure sha512 password hashing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The ``core.hash_alg`` and ``core.bcrypt_rounds`` configuration parameters were also removed.
+Password hashing now always occurs with 12-round bcrypt. Please reach out to us on Discourse if you
+have existing databases with sha512 passwords or believe you need to configure bcrypt to use
+additional rounds.
+
+Core setting constants now reside in settings.py
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The ``SettingKey`` and ``SettingDefault`` classes (which contain constants for core settings) must
+now be imported from the ``girder.settings`` module.
+
+.. code-block:: python
+
+    from girder.settings import SettingDefault, SettingKey
+
+
+Removed or moved plugins
+++++++++++++++++++++++++
+
+Many plugins were either deleted from the main repository, or moved to other repositories. Plugins
+are no longer installable via a ``[plugins]`` extra when installing the ``girder`` Python package;
+rather, all are installed by ``pip install girder-[plugin_name]``. If you were depending on a plugin
+that was deleted altogether, please reach out to us on Discourse for discussion of a path forward.
+
+The following plugins were **deleted**:
+
+* celery_jobs
+* item_previews
+* jquery_widgets
+* metadata_extractor
+* mongo_search
+* provenance
+* treeview
+* vega
+
+The following plugins were **moved to different repositories**:
+
+* `candela <https://github.com/kitware/candela>`_
+* `curation (renamed to publication_approval) <https://github.com/girder/girder-publication-approval>`_
+* `geospatial <https://github.com/OpenGeoscience/girder_geospatial>`_
+* `hdfs_assetstore <https://github.com/girder/girder-hdfs-assetstore>`_
+* `item_tasks <https://github.com/girder/girder-item-tasks>`_
+* `table_view <https://github.com/girder/girder-table-view>`_
+* `worker <https://github.com/girder/girder_worker>`_
 
 1.x |ra| 2.x
 ------------
@@ -197,8 +414,9 @@ Server changes
     * All of the methods in ``girder.utility.plugin_utilities`` no longer accept a ``curConfig``
       argument since the configuration is no longer read.
 
-* The ``girder.utility.sha512_state`` module has been removed. All of its symbols had been deprecated
-  and replaced by corresponding ones in ``girder.utility.hash_state``.
+* The ``girder.utility.sha512_state`` module has been removed.
+* The ``girder.utility.hash_state`` module has been made private. It should not be used downstream.
+
 
 Web client changes
 ++++++++++++++++++

@@ -1,9 +1,9 @@
 import $ from 'jquery';
 
-import router from 'girder/router';
-import View from 'girder/views/View';
+import router from '@girder/core/router';
+import View from '@girder/core/views/View';
 
-import ItemBreadcrumbTemplate from 'girder/templates/widgets/itemBreadcrumb.pug';
+import ItemBreadcrumbTemplate from '@girder/core/templates/widgets/itemBreadcrumb.pug';
 
 /**
  * Renders the a breadcrumb for the item page

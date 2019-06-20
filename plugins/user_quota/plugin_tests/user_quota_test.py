@@ -1,37 +1,20 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2015 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import datetime
 import json
 import os
 
 from tests import base
-from girder.constants import AssetstoreType, SettingKey
+from girder.constants import AssetstoreType
 from girder.exceptions import ValidationException
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.setting import Setting
 from girder.models.user import User
+from girder.settings import SettingKey
 from girder.utility.system import formatSize
 
-from girder_user_quota import constants
+from girder_user_quota.settings import PluginSettings
 
 
 def setUpModule():
@@ -87,8 +70,8 @@ class QuotaTestCase(base.TestCase):
         :param size: size of the file to upload
         :param error: if set, expect this error.
         :param partial: if set, return before uploading the data.  This returns
-                        a kwargs for multipartRequest so that the caller can
-                        finishe the upload later.
+                        a kwargs for self.request so that the caller can
+                        finish the upload later.
         :returns: file: the created file object
         """
         if parentType != 'file':
@@ -122,24 +105,30 @@ class QuotaTestCase(base.TestCase):
         contents = os.urandom(size)
         self.assertStatusOk(resp)
         upload = resp.json
-        fields = [('offset', 0), ('uploadId', upload['_id'])]
-        if not partial:
-            files = [('chunk', name, contents)]
+        if partial:
+            body = contents[:-1]
         else:
-            files = [('chunk', name, contents[:-1])]
-        resp = self.multipartRequest(path='/file/chunk', user=self.admin,
-                                     fields=fields, files=files)
+            body = contents
+
+        resp = self.request(path='/file/chunk', method='POST', user=self.admin, body=body, params={
+            'uploadId': upload['_id']
+        }, type='application/octet-stream')
         self.assertStatusOk(resp)
         if partial:
-            fields = [('offset', len(contents)-1), ('uploadId', upload['_id'])]
-            files = [('chunk', name, contents[-1:])]
-            kwargs = {'path': '/file/chunk', 'user': self.admin,
-                      'fields': fields, 'files': files}
-            return kwargs
+            return {
+                'path': '/file/chunk',
+                'method': 'POST',
+                'user': self.admin,
+                'body': contents[-1:],
+                'type': 'application/octet-stream',
+                'params': {
+                    'offset': len(contents) - 1,
+                    'uploadId': upload['_id']
+                }
+            }
         return resp.json
 
-    def _setPolicy(self, policy, model, resource, user, error=None,
-                   results=None):
+    def _setPolicy(self, policy, model, resource, user, error=None, results=None):
         """
         Set the quota or assetstore policy and check that it was set.
 
@@ -186,9 +175,9 @@ class QuotaTestCase(base.TestCase):
         :param error: if set, this is a substring expected in an error message.
         """
         if model == 'user':
-            key = constants.PluginSettings.QUOTA_DEFAULT_USER_QUOTA
+            key = PluginSettings.DEFAULT_USER_QUOTA
         elif model == 'collection':
-            key = constants.PluginSettings.QUOTA_DEFAULT_COLLECTION_QUOTA
+            key = PluginSettings.DEFAULT_COLLECTION_QUOTA
         try:
             Setting().set(key, value)
         except ValidationException as err:
@@ -197,7 +186,7 @@ class QuotaTestCase(base.TestCase):
             if error not in err.args[0]:
                 raise
             return
-        if testVal is not '__NOCHECK__':
+        if testVal != '__NOCHECK__':
             newVal = Setting().get(key)
             self.assertEqual(newVal, testVal)
 
@@ -286,10 +275,10 @@ class QuotaTestCase(base.TestCase):
                                        partial=True)
         file2kwargs = self._uploadFile('Second partial', folder, size=768,
                                        partial=True)
-        resp = self.multipartRequest(**file1kwargs)
+        resp = self.request(**file1kwargs)
         self.assertStatusOk(resp)
         try:
-            resp = self.multipartRequest(**file2kwargs)
+            resp = self.request(**file2kwargs)
             self.assertStatus(resp, 400)
         except AssertionError as exc:
             self.assertTrue('Upload exceeded' in exc.args[0])

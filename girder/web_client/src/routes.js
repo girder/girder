@@ -1,15 +1,15 @@
 /* eslint-disable import/first */
 
-import router from 'girder/router';
-import events from 'girder/events';
-import eventStream from 'girder/utilities/EventStream';
-import { getCurrentUser, setCurrentUser } from 'girder/auth';
-import { restRequest } from 'girder/rest';
+import router from '@girder/core/router';
+import events from '@girder/core/events';
+import eventStream from '@girder/core/utilities/EventStream';
+import { getCurrentUser, setCurrentUser } from '@girder/core/auth';
+import { restRequest } from '@girder/core/rest';
 
 /**
  * Admin
  */
-import AdminView from 'girder/views/body/AdminView';
+import AdminView from '@girder/core/views/body/AdminView';
 router.route('admin', 'admin', function () {
     events.trigger('g:navigateTo', AdminView);
 });
@@ -17,7 +17,7 @@ router.route('admin', 'admin', function () {
 /**
  * Assetstores
  */
-import AssetstoresView from 'girder/views/body/AssetstoresView';
+import AssetstoresView from '@girder/core/views/body/AssetstoresView';
 router.route('assetstores', 'assetstores', function (params) {
     events.trigger('g:navigateTo', AssetstoresView, {
         assetstoreEdit: params.dialog === 'assetstoreedit' ? params.dialogid : false
@@ -30,7 +30,7 @@ router.route('assetstore/:id/import', 'assetstoreImport', function (assetstoreId
 /**
  * Collections
  */
-import CollectionsView from 'girder/views/body/CollectionsView';
+import CollectionsView from '@girder/core/views/body/CollectionsView';
 router.route('collections', 'collections', function (params) {
     events.trigger('g:navigateTo', CollectionsView, params || {});
     events.trigger('g:highlightItem', 'CollectionsView');
@@ -39,7 +39,7 @@ router.route('collections', 'collections', function (params) {
 /**
  * Collection
  */
-import CollectionView from 'girder/views/body/CollectionView';
+import CollectionView from '@girder/core/views/body/CollectionView';
 router.route('collection/:id', 'collectionAccess', function (cid, params) {
     CollectionView.fetchAndInit(cid, {
         access: params.dialog === 'access',
@@ -64,7 +64,7 @@ router.route('collection/:id/folder/:id', 'collectionFolder', function (cid, fol
 /**
  * Folder
  */
-import FolderView from 'girder/views/body/FolderView';
+import FolderView from '@girder/core/views/body/FolderView';
 router.route('folder/:id', 'folder', function (id, params) {
     FolderView.fetchAndInit(id, {
         upload: params.dialog === 'upload',
@@ -78,7 +78,7 @@ router.route('folder/:id', 'folder', function (id, params) {
 /**
  * FrontPage
  */
-import FrontPageView from 'girder/views/body/FrontPageView';
+import FrontPageView from '@girder/core/views/body/FrontPageView';
 router.route('', 'index', function () {
     events.trigger('g:navigateTo', FrontPageView);
 });
@@ -86,7 +86,7 @@ router.route('', 'index', function () {
 /**
  * Groups
  */
-import GroupsView from 'girder/views/body/GroupsView';
+import GroupsView from '@girder/core/views/body/GroupsView';
 router.route('groups', 'groups', function (params) {
     events.trigger('g:navigateTo', GroupsView, params || {});
     events.trigger('g:highlightItem', 'GroupsView');
@@ -95,7 +95,7 @@ router.route('groups', 'groups', function (params) {
 /**
  * Group
  */
-import GroupView from 'girder/views/body/GroupView';
+import GroupView from '@girder/core/views/body/GroupView';
 router.route('group/:id', 'groupView', function (groupId, params) {
     GroupView.fetchAndInit(groupId, {
         edit: params.dialog === 'edit'
@@ -111,7 +111,7 @@ router.route('group/:id/:tab', 'groupView', function (groupId, tab, params) {
 /**
  * Item
  */
-import ItemView from 'girder/views/body/ItemView';
+import ItemView from '@girder/core/views/body/ItemView';
 router.route('item/:id', 'item', function (itemId, params) {
     ItemView.fetchAndInit(itemId, {
         edit: params.dialog === 'itemedit',
@@ -123,8 +123,8 @@ router.route('item/:id', 'item', function (itemId, params) {
 /**
  * Plugins
  */
-import PluginsView from 'girder/views/body/PluginsView';
-import UsersView from 'girder/views/body/UsersView';
+import PluginsView from '@girder/core/views/body/PluginsView';
+import UsersView from '@girder/core/views/body/UsersView';
 router.route('plugins', 'plugins', function () {
     events.trigger('g:navigateTo', PluginsView);
 });
@@ -132,7 +132,7 @@ router.route('plugins', 'plugins', function () {
 /**
  * SystemConfiguration
  */
-import SystemConfigurationView from 'girder/views/body/SystemConfigurationView';
+import SystemConfigurationView from '@girder/core/views/body/SystemConfigurationView';
 router.route('settings', 'settings', function () {
     events.trigger('g:navigateTo', SystemConfigurationView);
 });
@@ -140,8 +140,8 @@ router.route('settings', 'settings', function () {
 /**
  * UserAccount
  */
-import UserAccountView from 'girder/views/body/UserAccountView';
-import UserModel from 'girder/models/UserModel';
+import UserAccountView from '@girder/core/views/body/UserAccountView';
+import UserModel from '@girder/core/models/UserModel';
 router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
     UserAccountView.fetchAndInit(id, tab);
 });
@@ -154,7 +154,7 @@ router.route('useraccount/:id/token/:token', 'accountToken', function (id, token
                 temporary: token
             });
         }).fail(() => {
-            router.navigate('users', {trigger: true});
+            router.navigate('', {trigger: true});
         });
 });
 
@@ -201,7 +201,7 @@ router.route('users', 'users', function (params) {
 /**
  * User
  */
-import UserView from 'girder/views/body/UserView';
+import UserView from '@girder/core/views/body/UserView';
 router.route('user/:id', 'user', function (userId, params) {
     UserView.fetchAndInit(userId, {
         folderCreate: params.dialog === 'foldercreate',
@@ -222,7 +222,7 @@ router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId, pa
 /**
  * SearchResults
  */
-import SearchResultsView from 'girder/views/body/SearchResultsView';
+import SearchResultsView from '@girder/core/views/body/SearchResultsView';
 router.route('search/results', 'SearchResults', function (params) {
     events.trigger('g:navigateTo', SearchResultsView, {
         query: params.query,

@@ -1,19 +1,19 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import ApiKeyListWidget from 'girder/views/widgets/ApiKeyListWidget';
-import UserOtpManagementWidget from 'girder/views/widgets/UserOtpManagementWidget';
-import router from 'girder/router';
-import UserModel from 'girder/models/UserModel';
-import View from 'girder/views/View';
-import { AccessType } from 'girder/constants';
-import events from 'girder/events';
-import { getCurrentUser } from 'girder/auth';
-import { cancelRestRequests } from 'girder/rest';
+import ApiKeyListWidget from '@girder/core/views/widgets/ApiKeyListWidget';
+import UserOtpManagementWidget from '@girder/core/views/widgets/UserOtpManagementWidget';
+import router from '@girder/core/router';
+import UserModel from '@girder/core/models/UserModel';
+import View from '@girder/core/views/View';
+import { AccessType } from '@girder/core/constants';
+import events from '@girder/core/events';
+import { getCurrentUser } from '@girder/core/auth';
+import { cancelRestRequests } from '@girder/core/rest';
 
-import UserAccountTemplate from 'girder/templates/body/userAccount.pug';
+import UserAccountTemplate from '@girder/core/templates/body/userAccount.pug';
 
-import 'girder/stylesheets/body/userAccount.styl';
+import '@girder/core/stylesheets/body/userAccount.styl';
 
 import 'bootstrap/js/tab';
 
@@ -104,7 +104,7 @@ var UserAccountView = View.extend({
         this.temporary = settings.temporary;
 
         if (!this.user || this.user.getAccessLevel() < AccessType.WRITE) {
-            router.navigate('users', {trigger: true});
+            router.navigate('', {trigger: true});
             return;
         }
 
@@ -125,7 +125,7 @@ var UserAccountView = View.extend({
 
     render: function () {
         if (getCurrentUser() === null) {
-            router.navigate('users', {trigger: true});
+            router.navigate('', {trigger: true});
             return;
         }
 
@@ -171,7 +171,7 @@ var UserAccountView = View.extend({
                 tab: tab
             });
         }, this).on('g:error', function () {
-            router.navigate('users', {trigger: true});
+            router.navigate('', {trigger: true});
         }, this).fetch();
     }
 });

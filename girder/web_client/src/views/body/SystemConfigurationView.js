@@ -1,16 +1,15 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import AccessWidget from 'girder/views/widgets/AccessWidget';
-import View from 'girder/views/View';
-import events from 'girder/events';
-import { restRequest, cancelRestRequests } from 'girder/rest';
-import { restartServerPrompt } from 'girder/server';
-import CollectionCreationPolicyModel from 'girder/models/CollectionCreationPolicyModel';
+import AccessWidget from '@girder/core/views/widgets/AccessWidget';
+import View from '@girder/core/views/View';
+import events from '@girder/core/events';
+import { restRequest, cancelRestRequests } from '@girder/core/rest';
+import CollectionCreationPolicyModel from '@girder/core/models/CollectionCreationPolicyModel';
 
-import SystemConfigurationTemplate from 'girder/templates/body/systemConfiguration.pug';
+import SystemConfigurationTemplate from '@girder/core/templates/body/systemConfiguration.pug';
 
-import 'girder/stylesheets/body/systemConfig.styl';
+import '@girder/core/stylesheets/body/systemConfig.styl';
 
 import 'bootstrap/js/collapse';
 import 'bootstrap/js/transition';
@@ -78,7 +77,6 @@ var SystemConfigurationView = View.extend({
                 this.$('#g-settings-error-message').text(resp.responseJSON.message);
             });
         },
-        'click #g-restart-server': restartServerPrompt,
         'click #g-core-banner-default-color': function () {
             this.$('#g-core-banner-color').val(this.defaults['core.banner_color']);
         }
@@ -120,32 +118,20 @@ var SystemConfigurationView = View.extend({
             url: 'system/setting',
             method: 'GET',
             data: {
-                list: JSON.stringify(keys),
-                default: 'none'
+                list: JSON.stringify(keys)
             }
         }).done((resp) => {
             this.settings = resp;
-            restRequest({
-                url: 'system/setting',
-                method: 'GET',
-                data: {
-                    list: JSON.stringify(keys),
-                    default: 'default'
-                }
-            }).done((resp) => {
-                this.defaults = resp;
-                this.render();
-            });
+            this.render();
         });
     },
 
     render: function () {
         this.$el.html(SystemConfigurationTemplate({
             settings: this.settings,
-            defaults: this.defaults,
-            routes: this.settings['core.route_table'] || this.defaults['core.route_table'],
+            routes: this.settings['core.route_table'],
             routeKeys: _.sortBy(
-                _.keys(this.settings['core.route_table'] || this.defaults['core.route_table']),
+                _.keys(this.settings['core.route_table']),
                 (a) => a.indexOf('core_') === 0 ? -1 : 0
             ),
             JSON: window.JSON
@@ -153,7 +139,7 @@ var SystemConfigurationView = View.extend({
 
         var enableCollectionCreationPolicy = this.settings['core.collection_create_policy'] ? this.settings['core.collection_create_policy'].open : false;
 
-        this.$('.g-plugin-switch')
+        this.$('.g-setting-switch')
             .bootstrapSwitch()
             .bootstrapSwitch('state', enableCollectionCreationPolicy)
             .off('switchChange.bootstrapSwitch')
@@ -193,14 +179,14 @@ var SystemConfigurationView = View.extend({
     _covertCollectionCreationPolicy: function () {
         // get collection creation policy from AccessWidget and format the result properly
         var settingValue = null;
-        if (this.$('.g-plugin-switch').bootstrapSwitch('state')) {
-            settingValue = { open: this.$('.g-plugin-switch').bootstrapSwitch('state') };
+        if (this.$('.g-setting-switch').bootstrapSwitch('state')) {
+            settingValue = { open: this.$('.g-setting-switch').bootstrapSwitch('state') };
             var accessList = this.accessWidget.getAccessList();
             _.each(_.keys(accessList), (key) => {
                 settingValue[key] = _.pluck(accessList[key], 'id');
             });
         } else {
-            settingValue = this.settings['core.collection_create_policy'] || this.defaults['core.collection_create_policy'];
+            settingValue = this.settings['core.collection_create_policy'];
             settingValue['open'] = false;
         }
         return settingValue;

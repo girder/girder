@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 """This module contains utility methods for parsing girder path strings."""
 
 import re
@@ -49,7 +31,7 @@ def decode(token):
     :return: The decoded string
     :rtype: str
     """
-    return token.replace('\/', '/').replace('\\\\', '\\')
+    return token.replace(r'\/', '/').replace('\\\\', '\\')
 
 
 def split(path):
@@ -124,16 +106,12 @@ def lookUpToken(token, parentType, parent):
         parentType, parent.get('name', parent.get('_id')), token))
 
 
-def lookUpPath(path, user=None, test=False, filter=True, force=False):
+def lookUpPath(path, user=None, filter=True, force=False):
     """
     Look up a resource in the data hierarchy by path.
 
     :param path: path of the resource
     :param user: user with correct privileges to access path
-    :param test: defaults to false, when set to true
-        will return None instead of throwing exception when
-        path doesn't exist
-    :type test: bool
     :param filter: Whether the returned model should be filtered.
     :type filter: bool
     :param force: if True, don't validate the access.
@@ -148,26 +126,14 @@ def lookUpPath(path, user=None, test=False, filter=True, force=False):
         parent = User().findOne({'login': username})
 
         if parent is None:
-            if test:
-                return {
-                    'model': None,
-                    'document': None
-                }
-            else:
-                raise ResourcePathNotFound('User not found: %s' % username)
+            raise ResourcePathNotFound('User not found: %s' % username)
 
     elif model == 'collection':
         collectionName = pathArray[1]
         parent = Collection().findOne({'name': collectionName})
 
         if parent is None:
-            if test:
-                return {
-                    'model': None,
-                    'document': None
-                }
-            else:
-                raise ResourcePathNotFound('Collection not found: %s' % collectionName)
+            raise ResourcePathNotFound('Collection not found: %s' % collectionName)
 
     else:
         raise ValidationException('Invalid path format')
@@ -184,13 +150,7 @@ def lookUpPath(path, user=None, test=False, filter=True, force=False):
         # We should not distinguish the response between access and validation errors so that
         # adversarial users cannot discover the existence of data they don't have access to by
         # looking up a path.
-        if test:
-            return {
-                'model': None,
-                'document': None
-            }
-        else:
-            raise ResourcePathNotFound('Path not found: %s' % path)
+        raise ResourcePathNotFound('Path not found: %s' % path)
 
     if filter:
         document = ModelImporter.model(model).filter(document, user)

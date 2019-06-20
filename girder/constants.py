@@ -1,28 +1,11 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 """
 Constants should be defined here.
 """
 import os
-import json
 import sys
+
+import girder
 
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(PACKAGE_DIR)
@@ -33,26 +16,14 @@ ACCESS_FLAGS = {}
 
 # Identifier for Girder's entry in the route table
 GIRDER_ROUTE_ID = 'core_girder'
-GIRDER_STATIC_ROUTE_ID = 'core_static_root'
 
 # Threshold below which text search results will be sorted by their text score.
 # Setting this too high causes mongodb to use too many resources for searches
 # that yield lots of results.
 TEXT_SCORE_SORT_MAX = 200
-
-# Get the version information
-VERSION = {  # Set defaults in case girder-version.json doesn't exist
-    'git': False,
-    'SHA': None,
-    'shortSHA': None,
-    'apiVersion': None,
-    'date': None
+VERSION = {
+    'release': girder.__version__
 }
-try:
-    with open(os.path.join(PACKAGE_DIR, 'girder-version.json')) as f:
-        VERSION.update(json.load(f))
-except IOError:
-    pass
 
 #: The local directory containing the static content.
 STATIC_PREFIX = os.path.join(sys.prefix, 'share', 'girder')
@@ -152,82 +123,6 @@ class AccessType(object):
             raise ValueError('Invalid AccessType: %d.' % level)
 
 
-class SettingKey(object):
-    """
-    Core settings should be enumerated here by a set of constants corresponding
-    to sensible strings.
-    """
-    ADD_TO_GROUP_POLICY = 'core.add_to_group_policy'
-    API_KEYS = 'core.api_keys'
-    BANNER_COLOR = 'core.banner_color'
-    BRAND_NAME = 'core.brand_name'
-    COLLECTION_CREATE_POLICY = 'core.collection_create_policy'
-    PRIVACY_NOTICE = 'core.privacy_notice'
-    CONTACT_EMAIL_ADDRESS = 'core.contact_email_address'
-    COOKIE_LIFETIME = 'core.cookie_lifetime'
-    CORS_ALLOW_HEADERS = 'core.cors.allow_headers'
-    CORS_ALLOW_METHODS = 'core.cors.allow_methods'
-    CORS_ALLOW_ORIGIN = 'core.cors.allow_origin'
-    EMAIL_FROM_ADDRESS = 'core.email_from_address'
-    EMAIL_HOST = 'core.email_host'
-    EMAIL_VERIFICATION = 'core.email_verification'
-    ENABLE_PASSWORD_LOGIN = 'core.enable_password_login'
-    GIRDER_MOUNT_INFORMATION = 'core.girder_mount_information'
-    ENABLE_NOTIFICATION_STREAM = 'core.enable_notification_stream'
-    PLUGINS_ENABLED = 'core.plugins_enabled'
-    REGISTRATION_POLICY = 'core.registration_policy'
-    ROUTE_TABLE = 'core.route_table'
-    SECURE_COOKIE = 'core.secure_cookie'
-    SERVER_ROOT = 'core.server_root'
-    SMTP_ENCRYPTION = 'core.smtp.encryption'
-    SMTP_HOST = 'core.smtp_host'
-    SMTP_PASSWORD = 'core.smtp.password'
-    SMTP_PORT = 'core.smtp.port'
-    SMTP_USERNAME = 'core.smtp.username'
-    UPLOAD_MINIMUM_CHUNK_SIZE = 'core.upload_minimum_chunk_size'
-    USER_DEFAULT_FOLDERS = 'core.user_default_folders'
-
-
-class SettingDefault(object):
-    """
-    Core settings that have a default should be enumerated here with the
-    SettingKey.
-    """
-    defaults = {
-        SettingKey.ADD_TO_GROUP_POLICY: 'never',
-        SettingKey.API_KEYS: True,
-        SettingKey.BANNER_COLOR: '#3F3B3B',
-        SettingKey.BRAND_NAME: 'Girder',
-        SettingKey.COLLECTION_CREATE_POLICY: {
-            'open': False,
-            'groups': [],
-            'users': []
-        },
-        SettingKey.CONTACT_EMAIL_ADDRESS: 'kitware@kitware.com',
-        SettingKey.PRIVACY_NOTICE: 'https://www.kitware.com/privacy',
-        SettingKey.COOKIE_LIFETIME: 180,
-        # These headers are necessary to allow the web server to work with just
-        # changes to the CORS origin
-        SettingKey.CORS_ALLOW_HEADERS:
-            'Accept-Encoding, Authorization, Content-Disposition, '
-            'Content-Type, Cookie, Girder-Authorization, Girder-OTP, Girder-Token',
-        # An apache server using reverse proxy would also need
-        #  X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
-        #  X-Forwarded-Host, Remote-Addr
-        SettingKey.EMAIL_VERIFICATION: 'disabled',
-        SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',
-        SettingKey.ENABLE_PASSWORD_LOGIN: True,
-        SettingKey.ENABLE_NOTIFICATION_STREAM: True,
-        SettingKey.PLUGINS_ENABLED: [],
-        SettingKey.REGISTRATION_POLICY: 'open',
-        SettingKey.SMTP_HOST: 'localhost',
-        SettingKey.SMTP_PORT: 25,
-        SettingKey.SMTP_ENCRYPTION: 'none',
-        SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE: 1024 * 1024 * 5,
-        SettingKey.USER_DEFAULT_FOLDERS: 'public_private'
-    }
-
-
 class SortDir(object):
     ASCENDING = 1
     DESCENDING = -1
@@ -243,7 +138,7 @@ class TokenScope(object):
     USER_AUTH = 'core.user_auth'
     TEMPORARY_USER_AUTH = 'core.user_auth.temporary'
     EMAIL_VERIFICATION = 'core.email_verification'
-    PLUGINS_ENABLED_READ = 'core.plugins.read'
+    PLUGINS_READ = 'core.plugins.read'
     SETTINGS_READ = 'core.setting.read'
     ASSETSTORES_READ = 'core.assetstore.read'
     PARTIAL_UPLOAD_READ = 'core.partial_upload.read'
@@ -316,8 +211,8 @@ TokenScope.describeScope(
 )
 
 TokenScope.describeScope(
-    TokenScope.PLUGINS_ENABLED_READ, 'See enabled plugins', 'Allows clients '
-    'to see the list of plugins enabled on the server.', admin=True)
+    TokenScope.PLUGINS_READ, 'See installed plugins', 'Allows clients '
+    'to see the list of plugins installed on the server.', admin=True)
 TokenScope.describeScope(
     TokenScope.SETTINGS_READ, 'See system setting values', 'Allows clients to '
     'view the value of any system setting.', admin=True)

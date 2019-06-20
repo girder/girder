@@ -4,15 +4,15 @@ import _ from 'underscore';
 import 'bootstrap/js/tooltip';
 import 'bootstrap/js/popover';
 
-import View from 'girder/views/View';
-import { restRequest } from 'girder/rest';
-import router from 'girder/router';
+import View from '@girder/core/views/View';
+import { restRequest } from '@girder/core/rest';
+import router from '@girder/core/router';
 
-import SearchFieldTemplate from 'girder/templates/widgets/searchField.pug';
-import SearchHelpTemplate from 'girder/templates/widgets/searchHelp.pug';
-import SearchModeSelectTemplate from 'girder/templates/widgets/searchModeSelect.pug';
-import SearchResultsTemplate from 'girder/templates/widgets/searchResults.pug';
-import 'girder/stylesheets/widgets/searchFieldWidget.styl';
+import SearchFieldTemplate from '@girder/core/templates/widgets/searchField.pug';
+import SearchHelpTemplate from '@girder/core/templates/widgets/searchHelp.pug';
+import SearchModeSelectTemplate from '@girder/core/templates/widgets/searchModeSelect.pug';
+import SearchResultsTemplate from '@girder/core/templates/widgets/searchResults.pug';
+import '@girder/core/stylesheets/widgets/searchFieldWidget.styl';
 
 /**
  * This widget provides a text field that will search any set of data types

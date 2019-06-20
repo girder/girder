@@ -28,7 +28,7 @@ describe('Test the swagger pages', function () {
             $('#system_system_getVersion .sandbox_header input.submit').click();
         });
         waitsFor(function () {
-            return $('#system_system_getVersion .response_body.json').text().indexOf('apiVersion') >= 0;
+            return $('#system_system_getVersion .response_body.json').text().indexOf('release') >= 0;
         }, 'version information was returned');
     });
 });

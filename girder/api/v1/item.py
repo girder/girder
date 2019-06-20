@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.utility import ziputil
@@ -234,8 +216,7 @@ class Item(Resource):
     def getFiles(self, item, limit, offset, sort):
         return self._model.childFiles(item=item, limit=limit, offset=offset, sort=sort)
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @autoDescribeRoute(
         Description('Download the contents of an item.')
         .modelParam('id', model=ItemModel, level=AccessType.READ)
@@ -301,7 +282,7 @@ class Item(Resource):
         .responseClass('Item')
         .modelParam('id', 'The ID of the original item.', model=ItemModel, level=AccessType.READ)
         .modelParam('folderId', 'The ID of the parent folder.', required=False, model=Folder,
-                    level=AccessType.WRITE)
+                    level=AccessType.WRITE, paramType='query')
         .param('name', 'Name for the new item.', required=False, strip=True)
         .param('description', 'Description for the new item.', required=False, strip=True)
         .errorResponse(('A parameter was invalid.',

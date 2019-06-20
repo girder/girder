@@ -1,19 +1,3 @@
-/**
- * Copyright 2015 Kitware Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 const path = require('path');
 const process = require('process');
 
@@ -21,13 +5,10 @@ const _ = require('underscore');
 const extendify = require('extendify');
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const GitRevisionPlugin = require('git-revision-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const webpackPlugins = require('./webpack.plugins.js');
-const pkg = require('../package.json');
 
 const isTrue = (str) => !!str && !['false', 'off', '0'].includes(str.toString().toLowerCase());
 
@@ -72,7 +53,7 @@ module.exports = function (grunt) {
     const updateWebpackConfig = _.partial(
         extendify({
             inPlace: true,
-            isDeep: false,
+            isDeep: true,
             arrays: 'concat'
         }),
         webpackConfig
@@ -135,52 +116,12 @@ module.exports = function (grunt) {
         });
     }
 
-    const gitRevision = new GitRevisionPlugin();
-    let versionInfo = {
-        git: false,
-        SHA: null,
-        shortSHA: null,
-        date: new Date().toISOString(),
-        apiVersion: pkg.version
-    };
-    try {
-        // inject git revision information if possible
-        const gitHash = gitRevision.commithash();
-        Object.assign(versionInfo, {
-            git: true,
-            SHA: gitHash,
-            shortSHA: gitHash.slice(0, 8)
-        });
-    } catch (err) {
-        // The above writes a fatal error line when not inside a git repo
-        // Let the user know this is not a problem for production/non-dev installs.
-        grunt.log.oklns(
-            'You are not running in a git repository.  This is normal for non-development builds of girder.'
-        );
-    }
-
-    // TODO: Eventually we should refactor the setup.py to use setuptools scm and avoid
-    // this hackery, but for now, we generate a version file when building the web client.
-    grunt.config.merge({
-        'file-creator': {
-            'python-version': {
-                [path.resolve('..', 'girder-version.json')]: function (fs, fd, done) {
-                    fs.writeSync(fd, JSON.stringify(versionInfo, null, 4) + '\n');
-                    done();
-                }
-            }
-        },
-        default: {
-            'file-creator:python-version': {}
-        }
-    });
-
-    // Define global constants
+    // Inject environment variables
     updateWebpackConfig({
         plugins: [
-            new webpack.DefinePlugin({
-                'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-                'GIRDER_VERSION': JSON.stringify(versionInfo)
+            new webpack.EnvironmentPlugin({
+                NODE_ENV: null,
+                GIRDER_VERSION: grunt.config.get('girderVersion'),
             })
         ]
     });
@@ -190,7 +131,12 @@ module.exports = function (grunt) {
         progress: progress
     });
 
-    const paths = require('./webpack.paths.js');
+    // Set the publicPath based on Girder's static public path
+    updateWebpackConfig({
+        output: {
+            publicPath: path.join(grunt.config.get('staticPublicPath'), 'built/')
+        }
+    });
 
     // add coverage to all babel loader rules when in dev mode
     injectIstanbulCoverage(webpackConfig);
@@ -200,7 +146,7 @@ module.exports = function (grunt) {
             options: webpackConfig,
             core_lib: {
                 entry: {
-                    girder_lib: [paths.web_src]
+                    girder_lib: [require.resolve('@girder/core')] // main is index.js
                 },
                 output: {
                     library: '[name]',
@@ -215,19 +161,12 @@ module.exports = function (grunt) {
                     new ExtractTextPlugin({
                         filename: '[name].min.css',
                         allChunks: true
-                    }),
-                    new GoogleFontsPlugin({
-                        filename: 'googlefonts.css',
-                        fonts: [{
-                            family: 'Open Sans',
-                            variants: ['regular', '700', 'italic', '700italic']
-                        }]
                     })
                 ]
             },
             core_app: {
                 entry: {
-                    girder_app: [path.join(paths.web_src, 'main.js')]
+                    girder_app: [require.resolve('@girder/core/main.js')]
                 },
                 output: {
                     path: grunt.config.get('builtPath')

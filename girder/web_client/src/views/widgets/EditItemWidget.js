@@ -1,15 +1,15 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import ItemModel from 'girder/models/ItemModel';
-import MarkdownWidget from 'girder/views/widgets/MarkdownWidget';
-import View from 'girder/views/View';
-import { handleClose, handleOpen } from 'girder/dialog';
+import ItemModel from '@girder/core/models/ItemModel';
+import MarkdownWidget from '@girder/core/views/widgets/MarkdownWidget';
+import View from '@girder/core/views/View';
+import { handleClose, handleOpen } from '@girder/core/dialog';
 
-import EditItemWidgetTemplate from 'girder/templates/widgets/editItemWidget.pug';
+import EditItemWidgetTemplate from '@girder/core/templates/widgets/editItemWidget.pug';
 
-import 'girder/utilities/jquery/girderEnable';
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This widget is used to create a new item or edit an existing one.

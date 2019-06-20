@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
@@ -38,11 +20,14 @@ class Collection(Resource):
         self.route('GET', (), self.find)
         self.route('GET', (':id',), self.getCollection)
         self.route('GET', (':id', 'details'), self.getCollectionDetails)
+        self.route('GET', ('details',), self.getCollectionsDetails)
         self.route('GET', (':id', 'download'), self.downloadCollection)
         self.route('GET', (':id', 'access'), self.getCollectionAccess)
         self.route('POST', (), self.createCollection)
         self.route('PUT', (':id',), self.updateCollection)
         self.route('PUT', (':id', 'access'), self.updateCollectionAccess)
+        self.route('PUT', (':id', 'metadata'), self.setMetadata)
+        self.route('DELETE', (':id', 'metadata'), self.deleteMetadata)
 
     @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model=CollectionModel)
@@ -95,6 +80,16 @@ class Collection(Resource):
 
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
+        Description('Get detailed information of accessible collections.')
+    )
+    def getCollectionsDetails(self):
+        count = self._model.findWithPermissions(user=self.getCurrentUser()).count()
+        return {
+            'nCollections': count
+        }
+
+    @access.public(scope=TokenScope.DATA_READ)
+    @autoDescribeRoute(
         Description('Get detailed information about a collection.')
         .modelParam('id', model=CollectionModel, level=AccessType.READ)
         .errorResponse()
@@ -106,8 +101,7 @@ class Collection(Resource):
                 collection, user=self.getCurrentUser(), level=AccessType.READ)
         }
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @autoDescribeRoute(
         Description('Download an entire collection as a zip archive.')
         .modelParam('id', model=CollectionModel, level=AccessType.READ)
@@ -201,3 +195,45 @@ class Collection(Resource):
     def deleteCollection(self, collection):
         self._model.remove(collection)
         return {'message': 'Deleted collection %s.' % collection['name']}
+
+    @access.user(scope=TokenScope.DATA_WRITE)
+    @filtermodel(model=CollectionModel)
+    @autoDescribeRoute(
+        Description('Set metadata fields on a collection.')
+        .responseClass('Collection')
+        .notes('Set metadata fields to null in order to delete them.')
+        .modelParam('id', model=CollectionModel, level=AccessType.WRITE)
+        .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
+                   paramType='body', requireObject=True)
+        .param('allowNull', 'Whether "null" is allowed as a metadata value.', required=False,
+               dataType='boolean', default=False)
+        .errorResponse(('ID was invalid.',
+                        'Invalid JSON passed in request body.',
+                        'Metadata key name was invalid.'))
+        .errorResponse('Write access was denied for the collection.', 403)
+    )
+    def setMetadata(self, collection, metadata, allowNull):
+        return self._model.setMetadata(collection, metadata, allowNull=allowNull)
+
+    @access.user(scope=TokenScope.DATA_WRITE)
+    @filtermodel(CollectionModel)
+    @autoDescribeRoute(
+        Description('Delete metadata fields on a collection.')
+        .responseClass('Collection')
+        .modelParam('id', model=CollectionModel, level=AccessType.WRITE)
+        .jsonParam(
+            'fields', 'A JSON list containing the metadata fields to delete',
+            paramType='body', schema={
+                'type': 'array',
+                'items': {
+                    'type': 'string'
+                }
+            }
+        )
+        .errorResponse(('ID was invalid.',
+                        'Invalid JSON passed in request body.',
+                        'Metadata key name was invalid.'))
+        .errorResponse('Write access was denied for the collection.', 403)
+    )
+    def deleteMetadata(self, collection, fields):
+        return self._model.deleteMetadata(collection, fields)

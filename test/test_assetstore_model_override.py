@@ -22,7 +22,7 @@ class FakeAdapter(AbstractAssetstoreAdapter):
 
 @pytest.fixture
 def fakeModel(db):
-    ModelImporter.registerModel('fake', Fake(), plugin='fake_plugin')
+    ModelImporter.registerModel('fake', Fake, plugin='fake_plugin')
 
     yield Fake
 

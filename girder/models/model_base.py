@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import copy
 import functools
 import itertools
@@ -31,10 +13,7 @@ from girder import events, logprint, logger, auditLogger
 from girder.constants import AccessType, CoreEventHandler, ACCESS_FLAGS, TEXT_SCORE_SORT_MAX
 from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
-from girder.utility.model_importer import ModelImporter
 from girder.exceptions import AccessException, ValidationException
-# Import the GirderException since it was historically defined here
-from girder.exceptions import GirderException  # noqa
 
 # pymongo3 complains about extra kwargs to find(), so we must filter them.
 _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
@@ -100,7 +79,7 @@ class _ModelSingleton(type):
 
 
 @six.add_metaclass(_ModelSingleton)
-class Model(ModelImporter):
+class Model(object):
     """
     Model base class. Models are responsible for abstracting away the
     persistence layer. Each collection in the database should have its own
@@ -785,10 +764,10 @@ class AccessControlledModel(Model):
         # Do the bindings before calling __init__(), in case a derived class
         # wants to change things in initialize()
         events.bind('model.user.remove',
-                    CoreEventHandler.ACCESS_CONTROL_CLEANUP,
+                    '.'.join((CoreEventHandler.ACCESS_CONTROL_CLEANUP, self.__class__.__name__)),
                     self._cleanupDeletedEntity)
         events.bind('model.group.remove',
-                    CoreEventHandler.ACCESS_CONTROL_CLEANUP,
+                    '.'.join((CoreEventHandler.ACCESS_CONTROL_CLEANUP, self.__class__.__name__)),
                     self._cleanupDeletedEntity)
         super(AccessControlledModel, self).__init__()
 
@@ -1439,8 +1418,8 @@ class AccessControlledModel(Model):
         """
         # Warn of str type deprecation for `fields` param
         if isinstance(fields, six.string_types):
-            logger.warning('String data type for fields param is deprecated, \
-                use a list or dict instead.')
+            logger.warning('String data type for fields param is deprecated, '
+                           'use a list or dict instead.')
             fields = [fields]
 
         # Ensure we include access and public, they are needed by requireAccess

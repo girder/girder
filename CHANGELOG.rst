@@ -13,6 +13,8 @@ Changes
 
 * Move minimum node version to 8.x due to upstream packages using newer ES features.
   (`#2707 <https://github.com/girder/girder/pull/2707>`_).
+* Require MongoDB 3.4+ (`#2900 <https://github.com/girder/girder/pull/2900>`_)
+* Removed the `@access.cookie` decorator; this is now an option on the other access decorators.
 
 Bug Fixes
 ---------
@@ -35,6 +37,12 @@ Python Client
 
 Added Features
 --------------
+* Google Storage is provisionally supported via S3 Assetstore
+  (`#2876 <https://github.com/girder/girder/pull/2876>`_).
+
+* Added an `NPM_EXE` environment variable and `--npm` flag to `girder build` to configure the npm executable used.
+  (`#2826 <https://github.com/girder/girder/pull/2826>`_).
+
 * Added a privacy notice link to the footer which can be set on the Server Configuration view of the web client (
   `#2728 <https://github.com/girder/girder/pull/2728>`_).
 

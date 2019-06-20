@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource
 from girder import events
@@ -25,6 +7,7 @@ from girder.exceptions import RestException
 from girder.api import access
 from girder.models.assetstore import Assetstore as AssetstoreModel
 from girder.models.file import File
+from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
 from girder.utility.s3_assetstore_adapter import DEFAULT_REGION
 
@@ -99,11 +82,14 @@ class Assetstore(Resource):
         .param('inferCredentials', 'The credentials for connecting to S3 will be inferred '
                'by Boto rather than explicitly passed. Inferring credentials will '
                'ignore accessKeyId and secret.', dataType='boolean', required=False)
+        .param('serverSideEncryption', 'Whether to use S3 SSE to encrypt the objects uploaded to '
+               'this bucket (for S3 type).', dataType='boolean', required=False, default=False)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
     def createAssetstore(self, name, type, root, perms, db, mongohost, replicaset, shard, bucket,
-                         prefix, accessKeyId, secret, service, readOnly, region, inferCredentials):
+                         prefix, accessKeyId, secret, service, readOnly, region, inferCredentials,
+                         serverSideEncryption):
         if type == AssetstoreType.FILESYSTEM:
             self.requireParams({'root': root})
             return self._model.createFilesystemAssetstore(
@@ -117,7 +103,7 @@ class Assetstore(Resource):
             return self._model.createS3Assetstore(
                 name=name, bucket=bucket, prefix=prefix, secret=secret,
                 accessKeyId=accessKeyId, service=service, readOnly=readOnly, region=region,
-                inferCredentials=inferCredentials)
+                inferCredentials=inferCredentials, serverSideEncryption=serverSideEncryption)
         else:
             raise RestException('Invalid type parameter')
 
@@ -150,7 +136,7 @@ class Assetstore(Resource):
     def importData(self, assetstore, importPath, destinationId, destinationType, progress,
                    leafFoldersAsItems, fileIncludeRegex, fileExcludeRegex):
         user = self.getCurrentUser()
-        parent = self.model(destinationType).load(
+        parent = ModelImporter.model(destinationType).load(
             destinationId, user=user, level=AccessType.ADMIN, exc=True)
 
         with ProgressContext(progress, user=user, title='Importing data') as ctx:
@@ -193,12 +179,14 @@ class Assetstore(Resource):
         .param('inferCredentials', 'The credentials for connecting to S3 will be inferred '
                'by Boto rather than explicitly passed. Inferring credentials will '
                'ignore accessKeyId and secret.', dataType='boolean', required=False)
+        .param('serverSideEncryption', 'Whether to use S3 SSE to encrypt the objects uploaded to '
+               'this bucket (for S3 type).', dataType='boolean', required=False, default=False)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
     def updateAssetstore(self, assetstore, name, root, perms, db, mongohost, replicaset, shard,
                          bucket, prefix, accessKeyId, secret, service, readOnly, region, current,
-                         inferCredentials, params):
+                         inferCredentials, serverSideEncryption, params):
         assetstore['name'] = name
         assetstore['current'] = current
 
@@ -227,6 +215,7 @@ class Assetstore(Resource):
             assetstore['service'] = service
             assetstore['region'] = region
             assetstore['inferCredentials'] = inferCredentials
+            assetstore['serverSideEncryption'] = serverSideEncryption
             if readOnly is not None:
                 assetstore['readOnly'] = readOnly
         else:

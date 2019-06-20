@@ -1,60 +1,31 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
-import importlib
-import six
-
-from . import camelcase
-from girder import logger
-
-# We want the models to essentially be singletons, so we keep this centralized
-# cache of instantiated models that have been lazy-loaded.
-_modelInstances = {}
+_modelClasses = {}
+_coreModelsRegistered = False
 
 
-def _loadModel(model, module, plugin):
-    className = camelcase(model)
+def _registerCoreModels():
+    global _coreModelsRegistered
+    if _coreModelsRegistered:
+        return
 
-    try:
-        imported = importlib.import_module(module)
-    except ImportError:
-        logger.exception('Could not load model "%s".' % module)
-        raise
+    from girder.models import (
+        api_key, assetstore, collection, file, folder, group, item, notification,
+        setting, token, upload, user)
 
-    try:
-        constructor = getattr(imported, className)
-    except AttributeError:
-        raise Exception('Incorrect model class name "%s" for model "%s".' % (
-            className, module))
+    ModelImporter.registerModel('api_key', api_key.ApiKey)
+    ModelImporter.registerModel('assetstore', assetstore.Assetstore)
+    ModelImporter.registerModel('collection', collection.Collection)
+    ModelImporter.registerModel('file', file.File)
+    ModelImporter.registerModel('folder', folder.Folder)
+    ModelImporter.registerModel('group', group.Group)
+    ModelImporter.registerModel('item', item.Item)
+    ModelImporter.registerModel('notification', notification.Notification)
+    ModelImporter.registerModel('setting', setting.Setting)
+    ModelImporter.registerModel('token', token.Token)
+    ModelImporter.registerModel('upload', upload.Upload)
+    ModelImporter.registerModel('user', user.User)
 
-    _modelInstances[plugin][model] = constructor()
-
-
-def reinitializeAll():
-    """
-    Force all models to reconnect/rebuild indices (needed for testing).
-
-    .. deprecated
-    """
-    for pluginModels in list(six.viewvalues(_modelInstances)):
-        for model in list(six.viewvalues(pluginModels)):
-            model.reconnect()
+    _coreModelsRegistered = True
 
 
 class ModelImporter(object):
@@ -63,53 +34,44 @@ class ModelImporter(object):
     should extend/mixin this class.
     """
     @staticmethod
-    def model(model, plugin=None):
+    def model(model, plugin='_core'):
         """
         Call this to get the instance of the specified model. It will be
         lazy-instantiated.
 
-        :param model: The name of the model to get. This is the module
-                      name, e.g. "folder". The class name must be the
-                      upper-camelcased version of that module name, e.g.
-                      "Folder".
+        :param model: The name of the model to get. This must have been
+            registered using the :py:meth:`registerModel` method.
         :type model: string
-        :param plugin: If the model you wish to load is a model within a plugin,
-                       set this to the name of the plugin containing the model.
+        :param plugin: Plugin identifier (if this is a plugin model).
+        :type plugin: str
         :returns: The instantiated model, which is a singleton.
         """
-        if plugin is None:
-            plugin = '_core'
+        if not _coreModelsRegistered and plugin == '_core':
+            _registerCoreModels()
 
-        if plugin not in _modelInstances:
-            _modelInstances[plugin] = {}
+        if not _modelClasses.get(plugin, {}).get(model):
+            raise Exception('Model "%s.%s" is not registered.' % (plugin, model))
 
-        if model not in _modelInstances[plugin]:
-            if plugin == '_core':
-                module = 'girder.models.%s' % model
-            else:
-                raise Exception('Model "%s" is not registered in plugin "%s"' % (model, plugin))
-
-            _loadModel(model, module, plugin)
-
-        return _modelInstances[plugin][model]
+        return _modelClasses[plugin][model]()
 
     @staticmethod
-    def registerModel(model, instance, plugin='_core'):
+    def registerModel(model, cls, plugin='_core'):
         """
-        Use this method to manually register a model singleton instead of
-        having it automatically discovered.
+        Use this method to register a model class to a name. Using this, it can
+        be referenced via the ``model`` method of this class.
 
         :param model: The model name.
         :type model: str
-        :param plugin: If a plugin model, pass the canonical plugin name.
+        :param plugin: Plugin identifier (if this is a plugin model).
         :type plugin: str
-        :param instance: The model singleton instance.
-        :type instance: subclass of Model
+        :param cls: The model class, should be a subclass of
+            :py:class:`girder.models.model_base.Model`.
+        :type cls: type
         """
-        if plugin not in _modelInstances:
-            _modelInstances[plugin] = {}
-        _modelInstances[plugin][model] = instance
+        if plugin not in _modelClasses:
+            _modelClasses[plugin] = {}
+        _modelClasses[plugin][model] = cls
 
     @staticmethod
     def unregisterModel(model, plugin='_core'):
-        del _modelInstances[plugin][model]
+        del _modelClasses[plugin][model]

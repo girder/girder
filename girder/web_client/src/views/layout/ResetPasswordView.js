@@ -1,12 +1,12 @@
-import View from 'girder/views/View';
-import events from 'girder/events';
-import { handleClose, handleOpen } from 'girder/dialog';
-import { restRequest } from 'girder/rest';
+import View from '@girder/core/views/View';
+import events from '@girder/core/events';
+import { handleClose, handleOpen } from '@girder/core/dialog';
+import { restRequest } from '@girder/core/rest';
 
-import ResetPasswordDialogTemplate from 'girder/templates/layout/resetPasswordDialog.pug';
+import ResetPasswordDialogTemplate from '@girder/core/templates/layout/resetPasswordDialog.pug';
 
-import 'girder/utilities/jquery/girderEnable';
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This view shows a modal dialog for resetting a forgotten password.

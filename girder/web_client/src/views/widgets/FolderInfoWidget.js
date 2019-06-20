@@ -1,9 +1,9 @@
-import View from 'girder/views/View';
-import { formatDate, formatSize, DATE_SECOND, renderMarkdown } from 'girder/misc';
+import View from '@girder/core/views/View';
+import { formatDate, formatSize, DATE_SECOND, renderMarkdown } from '@girder/core/misc';
 
-import FolderInfoDialogTemplate from 'girder/templates/widgets/folderInfoDialog.pug';
+import FolderInfoDialogTemplate from '@girder/core/templates/widgets/folderInfoDialog.pug';
 
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This view shows a dialog container detailed folder information.

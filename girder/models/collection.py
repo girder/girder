@@ -1,28 +1,12 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import datetime
 import os
+import six
 
 from .model_base import AccessControlledModel
-from girder.constants import AccessType, SettingKey
+from girder.constants import AccessType
 from girder.exceptions import ValidationException
+from girder.settings import SettingKey
 from girder.utility.progress import noProgress
 
 
@@ -41,7 +25,16 @@ class Collection(AccessControlledModel):
         })
 
         self.exposeFields(level=AccessType.READ, fields={
-            '_id', 'name', 'description', 'public', 'publicFlags', 'created', 'updated', 'size'})
+            '_id',
+            'name',
+            'description',
+            'public',
+            'publicFlags',
+            'created',
+            'updated',
+            'size',
+            'meta'
+            })
 
     def validate(self, doc):
         doc['name'] = doc['name'].strip()
@@ -124,7 +117,8 @@ class Collection(AccessControlledModel):
             'creatorId': creator['_id'] if creator else None,
             'created': now,
             'updated': now,
-            'size': 0
+            'size': 0,
+            'meta': {}
         }
 
         self.setPublic(collection, public, save=False)
@@ -145,6 +139,99 @@ class Collection(AccessControlledModel):
         collection['updated'] = datetime.datetime.utcnow()
 
         # Validate and save the collection
+        return self.save(collection)
+
+    def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
+             force=False, fields=None, exc=False):
+        """
+        Calls AccessControlMixin.load, and if no meta field is present,
+        adds an empty meta field and saves.
+
+        Takes the same parameters as
+        :py:func:`girder.models.model_base.AccessControlMixin.load`.
+        """
+        doc = super(Collection, self).load(
+            id=id, level=level, user=user, objectId=objectId, force=force, fields=fields,
+            exc=exc)
+
+        if doc is not None:
+            if 'meta' not in doc:
+                doc['meta'] = {}
+                self.update({'_id': doc['_id']}, {'$set': {
+                    'meta': doc['meta']
+                }})
+
+        return doc
+
+    def filter(self, doc, user=None, additionalKeys=None):
+        """
+        Overrides the parent ``filter`` method to add an empty meta field
+        (if it doesn't exist) to the returned collection.
+        """
+        filteredDoc = super(Collection, self).filter(doc, user, additionalKeys=additionalKeys)
+        if 'meta' not in filteredDoc:
+            filteredDoc['meta'] = {}
+
+        return filteredDoc
+
+    def setMetadata(self, collection, metadata, allowNull=False):
+        """
+        Set metadata on an collection.  A `ValidationException` is thrown in the
+        cases where the metadata JSON object is badly formed, or if any of the
+        metadata keys contains a period ('.').
+
+        :param collection: The collection to set the metadata on.
+        :type collection: dict
+        :param metadata: A dictionary containing key-value pairs to add to
+                     the collection's meta field
+        :type metadata: dict
+        :param allowNull: Whether to allow `null` values to be set in the collection's
+                     metadata. If set to `False` or omitted, a `null` value will cause that
+                     metadata field to be deleted.
+        :returns: the collection document
+        """
+        if 'meta' not in collection:
+            collection['meta'] = {}
+
+        # Add new metadata to existing metadata
+        collection['meta'].update(six.viewitems(metadata))
+
+        # Remove metadata fields that were set to null (use items in py3)
+        if not allowNull:
+            toDelete = [k for k, v in six.viewitems(metadata) if v is None]
+            for key in toDelete:
+                del collection['meta'][key]
+
+        self.validateKeys(collection['meta'])
+
+        collection['updated'] = datetime.datetime.utcnow()
+
+        # Validate and save the collection
+        return self.save(collection)
+
+    def deleteMetadata(self, collection, fields):
+        """
+        Delete metadata on an collection. A `ValidationException` is thrown if the
+        metadata field names contain a period ('.') or begin with a dollar sign
+        ('$').
+
+        :param collection: The collection to delete metadata from.
+        :type collection: dict
+        :param fields: An array containing the field names to delete from the
+            collection's meta field
+        :type field: list
+        :returns: the collection document
+        """
+        self.validateKeys(fields)
+
+        if 'meta' not in collection:
+            collection['meta'] = {}
+
+        for field in fields:
+            collection['meta'].pop(field, None)
+
+        collection['updated'] = datetime.datetime.utcnow()
+
         return self.save(collection)
 
     def fileList(self, doc, user=None, path='', includeMetadata=False,

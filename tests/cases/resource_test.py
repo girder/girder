@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2014 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import datetime
 import io
 import json
@@ -158,27 +140,12 @@ class ResourceTestCase(base.TestCase):
                   contents: the contents that were generated for the file.
         """
         contents = os.urandom(1024)
-        resp = self.request(
-            path='/file', method='POST', user=self.admin, params={
-                'parentType': 'item',
-                'parentId': item['_id'],
-                'name': name,
-                'size': len(contents),
-                'mimeType': 'application/octet-stream'
-            })
-        self.assertStatusOk(resp)
-        upload = resp.json
-        fields = [('offset', 0), ('uploadId', upload['_id'])]
-        files = [('chunk', name, contents)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=self.admin, fields=fields, files=files)
-        self.assertStatusOk(resp)
-        file = resp.json
+        file = self.uploadFile(name, contents, user=self.admin, parent=item, parentType='item')
         parents = Item().parentsToRoot(item, user=self.admin)
         path = os.path.join(*([part['object'].get(
             'name', part['object'].get('login', '')) for part in parents] +
             [item['name'], name]))
-        return (file, path, contents)
+        return file, path, contents
 
     def testDownloadResources(self):
         self._createFiles()
@@ -457,26 +424,14 @@ class ResourceTestCase(base.TestCase):
                 str(resp.json['_id']), str(item['_id']))
 
         # test bogus path
-        # test is not set
         resp = self.request(path='/resource/lookup',
                             method='GET', user=self.user,
                             params={'path': '/bogus/path'})
         self.assertStatus(resp, 400)
-        # test is set to false, response code should be 400
         resp = self.request(path='/resource/lookup',
                             method='GET', user=self.user,
-                            params={'path': '/collection/bogus/path',
-                                    'test': False})
+                            params={'path': '/collection/bogus/path'})
         self.assertStatus(resp, 400)
-
-        # test is set to true, response code should be 200 and response body
-        # should be null (None)
-        resp = self.request(path='/resource/lookup',
-                            method='GET', user=self.user,
-                            params={'path': '/collection/bogus/path',
-                                    'test': True})
-        self.assertStatusOk(resp)
-        self.assertEqual(resp.json, None)
 
     def testGetResourcePath(self):
         self._createFiles()

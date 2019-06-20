@@ -1,4 +1,4 @@
-import CollectionModel from 'girder/models/CollectionModel';
+import CollectionModel from '@girder/core/models/CollectionModel';
 
 import extendModel from './extendModel';
 

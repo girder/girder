@@ -1,21 +1,13 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from pkg_resources import DistributionNotFound, get_distribution
 
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+    # package is not installed
+    __version__ = None
+
+__license__ = 'Apache 2.0'
 
 import diskcache
 import errno
@@ -32,10 +24,6 @@ import six
 import tempfile
 
 from contextlib import contextmanager
-from requests_toolbelt import MultipartEncoder
-
-__version__ = '2.4.0'
-__license__ = 'Apache 2.0'
 
 DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
 REQ_BUFFER_SIZE = 65536  # Chunk size when iterating a download body
@@ -43,16 +31,6 @@ REQ_BUFFER_SIZE = 65536  # Chunk size when iterating a download body
 _safeNameRegex = re.compile(r'^[/\\]+')
 
 _logger = logging.getLogger('girder_client.lib')
-
-
-def _compareDicts(x, y):
-    """
-    Compare two dictionaries with metadata.
-
-    :param x: First metadata item.
-    :param y: Second metadata item.
-    """
-    return len(x) == len(y) == len(set(x.items()) & set(y.items()))
 
 
 def _safeMakedirs(path):
@@ -98,6 +76,13 @@ class HttpError(requests.HTTPError):
         return super(HttpError, self).__str__() + '\nResponse text: ' + self.responseText
 
 
+class IncompleteResponseError(requests.RequestException):
+    def __init__(self, message, expected, received, response=None):
+        super(IncompleteResponseError, self).__init__('%s (%d of %d bytes received)' % (
+            message, received, expected
+        ), response=response)
+
+
 class _NoopProgressReporter(object):
     reportProgress = False
 
@@ -115,7 +100,6 @@ class _NoopProgressReporter(object):
         pass
 
 
-# Used for fast non-multipart upload
 class _ProgressBytesIO(six.BytesIO):
     def __init__(self, *args, **kwargs):
         self.reporter = kwargs.pop('reporter')
@@ -123,18 +107,6 @@ class _ProgressBytesIO(six.BytesIO):
 
     def read(self, _size=-1):
         _chunk = six.BytesIO.read(self, _size)
-        self.reporter.update(len(_chunk))
-        return _chunk
-
-
-# Used for deprecated multipart upload
-class _ProgressMultiPartEncoder(MultipartEncoder):
-    def __init__(self, *args, **kwargs):
-        self.reporter = kwargs.pop('reporter')
-        MultipartEncoder.__init__(self, *args, **kwargs)
-
-    def read(self, _size=-1):
-        _chunk = MultipartEncoder.read(self, _size)
         self.reporter.update(len(_chunk))
         return _chunk
 
@@ -248,6 +220,7 @@ class GirderClient(object):
         self.token = ''
         self._folderUploadCallbacks = []
         self._itemUploadCallbacks = []
+        self._serverVersion = []
         self._serverApiDescription = {}
         self.incomingMetadata = {}
         self.localMetadata = {}
@@ -350,6 +323,8 @@ class GirderClient(object):
 
             self.setToken(resp['authToken']['token'])
 
+        return resp['user']
+
     def setToken(self, token):
         """
         Set a token on the GirderClient instance. This is useful in the case
@@ -370,9 +345,17 @@ class GirderClient(object):
         :type useCached: bool
         :return: The API version as a list (e.g. ``['1', '0', '0']``)
         """
-        description = self.getServerAPIDescription(useCached)
-        version = description.get('info', {}).get('version')
-        return version.split('.') if version else None
+        if not self._serverVersion or not useCached:
+            response = self.get('system/version')
+            if 'release' in response:
+                release = response['release']  # girder >= 3
+            else:
+                release = response['apiVersion']  # girder < 3
+
+            # Do not include any more than 3 version components in the patch version
+            self._serverVersion = release.split('.', 2)
+
+        return self._serverVersion
 
     def getServerAPIDescription(self, useCached=True):
         """
@@ -550,17 +533,15 @@ class GirderClient(object):
 
         return self.get(route)
 
-    def resourceLookup(self, path, test=False):
+    def resourceLookup(self, path):
         """
         Look up and retrieve resource in the data hierarchy by path.
 
         :param path: The path of the resource. The path must be an absolute
             Unix path starting with either "/user/[user name]" or
             "/collection/[collection name]".
-        :param test: Whether or not to return None, if the path does not
-            exist, rather than throwing an exception.
         """
-        return self.get('resource/lookup', parameters={'path': path, 'test': test})
+        return self.get('resource/lookup', parameters={'path': path})
 
     def listResource(self, path, params=None, limit=None, offset=None):
         """
@@ -1027,24 +1008,9 @@ class GirderClient(object):
                 if isinstance(chunk, six.text_type):
                     chunk = chunk.encode('utf8')
 
-                if self.getServerVersion() >= ['2', '2']:
-                    uploadObj = self.post(
-                        'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId),
-                        data=_ProgressBytesIO(chunk, reporter=reporter))
-                else:
-                    # Prior to version 2.2 the server only supported multipart uploads
-                    parameters = {
-                        'offset': offset,
-                        'uploadId': uploadId
-                    }
-
-                    m = _ProgressMultiPartEncoder(
-                        reporter=reporter,
-                        fields={'chunk': ('chunk', chunk, 'application/octet-stream')},
-                    )
-
-                    uploadObj = self.post('file/chunk', parameters=parameters,
-                                          data=m, headers={'Content-Type': m.content_type})
+                uploadObj = self.post(
+                    'file/chunk?offset=%d&uploadId=%s' % (offset, uploadId),
+                    data=_ProgressBytesIO(chunk, reporter=reporter))
 
                 if '_id' not in uploadObj:
                     raise Exception(
@@ -1211,7 +1177,8 @@ class GirderClient(object):
         :param fileId: The ID of the Girder file to download.
         :param path: The path to write the file to, or a file-like object.
         """
-        created = created or self.getFile(fileId)['created']
+        fileObj = self.getFile(fileId)
+        created = created or fileObj['created']
         cacheKey = '\n'.join([self.urlBase, fileId, created])
 
         # see if file is in local cache
@@ -1235,6 +1202,11 @@ class GirderClient(object):
                 for chunk in req.iter_content(chunk_size=REQ_BUFFER_SIZE):
                     reporter.update(len(chunk))
                     tmp.write(chunk)
+
+        size = os.stat(tmp.name).st_size
+        if size != fileObj['size']:
+            os.remove(tmp.name)
+            raise IncompleteResponseError('File %s download' % fileId, fileObj['size'], size)
 
         # save file in cache
         if self.cache is not None:
@@ -1357,8 +1329,7 @@ class GirderClient(object):
             for item in items:
                 _id = item['_id']
                 self.incomingMetadata[_id] = item
-                if (sync and _id in self.localMetadata and
-                        _compareDicts(item, self.localMetadata[_id])):
+                if sync and _id in self.localMetadata and item == self.localMetadata[_id]:
                     continue
                 self.downloadItem(item['_id'], dest, name=item['name'])
 
@@ -1661,7 +1632,7 @@ class GirderClient(object):
                     # pass that as the parent_type
                     self._uploadFolderRecursive(
                         fullEntry, folder['_id'], 'folder', leafFoldersAsItems, reuseExisting,
-                        dryRun=dryRun, reference=reference)
+                        blacklist=blacklist, dryRun=dryRun, reference=reference)
                 else:
                     self._uploadAsItem(
                         entry, folder['_id'], fullEntry, reuseExisting, dryRun=dryRun,
@@ -1730,7 +1701,9 @@ class GirderClient(object):
 
     def _checkResourcePath(self, objId):
         if isinstance(objId, six.string_types) and objId.startswith('/'):
-            obj = self.resourceLookup(objId, test=True)
-            if obj is not None:
-                return obj['_id']
+            try:
+                return self.resourceLookup(objId)['_id']
+            except requests.HTTPError:
+                return None
+
         return objId

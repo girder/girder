@@ -1,25 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import cherrypy
 import errno
-import os
 import six
 
 from ..describe import Description, autoDescribeRoute, describeRoute
@@ -32,6 +13,7 @@ from girder.models.item import Item
 from girder.models.upload import Upload
 from girder.api import access
 from girder.utility import RequestBodyStream
+from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
 
 
@@ -106,7 +88,7 @@ class File(Resource):
         in the designated parent.
         """
         user = self.getCurrentUser()
-        parent = self.model(parentType).load(
+        parent = ModelImporter.model(parentType).load(
             id=parentId, user=user, level=AccessType.WRITE, exc=True)
 
         if linkUrl is not None:
@@ -210,13 +192,10 @@ class File(Resource):
         Description('Upload a chunk of a file.')
         .notes('The data for the chunk should be sent as the body of the '
                'request using an appropriate content-type and with the other '
-               'parameters as part of the query string.  Alternately, the '
-               'data can be sent as a file in the "chunk" field in multipart '
-               'form data.  Multipart uploads are much less efficient and '
-               'their use is deprecated.')
+               'parameters as part of the query string.')
         .modelParam('uploadId', paramType='formData', model=Upload)
         .param('offset', 'Offset of the chunk in the file.', dataType='integer',
-               paramType='formData')
+               paramType='query', required=False, default=0)
         .errorResponse(('ID was invalid.',
                         'Received too many bytes.',
                         'Chunk is smaller than the minimum size.'))
@@ -231,24 +210,14 @@ class File(Resource):
         the writer of the chunk is the same as the person who initiated the
         upload. The passed offset is a verification mechanism for ensuring the
         server and client agree on the number of bytes sent/received.
-
-        This method accepts both the legacy multipart content encoding, as
-        well as passing offset and uploadId as query parameters and passing
-        the chunk as the body, which is the recommended method.
-
-        .. deprecated :: 2.2.0
         """
         if 'chunk' in params:
+            # If we see the undocumented "chunk" query string parameter, then we abort trying to
+            # read the body, use the query string value as chunk, and pass it through to
+            # Upload().handleChunk. This case is used by the direct S3 upload process.
             chunk = params['chunk']
-            if isinstance(chunk, cherrypy._cpreqbody.Part):
-                # Seek is the only obvious way to get the length of the part
-                chunk.file.seek(0, os.SEEK_END)
-                size = chunk.file.tell()
-                chunk.file.seek(0, os.SEEK_SET)
-                chunk = RequestBodyStream(chunk.file, size=size)
         else:
             chunk = RequestBodyStream(cherrypy.request.body)
-
         user = self.getCurrentUser()
 
         if upload['userId'] != user['_id']:
@@ -265,8 +234,7 @@ class File(Resource):
                 raise Exception('Failed to store upload.')
             raise
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @autoDescribeRoute(
         Description('Download a file.')
         .notes('This endpoint also accepts the HTTP "Range" header for partial '
@@ -305,8 +273,7 @@ class File(Resource):
             file, offset, endByte=endByte, contentDisposition=contentDisposition,
             extraParameters=extraParameters)
 
-    @access.cookie
-    @access.public(scope=TokenScope.DATA_READ)
+    @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @describeRoute(
         Description('Download a file.')
         .param('id', 'The ID of the file.', paramType='path')

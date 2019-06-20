@@ -20,10 +20,11 @@ if(RUN_CORE_TESTS)
   add_eslint_test(swagger girder/web_client/static/girder-swagger.js)
 
   add_python_style_test(python_static_analysis_core "${PROJECT_SOURCE_DIR}/girder")
-  add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/tests")
+  add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/test")
+  add_python_style_test(python_static_analysis_core_tests_legacy "${PROJECT_SOURCE_DIR}/tests")
   add_python_style_test(python_static_analysis_core_pytest_girder "${PROJECT_SOURCE_DIR}/pytest_girder")
   add_python_style_test(python_static_analysis_ansible_client_tests
-    "${PROJECT_SOURCE_DIR}/devops/ansible/roles/girder/library")
+    "${PROJECT_SOURCE_DIR}/devops/ansible-role-girder/library")
 
   # These are performed approximately in the order listed.
   add_python_test(api_describe)
@@ -60,8 +61,6 @@ if(RUN_CORE_TESTS)
 
   add_python_test(py_client.cli BIND_SERVER RESOURCE_LOCKS py_client_test_dir)
   add_python_test(py_client.lib BIND_SERVER RESOURCE_LOCKS py_client_test_dir)
-
-  add_pytest_test(core)
 
   add_web_client_test(data_filesystem "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE filesystem)
   add_web_client_test(data_gridfs "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE gridfs)

@@ -1,31 +1,31 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import * as allModels from 'girder/models';
-import AccessWidget from 'girder/views/widgets/AccessWidget';
-import CheckedMenuWidget from 'girder/views/widgets/CheckedMenuWidget';
-import CollectionInfoWidget from 'girder/views/widgets/CollectionInfoWidget';
-import EditCollectionWidget from 'girder/views/widgets/EditCollectionWidget';
-import EditFolderWidget from 'girder/views/widgets/EditFolderWidget';
-import EditItemWidget from 'girder/views/widgets/EditItemWidget';
-import FolderInfoWidget from 'girder/views/widgets/FolderInfoWidget';
-import FolderListWidget from 'girder/views/widgets/FolderListWidget';
-import ItemListWidget from 'girder/views/widgets/ItemListWidget';
-import ItemModel from 'girder/models/ItemModel';
-import MetadataWidget from 'girder/views/widgets/MetadataWidget';
-import router from 'girder/router';
-import UploadWidget from 'girder/views/widgets/UploadWidget';
-import View from 'girder/views/View';
-import { AccessType } from 'girder/constants';
-import { confirm, handleClose } from 'girder/dialog';
-import events from 'girder/events';
-import { getModelClassByName, renderMarkdown, formatCount, capitalize, formatSize } from 'girder/misc';
-import { restRequest, getApiRoot } from 'girder/rest';
+import * as allModels from '@girder/core/models';
+import AccessWidget from '@girder/core/views/widgets/AccessWidget';
+import CheckedMenuWidget from '@girder/core/views/widgets/CheckedMenuWidget';
+import CollectionInfoWidget from '@girder/core/views/widgets/CollectionInfoWidget';
+import EditCollectionWidget from '@girder/core/views/widgets/EditCollectionWidget';
+import EditFolderWidget from '@girder/core/views/widgets/EditFolderWidget';
+import EditItemWidget from '@girder/core/views/widgets/EditItemWidget';
+import FolderInfoWidget from '@girder/core/views/widgets/FolderInfoWidget';
+import FolderListWidget from '@girder/core/views/widgets/FolderListWidget';
+import ItemListWidget from '@girder/core/views/widgets/ItemListWidget';
+import ItemModel from '@girder/core/models/ItemModel';
+import MetadataWidget from '@girder/core/views/widgets/MetadataWidget';
+import router from '@girder/core/router';
+import UploadWidget from '@girder/core/views/widgets/UploadWidget';
+import View from '@girder/core/views/View';
+import { AccessType } from '@girder/core/constants';
+import { confirm, handleClose } from '@girder/core/dialog';
+import events from '@girder/core/events';
+import { getModelClassByName, renderMarkdown, formatCount, capitalize, formatSize } from '@girder/core/misc';
+import { restRequest, getApiRoot } from '@girder/core/rest';
 
-import HierarchyBreadcrumbTemplate from 'girder/templates/widgets/hierarchyBreadcrumb.pug';
-import HierarchyWidgetTemplate from 'girder/templates/widgets/hierarchyWidget.pug';
+import HierarchyBreadcrumbTemplate from '@girder/core/templates/widgets/hierarchyBreadcrumb.pug';
+import HierarchyWidgetTemplate from '@girder/core/templates/widgets/hierarchyWidget.pug';
 
-import 'girder/stylesheets/widgets/hierarchyWidget.styl';
+import '@girder/core/stylesheets/widgets/hierarchyWidget.styl';
 
 import 'bootstrap/js/dropdown';
 
@@ -294,6 +294,19 @@ var HierarchyWidget = View.extend({
             }
         }
 
+        if (this.parentModel.resourceName === 'collection' && this._showMetadata) {
+            if (!this.metadataWidget) {
+                this.metadataWidget = new MetadataWidget({
+                    item: this.parentModel,
+                    parentView: this,
+                    accessLevel: this.parentModel.getAccessLevel()
+                });
+            }
+            this.metadataWidget.setItem(this.parentModel);
+            this.metadataWidget.accessLevel = this.parentModel.getAccessLevel();
+            this.metadataWidget.setElement(this.$('.g-folder-metadata')).render();
+        }
+
         if (this.upload) {
             this.uploadDialog();
         } else if (this.folderAccess) {
@@ -447,14 +460,6 @@ var HierarchyWidget = View.extend({
             }, params);
         }
         confirm(params);
-    },
-
-    /**
-     * Deprecated alias for showInfoDialog.
-     * @deprecated
-     */
-    folderInfoDialog: function () {
-        this.showInfoDialog();
     },
 
     showInfoDialog: function () {
@@ -921,14 +926,6 @@ var HierarchyWidget = View.extend({
                 this.refreshFolderList();
             }
         }, this);
-    },
-
-    /**
-     * Deprecated alias for editAccess.
-     * @deprecated
-     */
-    editFolderAccess: function () {
-        this.editAccess();
     },
 
     /**

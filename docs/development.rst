@@ -26,6 +26,13 @@ For more options for building the web client, run: ::
 
     girder build --help
 
+Finally, you'll want to set your server into development mode. Add the following entry into your
+local config file (see :ref:`Configuration <configuration>` for instructions):
+
+.. code-block:: ini
+
+    [server]
+    mode="development"
 
 Vagrant
 ^^^^^^^
@@ -92,9 +99,10 @@ object is: ::
 There is a configuration file for Girder located in **girder/conf**. The file
 **girder.dist.cfg** is the file distributed with the repository and containing
 the default configuration values. This file should not be edited when deploying
-Girder. Rather, edit the **girder.local.cfg** file. You only need to edit the
+Girder. Rather, create a custom **girder.cfg** file and place it in one of the supported
+locations (see :ref:`Configuration <configuration>`). You only need to edit the
 values in the file that you wish to change from their default values; the system
-loads the **dist** file first, then the **local** file, so your local settings
+loads the **dist** file first, then the custom file, so your local settings
 will override the defaults.
 
 .. _client_development_js:
@@ -142,7 +150,7 @@ expected, but a warning message will appear in the console to remind you. Exampl
 
 .. code-block:: javascript
 
-    import View from 'girder/views/View';
+    import View from '@girder/core/views/View';
 
     MySubView = View.extend({
        ...
@@ -346,54 +354,7 @@ You can browse the result in Girder by running ::
 .. note::
 
     The ``setup_database`` module is meant to provision fixures for tests **only**.  If you want to provision
-    a Girder instance for deployment, see the `Girder ansible client <https://github.com/girder/girder/tree/master/devops/ansible/roles/girder/library>`_.
-
-
-Ansible Testing
----------------
-
-Girder provides infrastructure for using Ansible to provision machines to run and configure Girder and its various plugins. Vagrant is used to create development environments and spin up virtual machines as a means of testing the Ansible provisioning infrastructure.
-
-.. seealso::
-
-   Details for usage of our provisioning infrastructure can be found on :doc:`provisioning`.
-
-Girder's Ansible infrastructure can be thought of as 2 components:
- 1. The Girder Ansible Role (the ``girder_ansible`` CTest label)
-
-    This is primarily responsible for *deploying* Girder
-
- 2. The Girder Ansible Client (the ``girder_ansible_client`` CTest label)
-
-    This is primarily responsible for *configuring* Girder through its REST API.
-
-
-Testing the Ansible Role
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-The Ansible role is tested simply by starting and provisioning a virtual machine with Vagrant and ensuring it returns a zero exit code.
-
-The tests for these by default are running Vagrant with each of the Ansible playbooks in ``devops/ansible/examples``.
-
-To test these one can run CMake with the ``ANSIBLE_TESTS`` option enabled, and test only the correct CTest label ::
-
-  cmake -D ANSIBLE_TESTS=ON /path/to/girder
-  ctest -L girder_ansible
-
-.. note:: Since these tests require creating and provisioning several virtual machines, they take a long time to run which is why they're disabled by default.
-
-
-Testing the Ansible Client
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The Ansible client is tested by provisioning a single Girder virtual machine and running Ansible playbooks against it.
-
-To test these one can run CMake with the ``ANSIBLE_CLIENT_TESTS`` option enabled, and test only the correct CTest label ::
-
-  cmake -D ANSIBLE_CLIENT_TESTS=ON /path/to/girder
-  ctest -L girder_ansible_client
-
-.. note:: Due to how dependencies are handled in CMake, it's currently not possible to individually run an Ansible Client test without also running the test that starts the virtual machine.
+    a Girder instance for deployment, see the `Girder ansible client <https://github.com/girder/girder/tree/master/devops/ansible-role-girder/library>`_.
 
 
 Code Review
@@ -455,123 +416,38 @@ should be done:
 
        npm install -g 'npm@>=5.6'
 
-2. Update ``dependencies`` or ``devDependencies`` in ``girder/web_client/package.json.template``
-   to add a new *abstract* specifier for the package:
+2. Update ``girder/web_client/package.json.template`` or ``girder/web_client/src/package.json`` to
+   add a new *abstract* specifier for the package:
 
-  * Packages that are bundled into the web client should generally use the
+  * Packages that are bundled into the web client must be listed under the ``dependencies`` field
+    of ``girder/web_client/src/package.json`` and should generally use the
     `tilde range <https://www.npmjs.com/package/semver#tilde-ranges-123-12-1>`_
     to specify versions.
-  * Packages that are part of the build or testing process should generally use the
+  * Packages that are part of the build or testing process should be listed under either the
+    ``dependencies`` or ``devDependencies`` fields of ``girder/web_client/package.json.template``
+    and should generally use the
     `caret range <https://www.npmjs.com/package/semver#caret-ranges-123-025-004>`_
     to specify versions.
 
-If updating node libraries related to linting or documentation, you should instead modify
-the top-level ``package.json`` file, run ``npm update``, commit the modified files.
+If updating npm libraries related to linting or documentation, you should instead modify
+the top-level ``package.json`` file, run ``npm update``, then commit the modified files.
 
 Creating a new release
 ----------------------
 
 Girder releases are uploaded to `PyPI <https://pypi.python.org/pypi/girder>`_
-for easy installation via ``pip``. In addition, the python source packages
-are stored as releases inside the official
-`github repository <https://github.com/girder/girder/releases>`_. The
-recommended process for generating a new release is described here.
+for easy installation via ``pip``. Each time a pull request is merged to master, an incremental
+"dev" release is created during CI as a pre-release package and published to PyPI, making it easy
+for downstreams to install bleeding edge packages without needing to clone the Girder repository.
 
-1.  From the target commit, set the desired version number in ``girder/web_client/package.json.template``,
-    and ``girder/__init__.py``. Create a new commit and note the SHA; this will
-    become the release tag.
+The major, minor, and patch version are inferred automatically using
+`setuptools-scm <https://pypi.org/project/setuptools-scm/>`_ based on the latest git tag. Hence,
+creating a new release is as simple as pushing a new git tag. For example, from the target commit,
+you could simply run:
 
-2.  Ensure that all tests pass.
+.. code-block:: bash
 
-3.  Clone the repository in a new directory and checkout the release SHA.
-    (Packaging in an old directory could cause files and plugins to be
-    mistakenly included.)
+   git tag v4.5.6
+   git push --tags
 
-4.  Run ``python setup.py sdist --dist-dir=.``.  This will generate the source
-    distribution tarball with a name like ``girder-<version>.tar.gz``.
-
-5.  Create a new virtual environment and install the python package into
-    it and build the web client. This should not be done in the repository
-    directory because the wrong Girder package will be imported.  ::
-
-        mkdir test && cd test
-        virtualenv release
-        source release/bin/activate
-        pip install ../girder-<version>.tar.gz
-        girder build
-
-6.  Now start up the Girder server and ensure that you can browse the web
-    client, plugins, and swagger docs.
-
-7.  When you are confident everything is working correctly, generate
-    a `new release <https://github.com/girder/girder/releases/new>`_
-    on GitHub.  You must be sure to use a tag version of ``v<version>``, where
-    ``<version>`` is the version number as it exists in ``package.json``.  For
-    example, ``v0.2.4``.  Attach the tarball you generated to the release.
-
-8.  Add the tagged version to `readthedocs <https://readthedocs.org/projects/girder/>`_
-    and make sure it builds correctly.
-
-9.  Finally, upload the release to PyPI with the following command: ::
-
-        python setup.py sdist upload
-
-10. Publish the new girder source package on npm.
-
-        cd girder/web_client && cp package.json.template package.json && npm publish
-
-.. _releasepythonclientpackage:
-
-Releasing the python client package
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The design intent behind the python client package is to work with as many
-versions of the Girder server as possible; think carefully before breaking this
-compatibility. There isn't a formal rule for releasing versions of the python
-client package, releases tend to be made when a significant change is made to
-the client that people want to use in production.
-
-Normal semantic versioning is not in use for the python client package because
-its version is partially dependent on the Girder server package version. The
-rules for versioning the python client package are as follows:
-
-* The major version of the python client should be the same as the major version
-  of the Girder server package, assuming it is compatible with the server API.
-* The minor version should be incremented if there is any change in backward
-  compatibility within the python client API, or if significant new features
-  are added.
-* If the release only includes bug fixes or minor enhancements, just increment
-  the patch version token.
-
-The process for releasing the python client is as follows:
-
-1.  Set the version number inside ``clients/python/girder_client/__init__.py`` according
-    to the above rules. It is set in the line near the top of the file that looks like
-    ``__version__ = 'x.y.z'``
-
-2.  Change to the ``clients/python`` directory of the source tree and build the
-    package using the following commands.
-
-    .. code-block:: bash
-
-        cd clients/python
-        python setup.py sdist --dist-dir .
-
-3.  That should have created the package tarball as ``girder-client-<version>.tar.gz``.
-    Install it locally in a virtualenv and ensure that you can call the ``girder-client``
-    executable.
-
-    .. code-block:: bash
-
-        mkdir test && cd test
-        virtualenv release
-        source release/bin/activate
-        pip install ../girder-client-<version>.tar.gz
-        girder-client
-
-4.  Go back to the ``clients/python`` directory and upload the package to pypi:
-
-    .. code-block:: bash
-
-        cd ..
-        python setup.py sdist upload
+That will trigger CircleCI to run, and if all tests pass, the 4.5.6 release will be uploaded to PyPI.

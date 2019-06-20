@@ -1,9 +1,9 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import ItemModel from 'girder/models/ItemModel';
-import UploadWidget from 'girder/views/widgets/UploadWidget';
-import { wrap } from 'girder/utilities/PluginUtils';
+import ItemModel from '@girder/core/models/ItemModel';
+import UploadWidget from '@girder/core/views/widgets/UploadWidget';
+import { wrap } from '@girder/core/utilities/PluginUtils';
 
 import SelectLicenseWidget from './SelectLicenseWidget';
 

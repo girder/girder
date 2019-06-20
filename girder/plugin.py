@@ -1,19 +1,3 @@
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 """
 This module defines functions for registering, loading, and querying girder plugins.
 """
@@ -23,11 +7,11 @@ from functools import wraps
 import json
 import os
 from pkg_resources import iter_entry_points, resource_filename
-import sys
 
 import six
 
 from girder import logprint
+from girder.exceptions import GirderException
 
 
 _NAMESPACE = 'girder.plugin'
@@ -69,25 +53,12 @@ class _PluginMeta(type):
 
             if not getattr(self, '_loaded', False):
                 # This block is executed on the first call to the function.
-                # The return value of the call (or exception raised) is saved
-                # as attributes on the wrapper for future invocations.
+                # The return value of the call is saved an attribute on the wrapper
+                # for future invocations.
+                self._return = func(self, *args, **kwargs)
+
                 self._loaded = True
-                self._return = None
-
-                try:
-                    result = func(self, *args, **kwargs)
-                except Exception:
-                    self._loaded = False
-
-                    # If any errors occur in loading the plugin, log the information, and
-                    # store failure information that can be queried through the api.
-                    logprint.exception('Failed to load plugin %s' % self.name)
-                    self._pluginFailureInfo = sys.exc_info()
-                    raise
-
                 _pluginLoadOrder.append(self.name)
-                self._return = result
-                self._success = True
                 logprint.success('Loaded plugin "%s"' % self.name)
 
             return self._return
@@ -142,7 +113,7 @@ class GirderPlugin(object):
             os.path.join(self.CLIENT_SOURCE_PATH, 'package.json')
         )
         if not os.path.isfile(packageJsonFile):
-            raise Exception('Invalid web client path provided')
+            raise Exception('Invalid web client path provided: %s' % packageJsonFile)
 
         with open(packageJsonFile, 'r') as f:
             packageJson = json.load(f)
@@ -178,7 +149,7 @@ class GirderPlugin(object):
     @property
     def loaded(self):
         """Return true if this plugin has been loaded."""
-        return getattr(self, '_success', False)
+        return getattr(self, '_loaded', False)
 
     def load(self, info):
         raise NotImplementedError('Plugins must define a load method')
@@ -217,37 +188,22 @@ def getPlugin(name):
     return registry.get(name)
 
 
-def getPluginFailureInfo():
-    """Return an object containing plugin failure information."""
-    return {
-        name: value._pluginFailureInfo
-        for name, value in six.iteritems(_getPluginRegistry())
-        if hasattr(value, '_pluginFailureInfo')
-    }
+def _loadPlugins(info, names=None):
+    """Load plugins with the given app info object.
 
-
-def _loadPlugins(names, info):
-    """Load a list of plugins with the given app info object.
-
-    This method will try to load **all** plugins in the provided list.  If
-    an error occurs, it will be logged and the next plugin will be loaded.  A
-    list of successfully loaded plugins will be returned.
+    If `names` is None, all installed plugins will be loaded. If `names` is a
+    list, then only those plugins in the provided list will be loaded.
     """
-    loadedPlugins = []
+    if names is None:
+        names = allPlugins()
+
     for name in names:
         pluginObject = getPlugin(name)
 
         if pluginObject is None:
-            logprint.error('Plugin %s is not installed' % name)
-            continue
+            raise GirderException('Plugin %s is not installed' % name)
 
-        try:
-            pluginObject.load(info)
-        except Exception:
-            continue
-        loadedPlugins.append(name)
-
-    return loadedPlugins
+        pluginObject.load(info)
 
 
 def allPlugins():

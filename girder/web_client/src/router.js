@@ -1,10 +1,10 @@
 import $ from 'jquery';
 import Backbone from 'backbone';
 
-import events from 'girder/events';
-import { parseQueryString } from 'girder/misc';
+import events from '@girder/core/events';
+import { parseQueryString } from '@girder/core/misc';
 
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderModal';
 
 var Router = Backbone.Router.extend({
     initialize: function () {

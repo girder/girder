@@ -1,6 +1,6 @@
-import HeaderUserView from 'girder/views/layout/HeaderUserView';
-import { getCurrentUser } from 'girder/auth';
-import { wrap } from 'girder/utilities/PluginUtils';
+import HeaderUserView from '@girder/core/views/layout/HeaderUserView';
+import { getCurrentUser } from '@girder/core/auth';
+import { wrap } from '@girder/core/utilities/PluginUtils';
 
 import HeaderUserViewMenuTemplate from '../templates/headerUserViewMenu.pug';
 

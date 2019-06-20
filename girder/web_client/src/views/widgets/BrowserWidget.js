@@ -1,13 +1,13 @@
 import _ from 'underscore';
 
-import HierarchyWidget from 'girder/views/widgets/HierarchyWidget';
-import RootSelectorWidget from 'girder/views/widgets/RootSelectorWidget';
-import View from 'girder/views/View';
+import HierarchyWidget from '@girder/core/views/widgets/HierarchyWidget';
+import RootSelectorWidget from '@girder/core/views/widgets/RootSelectorWidget';
+import View from '@girder/core/views/View';
 
-import BrowserWidgetTemplate from 'girder/templates/widgets/browserWidget.pug';
+import BrowserWidgetTemplate from '@girder/core/templates/widgets/browserWidget.pug';
 
-import 'girder/stylesheets/widgets/browserWidget.styl';
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/stylesheets/widgets/browserWidget.styl';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This widget provides the user with an interface similar to a filesystem

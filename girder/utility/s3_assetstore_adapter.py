@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2014 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import boto3
 import botocore
 import cherrypy
@@ -25,6 +7,7 @@ import re
 import requests
 import six
 import uuid
+from six.moves import urllib
 
 from girder import logger, events
 from girder.api.rest import setContentDisposition
@@ -51,7 +34,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     @staticmethod
     def _s3Client(connectParams):
         try:
-            return boto3.client('s3', **connectParams)
+            client = boto3.client('s3', **connectParams)
+            if 'googleapis' in urllib.parse.urlparse(connectParams.get(
+                    'endpoint_url', '')).netloc.split('.'):
+                client.meta.events.unregister(
+                    'before-parameter-build.s3.ListObjects',
+                    botocore.handlers.set_list_objects_encoding_type_url)
+                client._useGoogleAccessId = True
+            return client
         except Exception:
             logger.exception('S3 assetstore validation exception')
             raise ValidationException('Unable to connect to S3 assetstore')
@@ -109,13 +99,37 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             self.client = S3AssetstoreAdapter._s3Client(self.connectParams)
 
     def _getRequestHeaders(self, upload):
-        return {
+        headers = {
             'Content-Disposition': setContentDisposition(upload['name'], setHeader=False),
             'Content-Type': upload.get('mimeType', ''),
             'x-amz-acl': 'private',
             'x-amz-meta-uploader-id': str(upload['userId']),
             'x-amz-meta-uploader-ip': str(cherrypy.request.remote.ip)
         }
+        if self.assetstore.get('serverSideEncryption'):
+            headers['x-amz-server-side-encryption'] = 'AES256'
+
+        return headers
+
+    def _generatePresignedUrl(self, *args, **kwargs):
+        """
+        Wrap self.client.generate_presigned_url to allow it work with
+        Google Cloud Storage.
+
+        See https://gist.github.com/gleicon/2b8acb9f9c0f22753eaac227ff997b34
+        """
+        url = self.client.generate_presigned_url(*args, **kwargs)
+        if getattr(self.client, '_useGoogleAccessId', False):
+            awskey, gskey = 'AWSAccessKeyId', 'GoogleAccessId'
+            parsed = urllib.parse.urlparse(url)
+            if awskey in urllib.parse.parse_qs(parsed.query):
+                qsl = urllib.parse.parse_qsl(parsed.query)
+                qsl = [(key if key != awskey else gskey, value) for key, value in qsl]
+                url = urllib.parse.urlunparse((
+                    parsed[0], parsed[1], parsed[2], parsed[3],
+                    urllib.parse.urlencode(qsl),
+                    parsed[5]))
+        return url
 
     def initUpload(self, upload):
         """
@@ -141,6 +155,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'uploader-ip': headers['x-amz-meta-uploader-ip']
             }
         }
+
+        if self.assetstore.get('serverSideEncryption'):
+            params['ServerSideEncryption'] = 'AES256'
+
         requestInfo = {
             'headers': headers,
             'method': 'PUT'
@@ -161,7 +179,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             method = 'put_object'
             params['ContentLength'] = upload['size']
 
-        requestInfo['url'] = self.client.generate_presigned_url(ClientMethod=method, Params=params)
+        requestInfo['url'] = self._generatePresignedUrl(ClientMethod=method, Params=params)
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -198,7 +216,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if length <= 0:
             raise ValidationException('Invalid chunk length %d.' % length)
 
-        url = self.client.generate_presigned_url(ClientMethod='upload_part', Params={
+        url = self._generatePresignedUrl(ClientMethod='upload_part', Params={
             'Bucket': self.assetstore['bucket'],
             'Key': upload['s3']['key'],
             'ContentLength': length,
@@ -245,7 +263,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
             # We can't just call upload_part directly because they require a
             # seekable file object, and ours isn't.
-            url = self.client.generate_presigned_url(ClientMethod='upload_part', Params={
+            url = self._generatePresignedUrl(ClientMethod='upload_part', Params={
                 'Bucket': self.assetstore['bucket'],
                 'Key': upload['s3']['key'],
                 'ContentLength': size,
@@ -288,7 +306,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'You should not call requestOffset on a chunked direct-to-S3 upload.')
 
         headers = self._getRequestHeaders(upload)
-        url = self.client.generate_presigned_url(ClientMethod='put_object', Params={
+        params = {
             'Bucket': self.assetstore['bucket'],
             'Key': upload['s3']['key'],
             'ACL': headers['x-amz-acl'],
@@ -299,7 +317,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'uploader-id': headers['x-amz-meta-uploader-id'],
                 'uploader-ip': headers['x-amz-meta-uploader-ip']
             }
-        })
+        }
+
+        if self.assetstore.get('serverSideEncryption'):
+            params['ServerSideEncryption'] = 'AES256'
+
+        url = self._generatePresignedUrl(ClientMethod='put_object', Params=params)
 
         return {
             'method': 'PUT',
@@ -329,7 +352,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     Bucket=self.assetstore['bucket'], Key=file['s3Key'],
                     UploadId=upload['s3']['uploadId'], MultipartUpload={'Parts': parts})
             else:
-                url = self.client.generate_presigned_url(
+                url = self._generatePresignedUrl(
                     ClientMethod='complete_multipart_upload', Params={
                         'Bucket': self.assetstore['bucket'],
                         'Key': upload['s3']['key'],
@@ -366,7 +389,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if contentDisposition == 'inline' and not file.get('imported'):
             params['ResponseContentDisposition'] = 'inline; filename="%s"' % file['name']
 
-        url = self.client.generate_presigned_url(ClientMethod='get_object', Params=params)
+        url = self._generatePresignedUrl(ClientMethod='get_object', Params=params)
 
         if headers:
             raise cherrypy.HTTPRedirect(url)
@@ -391,47 +414,48 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             importPath += '/'
 
         bucket = self.assetstore['bucket']
-        resp = self.client.list_objects(Bucket=bucket, Prefix=importPath, Delimiter='/')
+        paginator = self.client.get_paginator('list_objects')
+        pageIterator = paginator.paginate(Bucket=bucket, Prefix=importPath, Delimiter='/')
+        for resp in pageIterator:
+            # Start with objects
+            for obj in resp.get('Contents', []):
+                if progress:
+                    progress.update(message=obj['Key'])
 
-        # Start with objects
-        for obj in resp.get('Contents', []):
-            if progress:
-                progress.update(message=obj['Key'])
+                name = obj['Key'].rsplit('/', 1)[-1]
+                if not name:
+                    continue
 
-            name = obj['Key'].rsplit('/', 1)[-1]
-            if not name:
-                continue
+                if parentType != 'folder':
+                    raise ValidationException(
+                        'Keys cannot be imported directly underneath a %s.' % parentType)
 
-            if parentType != 'folder':
-                raise ValidationException(
-                    'Keys cannot be imported directly underneath a %s.' % parentType)
+                if self.shouldImportFile(obj['Key'], params):
+                    item = Item().createItem(
+                        name=name, creator=user, folder=parent, reuseExisting=True)
+                    # Create a file record; delay saving it until we have added
+                    # the import information.
+                    file = File().createFile(
+                        name=name, creator=user, item=item, reuseExisting=True,
+                        assetstore=self.assetstore, mimeType=None, size=obj['Size'],
+                        saveFile=False)
+                    file['s3Key'] = obj['Key']
+                    file['imported'] = True
+                    File().save(file)
 
-            if self.shouldImportFile(obj['Key'], params):
-                item = Item().createItem(
-                    name=name, creator=user, folder=parent, reuseExisting=True)
-                # Create a file record; delay saving it until we have added the
-                # import information.
-                file = File().createFile(
-                    name=name, creator=user, item=item, reuseExisting=True,
-                    assetstore=self.assetstore, mimeType=None, size=obj['Size'],
-                    saveFile=False)
-                file['s3Key'] = obj['Key']
-                file['imported'] = True
-                File().save(file)
+            # Now recurse into subdirectories
+            for obj in resp.get('CommonPrefixes', []):
+                if progress:
+                    progress.update(message=obj['Prefix'])
 
-        # Now recurse into subdirectories
-        for obj in resp.get('CommonPrefixes', []):
-            if progress:
-                progress.update(message=obj['Prefix'])
+                name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
 
-            name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
-
-            folder = Folder().createFolder(
-                parent=parent, name=name, parentType=parentType, creator=user,
-                reuseExisting=True)
-            self.importData(parent=folder, parentType='folder', params={
-                'importPath': obj['Prefix']
-            }, progress=progress, user=user, **kwargs)
+                folder = Folder().createFolder(
+                    parent=parent, name=name, parentType=parentType, creator=user,
+                    reuseExisting=True)
+                self.importData(parent=folder, parentType='folder', params={
+                    'importPath': obj['Prefix']
+                }, progress=progress, user=user, **kwargs)
 
     def deleteFile(self, file):
         """
@@ -473,7 +497,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         disp = 'attachment; filename="%s"' % file['name']
         mime = file.get('mimeType') or ''
 
-        if key['ContentType'] != mime or key['ContentDisposition'] != disp:
+        if key.get('ContentType') != mime or key.get('ContentDisposition') != disp:
             self.client.copy_object(
                 Bucket=bucket, Key=file['s3Key'], Metadata=key['Metadata'],
                 CopySource={'Bucket': bucket, 'Key': file['s3Key']}, ContentDisposition=disp,

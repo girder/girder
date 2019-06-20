@@ -1,23 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
-import cherrypy.process.plugins
+import cherrypy
 import datetime
 import errno
 import girder
@@ -25,20 +7,23 @@ import json
 import six
 import os
 import logging
-import traceback
 
+from girder import plugin
 from girder.api import access
-from girder.constants import GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID, \
-    SettingKey, TokenScope, ACCESS_FLAGS, VERSION
-from girder.exceptions import GirderException, ResourcePathNotFound, RestException
+from girder.constants import TokenScope, ACCESS_FLAGS, VERSION
+from girder.exceptions import GirderException, ResourcePathNotFound
+from girder.models.collection import Collection
+from girder.models.file import File
+from girder.models.folder import Folder
 from girder.models.group import Group
+from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.models.upload import Upload
 from girder.models.user import User
-from girder import plugin
+from girder.settings import SettingKey
 from girder.utility import config, system
 from girder.utility.progress import ProgressContext
-from ..describe import API_VERSION, Description, autoDescribeRoute
+from ..describe import Description, autoDescribeRoute
 from ..rest import Resource
 
 ModuleStartTime = datetime.datetime.utcnow()
@@ -59,8 +44,6 @@ class System(Resource):
         self.route('GET', ('plugins',), self.getPlugins)
         self.route('GET', ('access_flag',), self.getAccessFlags)
         self.route('PUT', ('setting',), self.setSetting)
-        self.route('PUT', ('plugins',), self.enablePlugins)
-        self.route('PUT', ('restart',), self.restartServer)
         self.route('GET', ('uploads',), self.getPartialUploads)
         self.route('DELETE', ('uploads',), self.discardPartialUploads)
         self.route('GET', ('check',), self.systemStatus)
@@ -76,10 +59,11 @@ class System(Resource):
         Description('Set the value for a system setting, or a list of them.')
         .notes('Must be a system administrator to call this. If the value passed is '
                'a valid JSON object, it will be parsed and stored as an object.')
-        .param('key', 'The key identifying this setting.', required=False)
-        .param('value', 'The value for this setting.', required=False)
+        .param('key', 'The key identifying this setting.', required=False, paramType='formData')
+        .param('value', 'The value for this setting.', required=False, paramType='formData')
         .jsonParam('list', 'A JSON list of objects with key and value representing '
-                   'a list of settings to set.', required=False, requireArray=True)
+                   'a list of settings to set.', required=False, requireArray=True,
+                   paramType='formData')
         .errorResponse('You are not a system administrator.', 403)
         .errorResponse('Failed to set system setting.', 500)
     )
@@ -128,31 +112,18 @@ class System(Resource):
         .param('key', 'The key identifying this setting.', required=False)
         .jsonParam('list', 'A JSON list of keys representing a set of settings to return.',
                    required=False, requireArray=True)
-        .param('default', 'If "none", return a null value if a setting is '
-               'currently the default value. If "default", return the '
-               'default value of the setting(s).', required=False)
         .errorResponse('You are not a system administrator.', 403)
     )
-    def getSetting(self, key, list, default):
-        getFuncName = 'get'
-        funcParams = {}
-        if default is not None:
-            if default == 'none':
-                funcParams['default'] = None
-            elif default == 'default':
-                getFuncName = 'getDefault'
-            elif default:
-                raise RestException("Default was not 'none', 'default', or blank.")
-        getFunc = getattr(Setting(), getFuncName)
+    def getSetting(self, key, list):
         if list is not None:
-            return {k: getFunc(k, **funcParams) for k in list}
+            return {k: Setting().get(k) for k in list}
         else:
             self.requireParams({'key': key})
-            return getFunc(key, **funcParams)
+            return Setting().get(key)
 
-    @access.admin(scope=TokenScope.PLUGINS_ENABLED_READ)
+    @access.admin(scope=TokenScope.PLUGINS_READ)
     @autoDescribeRoute(
-        Description('Get the lists of all available and all enabled plugins.')
+        Description('Get the lists of all available and all loaded plugins.')
         .notes('Must be a system administrator to call this.')
         .errorResponse('You are not a system administrator.', 403)
     )
@@ -166,67 +137,19 @@ class System(Resource):
                 'version': p.version
             }
 
-        plugins = {
+        return {
             'all': {name: _pluginNameToResponse(name) for name in plugin.allPlugins()},
-            'enabled': Setting().get(SettingKey.PLUGINS_ENABLED),
             'loaded': plugin.loadedPlugins()
         }
-        failureInfo = {
-            plugin: ''.join(traceback.format_exception(*exc_info))
-            for plugin, exc_info in six.iteritems(plugin.getPluginFailureInfo())
-        }
 
-        if failureInfo:
-            plugins['failed'] = failureInfo
-        return plugins
-
-    # TODO: port #2776
     @access.public
     @autoDescribeRoute(
         Description('Get the version information for this server.')
-        # .param('fromGit', 'If true, use git to get the version of the server '
-        #        'and any plugins that are git repositories.  This supplements '
-        #        'the usual version information.',
-        #        required=False, dataType='boolean')
     )
-    def getVersion(self):  # , fromGit=False):
+    def getVersion(self):
         version = dict(**VERSION)
-        version['apiVersion'] = API_VERSION
         version['serverStartDate'] = ModuleStartTime
-        # if fromGit:
-        #     version['gitVersions'] = install._getGitVersions()
         return version
-
-    @access.admin
-    @autoDescribeRoute(
-        Description('Set the list of enabled plugins for the system.')
-        .responseClass('Setting')
-        .notes('Must be a system administrator to call this.')
-        .jsonParam('plugins', 'JSON array of plugins to enable.', requireArray=True)
-        .errorResponse('Required dependencies do not exist.', 500)
-        .errorResponse('You are not a system administrator.', 403)
-    )
-    def enablePlugins(self, plugins):
-        # Determine what plugins have been disabled and remove their associated routes.
-        setting = Setting()
-        routeTable = setting.get(SettingKey.ROUTE_TABLE)
-        oldPlugins = setting.get(SettingKey.PLUGINS_ENABLED)
-        reservedRoutes = {GIRDER_ROUTE_ID, GIRDER_STATIC_ROUTE_ID}
-
-        routeTableChanged = False
-        removedRoutes = (
-            set(oldPlugins) - set(plugins) - reservedRoutes)
-
-        for route in removedRoutes:
-            if route in routeTable:
-                del routeTable[route]
-                routeTableChanged = True
-
-        if routeTableChanged:
-            setting.set(SettingKey.ROUTE_TABLE, routeTable)
-
-        # Route cleanup is done; update list of enabled plugins.
-        return setting.set(SettingKey.PLUGINS_ENABLED, plugins)
 
     @access.admin
     @autoDescribeRoute(
@@ -333,36 +256,6 @@ class System(Resource):
         if includeUntracked:
             uploadList += Upload().untrackedUploads('delete', assetstoreId)
         return uploadList
-
-    @access.admin
-    @autoDescribeRoute(
-        Description('Restart the Girder REST server.')
-        .notes('Must be a system administrator to call this.')
-        .errorResponse('You are not a system administrator.', 403)
-    )
-    def restartServer(self):
-        if not config.getConfig()['server'].get('cherrypy_server', True):
-            raise RestException('Restarting of server is disabled.', 403)
-
-        class Restart(cherrypy.process.plugins.Monitor):
-            def __init__(self, bus, frequency=1):
-                cherrypy.process.plugins.Monitor.__init__(
-                    self, bus, self.run, frequency)
-
-            def start(self):
-                cherrypy.process.plugins.Monitor.start(self)
-
-            def run(self):
-                self.bus.log('Restarting.')
-                self.thread.cancel()
-                self.bus.restart()
-
-        restart = Restart(cherrypy.engine)
-        restart.subscribe()
-        restart.start()
-        return {
-            'restarted': datetime.datetime.utcnow()
-        }
 
     @access.public
     @autoDescribeRoute(
@@ -505,7 +398,7 @@ class System(Resource):
                'of collection, file, and group')
     )
     def getCollectionCreationPolicyAccess(self):
-        cpp = Setting().get('core.collection_create_policy')
+        cpp = Setting().get(SettingKey.COLLECTION_CREATE_POLICY)
 
         acList = {
             'users': [{'id': x} for x in cpp.get('users', [])],
@@ -535,18 +428,18 @@ class System(Resource):
 
     def _fixBaseParents(self, progress):
         fixes = 0
-        models = ['folder', 'item']
-        steps = sum(self.model(model).find().count() for model in models)
+        models = [Folder(), Item()]
+        steps = sum(model.find().count() for model in models)
         progress.update(total=steps, current=0)
         for model in models:
-            for doc in self.model(model).find():
+            for doc in model.find():
                 progress.update(increment=1)
-                baseParent = self.model(model).parentsToRoot(doc, force=True)[0]
+                baseParent = model.parentsToRoot(doc, force=True)[0]
                 baseParentType = baseParent['type']
                 baseParentId = baseParent['object']['_id']
                 if (doc['baseParentType'] != baseParentType or
                         doc['baseParentId'] != baseParentId):
-                    self.model(model).update({'_id': doc['_id']}, update={
+                    model.update({'_id': doc['_id']}, update={
                         '$set': {
                             'baseParentType': baseParentType,
                             'baseParentId': baseParentId
@@ -556,25 +449,25 @@ class System(Resource):
 
     def _pruneOrphans(self, progress):
         count = 0
-        models = ['folder', 'item', 'file']
-        steps = sum(self.model(model).find().count() for model in models)
+        models = [File(), Folder(), Item()]
+        steps = sum(model.find().count() for model in models)
         progress.update(total=steps, current=0)
         for model in models:
-            for doc in self.model(model).find():
+            for doc in model.find():
                 progress.update(increment=1)
-                if self.model(model).isOrphan(doc):
-                    self.model(model).remove(doc)
+                if model.isOrphan(doc):
+                    model.remove(doc)
                     count += 1
         return count
 
     def _recalculateSizes(self, progress):
         fixes = 0
-        models = ['collection', 'user']
-        steps = sum(self.model(model).find().count() for model in models)
+        models = [Collection(), User()]
+        steps = sum(model.find().count() for model in models)
         progress.update(total=steps, current=0)
         for model in models:
-            for doc in self.model(model).find():
+            for doc in model.find():
                 progress.update(increment=1)
-                _, f = self.model(model).updateSize(doc)
+                _, f = model.updateSize(doc)
                 fixes += f
         return fixes

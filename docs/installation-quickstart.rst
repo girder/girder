@@ -13,7 +13,7 @@ Basic System Prerequisites
 
       .. code-block:: bash
 
-         sudo apt-get install -y python-pip python-virtualenv git
+         sudo apt-get install -y python-pip python-virtualenv
 
       To install system prerequisites for Girder's ``ldap`` plugin, run the command:
 
@@ -27,7 +27,7 @@ Basic System Prerequisites
 
       .. code-block:: bash
 
-         sudo apt-get install -y python-pip python-virtualenv python-dev git
+         sudo apt-get install -y python-pip python-virtualenv python-dev
 
       To install system prerequisites for Girder's ``ldap`` plugin, run the command:
 
@@ -49,7 +49,7 @@ Basic System Prerequisites
 
         .. code-block:: bash
 
-           sudo yum -y install python2-pip python-virtualenv gcc python-devel curl git
+           sudo yum -y install python2-pip python-virtualenv gcc python-devel curl
 
       To install system prerequisites for Girder's ``ldap`` plugin, run the command:
 

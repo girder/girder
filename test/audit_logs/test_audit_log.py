@@ -22,6 +22,7 @@ def freshLog():
 
 @pytest.mark.plugin('audit_logs')
 def testAnonymousRestRequestLogging(server, freshLog):
+    Record().collection.delete_many({})  # Clear existing records
     server.request('/user/me')
 
     records = Record().find()

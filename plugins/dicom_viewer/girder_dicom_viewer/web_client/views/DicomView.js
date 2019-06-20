@@ -10,10 +10,10 @@ import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkRenderWindow from 'vtk.js/Sources/Rendering/Core/RenderWindow';
 import vtkRenderWindowInteractor from 'vtk.js/Sources/Rendering/Core/RenderWindowInteractor';
 
-import { restRequest } from 'girder/rest';
-import FileModel from 'girder/models/FileModel';
-import FileCollection from 'girder/collections/FileCollection';
-import View from 'girder/views/View';
+import { restRequest } from '@girder/core/rest';
+import FileModel from '@girder/core/models/FileModel';
+import FileCollection from '@girder/core/collections/FileCollection';
+import View from '@girder/core/views/View';
 
 import DicomItemTemplate from '../templates/dicomItem.pug';
 import '../stylesheets/dicomItem.styl';
@@ -47,6 +47,8 @@ const DicomFileCollection = FileCollection.extend({
 
         this._selectedIndex = null;
     },
+
+    sortField: 'none',
 
     selectIndex: function (index) {
         this._selectedIndex = index;
@@ -412,7 +414,7 @@ const DicomItemView = View.extend({
 
         selectedFile.getSlice()
             .done((slice) => {
-                this.$('.g-dicom-filename').text(selectedFile.name());
+                this.$('.g-dicom-filename').text(selectedFile.name()).attr('title', selectedFile.name());
                 this.$('.g-dicom-slider').val(selectedIndex);
 
                 this._sliceMetadataView

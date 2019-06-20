@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import json
 import time
 from bson import json_util
@@ -204,10 +186,6 @@ class JobsTestCase(base.TestCase):
         resp = self.request('/job/all', user=self.users[0])
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 6)
-
-        # Test deprecated listAll method
-        jobs = list(self.jobModel.listAll(limit=0, offset=0, sort=None, currentUser=self.users[0]))
-        self.assertEqual(len(jobs), 6)
 
         # get with filter
         resp = self.request('/job/all', user=self.users[0], params={

@@ -1,12 +1,12 @@
 import QRCode from 'qrcode';
 import OTPAuth from 'url-otpauth';
 
-import View from 'girder/views/View';
+import View from '@girder/core/views/View';
 
-import UserOtpBeginTemplate from 'girder/templates/widgets/userOtpBegin.pug';
-import UserOtpEnableTemplate from 'girder/templates/widgets/userOtpEnable.pug';
-import UserOtpDisableTemplate from 'girder/templates/widgets/userOtpDisable.pug';
-import 'girder/stylesheets/widgets/userOtpManagementWidget.styl';
+import UserOtpBeginTemplate from '@girder/core/templates/widgets/userOtpBegin.pug';
+import UserOtpEnableTemplate from '@girder/core/templates/widgets/userOtpEnable.pug';
+import UserOtpDisableTemplate from '@girder/core/templates/widgets/userOtpDisable.pug';
+import '@girder/core/stylesheets/widgets/userOtpManagementWidget.styl';
 
 const UserOtpManagementWidget = View.extend({
     events: {

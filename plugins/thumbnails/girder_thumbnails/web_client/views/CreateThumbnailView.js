@@ -1,8 +1,8 @@
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
-import View from 'girder/views/View';
+import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
+import View from '@girder/core/views/View';
 
-import 'girder/utilities/jquery/girderEnable';
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderModal';
 
 import ThumbnailModel from '../models/ThumbnailModel';
 

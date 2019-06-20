@@ -1,6 +1,6 @@
-import View from 'girder/views/View';
+import View from '@girder/core/views/View';
 
-import PaginateWidgetTemplate from 'girder/templates/widgets/paginateWidget.pug';
+import PaginateWidgetTemplate from '@girder/core/templates/widgets/paginateWidget.pug';
 
 /**
  * This widget is used to provide a consistent widget for iterating amongst

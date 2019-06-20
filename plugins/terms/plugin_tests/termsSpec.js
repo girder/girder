@@ -11,8 +11,8 @@ describe('Create and log in to a user for testing', function () {
         runs(function () {
             settingSaved = false;
             girder.rest.restRequest({
-                path: 'system/setting',
-                type: 'PUT',
+                url: 'system/setting',
+                method: 'PUT',
                 data: {
                     key: 'core.collection_create_policy',
                     value: JSON.stringify({groups: [], open: true, users: []})

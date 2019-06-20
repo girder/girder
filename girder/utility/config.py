@@ -1,26 +1,9 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import cherrypy
 import os
 import six
 
+import girder
 from girder.constants import PACKAGE_DIR
 
 
@@ -41,14 +24,22 @@ def _loadConfigsByPrecedent():
     """
     Load configuration in reverse order of precedent.
     """
-    configPaths = [os.path.join(PACKAGE_DIR, 'conf', 'girder.dist.cfg')]
+    # TODO: Deprecated, remove in a later version
+    def _printConfigurationWarning():
+        girder.logprint.warning(
+            'Detected girder.local.cfg, this location is no longer supported.\n'
+            'For supported locations, see '
+            'https://girder.readthedocs.io/en/stable/configuration.html#configuration')
 
-    if 'GIRDER_TEST_DB' not in os.environ:
-        # we don't want to load the local config file if we are running tests
-        configPaths.append(os.path.join(PACKAGE_DIR, 'conf', 'girder.local.cfg'))
+    if os.path.exists(os.path.join(PACKAGE_DIR, 'conf', 'girder.local.cfg')):
+        # This can't use logprint since configuration is loaded before initialization.
+        # Note this also won't be displayed when starting other services that don't start a CherryPy
+        # server such as girder mount or girder sftpd.
+        cherrypy.engine.subscribe('start', _printConfigurationWarning)
 
-    configPaths.append(os.path.join('/etc', 'girder.cfg'))
-    configPaths.append(os.path.join(os.path.expanduser('~'), '.girder', 'girder.cfg'))
+    configPaths = [os.path.join(PACKAGE_DIR, 'conf', 'girder.dist.cfg'),
+                   os.path.join('/etc', 'girder.cfg'),
+                   os.path.join(os.path.expanduser('~'), '.girder', 'girder.cfg')]
 
     if 'GIRDER_CONFIG' in os.environ:
         configPaths.append(os.environ['GIRDER_CONFIG'])

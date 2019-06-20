@@ -101,7 +101,7 @@
             input#g-new-s3-secret.input-sm.form-control(type="text", placeholder="Secret access key")
           .form-group
             label.control-label(for="g-new-s3-service") Service
-            input#g-new-s3-service.input-sm.form-control(type="text", placeholder="Service")
+            input#g-new-s3-service.input-sm.form-control(type="text", placeholder="Service", title="The service if different from s3.amazonaws.com, such as storage.googleapis.com.")
           .form-group
             label.control-label(for="g-new-s3-region") Region
             input#g-new-s3-region.input-sm.form-control(type="text", placeholder="Region")
@@ -113,6 +113,10 @@
             label
               input#g-new-s3-infercredentials(type="checkbox")
               | Infer Credentials
+          .checkbox
+            label
+              input#g-new-s3-sse(type="checkbox")
+              | Server side encryption
 
           p#g-new-s3-error.g-validation-failed-message
           input.g-new-assetstore-submit.btn.btn-sm.btn-primary(type="submit", value="Create")

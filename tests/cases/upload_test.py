@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2014 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import boto3
 import json
 import os
@@ -113,17 +95,18 @@ class UploadTestCase(base.TestCase):
         if partial is not False and partial == 0:
             return upload
         if 's3' not in upload:
-            fields = [('offset', 0), ('uploadId', upload['_id'])]
-            files = [('chunk', 'helloWorld.txt', chunk1)]
-            resp = self.multipartRequest(
-                path='/file/chunk', user=self.user, fields=fields, files=files)
+            resp = self.request(
+                path='/file/chunk', method='POST', user=self.user, body=chunk1, params={
+                    'uploadId': upload['_id']
+                }, type='text/plain')
             self.assertStatusOk(resp)
             if partial is not False:
                 return resp.json
-            fields = [('offset', len(chunk1)), ('uploadId', upload['_id'])]
-            files = [('chunk', 'helloWorld.txt', chunk2)]
-            resp = self.multipartRequest(
-                path='/file/chunk', user=self.user, fields=fields, files=files)
+            resp = self.request(
+                path='/file/chunk', method='POST', user=self.user, body=chunk2, params={
+                    'offset': len(chunk1),
+                    'uploadId': upload['_id']
+                }, type='text/plain')
             self.assertStatusOk(resp)
             return upload
         # s3 uses a different method for uploading chunks

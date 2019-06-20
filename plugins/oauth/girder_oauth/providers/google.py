@@ -1,29 +1,12 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 from six.moves import urllib
 
 from girder.api.rest import getApiUrl
 from girder.exceptions import RestException
 from girder.models.setting import Setting
+
 from .base import ProviderBase
-from .. import constants
+from ..settings import PluginSettings
 
 
 class Google(ProviderBase):
@@ -34,16 +17,16 @@ class Google(ProviderBase):
     _API_USER_FIELDS = ('id', 'emails', 'name')
 
     def getClientIdSetting(self):
-        return Setting().get(constants.PluginSettings.GOOGLE_CLIENT_ID)
+        return Setting().get(PluginSettings.GOOGLE_CLIENT_ID)
 
     def getClientSecretSetting(self):
-        return Setting().get(constants.PluginSettings.GOOGLE_CLIENT_SECRET)
+        return Setting().get(PluginSettings.GOOGLE_CLIENT_SECRET)
 
     @classmethod
     def getUrl(cls, state):
-        clientId = Setting().get(constants.PluginSettings.GOOGLE_CLIENT_ID)
+        clientId = Setting().get(PluginSettings.GOOGLE_CLIENT_ID)
 
-        if clientId is None:
+        if not clientId:
             raise Exception('No Google client ID setting is present.')
 
         callbackUrl = '/'.join((getApiUrl(), 'oauth', 'google', 'callback'))

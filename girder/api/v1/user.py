@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import base64
 import cherrypy
 import datetime
@@ -24,12 +6,12 @@ import datetime
 from ..describe import Description, autoDescribeRoute
 from girder.api import access
 from girder.api.rest import Resource, filtermodel, setCurrentUser
-from girder.constants import AccessType, SettingKey, TokenScope
+from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException, AccessException
-from girder.models.password import Password
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User as UserModel
+from girder.settings import SettingKey
 from girder.utility import mail_utils
 
 
@@ -63,7 +45,7 @@ class User(Resource):
         self.route('PUT', (':id', 'verification'), self.verifyEmail)
         self.route('POST', ('verification',), self.sendVerificationEmail)
 
-    @access.public
+    @access.user
     @filtermodel(model=UserModel)
     @autoDescribeRoute(
         Description('List or search for users.')
@@ -114,10 +96,10 @@ class User(Resource):
 
         # Only create and send new cookie if user isn't already sending a valid one.
         if not user:
-            authHeader = cherrypy.request.headers.get('Girder-Authorization')
+            authHeader = cherrypy.request.headers.get('Authorization')
 
             if not authHeader:
-                authHeader = cherrypy.request.headers.get('Authorization')
+                authHeader = cherrypy.request.headers.get('Girder-Authorization')
 
             if not authHeader or not authHeader[0:6] == 'Basic ':
                 raise RestException('Use HTTP Basic Authentication', 401)
@@ -210,13 +192,12 @@ class User(Resource):
         self._model.remove(user)
         return {'message': 'Deleted user %s.' % user['login']}
 
-    @access.admin
+    @access.user
     @autoDescribeRoute(
-        Description('Get detailed information about all users.')
-        .errorResponse('You are not a system administrator.', 403)
+        Description('Get detailed information of accessible users.')
     )
     def getUsersDetails(self):
-        nUsers = self._model.find().count()
+        nUsers = self._model.findWithPermissions(user=self.getCurrentUser()).count()
         return {'nUsers': nUsers}
 
     @access.user
@@ -287,7 +268,8 @@ class User(Resource):
         if not old:
             raise RestException('Old password must not be empty.')
 
-        if not Password().hasPassword(user) or not Password().authenticate(user, old):
+        if not self._model.hasPassword(user) or \
+                not self._model._cryptContext.verify(old, user['salt']):
             # If not the user's actual password, check for temp access token
             token = Token().load(old, force=True, objectId=False, exc=False)
             if (not token or not token.get('userId') or

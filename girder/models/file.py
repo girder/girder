@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import cherrypy
 import datetime
 import os
@@ -24,11 +6,12 @@ import six
 
 from .model_base import Model, AccessControlledModel
 from girder import auditLogger, events
-from girder.constants import AccessType, CoreEventHandler, SettingKey
+from girder.constants import AccessType, CoreEventHandler
 from girder.exceptions import FilePathException, ValidationException
 from girder.models.setting import Setting
-from girder.utility import acl_mixin
-from girder.utility import path as path_util
+from girder.settings import SettingKey
+from girder.utility import acl_mixin, path as path_util
+from girder.utility.model_importer import ModelImporter
 
 
 class File(acl_mixin.AccessControlMixin, Model):
@@ -190,9 +173,9 @@ class File(acl_mixin.AccessControlMixin, Model):
         if file.get('assetstoreType'):
             try:
                 if isinstance(file['assetstoreType'], six.string_types):
-                    return self.model(file['assetstoreType'])
+                    return ModelImporter.model(file['assetstoreType'])
                 else:
-                    return self.model(*file['assetstoreType'])
+                    return ModelImporter.model(*file['assetstoreType'])
             except Exception:
                 raise ValidationException(
                     'Invalid assetstore type: %s.' % (file['assetstoreType'],))
@@ -298,7 +281,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         }, field='size', amount=sizeIncrement, multi=False)
 
         # Propagate size up to root data node
-        self.model(item['baseParentType']).increment(query={
+        ModelImporter.model(item['baseParentType']).increment(query={
             '_id': item['baseParentId']
         }, field='size', amount=sizeIncrement, multi=False)
 
@@ -390,10 +373,13 @@ class File(acl_mixin.AccessControlMixin, Model):
 
     def getAssetstoreAdapter(self, file):
         """
-        Return the assetstore adapter for the given file.
+        Return the assetstore adapter for the given file.  Return None if the
+        file has no assetstore.
         """
         from girder.utility import assetstore_utilities
 
+        if not file.get('assetstoreId'):
+            return None
         assetstore = self._getAssetstoreModel(file).load(file['assetstoreId'])
         return assetstore_utilities.getAssetstoreAdapter(assetstore)
 
@@ -435,9 +421,9 @@ class File(acl_mixin.AccessControlMixin, Model):
         if file.get('attachedToId'):
             attachedToType = file.get('attachedToType')
             if isinstance(attachedToType, six.string_types):
-                modelType = self.model(attachedToType)
+                modelType = ModelImporter.model(attachedToType)
             elif isinstance(attachedToType, list) and len(attachedToType) == 2:
-                modelType = self.model(*attachedToType)
+                modelType = ModelImporter.model(*attachedToType)
             else:
                 # Invalid 'attachedToType'
                 return True
@@ -497,7 +483,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         :returns: a girder mount path to the file or None if no such path is
             available.
         """
-        mount = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION, None)
+        mount = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION)
         if mount:
             path = mount['path'].rstrip('/') + path_util.getResourcePath('file', file, force=True)
             if not validate or os.path.exists(path):

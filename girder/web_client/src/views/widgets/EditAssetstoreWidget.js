@@ -1,14 +1,14 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import View from 'girder/views/View';
-import { AssetstoreType } from 'girder/constants';
-import { handleClose, handleOpen } from 'girder/dialog';
+import View from '@girder/core/views/View';
+import { AssetstoreType } from '@girder/core/constants';
+import { handleClose, handleOpen } from '@girder/core/dialog';
 
-import EditAssetstoreWidgetTemplate from 'girder/templates/widgets/editAssetstoreWidget.pug';
+import EditAssetstoreWidgetTemplate from '@girder/core/templates/widgets/editAssetstoreWidget.pug';
 
-import 'girder/utilities/jquery/girderEnable';
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This widget is used to edit an existing assetstore.
@@ -127,7 +127,8 @@ fieldsMap[AssetstoreType.S3] = {
             service: this.$('#g-edit-s3-service').val(),
             region: this.$('#g-edit-s3-region').val(),
             readOnly: this.$('#g-edit-s3-readonly').is(':checked'),
-            inferCredentials: this.$('#g-edit-s3-infercredentials').is(':checked')
+            inferCredentials: this.$('#g-edit-s3-infercredentials').is(':checked'),
+            serverSideEncryption: this.$('#g-edit-s3-sse').is(':checked')
         };
     },
     set: function () {
@@ -141,6 +142,8 @@ fieldsMap[AssetstoreType.S3] = {
             this.model.get('readOnly') ? 'checked' : undefined);
         this.$('#g-edit-s3-infercredentials').attr('checked',
             (this.model.get('inferCredentials') ? 'checked' : undefined));
+        this.$('#g-edit-s3-sse').attr('checked',
+            (this.model.get('serverSideEncryption') ? 'checked' : undefined));
     }
 };
 

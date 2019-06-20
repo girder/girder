@@ -1,19 +1,19 @@
 import $ from 'jquery';
 
-import CollectionCollection from 'girder/collections/CollectionCollection';
-import CollectionModel from 'girder/models/CollectionModel';
-import EditCollectionWidget from 'girder/views/widgets/EditCollectionWidget';
-import PaginateWidget from 'girder/views/widgets/PaginateWidget';
-import router from 'girder/router';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
-import View from 'girder/views/View';
-import { cancelRestRequests } from 'girder/rest';
-import { formatDate, formatSize, renderMarkdown, DATE_MINUTE } from 'girder/misc';
-import { getCurrentUser } from 'girder/auth';
+import CollectionCollection from '@girder/core/collections/CollectionCollection';
+import CollectionModel from '@girder/core/models/CollectionModel';
+import EditCollectionWidget from '@girder/core/views/widgets/EditCollectionWidget';
+import PaginateWidget from '@girder/core/views/widgets/PaginateWidget';
+import router from '@girder/core/router';
+import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
+import View from '@girder/core/views/View';
+import { cancelRestRequests } from '@girder/core/rest';
+import { formatDate, formatSize, renderMarkdown, DATE_MINUTE } from '@girder/core/misc';
+import { getCurrentUser } from '@girder/core/auth';
 
-import CollectionListTemplate from 'girder/templates/body/collectionList.pug';
+import CollectionListTemplate from '@girder/core/templates/body/collectionList.pug';
 
-import 'girder/stylesheets/body/collectionList.styl';
+import '@girder/core/stylesheets/body/collectionList.styl';
 
 /**
  * This view lists the collections.

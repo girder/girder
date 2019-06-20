@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import copy
 import datetime
 import json
@@ -30,6 +12,7 @@ from girder import logger
 from girder.constants import AccessType
 from girder.exceptions import ValidationException, GirderException
 from girder.utility import acl_mixin
+from girder.utility.model_importer import ModelImporter
 
 
 class Item(acl_mixin.AccessControlMixin, Model):
@@ -146,6 +129,11 @@ class Item(acl_mixin.AccessControlMixin, Model):
                 self.update({'_id': doc['_id']}, {'$set': {
                     'lowerName': doc['lowerName']
                 }})
+            if 'meta' not in doc:
+                doc['meta'] = {}
+                self.update({'_id': doc['_id']}, {'$set': {
+                    'meta': {}
+                }})
 
             self._removeSupplementalFields(doc, fields)
 
@@ -177,7 +165,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
             '_id': item['folderId']
         }, field='size', amount=inc, multi=False)
 
-        self.model(item['baseParentType']).increment(query={
+        ModelImporter.model(item['baseParentType']).increment(query={
             '_id': item['baseParentId']
         }, field='size', amount=inc, multi=False)
 
@@ -300,7 +288,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
             'baseParentId': folder['baseParentId'],
             'created': now,
             'updated': now,
-            'size': 0
+            'size': 0,
+            'meta': {}
         })
 
     def updateItem(self, item):
@@ -315,6 +304,17 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         # Validate and save the item
         return self.save(item)
+
+    def filter(self, doc, user=None, additionalKeys=None):
+        """
+        Overrides the parent ``filter`` method to add an empty meta field
+        (if it doesn't exist) to the returned folder.
+        """
+        filteredDoc = super(Item, self).filter(doc, user, additionalKeys=additionalKeys)
+        if 'meta' not in filteredDoc:
+            filteredDoc['meta'] = {}
+
+        return filteredDoc
 
     def setMetadata(self, item, metadata, allowNull=False):
         """
@@ -433,6 +433,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         newItem = self.createItem(
             folder=folder, name=name, creator=creator, description=description)
         # copy metadata and other extension values
+        newItem['meta'] = copy.deepcopy(srcItem['meta'])
         filteredItem = self.filter(newItem, creator)
         for key in srcItem:
             if key not in filteredItem and key not in newItem:

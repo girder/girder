@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import bson
 from hashlib import sha512
 import pymongo
@@ -31,7 +13,7 @@ from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.exceptions import ValidationException
 from girder.models.file import File
-from . import hash_state
+from . import _hash_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 
@@ -174,7 +156,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         Creates a UUID that will be used to uniquely link each chunk to
         """
         upload['chunkUuid'] = uuid.uuid4().hex
-        upload['sha512state'] = hash_state.serializeHex(sha512())
+        upload['sha512state'] = _hash_state.serializeHex(sha512())
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -192,7 +174,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             chunk = BytesIO(chunk)
 
         # Restore the internal state of the streaming SHA-512 checksum
-        checksum = hash_state.restoreHex(upload['sha512state'], 'sha512')
+        checksum = _hash_state.restoreHex(upload['sha512state'], 'sha512')
 
         # TODO: when saving uploads is optional, we can conditionally try to
         # fetch the last chunk.  Add these line before `lastChunk = ...`:
@@ -256,7 +238,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             raise
 
         # Persist the internal state of the checksum
-        upload['sha512state'] = hash_state.serializeHex(checksum)
+        upload['sha512state'] = _hash_state.serializeHex(checksum)
         upload['received'] += size
         return upload
 
@@ -282,8 +264,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         Grab the final state of the checksum and set it on the file object,
         and write the generated UUID into the file itself.
         """
-        hash = hash_state.restoreHex(upload['sha512state'],
-                                     'sha512').hexdigest()
+        hash = _hash_state.restoreHex(upload['sha512state'], 'sha512').hexdigest()
 
         file['sha512'] = hash
         file['chunkUuid'] = upload['chunkUuid']

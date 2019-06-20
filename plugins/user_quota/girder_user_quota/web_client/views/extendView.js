@@ -1,8 +1,8 @@
 import $ from 'jquery';
 
-import { AccessType } from 'girder/constants';
-import { getCurrentUser } from 'girder/auth';
-import { wrap } from 'girder/utilities/PluginUtils';
+import { AccessType } from '@girder/core/constants';
+import { getCurrentUser } from '@girder/core/auth';
+import { wrap } from '@girder/core/utilities/PluginUtils';
 
 import QuotaPoliciesWidget from './QuotaPoliciesWidget';
 

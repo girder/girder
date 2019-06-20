@@ -5,7 +5,6 @@ import * as dialog from './dialog';
 import * as misc from './misc';
 import * as models from './models';
 import * as rest from './rest';
-import * as server from './server';
 import * as utilities from './utilities';
 import * as views from './views';
 import events from './events';
@@ -26,7 +25,6 @@ export {
     plugins,
     rest,
     router,
-    server,
     utilities,
     version,
     views

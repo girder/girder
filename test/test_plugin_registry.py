@@ -1,19 +1,3 @@
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import tempfile
 
 import mock
@@ -21,6 +5,7 @@ import pytest
 from pytest_girder.plugin_registry import PluginRegistry
 
 from girder import plugin
+from girder.exceptions import GirderException
 from girder.plugin import GirderPlugin
 
 
@@ -32,7 +17,7 @@ def logprint():
 
 @pytest.fixture
 def registry(request):
-    testPluginMarkers = request.node.get_marker('plugin')
+    testPluginMarkers = request.node.iter_markers('plugin')
     pluginRegistry = PluginRegistry(include_installed_plugins=False)
     if testPluginMarkers is not None:
         for testPluginMarker in testPluginMarkers:
@@ -49,7 +34,6 @@ class InvalidPlugin(GirderPlugin):
 
 
 class NoDeps(GirderPlugin):
-
     def __init__(self, *args, **kwargs):
         super(NoDeps, self).__init__(*args, **kwargs)
         self._testLoadMock = mock.Mock()
@@ -60,6 +44,12 @@ class NoDeps(GirderPlugin):
 
 class PluginWithNPM(NoDeps):
     CLIENT_SOURCE_PATH = 'web_client'
+
+
+class ReturnsFive(NoDeps):
+    def load(self, info):
+        super(ReturnsFive, self).load(info)
+        return 5
 
 
 class DependsOnPlugin1(NoDeps):
@@ -92,10 +82,9 @@ class HasDisplayName(NoDeps):
 
 
 @pytest.mark.plugin('invalid', InvalidPlugin)
-def testPluginWithNoLoadMethod(registry, logprint):
+def testPluginWithNoLoadMethod(registry):
     with pytest.raises(NotImplementedError):
         plugin.getPlugin('invalid').load({})
-    logprint.exception.assert_called_once_with('Failed to load plugin invalid')
 
 
 @pytest.mark.plugin('display', HasDisplayName)
@@ -138,92 +127,115 @@ def testPluginWithNPMPackage(registry):
 @pytest.mark.plugin('plugin4', NoDeps)
 def testAllPlugins(registry):
     allPlugins = plugin.allPlugins()
-    assert sorted(allPlugins) == ['plugin1', 'plugin2', 'plugin3', 'plugin4']
+    assert set(allPlugins) == {'plugin1', 'plugin2', 'plugin3', 'plugin4'}
 
 
 @pytest.mark.plugin('plugin1', NoDeps)
-def testSinglePluginLoad(registry, logprint):
-    pluginDefinition = plugin.getPlugin('plugin1')
-    pluginDefinition.load({})
-    assert pluginDefinition.loaded is True
+def testPluginLoad(registry):
+    plugin1Definition = plugin.getPlugin('plugin1')
+    assert plugin1Definition is not None
+    assert plugin1Definition.loaded is False
+
+    plugin1Definition.load(info={})
+
+    assert plugin1Definition.loaded is True
+    plugin1Definition._testLoadMock.assert_called_once()
+
+    # Attempting to load a second time should do nothing
+    plugin1Definition._testLoadMock.reset_mock()
+
+    plugin1Definition.load(info={})
+
+    assert plugin1Definition.loaded is True
+    plugin1Definition._testLoadMock.assert_not_called()
+
+
+@pytest.mark.plugin('plugin1', ReturnsFive)
+def testPluginLoadReturn(registry):
+    plugin1Definition = plugin.getPlugin('plugin1')
+
+    assert plugin1Definition.load(info={}) == 5
+
+    # The value should be returned every time load is called
+    assert plugin1Definition.load(info={}) == 5
+
+
+# plugin._loadPlugins cannot be tested without providing "names", since all built-in Girder plugins
+# are typically installed for testing and will be loaded
+
+
+@pytest.mark.plugin('plugin1', NoDeps)
+def testLoadPluginsSingle(registry, logprint):
+    plugin._loadPlugins(info={}, names=['plugin1'])
+
+    assert set(plugin.loadedPlugins()) == {'plugin1'}
+
+    plugin1Definition = plugin.getPlugin('plugin1')
+    assert plugin1Definition is not None
+    assert plugin1Definition.loaded is True
+    plugin1Definition._testLoadMock.assert_called_once()
+
     logprint.success.assert_any_call('Loaded plugin "plugin1"')
-
-    pluginDefinition.load({})
-    pluginDefinition._testLoadMock.assert_called_once()
-
-
-@pytest.mark.plugin('plugin1', NoDeps)
-@pytest.mark.plugin('plugin2', DependsOnPlugin1)
-@pytest.mark.plugin('plugin3', NoDeps)
-def testPluginLoadWithDeps(registry, logprint):
-    pluginDefinition = plugin.getPlugin('plugin2')
-    pluginDefinition.load({})
-    assert pluginDefinition.loaded is True
-    logprint.success.assert_any_call('Loaded plugin "plugin2"')
-
-    assert plugin.getPlugin('plugin1').loaded is True
-    logprint.success.assert_any_call('Loaded plugin "plugin1"')
-
-    assert plugin.getPlugin('plugin3').loaded is False
-
-
-@pytest.mark.plugin('plugin0', DependsOnPlugin1and2)
-@pytest.mark.plugin('plugin1', NoDeps)
-@pytest.mark.plugin('plugin2', DependsOnPlugin1)
-@pytest.mark.plugin('plugin3', NoDeps)
-def testPluginLoadOrder(registry, logprint):
-    plugin.getPlugin('plugin0').load({})
-    assert plugin.loadedPlugins() == ['plugin1', 'plugin2', 'plugin0']
-    logprint.success.assert_has_calls([
-        mock.call('Loaded plugin "plugin1"'),
-        mock.call('Loaded plugin "plugin2"'),
-        mock.call('Loaded plugin "plugin0"')
-    ])
 
 
 @pytest.mark.plugin('throws', ThrowsOnLoad)
-def testLoadPluginWithError(registry, logprint):
+def testLoadPluginsWithError(registry):
     with pytest.raises(Exception) as exception1:
-        plugin.getPlugin('throws').load({})
+        plugin._loadPlugins(info={}, names=['throws'])
 
-    logprint.exception.assert_called_once_with('Failed to load plugin throws')
-    assert 'throws' in plugin.getPluginFailureInfo()
+    assert plugin.loadedPlugins() == []
 
+    # Try again, as this shouldn't corrupt the loading system
     with pytest.raises(Exception) as exception2:
-        plugin.getPlugin('throws').load({})
+        plugin._loadPlugins(info={}, names=['throws'])
 
+    # Ensure the exception is new each time
     assert exception1.value is not exception2.value
 
 
-@pytest.mark.plugin('plugin1', ThrowsOnLoad)
-@pytest.mark.plugin('plugin2', NoDeps)
-def testLoadMultiplePluginsWithFailure(registry, logprint):
-    plugin._loadPlugins(['plugin1', 'plugin2'], {})
-
-    logprint.exception.assert_has_calls([
-        mock.call('Failed to load plugin plugin1')
-    ])
-    assert 'plugin1' in plugin.getPluginFailureInfo()
-    assert plugin.loadedPlugins() == ['plugin2']
-
-
-@pytest.mark.plugin('plugin1', ThrowsOnLoad)
+@pytest.mark.plugin('plugin1', NoDeps)
 @pytest.mark.plugin('plugin2', DependsOnPlugin1)
-@pytest.mark.plugin('plugin3', NoDeps)
-def testLoadTreeWithFailure(registry, logprint):
-    plugin._loadPlugins(['plugin2', 'plugin3'], {})
+def testLoadPluginsWithDeps(registry, logprint):
+    plugin._loadPlugins(info={}, names=['plugin2'])
 
-    logprint.exception.assert_has_calls([
-        mock.call('Failed to load plugin plugin1'),
-        mock.call('Failed to load plugin plugin2')
-    ])
-    assert 'plugin1' in plugin.getPluginFailureInfo()
-    assert plugin.loadedPlugins() == ['plugin3']
+    assert set(plugin.loadedPlugins()) == {'plugin1', 'plugin2'}
+
+    for pluginName in ['plugin1', 'plugin2']:
+        pluginDefinition = plugin.getPlugin(pluginName)
+        assert pluginDefinition is not None
+        assert pluginDefinition.loaded is True
+        pluginDefinition._testLoadMock.assert_called_once()
+
+    # Since plugin1 is the dependant, it must be loaded first
+    logprint.success.assert_has_calls([
+        mock.call('Loaded plugin "plugin1"'),
+        mock.call('Loaded plugin "plugin2"')
+    ], any_order=False)
 
 
-def testLoadMissingDependency(logprint):
-    plugin._loadPlugins(['missing'], {})
-    logprint.error.assert_called_once_with('Plugin missing is not installed')
+@pytest.mark.plugin('plugin1', NoDeps)
+@pytest.mark.plugin('plugin2', NoDeps)
+@pytest.mark.plugin('plugin3', ThrowsOnLoad)
+def testLoadPluginsExclusion(registry):
+    # Ignoring installed but not-requested plugins only happens in the testing environment, but
+    # is critical functionality
+    plugin._loadPlugins(info={}, names=['plugin1'])
+
+    assert set(plugin.loadedPlugins()) == {'plugin1'}
+
+    for pluginName in ['plugin2', 'plugin3']:
+        pluginDefinition = plugin.getPlugin(pluginName)
+        assert pluginDefinition is not None
+        assert pluginDefinition.loaded is False
+        pluginDefinition._testLoadMock.assert_not_called()
+
+
+def testLoadPluginsMissing(registry):
+    # This case should not typically happen outside of the testing environment
+    with pytest.raises(GirderException, match='Plugin missing is not installed'):
+        plugin._loadPlugins(info={}, names=['missing'])
+
+    assert plugin.loadedPlugins() == []
 
 
 def testRegisterWebroot(registry):

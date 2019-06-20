@@ -10,6 +10,9 @@
         "type": "git",
         "url": "https://github.com/girder/girder.git"
     },
+    "peerDependencies": {
+        "@girder/core": "*"
+    },
     "dependencies": {
         "sortablejs": "1.5.1"
     },

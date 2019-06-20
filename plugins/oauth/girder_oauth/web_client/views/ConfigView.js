@@ -1,10 +1,10 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import PluginConfigBreadcrumbWidget from 'girder/views/widgets/PluginConfigBreadcrumbWidget';
-import View from 'girder/views/View';
-import { getApiRoot, restRequest } from 'girder/rest';
-import events from 'girder/events';
+import PluginConfigBreadcrumbWidget from '@girder/core/views/widgets/PluginConfigBreadcrumbWidget';
+import View from '@girder/core/views/View';
+import { getApiRoot, restRequest } from '@girder/core/rest';
+import events from '@girder/core/events';
 
 import ConfigViewTemplate from '../templates/configView.pug';
 import '../stylesheets/configView.styl';

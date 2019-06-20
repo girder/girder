@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import copy
 import datetime
 import json
@@ -28,6 +10,7 @@ from .model_base import AccessControlledModel
 from girder import events
 from girder.constants import AccessType
 from girder.exceptions import ValidationException, GirderException
+from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import noProgress, setResponseTimeLimit
 
 
@@ -158,6 +141,11 @@ class Folder(AccessControlledModel):
                 doc['lowerName'] = doc['name'].lower()
                 self.update({'_id': doc['_id']}, {'$set': {
                     'lowerName': doc['lowerName']
+                }})
+            if 'meta' not in doc:
+                doc['meta'] = {}
+                self.update({'_id': doc['_id']}, {'$set': {
+                    'meta': {}
                 }})
 
             self._removeSupplementalFields(doc, fields)
@@ -319,7 +307,7 @@ class Folder(AccessControlledModel):
         if (folder['baseParentType'], folder['baseParentId']) !=\
            (rootType, rootId):
             def propagateSizeChange(folder, inc):
-                self.model(folder['baseParentType']).increment(query={
+                ModelImporter.model(folder['baseParentType']).increment(query={
                     '_id': folder['baseParentId']
                 }, field='size', amount=inc, multi=False)
 
@@ -528,7 +516,8 @@ class Folder(AccessControlledModel):
             'creatorId': creatorId,
             'created': now,
             'updated': now,
-            'size': 0
+            'size': 0,
+            'meta': {}
         }
 
         if parentType in ('folder', 'collection'):
@@ -561,6 +550,17 @@ class Folder(AccessControlledModel):
         # Validate and save the folder
         return self.save(folder)
 
+    def filter(self, doc, user=None, additionalKeys=None):
+        """
+        Overrides the parent ``filter`` method to add an empty meta field
+        (if it doesn't exist) to the returned folder.
+        """
+        filteredDoc = super(Folder, self).filter(doc, user, additionalKeys=additionalKeys)
+        if 'meta' not in filteredDoc:
+            filteredDoc['meta'] = {}
+
+        return filteredDoc
+
     def parentsToRoot(self, folder, curPath=None, user=None, force=False, level=AccessType.READ):
         """
         Get the path to traverse to a root of the hierarchy.
@@ -574,13 +574,13 @@ class Folder(AccessControlledModel):
         curParentType = folder['parentCollection']
 
         if curParentType in ('user', 'collection'):
-            curParentObject = self.model(curParentType).load(
+            curParentObject = ModelImporter.model(curParentType).load(
                 curParentId, user=user, level=level, force=force)
 
             if force:
                 parentFiltered = curParentObject
             else:
-                parentFiltered = self.model(curParentType).filter(curParentObject, user)
+                parentFiltered = ModelImporter.model(curParentType).filter(curParentObject, user)
 
             return [{
                 'type': curParentType,
@@ -748,7 +748,7 @@ class Folder(AccessControlledModel):
             raise ValidationException('The parentType must be folder, '
                                       'collection, or user.')
         if parent is None:
-            parent = self.model(parentType).load(srcFolder['parentId'], force=True)
+            parent = ModelImporter.model(parentType).load(srcFolder['parentId'], force=True)
         if name is None:
             name = srcFolder['name']
         if description is None:
@@ -788,8 +788,12 @@ class Folder(AccessControlledModel):
         from .item import Item
 
         # copy metadata and other extension values
-        filteredFolder = self.filter(newFolder, creator)
         updated = False
+        if srcFolder['meta']:
+            newFolder['meta'] = copy.deepcopy(srcFolder['meta'])
+            updated = True
+
+        filteredFolder = self.filter(newFolder, creator)
         for key in srcFolder:
             if key not in filteredFolder and key not in newFolder:
                 newFolder[key] = copy.deepcopy(srcFolder[key])
@@ -879,7 +883,7 @@ class Folder(AccessControlledModel):
         :param folder: The folder to check.
         :type folder: dict
         """
-        return not self.model(folder.get('parentCollection')).load(
+        return not ModelImporter.model(folder.get('parentCollection')).load(
             folder.get('parentId'), force=True)
 
     def updateSize(self, doc):

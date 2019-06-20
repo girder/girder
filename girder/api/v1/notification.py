@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import cherrypy
 import json
 import time
@@ -24,10 +6,11 @@ from datetime import datetime
 
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, disableAuditLog, setResponseHeader
-from girder.constants import SettingKey, SortDir
+from girder.constants import SortDir
 from girder.exceptions import RestException
 from girder.models.notification import Notification as NotificationModel
 from girder.models.setting import Setting
+from girder.settings import SettingKey
 from girder.utility import JsonEncoder
 from girder.api import access
 
@@ -59,8 +42,7 @@ class Notification(Resource):
         self.route('GET', (), self.listNotifications)
 
     @disableAuditLog
-    @access.cookie
-    @access.token
+    @access.token(cookie=True)
     @autoDescribeRoute(
         Description('Stream notifications for a given user via the SSE protocol.')
         .notes('This uses long-polling to keep the connection open for '
@@ -110,8 +92,7 @@ class Notification(Resource):
         return streamGen
 
     @disableAuditLog
-    @access.cookie
-    @access.token
+    @access.token(cookie=True)
     @autoDescribeRoute(
         Description('List notification events')
         .notes('This endpoint can be used for manual long-polling when '

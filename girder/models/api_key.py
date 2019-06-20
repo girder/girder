@@ -1,27 +1,10 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import datetime
 
 from .model_base import AccessControlledModel
-from girder.constants import AccessType, SettingKey, TokenScope
+from girder.constants import AccessType, TokenScope
 from girder.exceptions import ValidationException
+from girder.settings import SettingKey
 from girder.utility import genToken
 
 
@@ -142,8 +125,7 @@ class ApiKey(AccessControlledModel):
         if apiKey is None or not apiKey['active']:
             raise ValidationException('Invalid API key.')
 
-        cap = apiKey['tokenDuration'] or Setting().get(
-            SettingKey.COOKIE_LIFETIME)
+        cap = apiKey['tokenDuration'] or Setting().get(SettingKey.COOKIE_LIFETIME)
         days = min(float(days or cap), cap)
 
         user = User().load(apiKey['userId'], force=True)

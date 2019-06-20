@@ -1,2 +1,10 @@
-/* global GIRDER_VERSION */
-export default GIRDER_VERSION;
+/* global process */
+
+// Default value for external builds
+let version = null;
+
+try {
+    version = process.env.GIRDER_VERSION || null;
+} catch (e) {}
+
+export default version;

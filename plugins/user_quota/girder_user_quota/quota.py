@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2015 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import six
 
 from bson.objectid import ObjectId, InvalidId
@@ -34,8 +16,10 @@ from girder.models.setting import Setting
 from girder.models.upload import Upload
 from girder.models.user import User
 from girder.utility import assetstore_utilities
+from girder.utility.model_importer import ModelImporter
 from girder.utility.system import formatSize
-from . import constants
+
+from .settings import PluginSettings
 
 
 QUOTA_FIELD = 'quota'
@@ -78,7 +62,7 @@ class QuotaPolicy(Resource):
         :param resource: the resource document.
         :returns: filtered field of the resource with the quota data, if any.
         """
-        filtered = self.model(model).filter(resource, self.getCurrentUser())
+        filtered = ModelImporter.model(model).filter(resource, self.getCurrentUser())
         filtered[QUOTA_FIELD] = resource.get(QUOTA_FIELD, {})
         return filtered
 
@@ -95,7 +79,7 @@ class QuotaPolicy(Resource):
         if QUOTA_FIELD not in resource:
             resource[QUOTA_FIELD] = {}
         resource[QUOTA_FIELD].update(policy)
-        self.model(model).save(resource, validate=False)
+        ModelImporter.model(model).save(resource, validate=False)
         return self._filter(model, resource)
 
     def _validate_fallbackAssetstore(self, value):
@@ -273,7 +257,7 @@ class QuotaPolicy(Resource):
         """
         if isinstance(resource, six.string_types + (ObjectId,)):
             try:
-                resource = self.model(model).load(id=resource, force=True)
+                resource = ModelImporter.model(model).load(id=resource, force=True)
             except ImportError:
                 return None, None
         if model == 'file':
@@ -282,13 +266,13 @@ class QuotaPolicy(Resource):
         if model in ('folder', 'item'):
             if ('baseParentType' not in resource or
                     'baseParentId' not in resource):
-                resource = self.model(model).load(id=resource['_id'], force=True)
+                resource = ModelImporter.model(model).load(id=resource['_id'], force=True)
             if ('baseParentType' not in resource or
                     'baseParentId' not in resource):
                 return None, None
             model = resource['baseParentType']
             resourceId = resource['baseParentId']
-            resource = self.model(model).load(id=resourceId, force=True)
+            resource = ModelImporter.model(model).load(id=resourceId, force=True)
         if model in ('user', 'collection') and resource:
             # Ensure the base resource has a quota field so we can use the
             # default quota if appropriate
@@ -340,13 +324,13 @@ class QuotaPolicy(Resource):
         quota = resource[QUOTA_FIELD].get('fileSizeQuota', None)
         if useDefault:
             if model == 'user':
-                key = constants.PluginSettings.QUOTA_DEFAULT_USER_QUOTA
+                key = PluginSettings.DEFAULT_USER_QUOTA
             elif model == 'collection':
-                key = constants.PluginSettings.QUOTA_DEFAULT_COLLECTION_QUOTA
+                key = PluginSettings.DEFAULT_COLLECTION_QUOTA
             else:
                 key = None
             if key:
-                quota = Setting().get(key, None)
+                quota = Setting().get(key)
         if not quota or quota < 0 or not isinstance(quota, six.integer_types):
             return None
         return quota

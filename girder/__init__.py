@@ -1,21 +1,13 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from pkg_resources import DistributionNotFound, get_distribution
 
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
+try:
+    __version__ = get_distribution(__name__).version
+except DistributionNotFound:
+    # package is not installed
+    __version__ = None
+
+__license__ = 'Apache 2.0'
 
 import cherrypy
 import functools
@@ -26,18 +18,18 @@ import six
 import sys
 import traceback
 
-from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT, TerminalColor, VERSION
+from girder.constants import LOG_ROOT, MAX_LOG_SIZE, LOG_BACKUP_COUNT, TerminalColor
 from girder.utility import config, mkdir
 from girder.utility._cache import cache, requestCache, rateLimitBuffer
 
-__version__ = '3.0.0a1'
-__license__ = 'Apache 2.0'
-
-
-VERSION['apiVersion'] = __version__
 _quiet = False
 _originalStdOut = sys.stdout
 _originalStdErr = sys.stderr
+auditLogger = logging.getLogger('girder_audit')
+auditLogger.setLevel(logging.INFO)
+logger = logging.getLogger('girder')
+logger.setLevel(logging.DEBUG)  # Pass everything; let filters handle level-based filtering
+config.loadConfig()  # Populate the config info at import time
 
 
 class LogLevelFilter(object):
@@ -61,10 +53,10 @@ class LogFormatter(logging.Formatter):
     """
     def formatException(self, exc):
         info = '\n'.join((
-            '  Request URL: %s %s' % (cherrypy.request.method.upper(),
-                                      cherrypy.url()),
+            '  Request URL: %s %s' % (cherrypy.request.method.upper(), cherrypy.url()),
             '  Query string: ' + cherrypy.request.query_string,
-            '  Remote IP: ' + cherrypy.request.remote.ip
+            '  Remote IP: ' + cherrypy.request.remote.ip,
+            '  Request UID: ' + getattr(cherrypy.request, 'girderRequestUid', '[none]')
         ))
         return ('%s\n'
                 'Additional info:\n'
@@ -136,13 +128,12 @@ def getLogPaths():
     }
 
 
-def _setupLogger():
+def _attachFileLogHandlers():
     """
     Sets up the Girder logger.
     """
     global _quiet
 
-    logger = logging.getLogger('girder')
     cfg = config.getConfig()
     logCfg = cfg.get('logging', {})
 
@@ -161,11 +152,10 @@ def _setupLogger():
     for logDir in logDirs:
         mkdir(logDir)
 
-    # Set log level
+    # Allow minimum log level to be set via config file
     level = logging.INFO
     if logCfg.get('log_level') and isinstance(getattr(logging, logCfg['log_level'], None), int):
         level = getattr(logging, logCfg['log_level'])
-    logger.setLevel(logging.DEBUG if level is None else level)
 
     logSize = MAX_LOG_SIZE
     if logCfg.get('log_max_size'):
@@ -176,13 +166,6 @@ def _setupLogger():
         else:
             logSize = int(sizeValue)
     backupCount = int(logCfg.get('log_backup_count', LOG_BACKUP_COUNT))
-
-    # Remove extant log handlers (this allows this function to called multiple
-    # times)
-    for handler in list(logger.handlers):
-        if hasattr(handler, '_girderLogHandler'):
-            logger.removeHandler(handler)
-            cherrypy.log.access_log.removeHandler(handler)
 
     fmt = LogFormatter('[%(asctime)s] %(levelname)s: %(message)s')
     infoMaxLevel = logging.INFO
@@ -222,11 +205,6 @@ def _setupLogger():
         cherrypy.log.access_log.addHandler(ih)
 
     return logger
-
-
-logger = _setupLogger()
-auditLogger = logging.getLogger('girder_audit')
-auditLogger.setLevel(logging.INFO)
 
 
 def logStdoutStderr(force=False):

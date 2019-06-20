@@ -1,6 +1,4 @@
 /**
- * Copyright Kitware Inc.
- *
  * This is the PhantomJS runtime script that invokes the Girder app in test
  * mode. The test mode page is built with grunt and lives at:
  * girder/web_client/static/built/testing/testEnv.html. It then executes a Jasmine spec within
@@ -217,6 +215,10 @@ page.onLoadFinished = function (status) {
 page.settings.resourceTimeout = 15000;
 
 page.onResourceTimeout = function (request) {
+    /* Ignore timeout of the notification stream */
+    if (request.url.indexOf('/api/v1/notification/stream') > 0) {
+        return;
+    }
     console.log('Resource timed out.  (#' + request.id + '): ' + JSON.stringify(request));
     console.log('PHANTOM_TIMEOUT');
     /* The exit code doesn't get sent back from here, so setting this to a

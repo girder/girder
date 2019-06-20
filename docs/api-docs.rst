@@ -81,11 +81,6 @@ User
 .. automodule:: girder.models.user
    :members:
 
-Password
-~~~~~~~~
-.. automodule:: girder.models.password
-   :members:
-
 Token
 ~~~~~
 .. automodule:: girder.models.token
@@ -188,9 +183,6 @@ Utility
    :members:
 
 .. automodule:: girder.utility.gridfs_assetstore_adapter
-   :members:
-
-.. automodule:: girder.utility.hash_state
    :members:
 
 .. automodule:: girder.utility.mail_utils

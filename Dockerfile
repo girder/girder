@@ -4,7 +4,6 @@ MAINTAINER Kitware, Inc. <kitware@kitware.com>
 EXPOSE 8080
 
 RUN mkdir /girder
-RUN mkdir /girder/logs
 
 RUN apt-get update && apt-get install -qy \
     gcc \
@@ -17,14 +16,7 @@ RUN apt-get update && apt-get install -qy \
 RUN wget https://bootstrap.pypa.io/get-pip.py && python get-pip.py
 
 WORKDIR /girder
-COPY girder /girder/girder
-COPY clients /girder/clients
-COPY plugins /girder/plugins
-COPY scripts /girder/scripts
-COPY setup.py /girder/setup.py
-COPY package.json /girder/package.json
-COPY README.rst /girder/README.rst
-COPY requirements-dev.txt /girder/requirements-dev.txt
+COPY . /girder/
 
 # TODO: Do we want to create editable installs of plugins as well?  We
 # will need a plugin only requirements file for this.

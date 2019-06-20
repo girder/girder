@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import cherrypy
 import click
 import errno
@@ -30,12 +12,12 @@ import time
 
 import girder
 from girder import events, logger, logprint
-from girder.constants import SettingKey
 from girder.exceptions import AccessException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.setting import Setting
+from girder.settings import SettingKey
 from girder.utility import config
 from girder.utility.model_importer import ModelImporter
 from girder.utility import path as path_util
@@ -49,6 +31,8 @@ class ServerFuse(fuse.Operations):
     extended to expose metadata and other resources by extending the available
     paths.  Files can also be reached via a path shortcut of /file/<id>.
     """
+    use_ns = True
+
     def __init__(self, stat=None):
         """
         Instantiate the operations class.  This sets up tracking for open
@@ -141,9 +125,9 @@ class ServerFuse(fuse.Operations):
         attr['st_ino'] = -1
         attr['st_nlink'] = 1
         if 'updated' in doc:
-            attr['st_mtime'] = time.mktime(doc['updated'].timetuple())
+            attr['st_mtime'] = int(time.mktime(doc['updated'].timetuple()) * 1e9)
         elif 'created' in doc:
-            attr['st_mtime'] = time.mktime(doc['created'].timetuple())
+            attr['st_mtime'] = int(time.mktime(doc['created'].timetuple()) * 1e9)
         attr['st_ctime'] = attr['st_mtime']
 
         if model == 'file':
@@ -195,9 +179,10 @@ class ServerFuse(fuse.Operations):
                 entries.append(self._name(file, 'file'))
         return entries
 
-    # We don't handle extended attributes.
+    # We don't handle extended attributes or ioctl.
     getxattr = None
     listxattr = None
+    ioctl = None
 
     def access(self, path, mode):
         """
@@ -454,7 +439,7 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, plugins=None
         curConfig = config.getConfig()
         curConfig.setdefault('logging', {})['log_quiet'] = True
         curConfig.setdefault('logging', {})['log_level'] = 'FATAL'
-        girder._setupLogger()
+        girder._attachFileLogHandlers()
     if database and '://' in database:
         cherrypy.config['database']['uri'] = database
     if plugins is not None:

@@ -1,14 +1,14 @@
 import $ from 'jquery';
 
-import versionInfo from 'girder/version';
-import View from 'girder/views/View';
-import { cancelRestRequests, getApiRoot } from 'girder/rest';
-import events from 'girder/events';
-import { getCurrentUser } from 'girder/auth';
+import version from '@girder/core/version';
+import View from '@girder/core/views/View';
+import { cancelRestRequests, getApiRoot } from '@girder/core/rest';
+import events from '@girder/core/events';
+import { getCurrentUser } from '@girder/core/auth';
 
-import FrontPageTemplate from 'girder/templates/body/frontPage.pug';
+import FrontPageTemplate from '@girder/core/templates/body/frontPage.pug';
 
-import 'girder/stylesheets/body/frontPage.styl';
+import '@girder/core/stylesheets/body/frontPage.styl';
 
 /**
  * This is the view for the front page of the app.
@@ -36,7 +36,7 @@ var FrontPageView = View.extend({
         this.$el.html(FrontPageTemplate({
             apiRoot: getApiRoot(),
             currentUser: getCurrentUser(),
-            versionInfo,
+            version,
             brandName: this.brandName
         }));
 

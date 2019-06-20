@@ -1,23 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
-import jsonschema
 import ldap
 import six
 
@@ -29,52 +10,13 @@ from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.plugin import GirderPlugin
-from girder.utility import setting_utilities
 
-from .constants import PluginSettings
+from .settings import PluginSettings
+
 
 _LDAP_ATTRS = ('uid', 'mail', 'cn', 'sn', 'givenName', 'distinguishedName')
 _MAX_NAME_ATTEMPTS = 10
 _CONNECT_TIMEOUT = 4  # seconds
-_serversSchema = {
-    'type': 'array',
-    'items': {
-        'type': 'object',
-        'properties': {
-            'uri': {
-                'type': 'string',
-                'minLength': 1
-            },
-            'bindName': {
-                'type': 'string',
-                'minLength': 1
-            },
-            'baseDn': {
-                'type': 'string'
-            }
-        },
-        'required': ['uri', 'bindName', 'baseDn']
-    }
-}
-
-
-@setting_utilities.default(PluginSettings.LDAP_SERVERS)
-def _defaultServers():
-    return []
-
-
-@setting_utilities.validator(PluginSettings.LDAP_SERVERS)
-def _validateLdapServers(doc):
-    try:
-        jsonschema.validate(doc['value'], _serversSchema)
-    except jsonschema.ValidationError as e:
-        raise ValidationException('Invalid LDAP servers list: ' + e.message)
-
-    for server in doc['value']:
-        if '://' not in server['uri']:
-            server['uri'] = 'ldap://' + server['uri']
-        server['password'] = server.get('password', '')
-        server['searchField'] = server.get('searchField', 'uid')
 
 
 def _registerLdapUser(attrs, email, server):
@@ -135,7 +77,7 @@ def _getLdapUser(attrs, server):
 
 def _ldapAuth(event):
     login, password = event.info['login'], event.info['password']
-    servers = Setting().get(PluginSettings.LDAP_SERVERS)
+    servers = Setting().get(PluginSettings.SERVERS)
 
     for server in servers:
         try:

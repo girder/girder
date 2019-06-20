@@ -1,20 +1,20 @@
 import $ from 'jquery';
 
-import PaginateWidget from 'girder/views/widgets/PaginateWidget';
-import RegisterView from 'girder/views/layout/RegisterView';
-import router from 'girder/router';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
-import SortCollectionWidget from 'girder/views/widgets/SortCollectionWidget';
-import UserCollection from 'girder/collections/UserCollection';
-import UserModel from 'girder/models/UserModel';
-import View from 'girder/views/View';
-import { cancelRestRequests } from 'girder/rest';
-import { formatDate, formatSize, DATE_DAY } from 'girder/misc';
-import { getCurrentUser } from 'girder/auth';
+import PaginateWidget from '@girder/core/views/widgets/PaginateWidget';
+import RegisterView from '@girder/core/views/layout/RegisterView';
+import router from '@girder/core/router';
+import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
+import SortCollectionWidget from '@girder/core/views/widgets/SortCollectionWidget';
+import UserCollection from '@girder/core/collections/UserCollection';
+import UserModel from '@girder/core/models/UserModel';
+import View from '@girder/core/views/View';
+import { cancelRestRequests } from '@girder/core/rest';
+import { formatDate, formatSize, DATE_DAY } from '@girder/core/misc';
+import { getCurrentUser } from '@girder/core/auth';
 
-import UserListTemplate from 'girder/templates/body/userList.pug';
+import UserListTemplate from '@girder/core/templates/body/userList.pug';
 
-import 'girder/stylesheets/body/userList.styl';
+import '@girder/core/stylesheets/body/userList.styl';
 
 /**
  * This view lists users.
@@ -60,7 +60,7 @@ var UsersView = View.extend({
             parentView: this
         }).on('g:resultClicked', this._gotoUser, this);
 
-        if (getCurrentUser() && getCurrentUser().get('admin')) {
+        if (getCurrentUser()) {
             const userCountPromise = UserCollection.getTotalCount()
                 .done((count) => {
                     this.usersCount = count;

@@ -1,28 +1,4 @@
 $warnColor = #f0ad4e
-$failColor = red
-$failBackgroundColor = #f2dede
-
-.g-restart-container
-  display inline
-  button.g-restart
-    float right
-    transition all 0.35s ease-in-out
-    transition-property background-color border-color
-  .g-clear
-    clear both
-
-.g-plugin-restart-text
-  padding-top 7px
-  font-size 14px
-  text-align right
-  overflow hidden
-  visibility hidden
-  max-height 0
-  transition max-height 0.35s ease-in-out
-
-  &.show
-    visibility visible
-    max-height 45px
 
 .g-plugin-list-container
   border 1px solid #e2e2e2
@@ -62,12 +38,6 @@ $failBackgroundColor = #f2dede
     &:last-child
       border-bottom none
 
-  .g-plugin-list-item-failed
-    background-color $failBackgroundColor
-
-    &:hover
-      background-color saturate($failBackgroundColor, 60%)
-
   .g-plugin-list-item-notice
     font-size 13px
     text-transform uppercase
@@ -80,18 +50,6 @@ $failBackgroundColor = #f2dede
     &.g-plugin-list-item-experimental-notice
       background-color $warnColor
 
-    &.g-plugin-list-item-failed-notice
-      background-color $failColor
-
-  .bootstrap-switch
-    float right
-
-    .bootstrap-switch-label
-      color $warnColor
-      font-family fontello
-    .bootstrap-switch-handle-on, .bootstrap-switch-handle-off
-      word-wrap normal
-
 .g-plugin-config-breadcrumbs > ol.breadcrumb
   padding 6px 10px
   border-radius 3px
@@ -101,11 +59,3 @@ $failBackgroundColor = #f2dede
 
   > li.active
     color #555
-
-.popover
-  &.g-plugin-list-item-failed-notice-popover
-    max-width none
-
-  .g-plugin-list-item-failed-notice-popover-content
-    font-family monospace
-    white-space pre

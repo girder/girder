@@ -21,6 +21,15 @@ RUN mkdir --parents "/opt/cmake" \
     gunzip --stdout | \
     tar --extract --directory "/opt/cmake" --strip-components 1 \
   && ln --symbolic --force "/opt/cmake/bin/cmake" "/usr/local/bin/cmake" \
-  && ln --symbolic --force "/opt/cmake/bin/ctest" "/usr/local/bin/ctest"
+  && ln --symbolic --force "/opt/cmake/bin/ctest" "/usr/local/bin/ctest" \
+  # Note: universal-ctags is installed for use in the public_names CI job.
+  && git clone "https://github.com/universal-ctags/ctags.git" "./ctags" \
+  && cd ./ctags \
+  && ./autogen.sh \
+  && ./configure \
+  && make \
+  && make install \
+  && cd .. \
+  && rm -rf ./ctags
 
 USER circleci

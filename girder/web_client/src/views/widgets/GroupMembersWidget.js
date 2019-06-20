@@ -1,22 +1,22 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import PaginateWidget from 'girder/views/widgets/PaginateWidget';
-import router from 'girder/router';
-import SearchFieldWidget from 'girder/views/widgets/SearchFieldWidget';
-import UserCollection from 'girder/collections/UserCollection';
-import View from 'girder/views/View';
-import { AccessType } from 'girder/constants';
-import { confirm } from 'girder/dialog';
+import PaginateWidget from '@girder/core/views/widgets/PaginateWidget';
+import router from '@girder/core/router';
+import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
+import UserCollection from '@girder/core/collections/UserCollection';
+import View from '@girder/core/views/View';
+import { AccessType } from '@girder/core/constants';
+import { confirm } from '@girder/core/dialog';
 
-import GroupInviteDialogTemplate from 'girder/templates/widgets/groupInviteDialog.pug';
-import GroupMemberListTemplate from 'girder/templates/widgets/groupMemberList.pug';
+import GroupInviteDialogTemplate from '@girder/core/templates/widgets/groupInviteDialog.pug';
+import GroupMemberListTemplate from '@girder/core/templates/widgets/groupMemberList.pug';
 
 import 'bootstrap/js/collapse';
 import 'bootstrap/js/dropdown';
 import 'bootstrap/js/transition';
 
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderModal';
 
 var InviteUserDialog = View.extend({
     events: {

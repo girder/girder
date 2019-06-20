@@ -1,29 +1,30 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
 
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
+from setuptools import find_packages, setup
 
-from setuptools import setup, find_packages
+
+def prerelease_local_scheme(version):
+    """Return local scheme version unless building on master in CircleCI.
+    This function returns the local scheme version number
+    (e.g. 0.0.0.dev<N>+g<HASH>) unless building on CircleCI for a
+    pre-release in which case it ignores the hash and produces a
+    PEP440 compliant pre-release version number (e.g. 0.0.0.dev<N>).
+    """
+
+    from setuptools_scm.version import get_local_node_and_date
+
+    if os.getenv('CIRCLE_BRANCH') == 'master':
+        return ''
+    else:
+        return get_local_node_and_date(version)
 
 
 # perform the install
 setup(
     name='girder-dicom-viewer',
-    version='0.2.0a1',
+    use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
+    setup_requires=['setuptools-scm', 'setuptools-git'],
     description='View DICOM images in the browser',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

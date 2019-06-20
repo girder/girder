@@ -1,4 +1,4 @@
-import UserView from 'girder/views/body/UserView';
+import UserView from '@girder/core/views/body/UserView';
 
 import UserViewPoliciesMenuTemplate from '../templates/userViewPoliciesMenu.pug';
 

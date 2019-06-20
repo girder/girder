@@ -1,0 +1,175 @@
+---
+############
+# Filesystem Assetstore Tests
+#
+
+# Add an initial user - this user will be admin
+- name: Create 'admin' User
+  girder:
+    port: 8080
+    user:
+      firstName: "John"
+      lastName: "Doe"
+      login: "admin"
+      password: "letmein"
+      email: "john.doe@test.com"
+      admin: true
+    state: present
+
+# Make sure no filesystem assetstore exists
+- name: Delete filesystem assetstore
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    assetstore:
+      name: "Temp Filesystem Assetstore"
+      type: "filesystem"
+      root: "/tmp/"
+    state: absent
+
+
+# Make sure no filesystem assetstore exists
+- name: Delete filesystem assetstore
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    assetstore:
+      name: "Temp Filesystem Assetstore"
+      type: "filesystem"
+      root: "/tmp/"
+    state: absent
+  register: ret
+
+# Removing an assetstore that doesn't exist should
+# show no change
+- name: Check that deleting an assetstore that doesnt exist doesnt trigger a failure
+  assert:
+    that:
+      - ret["changed"] == false
+
+
+- name: Create filesystem assetstore
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    assetstore:
+      name: "Temp Filesystem Assetstore"
+      type: "filesystem"
+      root: "/tmp/"
+      current: true
+    state: present
+  register: ret
+
+- name: Check that assetstore was created, values are correct
+  assert:
+    that:
+      - ret["gc_return"]|length > 0
+      - ret["gc_return"]["current"]
+      - ret["gc_return"]["root"] == "/tmp/"
+      - ret["gc_return"]["name"] == "Temp Filesystem Assetstore"
+
+- name: Update filesystem assetstore with same information
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    assetstore:
+      name: "Temp Filesystem Assetstore"
+      type: "filesystem"
+      root: "/tmp/"
+      current: true
+    state: present
+  register: ret
+
+# Updating an assetstore with identical information should
+# show no change.
+# - assert:
+#     that:
+#       - ret['changed'] == false
+
+
+- name: Create other temp directory
+  file:
+    path: /tmp2
+    state: directory
+    mode: 0777
+  become: true
+  become_user: root
+
+# Update should trigger a change
+- name: Update filesystem assetstore
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    assetstore:
+      name: "Temp Filesystem Assetstore"
+      type: "filesystem"
+      root: "/tmp2/"
+      current: false
+    state: present
+  register: ret
+
+- name: Check that assetstore root has changed
+  assert:
+    that:
+      - ret["changed"]
+      - ret["gc_return"]|length > 0
+      - ret["gc_return"]["current"] == false
+      - ret["gc_return"]["root"] == "/tmp2/"
+
+# Update should trigger a change
+- name: Update filesystem assetstore
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    assetstore:
+      name: "Temp Filesystem Assetstore"
+      type: "filesystem"
+      root: "/tmp2/"
+      current: true
+    state: present
+  register: ret
+
+- name: Check that current assetstore has ben updated
+  assert:
+    that:
+      - ret["changed"]
+      - ret["gc_return"]|length > 0
+      - ret["gc_return"]["current"]
+
+- name: Delete filesystem assetstore
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    assetstore:
+      name: "Temp Filesystem Assetstore"
+      type: "filesystem"
+      root: "/tmp2/"
+    state: absent
+  register: ret
+
+- name: Check that delete caused change to be true, that message is in gc_regurn
+  assert:
+    that:
+      - ret['changed']
+      - "{{ 'message' in ret['gc_return'] }}"
+
+- name: Get all assetstores
+  girder:
+    port: 8080
+    username: "admin"
+    password: "letmein"
+    get:
+      path: "assetstore"
+  register: ret
+
+- name: Assert that there are no assetstores
+  assert:
+    that:
+      - ret['gc_return']|length  == 0

@@ -1,13 +1,13 @@
-import AssetstoreModel from 'girder/models/AssetstoreModel';
-import View from 'girder/views/View';
-import { AssetstoreType } from 'girder/constants';
+import AssetstoreModel from '@girder/core/models/AssetstoreModel';
+import View from '@girder/core/views/View';
+import { AssetstoreType } from '@girder/core/constants';
 
-import NewAssetstoreTemplate from 'girder/templates/widgets/newAssetstore.pug';
+import NewAssetstoreTemplate from '@girder/core/templates/widgets/newAssetstore.pug';
 
 import 'bootstrap/js/collapse';
 import 'bootstrap/js/transition';
 
-import 'girder/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderEnable';
 
 /**
  * This widget is for creating new assetstores. The parent view is responsible
@@ -45,7 +45,8 @@ var NewAssetstoreWidget = View.extend({
                 service: this.$('#g-new-s3-service').val(),
                 region: this.$('#g-new-s3-region').val(),
                 readOnly: this.$('#g-new-s3-readonly').is(':checked'),
-                inferCredentials: this.$('#g-new-s3-infercredentials').is(':checked')
+                inferCredentials: this.$('#g-new-s3-infercredentials').is(':checked'),
+                serverSideEncryption: this.$('#g-new-s3-sse').is(':checked')
             });
         }
     },

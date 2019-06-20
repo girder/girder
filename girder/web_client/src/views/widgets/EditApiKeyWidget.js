@@ -1,15 +1,15 @@
 import $ from 'jquery';
 import _ from 'underscore';
 
-import ApiKeyModel from 'girder/models/ApiKeyModel';
-import View from 'girder/views/View';
-import { getCurrentUser } from 'girder/auth';
-import { restRequest } from 'girder/rest';
+import ApiKeyModel from '@girder/core/models/ApiKeyModel';
+import View from '@girder/core/views/View';
+import { getCurrentUser } from '@girder/core/auth';
+import { restRequest } from '@girder/core/rest';
 
-import EditApiKeyWidgetTemplate from 'girder/templates/widgets/editApiKeyWidget.pug';
+import EditApiKeyWidgetTemplate from '@girder/core/templates/widgets/editApiKeyWidget.pug';
 
-import 'girder/utilities/jquery/girderEnable';
-import 'girder/utilities/jquery/girderModal';
+import '@girder/core/utilities/jquery/girderEnable';
+import '@girder/core/utilities/jquery/girderModal';
 
 /**
  * This widget is used to create a new API key or edit an existing one.

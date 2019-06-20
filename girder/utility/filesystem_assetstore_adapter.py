@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import filelock
 from hashlib import sha512
 import os
@@ -35,7 +17,7 @@ from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.upload import Upload
 from girder.utility import mkdir, progress
-from . import hash_state
+from . import _hash_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 BUF_SIZE = 65536
@@ -148,7 +130,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         fd, path = tempfile.mkstemp(dir=self.tempDir)
         os.close(fd)  # Must close this file descriptor or it will leak
         upload['tempFile'] = path
-        upload['sha512state'] = hash_state.serializeHex(sha512())
+        upload['sha512state'] = _hash_state.serializeHex(sha512())
         return upload
 
     def uploadChunk(self, upload, chunk):
@@ -165,7 +147,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             chunk = BytesIO(chunk)
 
         # Restore the internal state of the streaming SHA-512 checksum
-        checksum = hash_state.restoreHex(upload['sha512state'], 'sha512')
+        checksum = _hash_state.restoreHex(upload['sha512state'], 'sha512')
 
         if self.requestOffset(upload) > upload['received']:
             # This probably means the server died midway through writing last
@@ -198,7 +180,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             raise
 
         # Persist the internal state of the checksum
-        upload['sha512state'] = hash_state.serializeHex(checksum)
+        upload['sha512state'] = _hash_state.serializeHex(checksum)
         upload['received'] += size
         return upload
 
@@ -213,7 +195,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         Moves the file into its permanent content-addressed location within the
         assetstore. Directory hierarchy yields 256^2 buckets.
         """
-        hash = hash_state.restoreHex(upload['sha512state'], 'sha512').hexdigest()
+        hash = _hash_state.restoreHex(upload['sha512state'], 'sha512').hexdigest()
         dir = os.path.join(hash[0:2], hash[2:4])
         absdir = os.path.join(self.assetstore['root'], dir)
 

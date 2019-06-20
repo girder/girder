@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import cherrypy
 import collections
 import datetime
@@ -26,17 +8,19 @@ import six
 from .. import base
 
 from girder import events
-from girder.constants import AccessType, SettingKey, TokenScope
-from girder.exceptions import ValidationException
+from girder.constants import AccessType, TokenScope
 from girder.models.folder import Folder
 from girder.models.group import Group
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
+from girder.settings import SettingKey
 
 
 def setUpModule():
     base.startServer()
+
+    User()._cryptContext.update(schemes=['plaintext'])
 
 
 def tearDownModule():
@@ -44,8 +28,7 @@ def tearDownModule():
 
 
 class UserTestCase(base.TestCase):
-
-    def _verifyAuthCookie(self, resp, secure=''):
+    def _verifyAuthCookie(self, resp, secure=False):
         self.assertTrue('girderToken' in resp.cookie)
         self.cookieVal = resp.cookie['girderToken'].value
         self.assertFalse(not self.cookieVal)
@@ -53,7 +36,7 @@ class UserTestCase(base.TestCase):
         self.assertEqual(
             resp.cookie['girderToken']['expires'],
             lifetime * 3600 * 24)
-        self.assertEqual(resp.cookie['girderToken']['secure'], secure)
+        self.assertEqual(resp.cookie['girderToken']['secure'], True if secure else '')
 
     def _verifyDeletedCookie(self, resp):
         self.assertTrue('girderToken' in resp.cookie)
@@ -70,14 +53,10 @@ class UserTestCase(base.TestCase):
 
         self.assertNotHasKeys(doc, ['salt'])
 
-    def testRegisterAndLoginBcrypt(self):
+    def testRegisterAndLogin(self):
         """
         Test user registration and logging in.
         """
-        cherrypy.config['auth']['hash_alg'] = 'bcrypt'
-        # Set this to minimum so test runs faster.
-        cherrypy.config['auth']['bcrypt_rounds'] = 4
-
         params = {
             'email': 'bad_email',
             'login': 'illegal@login',
@@ -103,8 +82,6 @@ class UserTestCase(base.TestCase):
         params['login'] = ' '
         resp = self.request(path='/user', method='POST', params=params)
         self.assertValidationError(resp, 'login')
-        self.assertEqual(cherrypy.config['users']['login_description'],
-                         resp.json['message'])
 
         params['login'] = 'goodlogin'
         resp = self.request(path='/user', method='POST', params=params)
@@ -117,7 +94,6 @@ class UserTestCase(base.TestCase):
         self._verifyUserDocument(resp.json)
 
         user = User().load(resp.json['_id'], force=True)
-        self.assertEqual(user['hashAlg'], 'bcrypt')
 
         # Try logging in without basic auth, should get 401
         resp = self.request(path='/user/authentication', method='GET')
@@ -126,13 +102,13 @@ class UserTestCase(base.TestCase):
         # Bad authentication header
         resp = self.request(
             path='/user/authentication', method='GET',
-            additionalHeaders=[('Girder-Authorization', 'Basic Not-Valid-64')])
+            additionalHeaders=[('Authorization', 'Basic Not-Valid-64')])
         self.assertStatus(resp, 401)
         self.assertEqual('Invalid HTTP Authorization header',
                          resp.json['message'])
         resp = self.request(
             path='/user/authentication', method='GET',
-            additionalHeaders=[('Girder-Authorization', 'Basic NotValid')])
+            additionalHeaders=[('Authorization', 'Basic NotValid')])
         self.assertStatus(resp, 401)
         self.assertEqual('Invalid HTTP Authorization header',
                          resp.json['message'])
@@ -164,85 +140,28 @@ class UserTestCase(base.TestCase):
         self.assertStatus(resp, 401)
         self.assertEqual('Login failed.', resp.json['message'])
 
-        # Login successfully with fallback Authorization header
+        # Login successfully with fallback Girder-Authorization header
         resp = self.request(path='/user/authentication', method='GET',
                             basicAuth='goodlogin:good:password',
-                            authHeader='Authorization')
+                            authHeader='Girder-Authorization')
         self.assertStatusOk(resp)
-
-        # Test secure cookie validation
-        with self.assertRaises(ValidationException):
-            Setting().set(SettingKey.SECURE_COOKIE, 'bad value')
-        # Set secure cookie value
-        Setting().set(SettingKey.SECURE_COOKIE, True)
 
         # Login successfully with login
         resp = self.request(path='/user/authentication', method='GET',
                             basicAuth='goodlogin:good:password')
         self.assertStatusOk(resp)
+        self._verifyAuthCookie(resp)
 
-        # Make sure we got a nice (secure) cookie
+        # Login with HTTPS login
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='goodlogin:good:password', useHttps=True)
+        self.assertStatusOk(resp)
         self._verifyAuthCookie(resp, secure=True)
 
         # Test user/me
         resp = self.request(path='/user/me', method='GET', user=user)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['login'], user['login'])
-
-    def testRegisterAndLoginSha512(self):
-        cherrypy.config['auth']['hash_alg'] = 'sha512'
-
-        params = {
-            'email': 'good@email.com',
-            'login': 'goodlogin',
-            'firstName': 'First',
-            'lastName': 'Last',
-            'password': 'goodpassword'
-        }
-
-        # Register a user with sha512 storage backend
-        resp = self.request(path='/user', method='POST', params=params)
-        self.assertStatusOk(resp)
-        self._verifyUserDocument(resp.json)
-
-        user = User().load(resp.json['_id'], force=True)
-        self.assertEqual(user['hashAlg'], 'sha512')
-
-        # Login unsuccessfully
-        resp = self.request(path='/user/authentication', method='GET',
-                            basicAuth='goodlogin:badpassword')
-        self.assertStatus(resp, 401)
-        self.assertEqual('Login failed.', resp.json['message'])
-
-        # Login successfully
-        resp = self.request(path='/user/authentication', method='GET',
-                            basicAuth='goodlogin:goodpassword')
-        self.assertStatusOk(resp)
-        self.assertEqual('Login succeeded.', resp.json['message'])
-        self.assertEqual('good@email.com', resp.json['user']['email'])
-        self._verifyUserDocument(resp.json['user'])
-
-        # Make sure we got a nice cookie
-        self._verifyAuthCookie(resp)
-
-        token = Token().load(self.cookieVal, objectId=False, force=True)
-        self.assertEqual(str(token['userId']), resp.json['user']['_id'])
-
-        # Hit the logout endpoint
-        resp = self.request(path='/user/authentication', method='DELETE',
-                            token=token['_id'])
-        self._verifyDeletedCookie(resp)
-
-        token = Token().load(token['_id'], objectId=False, force=True)
-        self.assertEqual(token, None)
-
-        # Test disabling password login
-        Setting().set(SettingKey.ENABLE_PASSWORD_LOGIN, False)
-
-        resp = self.request(
-            path='/user/authentication', method='GET', basicAuth='goodlogin:goodpassword')
-        self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], 'Password login is disabled on this instance.')
 
     def testGetAndUpdateUser(self):
         """
@@ -392,12 +311,12 @@ class UserTestCase(base.TestCase):
         """
         # Create some users.
         for x in ('c', 'a', 'b'):
-            User().createUser(
+            user = User().createUser(
                 'usr%s' % x, 'passwd', 'tst', '%s_usr' % x, 'u%s@u.com' % x)
         resp = self.request(path='/user', method='GET', params={
             'limit': 2,
             'offset': 1
-        })
+        }, user=user)
         self.assertStatusOk(resp)
 
         # Make sure the limit, order, and offset are respected, and that our
@@ -807,22 +726,8 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
         itemId = resp.json['_id']
 
-        resp = self.request(
-            path='/file', method='POST', user=pvt, params={
-                'parentType': 'item',
-                'parentId': itemId,
-                'name': 'foo.txt',
-                'size': 5,
-                'mimeType': 'text/plain'
-            })
-        self.assertStatusOk(resp)
-
-        fields = [('offset', 0), ('uploadId', resp.json['_id'])]
-        files = [('chunk', 'foo.txt', 'hello')]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=pvt, fields=fields, files=files)
-        self.assertStatusOk(resp)
-        self.assertEqual(resp.json['itemId'], itemId)
+        file = self.uploadFile('hi.txt', 'hello', user=pvt, parent=resp.json, parentType='item')
+        self.assertEqual(str(file['itemId']), itemId)
 
     def testUsersDetails(self):
         """
@@ -834,14 +739,16 @@ class UserTestCase(base.TestCase):
             email='admin@admin.com', password='adminadmin')
         # Create a couple of users
         users = [User().createUser(
-            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
+            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num, public=False)
             for num in [0, 1]]
         resp = self.request(path='/user/details', user=admin, method='GET')
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['nUsers'], 3)
         # test for a non-admin user
         resp = self.request(path='/user/details', user=users[0], method='GET')
-        self.assertStatus(resp, 403)
+        self.assertStatusOk(resp)
+        # will find the public admin user and the user itself
+        self.assertEqual(resp.json['nUsers'], 2)
         # test for a non-user
         resp = self.request(path='/user/details', method='GET')
         self.assertStatus(resp, 401)

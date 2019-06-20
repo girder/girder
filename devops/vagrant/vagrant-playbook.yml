@@ -1,0 +1,81 @@
+---
+
+- hosts: all
+  vars:
+    ansible_python_interpreter: "/usr/bin/python3"
+    girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
+
+  pre_tasks:
+    - name: Create / remove a local girder_node_modules directory
+      file:
+        path: "{{ ansible_user_dir }}/girder_node_modules"
+        state: "{{ 'directory' if bind_node_modules else 'absent' }}"
+
+    - name: Mount / unmount girder_node_modules
+      mount:
+        path: "{{ ansible_user_dir }}/girder/girder/web_client/node_modules"
+        src: "{{ ansible_user_dir }}/girder_node_modules"
+        state: "{{ 'mounted' if bind_node_modules else 'absent' }}"
+        fstype: none
+        opts: bind
+        boot: true
+      become: true
+      become_user: root
+
+    - name: Define WATCH_USEPOLLING environment variable
+      lineinfile:
+        line: "export WATCH_USEPOLLING=true"
+        path: "{{ ansible_user_dir }}/.bashrc"
+        state: present
+
+    - name: Update package cache
+      apt:
+        update_cache: true
+        force_apt_get: true
+      changed_when: false
+      become: true
+      become_user: root
+
+    - name: Install Girder plugin prerequisites
+      apt:
+        name:
+          # Needed for 'ldap'
+          - libldap2-dev
+          - libsasl2-dev
+        force_apt_get: true
+      become: true
+      become_user: root
+
+  roles:
+    - role: girder.mongodb
+
+    - role: ansible-role-girder
+      vars:
+        girder_bind_public: true
+        girder_daemonize: false
+        girder_development_mode: true
+        girder_package: "{{ ansible_user_dir }}/girder"
+        girder_pip_extra_args: "--editable"
+        # girder_virtualenv is overridden too
+
+  post_tasks:
+    - name: Install Girder Python development requirements
+      pip:
+        requirements: "requirements-dev.txt"
+        chdir: "{{ ansible_user_dir }}/girder"
+        virtualenv: "{{ girder_virtualenv }}"
+
+    - name: Install development packages
+      apt:
+        name:
+          - cmake
+          - cmake-curses-gui
+        force_apt_get: true
+      become: true
+      become_user: root
+
+    - name: Activate virtualenv on login
+      lineinfile:
+        dest: "{{ ansible_user_dir }}/.profile"
+        line: 'source {{ girder_virtualenv }}/bin/activate'
+        state: present

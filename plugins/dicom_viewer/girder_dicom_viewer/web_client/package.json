@@ -11,6 +11,9 @@
         "type": "git",
         "url": "https://github.com/girder/girder.git"
     },
+    "peerDependencies": {
+        "@girder/core": "*"
+    },
     "dependencies": {
         "daikon": "^1.2.15",
         "shader-loader": "1.3.0",

@@ -1,8 +1,8 @@
 import _ from 'underscore';
 
-import AccessControlledModel from 'girder/models/AccessControlledModel';
-import MetadataMixin from 'girder/models/MetadataMixin';
-import { restRequest } from 'girder/rest';
+import AccessControlledModel from '@girder/core/models/AccessControlledModel';
+import MetadataMixin from '@girder/core/models/MetadataMixin';
+import { restRequest } from '@girder/core/rest';
 
 var FolderModel = AccessControlledModel.extend({
     resourceName: 'folder',

@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright 2013 Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import os
 import io
 import json
@@ -80,6 +62,7 @@ class ItemTestCase(base.TestCase):
         resp = self.request(path='/item', method='POST', params=params,
                             user=user)
         self.assertStatusOk(resp)
+        assert 'meta' in resp.json
         return resp.json
 
     def _testUploadFileToItem(self, item, name, user, contents):
@@ -99,10 +82,10 @@ class ItemTestCase(base.TestCase):
         uploadId = resp.json['_id']
 
         # Send the first chunk
-        fields = [('offset', 0), ('uploadId', uploadId)]
-        files = [('chunk', name, contents)]
-        resp = self.multipartRequest(
-            path='/file/chunk', user=user, fields=fields, files=files)
+        resp = self.request(
+            path='/file/chunk', method='POST', body=contents, user=user, params={
+                'uploadId': uploadId
+            }, type='application/octet-stream')
         self.assertStatusOk(resp)
 
     def _testDownloadSingleFileItem(self, item, user, contents):
@@ -159,6 +142,22 @@ class ItemTestCase(base.TestCase):
             if not isinstance(expected, six.binary_type):
                 expected = expected.encode('utf8')
             self.assertEqual(expected, zipFile.read(name))
+
+    def testLegacyItems(self):
+        folder = Folder().createFolder(
+            parent=self.users[0], parentType='user', creator=self.users[0],
+            name='New Folder')
+        item = Item().createItem(
+            name='LegacyItem',
+            creator=self.users[0],
+            folder=folder)
+
+        del item['meta']
+        item = Item().save(item)
+        assert 'meta' not in item
+
+        item = Item().load(item['_id'], user=self.users[0])
+        assert 'meta' in item
 
     def testItemDownloadAndChildren(self):
         curItem = self._createItem(self.publicFolder['_id'],

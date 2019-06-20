@@ -1,5 +1,5 @@
-from contextlib import contextmanager
 import distutils
+from contextlib import contextmanager
 from pkg_resources import iter_entry_points
 from tempfile import gettempdir
 
@@ -69,9 +69,11 @@ class PluginRegistry(object):
     @contextmanager
     def __call__(self):
         from girder import plugin
-        with mock.patch.object(plugin, 'iter_entry_points',
-                               side_effect=self._iter_entry_points) as mock_:
-            yield mock_
 
-        plugin._pluginRegistry = None
-        plugin._pluginLoadOrder = []
+        try:
+            with mock.patch.object(
+                    plugin, 'iter_entry_points', side_effect=self._iter_entry_points) as mock_:
+                yield mock_
+        finally:
+            plugin._pluginRegistry = None
+            plugin._pluginLoadOrder = []

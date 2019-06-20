@@ -1,22 +1,4 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
 import cherrypy
 import datetime
 import six
@@ -29,7 +11,9 @@ from girder.api.rest import Resource
 from girder.api import access
 from girder.models.setting import Setting
 from girder.models.token import Token
-from . import constants, providers
+
+from . import providers
+from .settings import PluginSettings
 
 
 class OAuth(Resource):
@@ -81,7 +65,7 @@ class OAuth(Resource):
                required=False, dataType='boolean', default=False)
     )
     def listProviders(self, redirect, list):
-        enabledNames = Setting().get(constants.PluginSettings.PROVIDERS_ENABLED)
+        enabledNames = Setting().get(PluginSettings.PROVIDERS_ENABLED)
 
         enabledProviders = [
             provider
@@ -133,18 +117,22 @@ class OAuth(Resource):
         providerObj = provider(cherrypy.url())
         token = providerObj.getToken(code)
 
-        events.trigger('oauth.auth_callback.before', {
+        event = events.trigger('oauth.auth_callback.before', {
             'provider': provider,
             'token': token
         })
+        if event.defaultPrevented:
+            raise cherrypy.HTTPRedirect(redirect)
 
         user = providerObj.getUser(token)
 
-        events.trigger('oauth.auth_callback.after', {
+        event = events.trigger('oauth.auth_callback.after', {
             'provider': provider,
             'token': token,
             'user': user
         })
+        if event.defaultPrevented:
+            raise cherrypy.HTTPRedirect(redirect)
 
         girderToken = self.sendAuthTokenCookie(user)
         try:

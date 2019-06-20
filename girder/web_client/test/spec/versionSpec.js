@@ -1,7 +1,7 @@
 girderTest.startApp();
 
 describe('Test version reporting', function () {
-    it('check front page git SHA', function () {
+    it('check front page version', function () {
         waitsFor(function () {
             return $('.g-frontpage-body').length > 0;
         });
@@ -9,12 +9,12 @@ describe('Test version reporting', function () {
         runs(function () {
             // Better checks are possible, but this at least ensures
             // that the sha isn't 'undefined'.
-            expect($('.g-git-sha').length).toBe(1);
-            expect(!!$('.g-git-sha')
+            expect($('.g-version').length).toBe(1);
+            expect(!!$('.g-version')
                 .text()
                 .trim()
                 .toLowerCase()
-                .match(/^[0-9a-f]+$/)
+                .match(/^\d+\.\d+\.\d+/)
             ).toBe(true);
         });
     });
