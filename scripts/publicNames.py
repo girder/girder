@@ -11,7 +11,9 @@ EXCLUDE_DIRS = [
     # with "clients" or "girder" or "plugins"
     '^(?!(clients|girder|plugins|pytest_girder))',
     # Exclude plugin tests
-    'plugin_tests']
+    'plugin_tests',
+    '\\.egg/',
+    'node_modules/']
 
 IGNORE_FILES = ['setup.py']
 
