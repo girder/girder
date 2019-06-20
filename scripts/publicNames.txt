@@ -155,6 +155,7 @@ girder
                 sendAuthTokenCookie
                 setRawResponse
             boundHandler
+            disableAuditLog
             endpoint
             ensureTokenScopes
             filtermodel
@@ -959,7 +960,8 @@ plugins
             Record
                 initialize
                 validate
-        scripts
+            cleanup
+                cleanup
             report
                 get_file_download_records
                 index_folder
