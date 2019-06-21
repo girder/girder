@@ -108,17 +108,15 @@ macro(add_standard_plugin_tests)
   # Add a set of basic tests for a plugin.
   # This will add:
   #   * Server static analysis, if a server component exists.
-  #   * Client static analysis (for both Javascript and Pug), if a web_client component exists.
   #   * Server plugin_tests and associated static analysis, if they exist.
-  #   * Client plugin_tests and associated static analysis, if they exist as "*Spec.js" files.
+  #   * Client plugin_tests, if they exist as "*Spec.js" files.
   #
   # Optional parameters:
   #   * NO_SERVER: Never add server static analysis.
-  #   * NO_CLIENT: Never add client static analysis.
   #   * NO_SERVER_TESTS: Never add server plugin_tests and associated static analysis.
   #   * NO_CLIENT_TESTS: Never add client plugin_tests and associated static analysis.
 
-  set(_options NO_SERVER NO_CLIENT NO_SERVER_TESTS NO_CLIENT_TESTS)
+  set(_options NO_SERVER NO_SERVER_TESTS NO_CLIENT_TESTS)
   set(_args "PACKAGE")
   set(_multival_args "")
   cmake_parse_arguments(_fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
@@ -130,13 +128,6 @@ macro(add_standard_plugin_tests)
   # Server static analysis
   if(IS_DIRECTORY "${_packageDir}" AND (NOT _fn_NO_SERVER))
     add_python_style_test(python_static_analysis_${_pluginName} "${_packageDir}")
-  endif()
-
-  # Client static analysis
-  if(IS_DIRECTORY "${_packageDir}/web_client" AND (NOT _fn_NO_CLIENT))
-    if(IS_DIRECTORY "${_packageDir}/web_client/stylesheets")
-      add_stylint_test(${_pluginName} "${_packageDir}/web_client/stylesheets")
-    endif()
   endif()
 
   # Server plugin_tests
