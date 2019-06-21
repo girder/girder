@@ -3,8 +3,8 @@ This script is for creating download reports for a given folder, recursively.
 
 Examples:
 
-    girder audit_logs_report --folder=57557fac8d777f68be8f3f49 --start-date=2018-09-10T13:55:34.847Z --end-date=2018-09-13T13:55:34.847Z --output report.csv
-    girder audit_logs_report -f 57557fac8d777f68be8f3f49
+    girder audit-logs-report --folder=57557fac8d777f68be8f3f49 --start-date=2018-09-10T13:55:34.847Z --end-date=2018-09-13T13:55:34.847Z --output report.csv
+    girder audit-logs-report -f 57557fac8d777f68be8f3f49
 """
 import click
 import csv
@@ -54,7 +54,7 @@ def get_file_download_records(files, start=None, end=None):
     return Record().find(query)
 
 
-@click.command(name='audit_logs_report')
+@click.command(name='audit-logs-report')
 @click.option('-f', '--folder', help='folder ID to use as root for all download reports.', required=True)
 @click.option('--start-date', help='ISO 8601 format')
 @click.option('--end-date', help='ISO 8601 format')
