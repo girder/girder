@@ -8,7 +8,3 @@ add_python_test(dicom_viewer
   plugins/dicom_viewer/000002.dcm
   plugins/dicom_viewer/000003.dcm
 )
-
-get_filename_component(_pluginName "${CMAKE_CURRENT_LIST_DIR}" NAME)
-
-add_python_style_test(python_static_anaysis_${_pluginName}_tests "${_pluginDir}/plugin_tests")
