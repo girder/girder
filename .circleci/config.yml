@@ -144,7 +144,7 @@ jobs:
           working_directory: girder_build
       - run:
           name: Run tox
-          command: tox -e circleci-py35,docs
+          command: tox -e lint,circleci-py35,docs
           working_directory: girder
       - store_test_results:
           path: girder/build/test/results
