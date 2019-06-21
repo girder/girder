@@ -57,11 +57,11 @@ var ResetPasswordView = View.extend({
         })).girderModal(this).on('shown.bs.modal', () => {
             this.$('#g-email').focus();
         }).on('hidden.bs.modal', () => {
-            handleClose('resetpassword', {replace: true});
+            handleClose('resetpassword', { replace: true });
         });
         this.$('#g-email').focus();
 
-        handleOpen('resetpassword', {replace: true});
+        handleOpen('resetpassword', { replace: true });
 
         return this;
     }

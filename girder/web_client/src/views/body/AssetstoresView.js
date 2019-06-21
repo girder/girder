@@ -140,7 +140,7 @@ var AssetstoresView = View.extend({
                 borderWidth: 0,
                 shadow: false
             },
-            gridPadding: {top: 10, right: 10, bottom: 10, left: 10}
+            gridPadding: { top: 10, right: 10, bottom: 10, left: 10 }
         });
         this.plots.push(plot);
     },
@@ -148,7 +148,7 @@ var AssetstoresView = View.extend({
     setCurrentAssetstore: function (evt) {
         var el = $(evt.currentTarget);
         var assetstore = this.collection.get(el.attr('cid'));
-        assetstore.set({current: true});
+        assetstore.set({ current: true });
         assetstore.off('g:saved').on('g:saved', function () {
             events.trigger('g:alert', {
                 icon: 'ok',

@@ -34,7 +34,7 @@ var JobDetailsWidget = View.extend({
             if (info._id === this.job.id) {
                 var container = this.$('.g-job-log-container');
                 if (info.overwrite) {
-                    this.job.set({log: [info.text]});
+                    this.job.set({ log: [info.text] });
                     container.text(info.text);
                 } else {
                     this.job.get('log').push(info.text);

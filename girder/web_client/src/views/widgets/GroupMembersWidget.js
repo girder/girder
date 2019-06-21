@@ -82,7 +82,7 @@ var GroupMembersWidget = View.extend({
             var model = this.membersColl.get(
                 $(e.currentTarget).parents('li').attr('cid')
             );
-            router.navigate('user/' + model.get('_id'), {trigger: true});
+            router.navigate('user/' + model.get('_id'), { trigger: true });
         },
 
         'click a.g-group-member-remove': function (e) {

@@ -39,7 +39,7 @@ var GroupView = View.extend({
 
         'click #g-group-tab-pending a.g-member-name': function (e) {
             var userId = $(e.currentTarget).parents('li').attr('userid');
-            router.navigate('user/' + userId, {trigger: true});
+            router.navigate('user/' + userId, { trigger: true });
         }
     },
 
@@ -88,7 +88,7 @@ var GroupView = View.extend({
             escapedHtml: true,
             confirmCallback: () => {
                 this.model.on('g:deleted', function () {
-                    router.navigate('groups', {trigger: true});
+                    router.navigate('groups', { trigger: true });
                 }).destroy();
             }
         });
@@ -172,7 +172,7 @@ var GroupView = View.extend({
         this._updateRolesLists();
 
         router.navigate('group/' + this.model.get('_id') + '/' +
-                               this.tab, {replace: true});
+                               this.tab, { replace: true });
 
         if (this.edit) {
             if (this.model.get('_accessLevel') >= AccessType.ADMIN) {

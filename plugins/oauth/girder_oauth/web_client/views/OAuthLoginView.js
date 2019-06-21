@@ -12,7 +12,7 @@ var OAuthLoginView = View.extend({
     events: {
         'click .g-oauth-button': function (event) {
             var providerId = $(event.currentTarget).attr('g-provider');
-            var provider = _.findWhere(this.providers, {id: providerId});
+            var provider = _.findWhere(this.providers, { id: providerId });
             window.location = provider.url;
         }
     },

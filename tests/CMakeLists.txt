@@ -14,11 +14,6 @@ python_tests_init()
 javascript_tests_init()
 
 if(RUN_CORE_TESTS)
-  add_eslint_test(grunt_main Gruntfile.js)
-  add_eslint_test(grunt_modules grunt_tasks)
-  add_eslint_test(test_specs girder/web_client/test)
-  add_eslint_test(swagger girder/web_client/static/girder-swagger.js)
-
   add_python_style_test(python_static_analysis_core "${PROJECT_SOURCE_DIR}/girder")
   add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/test")
   add_python_style_test(python_static_analysis_core_tests_legacy "${PROJECT_SOURCE_DIR}/tests")
@@ -139,7 +134,6 @@ macro(add_standard_plugin_tests)
 
   # Client static analysis
   if(IS_DIRECTORY "${_packageDir}/web_client" AND (NOT _fn_NO_CLIENT))
-    add_eslint_test(${_pluginName} "${_packageDir}/web_client")
     if(IS_DIRECTORY "${_pluginDir}/web_client/templates")
       add_puglint_test(${_pluginName} "${_packageDir}/web_client/templates")
     endif()
@@ -167,7 +161,6 @@ macro(add_standard_plugin_tests)
       string(REGEX REPLACE "Spec\\.js$" "" _clientTestName "${_clientTestFileName}")
       add_web_client_test(${_clientTestName} "${_clientTestFile}" PLUGIN ${_pluginName})
     endforeach()
-    add_eslint_test(${_pluginName}_tests "${_pluginDir}/plugin_tests")
   endif()
 endmacro()
 

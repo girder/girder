@@ -25,7 +25,7 @@ module.exports = function (grunt) {
         }
         const istanbulPlugin = require.resolve('babel-plugin-istanbul');
         _.each(config.module.rules, (rule) => {
-            _.each(_.where(rule.use, {loader: 'babel-loader'}), (useEntry) => {
+            _.each(_.where(rule.use, { loader: 'babel-loader' }), (useEntry) => {
                 useEntry.options.plugins = [
                     [istanbulPlugin, {
                         exclude: ['**/*.pug', '**/*.jade']
@@ -121,7 +121,7 @@ module.exports = function (grunt) {
         plugins: [
             new webpack.EnvironmentPlugin({
                 NODE_ENV: null,
-                GIRDER_VERSION: grunt.config.get('girderVersion'),
+                GIRDER_VERSION: grunt.config.get('girderVersion')
             })
         ]
     });

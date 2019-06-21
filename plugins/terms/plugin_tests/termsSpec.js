@@ -15,7 +15,7 @@ describe('Create and log in to a user for testing', function () {
                 method: 'PUT',
                 data: {
                     key: 'core.collection_create_policy',
-                    value: JSON.stringify({groups: [], open: true, users: []})
+                    value: JSON.stringify({ groups: [], open: true, users: [] })
                 }
             })
                 .done(function () {

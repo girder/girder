@@ -26,7 +26,7 @@ var GroupAdminsWidget = View.extend({
                     _.escape(li.attr('username')) + '</b> to a moderator?',
                 escapedHtml: true,
                 confirmCallback: () => {
-                    var user = new UserModel({_id: userid});
+                    var user = new UserModel({ _id: userid });
                     this.model.off('g:promoted').on('g:promoted', () => {
                         this.trigger('g:moderatorAdded');
                     }, this).promoteUser(user, AccessType.WRITE);

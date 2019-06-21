@@ -18,7 +18,7 @@ var S3ImportView = View.extend({
             this.$('.g-validation-failed-message').empty();
 
             this.assetstore.off('g:imported').on('g:imported', function () {
-                router.navigate(destType + '/' + destId, {trigger: true});
+                router.navigate(destType + '/' + destId, { trigger: true });
             }, this).on('g:error', function (resp) {
                 this.$('.g-validation-failed-message').text(resp.responseJSON.message);
             }, this).import({
@@ -53,7 +53,7 @@ var S3ImportView = View.extend({
             restRequest({
                 url: `resource/${val.id}/path`,
                 method: 'GET',
-                data: {type: val.get('_modelType')}
+                data: { type: val.get('_modelType') }
             }).done((result) => {
                 // Only add the resource path if the value wasn't altered
                 if (this.$('#g-s3-import-dest-id').val() === val.id) {

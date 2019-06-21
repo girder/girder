@@ -139,7 +139,7 @@ var SearchFieldWidget = View.extend({
 
     _goToResultPage: function (query, mode) {
         this.resetState();
-        router.navigate(`#search/results?query=${query}&mode=${mode}`, {trigger: true});
+        router.navigate(`#search/results?query=${query}&mode=${mode}`, { trigger: true });
     },
 
     _resultClicked: function (link) {

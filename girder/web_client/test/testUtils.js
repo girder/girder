@@ -528,7 +528,7 @@ girderTest.testMetadata = function () {
         _editMetadata(null, '', 'no_key', 'cancel', /.*A key is required for all metadata/);
         _editMetadata(null, 'cancel_me', 'this will be cancelled', 'cancel');
         _editMetadata(null, 'long_key', 'long_value' + new Array(2048).join('-'));
-        _editMetadata(null, 'json_key', JSON.stringify({sample_json: 'value'}, null, 4));
+        _editMetadata(null, 'json_key', JSON.stringify({ sample_json: 'value' }, null, 4));
         _editMetadata(null, 'unicode_key\u00A9\uD834\uDF06', 'unicode_value\u00A9\uD834\uDF06');
         _editMetadata('simple_key', null, 'new_value', 'cancel');
         _editMetadata('long_key', 'json_key', null, 'cancel', /.*json_key is already a metadata key/);
@@ -536,14 +536,14 @@ girderTest.testMetadata = function () {
         _editMetadata('simple_key', null, null, 'delete');
         _editMetadata('json_key', 'json_rename', null);
 
-        _editMetadata(null, 'plain_json', {'some': 'json'}, 'save', null, 'json');
+        _editMetadata(null, 'plain_json', { 'some': 'json' }, 'save', null, 'json');
 
         _editMetadata(null, 'non_object_or_array_json', false, 'save', null, 'json');
         _toggleMetadata('non_object_or_array_json', 'json');
 
         // converting json to simple
-        _editMetadata(null, 'a_json_key', {'foo': 'bar'}, 'save', null, 'json');
-        _editMetadata('a_json_key', 'a_json_key', {'foo': 'bar'}, 'cancel', null, 'json');
+        _editMetadata(null, 'a_json_key', { 'foo': 'bar' }, 'save', null, 'json');
+        _editMetadata('a_json_key', 'a_json_key', { 'foo': 'bar' }, 'cancel', null, 'json');
         _toggleMetadata('a_json_key', 'json');
 
         // a simple key that happens to be valid JSON
@@ -777,7 +777,7 @@ girderTest.binaryUpload = function (path) {
         // Reload the current view
         var old = Backbone.history.fragment;
         Backbone.history.fragment = null;
-        girder.router.navigate(old, {trigger: true});
+        girder.router.navigate(old, { trigger: true });
     });
 
     waitsFor(function () {
@@ -798,7 +798,7 @@ girderTest.testRoute = function (route, hasDialog, testFunc) {
         if (route.indexOf('#') === 0) {
             route = route.substr(1);
         }
-        girder.router.navigate(route, {trigger: true});
+        girder.router.navigate(route, { trigger: true });
     });
 
     if (testFunc) {
@@ -958,8 +958,8 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
 
     runs(function () {
         window.callPhantom(
-            {action: 'uploadCleanup',
-                suffix: girderTest._uploadSuffix});
+            { action: 'uploadCleanup',
+                suffix: girderTest._uploadSuffix });
     });
 };
 
@@ -1018,8 +1018,8 @@ girderTest.testUploadDrop = function (itemSize, multiple) {
 
     runs(function () {
         window.callPhantom(
-            {action: 'uploadCleanup',
-                suffix: girderTest._uploadSuffix});
+            { action: 'uploadCleanup',
+                suffix: girderTest._uploadSuffix });
     });
 };
 
@@ -1050,7 +1050,7 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
     girderTest._prepareTestUpload();
 
     runs(function () {
-        $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));
+        $(selector).trigger($.Event('dragenter', { originalEvent: $.Event('dragenter', { dataTransfer: {} }) }));
     });
 
     waitsFor(function () {
@@ -1066,7 +1066,7 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
     }, 'the drop bullseye to disappear');
 
     runs(function () {
-        $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));
+        $(selector).trigger($.Event('dragenter', { originalEvent: $.Event('dragenter', { dataTransfer: {} }) }));
     });
 
     waitsFor(function () {
@@ -1075,8 +1075,8 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
 
     runs(function () {
         /* Try dropping nothing */
-        $(selector).trigger($.Event('dragover', {originalEvent: $.Event('dragover', {dataTransfer: {}})}));
-        $(selector).trigger($.Event('drop', {originalEvent: $.Event('drop', {dataTransfer: {files: []}})}));
+        $(selector).trigger($.Event('dragover', { originalEvent: $.Event('dragover', { dataTransfer: {} }) }));
+        $(selector).trigger($.Event('drop', { originalEvent: $.Event('drop', { dataTransfer: { files: [] } }) }));
     });
 
     waitsFor(function () {
@@ -1084,7 +1084,7 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
     }, 'the drop bullseye to disappear');
 
     runs(function () {
-        $(selector).trigger($.Event('dragenter', {originalEvent: $.Event('dragenter', {dataTransfer: {}})}));
+        $(selector).trigger($.Event('dragenter', { originalEvent: $.Event('dragenter', { dataTransfer: {} }) }));
     });
 
     waitsFor(function () {
@@ -1092,7 +1092,7 @@ girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropAc
     }, 'the drop bullseye to appear');
 
     runs(function () {
-        $(selector).trigger($.Event('drop', {originalEvent: $.Event('drop', {dataTransfer: {files: files}})}));
+        $(selector).trigger($.Event('drop', { originalEvent: $.Event('drop', { dataTransfer: { files: files } }) }));
     });
 };
 
@@ -1165,7 +1165,7 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
         if (arguments.length === 1) {
             opts = arguments[0];
             if (_.isString(opts)) {
-                opts = {url: opts};
+                opts = { url: opts };
             }
         } else if (arguments.length === 2) {
             opts = arguments[1];
@@ -1273,7 +1273,7 @@ girderTest.startApp = function () {
                     var elem = $(evt.target),
                         href = elem.attr('href');
                     if (elem.is('a') && href && href.substr(0, 1) === '#') {
-                        girder.router.navigate(href.substr(1), {trigger: true});
+                        girder.router.navigate(href.substr(1), { trigger: true });
                         evt.preventDefault();
                     }
                 }

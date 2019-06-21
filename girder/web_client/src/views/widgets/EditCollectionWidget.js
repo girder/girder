@@ -72,7 +72,7 @@ const EditCollectionWidget = View.extend({
                     this.$('#g-description').val(this.model.get('description'));
                 }
             });
-        modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
+        modal.trigger($.Event('ready.girder.modal', { relatedTarget: modal }));
         this.descriptionEditor.setElement(this.$('.g-description-editor-container')).render();
         this.$('#g-name').focus();
 
