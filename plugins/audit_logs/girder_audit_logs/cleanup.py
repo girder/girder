@@ -19,7 +19,7 @@ def cleanup(days, types):
     if types:
         filter['type'] = {'$in': types.split(',')}
 
-    print('Deleted %d log entries.' % Record().collection.delete_many(filter).deleted_count)
+    click.echo('Deleted %d log entries.' % Record().collection.delete_many(filter).deleted_count)
 
 
 if __name__ == '__main__':
