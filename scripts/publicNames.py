@@ -4,7 +4,7 @@ import six
 import subprocess
 import re
 
-Tree = lambda: collections.defaultdict(Tree)
+Tree = lambda: collections.defaultdict(Tree)  # noqa: E731
 
 EXCLUDE_DIRS = [
     # Only look in girder, plugins and clients folders i.e. exclude all directories that don't begin
@@ -20,6 +20,7 @@ IGNORE_FILES = ['setup.py']
 excluder = re.compile("|".join(EXCLUDE_DIRS))
 
 baseTree = Tree()
+
 
 def addSymbol(symbolScope, symbolTree):
     if not symbolScope:
@@ -50,7 +51,7 @@ def addFileSymbols(filePath, symbolTree):
     for fileTag in fileTags.splitlines():
         symbolName, symbolFileName, symbolRegex, symbolExtensions = fileTag.split('\t', 3)
         symbolExtensions = symbolExtensions.split('\t')
-        symbolAbbrviatedKind = symbolExtensions[0]
+        symbolAbbrviatedKind = symbolExtensions[0]  # noqa: F841
         if len(symbolExtensions) >= 2:
             # Symbol is scoped
             symbolScopeKind, symbolScope = symbolExtensions[1].split(':')
@@ -102,12 +103,14 @@ def _get_subtree_hierarchy(tree, symbol_list):
 
 
 def _root_relative_path(directory_path, rootPath):
-    return directory_path[len(rootPath) +1:]
+    return directory_path[len(rootPath) + 1:]
+
 
 def _valid_directory(dp, f, rootPath):
     return os.path.splitext(f)[1] == '.py' and \
         _root_relative_path(dp, rootPath) != '' and \
-            not excluder.search(_root_relative_path(dp, rootPath))
+        not excluder.search(_root_relative_path(dp, rootPath))
+
 
 def main():
     rootPath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -122,9 +125,7 @@ def main():
             os.path.join(rootPath, d),
             _get_subtree_hierarchy(baseTree, d.split(os.sep)))
 
-
     printTree(baseTree)
-
 
 
 if __name__ == '__main__':

@@ -7,9 +7,11 @@ GIRDER_API_KEY = 'API_KEY'
 gc = girder_client.GirderClient(apiUrl=GIRDER_URL)
 gc.authenticate(username=GIRDER_LOGIN, apiKey=GIRDER_API_KEY)
 
+
 def handle_item(item, bc):
     bc = bc + (item['name'],)
     print('/'.join(bc))
+
 
 def handle_folder(folder, bc):
     bc = bc + (folder['name'],)
@@ -20,17 +22,20 @@ def handle_folder(folder, bc):
     for item in items:
         handle_item(item, bc)
 
+
 def handle_collection(collection):
     bc = ('collection', collection['name'])
     folders = gc.listFolder(collection['_id'], 'collection', limit=0)
     for folder in folders:
         handle_folder(folder, bc)
 
+
 def handle_user(user):
     bc = ('user', user['email'])
     folders = gc.listFolder(user['_id'], 'user', limit=0)
     for folder in folders:
         handle_folder(folder, bc)
+
 
 def main():
     users = gc.listUser(limit=0)
@@ -39,6 +44,7 @@ def main():
     collections = gc.listCollection(limit=0)
     for collection in collections:
         handle_collection(collection)
+
 
 if __name__ == '__main__':
     main()

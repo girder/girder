@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import itertools
 
 from setuptools import setup, find_packages
 

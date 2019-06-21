@@ -7,9 +7,11 @@ MIDAS_API_KEY = 'API_KEY'
 token = pydas.login(email=MIDAS_LOGIN, api_key=MIDAS_API_KEY, url=MIDAS_URL)
 mc = pydas.session.communicator
 
+
 def handle_item(item, bc):
     bc = bc + (item['name'],)
     print('/'.join(bc))
+
 
 def handle_folder(folder, bc):
     bc = bc + (folder['name'],)
@@ -21,12 +23,14 @@ def handle_folder(folder, bc):
     for item in items:
         handle_item(item, bc)
 
+
 def handle_community(community):
     bc = ('collection', community['name'])
     children = mc.get_community_children(community['community_id'], token)
     folders = children['folders']
     for folder in folders:
         handle_folder(folder, bc)
+
 
 def handle_user(user):
     bc = ('user', user['email'])
@@ -35,6 +39,7 @@ def handle_user(user):
     for folder in children['folders']:
         handle_folder(folder, bc)
 
+
 def main():
     users = mc.list_users(limit=0)
     for user in users:
@@ -42,6 +47,7 @@ def main():
     communities = mc.list_communities(token)
     for community in communities:
         handle_community(community)
+
 
 if __name__ == '__main__':
     main()
