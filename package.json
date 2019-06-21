@@ -94,7 +94,10 @@
         "temp-directory": "build/test/coverage/web_temp"
     },
     "pugLintConfig": {
-        "extends": "girder"
+        "extends": "girder",
+        "excludeFiles": [
+          "**/node_modules/"
+        ]
     },
     "stylintrc": {
         "blocks": false,
@@ -129,7 +132,7 @@
             "error": true
         },
         "exclude": [
-            "node_modules/**/*"
+            "**/node_modules/**"
         ],
         "extendPref": "@extend",
         "globalDupe": false,
