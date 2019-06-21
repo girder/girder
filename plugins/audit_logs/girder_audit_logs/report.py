@@ -2,7 +2,6 @@
 This script is for creating download reports for a given folder, recursively.
 
 Examples:
-
     girder audit-logs-report
         --folder=57557fac8d777f68be8f3f49
         --start-date=2018-09-10T13:55:34.847Z

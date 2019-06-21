@@ -19,6 +19,7 @@ def prerelease_local_scheme(version):
     else:
         return get_local_node_and_date(version)
 
+
 setup(
     name='girder-audit-logs',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
