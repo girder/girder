@@ -19,8 +19,6 @@ def prerelease_local_scheme(version):
     else:
         return get_local_node_and_date(version)
 
-
-# perform the install
 setup(
     name='girder-audit-logs',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
@@ -46,6 +44,10 @@ setup(
     entry_points={
         'girder.plugin': [
             'audit_logs = girder_audit_logs:AuditLogsPlugin'
+        ],
+        'girder.cli_plugins': [
+            'audit-logs-cleanup = girder_audit_logs.cleanup:cleanup',
+            'audit-logs-report = girder_audit_logs.report:report'
         ]
     }
 )

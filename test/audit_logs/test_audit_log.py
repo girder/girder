@@ -1,21 +1,19 @@
 import datetime
 import pytest
 import six
+from click.testing import CliRunner
 from girder import auditLogger
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.upload import Upload
 from girder.models.user import User
-from girder_audit_logs import Record
-
-
-@pytest.fixture
-def recordModel():
-    yield Record()
+from girder_audit_logs import Record, cleanup
 
 
 @pytest.fixture
 def freshLog():
+    Record().collection.drop()  # Clear existing records
+
     yield auditLogger
 
     for handler in auditLogger.handlers:
@@ -23,11 +21,11 @@ def freshLog():
 
 
 @pytest.mark.plugin('audit_logs')
-def testAnonymousRestRequestLogging(server, recordModel, freshLog):
-    recordModel.collection.delete_many({})  # Clear existing records
+def testAnonymousRestRequestLogging(server, freshLog):
+    Record().collection.delete_many({})  # Clear existing records
     server.request('/user/me')
 
-    records = recordModel.find()
+    records = Record().find()
     assert records.count() == 1
     record = records[0]
 
@@ -42,13 +40,12 @@ def testAnonymousRestRequestLogging(server, recordModel, freshLog):
 
 
 @pytest.mark.plugin('audit_logs')
-def testFailedRestRequestLogging(server, recordModel, freshLog):
-    recordModel.collection.delete_many({})  # Clear existing records
+def testFailedRestRequestLogging(server, freshLog):
     server.request('/folder', method='POST', params={
         'name': 'Foo',
         'parentId': 'foo'
     })
-    records = recordModel.find()
+    records = Record().find()
 
     assert records.count() == 1
     details = records[0]['details']
@@ -63,18 +60,16 @@ def testFailedRestRequestLogging(server, recordModel, freshLog):
 
 
 @pytest.mark.plugin('audit_logs')
-def testAuthenticatedRestRequestLogging(server, recordModel, freshLog, admin):
-    recordModel.collection.delete_many({})  # Clear existing records
+def testAuthenticatedRestRequestLogging(server, admin, freshLog):
     server.request('/user/me', user=admin)
-    records = recordModel.find()
+    records = Record().find()
     assert records.count() == 1
     record = records[0]
     assert record['userId'] == admin['_id']
 
 
 @pytest.mark.plugin('audit_logs')
-def testDownloadLogging(server, recordModel, freshLog, admin, fsAssetstore):
-    recordModel.collection.delete_many({})  # Clear existing records
+def testDownloadLogging(server, admin, fsAssetstore, freshLog):
     folder = Folder().find({
         'parentId': admin['_id'],
         'name': 'Public'
@@ -83,11 +78,11 @@ def testDownloadLogging(server, recordModel, freshLog, admin, fsAssetstore):
         six.BytesIO(b'hello'), size=5, name='test', parentType='folder', parent=folder,
         user=admin, assetstore=fsAssetstore)
 
-    recordModel.collection.delete_many({})  # Clear existing records
+    Record().collection.remove({})  # Clear existing records
 
     File().download(file, headers=False, offset=2, endByte=4)
 
-    records = recordModel.find()
+    records = Record().find()
 
     assert records.count() == 1
     record = records[0]
@@ -100,13 +95,35 @@ def testDownloadLogging(server, recordModel, freshLog, admin, fsAssetstore):
 
 
 @pytest.mark.plugin('audit_logs')
-def testDocumentCreationLogging(server, recordModel, freshLog):
-    recordModel.collection.delete_many({})  # Clear existing records
+def testDocumentCreationLogging(server, freshLog):
     user = User().createUser('admin', 'password', 'first', 'last', 'a@a.com')
-    records = recordModel.find(sort=[('when', 1)])
+    records = Record().find(sort=[('when', 1)])
     assert records.count() == 3
 
     assert records[0]['details']['collection'] == 'user'
     assert records[0]['details']['id'] == user['_id']
     assert records[1]['details']['collection'] == 'folder'
     assert records[2]['details']['collection'] == 'folder'
+
+
+@pytest.mark.plugin('audit_logs')
+@pytest.mark.parametrize('args,expected', [
+    ([], 0),
+    (['--days=0'], 4),
+    (['--days=0', '--types=rest.request'], 1),
+    (['--days=0', '--types=document.create'], 3)
+])
+def testCleanupScript(server, freshLog, args, expected, admin):
+    server.request('/user/me', user=admin)
+
+    result = CliRunner().invoke(cleanup.cleanup, args)
+    assert result.exit_code == 0
+    assert result.output == 'Deleted %d log entries.\n' % expected
+
+
+@pytest.mark.plugin('audit_logs')
+def testDisableLoggingOnNotificationEndpoints(server, user, freshLog):
+    server.request('/user/me')
+    server.request('/notification', user=user)
+    server.request('/notification/stream', params={'timeout': 0}, user=user, isJson=False)
+    assert Record().find().count() == 1
