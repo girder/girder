@@ -13,7 +13,6 @@ if(test_group STREQUAL python)
     -DVIRTUALENV_EXECUTABLE=$ENV{VIRTUALENV_EXECUTABLE}
     -DPYTHON_STATIC_ANALYSIS=ON
     -DBUILD_JAVASCRIPT_TESTS=OFF
-    -DJAVASCRIPT_STYLE_TESTS=OFF
   )
 
   set(_test_labels "girder_python")
@@ -23,7 +22,6 @@ elseif(test_group STREQUAL browser)
     -DPYTHON_EXECUTABLE=$ENV{PYTHON_EXECUTABLE}
     -DPYTHON_STATIC_ANALYSIS=OFF
     -DBUILD_JAVASCRIPT_TESTS=ON
-    -DJAVASCRIPT_STYLE_TESTS=ON
   )
 
   set(_test_labels "girder_browser")
