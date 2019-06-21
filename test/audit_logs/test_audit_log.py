@@ -113,9 +113,8 @@ def testDocumentCreationLogging(server, freshLog):
     (['--days=0', '--types=rest.request'], 1),
     (['--days=0', '--types=document.create'], 3)
 ])
-def testCleanupScript(server, freshLog, args, expected):
-    user = User().createUser('admin', 'password', 'first', 'last', 'a@a.com')
-    server.request('/user/me', user=user)
+def testCleanupScript(server, freshLog, args, expected, admin):
+    server.request('/user/me', user=admin)
 
     result = CliRunner().invoke(cleanup.cleanup, args)
     assert result.exit_code == 0
