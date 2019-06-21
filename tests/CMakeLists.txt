@@ -134,9 +134,6 @@ macro(add_standard_plugin_tests)
 
   # Client static analysis
   if(IS_DIRECTORY "${_packageDir}/web_client" AND (NOT _fn_NO_CLIENT))
-    if(IS_DIRECTORY "${_packageDir}/web_client/stylesheets")
-      add_stylint_test(${_pluginName} "${_packageDir}/web_client/stylesheets")
-    endif()
   endif()
 
   # Server plugin_tests
