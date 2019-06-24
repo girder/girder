@@ -34,7 +34,7 @@
         "stylint": "^1.5.9"
     },
     "scripts": {
-        "lint": "eslint --cache .  ; pug-lint . ; stylint",
+        "lint": "eslint --cache . && pug-lint . && stylint",
         "docs": "esdoc"
     },
     "esdoc": {
@@ -96,7 +96,7 @@
     "pugLintConfig": {
         "extends": "girder",
         "excludeFiles": [
-          "**/node_modules/"
+            "**/node_modules/"
         ]
     },
     "stylintrc": {
