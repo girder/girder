@@ -384,7 +384,6 @@ class ItemTestCase(base.TestCase):
         """
         Test CRUD of metadata.
         """
-
         # Create an item
         params = {
             'name': 'item with metadata',
@@ -535,7 +534,6 @@ class ItemTestCase(base.TestCase):
         """
         Test filtering private metadata from items.
         """
-
         # Create an item
         params = {
             'name': 'item with metadata',

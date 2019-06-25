@@ -36,6 +36,7 @@ class LogLevelFilter(object):
     """
     Filter log records based on whether they are between a min and max level.
     """
+
     def __init__(self, min, max):
         self.minLevel = min
         self.maxLevel = max
@@ -51,6 +52,7 @@ class LogFormatter(logging.Formatter):
     when an exception happens.  Cherrypy access logs are passed through without
     change.
     """
+
     def formatException(self, exc):
         info = '\n'.join((
             '  Request URL: %s %s' % (cherrypy.request.method.upper(), cherrypy.url()),
@@ -64,8 +66,8 @@ class LogFormatter(logging.Formatter):
 
     def format(self, record, *args, **kwargs):
         if hasattr(record, 'name') and hasattr(record, 'message'):
-            if (record.name.startswith('cherrypy.access') or
-                    record.name.startswith('cherrypy.error')):
+            if (record.name.startswith('cherrypy.access')
+                    or record.name.startswith('cherrypy.error')):
                 return record.message
         return super(LogFormatter, self).format(record, *args, **kwargs)
 
@@ -74,6 +76,7 @@ class StreamToLogger(object):
     """
     Redirect a file-like stream to a logger.
     """
+
     def __init__(self, stream, logger, level):
         self.stream = stream
         self.logger = logger
@@ -96,10 +99,12 @@ class StreamToLogger(object):
             # It's possible for a file-like object to have name appear in dir(stream) but not
             # actually be an attribute, thus using a default with getattr is required.
             # See https://github.com/GrahamDumpleton/mod_wsgi/issues/184 for more.
-            if (key != 'write' and not key.startswith('_') and (
-                    callable(getattr(stream, key, None)) or
-                    isinstance(getattr(stream, key, None), (
-                        six.binary_type, six.string_types, six.integer_types, bool)))):
+            if (key != 'write'
+                    and not key.startswith('_')
+                    and (callable(getattr(stream, key, None))
+                         or isinstance(
+                             getattr(stream, key, None),
+                             (six.binary_type, six.string_types, six.integer_types, bool)))):
                 setattr(self, key, getattr(stream, key))
 
     def write(self, buf):

@@ -182,7 +182,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
             # this would be:
             # size += File().recalculateSize(file)
             size += file.get('size', 0)
-        delta = size-item.get('size', 0)
+        delta = size - item.get('size', 0)
         if delta:
             logger.info('Item %s was wrong size: was %d, is %d' % (
                 item['_id'], item['size'], size))
@@ -495,8 +495,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         if subpath:
             files = list(self.childFiles(item=doc, limit=2))
-            if (len(files) != 1 or files[0]['name'] != doc['name'] or
-                    (includeMetadata and doc.get('meta', {}))):
+            if (len(files) != 1 or files[0]['name'] != doc['name']
+                    or (includeMetadata and doc.get('meta', {}))):
                 path = os.path.join(path, doc['name'])
         metadataFile = 'girder-item-metadata.json'
 

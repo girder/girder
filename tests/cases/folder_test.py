@@ -480,8 +480,8 @@ class FolderTestCase(base.TestCase):
             self.assertEqual(notifs[0]['data']['message'], 'Done')
             self.assertEqual(notifs[0]['data']['total'], 3)
             self.assertEqual(notifs[0]['data']['current'], 3)
-            self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow() +
-                            datetime.timedelta(minutes=1))
+            self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow()
+                            + datetime.timedelta(minutes=1))
 
             # Make sure our event handler was called with expected args
             self.assertTrue('kwargs' in cbInfo)

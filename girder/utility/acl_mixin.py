@@ -23,6 +23,7 @@ class AccessControlMixin(object):
     resourceParent corresponds to the field in which the parent resource
     belongs, so for an item it would be the folderId.
     """
+
     resourceColl = None
     resourceParent = None
 
@@ -165,9 +166,9 @@ class AccessControlMixin(object):
         cursor = self.findWithPermissions(
             filters, offset=offset, limit=limit, sort=sort, fields=fields,
             user=user, level=level, aggregateSort=defaultSort)
-        if (sort is None and not getattr(cursor, 'fromAggregate', False) and
-                callable(getattr(cursor, 'count', None)) and
-                cursor.count() < TEXT_SCORE_SORT_MAX):
+        if (sort is None and not getattr(cursor, 'fromAggregate', False)
+                and callable(getattr(cursor, 'count', None))
+                and cursor.count() < TEXT_SCORE_SORT_MAX):
             cursor = self.findWithPermissions(
                 filters, offset=offset, limit=limit, sort=defaultSort, fields=fields,
                 user=user, level=level)
@@ -205,8 +206,8 @@ class AccessControlMixin(object):
         See findWithPermissions for parameters and return.
         """
         removeKeys = ()
-        if (fields and any(fields[key] is True for key in fields) and
-                not fields.get(self.resourceParent)):
+        if (fields and any(fields[key] is True for key in fields)
+                and not fields.get(self.resourceParent)):
             fields = fields.copy()
             fields[self.resourceParent] = True
             removeKeys = (self.resourceParent, )
@@ -217,7 +218,7 @@ class AccessControlMixin(object):
         if not hasattr(result, 'count'):
             origResult, origSelf = result, self
 
-            class resultWithCount(object):
+            class ResultWithCount(object):
                 def count(self):
                     cursor = origSelf.find(
                         query, timeout=timeout, fields=fields, sort=sort, **kwargs)
@@ -234,7 +235,7 @@ class AccessControlMixin(object):
 
                 next = __next__
 
-            result = resultWithCount()
+            result = ResultWithCount()
         return result
 
     def findWithPermissions(self, query=None, offset=0, limit=0, timeout=None, fields=None,
@@ -283,9 +284,9 @@ class AccessControlMixin(object):
             # controlled model.
             #  This is also the fall-back for Mongo < 3.4, as those versions do
             # not support the aggregation steps that are used.
-            if (not isinstance(ModelImporter.model(self.resourceColl), AccessControlledModel) or
-                    not getattr(self, '_dbserver_version', None) or
-                    getattr(self, '_dbserver_version', None) < (3, 4)):
+            if (not isinstance(ModelImporter.model(self.resourceColl), AccessControlledModel)
+                    or not getattr(self, '_dbserver_version', None)
+                    or getattr(self, '_dbserver_version', None) < (3, 4)):
                 return self._findWithPermissionsFallback(
                     query, offset, limit, timeout, fields, sort, user, level,
                     **kwargs)

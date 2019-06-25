@@ -91,8 +91,8 @@ def printTree(symbolTree, level=0):
     for symbol, subTree in sorted(six.viewitems(symbolTree)):
         if symbol.startswith('_') and symbol != '__init__.py':
             continue
-        print(' '*(level * 4) + symbol)
-        printTree(subTree, level+1)
+        print(' ' * (level * 4) + symbol)
+        printTree(subTree, level + 1)
 
 
 def _get_subtree_hierarchy(tree, symbol_list):

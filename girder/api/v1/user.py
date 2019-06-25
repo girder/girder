@@ -268,13 +268,13 @@ class User(Resource):
         if not old:
             raise RestException('Old password must not be empty.')
 
-        if not self._model.hasPassword(user) or \
-                not self._model._cryptContext.verify(old, user['salt']):
+        if (not self._model.hasPassword(user)
+                or not self._model._cryptContext.verify(old, user['salt'])):
             # If not the user's actual password, check for temp access token
             token = Token().load(old, force=True, objectId=False, exc=False)
-            if (not token or not token.get('userId') or
-                    token['userId'] != user['_id'] or
-                    not Token().hasScope(token, TokenScope.TEMPORARY_USER_AUTH)):
+            if (not token or not token.get('userId')
+                    or token['userId'] != user['_id']
+                    or not Token().hasScope(token, TokenScope.TEMPORARY_USER_AUTH)):
                 raise AccessException('Old password is incorrect.')
 
         self._model.setPassword(user, new)

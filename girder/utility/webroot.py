@@ -18,6 +18,7 @@ class WebrootBase(object):
 
     This will typically be the base class of any non-API endpoints.
     """
+
     exposed = True
 
     def __init__(self, templatePath):
@@ -93,6 +94,7 @@ class Webroot(WebrootBase):
     """
     The webroot endpoint simply serves the main index HTML file.
     """
+
     def __init__(self, templatePath=None):
         if not templatePath:
             templatePath = os.path.join(constants.PACKAGE_DIR, 'utility', 'webroot.mako')

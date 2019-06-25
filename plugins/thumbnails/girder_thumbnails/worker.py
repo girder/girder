@@ -171,12 +171,12 @@ def scaleDicomLevels(dicomData):
     if len(imageData.shape) == 3:
         minimum = imageData[0].min() + offset
         maximum = imageData[0].max() + offset
-        finalImage = _scaleIntensity(imageData[0], maximum-minimum, (maximum+minimum)/2)
+        finalImage = _scaleIntensity(imageData[0], maximum - minimum, (maximum + minimum) / 2)
         return Image.fromarray(finalImage).convert("I")
     else:
         minimum = imageData.min() + offset
         maximum = imageData.max() + offset
-        finalImage = _scaleIntensity(imageData, maximum-minimum, (maximum+minimum)/2)
+        finalImage = _scaleIntensity(imageData, maximum - minimum, (maximum + minimum) / 2)
         return Image.fromarray(finalImage).convert("I")
 
 
@@ -189,6 +189,6 @@ def _scaleIntensity(img, window, level, maxc=255):
     :param maxc: what the maximum display color is
 
     """
-    m = maxc/(2.0*window)
-    o = m*(level-window)
-    return np.clip((m*img-o), 0, maxc).astype(np.uint8)
+    m = maxc / (2.0 * window)
+    o = m * (level - window)
+    return np.clip((m * img - o), 0, maxc).astype(np.uint8)

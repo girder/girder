@@ -10,6 +10,7 @@ class ProgressState(object):
     """
     Enum of possible progress states for progress records.
     """
+
     QUEUED = 'queued'
     ACTIVE = 'active'
     SUCCESS = 'success'
@@ -30,6 +31,7 @@ class Notification(Model):
     time at which the event happened, and an optional expires field indicating
     at what time the notification should be deleted from the database.
     """
+
     def initialize(self):
         self.name = 'notification'
         self.ensureIndices(('userId', 'time', 'updated', 'tokenId'))
@@ -169,17 +171,16 @@ class Notification(Model):
         record['updatedTime'] = time.time()
         if save:
             # Only update the time estimate if we are also saving
-            if (record['updatedTime'] > record['startTime'] and
-                    record['data']['estimateTime']):
+            if (record['updatedTime'] > record['startTime']
+                    and record['data']['estimateTime']):
                 if 'estimatedTotalTime' in record:
                     del record['estimatedTotalTime']
                 try:
                     total = float(record['data']['total'])
                     current = float(record['data']['current'])
                     if total >= current and total > 0 and current > 0:
-                        record['estimatedTotalTime'] = (total * (
-                            record['updatedTime'] - record['startTime']) /
-                            current)
+                        record['estimatedTotalTime'] = \
+                            total * (record['updatedTime'] - record['startTime']) / current
                 except ValueError:
                     pass
             return self.save(record)

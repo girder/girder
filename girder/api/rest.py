@@ -194,8 +194,9 @@ def getCurrentUser(returnToken=False):
         else:
             return user
 
-    if (token is None or token['expires'] < datetime.datetime.utcnow() or
-            'userId' not in token):
+    if (token is None
+            or token['expires'] < datetime.datetime.utcnow()
+            or 'userId' not in token):
         return retVal(None, token)
     else:
         try:
@@ -235,8 +236,8 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
         Content-Disposition header, but do not set it.
     :returns: the content-disposition header value.
     """
-    if (not disposition or (disposition not in ('inline', 'attachment') and
-                            not disposition.startswith('form-data'))):
+    if (not disposition or (disposition not in ('inline', 'attachment')
+                            and not disposition.startswith('form-data'))):
         raise RestException(
             'Error: Content-Disposition (%r) is not a recognized value.' % disposition)
     if not filename:
@@ -347,6 +348,7 @@ class loadmodel(object):  # noqa: class name
     :param requiredFlags: Access flags that are required on the object being loaded.
     :type requiredFlags: str or list/set/tuple of str or None
     """
+
     def __init__(self, map=None, model=None, plugin='_core', level=None,
                  force=False, exc=True, requiredFlags=None, **kwargs):
         if map is None:
@@ -739,6 +741,7 @@ class Resource(object):
     All REST resources should inherit from this class, which provides utilities
     for adding resources/routes to the REST API.
     """
+
     exposed = True
 
     def __init__(self):
@@ -1263,4 +1266,5 @@ class Prefix(object):
     """
     Utility class used to provide api prefixes.
     """
+
     exposed = True

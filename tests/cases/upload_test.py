@@ -112,11 +112,11 @@ class UploadTestCase(base.TestCase):
         # s3 uses a different method for uploading chunks
         # This has no error checking at all
         if not upload['s3']['chunked']:
-            _send_s3_request(upload['s3']['request'], chunk1+chunk2)
+            _send_s3_request(upload['s3']['request'], chunk1 + chunk2)
             if partial is not False:
                 return
         else:
-            chunk1 = chunk1+chunk2
+            chunk1 = chunk1 + chunk2
             s3resp = _send_s3_request(upload['s3']['request'])
             matches = re.search('<UploadId>(.*)</UploadId>', s3resp.text)
             s3uploadId = matches.groups()[0]
@@ -260,7 +260,7 @@ class UploadTestCase(base.TestCase):
         self.assertEqual(resp.json[0]['_id'], partialUploads[0]['_id'])
         # We should now have one less partial upload
         resp = self.request(path='/system/uploads', user=self.admin)
-        self.assertEqual(len(resp.json), len(partialUploads)-1)
+        self.assertEqual(len(resp.json), len(partialUploads) - 1)
         # If we ask to delete everything more than one day old, nothing should
         # be deleted.
         resp = self.request(

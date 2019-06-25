@@ -101,6 +101,7 @@ class ForegroundEventsDaemon(object):
     no-op start() and stop() implementations to remain compatible with the
     API of AsyncEventsThread.
     """
+
     def start(self):
         pass
 
@@ -123,6 +124,7 @@ class AsyncEventsThread(threading.Thread):
     This should not be invoked directly by callers; instead, they should use
     girder.events.daemon.trigger().
     """
+
     def __init__(self):
         threading.Thread.__init__(self)
 

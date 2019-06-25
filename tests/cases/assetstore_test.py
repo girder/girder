@@ -346,8 +346,8 @@ class AssetstoreTestCase(base.TestCase):
         # Create a second assetstore so that when we delete the first one, the
         # current assetstore will be switched to the second one.
         secondStore = Assetstore().createFilesystemAssetstore(
-            'Another Store',  os.path.join(ROOT_DIR, 'tests', 'assetstore',
-                                           'server_assetstore_test2'))
+            'Another Store',
+            os.path.join(ROOT_DIR, 'tests', 'assetstore', 'server_assetstore_test2'))
         # make sure our original asset store is the current one
         current = Assetstore().getCurrent()
         self.assertEqual(current['_id'], assetstore['_id'])
@@ -780,7 +780,7 @@ class AssetstoreTestCase(base.TestCase):
                 client.get_object(Bucket='bucketname', Key=file['s3Key'])
             except botocore.exceptions.ClientError:
                 break
-            if time.time()-startTime > 15:
+            if time.time() - startTime > 15:
                 break  # give up and fail
             time.sleep(0.1)
         with self.assertRaises(botocore.exceptions.ClientError):

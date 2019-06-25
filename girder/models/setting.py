@@ -13,6 +13,7 @@ class Setting(Model):
     """
     This model represents server-wide configuration settings as key/value pairs.
     """
+
     def initialize(self):
         self.name = 'setting'
         # We had been asking for an index on key, like so:

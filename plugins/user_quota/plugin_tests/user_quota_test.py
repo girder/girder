@@ -303,11 +303,11 @@ class QuotaTestCase(base.TestCase):
                          validationError='Upload would exceed file storage quota')
         # Set a policy with a large quota to test using NumberLong in the
         # mongo settings.
-        self._setQuotaDefault(model, 5*1024**3)
+        self._setQuotaDefault(model, 5 * 1024**3)
         # A small file should now upload
         file = self._uploadFile('Six upload', folder, size=2048)
         # But a huge one will fail
-        self._uploadFile('File too large', folder, size=6*1024**3,
+        self._uploadFile('File too large', folder, size=6 * 1024**3,
                          validationError='Upload would exceed file storage quota')
 
     def testAssetstorePolicy(self):
