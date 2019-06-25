@@ -50,7 +50,7 @@ class CustomAppRoot(object):
     exposed = True
 
     def GET(self):
-        return "hello world from test_plugin"
+        return 'hello world from test_plugin'
 
 
 class Other(Resource):

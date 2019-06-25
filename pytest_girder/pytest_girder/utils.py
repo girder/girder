@@ -227,7 +227,7 @@ def request(path='/', method='GET', params=None, user=None,
             raise AssertionError('Did not receive JSON response')
 
     if not exception and response.output_status.startswith(b'500'):
-        raise AssertionError("Internal server error: %s" %
+        raise AssertionError('Internal server error: %s' %
                              getResponseBody(response))
 
     return response

@@ -135,7 +135,7 @@ class UploadTestCase(base.TestCase):
                     chunk2 = chunk1[upload['s3']['chunkLength']:]
                     chunk1 = chunk1[:upload['s3']['chunkLength']]
                 else:
-                    chunk2 = ""
+                    chunk2 = ''
                 resp = _send_s3_request(upload['s3']['request'], chunk1)
                 etags.append(resp.headers['ETag'])
                 chunk1 = chunk2

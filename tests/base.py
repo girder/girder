@@ -521,7 +521,7 @@ class TestCase(unittest.TestCase):
                 raise AssertionError('Received non-JSON response: ' + body)
 
         if not exception and response.output_status.startswith(b'500'):
-            raise AssertionError("Internal server error: %s" % self.getBody(response))
+            raise AssertionError('Internal server error: %s' % self.getBody(response))
 
         return response
 

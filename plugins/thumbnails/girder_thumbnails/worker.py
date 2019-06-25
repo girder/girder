@@ -172,12 +172,12 @@ def scaleDicomLevels(dicomData):
         minimum = imageData[0].min() + offset
         maximum = imageData[0].max() + offset
         finalImage = _scaleIntensity(imageData[0], maximum - minimum, (maximum + minimum) / 2)
-        return Image.fromarray(finalImage).convert("I")
+        return Image.fromarray(finalImage).convert('I')
     else:
         minimum = imageData.min() + offset
         maximum = imageData.max() + offset
         finalImage = _scaleIntensity(imageData, maximum - minimum, (maximum + minimum) / 2)
-        return Image.fromarray(finalImage).convert("I")
+        return Image.fromarray(finalImage).convert('I')
 
 
 def _scaleIntensity(img, window, level, maxc=255):

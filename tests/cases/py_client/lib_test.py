@@ -488,7 +488,7 @@ class PythonClientTestCase(base.TestCase):
                 self.publicFolder['_id'], fh, name='test1', size=size, parentType='folder',
                 reference='test1_reference')
 
-        contents = 'you\'ve changed!'
+        contents = "you've changed!"
         size = len(contents)
         stream = StringIO(contents)
         self.client.uploadFileContents(file['_id'], stream, size)

@@ -32,7 +32,7 @@ installReqs = [
     'click-plugins',
     'dogpile.cache',
     'filelock',
-    'funcsigs ; python_version < \'3\'',
+    "funcsigs ; python_version < '3'",
     'jsonschema',
     'Mako',
     'passlib [bcrypt,totp]',
@@ -43,7 +43,7 @@ installReqs = [
     'python-dateutil',
     'pytz',
     'requests',
-    'shutilwhich ; python_version < \'3\'',
+    "shutilwhich ; python_version < '3'",
     'six>=1.9',
 ]
 

@@ -490,7 +490,7 @@ class File(acl_mixin.AccessControlMixin, Model):
             if not validate or os.path.exists(path):
                 return path
         if validate:
-            raise FilePathException('This file isn\'t accessible from a Girder mount.')
+            raise FilePathException("This file isn't accessible from a Girder mount.")
 
     def getLocalFilePath(self, file):
         """

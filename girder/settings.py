@@ -187,10 +187,10 @@ class SettingValidator(object):
     @setting_utilities.validator(SettingKey.CORS_ALLOW_HEADERS)
     def _validateCorsAllowHeaders(doc):
         if isinstance(doc['value'], six.string_types):
-            headers = doc['value'].replace(",", " ").strip().split()
+            headers = doc['value'].replace(',', ' ').strip().split()
             # remove duplicates
             headers = list(OrderedDict.fromkeys(headers))
-            doc['value'] = ", ".join(headers)
+            doc['value'] = ', '.join(headers)
             return
         raise ValidationException(
             'Allowed headers must be a comma-separated list or an empty string.', 'value')
@@ -211,11 +211,11 @@ class SettingValidator(object):
     @setting_utilities.validator(SettingKey.CORS_ALLOW_ORIGIN)
     def _validateCorsAllowOrigin(doc):
         if isinstance(doc['value'], six.string_types):
-            origins = doc['value'].replace(",", " ").strip().split()
+            origins = doc['value'].replace(',', ' ').strip().split()
             origins = [origin.rstrip('/') for origin in origins]
             # remove duplicates
             origins = list(OrderedDict.fromkeys(origins))
-            doc['value'] = ", ".join(origins)
+            doc['value'] = ', '.join(origins)
             return
         raise ValidationException(
             'Allowed origin must be a comma-separated list of base urls or * or an empty string.',
