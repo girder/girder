@@ -47,7 +47,7 @@
     setting:
       key: "{{ item.key }}"
       value: "{{ item.value }}"
-  with_items:
+  loop:
     - key: "core.email_from_address"
       value: "girder@girder.girder"
     - key: "core.email_host"
@@ -78,7 +78,7 @@
     setting:
       key: "{{ item }}"
     state: absent
-  with_items:
+  loop:
     - "core.user_default_folders"
     - "core.email_from_address"
     - "core.email_host"
@@ -102,4 +102,4 @@
   assert:
     that:
       - ret["gc_return"]["{{ item }}"] == none
-  with_items: "{{ ret['gc_return'] }}"
+  loop: "{{ ret['gc_return'] }}"

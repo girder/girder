@@ -1,22 +1,49 @@
 ---
+lint:
+  name: yamllint
 dependency:
   name: galaxy
 driver:
-  name: vagrant
-  provider:
-    name: virtualbox
-lint:
-  name: yamllint
+  name: docker
+
 platforms:
-  - name: instance
-    box: bento/ubuntu-18.04
+  - name: ubuntu18
+    image: solita/ubuntu-systemd:18.04
+    privileged: false
+    override_command: false
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    tmpfs:
+      - /run
+      - /run/lock
+    security_opts:
+      - seccomp=unconfined
+    networks:
+      - name: molecule
+    groups:
+      - targets
+  - name: mongodb
+    image: mongo:4.0
+    pre_build_image: true
+    override_command: false
+    networks:
+      - name: molecule
+    groups:
+      - services
 provisioner:
   name: ansible
   lint:
     name: ansible-lint
-    options:
-      x:
-        - "ANSIBLE0011"  # All tasks should be named
+  inventory:
+    group_vars:
+      all:
+        # Defining this here, instead of in playbooks, also ensures it's picked
+        # up by Testinfra
+        ansible_python_interpreter: "/usr/bin/python3"
+  playbooks:
+    prepare: prepare.yml
+    converge: playbook.yml
+
 scenario:
   name: ansible-module
   # Redefine the test_sequence to exclude idempotence and verify.
@@ -30,5 +57,8 @@ scenario:
     - create
     - prepare
     - converge
+    # - idempotence
     - side_effect
+    # - verify
+    - cleanup
     - destroy
