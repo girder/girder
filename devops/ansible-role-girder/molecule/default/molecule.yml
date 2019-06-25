@@ -3,6 +3,7 @@ lint:
   name: yamllint
 dependency:
   name: galaxy
+  enabled: false
 driver:
   name: docker
 platforms:
@@ -17,6 +18,18 @@ platforms:
       - /run/lock
     security_opts:
       - seccomp=unconfined
+    networks:
+      - name: molecule
+    groups:
+      - targets
+  - name: mongodb
+    image: mongo:4.0
+    pre_build_image: true
+    override_command: false
+    networks:
+      - name: molecule
+    groups:
+      - services
 provisioner:
   name: ansible
   lint:
@@ -35,6 +48,7 @@ scenario:
 verifier:
   name: testinfra
   options:
+    hosts: targets
     W: ignore::DeprecationWarning
   lint:
     name: flake8
