@@ -9,6 +9,7 @@ module.exports = {
     'disallowMultipleLineBreaks': true,
     'disallowSpacesInsideAttributeBrackets': true,
     'disallowStringConcatenation': 'aggressive',
+    'disallowTrailingSpaces': true,
     'requireClassLiteralsBeforeAttributes': true,
     'requireIdLiteralsBeforeAttributes': true,
     'requireLineFeedAtFileEnd': true,
