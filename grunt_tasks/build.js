@@ -21,7 +21,6 @@ const _ = require('underscore');
 const extendify = require('extendify');
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
-const GoogleFontsPlugin = require('google-fonts-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 const isTrue = (str) => !!str && !['false', 'off', '0'].includes(str.toString().toLowerCase());
@@ -154,13 +153,6 @@ module.exports = function (grunt) {
                     new ExtractTextPlugin({
                         filename: '[name].min.css',
                         allChunks: true
-                    }),
-                    new GoogleFontsPlugin({
-                        filename: 'googlefonts.css',
-                        fonts: [{
-                            family: 'Open Sans',
-                            variants: ['regular', '700', 'italic', '700italic']
-                        }]
                     })
                 ]
             },

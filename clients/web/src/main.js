@@ -2,6 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 import moment from 'moment';
+import 'typeface-open-sans';
 import * as girder from 'girder';
 
 window.girder = girder;
