@@ -1226,12 +1226,6 @@ plugins
                 CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
-            rest
-                Sentry
-                    getDsn
-            settings
-                PluginSettings
-                    DSN
     terms
         girder_terms
             TermsPlugin
