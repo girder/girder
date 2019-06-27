@@ -3,7 +3,6 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${brandName | h} - REST API Documentation</title>
-    <link rel="stylesheet" href="${staticRoot}/built/googlefonts.css">
     <link rel="stylesheet" href="${staticRoot}/built/fontello/css/fontello.css">
     <link rel="stylesheet" href="${staticRoot}/built/swagger/css/reset.css">
     <link rel="stylesheet" href="${staticRoot}/built/swagger/css/screen.css">
