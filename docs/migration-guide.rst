@@ -174,7 +174,7 @@ used to install plugins and run the client build.  Plugins should now be
 installed (and uninstalled) using ``pip`` directly.  For the client build,
 there is a new command, ``girder build``.  Without any arguments this command
 will execute a production build of all installed plugins.  Executing ``girder
-build --mode=development`` will build a *development* install of Girder's static assets as
+build --dev`` will build a *development* install of Girder's static assets as
 well as building targets only necessary when running testing.
 
 The new build process works by generating a ``package.json`` file in ``girder/web_client``

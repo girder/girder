@@ -20,7 +20,7 @@ provide helpful development tools and to allow the test suite to run: ::
 
 Install front-end web client development dependencies and build the web client code: ::
 
-    girder build --mode=development
+    girder build --dev
 
 For more options for building the web client, run: ::
 

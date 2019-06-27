@@ -22,6 +22,7 @@ _GIRDER_BUILD_ASSETS_PATH = os.path.realpath(resource_filename('girder', 'web_cl
 
 
 @click.command(name='build', help='Build web client static assets.')
+@click.option('--dev', default=False, is_flag=True, help='Sets the server mode to development')
 @click.option('--mode', type=click.Choice([PRODUCTION_MODE, DEVELOPMENT_MODE]),
               default=PRODUCTION_MODE, show_default=True, help='Specify the server mode')
 @click.option('--watch', default=False, is_flag=True,
@@ -34,12 +35,15 @@ _GIRDER_BUILD_ASSETS_PATH = os.path.realpath(resource_filename('girder', 'web_cl
               help='Full path to the npm executable to use.')
 @click.option('--reinstall/--no-reinstall', default=True,
               help='Force regenerate node_modules.')
-def main(mode, watch, watch_plugin, npm, reinstall):
+def main(dev, mode, watch, watch_plugin, npm, reinstall):
     if shutil.which(npm) is None:
         raise click.UsageError(
             'No npm executable was detected.  Please ensure the npm executable is in your '
             'path, use the --npm flag, or set the "NPM_EXE" environment variable.'
         )
+
+    if (dev):
+        mode = DEVELOPMENT_MODE
 
     if watch and watch_plugin:
         raise click.UsageError('--watch and --watch-plugins cannot be used together')
