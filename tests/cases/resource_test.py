@@ -701,22 +701,22 @@ class ResourceTestCase(base.TestCase):
         # calculation.  We turn it off so that we can perform tests in a timely
         # fashion.
         zip.useCRC = False
-        for data in zip.addFile(
+        for _ in zip.addFile(
                 genEmptyFile(6 * 1024 * 1024 * 1024), 'bigfile'):
             pass
         # Add a second small file at the end to test some of the other Zip64
         # code
-        for data in zip.addFile(genEmptyFile(100), 'smallfile'):
+        for _ in zip.addFile(genEmptyFile(100), 'smallfile'):
             pass
         # Test that we don't crash on Unicode file names
-        for data in zip.addFile(
+        for _ in zip.addFile(
                 genEmptyFile(100), u'\u0421\u0443\u043f\u0435\u0440-\u0440'
                 '\u0443\u0441\u0441\u043a\u0438, \u0627\u0633\u0645 \u0627'
                 '\u0644\u0645\u0644\u0641 \u0628\u0627\u0644\u0644\u063a'
                 '\u0629 \u0627\u0644\u0639\u0631\u0628\u064a\u0629'):
             pass
         # Test filename with a null
-        for data in zip.addFile(genEmptyFile(100), 'with\x00null'):
+        for _ in zip.addFile(genEmptyFile(100), 'with\x00null'):
             pass
         footer = zip.footer()
         self.assertEqual(footer[-6:], b'\xFF\xFF\xFF\xFF\x00\x00')

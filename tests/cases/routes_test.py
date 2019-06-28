@@ -68,7 +68,7 @@ class RoutesTestCase(base.TestCase):
         try:
             dummy.handleRoute('GET', (), {})
         except RestException as e:
-            exc = e.message
+            exc = str(e)
         self.assertEqual(exc, 'No matching route for "GET "')
 
         # Make sure route ordering is correct; literals before wildcard tokens

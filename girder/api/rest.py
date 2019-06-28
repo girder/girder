@@ -530,7 +530,7 @@ def _createResponse(val):
 def _handleRestException(e):
     # Handle all user-error exceptions from the REST layer
     cherrypy.response.status = e.code
-    val = {'message': e.message, 'type': 'rest'}
+    val = {'message': str(e), 'type': 'rest'}
     if e.extra is not None:
         val['extra'] = e.extra
     return val
@@ -543,7 +543,7 @@ def _handleAccessException(e):
         cherrypy.response.status = 401
     else:
         cherrypy.response.status = 403
-    val = {'message': e.message, 'type': 'access'}
+    val = {'message': str(e), 'type': 'access'}
     if e.extra is not None:
         val['extra'] = e.extra
     return val
@@ -553,7 +553,7 @@ def _handleGirderException(e):
     # Handle general Girder exceptions
     logger.exception('500 Error')
     cherrypy.response.status = 500
-    val = {'message': e.message, 'type': 'girder'}
+    val = {'message': str(e), 'type': 'girder'}
     if e.identifier is not None:
         val['identifier'] = e.identifier
     return val
@@ -561,7 +561,7 @@ def _handleGirderException(e):
 
 def _handleValidationException(e):
     cherrypy.response.status = 400
-    val = {'message': e.message, 'type': 'validation'}
+    val = {'message': str(e), 'type': 'validation'}
     if e.field is not None:
         val['field'] = e.field
     return val
@@ -923,7 +923,7 @@ class Resource(object):
             handler, 'requiredScopes', None) or TokenScope.USER_AUTH
 
         if getattr(handler, 'cookieAuth', False):
-            setattr(cherrypy.request, 'girderAllowCookie', True)
+            cherrypy.request.girderAllowCookie = True
 
         kwargs['params'] = params
         # Add before call for the API method. Listeners can return

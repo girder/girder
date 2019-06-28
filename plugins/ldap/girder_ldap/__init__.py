@@ -70,7 +70,7 @@ def _getLdapUser(attrs, server):
         'email': {'$in': emails}
     }, limit=1)
     if existing.count():
-        return existing.next()
+        return next(existing)
 
     return _registerLdapUser(attrs, emails[0], server)
 

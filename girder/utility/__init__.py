@@ -152,14 +152,14 @@ class RequestBodyStream(object):
     def __len__(self):
         return self.getSize()
 
-    def next(self):
+    def __next__(self):
         data = self.read(self._ITER_CHUNK_LEN)
         if not data:
             raise StopIteration
         return data
 
-    def __next__(self):
-        return self.next()
+    def next(self):
+        return self.__next__()
 
     def getSize(self):
         """

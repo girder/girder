@@ -54,7 +54,7 @@ class ProgressContext(object):
             state = ProgressState.ERROR
             message = 'Error'
             if isinstance(excValue, (ValidationException, RestException)):
-                message = 'Error: ' + excValue.message
+                message = 'Error: ' + str(excValue)
 
         Notification().updateProgress(
             self.progress, state=state, message=message,

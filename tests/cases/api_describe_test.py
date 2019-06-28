@@ -33,7 +33,7 @@ class DummyResource(Resource):
     def __init__(self):
         super(DummyResource, self).__init__()
         self.resourceName = 'foo'
-        for method, pathElements, testPath in Routes:
+        for method, pathElements, _testPath in Routes:
             self.route(method, pathElements, self.handler)
 
     @access.public
