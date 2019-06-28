@@ -1,5 +1,5 @@
 {
-  "name": "pug-lint-config-girder",
+  "name": "@girder/pug-lint-config",
   "version": "3.0.0-rc1",
   "description": "Pug-lint configuration for Girder.",
   "license": "Apache-2.0",
@@ -11,7 +11,7 @@
     "url": "https://github.com/girder/girder/issues"
   },
   "peerDependencies": {
-    "pug-lint": "^2"
+    "pug-lint": "^2.6"
   },
   "keywords": [
     "puglint",
