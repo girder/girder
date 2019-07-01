@@ -11,6 +11,7 @@ class CherrypyRequestBackend(MemoryBackend):
     to work in a thread-safe manner using cherrypy.request, a thread local
     storage that only lasts for the duration of a request.
     """
+
     def __init__(self, arguments):
         pass
 

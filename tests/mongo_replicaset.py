@@ -79,8 +79,8 @@ def getOrderedRSStatus(config, client, minMembers, baseIdx):
         for idx in range(minMembers):
             member = None
             for entry in stat['members']:
-                if (entry['name'].split(':')[-1] ==
-                        str(config[baseIdx + idx]['port'])):
+                if (entry['name'].split(':')[-1]
+                        == str(config[baseIdx + idx]['port'])):
                     member = entry
             if not member:
                 return None
@@ -155,8 +155,8 @@ def pauseMongoReplicaSet(config, pauseList, verbose=0):
     changed = False
     for idx in range(min(len(pauseList), len(config))):
         server = config[idx]
-        if ('proc' in server and
-                bool(pauseList[idx]) != server.get('paused', False)):
+        if ('proc' in server
+                and bool(pauseList[idx]) != server.get('paused', False)):
             if pauseList[idx]:
                 os.kill(server['proc'].pid, signal.SIGSTOP)
             else:
@@ -387,8 +387,8 @@ def waitForRSStatus(config, client, status=[1], timeout=60, verbose=0,
                 elif member['state'] != status[idx]:
                     okay = False
                 config[baseIdx + idx]['lastState'] = member['state']
-            if ((numberOfPrimary != 1 and numberOfSecondary > 0) or
-                    numberOfPrimary > 1):
+            if ((numberOfPrimary != 1 and numberOfSecondary > 0)
+                    or numberOfPrimary > 1):
                 okay = False
             if verbose >= 2:
                 print([memb['state'] for memb in stat['members']],

@@ -16,6 +16,7 @@ class SettingKey(object):
     Core settings should be enumerated here by a set of constants corresponding
     to sensible strings.
     """
+
     ADD_TO_GROUP_POLICY = 'core.add_to_group_policy'
     API_KEYS = 'core.api_keys'
     BANNER_COLOR = 'core.banner_color'
@@ -51,6 +52,7 @@ class SettingDefault(object):
     Core settings that have a default should be enumerated here with the
     SettingKey.
     """
+
     defaults = {
         SettingKey.ADD_TO_GROUP_POLICY: 'never',
         SettingKey.API_KEYS: True,

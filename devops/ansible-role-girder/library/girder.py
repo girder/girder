@@ -25,7 +25,7 @@ except ImportError:
 
 __version__ = "0.3.0"
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: girder
 author: "Kitware, Inc. <kitware@kitware.com>
@@ -440,9 +440,9 @@ options:
                 required: true if state = present, else false
                 description:
                     - The value to set
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 
 
 #############
@@ -815,7 +815,7 @@ EXAMPLES = '''
         name: "An Item"
 
 
-'''
+"""
 
 
 def unjsonify(a):
@@ -830,7 +830,6 @@ def unjsonify(a):
     provided an object with one, will run until out of memory, at the stack
     limit, or until at some other run-time limit.
     """
-
     # if string, try to loads() it
     if isinstance(a, six.string_types):
         try:
@@ -1278,8 +1277,8 @@ class GirderClientModule(GirderClient):
 
                 # Make sure 'changed' is handled correctly if we've
                 # manipulated the group's users in any way
-                if (len(ret['added']) != 0 or len(ret['removed']) != 0 or
-                        len(ret['updated']) != 0):
+                if (len(ret['added']) != 0 or len(ret['removed']) != 0
+                        or len(ret['updated']) != 0):
                     self.changed = True
 
         elif self.module.params['state'] == 'absent':
@@ -1299,11 +1298,10 @@ class GirderClientModule(GirderClient):
         :rtype: dict
 
         """
-
         reverse_type = {v: k for k, v in self.access_types.items()}
 
-        for login in (set(member_levels.keys()) &
-                      set(user_levels.keys())):
+        for login in (set(member_levels.keys())
+                      & set(user_levels.keys())):
             user = self._get_user_by_login(login)
             _id = user["_id"]
 
@@ -1444,7 +1442,6 @@ class GirderClientModule(GirderClient):
         :rtype: None
 
         """
-
         current_folders = {f['name']: f for f in
                            self.get("folder", {"parentType": parentType,
                                                "parentId": parentId})}
@@ -1459,8 +1456,8 @@ class GirderClientModule(GirderClient):
                         **kwargs)
 
         # Make sure we remove folders not listed
-        for name in (set(current_folders.keys()) -
-                     set([f['name'] for f in folders])):
+        for name in (set(current_folders.keys())
+                     - set([f['name'] for f in folders])):
 
             original_state = self.module.params['state']
             self.module.params['state'] = "absent"
@@ -1488,7 +1485,7 @@ class GirderClientModule(GirderClient):
                 if r.resources_by_name[name]['public'] != public:
                     _id = r.resources_by_name[name]['_id']
                     self.changed = True
-                    self._access(r,  r.get_access(_id), _id, public=public)
+                    self._access(r, r.get_access(_id), _id, public=public)
                     # invalidate the resource cache - this forces us to pick up
                     # the change in 'public' attribute despite it not being
                     # an attribute we can modify
@@ -1783,13 +1780,12 @@ class GirderClientModule(GirderClient):
 
 
 def main():
-    """Entry point for ansible girder client module
+    """
+    Entry point for ansible girder client module
 
     :returns: Nothing
     :rtype: NoneType
-
     """
-
     # Default spec for initalizing and authenticating
     argument_spec = {
         # __init__
@@ -1804,7 +1800,7 @@ def main():
         # authenticate
         'username': dict(),
         'password': dict(),
-        'token':    dict(),
+        'token': dict(),
         'apiKey': dict(),
 
         # General

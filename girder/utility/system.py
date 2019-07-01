@@ -20,11 +20,13 @@ def _objectToDict(obj):
     :param obj: a python object or class.
     :returns: a dictionary of values for the object.
     """
-    return {key: getattr(obj, key) for key in dir(obj) if
-            not key.startswith('_') and
-            isinstance(getattr(obj, key),
-                       tuple([float, tuple] + list(six.string_types) +
-                             list(six.integer_types)))}
+    return {
+        key: getattr(obj, key)
+        for key in dir(obj)
+        if not key.startswith('_') and isinstance(
+            getattr(obj, key),
+            tuple([float, tuple] + list(six.string_types) + list(six.integer_types)))
+    }
 
 
 def _computeSlowStatus(process, status, db):

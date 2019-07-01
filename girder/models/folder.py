@@ -291,8 +291,8 @@ class Folder(AccessControlledModel):
                            or folder).
         :type parentType: str
         """
-        if (parentType == 'folder' and (self._isAncestor(folder, parent) or
-                                        folder['_id'] == parent['_id'])):
+        if (parentType == 'folder' and (
+                self._isAncestor(folder, parent) or folder['_id'] == parent['_id'])):
             raise ValidationException(
                 'You may not move a folder underneath itself.')
 

@@ -55,7 +55,7 @@ class PythonClientTestCase(base.TestCase):
         os.mkdir(self.libTestDir)
         writeFile(self.libTestDir)
         for subDir in range(0, 3):
-            subDirName = os.path.join(self.libTestDir, 'sub'+str(subDir))
+            subDirName = os.path.join(self.libTestDir, 'sub' + str(subDir))
             os.mkdir(subDirName)
             writeFile(subDirName)
 

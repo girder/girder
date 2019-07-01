@@ -116,6 +116,7 @@ class JsonEncoder(json.JSONEncoder):
     sensibly serialized. This is used in Girder's REST layer to serialize
     route return values when JSON is requested.
     """
+
     def default(self, obj):
         event = girder.events.trigger('rest.json_encode', obj)
         if len(event.responses):
@@ -132,6 +133,7 @@ class RequestBodyStream(object):
     """
     Wraps a cherrypy request body into a more abstract file-like object.
     """
+
     _ITER_CHUNK_LEN = 65536
 
     def __init__(self, stream, size=None):

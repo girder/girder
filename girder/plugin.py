@@ -40,10 +40,11 @@ class _PluginMeta(type):
     This is a metaclass applied to the ``GirderPlugin`` descriptor class.  It
     exists to automatically wrap subclass load methods.
     """
-    def __new__(meta, classname, bases, classdict):
+
+    def __new__(cls, classname, bases, classdict):
         if 'load' in classdict:
             classdict['load'] = _PluginMeta._wrapPluginLoad(classdict['load'])
-        return type.__new__(meta, classname, bases, classdict)
+        return type.__new__(cls, classname, bases, classdict)
 
     @staticmethod
     def _wrapPluginLoad(func):
@@ -82,6 +83,7 @@ class GirderPlugin(object):
 
                 import rest  # register new rest endpoints, etc.
     """
+
     #: This is the named displayed to users on the plugin page.  Unlike the entrypoint name
     #: used internally, this name can be an arbitrary string.
     DISPLAY_NAME = None

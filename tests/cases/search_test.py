@@ -144,8 +144,8 @@ class SearchTestCase(base.TestCase):
             '_id': str(coll1['_id']),
             'name': coll1['name']
         }, resp.json['collection'][1])
-        self.assertTrue(resp.json['collection'][0]['_textScore'] >
-                        resp.json['collection'][1]['_textScore'])
+        self.assertTrue(resp.json['collection'][0]['_textScore']
+                        > resp.json['collection'][1]['_textScore'])
 
         # Exercise user search by login
         resp = self.request(path='/resource/search', params={

@@ -32,6 +32,7 @@ class FilterLoggingTestCase(base.TestCase):
     """
     Contains tests for filtering cherrypy logging.
     """
+
     def setUp(self):
         base.TestCase.setUp(self)
 

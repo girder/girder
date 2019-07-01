@@ -18,6 +18,7 @@ class Upload(Model):
     but are not yet complete, so that they can be uploaded in chunks of
     arbitrary size. The chunks must be uploaded in order.
     """
+
     def initialize(self):
         self.name = 'upload'
         self.ensureIndex('sha512')
@@ -458,8 +459,8 @@ class Upload(Model):
                             query[key] = id
             if 'minimumAge' in filters:
                 query['updated'] = {
-                    '$lte': datetime.datetime.utcnow() -
-                    datetime.timedelta(days=float(filters['minimumAge']))
+                    '$lte': datetime.datetime.utcnow() - datetime.timedelta(
+                        days=float(filters['minimumAge']))
                     }
         # Perform the find; we'll do access-based filtering of the result
         # set afterward.

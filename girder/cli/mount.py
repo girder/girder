@@ -31,6 +31,7 @@ class ServerFuse(fuse.Operations):
     extended to expose metadata and other resources by extending the available
     paths.  Files can also be reached via a path shortcut of /file/<id>.
     """
+
     use_ns = True
 
     def __init__(self, stat=None):
@@ -293,8 +294,8 @@ class ServerFuse(fuse.Operations):
         resource = self._getPath(path)
         if resource['model'] != 'file':
             return super(ServerFuse, self).open(path, flags)
-        if flags & (os.O_APPEND | os.O_ASYNC | os.O_CREAT | os.O_DIRECTORY |
-                    os.O_EXCL | os.O_RDWR | os.O_TRUNC | os.O_WRONLY):
+        if flags & (os.O_APPEND | os.O_ASYNC | os.O_CREAT | os.O_DIRECTORY
+                    | os.O_EXCL | os.O_RDWR | os.O_TRUNC | os.O_WRONLY):
             raise fuse.FuseOSError(errno.EROFS)
         info = {
             'path': path,

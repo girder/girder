@@ -12,6 +12,7 @@ class _EventHelper(object):
             Upload().uploadFile(...)
             handled = helper.wait()
     """
+
     def __init__(self, eventName, timeout=10):
         self.eventName = eventName
         self.timeout = timeout

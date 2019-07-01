@@ -40,7 +40,6 @@ def getAssetstoreAdapter(assetstore, instance=True):
 
 
 def setAssetstoreAdapter(storeType, cls):
-
     """
     This updates the internal assetstore adapter table with either a new entry,
     or a modification to an existing entry. Subsequent calls to
@@ -66,7 +65,7 @@ def fileIndexFields():
     different assetstore types.
     """
     return list(set(
-        FilesystemAssetstoreAdapter.fileIndexFields() +
-        GridFsAssetstoreAdapter.fileIndexFields() +
-        S3AssetstoreAdapter.fileIndexFields()
+        FilesystemAssetstoreAdapter.fileIndexFields()
+        + GridFsAssetstoreAdapter.fileIndexFields()
+        + S3AssetstoreAdapter.fileIndexFields()
     ))

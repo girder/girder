@@ -55,6 +55,7 @@ class RoutesTestCase(base.TestCase):
     """
     Unit tests of the routing system of REST Resources.
     """
+
     def testRouteSystem(self):
         # Test an empty route handler
         emptyResource = Resource()

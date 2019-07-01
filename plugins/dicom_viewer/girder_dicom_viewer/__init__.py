@@ -121,8 +121,8 @@ def _removeUniqueMetadata(dicomMeta, additionalMeta):
                 tuple(v) if isinstance(v, list) else v
             )
             for k, v in six.viewitems(dicomMeta)
-        ) &
-        set(
+        )
+        & set(
             (
                 k,
                 tuple(v) if isinstance(v, list) else v

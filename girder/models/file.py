@@ -18,13 +18,14 @@ class File(acl_mixin.AccessControlMixin, Model):
     """
     This model represents a File, which is stored in an assetstore.
     """
+
     def initialize(self):
         from girder.utility import assetstore_utilities
 
         self.name = 'file'
         self.ensureIndices(
-            ['itemId', 'assetstoreId', 'exts'] +
-            assetstore_utilities.fileIndexFields())
+            ['itemId', 'assetstoreId', 'exts']
+            + assetstore_utilities.fileIndexFields())
         self.ensureTextIndex({'name': 1})
         self.resourceColl = 'item'
         self.resourceParent = 'itemId'

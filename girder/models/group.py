@@ -292,7 +292,7 @@ class Group(AccessControlledModel):
         """
         from .user import User
         group = event.info
-        creator = User().load(group['creatorId'], force=True,  exc=True)
+        creator = User().load(group['creatorId'], force=True, exc=True)
 
         self.addUser(group, creator, level=AccessType.ADMIN)
 

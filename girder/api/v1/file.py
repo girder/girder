@@ -22,6 +22,7 @@ class File(Resource):
     API Endpoint for files. Includes utilities for uploading and downloading
     them.
     """
+
     def __init__(self):
         super(File, self).__init__()
         self._model = FileModel()
@@ -107,8 +108,8 @@ class File(Resource):
             chunk = None
             if size > 0 and cherrypy.request.headers.get('Content-Length'):
                 ct = cherrypy.request.body.content_type.value
-                if (ct not in cherrypy.request.body.processors and
-                        ct.split('/', 1)[0] not in cherrypy.request.body.processors):
+                if (ct not in cherrypy.request.body.processors
+                        and ct.split('/', 1)[0] not in cherrypy.request.body.processors):
                     chunk = RequestBodyStream(cherrypy.request.body)
             if chunk is not None and chunk.getSize() <= 0:
                 chunk = None
