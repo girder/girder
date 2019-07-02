@@ -206,7 +206,7 @@ class DicomViewerTest(base.TestCase):
         resp = self.request(path='/resource/search', params={
             'q': 'brain research',
             'mode': 'dicom',
-            'types': json.dumps(["item"])
+            'types': json.dumps(['item'])
         })
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json['item']), 1)
@@ -216,7 +216,7 @@ class DicomViewerTest(base.TestCase):
         resp = self.request(path='/resource/search', params={
             'q': 'in resea',
             'mode': 'dicom',
-            'types': json.dumps(["item"])
+            'types': json.dumps(['item'])
         })
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json['item']), 1)

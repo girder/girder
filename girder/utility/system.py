@@ -197,4 +197,4 @@ class StatusMonitor(cherrypy.Tool):
 
 
 cherrypy.tools.status = StatusMonitor()
-cherrypy.config.update({"tools.status.on": True})
+cherrypy.config.update({'tools.status.on': True})

@@ -131,7 +131,7 @@ class Job(Resource):
                'granted the "jobs.job_<id>" scope, where <id> is the ID of '
                'the job being updated.')
         .modelParam('id', 'The ID of the job.', model=JobModel, force=True)
-        .param('log', 'A message to add to the job\'s log field. If you want '
+        .param('log', "A message to add to the job's log field. If you want "
                'to overwrite any existing log content, pass another parameter '
                '"overwrite=true".', required=False)
         .param('overwrite', 'If passing a log parameter, you may set this to '

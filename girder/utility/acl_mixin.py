@@ -105,7 +105,7 @@ class AccessControlMixin(object):
                 userid = str(user.get('_id', ''))
             else:
                 userid = None
-            raise AccessException("%s access denied for %s %s (user %s)." %
+            raise AccessException('%s access denied for %s %s (user %s).' %
                                   (perm, self.name, doc.get('_id', 'unknown'),
                                    userid))
 

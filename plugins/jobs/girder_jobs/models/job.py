@@ -403,7 +403,7 @@ class Job(AccessControlledModel):
             # was not valid. So raise an exception
             if updateResult.matched_count != 1:
                 job = self.load(job['_id'], force=True)
-                msg = 'Invalid state transition to \'%s\', Current state is \'%s\'.' % (
+                msg = "Invalid state transition to '%s', Current state is '%s'." % (
                     status, job['status'])
                 raise ValidationException(msg, field='status')
 
@@ -450,7 +450,7 @@ class Job(AccessControlledModel):
             if previous_states is None:
                 # Get the current state
                 job = self.load(job['_id'], force=True)
-                msg = 'No valid state transition to \'%s\'. Current state is \'%s\'.' % (
+                msg = "No valid state transition to '%s'. Current state is '%s'." % (
                     status, job['status'])
                 raise ValidationException(msg, field='status')
 

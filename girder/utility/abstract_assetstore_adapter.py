@@ -303,7 +303,7 @@ class AbstractAssetstoreAdapter(object):
         """
         if isinstance(chunk, (six.BytesIO, RequestBodyStream)):
             return
-        elif hasattr(chunk, "fileno"):
+        elif hasattr(chunk, 'fileno'):
             return os.fstat(chunk.fileno()).st_size
         elif isinstance(chunk, six.text_type):
             return len(chunk.encode('utf8'))

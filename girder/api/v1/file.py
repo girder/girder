@@ -45,7 +45,7 @@ class File(Resource):
     @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model=FileModel)
     @autoDescribeRoute(
-        Description('Get a file\'s information.')
+        Description("Get a file's information.")
         .modelParam('id', model=FileModel, level=AccessType.READ)
         .errorResponse()
         .errorResponse('Read access was denied on the file.', 403)
@@ -282,7 +282,7 @@ class File(Resource):
                paramType='path')
         .param('offset', 'Start downloading at this offset in bytes within '
                'the file.', dataType='integer', required=False)
-        .notes('The name parameter doesn\'t alter the download.  Some '
+        .notes("The name parameter doesn't alter the download.  Some "
                'download clients save files based on the last part of a path, '
                'and specifying the name satisfies those clients.')
         .errorResponse('ID was invalid.')

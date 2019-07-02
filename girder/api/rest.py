@@ -256,7 +256,7 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
         quotedFilename = six.moves.urllib.parse.quote(utf8Filename)
         if not isinstance(quotedFilename, six.binary_type):
             quotedFilename = quotedFilename.encode('iso8859-1', 'ignore')
-        value += b'; filename*=UTF-8\'\'' + quotedFilename
+        value += b"; filename*=UTF-8''" + quotedFilename
     value = value.decode('utf8')
     if setHeader:
         setResponseHeader('Content-Disposition', value)

@@ -17,7 +17,7 @@ EXCLUDE_DIRS = [
 
 IGNORE_FILES = ['setup.py']
 
-excluder = re.compile("|".join(EXCLUDE_DIRS))
+excluder = re.compile('|'.join(EXCLUDE_DIRS))
 
 baseTree = Tree()
 

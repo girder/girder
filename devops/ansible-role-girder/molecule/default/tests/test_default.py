@@ -38,12 +38,12 @@ def test_girder_service(host):
 
 
 def test_girder_socket_private(host):
-    girder_socket = host.socket("tcp://127.0.0.1:8080")
+    girder_socket = host.socket('tcp://127.0.0.1:8080')
     assert girder_socket.is_listening
 
 
 def test_girder_socket_public(host):
-    girder_socket = host.socket("tcp://0.0.0.0:8080")
+    girder_socket = host.socket('tcp://0.0.0.0:8080')
     assert not girder_socket.is_listening
 
 

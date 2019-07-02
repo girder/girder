@@ -59,7 +59,7 @@ def camelcase(value):
     :returns: the value converted to camel case.
     """
     return ''.join(x.capitalize() if x else '_' for x in
-                   re.split("[._]+", value))
+                   re.split('[._]+', value))
 
 
 def mkdir(path, mode=0o777, recurse=True, existOk=True):

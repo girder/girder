@@ -302,10 +302,10 @@ class Folder(Resource):
                enum=['folder', 'user', 'collection'])
         .param('parentId', 'The ID of the parent document.', required=False)
         .param('name', 'Name for the new folder.', required=False)
-        .param('description', "Description for the new folder.", required=False)
-        .param('public', "Whether the folder should be publicly visible. By "
-               "default, inherits the value from parent folder, or in the case "
-               "of user or collection parentType, defaults to False. If "
+        .param('description', 'Description for the new folder.', required=False)
+        .param('public', 'Whether the folder should be publicly visible. By '
+               'default, inherits the value from parent folder, or in the case '
+               'of user or collection parentType, defaults to False. If '
                "'original', use the value of the original folder.",
                required=False, enum=['true', 'false', 'original'])
         .param('progress', 'Whether to record progress on this task.',
@@ -381,7 +381,7 @@ class Folder(Resource):
 
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
-        Description('Get the path to the root of the folder\'s hierarchy.')
+        Description("Get the path to the root of the folder's hierarchy.")
         .modelParam('id', model=FolderModel, level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the folder.', 403)

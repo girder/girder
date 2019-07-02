@@ -30,8 +30,8 @@ from six.moves import urllib
 # this is a bug or intended behavior.
 #  https://github.com/spulec/moto/issues/1793#issuecomment-431459262
 #  https://github.com/spulec/moto/issues/1924
-os.environ['AWS_ACCESS_KEY_ID'] = "access"
-os.environ['AWS_SECRET_ACCESS_KEY'] = "secret"
+os.environ['AWS_ACCESS_KEY_ID'] = 'access'
+os.environ['AWS_SECRET_ACCESS_KEY'] = 'secret'
 os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
 

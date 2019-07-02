@@ -150,9 +150,9 @@ class GirderClient(object):
         returns `GirderClient.DEFAULT_LOCALHOST_PORT` if `hostname` is `localhost`,
         and finally returns `GirderClient.DEFAULT_HTTP_PORT`.
         """
-        if scheme == "https":
+        if scheme == 'https':
             return GirderClient.DEFAULT_HTTPS_PORT
-        if hostname == "localhost":
+        if hostname == 'localhost':
             return GirderClient.DEFAULT_LOCALHOST_PORT
         return GirderClient.DEFAULT_HTTP_PORT
 
@@ -161,10 +161,10 @@ class GirderClient(object):
         """Get default scheme based on the hostname.
         Returns `http` if `hostname` is `localhost` otherwise returns `https`.
         """
-        if hostname == "localhost":
-            return "http"
+        if hostname == 'localhost':
+            return 'http'
         else:
-            return "https"
+            return 'https'
 
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None, apiUrl=None,
                  cacheSettings=None, progressReporterCls=None):

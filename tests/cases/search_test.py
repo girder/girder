@@ -232,12 +232,12 @@ class SearchTestCase(base.TestCase):
         resp = self.request(path='/resource/search', params={
             'q': 'Test',
             'mode': 'testSearch',
-            'types': json.dumps(["collection"])
+            'types': json.dumps(['collection'])
         })
         self.assertStatusOk(resp)
         self.assertDictEqual(resp.json, {
             'query': 'Test',
-            'types': ["collection"]
+            'types': ['collection']
         })
 
         search.removeSearchMode('testSearch')
@@ -246,6 +246,6 @@ class SearchTestCase(base.TestCase):
         resp = self.request(path='/resource/search', params={
             'q': 'Test',
             'mode': 'testSearch',
-            'types': json.dumps(["collection"])
+            'types': json.dumps(['collection'])
         })
         self.assertStatus(resp, 400)
