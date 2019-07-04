@@ -34,7 +34,7 @@ def getStaticPublicPath():
     return config.getConfig()['server']['static_public_path']
 
 
-def configureServer(mode=PRODUCTION_MODE, plugins=None, curConfig=None):
+def configureServer(mode=None, plugins=None, curConfig=None):
     """
     Function to setup the cherrypy server. It configures it, but does
     not actually start it.
@@ -65,9 +65,10 @@ def configureServer(mode=PRODUCTION_MODE, plugins=None, curConfig=None):
     mimetypes.add_type('application/font-woff', '.woff')
 
     curConfig.update(appconf)
-    curConfig['server']['mode'] = mode
+    if (mode):
+        curConfig['server']['mode'] = mode
 
-    logprint.info('Running in mode: ' + mode)
+    logprint.info('Running in mode: ' + curConfig['server']['mode'])
     cherrypy.config['engine.autoreload.on'] = mode == DEVELOPMENT_MODE
 
     _setupCache()
@@ -135,7 +136,7 @@ def loadRouteTable(reconcileRoutes=False):
     return {name: route for (name, route) in six.viewitems(routeTable) if route}
 
 
-def setup(mode=PRODUCTION_MODE, plugins=None, curConfig=None):
+def setup(mode=None, plugins=None, curConfig=None):
     """
     Configure and mount the Girder server and plugins under the
     appropriate routes.
@@ -175,7 +176,7 @@ def setup(mode=PRODUCTION_MODE, plugins=None, curConfig=None):
         if name != constants.GIRDER_ROUTE_ID and name in pluginWebroots:
             cherrypy.tree.mount(pluginWebroots[name], route, appconf)
 
-    if mode != PRODUCTION_MODE:
+    if (mode and mode != PRODUCTION_MODE):
         application.merge({'server': {'mode': mode}})
 
     return application
