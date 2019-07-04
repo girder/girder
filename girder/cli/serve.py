@@ -11,7 +11,7 @@ from girder.constants import PRODUCTION_MODE, DEVELOPMENT_MODE, TESTING_MODE
 @click.command(name='serve', short_help='Run the Girder server.', help='Run the Girder server.')
 @click.option('--dev', default=False, is_flag=True, help='Sets the server mode to development')
 @click.option('--mode', type=click.Choice([PRODUCTION_MODE, DEVELOPMENT_MODE, TESTING_MODE]),
-              default=PRODUCTION_MODE, show_default=True, help='Specify the server mode')
+              default=None, show_default=True, help='Specify the server mode')
 @click.option('-d', '--database', default=cherrypy.config['database']['uri'],
               show_default=True, help='The database URI to connect to')
 @click.option('-H', '--host', default=cherrypy.config['server.socket_host'],

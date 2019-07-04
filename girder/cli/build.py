@@ -24,7 +24,7 @@ _GIRDER_BUILD_ASSETS_PATH = os.path.realpath(resource_filename('girder', 'web_cl
 @click.command(name='build', help='Build web client static assets.')
 @click.option('--dev', default=False, is_flag=True, help='Sets the server mode to development')
 @click.option('--mode', type=click.Choice([PRODUCTION_MODE, DEVELOPMENT_MODE]),
-              default=PRODUCTION_MODE, show_default=True, help='Specify the server mode')
+              default=None, show_default=True, help='Specify the server mode')
 @click.option('--watch', default=False, is_flag=True,
               help='Build girder library bundle in '
               'watch mode (implies mode=development --no-reinstall).')
