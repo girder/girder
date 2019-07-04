@@ -15,7 +15,7 @@ from six import BytesIO
 from six.moves import urllib
 from girder.utility._cache import cache, requestCache
 from girder.utility.server import setup as setupServer
-from girder.constants import AccessType, ROOT_DIR, TESTING_MODE
+from girder.constants import AccessType, ROOT_DIR, ServerMode
 from girder.models import getDbConnection
 from girder.models.model_base import _modelSingletons
 from girder.models.assetstore import Assetstore
@@ -49,7 +49,7 @@ def startServer(mock=True, mockS3=False):
     usedDBs[dbName] = True
 
     # By default, this passes "[]" to "plugins", disabling any installed plugins
-    server = setupServer(mode=TESTING_MODE, plugins=enabledPlugins)
+    server = setupServer(mode=ServerMode.TESTING, plugins=enabledPlugins)
 
     if mock:
         cherrypy.server.unsubscribe()

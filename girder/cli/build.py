@@ -10,7 +10,7 @@ import click
 import six
 
 import girder
-from girder.constants import STATIC_ROOT_DIR, DEVELOPMENT_MODE, PRODUCTION_MODE
+from girder.constants import STATIC_ROOT_DIR, ServerMode
 from girder.plugin import allPlugins, getPlugin
 from girder.utility import server
 
@@ -23,7 +23,7 @@ _GIRDER_BUILD_ASSETS_PATH = os.path.realpath(resource_filename('girder', 'web_cl
 
 @click.command(name='build', help='Build web client static assets.')
 @click.option('--dev', default=False, is_flag=True, help='Sets the server mode to development')
-@click.option('--mode', type=click.Choice([PRODUCTION_MODE, DEVELOPMENT_MODE]),
+@click.option('--mode', type=click.Choice([ServerMode.PRODUCTION, ServerMode.DEVELOPMENT]),
               default=None, show_default=True, help='Specify the server mode')
 @click.option('--watch', default=False, is_flag=True,
               help='Build girder library bundle in '
@@ -43,12 +43,12 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
         )
 
     if (dev):
-        mode = DEVELOPMENT_MODE
+        mode = ServerMode.DEVELOPMENT
 
     if watch and watch_plugin:
         raise click.UsageError('--watch and --watch-plugins cannot be used together')
     if watch or watch_plugin:
-        mode = DEVELOPMENT_MODE
+        mode = ServerMode.DEVELOPMENT
         reinstall = False
 
     staging = _GIRDER_BUILD_ASSETS_PATH
@@ -62,7 +62,7 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
         if os.path.exists(npmLockFile):
             os.unlink(npmLockFile)
         installCommand = [npm, 'install']
-        if mode == PRODUCTION_MODE:
+        if mode == ServerMode.PRODUCTION:
             installCommand.append('--production')
         check_call(installCommand, cwd=staging)
 
@@ -81,7 +81,7 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
             '--watch',
             'webpack:plugin_%s' % watch_plugin
         ])
-    if mode == DEVELOPMENT_MODE:
+    if mode == ServerMode.DEVELOPMENT:
         buildCommand.append('--env=dev')
     else:
         buildCommand.append('--env=prod')

@@ -11,7 +11,7 @@ from girder.models.setting import Setting
 from girder import plugin
 from girder.settings import SettingKey
 from girder.utility import config
-from girder.constants import PRODUCTION_MODE, DEVELOPMENT_MODE, TESTING_MODE
+from girder.constants import ServerMode
 from . import webroot
 
 with open(os.path.join(os.path.dirname(__file__), 'error.mako')) as f:
@@ -52,7 +52,7 @@ def configureServer(mode=None, plugins=None, curConfig=None):
     appconf = {
         '/': {
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
-            'request.show_tracebacks': mode == TESTING_MODE,
+            'request.show_tracebacks': mode == ServerMode.TESTING,
             'request.methods_with_bodies': ('POST', 'PUT', 'PATCH'),
             'response.headers.server': 'Girder %s' % __version__,
             'error_page.default': _errorDefault
@@ -69,7 +69,7 @@ def configureServer(mode=None, plugins=None, curConfig=None):
         curConfig['server']['mode'] = mode
 
     logprint.info('Running in mode: ' + curConfig['server']['mode'])
-    cherrypy.config['engine.autoreload.on'] = mode == DEVELOPMENT_MODE
+    cherrypy.config['engine.autoreload.on'] = mode == ServerMode.DEVELOPMENT
 
     _setupCache()
 
@@ -176,7 +176,7 @@ def setup(mode=None, plugins=None, curConfig=None):
         if name != constants.GIRDER_ROUTE_ID and name in pluginWebroots:
             cherrypy.tree.mount(pluginWebroots[name], route, appconf)
 
-    if (mode and mode != PRODUCTION_MODE):
+    if (mode and mode != ServerMode.PRODUCTION):
         application.merge({'server': {'mode': mode}})
 
     return application
