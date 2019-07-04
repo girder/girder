@@ -465,6 +465,7 @@ girder
             Executable
             MongoClient
             MongoProxy
+                next
             MongoReplicaSetClient
             get_methods
     getLogPaths

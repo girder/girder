@@ -145,6 +145,15 @@ class MongoProxy(object):
     def __iter__(self):
         return self.conn.__iter__()
 
+    # To be recognised as an iterator, 'next" (for Python 2) and "__next__" (for Python 3) must be
+    # present; some of the wrapped PyMongo objects (like Cursor) are iterators; and non-iterator
+    # objects will fail normally when their native methods are called
+    def next(self):
+        return self.conn.next()
+
+    def __next__(self):
+        return self.conn.__next__()
+
     def __str__(self):
         return self.conn.__str__()
 
