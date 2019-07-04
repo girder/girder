@@ -52,7 +52,6 @@ jobs:
             TEST_GROUP: python
             PYTHON_VERSION: 2.7
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
-            VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/virtualenv
           working_directory: girder_build
       - run:
           name: Run tox
@@ -140,7 +139,6 @@ jobs:
             TEST_GROUP: python
             PYTHON_VERSION: 3.5
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
-            VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
           working_directory: girder_build
       - run:
           name: Run tox
@@ -197,7 +195,6 @@ jobs:
             TEST_GROUP: browser
             PYTHON_VERSION: 3.5
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
-            VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
             JASMINE_TIMEOUT: 15000
           working_directory: girder_build
       - store_artifacts:
@@ -294,7 +291,7 @@ jobs:
             girder build --dev | cat
       - run:
           name: CMake
-          command: cmake ../girder -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
+          command: cmake ../girder -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
@@ -423,7 +420,7 @@ jobs:
             girder build --dev | cat
       - run:
           name: CMake
-          command: cmake ../girder -DPYTHON_VERSION=3.5 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
+          command: cmake ../girder -DPYTHON_VERSION=3.5 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python
           working_directory: girder_build
       - run:
           name: make
