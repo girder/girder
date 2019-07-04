@@ -5,13 +5,16 @@ import six
 
 from girder import _attachFileLogHandlers
 from girder.utility import server
-from girder.constants import PRODUCTION_MODE, DEVELOPMENT_MODE, TESTING_MODE
+from girder.constants import ServerMode
 
 
 @click.command(name='serve', short_help='Run the Girder server.', help='Run the Girder server.')
 @click.option('--dev', default=False, is_flag=True, help='Sets the server mode to development')
-@click.option('--mode', type=click.Choice([PRODUCTION_MODE, DEVELOPMENT_MODE, TESTING_MODE]),
-              default=None, show_default=True, help='Specify the server mode')
+@click.option('--mode', type=click.Choice([
+    ServerMode.PRODUCTION,
+    ServerMode.DEVELOPMENT,
+    ServerMode.TESTING
+    ]), default=None, show_default=True, help='Specify the server mode')
 @click.option('-d', '--database', default=cherrypy.config['database']['uri'],
               show_default=True, help='The database URI to connect to')
 @click.option('-H', '--host', default=cherrypy.config['server.socket_host'],
@@ -20,7 +23,7 @@ from girder.constants import PRODUCTION_MODE, DEVELOPMENT_MODE, TESTING_MODE
               show_default=True, help='The port to bind to')
 def main(dev, mode, database, host, port):
     if (dev):
-        mode = DEVELOPMENT_MODE
+        mode = ServerMode.DEVELOPMENT
 
     # If the user provides no options, the existing config values get re-set through click
     cherrypy.config['database']['uri'] = database
