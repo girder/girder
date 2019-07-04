@@ -27,10 +27,10 @@ _GIRDER_BUILD_ASSETS_PATH = os.path.realpath(resource_filename('girder', 'web_cl
               default=None, show_default=True, help='Specify the server mode')
 @click.option('--watch', default=False, is_flag=True,
               help='Build girder library bundle in '
-              'watch mode (implies mode=development --no-reinstall).')
+              'watch mode (implies --mode=development --no-reinstall).')
 @click.option('--watch-plugin',
               help='Build a girder plugin bundle in '
-              'watch mode (implies mode=development --no-reinstall).')
+              'watch mode (implies --mode=development --no-reinstall).')
 @click.option('--npm', default=os.getenv('NPM_EXE', 'npm'),
               help='Full path to the npm executable to use.')
 @click.option('--reinstall/--no-reinstall', default=True,
