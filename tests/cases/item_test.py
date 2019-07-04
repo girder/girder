@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
 import io
-import itertools
 import json
 import shutil
 import six
+from six.moves import zip_longest
 import zipfile
 
 from .. import base
@@ -732,7 +732,7 @@ class ItemTestCase(base.TestCase):
         self._testDownloadMultiFileItem(origItem, self.users[0],
                                         {'file_1': 'foobar', 'file_2': 'foobz',
                                          'link_file': 'http://www.google.com'})
-        for origFile, newFile in itertools.zip_longest(origFiles, newFiles):
+        for origFile, newFile in zip_longest(origFiles, newFiles):
             self.assertNotEqual(origFile['_id'], newFile['_id'])
 
     def testCookieAuth(self):
