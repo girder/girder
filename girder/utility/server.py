@@ -143,6 +143,7 @@ def setup(mode=PRODUCTION_MODE, plugins=None, curConfig=None):
     See ROUTE_TABLE setting.
 
     :param mode: The server mode to start in.
+    :type mode: string
     :param plugins: List of plugins to enable.
     :param curConfig: The config object to update.
     """
