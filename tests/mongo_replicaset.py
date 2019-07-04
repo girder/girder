@@ -348,7 +348,7 @@ def stopMongoReplicaSet(config, graceful=True, purgeFiles=True):
                     shutil.rmtree(server['dir'])
 
 
-def waitForRSStatus(config, client, status=[1], timeout=60, verbose=0,
+def waitForRSStatus(config, client, status, timeout=60, verbose=0,
                     baseIdx=0):
     """
     Wait until a mongodb client has a replica set status record that matches a
