@@ -4,12 +4,6 @@ if("${MONGOD_EXECUTABLE}" STREQUAL "MONGOD_EXECUTABLE-NOTFOUND")
   set(MONGOD_EXECUTABLE "local mongod required")
 endif()
 
-# Test if mongos is present for tests that require it.
-find_program(MONGOS_EXECUTABLE mongod)
-if("${MONGOS_EXECUTABLE}" STREQUAL "MONGOS_EXECUTABLE-NOTFOUND")
-  set(MONGOS_EXECUTABLE "local mongos required")
-endif()
-
 python_tests_init()
 javascript_tests_init()
 
@@ -42,7 +36,7 @@ if(RUN_CORE_TESTS)
   add_python_test(system)
   set_property(TEST server_system PROPERTY LABELS girder_integration)
   # Upload test uses mongo replicaset and a lot of resources, so we run it by itself
-  add_python_test(upload RUN_SERIAL RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}" "${MONGOS_EXECUTABLE}")
+  add_python_test(upload RUN_SERIAL RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}")
   set_property(TEST server_upload PROPERTY LABELS girder_integration)
   add_python_test(user)
   add_python_test(setup_database)
@@ -55,10 +49,6 @@ if(RUN_CORE_TESTS)
   add_web_client_test(data_gridfsrs "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE gridfsrs RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}")
   if (BUILD_JAVASCRIPT_TESTS)
     set_property(TEST web_client_data_gridfsrs PROPERTY LABELS girder_integration)
-  endif()
-  add_web_client_test(data_gridfsshard "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE gridfsshard RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}" "${MONGOS_EXECUTABLE}")
-  if (BUILD_JAVASCRIPT_TESTS)
-    set_property(TEST web_client_data_gridfsshard PROPERTY LABELS girder_integration)
   endif()
   add_web_client_test(data_s3 "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE s3 WEBSECURITY false)
   add_web_client_test(admin "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/adminSpec.js" ASSETSTORE s3 WEBSECURITY false

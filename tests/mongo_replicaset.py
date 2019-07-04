@@ -7,33 +7,25 @@ import pprint
 import pymongo
 import shutil
 import signal
-import six
 import subprocess
 import time
 
 from six.moves import range
 
 
-def getMongoClient(config, uri=None, init=False, timeout=30):
+def getMongoClient(config, uri=0, init=False, timeout=30):
     """
     Get a mongodb client from a uri or an index into the Config list.  This can
     initiate a replica set if needed.
 
     :param config: list of servers.
     :param uri: the mongo uri.  If this is an integer, the uri is constructed
-                from the config list.  If None, use the route entry in config
-                if it exists, or the 0th entry if it does not.
+                from the config list, using the 0th entry by default.
     :param init: if set and a client connection is requested, initiate the
                  replica set with this configuration.
     :param timeout: timeout in seconds.
     :returns: the client connection.
     """
-    if uri is None:
-        for server in config:
-            if server.get('route'):
-                uri = 'mongodb://127.0.0.1:%d/admin' % server['port']
-        if uri is None:
-            uri = 0
     if isinstance(uri, int):
         uri = 'mongodb://localhost:%d/admin' % config[uri]['port']
     starttime = time.time()
@@ -91,54 +83,23 @@ def getOrderedRSStatus(config, client, minMembers, baseIdx):
         return None
 
 
-def makeConfig(port=27070, replicaset='replicaset', servers=3, shard=False,
-               sharddb='gridfs', shardcollection='chunk', shardkey='uuid',
-               dirroot='/tmp/girderdb', **kwargs):
+def makeConfig(port=27070, replicaset='replicaset', servers=3, dirroot='/tmp/girderdb'):
     """
     Make a config array.
 
     :param port: the starting port number.
     :param replicaset: name for the replicaset.
-    :param servers: number of servers to start.  For shards, this is the number
-        of shards; there will also be a config server and a routing server.
-    :param shard: True to make a shard configuration, false for a replica set.
-    :param sharddb: if sharding is used, the name of a database to shard.
-    :param shardcollection: if sharding is used, the name of a collection to
-        shard.
-    :param shardkey: if sharding is used, the key to shard on in a collection.
+    :param servers: number of servers to start.
     :param dirroot: base temp directory name.
     :returns: a new configuration array.
     """
     config = []
-    if shard:
+    for i in range(servers):
         config.append({
-            'dir': '%scfg' % dirroot,
-            'config': True,
-            'port': port + 1,
+            'dir': '%s%d' % (dirroot, i + 1),
+            'port': port + i,
             'replicaset': replicaset
         })
-        for i in range(servers):
-            config.append({
-                'dir': '%s%d' % (dirroot, i + 1),
-                'port': port + 2 + i,
-                'shard': True
-            })
-        # On a mongo 3 server, this has to be started last, so add it at the
-        # end of the list
-        config.append({
-            'route': True,
-            'port': port,
-            'db': sharddb,
-            'collection': shardcollection,
-            'shardkey': shardkey,
-        })
-    else:
-        for i in range(servers):
-            config.append({
-                'dir': '%s%d' % (dirroot, i + 1),
-                'port': port + i,
-                'replicaset': replicaset
-            })
     return config
 
 
@@ -180,7 +141,7 @@ def pauseMongoReplicaSet(config, pauseList, verbose=0):
 
 def _startMongoProcesses(config, timeout=60, verbose=0):
     """
-    Create a set of directories in /tmp and start mongod and mongos processes.
+    Create a set of directories in /tmp and start mongod processes.
 
     :param config: list of servers.
     :param timeout: maximum time to wait for a mongo server to be ready.
@@ -188,57 +149,41 @@ def _startMongoProcesses(config, timeout=60, verbose=0):
     :returns: replicasets: an object with a key for each created replicaset.
         Each has a value which is the offset within the config list of the
         first server in the replica set.
-    :returns: shardRoute: None if this is not a sharded set.  Otherwise, the
-        server entry for the shard route.
     """
     kwargs = {}
     if verbose < 3:
         devnull = open(os.devnull, 'wb')
         kwargs = {'stdout': devnull, 'stderr': subprocess.STDOUT}
     replicasets = {}
-    shardRoute = None
     for idx, server in enumerate(config):
-        if not server.get('route'):
-            cmd = [
-                os.environ.get('MONGOD_EXECUTABLE', 'mongod'),
-                '--noprealloc', '--smallfiles', '--oplogSize', '128'
-            ]
-        else:
-            shardRoute = server
-            cfgsvr = six.next(entry for i, entry in enumerate(config) if entry.get('config'))
-            cmd = [os.environ.get('MONGOS_EXECUTABLE', 'mongos'),
-                   '--configdb', '%s127.0.0.1:%d' % (
-                   cfgsvr['replicaset'] + '/' if 'replicaset' in cfgsvr else '',
-                   cfgsvr['port'])]
-        cmd.extend(['--port', str(server['port'])])
-        if server.get('dir'):
-            if os.path.exists(server['dir']):
-                shutil.rmtree(server['dir'])
-            os.makedirs(server['dir'])
-            cmd.extend(['--dbpath', server['dir']])
-        if 'replicaset' in server:
-            cmd.extend(['--replSet', server['replicaset']])
-            if not server['replicaset'] in replicasets:
-                replicasets[server['replicaset']] = idx
-        if server.get('config'):
-            cmd.append('--configsvr')
-        if server.get('shard'):
-            cmd.append('--shardsvr')
+        cmd = [
+            os.environ.get('MONGOD_EXECUTABLE', 'mongod'),
+            '--noprealloc', '--smallfiles', '--oplogSize', '128',
+            '--port', str(server['port']),
+            '--dbpath', server['dir'],
+            '--replSet', server['replicaset']
+        ]
+
+        if os.path.exists(server['dir']):
+            shutil.rmtree(server['dir'])
+        os.makedirs(server['dir'])
+
+        if not server['replicaset'] in replicasets:
+            replicasets[server['replicaset']] = idx
+
         if verbose >= 1:
             print(' '.join(cmd))
         proc = subprocess.Popen(cmd, **kwargs)
         server['proc'] = proc
         # Make sure we can query the database before moving on to starting the
         # next one.
-        if not server.get('route'):
-            _waitForStatus('127.0.0.1:%d' % server['port'], timeout)
-    return replicasets, shardRoute
+        _waitForStatus('127.0.0.1:%d' % server['port'], timeout)
+    return replicasets
 
 
 def startMongoReplicaSet(config, timeout=60, verbose=0):
     """
-    Start mongo servers.  These can be part of replica sets, config servers,
-    or shard servers.  Configure the replica sets and the shards.  Make sure
+    Start mongo servers. Configure the replica sets. Make sure
     they shut down when the current process ends.
 
     :param config: list of servers.
@@ -246,7 +191,7 @@ def startMongoReplicaSet(config, timeout=60, verbose=0):
     :param verbose: verbosity for logging.
     """
     atexit.register(stopMongoReplicaSet, config, False)
-    replicasets, shardRoute = _startMongoProcesses(config, timeout, verbose)
+    replicasets = _startMongoProcesses(config, timeout, verbose)
     for replicaset in replicasets:
         replConf = {
             '_id': replicaset, 'version': 1,
@@ -263,32 +208,16 @@ def startMongoReplicaSet(config, timeout=60, verbose=0):
             print('Mongo replica set ready')
             conf = client.local.system.replset.find_one()
             pprint.pprint(conf)
-    if not shardRoute:  # just a replicaset
-        # Reorder our config records so that the primary set is first
-        if config[0]['lastState'] != 1:
-            for idx in range(1, len(config)):
-                if config[idx]['lastState'] == 1:
-                    config[0], config[idx] = config[idx], config[0]
-                    break
-        if verbose >= 1:
-            print('Mongo replica set ready')
-            conf = client.local.system.replset.find_one()
-            pprint.pprint(conf)
-    else:  # sharding
-        client = getMongoClient(config, timeout=timeout)
-        for server in config:
-            if server.get('shard'):
-                client.admin.command('addShard', '127.0.0.1:%d' % server['port'])
-        if shardRoute.get('db'):
-            client.admin.command('enableSharding', shardRoute['db'])
-            if shardRoute.get('collection') and shardRoute.get('shardkey'):
-                client.admin.command(
-                    'shardCollection',
-                    '%s.%s' % (shardRoute['db'], shardRoute['collection']),
-                    key={shardRoute['shardkey']: 1})
-        stat = client.admin.command('serverStatus')
-        if verbose >= 1:
-            print('Mongo sharding server ready')
+    # Reorder our config records so that the primary set is first
+    if config[0]['lastState'] != 1:
+        for idx in range(1, len(config)):
+            if config[idx]['lastState'] == 1:
+                config[0], config[idx] = config[idx], config[0]
+                break
+    if verbose >= 1:
+        print('Mongo replica set ready')
+        conf = client.local.system.replset.find_one()
+        pprint.pprint(conf)
     if verbose >= 2:
         pprint.pprint(stat)
 
@@ -428,9 +357,7 @@ if __name__ == '__main__':
     a modified conf file to simulate an S3 store.
     """
     parser = argparse.ArgumentParser(
-        description='Run a mongo replica set on sequential ports or run '
-        'a mongo sharded database with one sharding server, one config '
-        'server, and multiple shards on sequential ports.  All data will be '
+        description='Run a mongo replica set on sequential ports. All data will be '
         'discarded when mongo is stopped.')
     parser.add_argument(
         '--dirroot', default='/tmp/mongodb',
@@ -445,30 +372,20 @@ if __name__ == '__main__':
         help='Starting port number.  Default 27070')
     parser.add_argument(
         '--replicaset', default='replicaset',
-        help='Replica set name (on shards, this is the configuration replica '
-        'set name).  Default replicaset.')
+        help='Replica set name.  Default replicaset.')
     parser.add_argument(
-        '--servers', default=3, type=int, help='Number of servers.  For '
-        'sharding, this is the number of shards; there is also a config '
-        'server and a shard router.  Default 3.')
-    parser.add_argument(
-        '--shard', action='store_true', help='Create a sharding server.')
-    parser.add_argument(
-        '--sharddb', default='gridfs',
-        help='Name of a database to set as sharded.  Default gridfs.')
-    parser.add_argument(
-        '--shardcollection', default='chunk',
-        help='Name of a collection to set as sharded.  Default chunk.')
-    parser.add_argument(
-        '--shardkey', default='uuid',
-        help='Name of an index to use for sharding.  Default uuid.')
+        '--servers', default=3, type=int, help='Number of servers. Default 3.')
     parser.add_argument(
         '-v', '--verbose', action='count', help='Increase verbosity.',
         default=0)
     args = parser.parse_args()
-    config = makeConfig(**vars(args))
+    config = makeConfig(
+        port=args.port,
+        replicaset=args.replicaset,
+        servers=args.servers,
+        dirroot=args.dirroot)
     startMongoReplicaSet(config=config, verbose=args.verbose)
-    if args.pause and not args.shard:
+    if args.pause:
         time.sleep(20)
         print('Pausing first server')
         pauseMongoReplicaSet(config, [True], verbose=args.verbose)
