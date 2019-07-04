@@ -517,17 +517,17 @@ class ApiDescribeTestCase(base.TestCase):
             'obj': json.dumps([])
         })
         self.assertStatus(resp, 400)
-        self.assertEqual(
-            resp.json['message'],
-            "Invalid JSON object for parameter obj: [] is not of type 'object'")
+        six.assertRegex(
+            self, resp.json['message'],
+            r"^Invalid JSON object for parameter obj: \[\] is not of type 'object'")
 
         resp = self.request('/auto_describe/json_schema', params={
             'obj': json.dumps({})
         })
         self.assertStatus(resp, 400)
-        self.assertEqual(
-            resp.json['message'],
-            "Invalid JSON object for parameter obj: 'foo' is a required property")
+        six.assertRegex(
+            self, resp.json['message'],
+            r"^Invalid JSON object for parameter obj: 'foo' is a required property")
 
         obj = {
             'foo': 1,
