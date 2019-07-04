@@ -100,6 +100,7 @@ class ZipGenerator(object):
     This class can be used to create a streaming zip file that consumes from
     one generator and writes to another.
     """
+
     def __init__(self, rootPath='', compression=STORE):
         """
         :param rootPath: The root path for all files within this archive.
@@ -204,7 +205,7 @@ class ZipGenerator(object):
 
             if extra:
                 extraData = struct.pack(
-                    b'<hh' + b'q'*len(extra), 1, 8*len(extra), *extra)
+                    b'<hh' + b'q' * len(extra), 1, 8 * len(extra), *extra)
                 extractVersion = max(45, header.extractVersion)
                 createVersion = max(45, header.createVersion)
             else:

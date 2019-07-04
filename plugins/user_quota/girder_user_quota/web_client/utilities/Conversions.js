@@ -14,7 +14,7 @@ function sizeToValueAndUnits(sizeValue) {
     } else {
         sizeValue = '';
     }
-    return {sizeUnits: sizeUnits, sizeValue: sizeValue};
+    return { sizeUnits: sizeUnits, sizeValue: sizeValue };
 }
 
 /* Convert a number and units to a number of bytes.  The units can either

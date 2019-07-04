@@ -18,45 +18,6 @@ function(javascript_tests_init)
   set_property(TEST js_coverage_combine_report PROPERTY LABELS girder_coverage)
 endfunction()
 
-function(add_eslint_test name input)
-  if (NOT JAVASCRIPT_STYLE_TESTS)
-    return()
-  endif()
-
-  add_test(
-    NAME "eslint_${name}"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND npx eslint "${input}"
-  )
-  set_property(TEST "eslint_${name}" PROPERTY LABELS girder_browser)
-endfunction()
-
-function(add_puglint_test name path)
-  if (NOT JAVASCRIPT_STYLE_TESTS)
-    return()
-  endif()
-
-  add_test(
-    NAME "puglint_${name}"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND npx pug-lint "${path}"
-  )
-  set_property(TEST "puglint_${name}" PROPERTY LABELS girder_browser)
-endfunction()
-
-function(add_stylint_test name path)
-  if (NOT JAVASCRIPT_STYLE_TESTS)
-    return()
-  endif()
-
-  add_test(
-    NAME "stylint_${name}"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND npx stylint "${path}"
-  )
-  set_property(TEST "stylint_${name}" PROPERTY LABELS girder_browser)
-endfunction()
-
 function(add_web_client_test case specFile)
   # test a web client using a spec file and the specRunner
   # :param case: the name of this test case

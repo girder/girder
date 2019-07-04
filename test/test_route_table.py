@@ -14,7 +14,7 @@ class SomeWebroot(object):
     exposed = True
 
     def GET(self):
-        return "some webroot"
+        return 'some webroot'
 
 
 class HasWebroot(GirderPlugin):

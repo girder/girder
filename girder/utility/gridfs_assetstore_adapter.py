@@ -118,8 +118,8 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
                    self.assetstore.get('replicaset'),
                    self.assetstore.get('shard'))
             if key in _recentConnections:
-                recent = (time.time() - _recentConnections[key]['created'] <
-                          RECENT_CONNECTION_CACHE_TIME)
+                recent = (time.time() - _recentConnections[key]['created']
+                          < RECENT_CONNECTION_CACHE_TIME)
         except TypeError:
             key = None
         try:
@@ -203,7 +203,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         size = 0
         startingN = n
 
-        while upload['received']+size < upload['size']:
+        while upload['received'] + size < upload['size']:
             data = chunk.read(CHUNK_SIZE)
             if not data:
                 break

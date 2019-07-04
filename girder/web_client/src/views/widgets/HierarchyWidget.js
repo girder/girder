@@ -130,7 +130,7 @@ var HierarchyWidget = View.extend({
         this._routing = _.has(settings, 'routing') ? settings.routing : true;
         this._appendPages = _.has(settings, 'appendPages') ? settings.appendPages : false;
         this._onItemClick = settings.onItemClick || function (item) {
-            router.navigate('item/' + item.get('_id'), {trigger: true});
+            router.navigate('item/' + item.get('_id'), { trigger: true });
         };
 
         this._onFolderSelect = settings.onFolderSelect;
@@ -245,7 +245,7 @@ var HierarchyWidget = View.extend({
                 route += '/folder/' + this.parentModel.get('_id');
             }
             router.navigate(route);
-            events.trigger('g:hierarchy.route', {route: route});
+            events.trigger('g:hierarchy.route', { route: route });
         }
     },
 
@@ -292,6 +292,19 @@ var HierarchyWidget = View.extend({
             if (this._showMetadata) {
                 this.metadataWidget.setElement(this.$('.g-folder-metadata')).render();
             }
+        }
+
+        if (this.parentModel.resourceName === 'collection' && this._showMetadata) {
+            if (!this.metadataWidget) {
+                this.metadataWidget = new MetadataWidget({
+                    item: this.parentModel,
+                    parentView: this,
+                    accessLevel: this.parentModel.getAccessLevel()
+                });
+            }
+            this.metadataWidget.setItem(this.parentModel);
+            this.metadataWidget.accessLevel = this.parentModel.getAccessLevel();
+            this.metadataWidget.setElement(this.$('.g-folder-metadata')).render();
         }
 
         if (this.upload) {
@@ -424,7 +437,7 @@ var HierarchyWidget = View.extend({
             confirmCallback: () => {
                 this.parentModel.on('g:deleted', function () {
                     if (type === 'collection') {
-                        router.navigate('collections', {trigger: true});
+                        router.navigate('collections', { trigger: true });
                     } else if (type === 'folder') {
                         this.breadcrumbs.pop();
                         this.setCurrentModel(this.breadcrumbs.slice(-1)[0]);
@@ -486,7 +499,7 @@ var HierarchyWidget = View.extend({
             this.parentModel.set('nFolders', 0); // prevents fetching details twice
             this.parentModel.once('g:fetched.details', function () {
                 showCounts();
-            }, this).fetch({extraPath: 'details'});
+            }, this).fetch({ extraPath: 'details' });
         }
 
         this.parentModel.off('change:nItems', showCounts, this)
@@ -583,7 +596,7 @@ var HierarchyWidget = View.extend({
         if (this.itemListView && this.itemListView.checked.length) {
             items = this.itemListView.checked;
         }
-        var desc = this._describeResources({folder: folders, item: items});
+        var desc = this._describeResources({ folder: folders, item: items });
 
         var params = {
             text: 'Are you sure you want to delete the checked resources (' +
@@ -598,8 +611,8 @@ var HierarchyWidget = View.extend({
                 restRequest({
                     url: 'resource',
                     method: 'POST',
-                    data: {resources: resources, progress: true},
-                    headers: {'X-HTTP-Method-Override': 'DELETE'}
+                    data: { resources: resources, progress: true },
+                    headers: { 'X-HTTP-Method-Override': 'DELETE' }
                 }).done(() => {
                     if (items && items.length && this.parentModel.has('nItems')) {
                         this.parentModel.increment('nItems', -items.length);
@@ -608,7 +621,7 @@ var HierarchyWidget = View.extend({
                         this.parentModel.increment('nFolders', -folders.length);
                     }
 
-                    this.setCurrentModel(this.parentModel, {setRoute: false});
+                    this.setCurrentModel(this.parentModel, { setRoute: false });
                 });
             }
         };
@@ -635,7 +648,7 @@ var HierarchyWidget = View.extend({
             if (this.parentModel.has('size')) {
                 this.parentModel.increment('size', info.totalSize);
             }
-            this.setCurrentModel(this.parentModel, {setRoute: false});
+            this.setCurrentModel(this.parentModel, { setRoute: false });
         }, this).render();
     },
 
@@ -739,7 +752,7 @@ var HierarchyWidget = View.extend({
      * Get a parameter that can be added to a url for the checked resources.
      */
     _getCheckedResourceParam: function (asObject) {
-        var resources = {folder: [], item: []};
+        var resources = { folder: [], item: [] };
         var folders = this.folderListView.checked;
         _.each(folders, function (cid) {
             var folder = this.folderListView.collection.get(cid);
@@ -766,7 +779,7 @@ var HierarchyWidget = View.extend({
     downloadChecked: function () {
         var url = getApiRoot() + '/resource/download';
         var resources = this._getCheckedResourceParam();
-        var data = {resources: resources};
+        var data = { resources: resources };
 
         this.redirectViaForm('POST', url, data);
     },
@@ -851,7 +864,7 @@ var HierarchyWidget = View.extend({
             }
         }).done(() => {
             this._incrementCounts(nFolders, nItems);
-            this.setCurrentModel(this.parentModel, {setRoute: false});
+            this.setCurrentModel(this.parentModel, { setRoute: false });
         });
         this.clearPickedResources();
     },
@@ -874,7 +887,7 @@ var HierarchyWidget = View.extend({
             }
         }).done(() => {
             this._incrementCounts(nFolders, nItems);
-            this.setCurrentModel(this.parentModel, {setRoute: false});
+            this.setCurrentModel(this.parentModel, { setRoute: false });
         });
         this.clearPickedResources();
     },
@@ -893,9 +906,9 @@ var HierarchyWidget = View.extend({
     },
 
     redirectViaForm: function (method, url, data) {
-        var form = $('<form/>').attr({action: url, method: method});
+        var form = $('<form/>').attr({ action: url, method: method });
         _.each(data, function (value, key) {
-            form.append($('<input/>').attr({type: 'text', name: key, value: value}));
+            form.append($('<input/>').attr({ type: 'text', name: key, value: value }));
         });
         // $(form).submit() will *not* work w/ Firefox (http://stackoverflow.com/q/7117084/250457)
         $(form).appendTo('body').submit().remove();

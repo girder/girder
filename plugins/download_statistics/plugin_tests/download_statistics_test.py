@@ -105,7 +105,7 @@ class DownloadStatisticsTestCase(base.TestCase):
         path = '/file/%s/download' % str(fileId)
         for i in range(1, 5):
             params = {
-                'offset': i-1,
+                'offset': i - 1,
                 'endByte': i
             }
             resp = self.request(path, method='GET', isJson=False, params=params)

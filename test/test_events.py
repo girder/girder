@@ -133,11 +133,11 @@ def testForegroundDaemon(eventsHelper):
         eventsHelper.ctr += 1
         eventsHelper.responses = event.responses
 
-    with events.bound('_test.event',  '_test.handler', eventsHelper._raiseException):
+    with events.bound('_test.event', '_test.handler', eventsHelper._raiseException):
         with pytest.raises(Exception, match='^Failure condition$'):
             events.daemon.trigger('_test.event', None, callback)
 
-    with events.bound('_test.event',  '_test.handler', eventsHelper._incrementWithResponse):
+    with events.bound('_test.event', '_test.handler', eventsHelper._incrementWithResponse):
         events.daemon.trigger('_test.event', {'amount': 2}, callback)
 
     assert eventsHelper.ctr == 3

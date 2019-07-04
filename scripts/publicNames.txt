@@ -155,6 +155,7 @@ girder
                 sendAuthTokenCookie
                 setRawResponse
             boundHandler
+            disableAuditLog
             endpoint
             ensureTokenScopes
             filtermodel
@@ -752,7 +753,6 @@ girder
             PRIVACY_NOTICE
             REGISTRATION_POLICY
             ROUTE_TABLE
-            SECURE_COOKIE
             SERVER_ROOT
             SMTP_ENCRYPTION
             SMTP_HOST
@@ -964,7 +964,8 @@ plugins
             Record
                 initialize
                 validate
-        scripts
+            cleanup
+                cleanup
             report
                 get_file_download_records
                 index_folder
@@ -1222,6 +1223,18 @@ plugins
                     LINKEDIN_CLIENT_ID
                     LINKEDIN_CLIENT_SECRET
                     PROVIDERS_ENABLED
+    sentry
+        girder_sentry
+            SentryPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            rest
+                Sentry
+                    getDsn
+            settings
+                PluginSettings
+                    DSN
     terms
         girder_terms
             TermsPlugin

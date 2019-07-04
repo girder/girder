@@ -9,7 +9,6 @@ from .. import base
 
 from girder import events
 from girder.constants import AccessType, TokenScope
-from girder.exceptions import ValidationException
 from girder.models.folder import Folder
 from girder.models.group import Group
 from girder.models.setting import Setting
@@ -29,7 +28,7 @@ def tearDownModule():
 
 
 class UserTestCase(base.TestCase):
-    def _verifyAuthCookie(self, resp, secure=''):
+    def _verifyAuthCookie(self, resp, secure=False):
         self.assertTrue('girderToken' in resp.cookie)
         self.cookieVal = resp.cookie['girderToken'].value
         self.assertFalse(not self.cookieVal)
@@ -37,7 +36,7 @@ class UserTestCase(base.TestCase):
         self.assertEqual(
             resp.cookie['girderToken']['expires'],
             lifetime * 3600 * 24)
-        self.assertEqual(resp.cookie['girderToken']['secure'], secure)
+        self.assertEqual(resp.cookie['girderToken']['secure'], True if secure else '')
 
     def _verifyDeletedCookie(self, resp):
         self.assertTrue('girderToken' in resp.cookie)
@@ -147,18 +146,16 @@ class UserTestCase(base.TestCase):
                             authHeader='Girder-Authorization')
         self.assertStatusOk(resp)
 
-        # Test secure cookie validation
-        with self.assertRaises(ValidationException):
-            Setting().set(SettingKey.SECURE_COOKIE, 'bad value')
-        # Set secure cookie value
-        Setting().set(SettingKey.SECURE_COOKIE, True)
-
         # Login successfully with login
         resp = self.request(path='/user/authentication', method='GET',
                             basicAuth='goodlogin:good:password')
         self.assertStatusOk(resp)
+        self._verifyAuthCookie(resp)
 
-        # Make sure we got a nice (secure) cookie
+        # Login with HTTPS login
+        resp = self.request(path='/user/authentication', method='GET',
+                            basicAuth='goodlogin:good:password', useHttps=True)
+        self.assertStatusOk(resp)
         self._verifyAuthCookie(resp, secure=True)
 
         # Test user/me
@@ -511,13 +508,13 @@ class UserTestCase(base.TestCase):
         resp = self.request(path='/user/password/temporary', method='PUT',
                             params={'email': 'bad_email@user.com'})
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], "That email is not registered.")
+        self.assertEqual(resp.json['message'], 'That email is not registered.')
         # Actually generate temporary access token
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
         resp = self.request(path='/user/password/temporary', method='PUT',
                             params={'email': 'user@user.com'})
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['message'], "Sent temporary access email.")
+        self.assertEqual(resp.json['message'], 'Sent temporary access email.')
         self.assertTrue(base.mockSmtp.waitForMail())
         msg = base.mockSmtp.getMail(parse=True)
         # Pull out the auto-generated token from the email
@@ -551,8 +548,8 @@ class UserTestCase(base.TestCase):
 
         # Artificially adjust the token to have expired.
         token = Token().load(tokenId, force=True, objectId=False)
-        token['expires'] = (datetime.datetime.utcnow() -
-                            datetime.timedelta(days=1))
+        token['expires'] = (datetime.datetime.utcnow()
+                            - datetime.timedelta(days=1))
         Token().save(token)
         resp = self.request(path=path, method='GET', params={'token': tokenId})
         self.assertStatus(resp, 401)

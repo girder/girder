@@ -12,6 +12,7 @@ class Assetstore(Model):
     """
     This model represents an assetstore, an abstract repository of Files.
     """
+
     def initialize(self):
         self.name = 'assetstore'
 

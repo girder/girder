@@ -77,7 +77,6 @@ class Description(object):
         """
         Returns this description object as an appropriately formatted dict
         """
-
         # Responses Object spec:
         # The Responses Object MUST contain at least one response code, and it
         # SHOULD be the response for a successful operation call.
@@ -432,6 +431,7 @@ class ApiDocs(WebrootBase):
     """
     This serves up the Swagger page.
     """
+
     def __init__(self, templatePath=None):
         if not templatePath:
             templatePath = os.path.join(constants.PACKAGE_DIR,

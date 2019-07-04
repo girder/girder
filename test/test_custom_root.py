@@ -46,10 +46,11 @@ class CustomAppRoot(object):
     """
     The webroot endpoint simply serves the main index HTML file.
     """
+
     exposed = True
 
     def GET(self):
-        return "hello world from test_plugin"
+        return 'hello world from test_plugin'
 
 
 class Other(Resource):

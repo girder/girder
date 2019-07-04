@@ -63,6 +63,7 @@ class TerminalColor(object):
     """
     Provides a set of values that can be used to color text in the terminal.
     """
+
     ERROR = '\033[1;91m'
     SUCCESS = '\033[32m'
     WARNING = '\033[1;33m'
@@ -94,6 +95,7 @@ class AssetstoreType(object):
     """
     All possible assetstore implementation types.
     """
+
     FILESYSTEM = 0
     GRIDFS = 1
     S3 = 2
@@ -113,6 +115,7 @@ class AccessType(object):
     ADMIN access confers total control; the user can delete the resource and
     also manage permissions for other users on it.
     """
+
     NONE = -1
     READ = 0
     WRITE = 1
@@ -139,6 +142,7 @@ class TokenScope(object):
     spaces, since many services accept scope lists as a space-separated list
     of strings.
     """
+
     ANONYMOUS_SESSION = 'core.anonymous_session'
     USER_AUTH = 'core.user_auth'
     TEMPORARY_USER_AUTH = 'core.user_auth.temporary'
@@ -239,6 +243,7 @@ class CoreEventHandler(object):
     ``handlerName`` argument. Unbinding core event handlers can be used to
     disable certain default functionalities.
     """
+
     # For removing deleted user/group references from AccessControlledModel
     ACCESS_CONTROL_CLEANUP = 'core.cleanupDeletedEntity'
 

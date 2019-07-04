@@ -24,7 +24,7 @@ def checkOauthUser(event):
                 for val in user['oauth']
             )
         raise ValidationException(
-            'You don\'t have a password. Please log in with %s, or use the '
+            "You don't have a password. Please log in with %s, or use the "
             'password reset link.' % prettyProviderNames)
 
 

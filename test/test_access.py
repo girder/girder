@@ -10,7 +10,7 @@ from girder.settings import SettingKey
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
 
-CUSTOM_SCOPE = "Some.Exclusive.Scope"
+CUSTOM_SCOPE = 'Some.Exclusive.Scope'
 
 
 # We deliberately don't have an access decorator

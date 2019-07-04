@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 import FolderModel from '@girder/core/models/FolderModel';
 import MarkdownWidget from '@girder/core/views/widgets/MarkdownWidget';
 import PluginConfigBreadcrumbWidget from '@girder/core/views/widgets/PluginConfigBreadcrumbWidget';
@@ -71,7 +73,7 @@ const ConfigView = View.extend({
                     prefix: 'homepage',
                     placeholder: 'Enter Markdown for the homepage',
                     parentView: this,
-                    parent: new FolderModel({_id: assets['homepage.markdown']}),
+                    parent: new FolderModel({ _id: assets['homepage.markdown'] }),
                     enableUploads: true,
                     maxUploadSize: 1024 * 1024 * 10,
                     allowedExtensions: ['png', 'jpeg', 'jpg', 'gif']
@@ -80,7 +82,7 @@ const ConfigView = View.extend({
                     prefix: 'welcome',
                     placeholder: 'Enter Markdown to replace the welcome text.',
                     parentView: this,
-                    parent: new FolderModel({_id: assets['homepage.welcome_text']}),
+                    parent: new FolderModel({ _id: assets['homepage.welcome_text'] }),
                     enableUploads: true,
                     maxUploadSize: 1024 * 1024 * 10,
                     allowedExtensions: ['png', 'jpeg', 'jpg', 'gif']
@@ -94,7 +96,7 @@ const ConfigView = View.extend({
                 this.logoFileId = settings['homepage.logo'];
 
                 this.logoUploader = new UploadWidget({
-                    parent: new FolderModel({_id: assets['homepage.logo']}),
+                    parent: new FolderModel({ _id: assets['homepage.logo'] }),
                     parentType: 'folder',
                     title: 'Homepage Logo',
                     modal: false,

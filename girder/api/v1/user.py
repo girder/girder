@@ -50,7 +50,7 @@ class User(Resource):
     @autoDescribeRoute(
         Description('List or search for users.')
         .responseClass('User', array=True)
-        .param('text', "Pass this to perform a full text search for items.", required=False)
+        .param('text', 'Pass this to perform a full text search for items.', required=False)
         .pagingParams(defaultSort='lastName')
     )
     def find(self, text, limit, offset, sort):
@@ -241,10 +241,10 @@ class User(Resource):
 
     @access.admin
     @autoDescribeRoute(
-        Description('Change a user\'s password.')
+        Description("Change a user's password.")
         .notes('Only administrators may use this endpoint.')
         .modelParam('id', model=UserModel, level=AccessType.ADMIN)
-        .param('password', 'The user\'s new password.')
+        .param('password', "The user's new password.")
         .errorResponse('You are not an administrator.', 403)
         .errorResponse('The new password is invalid.')
     )
@@ -268,13 +268,13 @@ class User(Resource):
         if not old:
             raise RestException('Old password must not be empty.')
 
-        if not self._model.hasPassword(user) or \
-                not self._model._cryptContext.verify(old, user['salt']):
+        if (not self._model.hasPassword(user)
+                or not self._model._cryptContext.verify(old, user['salt'])):
             # If not the user's actual password, check for temp access token
             token = Token().load(old, force=True, objectId=False, exc=False)
-            if (not token or not token.get('userId') or
-                    token['userId'] != user['_id'] or
-                    not Token().hasScope(token, TokenScope.TEMPORARY_USER_AUTH)):
+            if (not token or not token.get('userId')
+                    or token['userId'] != user['_id']
+                    or not Token().hasScope(token, TokenScope.TEMPORARY_USER_AUTH)):
                 raise AccessException('Old password is incorrect.')
 
         self._model.setPassword(user, new)
@@ -287,7 +287,7 @@ class User(Resource):
 
     @access.public
     @autoDescribeRoute(
-        Description('Create a temporary access token for a user.  The user\'s '
+        Description("Create a temporary access token for a user.  The user's "
                     'password is not changed.')
         .param('email', 'Your email address.', strip=True)
         .errorResponse('That email does not exist in the system.')

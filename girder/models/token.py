@@ -13,6 +13,7 @@ class Token(AccessControlledModel):
     """
     This model stores session tokens for user authentication.
     """
+
     def initialize(self):
         self.name = 'token'
         self.ensureIndex(('expires', {'expireAfterSeconds': 0}))
@@ -127,7 +128,6 @@ class Token(AccessControlledModel):
             of the given token's allowed scopes.
         :type scope: str or list of str
         """
-
         if not self.hasScope(token, scope):
             raise AccessException('Invalid token scope, required: %s.' % (scope))
 

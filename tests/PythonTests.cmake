@@ -49,17 +49,6 @@ function(python_tests_init)
   set_property(TEST py_coverage_xml PROPERTY LABELS girder_coverage)
 endfunction()
 
-function(add_python_style_test name input)
-  if(PYTHON_STATIC_ANALYSIS)
-    add_test(
-      NAME ${name}
-      WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      COMMAND "${FLAKE8_EXECUTABLE}" "${input}"
-    )
-    set_property(TEST "${name}" PROPERTY LABELS girder_python)
-  endif()
-endfunction()
-
 function(add_python_test case)
   set(name "server_${case}")
 

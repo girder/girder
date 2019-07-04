@@ -144,8 +144,8 @@ class SearchTestCase(base.TestCase):
             '_id': str(coll1['_id']),
             'name': coll1['name']
         }, resp.json['collection'][1])
-        self.assertTrue(resp.json['collection'][0]['_textScore'] >
-                        resp.json['collection'][1]['_textScore'])
+        self.assertTrue(resp.json['collection'][0]['_textScore']
+                        > resp.json['collection'][1]['_textScore'])
 
         # Exercise user search by login
         resp = self.request(path='/resource/search', params={
@@ -232,12 +232,12 @@ class SearchTestCase(base.TestCase):
         resp = self.request(path='/resource/search', params={
             'q': 'Test',
             'mode': 'testSearch',
-            'types': json.dumps(["collection"])
+            'types': json.dumps(['collection'])
         })
         self.assertStatusOk(resp)
         self.assertDictEqual(resp.json, {
             'query': 'Test',
-            'types': ["collection"]
+            'types': ['collection']
         })
 
         search.removeSearchMode('testSearch')
@@ -246,6 +246,6 @@ class SearchTestCase(base.TestCase):
         resp = self.request(path='/resource/search', params={
             'q': 'Test',
             'mode': 'testSearch',
-            'types': json.dumps(["collection"])
+            'types': json.dumps(['collection'])
         })
         self.assertStatus(resp, 400)

@@ -11,7 +11,6 @@ def prerelease_local_scheme(version):
     pre-release in which case it ignores the hash and produces a
     PEP440 compliant pre-release version number (e.g. 0.0.0.dev<N>).
     """
-
     from setuptools_scm.version import get_local_node_and_date
 
     if os.getenv('CIRCLE_BRANCH') == 'master':
@@ -20,7 +19,6 @@ def prerelease_local_scheme(version):
         return get_local_node_and_date(version)
 
 
-# perform the install
 setup(
     name='girder-audit-logs',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
@@ -46,6 +44,10 @@ setup(
     entry_points={
         'girder.plugin': [
             'audit_logs = girder_audit_logs:AuditLogsPlugin'
+        ],
+        'girder.cli_plugins': [
+            'audit-logs-cleanup = girder_audit_logs.cleanup:cleanup',
+            'audit-logs-report = girder_audit_logs.report:report'
         ]
     }
 )

@@ -25,10 +25,10 @@ class SettingTestCase(base.TestCase):
         indices = coll.index_information()
         # Make sure we have just one index on key and that it specifies that it
         # is unique
-        self.assertTrue(any(indices[index]['key'][0][0] == 'key' and
-                        indices[index].get('unique') for index in indices))
-        self.assertFalse(any(indices[index]['key'][0][0] == 'key' and
-                         not indices[index].get('unique') for index in indices))
+        self.assertTrue(any(indices[index]['key'][0][0] == 'key'
+                        and indices[index].get('unique') for index in indices))
+        self.assertFalse(any(indices[index]['key'][0][0] == 'key'
+                         and not indices[index].get('unique') for index in indices))
         # Delete that index, create a non-unique index, and make some duplicate
         # settings so that we can test that this will be corrected.
         coll.drop_index(next(index for index in indices
@@ -40,17 +40,17 @@ class SettingTestCase(base.TestCase):
         indices = coll.index_information()
         self.assertGreaterEqual(settingModel.get('duplicate'), 3)
         self.assertEqual(settingModel.find({'key': 'duplicate'}).count(), 5)
-        self.assertFalse(any(indices[index]['key'][0][0] == 'key' and
-                         indices[index].get('unique') for index in indices))
-        self.assertTrue(any(indices[index]['key'][0][0] == 'key' and
-                        not indices[index].get('unique') for index in indices))
+        self.assertFalse(any(indices[index]['key'][0][0] == 'key'
+                         and indices[index].get('unique') for index in indices))
+        self.assertTrue(any(indices[index]['key'][0][0] == 'key'
+                        and not indices[index].get('unique') for index in indices))
         # Reconnecting the model should fix the issues we just created
         settingModel.reconnect()
         indices = coll.index_information()
-        self.assertTrue(any(indices[index]['key'][0][0] == 'key' and
-                        indices[index].get('unique') for index in indices))
-        self.assertFalse(any(indices[index]['key'][0][0] == 'key' and
-                         not indices[index].get('unique') for index in indices))
+        self.assertTrue(any(indices[index]['key'][0][0] == 'key'
+                        and indices[index].get('unique') for index in indices))
+        self.assertFalse(any(indices[index]['key'][0][0] == 'key'
+                         and not indices[index].get('unique') for index in indices))
         self.assertEqual(settingModel.get('duplicate'), 3)
         self.assertEqual(settingModel.find({'key': 'duplicate'}).count(), 1)
 

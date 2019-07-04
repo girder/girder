@@ -224,7 +224,7 @@ class Item(Resource):
                required=False, default=0)
         .param('format', 'If unspecified, items with one file are downloaded '
                'as that file, and other items are downloaded as a zip '
-               'archive.  If \'zip\', a zip archive is always sent.',
+               "archive.  If 'zip', a zip archive is always sent.",
                required=False)
         .param('contentDisposition', 'Specify the Content-Disposition response '
                'header disposition-type value, only applied for single file '
@@ -265,7 +265,7 @@ class Item(Resource):
 
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(
-        Description('Get the path to the root of the item\'s hierarchy.')
+        Description("Get the path to the root of the item's hierarchy.")
         .modelParam('id', model=ItemModel, level=AccessType.READ)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied for the item.', 403)

@@ -36,7 +36,7 @@ class GirderCli(GirderClient):
         """
         def _progressBar(*args, **kwargs):
             bar = click.progressbar(*args, **kwargs)
-            bar.bar_template = "[%(bar)s]  %(info)s  %(label)s"
+            bar.bar_template = '[%(bar)s]  %(info)s  %(label)s'
             bar.show_percent = True
             bar.show_pos = True
 
@@ -135,18 +135,18 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 # Advanced options
 @click.option('--host', default=None,
               cls=_AdvancedOption,
-              help="[default: %s]" % GirderClient.DEFAULT_HOST)
+              help='[default: %s]' % GirderClient.DEFAULT_HOST)
 @click.option('--scheme', default=None,
               cls=_AdvancedOption,
-              help="[default: %s if %s else %s]" % (
+              help='[default: %s if %s else %s]' % (
                   GirderClient.getDefaultScheme(GirderClient.DEFAULT_HOST),
                   GirderClient.DEFAULT_HOST,
-                  GirderClient.getDefaultScheme("girder.example.com")))
+                  GirderClient.getDefaultScheme('girder.example.com')))
 @click.option('--port', default=None,
               cls=_AdvancedOption,
-              help="[default: %s if %s; %s if %s else %s]" % (
-                  GirderClient.DEFAULT_HTTPS_PORT, "https",
-                  GirderClient.DEFAULT_LOCALHOST_PORT, "localhost",
+              help='[default: %s if %s; %s if %s else %s]' % (
+                  GirderClient.DEFAULT_HTTPS_PORT, 'https',
+                  GirderClient.DEFAULT_LOCALHOST_PORT, 'localhost',
                   GirderClient.DEFAULT_HTTP_PORT,
                   ))
 @click.option('--api-root', default=None,
@@ -199,7 +199,7 @@ def main(ctx, username, password,
         if has_api_url and has_url_part:
             raise click.BadArgumentUsage(
                 'Option "--api-url" and option "--%s" are mutually exclusive.' %
-                name.replace("_", "-"))
+                name.replace('_', '-'))
     if certificate and no_ssl_verify:
         raise click.BadArgumentUsage(
             'Option "--no-ssl-verify" and option "--certificate" are mutually exclusive.')

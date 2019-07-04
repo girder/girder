@@ -104,7 +104,7 @@ var QuotaPoliciesWidget = View.extend({
                 borderWidth: 0,
                 shadow: false
             },
-            gridPadding: {top: 10, right: 10, bottom: 10, left: 10}
+            gridPadding: { top: 10, right: 10, bottom: 10, left: 10 }
         });
         this.plots.push(plot);
     },
@@ -161,7 +161,7 @@ var QuotaPoliciesWidget = View.extend({
             handleClose('quota');
             this.trigger('g:hidden');
         });
-        modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
+        modal.trigger($.Event('ready.girder.modal', { relatedTarget: modal }));
         this.$('#g-fileSizeQuota').focus();
         handleOpen('quota');
         return this;

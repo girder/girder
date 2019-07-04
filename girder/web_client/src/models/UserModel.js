@@ -80,7 +80,7 @@ var UserModel = Model.extend({
      */
     removeInvitation: function (groupId) {
         var invites = this.get('groupInvites') || [];
-        var filtered = _.reject(invites, _.matcher({groupId: groupId}));
+        var filtered = _.reject(invites, _.matcher({ groupId: groupId }));
 
         this.set('groupInvites', filtered);
     },
@@ -162,7 +162,7 @@ var UserModel = Model.extend({
         return restRequest({
             url: `user/password/temporary/${userId}`,
             method: 'GET',
-            data: {token: token},
+            data: { token: token },
             error: null
         }).done((resp) => {
             resp.user.token = resp.authToken.token;

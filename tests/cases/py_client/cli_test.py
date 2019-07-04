@@ -368,9 +368,9 @@ class PythonCliTestCase(base.TestCase):
         _check_upload(invokeCli(['--api-key', self.apiKey['key']] + args))
 
         # Try uploading using API key set with GIRDER_API_KEY env. variable
-        os.environ["GIRDER_API_KEY"] = self.apiKey['key']
+        os.environ['GIRDER_API_KEY'] = self.apiKey['key']
         _check_upload(invokeCli(args))
-        del os.environ["GIRDER_API_KEY"]
+        del os.environ['GIRDER_API_KEY']
 
         # Test localsync, it shouldn't touch files on 2nd pass
         ret = invokeCli(('localsync', str(subfolder['_id']),

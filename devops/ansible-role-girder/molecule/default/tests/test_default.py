@@ -38,12 +38,12 @@ def test_girder_service(host):
 
 
 def test_girder_socket_private(host):
-    girder_socket = host.socket("tcp://127.0.0.1:8080")
+    girder_socket = host.socket('tcp://127.0.0.1:8080')
     assert girder_socket.is_listening
 
 
 def test_girder_socket_public(host):
-    girder_socket = host.socket("tcp://0.0.0.0:8080")
+    girder_socket = host.socket('tcp://0.0.0.0:8080')
     assert not girder_socket.is_listening
 
 
@@ -54,7 +54,7 @@ def test_girder_config_exists(host, config_path):
 @pytest.mark.parametrize('option, value', [
     (r'server\.socket_host', r'"127\.0\.0\.1"'),
     (r'tools\.proxy\.on', r'True'),
-    (r'uri', r'"mongodb://localhost:27017/girder"'),
+    (r'uri', r'"mongodb://mongodb:27017/girder"'),
     (r'mode', r'"production"')
 ])
 def test_girder_config_content(host, config_path, option, value):

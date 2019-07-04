@@ -8,7 +8,7 @@ import six
 
 from girder.constants import GIRDER_ROUTE_ID, PRODUCTION_MODE
 from girder.exceptions import ValidationException
-from girder.utility import config, setting_utilities
+from girder.utility import setting_utilities
 
 
 class SettingKey(object):
@@ -16,6 +16,7 @@ class SettingKey(object):
     Core settings should be enumerated here by a set of constants corresponding
     to sensible strings.
     """
+
     ADD_TO_GROUP_POLICY = 'core.add_to_group_policy'
     API_KEYS = 'core.api_keys'
     BANNER_COLOR = 'core.banner_color'
@@ -36,7 +37,6 @@ class SettingKey(object):
     PRIVACY_NOTICE = 'core.privacy_notice'
     REGISTRATION_POLICY = 'core.registration_policy'
     ROUTE_TABLE = 'core.route_table'
-    SECURE_COOKIE = 'core.secure_cookie'
     SERVER_ROOT = 'core.server_root'
     SMTP_ENCRYPTION = 'core.smtp.encryption'
     SMTP_HOST = 'core.smtp_host'
@@ -52,6 +52,7 @@ class SettingDefault(object):
     Core settings that have a default should be enumerated here with the
     SettingKey.
     """
+
     defaults = {
         SettingKey.ADD_TO_GROUP_POLICY: 'never',
         SettingKey.API_KEYS: True,
@@ -84,7 +85,6 @@ class SettingDefault(object):
         SettingKey.PRIVACY_NOTICE: 'https://www.kitware.com/privacy',
         SettingKey.REGISTRATION_POLICY: 'open',
         # SettingKey.ROUTE_TABLE is provided by a function
-        # SettingKey.SECURE_COOKIE is provided by a function
         SettingKey.SERVER_ROOT: '',
         SettingKey.SMTP_ENCRYPTION: 'none',
         SettingKey.SMTP_HOST: 'localhost',
@@ -110,11 +110,6 @@ class SettingDefault(object):
         return {
             GIRDER_ROUTE_ID: '/'
         }
-
-    @staticmethod
-    @setting_utilities.default(SettingKey.SECURE_COOKIE)
-    def _defaultSecureCookie():
-        return config.getServerMode() == PRODUCTION_MODE
 
 
 class SettingValidator(object):
@@ -192,10 +187,10 @@ class SettingValidator(object):
     @setting_utilities.validator(SettingKey.CORS_ALLOW_HEADERS)
     def _validateCorsAllowHeaders(doc):
         if isinstance(doc['value'], six.string_types):
-            headers = doc['value'].replace(",", " ").strip().split()
+            headers = doc['value'].replace(',', ' ').strip().split()
             # remove duplicates
             headers = list(OrderedDict.fromkeys(headers))
-            doc['value'] = ", ".join(headers)
+            doc['value'] = ', '.join(headers)
             return
         raise ValidationException(
             'Allowed headers must be a comma-separated list or an empty string.', 'value')
@@ -216,11 +211,11 @@ class SettingValidator(object):
     @setting_utilities.validator(SettingKey.CORS_ALLOW_ORIGIN)
     def _validateCorsAllowOrigin(doc):
         if isinstance(doc['value'], six.string_types):
-            origins = doc['value'].replace(",", " ").strip().split()
+            origins = doc['value'].replace(',', ' ').strip().split()
             origins = [origin.rstrip('/') for origin in origins]
             # remove duplicates
             origins = list(OrderedDict.fromkeys(origins))
-            doc['value'] = ", ".join(origins)
+            doc['value'] = ', '.join(origins)
             return
         raise ValidationException(
             'Allowed origin must be a comma-separated list of base urls or * or an empty string.',
@@ -303,12 +298,6 @@ class SettingValidator(object):
 
         if len(nonEmptyRoutes) > len(set(nonEmptyRoutes)):
             raise ValidationException('Routes must be unique.', 'value')
-
-    @staticmethod
-    @setting_utilities.validator(SettingKey.SECURE_COOKIE)
-    def _validateSecureCookie(doc):
-        if not isinstance(doc['value'], bool):
-            raise ValidationException('Secure cookie option must be boolean.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.SERVER_ROOT)

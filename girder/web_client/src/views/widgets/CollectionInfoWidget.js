@@ -16,7 +16,7 @@ var CollectionInfoWidget = View.extend({
                 this.needToFetch = false;
                 this.timestamp = this.model.get('updated');
                 this.render();
-            }, this).fetch({extraPath: 'details'});
+            }, this).fetch({ extraPath: 'details' });
         }
     },
 

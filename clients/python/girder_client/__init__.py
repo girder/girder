@@ -64,6 +64,7 @@ class HttpError(requests.HTTPError):
     exception should instead raise requests.HTTPError manually or through another mechanism
     such as requests.Response.raise_for_status.
     """
+
     def __init__(self, status, text, url, method, response=None):
         super(HttpError, self).__init__('HTTP error %s: %s %s' % (status, method, url),
                                         response=response)
@@ -149,9 +150,9 @@ class GirderClient(object):
         returns `GirderClient.DEFAULT_LOCALHOST_PORT` if `hostname` is `localhost`,
         and finally returns `GirderClient.DEFAULT_HTTP_PORT`.
         """
-        if scheme == "https":
+        if scheme == 'https':
             return GirderClient.DEFAULT_HTTPS_PORT
-        if hostname == "localhost":
+        if hostname == 'localhost':
             return GirderClient.DEFAULT_LOCALHOST_PORT
         return GirderClient.DEFAULT_HTTP_PORT
 
@@ -160,10 +161,10 @@ class GirderClient(object):
         """Get default scheme based on the hostname.
         Returns `http` if `hostname` is `localhost` otherwise returns `https`.
         """
-        if hostname == "localhost":
-            return "http"
+        if hostname == 'localhost':
+            return 'http'
         else:
-            return "https"
+            return 'https'
 
     def __init__(self, host=None, port=None, apiRoot=None, scheme=None, apiUrl=None,
                  cacheSettings=None, progressReporterCls=None):
@@ -613,7 +614,6 @@ class GirderClient(object):
             same name already exists.
         :param metadata: JSON metadata to set on item.
         """
-
         if metadata is not None and not isinstance(metadata, six.string_types):
             metadata = json.dumps(metadata)
 
@@ -730,7 +730,6 @@ class GirderClient(object):
             the same name exists.
         :param metadata: JSON metadata to set on the folder.
         """
-
         if metadata is not None and not isinstance(metadata, six.string_types):
             metadata = json.dumps(metadata)
 
@@ -793,7 +792,6 @@ class GirderClient(object):
         :param access: JSON document specifying access control.
         :param public: Boolean specificying the public value.
         """
-
         if access is not None and not isinstance(access, six.string_types):
             access = json.dumps(access)
 
@@ -871,8 +869,7 @@ class GirderClient(object):
             if '_id' not in obj:
                 raise Exception(
                     'After creating an upload token for replacing file '
-                    'contents, expected an object with an id. Got instead: ' +
-                    json.dumps(obj))
+                    'contents, expected an object with an id. Got instead: ' + json.dumps(obj))
         else:
             if mimeType is None:
                 # Attempt to guess MIME type if not passed explicitly
@@ -1103,8 +1100,7 @@ class GirderClient(object):
         if '_id' not in obj:
             raise Exception(
                 'After creating an upload token for replacing file '
-                'contents, expected an object with an id. Got instead: ' +
-                json.dumps(obj))
+                'contents, expected an object with an id. Got instead: ' + json.dumps(obj))
 
         return self._uploadContents(obj, stream, size)
 
@@ -1166,7 +1162,6 @@ class GirderClient(object):
 
         :returns: The request
         """
-
         path = 'file/%s/download' % fileId
         return self.sendRestRequest('get', path, stream=True, jsonResp=False)
 
@@ -1233,7 +1228,6 @@ class GirderClient(object):
 
         :returns: The request content iterator.
         """
-
         req = self._streamingFileDownload(fileId)
 
         return req.iter_content(chunk_size=chunkSize)
@@ -1393,7 +1387,6 @@ class GirderClient(object):
 
         :param dest: The local download destination.
         """
-
         try:
             with open(os.path.join(dest, '.girder_metadata'), 'r') as fh:
                 self.localMetadata = json.loads(fh.read())
@@ -1632,7 +1625,7 @@ class GirderClient(object):
                     # pass that as the parent_type
                     self._uploadFolderRecursive(
                         fullEntry, folder['_id'], 'folder', leafFoldersAsItems, reuseExisting,
-                        dryRun=dryRun, reference=reference)
+                        blacklist=blacklist, dryRun=dryRun, reference=reference)
                 else:
                     self._uploadAsItem(
                         entry, folder['_id'], fullEntry, reuseExisting, dryRun=dryRun,

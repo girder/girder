@@ -381,7 +381,7 @@ class OauthTest(base.TestCase):
         newUser = providerInfo['accounts']['new']['user']
         resp = self.request('/user/authentication', basicAuth='%s:mypasswd' % newUser['login'])
         self.assertStatus(resp, 400)
-        self.assertTrue(resp.json['message'].startswith('You don\'t have a password.'))
+        self.assertTrue(resp.json['message'].startswith("You don't have a password."))
 
         # Reset password for 'new' OAuth-only user should work
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())

@@ -194,8 +194,9 @@ def getCurrentUser(returnToken=False):
         else:
             return user
 
-    if (token is None or token['expires'] < datetime.datetime.utcnow() or
-            'userId' not in token):
+    if (token is None
+            or token['expires'] < datetime.datetime.utcnow()
+            or 'userId' not in token):
         return retVal(None, token)
     else:
         try:
@@ -235,8 +236,8 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
         Content-Disposition header, but do not set it.
     :returns: the content-disposition header value.
     """
-    if (not disposition or (disposition not in ('inline', 'attachment') and
-                            not disposition.startswith('form-data'))):
+    if (not disposition or (disposition not in ('inline', 'attachment')
+                            and not disposition.startswith('form-data'))):
         raise RestException(
             'Error: Content-Disposition (%r) is not a recognized value.' % disposition)
     if not filename:
@@ -255,7 +256,7 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
         quotedFilename = six.moves.urllib.parse.quote(utf8Filename)
         if not isinstance(quotedFilename, six.binary_type):
             quotedFilename = quotedFilename.encode('iso8859-1', 'ignore')
-        value += b'; filename*=UTF-8\'\'' + quotedFilename
+        value += b"; filename*=UTF-8''" + quotedFilename
     value = value.decode('utf8')
     if setHeader:
         setResponseHeader('Content-Disposition', value)
@@ -347,6 +348,7 @@ class loadmodel(object):  # noqa: class name
     :param requiredFlags: Access flags that are required on the object being loaded.
     :type requiredFlags: str or list/set/tuple of str or None
     """
+
     def __init__(self, map=None, model=None, plugin='_core', level=None,
                  force=False, exc=True, requiredFlags=None, **kwargs):
         if map is None:
@@ -565,15 +567,27 @@ def _handleValidationException(e):
     return val
 
 
+def disableAuditLog(fun):
+    """
+    If calls to a REST route should not be logged in the audit log, decorate it with this function.
+    """
+    @six.wraps(fun)
+    def wrapped(*args, **kwargs):
+        cherrypy.request.girderNoAuditLog = True
+        return fun(*args, **kwargs)
+    return wrapped
+
+
 def _logRestRequest(resource, path, params):
-    auditLogger.info('rest.request', extra={
-        'details': {
-            'method': cherrypy.request.method.upper(),
-            'route': (getattr(resource, 'resourceName', resource.__class__.__name__),) + path,
-            'params': params,
-            'status': cherrypy.response.status or 200
-        }
-    })
+    if not hasattr(cherrypy.request, 'girderNoAuditLog'):
+        auditLogger.info('rest.request', extra={
+            'details': {
+                'method': cherrypy.request.method.upper(),
+                'route': (getattr(resource, 'resourceName', resource.__class__.__name__),) + path,
+                'params': params,
+                'status': cherrypy.response.status or 200
+            }
+        })
 
 
 def _mongoCursorToList(val):
@@ -727,6 +741,7 @@ class Resource(object):
     All REST resources should inherit from this class, which provides utilities
     for adding resources/routes to the REST API.
     """
+
     exposed = True
 
     def __init__(self):
@@ -1135,7 +1150,9 @@ class Resource(object):
         cookie['girderToken']['path'] = '/'
         cookie['girderToken']['expires'] = int(days * 3600 * 24)
 
-        if Setting().get(SettingKey.SECURE_COOKIE):
+        # CherryPy proxy tools modify the request.base, but not request.scheme, when receiving
+        # X-Forwarded-Proto headers from a reverse proxy
+        if cherrypy.request.scheme == 'https' or cherrypy.request.base.startswith('https'):
             cookie['girderToken']['secure'] = True
 
         return token
@@ -1249,4 +1266,5 @@ class Prefix(object):
     """
     Utility class used to provide api prefixes.
     """
+
     exposed = True

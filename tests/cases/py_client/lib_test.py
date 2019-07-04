@@ -55,7 +55,7 @@ class PythonClientTestCase(base.TestCase):
         os.mkdir(self.libTestDir)
         writeFile(self.libTestDir)
         for subDir in range(0, 3):
-            subDirName = os.path.join(self.libTestDir, 'sub'+str(subDir))
+            subDirName = os.path.join(self.libTestDir, 'sub' + str(subDir))
             os.mkdir(subDirName)
             writeFile(subDirName)
 
@@ -488,7 +488,7 @@ class PythonClientTestCase(base.TestCase):
                 self.publicFolder['_id'], fh, name='test1', size=size, parentType='folder',
                 reference='test1_reference')
 
-        contents = 'you\'ve changed!'
+        contents = "you've changed!"
         size = len(contents)
         stream = StringIO(contents)
         self.client.uploadFileContents(file['_id'], stream, size)

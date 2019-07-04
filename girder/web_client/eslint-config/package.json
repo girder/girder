@@ -1,0 +1,23 @@
+{
+  "name": "@girder/eslint-config",
+  "version": "3.0.0-rc1",
+  "description": "ESLint configuration for Girder.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/girder/girder.git"
+  },
+  "bugs": {
+    "url": "https://github.com/girder/girder/issues"
+  },
+  "peerDependencies": {
+    "eslint-config-semistandard": ">=11.0.0",
+    "eslint-plugin-backbone": ">=2.1.1",
+    "eslint-plugin-underscore": ">=0.0.10"
+  },
+  "keywords": [
+    "eslint",
+    "eslintconfig",
+    "girder"
+  ]
+}

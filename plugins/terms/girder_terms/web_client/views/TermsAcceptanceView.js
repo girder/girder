@@ -23,7 +23,7 @@ const TermsAcceptanceView = View.extend({
         },
         'click #g-terms-reject': function (event) {
             // Route to home page
-            router.navigate('', {trigger: true});
+            router.navigate('', { trigger: true });
         }
     },
 

@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 import View from '@girder/core/views/View';
 import { SORT_ASC, SORT_DESC } from '@girder/core/constants';
 

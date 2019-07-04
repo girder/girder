@@ -23,7 +23,7 @@ var UsersView = View.extend({
     events: {
         'click a.g-user-link': function (event) {
             var cid = $(event.currentTarget).attr('g-user-cid');
-            router.navigate('user/' + this.collection.get(cid).id, {trigger: true});
+            router.navigate('user/' + this.collection.get(cid).id, { trigger: true });
         },
         'click button.g-user-create-button': 'createUserDialog',
         'submit .g-user-search-form': function (event) {
@@ -105,7 +105,7 @@ var UsersView = View.extend({
     _gotoUser: function (result) {
         var user = new UserModel();
         user.set('_id', result.id).on('g:fetched', function () {
-            router.navigate('user/' + user.get('_id'), {trigger: true});
+            router.navigate('user/' + user.get('_id'), { trigger: true });
         }, this).fetch();
     },
 
@@ -116,7 +116,7 @@ var UsersView = View.extend({
             el: container,
             parentView: this
         }).on('g:userCreated', function (info) {
-            router.navigate('user/' + info.user.id, {trigger: true});
+            router.navigate('user/' + info.user.id, { trigger: true });
         }, this).render();
     }
 });

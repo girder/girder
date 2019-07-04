@@ -39,7 +39,7 @@ describe('Unit test the job detail widget.', function () {
                 return $.Deferred().resolve(jobInfo).promise();
             });
 
-            girder.router.navigate('job/foo', {trigger: true});
+            girder.router.navigate('job/foo', { trigger: true });
         });
 
         waitsFor(function () {
@@ -133,7 +133,7 @@ describe('Unit test the job detail widget.', function () {
         runs(function () {
             girder.plugins.jobs.models.JobModel.prototype.fetch.andCallThrough();
             // Return to the main page, since 'job/foo' isn't legal without mocking
-            girder.router.navigate('', {trigger: true});
+            girder.router.navigate('', { trigger: true });
         });
         girderTest.waitForLoad();
     });

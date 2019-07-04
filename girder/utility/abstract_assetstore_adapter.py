@@ -27,6 +27,7 @@ class FileHandle(object):
     :param adapter: The assetstore adapter corresponding to this file.
     :type adapter: girder.utility.abstract_assetstore_adapter.AbstractAssetstoreAdapter
     """
+
     def __init__(self, file, adapter):
         self._file = file
         self._adapter = adapter
@@ -109,6 +110,7 @@ class AbstractAssetstoreAdapter(object):
     """
     This defines the interface to be used by all assetstore adapters.
     """
+
     def __init__(self, assetstore):
         self.assetstore = assetstore
 
@@ -301,7 +303,7 @@ class AbstractAssetstoreAdapter(object):
         """
         if isinstance(chunk, (six.BytesIO, RequestBodyStream)):
             return
-        elif hasattr(chunk, "fileno"):
+        elif hasattr(chunk, 'fileno'):
             return os.fstat(chunk.fileno()).st_size
         elif isinstance(chunk, six.text_type):
             return len(chunk.encode('utf8'))
@@ -351,8 +353,8 @@ class AbstractAssetstoreAdapter(object):
             return
         if upload['received'] + chunkSize > upload['size']:
             raise ValidationException('Received too many bytes.')
-        if (upload['received'] + chunkSize != upload['size'] and
-                chunkSize < Setting().get(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)):
+        if (upload['received'] + chunkSize != upload['size']
+                and chunkSize < Setting().get(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE)):
             raise ValidationException('Chunk is smaller than the minimum size.')
 
     def cancelUpload(self, upload):

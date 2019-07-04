@@ -148,6 +148,7 @@ class TestCase(unittest.TestCase):
     Test case base class for the application. Adds helpful utilities for
     database and HTTP communication.
     """
+
     def setUp(self, assetstoreType=None, dropModels=True):
         """
         We want to start with a clean database each time, so we drop the test
@@ -413,7 +414,6 @@ class TestCase(unittest.TestCase):
         """
         Helper method for creating an authentication token for the user.
         """
-
         token = Token().createToken(user)
         return str(token['_id'])
 
@@ -521,7 +521,7 @@ class TestCase(unittest.TestCase):
                 raise AssertionError('Received non-JSON response: ' + body)
 
         if not exception and response.output_status.startswith(b'500'):
-            raise AssertionError("Internal server error: %s" % self.getBody(response))
+            raise AssertionError('Internal server error: %s' % self.getBody(response))
 
         return response
 

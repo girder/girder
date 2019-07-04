@@ -23,9 +23,9 @@ try:
 except ImportError:
     DEFAULT_REGION = 'us-east-1'
 
-__version__ = "0.3.0"
+__version__ = '0.3.0'
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
 module: girder
 author: "Kitware, Inc. <kitware@kitware.com>
@@ -440,9 +440,9 @@ options:
                 required: true if state = present, else false
                 description:
                     - The value to set
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 
 
 #############
@@ -815,7 +815,7 @@ EXAMPLES = '''
         name: "An Item"
 
 
-'''
+"""
 
 
 def unjsonify(a):
@@ -830,7 +830,6 @@ def unjsonify(a):
     provided an object with one, will run until out of memory, at the stack
     limit, or until at some other run-time limit.
     """
-
     # if string, try to loads() it
     if isinstance(a, six.string_types):
         try:
@@ -866,9 +865,9 @@ def class_spec(cls, include=None):
             d = len(spec.defaults) if spec.defaults is not None else 0
             r = len(params) - d
 
-            yield (fn, {"required": params[:r],
-                        "optional": params[r:],
-                        "type": kind})
+            yield (fn, {'required': params[:r],
+                        'optional': params[r:],
+                        'type': kind})
 
 
 class Resource(object):
@@ -882,7 +881,7 @@ class Resource(object):
         if resource_type in self.known_resources:
             self.resource_type = resource_type
         else:
-            raise Exception("{} is an unknown resource!".format(resource_type))
+            raise Exception('{} is an unknown resource!'.format(resource_type))
 
     @property
     def resources(self):
@@ -901,7 +900,7 @@ class Resource(object):
 
     def __apply(self, _id, func, *args, **kwargs):
         if _id in self.resources.keys():
-            ret = func("{}/{}".format(self.resource_type, _id),
+            ret = func('{}/{}'.format(self.resource_type, _id),
                        *args, **kwargs)
             self.client.changed = True
         return ret
@@ -945,7 +944,7 @@ class Resource(object):
                 pass
             return self.__apply(_id, self.client.put, body, **kwargs)
         else:
-            raise Exception("{} does not exist!".format(_id))
+            raise Exception('{} does not exist!'.format(_id))
 
     def update_by_name(self, name, body, **kwargs):
         return self.update(self.resources_by_name[name]['_id'],
@@ -964,39 +963,39 @@ class Resource(object):
 class AccessMixin(object):
 
     def get_access(self, _id):
-        return self.client.get("{}/{}/access"
+        return self.client.get('{}/{}/access'
                                .format(self.resource_type, _id))
 
     def put_access(self, _id, access, public=True):
         current_access = self.get_access(_id)
 
         if set([tuple(u.values()) for u in access['users']]) ^ \
-           set([(u["id"], u['level']) for u in current_access['users']]):
+           set([(u['id'], u['level']) for u in current_access['users']]):
             self.client.changed = True
 
         if set([tuple(g.values()) for g in access['groups']]) ^ \
-           set([(u["id"], u['level']) for u in current_access['groups']]):
+           set([(u['id'], u['level']) for u in current_access['groups']]):
             self.client.changed = True
 
-        return self.client.put("{}/{}/access"
+        return self.client.put('{}/{}/access'
                                .format(self.resource_type, _id),
                                dict(access=json.dumps(access),
-                                    public="true" if public else "false"))
+                                    public='true' if public else 'false'))
 
 
 class CollectionResource(AccessMixin, Resource):
     def __init__(self, client):
-        super(CollectionResource, self).__init__(client, "collection")
+        super(CollectionResource, self).__init__(client, 'collection')
 
 
 class GroupResource(Resource):
     def __init__(self, client):
-        super(GroupResource, self).__init__(client, "group")
+        super(GroupResource, self).__init__(client, 'group')
 
 
 class FolderResource(AccessMixin, Resource):
     def __init__(self, client, parentType, parentId):
-        super(FolderResource, self).__init__(client, "folder")
+        super(FolderResource, self).__init__(client, 'folder')
         self.parentType = parentType
         self.parentId = parentId
 
@@ -1005,8 +1004,8 @@ class FolderResource(AccessMixin, Resource):
         if self._resources is None:
             self._resources = {r['_id']: r for r
                                in self.client.get(self.resource_type, {
-                                   "parentType": self.parentType,
-                                   "parentId": self.parentId
+                                   'parentType': self.parentType,
+                                   'parentId': self.parentId
                                })}
             # parentType is stored as parrentCollection in database
             # We need parentType to be available so we can do set
@@ -1020,7 +1019,7 @@ class FolderResource(AccessMixin, Resource):
 
 class ItemResource(Resource):
     def __init__(self, client, folderId):
-        super(ItemResource, self).__init__(client, "item")
+        super(ItemResource, self).__init__(client, 'item')
         self.folderId = folderId
 
     @property
@@ -1028,7 +1027,7 @@ class ItemResource(Resource):
         if self._resources is None:
             self._resources = {r['_id']: r for r
                                in self.client.get(self.resource_type, {
-                                   "folderId": self.folderId
+                                   'folderId': self.folderId
                                })}
         return self._resources
 
@@ -1054,7 +1053,7 @@ class GirderClientModule(GirderClient):
 
     def __init__(self):
         self.changed = False
-        self.message = {"msg": "Success!", "debug": {}}
+        self.message = {'msg': 'Success!', 'debug': {}}
 
         self.spec = dict(class_spec(self.__class__,
                                     GirderClientModule._include_methods))
@@ -1062,7 +1061,7 @@ class GirderClientModule(GirderClient):
 
         # Note: if additional types are added o girder this will
         # have to be updated!
-        self.access_types = {"member": 0, "moderator": 1, "admin": 2}
+        self.access_types = {'member': 0, 'moderator': 1, 'admin': 2}
 
     def __call__(self, module):
         self.module = module
@@ -1080,7 +1079,7 @@ class GirderClientModule(GirderClient):
                     password=self.module.params['password'])
 
             except AuthenticationError:
-                self.fail("Could not Authenticate!")
+                self.fail('Could not Authenticate!')
 
         elif self.module.params['apiKey'] is not None:
             try:
@@ -1088,7 +1087,7 @@ class GirderClientModule(GirderClient):
                     apiKey=self.module.params['apiKey'])
 
             except AuthenticationError:
-                self.fail("Could not Authenticate!")
+                self.fail('Could not Authenticate!')
 
         # If a token is set
         elif self.module.params['token'] is not None:
@@ -1096,8 +1095,8 @@ class GirderClientModule(GirderClient):
 
         # Else error if we're not trying to create a user
         elif self.module.params['user'] is None:
-            self.fail("Must pass in either username & password, "
-                      "or a valid girder_client token")
+            self.fail('Must pass in either username & password, '
+                      'or a valid girder_client token')
 
         self.message['token'] = self.token
 
@@ -1106,7 +1105,7 @@ class GirderClientModule(GirderClient):
                 self.__process(method)
                 self.exit()
 
-        self.fail("Could not find executable method!")
+        self.fail('Could not find executable method!')
 
     def __process(self, method):
         # Parameters from the YAML file
@@ -1119,7 +1118,7 @@ class GirderClientModule(GirderClient):
         if isinstance(params, dict):
             for arg_name in self.spec[method]['required']:
                 if arg_name not in params.keys():
-                    self.fail("%s is required for %s" % (arg_name, method))
+                    self.fail('%s is required for %s' % (arg_name, method))
                 args.append(params[arg_name])
 
             for kwarg_name in self.spec[method]['optional']:
@@ -1141,19 +1140,19 @@ class GirderClientModule(GirderClient):
         self.message['gc_return'] = ret
 
     def files(self, itemId, sources=None):
-        ret = {"added": [],
-               "removed": []}
+        ret = {'added': [],
+               'removed': []}
 
-        files = self.get("item/{}/files".format(itemId))
+        files = self.get('item/{}/files'.format(itemId))
 
         if self.module.params['state'] == 'present':
 
             file_dict = {f['name']: f for f in files}
 
             source_dict = {os.path.basename(s): {
-                "path": s,
-                "name": os.path.basename(s),
-                "size": os.path.getsize(s)} for s in sources}
+                'path': s,
+                'name': os.path.basename(s),
+                'size': os.path.getsize(s)} for s in sources}
 
             source_names = set([(s['name'], s['size'])
                                 for s in source_dict.values()])
@@ -1162,7 +1161,7 @@ class GirderClientModule(GirderClient):
                               for f in file_dict.values()])
 
             for n, _ in (file_names - source_names):
-                self.delete("file/{}".format(file_dict[n]['_id']))
+                self.delete('file/{}'.format(file_dict[n]['_id']))
                 ret['removed'].append(file_dict[n])
 
             for n, _ in (source_names - file_names):
@@ -1171,7 +1170,7 @@ class GirderClientModule(GirderClient):
 
         elif self.module.params['state'] == 'absent':
             for f in files:
-                self.delete("file/{}".format(f['_id']))
+                self.delete('file/{}'.format(f['_id']))
                 ret['removed'].append(f)
 
         if len(ret['added']) != 0 or len(ret['removed']) != 0:
@@ -1181,8 +1180,8 @@ class GirderClientModule(GirderClient):
 
     def _get_user_by_login(self, login):
         try:
-            user = self.get("/resource/lookup",
-                            {"path": "/user/{}".format(login)})
+            user = self.get('/resource/lookup',
+                            {'path': '/user/{}'.format(login)})
         except requests.HTTPError:
             user = None
         return user
@@ -1190,7 +1189,7 @@ class GirderClientModule(GirderClient):
     def _get_group_by_name(self, name):
         try:
             # Could potentially fail if we have more 50 groups
-            group = {g['name']: g for g in self.get("group")}['name']
+            group = {g['name']: g for g in self.get('group')}['name']
         except (KeyError, requests.HTTPError):
             group = None
         return group
@@ -1198,8 +1197,8 @@ class GirderClientModule(GirderClient):
     def group(self, name, description, users=None, debug=False):
 
         r = GroupResource(self)
-        valid_fields = [("name", name),
-                        ("description", description)]
+        valid_fields = [('name', name),
+                        ('description', description)]
 
         if self.module.params['state'] == 'present':
             if r.name_exists(name):
@@ -1210,19 +1209,19 @@ class GirderClientModule(GirderClient):
                                 if v is not None})
 
             if users is not None:
-                ret["added"] = []
-                ret["removed"] = []
-                ret["updated"] = []
+                ret['added'] = []
+                ret['removed'] = []
+                ret['updated'] = []
 
                 group_id = ret['_id']
 
                 # Validate and normalize the user list
                 for user in users:
-                    assert "login" in user.keys(), \
-                        "User list must have a login attribute"
+                    assert 'login' in user.keys(), \
+                        'User list must have a login attribute'
 
                     user['type'] = self.access_types.get(
-                        user.get('type', 'member'), "member")
+                        user.get('type', 'member'), 'member')
 
                 # dict of passed in login -> type
                 user_levels = {u['login']: u['type'] for u in users}
@@ -1236,11 +1235,11 @@ class GirderClientModule(GirderClient):
                     user = self._get_user_by_login(login)
                     if user is not None:
                         # add user at level
-                        self.post("group/{}/invitation".format(group_id),
-                                  {"userId": user["_id"],
-                                   "level": user_levels[login],
-                                   "quiet": True,
-                                   "force": True})
+                        self.post('group/{}/invitation'.format(group_id),
+                                  {'userId': user['_id'],
+                                   'level': user_levels[login],
+                                   'quiet': True,
+                                   'force': True})
                         ret['added'].append(user)
                     else:
                         raise Exception('{} is not a valid login!'
@@ -1248,8 +1247,8 @@ class GirderClientModule(GirderClient):
 
                 # Remove these users
                 for login in (set(members.keys()) - set(user_levels.keys())):
-                    self.delete("/group/{}/member".format(group_id),
-                                {"userId": members[login]['_id']})
+                    self.delete('/group/{}/member'.format(group_id),
+                                {'userId': members[login]['_id']})
                     ret['removed'].append(members[login])
 
                 # Set of users that potentially need to be updated
@@ -1268,7 +1267,7 @@ class GirderClientModule(GirderClient):
                     #  group, but have no permissions ON the group.
                     member_levels = {m['login']:
                                      user_access.get(m['login'],
-                                                     {"level": 0})['level']
+                                                     {'level': 0})['level']
                                      for m in members.values()}
 
                     ret = self._promote_or_demote_in_group(ret,
@@ -1278,8 +1277,8 @@ class GirderClientModule(GirderClient):
 
                 # Make sure 'changed' is handled correctly if we've
                 # manipulated the group's users in any way
-                if (len(ret['added']) != 0 or len(ret['removed']) != 0 or
-                        len(ret['updated']) != 0):
+                if (len(ret['added']) != 0 or len(ret['removed']) != 0
+                        or len(ret['updated']) != 0):
                     self.changed = True
 
         elif self.module.params['state'] == 'absent':
@@ -1299,20 +1298,19 @@ class GirderClientModule(GirderClient):
         :rtype: dict
 
         """
-
         reverse_type = {v: k for k, v in self.access_types.items()}
 
-        for login in (set(member_levels.keys()) &
-                      set(user_levels.keys())):
+        for login in (set(member_levels.keys())
+                      & set(user_levels.keys())):
             user = self._get_user_by_login(login)
-            _id = user["_id"]
+            _id = user['_id']
 
             # We're promoting
             if member_levels[login] < user_levels[login]:
                 resource = reverse_type[user_levels[login]]
-                self.post("group/{}/{}"
+                self.post('group/{}/{}'
                           .format(group_id, resource),
-                          {"userId": _id})
+                          {'userId': _id})
 
                 user['from_level'] = member_levels[login]
                 user['to_level'] = user_levels[login]
@@ -1321,18 +1319,18 @@ class GirderClientModule(GirderClient):
             # We're demoting
             elif member_levels[login] > user_levels[login]:
                 resource = reverse_type[member_levels[login]]
-                self.delete("group/{}/{}"
+                self.delete('group/{}/{}'
                             .format(group_id, resource),
-                            {"userId": _id})
+                            {'userId': _id})
 
                 # In case we're not demoting to member make sure
                 # to update to promote to whatever level we ARE
                 # demoting too now that our user is a only a member
                 if user_levels[login] != 0:
                     resource = reverse_type[user_levels[login]]
-                    self.post("group/{}/{}"
+                    self.post('group/{}/{}'
                               .format(group_id, resource),
-                              {"userId": _id})
+                              {'userId': _id})
 
                     user['from_level'] = member_levels[login]
                     user['to_level'] = user_levels[login]
@@ -1344,8 +1342,8 @@ class GirderClientModule(GirderClient):
              access=None, debug=False):
         ret = {}
         r = ItemResource(self, folderId)
-        valid_fields = [("name", name),
-                        ("description", description),
+        valid_fields = [('name', name),
+                        ('description', description),
                         ('folderId', folderId)]
 
         if self.module.params['state'] == 'present':
@@ -1368,25 +1366,25 @@ class GirderClientModule(GirderClient):
         ret = {}
 
         assert parentType in ['collection', 'folder', 'user'], \
-            "parentType must be collection or folder"
+            'parentType must be collection or folder'
 
         r = FolderResource(self, parentType, parentId)
-        valid_fields = [("name", name),
-                        ("description", description),
-                        ("parentType", parentType),
-                        ("parentId", parentId)]
+        valid_fields = [('name', name),
+                        ('description', description),
+                        ('parentType', parentType),
+                        ('parentId', parentId)]
 
         if self.module.params['state'] == 'present':
             if r.name_exists(name):
                 ret = r.update_by_name(name, {k: v for k, v in valid_fields
                                               if v is not None})
             else:
-                valid_fields = valid_fields + [("public", public)]
+                valid_fields = valid_fields + [('public', public)]
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
 
             if folders is not None:
-                self._process_folders(folders, ret["_id"], "folder")
+                self._process_folders(folders, ret['_id'], 'folder')
 
             # handle access here
             if access is not None:
@@ -1399,19 +1397,19 @@ class GirderClientModule(GirderClient):
         return ret
 
     def _access(self, r, access, _id, public=True):
-        access_list = {"users": [], "groups": []}
-        users = access.get("users", None)
-        groups = access.get("groups", None)
+        access_list = {'users': [], 'groups': []}
+        users = access.get('users', None)
+        groups = access.get('groups', None)
 
         if groups is not None:
             assert set(g['type'] for g in groups if 'type' in g) <= \
-                set(self.access_types.keys()), "Invalid access type!"
+                set(self.access_types.keys()), 'Invalid access type!'
 
             # Hash of name -> group information
             # used to get user id's for access control lists
-            all_groups = {g['name']: g for g in self.get("group")}
+            all_groups = {g['name']: g for g in self.get('group')}
 
-            access_list['groups'] = [{'id': all_groups[g['name']]["_id"],
+            access_list['groups'] = [{'id': all_groups[g['name']]['_id'],
                                       'level': self.access_types[g['type']]
                                       if 'type' in g else g['level']}
                                      for g in groups]
@@ -1419,22 +1417,23 @@ class GirderClientModule(GirderClient):
         if users is not None:
 
             assert set(u['type'] for u in users if 'type' in u) <= \
-                set(self.access_types.keys()), "Invalid access type!"
+                set(self.access_types.keys()), 'Invalid access type!'
 
             # Hash of login -> user information
             # used to get user id's for access control lists
             current_users = {u['login']: self._get_user_by_login(u['login'])
                              for u in users}
 
-            access_list['users'] = [{'id': current_users[u['login']]["_id"],
-                                     "level": self.access_types[u['type']]
+            access_list['users'] = [{'id': current_users[u['login']]['_id'],
+                                     'level': self.access_types[u['type']]
                                      if 'type' in u else u['level']}
                                     for u in users]
 
         return r.put_access(_id, access_list, public=public)
 
     def _process_folders(self, folders, parentId, parentType):
-        """Process a list of folders from a user or collection.
+        """
+        Process a list of folders from a user or collection.
 
         :param folders: List of folders passed as attribute
                         to user or collection
@@ -1442,12 +1441,10 @@ class GirderClientModule(GirderClient):
         :param parentType: one of 'user' or 'collection'
         :returns: Nothing
         :rtype: None
-
         """
-
         current_folders = {f['name']: f for f in
-                           self.get("folder", {"parentType": parentType,
-                                               "parentId": parentId})}
+                           self.get('folder', {'parentType': parentType,
+                                               'parentId': parentId})}
         # Add, update or noop listed folders
         for folder in folders:
             # some validation of folder here would be a good idea
@@ -1459,11 +1456,11 @@ class GirderClientModule(GirderClient):
                         **kwargs)
 
         # Make sure we remove folders not listed
-        for name in (set(current_folders.keys()) -
-                     set([f['name'] for f in folders])):
+        for name in (set(current_folders.keys())
+                     - set([f['name'] for f in folders])):
 
             original_state = self.module.params['state']
-            self.module.params['state'] = "absent"
+            self.module.params['state'] = 'absent'
             self.folder(name,
                         parentId=parentId,
                         parentType=parentType)
@@ -1474,8 +1471,8 @@ class GirderClientModule(GirderClient):
 
         ret = {}
         r = CollectionResource(self)
-        valid_fields = [("name", name),
-                        ("description", description)]
+        valid_fields = [('name', name),
+                        ('description', description)]
 
         if self.module.params['state'] == 'present':
             if r.name_exists(name):
@@ -1488,7 +1485,7 @@ class GirderClientModule(GirderClient):
                 if r.resources_by_name[name]['public'] != public:
                     _id = r.resources_by_name[name]['_id']
                     self.changed = True
-                    self._access(r,  r.get_access(_id), _id, public=public)
+                    self._access(r, r.get_access(_id), _id, public=public)
                     # invalidate the resource cache - this forces us to pick up
                     # the change in 'public' attribute despite it not being
                     # an attribute we can modify
@@ -1498,11 +1495,11 @@ class GirderClientModule(GirderClient):
                                               if v is not None})
 
             else:
-                valid_fields.append(("public", public))
+                valid_fields.append(('public', public))
                 ret = r.create({k: v for k, v in valid_fields
                                 if v is not None})
         if folders is not None:
-            self._process_folders(folders, ret["_id"], "collection")
+            self._process_folders(folders, ret['_id'], 'collection')
 
         if access is not None:
             _id = ret['_id']
@@ -1522,14 +1519,14 @@ class GirderClientModule(GirderClient):
             for var_name, var in [('firstName', firstName),
                                   ('lastName', lastName), ('email', email)]:
                 if var is None:
-                    self.fail("%s must be set if state "
+                    self.fail('%s must be set if state '
                               "is 'present'" % var_name)
 
             try:
                 ret = self.authenticate(username=login,
                                         password=password)
 
-                me = self.get("user/me")
+                me = self.get('user/me')
 
                 # List of fields that can actually be updated
                 updateable = ['firstName', 'lastName', 'email', 'admin']
@@ -1539,33 +1536,33 @@ class GirderClientModule(GirderClient):
                 if set([(k, v) for k, v in me.items() if k in updateable]) ^ \
                    set(zip(updateable, passed_in)):
 
-                    self.put("user/%s" % me['_id'],
+                    self.put('user/%s' % me['_id'],
                              parameters={
-                                 "login": login,
-                                 "firstName": firstName,
-                                 "lastName": lastName,
-                                 "password": password,
-                                 "email": email,
-                                 "admin": "true" if admin else "false"})
+                                 'login': login,
+                                 'firstName': firstName,
+                                 'lastName': lastName,
+                                 'password': password,
+                                 'email': email,
+                                 'admin': 'true' if admin else 'false'})
                     self.changed = True
 
                 ret = me
             # User does not exist (with this login info)
             except AuthenticationError:
-                ret = self.post("user", parameters={
-                    "login": login,
-                    "firstName": firstName,
-                    "lastName": lastName,
-                    "password": password,
-                    "email": email,
-                    "admin": "true" if admin else "false"
+                ret = self.post('user', parameters={
+                    'login': login,
+                    'firstName': firstName,
+                    'lastName': lastName,
+                    'password': password,
+                    'email': email,
+                    'admin': 'true' if admin else 'false'
                 })
                 self.changed = True
 
             if folders is not None:
-                _id = self.get("resource/lookup",
-                               {"path": "/user/{}".format(login)})["_id"]
-                self._process_folders(folders, _id, "user")
+                _id = self.get('resource/lookup',
+                               {'path': '/user/{}'.format(login)})['_id']
+                self._process_folders(folders, _id, 'user')
 
         elif self.module.params['state'] == 'absent':
             ret = []
@@ -1573,7 +1570,7 @@ class GirderClientModule(GirderClient):
                 ret = self.authenticate(username=login,
                                         password=password)
 
-                me = self.get("user/me")
+                me = self.get('user/me')
 
                 self.delete('user/%s' % me['_id'])
                 self.changed = True
@@ -1591,11 +1588,11 @@ class GirderClientModule(GirderClient):
                                               data=json.dumps(data))
 
     assetstore_types = {
-        "filesystem": 0,
-        "gridfs": 1,
-        "s3": 2,
-        "hdfs": "hdfs",
-        "database": "database"
+        'filesystem': 0,
+        'gridfs': 1,
+        's3': 2,
+        'hdfs': 'hdfs',
+        'database': 'database'
     }
 
     def __validate_hdfs_assetstore(self, *args, **kwargs):
@@ -1614,18 +1611,18 @@ class GirderClientModule(GirderClient):
 
         # Fail if somehow we have an asset type not in assetstore_types
         if type not in self.assetstore_types.keys():
-            self.fail("assetstore type %s is not implemented!" % type)
+            self.fail('assetstore type %s is not implemented!' % type)
 
         argument_hash = {
-            "filesystem": {'name': name,
+            'filesystem': {'name': name,
                            'type': self.assetstore_types[type],
                            'root': root},
-            "gridfs": {'name': name,
+            'gridfs': {'name': name,
                        'type': self.assetstore_types[type],
                        'db': db,
                        'mongohost': mongohost,
                        'replicaset': replicaset},
-            "s3": {'name': name,
+            's3': {'name': name,
                    'type': self.assetstore_types[type],
                    'bucket': bucket},
             'hdfs': {'name': name,
@@ -1645,8 +1642,8 @@ class GirderClientModule(GirderClient):
         # for this asset type
         for k, v in argument_hash[type].items():
             if v is None:
-                self.fail("assetstores of type "
-                          "%s require attribute %s" % (type, k))
+                self.fail('assetstores of type '
+                          '%s require attribute %s' % (type, k))
 
         # Set optional arguments in the hash
         argument_hash[type]['readOnly'] = readOnly
@@ -1660,7 +1657,7 @@ class GirderClientModule(GirderClient):
 
         ret = []
         # Get the current assetstores
-        assetstores = {a['name']: a for a in self.get("assetstore")}
+        assetstores = {a['name']: a for a in self.get('assetstore')}
 
         self.message['debug']['assetstores'] = assetstores
 
@@ -1681,11 +1678,11 @@ class GirderClientModule(GirderClient):
                 # readOnly). We could be more precise about this
                 # (e.g., by only checking items that are relevant to this type)
                 # but readability suffers.
-                updateable = ["root", "mongohost", "replicaset", "bucket",
-                              "prefix", "db", "accessKeyId", "secret",
-                              "service", "host", "port", "path", "user",
-                              "webHdfsPort", "current", "dbtype", "dburi",
-                              "region", "inferCredentials"]
+                updateable = ['root', 'mongohost', 'replicaset', 'bucket',
+                              'prefix', 'db', 'accessKeyId', 'secret',
+                              'service', 'host', 'port', 'path', 'user',
+                              'webHdfsPort', 'current', 'dbtype', 'dburi',
+                              'region', 'inferCredentials']
 
                 # tuples of (key,  value) for fields that can be updated
                 # in the assetstore
@@ -1702,7 +1699,7 @@ class GirderClientModule(GirderClient):
                 # if arg_hash_items not a subset of assetstore_items
                 if not arg_hash_items <= assetstore_items:
                     # Update
-                    ret = self.put("assetstore/%s" % id,
+                    ret = self.put('assetstore/%s' % id,
                                    parameters=argument_hash[type])
 
                     self.changed = True
@@ -1713,12 +1710,12 @@ class GirderClientModule(GirderClient):
                     # If __validate_[type]_assetstore exists then call the
                     # function with argument_hash. E.g.,  to check if the
                     # HDFS plugin is enabled
-                    getattr(self, "__validate_%s_assetstore" % type
+                    getattr(self, '__validate_%s_assetstore' % type
                             )(**argument_hash)
                 except AttributeError:
                     pass
 
-                ret = self.post("assetstore",
+                ret = self.post('assetstore',
                                 parameters=argument_hash[type])
                 self.changed = True
         # If we want the assetstore to be gone
@@ -1726,7 +1723,7 @@ class GirderClientModule(GirderClient):
             # And the assetstore exists
             if name in assetstores.keys():
                 id = assetstores[name]['_id']
-                ret = self.delete("assetstore/%s" % id,
+                ret = self.delete('assetstore/%s' % id,
                                   parameters=argument_hash[type])
                 self.changed = True
 
@@ -1783,13 +1780,12 @@ class GirderClientModule(GirderClient):
 
 
 def main():
-    """Entry point for ansible girder client module
+    """
+    Entry point for ansible girder client module
 
     :returns: Nothing
     :rtype: NoneType
-
     """
-
     # Default spec for initalizing and authenticating
     argument_spec = {
         # __init__
@@ -1804,11 +1800,11 @@ def main():
         # authenticate
         'username': dict(),
         'password': dict(),
-        'token':    dict(),
+        'token': dict(),
         'apiKey': dict(),
 
         # General
-        'state': dict(default="present", choices=['present', 'absent'])
+        'state': dict(default='present', choices=['present', 'absent'])
     }
 
     gcm = GirderClientModule()
@@ -1819,26 +1815,26 @@ def main():
     module = AnsibleModule(  # noqa
         argument_spec=argument_spec,
         required_one_of=[gcm.required_one_of,
-                         ["token", "username", "user", "apiKey"]],
-        required_together=[["username", "password"]],
+                         ['token', 'username', 'user', 'apiKey']],
+        required_together=[['username', 'password']],
         mutually_exclusive=gcm.required_one_of,
         supports_check_mode=False)
 
     if not HAS_GIRDER_CLIENT:
-        module.fail_json(msg="Could not import GirderClient!")
+        module.fail_json(msg='Could not import GirderClient!')
 
     try:
         gcm(module)
 
     except requests.HTTPError as e:
         import traceback
-        module.fail_json(msg="%s:%s\n%s\n%s" % (e.__class__, str(e),
+        module.fail_json(msg='%s:%s\n%s\n%s' % (e.__class__, str(e),
                                                 e.response.text,
                                                 traceback.format_exc()))
     except Exception as e:
         import traceback
         # exc_type, exc_obj, exec_tb = sys.exc_info()
-        module.fail_json(msg="%s: %s\n\n%s" % (e.__class__, str(e),
+        module.fail_json(msg='%s: %s\n\n%s' % (e.__class__, str(e),
                                                traceback.format_exc()))
 
 

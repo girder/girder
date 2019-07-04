@@ -154,7 +154,7 @@ router.route('useraccount/:id/token/:token', 'accountToken', function (id, token
                 temporary: token
             });
         }).fail(() => {
-            router.navigate('', {trigger: true});
+            router.navigate('', { trigger: true });
         });
 });
 
@@ -162,7 +162,7 @@ router.route('useraccount/:id/verification/:token', 'accountVerify', function (i
     restRequest({
         url: `user/${id}/verification`,
         method: 'PUT',
-        data: {token: token},
+        data: { token: token },
         error: null
     }).done((resp) => {
         if (resp.authToken) {

@@ -33,6 +33,7 @@ class ModelImporter(object):
     Any class that wants to have convenient model importing semantics
     should extend/mixin this class.
     """
+
     @staticmethod
     def model(model, plugin='_core'):
         """

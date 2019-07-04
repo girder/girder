@@ -24,8 +24,11 @@ CollectionModel.prototype.currentUserHasAcceptedTerms = function () {
             (userAcceptedTerms.collection[this.id].hash === termsHash);
     } else {
         const storageKey = `terms.collection.${this.id}`;
-        return (window.localStorage.getItem(storageKey) === termsHash) ||
-               (termsAcceptedFallback[this.id] === termsHash);
+        try {
+            return window.localStorage.getItem(storageKey) === termsHash;
+        } catch (e) {
+            return termsAcceptedFallback[this.id] === termsHash;
+        }
     }
 };
 

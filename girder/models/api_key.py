@@ -12,6 +12,7 @@ class ApiKey(AccessControlledModel):
     """
     This model represents API keys corresponding to users.
     """
+
     def initialize(self):
         self.name = 'api_key'
         self.ensureIndices(('userId', 'key'))

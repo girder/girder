@@ -22,7 +22,7 @@ if os.environ.get('READTHEDOCS'):
 # The 'girder' and "girder_client" packages must be installed at this point
 _girder_package = pkg_resources.get_distribution('girder')
 _girder_client_package = pkg_resources.get_distribution('girder_client')
-_girder_version =  _girder_package.version
+_girder_version = _girder_package.version
 _girder_imports = {
     _requirement.project_name.lower()
     for _package in [_girder_package, _girder_client_package]

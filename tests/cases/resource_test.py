@@ -107,16 +107,16 @@ class ResourceTestCase(base.TestCase):
         Item().setMetadata(self.items[2], meta)
         parents = Item().parentsToRoot(self.items[2], self.admin)
         path = os.path.join(*([part['object'].get(
-            'name', part['object'].get('login', '')) for part in parents] +
-            [self.items[2]['name'], 'girder-item-metadata.json']))
+            'name', part['object'].get('login', '')) for part in parents]
+            + [self.items[2]['name'], 'girder-item-metadata.json']))
         self.expectedZip[path] = meta
 
         meta = {'x': 'y'}
         Item().setMetadata(self.items[4], meta)
         parents = Item().parentsToRoot(self.items[4], self.admin)
         path = os.path.join(*([part['object'].get(
-            'name', part['object'].get('login', '')) for part in parents] +
-            [self.items[4]['name'], 'girder-item-metadata.json']))
+            'name', part['object'].get('login', '')) for part in parents]
+            + [self.items[4]['name'], 'girder-item-metadata.json']))
         self.expectedZip[path] = meta
 
         meta = {'key2': 'value2', 'date': datetime.datetime.utcnow()}
@@ -126,8 +126,8 @@ class ResourceTestCase(base.TestCase):
         Folder().setMetadata(self.adminPublicFolder, meta)
         parents = Folder().parentsToRoot(self.adminPublicFolder, user=user)
         path = os.path.join(*([part['object'].get(
-            'name', part['object'].get('login', '')) for part in parents] +
-            [self.adminPublicFolder['name'], 'girder-folder-metadata.json']))
+            'name', part['object'].get('login', '')) for part in parents]
+            + [self.adminPublicFolder['name'], 'girder-folder-metadata.json']))
         self.expectedZip[path] = meta
 
     def _uploadFile(self, name, item):
@@ -143,8 +143,8 @@ class ResourceTestCase(base.TestCase):
         file = self.uploadFile(name, contents, user=self.admin, parent=item, parentType='item')
         parents = Item().parentsToRoot(item, user=self.admin)
         path = os.path.join(*([part['object'].get(
-            'name', part['object'].get('login', '')) for part in parents] +
-            [item['name'], name]))
+            'name', part['object'].get('login', '')) for part in parents]
+            + [item['name'], name]))
         return file, path, contents
 
     def testDownloadResources(self):
@@ -240,8 +240,8 @@ class ResourceTestCase(base.TestCase):
         self.assertEqual(notifs[0]['data']['message'], 'Done')
         self.assertEqual(notifs[0]['data']['total'], 6)
         self.assertEqual(notifs[0]['data']['current'], 6)
-        self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow() +
-                        datetime.timedelta(minutes=1))
+        self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow()
+                        + datetime.timedelta(minutes=1))
         # Test deletes using a body on the request
         resourceList = {
             'item': [str(self.items[1]['_id'])]
@@ -373,8 +373,8 @@ class ResourceTestCase(base.TestCase):
         resp = self.request(path='/resource/lookup',
                             method='GET', user=self.admin,
                             params={'path':
-                                    '/collection/Test Collection/' +
-                                    self.collectionPrivateFolder['name']})
+                                    '/collection/Test Collection/'
+                                    + self.collectionPrivateFolder['name']})
         self.assertStatusOk(resp)
         self.assertEqual(str(resp.json['_id']),
                          str(self.collectionPrivateFolder['_id']))
@@ -671,7 +671,7 @@ class ResourceTestCase(base.TestCase):
         resp = self.request(path='/item', method='GET', user=self.user,
                             params={'folderId': str(copiedFolder['_id'])})
         self.assertStatusOk(resp)
-        self.assertEqual(len(resp.json), len(self.items)+1)
+        self.assertEqual(len(resp.json), len(self.items) + 1)
         # Copying a non-existant object should give an error
         resp = self.request(
             path='/resource/copy', method='POST', user=self.admin, params={

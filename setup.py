@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import itertools
 
 from setuptools import setup, find_packages
 
@@ -12,7 +11,6 @@ def prerelease_local_scheme(version):
     pre-release in which case it ignores the hash and produces a
     PEP440 compliant pre-release version number (e.g. 0.0.0.dev<N>).
     """
-
     from setuptools_scm.version import get_local_node_and_date
 
     if os.getenv('CIRCLE_BRANCH') == 'master':
@@ -34,7 +32,7 @@ installReqs = [
     'click-plugins',
     'dogpile.cache',
     'filelock',
-    'funcsigs ; python_version < \'3\'',
+    "funcsigs ; python_version < '3'",
     'jsonschema',
     'Mako',
     'passlib [bcrypt,totp]',
@@ -45,7 +43,7 @@ installReqs = [
     'python-dateutil',
     'pytz',
     'requests',
-    'shutilwhich ; python_version < \'3\'',
+    "shutilwhich ; python_version < '3'",
     'six>=1.9',
 ]
 

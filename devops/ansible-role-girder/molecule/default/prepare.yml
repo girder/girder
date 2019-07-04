@@ -1,6 +1,6 @@
 ---
 - name: Prepare
-  hosts: all
+  hosts: targets
   tasks:
     # gpg is needed to add other APT repositories
     - name: Install gnupg2

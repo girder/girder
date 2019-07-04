@@ -60,7 +60,7 @@ class GroupTestCase(base.TestCase):
         self.assertStatus(resp, 403)
         self.assertEqual(resp.json['message'], 'Administrator access required.')
         user2 = User().load(self.users[2]['_id'], force=True)
-        self.assertFalse(group['_id'] in user2.get('groups',  ()))
+        self.assertFalse(group['_id'] in user2.get('groups', ()))
 
     def testDeleteGroupDeletesAccessReferences(self):
         """

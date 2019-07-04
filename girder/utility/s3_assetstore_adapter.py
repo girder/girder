@@ -584,10 +584,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         :results: Whether the upload is known
         """
         for upload in knownUploads:
-            if ('s3' in upload and 'uploadId' in upload['s3'] and
-                    'key' in upload['s3']):
-                if (multipartUpload['UploadId'] == upload['s3']['uploadId'] and
-                        multipartUpload['Key'] == upload['s3']['key']):
+            if ('s3' in upload and 'uploadId' in upload['s3']
+                    and 'key' in upload['s3']):
+                if (multipartUpload['UploadId'] == upload['s3']['uploadId']
+                        and multipartUpload['Key'] == upload['s3']['key']):
                     return True
         return False
 
