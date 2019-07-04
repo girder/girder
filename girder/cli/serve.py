@@ -22,6 +22,8 @@ from girder.constants import ServerMode
 @click.option('-p', '--port', type=int, default=cherrypy.config['server.socket_port'],
               show_default=True, help='The port to bind to')
 def main(dev, mode, database, host, port):
+    if (dev and mode):
+        raise click.ClickException('Conflict between --dev and --mode')
     if (dev):
         mode = ServerMode.DEVELOPMENT
 

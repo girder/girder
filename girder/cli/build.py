@@ -42,6 +42,8 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
             'path, use the --npm flag, or set the "NPM_EXE" environment variable.'
         )
 
+    if (dev and mode):
+        raise click.ClickException('Conflict between --dev and --mode')
     if (dev):
         mode = ServerMode.DEVELOPMENT
 
