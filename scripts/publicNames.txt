@@ -1222,6 +1222,9 @@ plugins
                     PROVIDERS_ENABLED
     sentry
         girder_sentry
+            PluginSettings
+                BACKEND_DSN
+                FRONTEND_DSN
             SentryPlugin
                 CLIENT_SOURCE_PATH
                 DISPLAY_NAME

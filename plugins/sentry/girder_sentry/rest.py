@@ -18,5 +18,5 @@ class Sentry(Resource):
         Description('Public URL for getting the Sentry DSN.')
     )
     def _getDsn(self, params):
-        dsn = Setting().get(PluginSettings._FRONTEND_DSN)
+        dsn = Setting().get(PluginSettings.FRONTEND_DSN)
         return {'sentry_dsn': dsn}
