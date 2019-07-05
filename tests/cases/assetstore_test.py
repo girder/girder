@@ -319,21 +319,20 @@ class AssetstoreTestCase(base.TestCase):
         self.assertTrue(inspect.isgeneratorfunction(adapter.findInvalidFiles))
 
         with ProgressContext(True, user=self.admin, title='test') as p:
-            for i, info in enumerate(
-                    adapter.findInvalidFiles(progress=p, filters={
-                        'imported': True
-                    }), 1):
-                self.assertEqual(info['reason'], 'missing')
-                self.assertEqual(info['file']['_id'], fakeImport['_id'])
-            self.assertEqual(i, 1)
+            invalidFiles = list(adapter.findInvalidFiles(progress=p, filters={
+                'imported': True
+            }))
+            self.assertEqual(len(invalidFiles), 1)
+            self.assertEqual(invalidFiles[0]['reason'], 'missing')
+            self.assertEqual(invalidFiles[0]['file']['_id'], fakeImport['_id'])
             self.assertEqual(p.progress['data']['current'], 2)
             self.assertEqual(p.progress['data']['total'], 2)
 
-            for i, info in enumerate(
-                    adapter.findInvalidFiles(progress=p), 1):
-                self.assertEqual(info['reason'], 'missing')
-                self.assertIn(info['file']['_id'], (fakeImport['_id'], fake['_id']))
-            self.assertEqual(i, 2)
+            invalidFiles = list(adapter.findInvalidFiles(progress=p))
+            self.assertEqual(len(invalidFiles), 2)
+            for invalidFile in invalidFiles:
+                self.assertEqual(invalidFile['reason'], 'missing')
+                self.assertIn(invalidFile['file']['_id'], (fakeImport['_id'], fake['_id']))
             self.assertEqual(p.progress['data']['current'], 3)
             self.assertEqual(p.progress['data']['total'], 3)
 

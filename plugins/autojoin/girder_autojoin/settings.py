@@ -37,4 +37,4 @@ def _validateAutojoin(doc):
     try:
         jsonschema.validate(doc['value'], autojoinSchema)
     except jsonschema.ValidationError as e:
-        raise ValidationException('Invalid autojoin rules: ' + e.message)
+        raise ValidationException('Invalid autojoin rules: ' + str(e))

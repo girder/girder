@@ -18,7 +18,7 @@ class CherrypyRequestBackend(MemoryBackend):
     @property
     def _cache(self):
         if not hasattr(cherrypy.request, '_girderCache'):
-            setattr(cherrypy.request, '_girderCache', {})
+            cherrypy.request._girderCache = {}
 
         return cherrypy.request._girderCache
 

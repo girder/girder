@@ -688,7 +688,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                 jsonschema.validate(val, info['schema'])
             except jsonschema.ValidationError as e:
                 raise RestException('Invalid JSON object for parameter %s: %s' % (
-                    name, e.message))
+                    name, str(e)))
         elif info['requireObject'] and not isinstance(val, dict):
             raise RestException('Parameter %s must be a JSON object.' % name)
         elif info['requireArray'] and not isinstance(val, list):
