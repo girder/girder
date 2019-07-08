@@ -77,6 +77,7 @@ def testApiKeyCreation(server, user, apiKey):
     assert apiKey['lastUse'] is None
     assert apiKey['tokenDuration'] is None
     assert apiKey['active'] is True
+    assert apiKey['apiKeyDuration'] is None
 
 
 def testTokenCreation(server, user, apiKey):
@@ -112,6 +113,17 @@ def testTokenCreationDuration(server, user, apiKey):
         resp.json['authToken']['token'], force=True, objectId=False)
     duration = token['expires'] - token['created']
     assert duration == datetime.timedelta(days=defaultDuration - 1)
+
+
+def testBadApiKeyTokenDurations(server, user):
+    resp = server.request('/api_key', method='POST', user=user, params={
+        'name': 'test key',
+        'tokenDuration': 10,
+        'apiKeyDuration': 5
+
+    })
+    assertStatus(resp, 400)
+    assert resp.json['message'] == 'Token duration cannot be longer than api key duration'
 
 
 def testTokenCreatesUniqueTokens(server, user, apiKey):
