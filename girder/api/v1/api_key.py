@@ -49,13 +49,14 @@ class ApiKey(Resource):
                'key will last.', required=False)
         .param('active', 'Whether the key is currently active.', required=False,
                dataType='boolean', default=True)
+        .param('apiKeyDuration', 'Max number of days for api key to be used', required=False)
         .errorResponse()
     )
-    def createKey(self, name, scope, tokenDuration, active):
+    def createKey(self, name, scope, tokenDuration, active, apiKeyDuration):
         if Setting().get(SettingKey.API_KEYS):
             return ApiKeyModel().createApiKey(
                 user=self.getCurrentUser(), name=name, scope=scope, days=tokenDuration,
-                active=active)
+                active=active, apiKeyDuration=apiKeyDuration)
         else:
             raise RestException('API key functionality is disabled on this instance.')
 
@@ -72,9 +73,10 @@ class ApiKey(Resource):
                required=False)
         .param('active', 'Whether the key is currently active.', required=False,
                dataType='boolean')
+        .param('apiKeyDuration', 'Max number of days for api key to be used', required=False)
         .errorResponse()
     )
-    def updateKey(self, apiKey, name, scope, tokenDuration, active):
+    def updateKey(self, apiKey, name, scope, tokenDuration, active, apiKeyDuration):
         if active is not None:
             apiKey['active'] = active
         if name is not None:
@@ -83,6 +85,8 @@ class ApiKey(Resource):
             apiKey['tokenDuration'] = tokenDuration
         if scope != ():
             apiKey['scope'] = scope
+        if apiKeyDuration is not None:
+            apiKey['apiKeyDuration'] = apiKeyDuration
 
         return ApiKeyModel().save(apiKey)
 
