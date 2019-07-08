@@ -16,7 +16,7 @@ class ApiKey(AccessControlledModel):
     def initialize(self):
         self.name = 'api_key'
         self.ensureIndices(('userId', 'key'))
-
+        self.ensureIndex(('expires', {'expireAfterSeconds': 0}))
         self.exposeFields(level=AccessType.READ, fields={
             '_id', 'active', 'created', 'key', 'lastUse', 'name', 'scope',
             'tokenDuration', 'userId'
@@ -30,6 +30,15 @@ class ApiKey(AccessControlledModel):
             doc['tokenDuration'] = float(doc['tokenDuration'])
         else:
             doc['tokenDuration'] = None
+
+        if doc['apiKeyDuration']:
+            doc['apiKeyDuration'] = float(doc['apiKeyDuration'])
+        else:
+            doc['apiKeyDuration'] = None
+
+        if doc['apiKeyDuration'] and doc['tokenDuration']:
+            if doc['tokenDuration'] > doc['apiKeyDuration']:
+                raise ValidationException('Token duration cannot be longer than api key duration')
 
         doc['name'] = doc['name'].strip()
         doc['active'] = bool(doc.get('active', True))
@@ -74,7 +83,7 @@ class ApiKey(AccessControlledModel):
             'userId': user['_id']
         }, limit=limit, offset=offset, sort=sort)
 
-    def createApiKey(self, user, name, scope=None, days=None, active=True):
+    def createApiKey(self, user, name, scope=None, days=None, active=True, apiKeyDuration=None):
         """
         Create a new API key for a user.
 
@@ -90,8 +99,18 @@ class ApiKey(AccessControlledModel):
             will grant tokens provided full access on behalf of the user.
         :type scope: str, list of str, or set of str
         :param active: Whether this key is active.
+        :param apiKeyDuration: The lifespan of the api key in days. If not passed, uses
+            the database setting for api key lifetime. Note that this is a
+            maximum duration; clients may request tokens with a shorter lifetime
+            than this value.
+        :type days: float or int
         :returns: The API key document that was created.
         """
+        from .setting import Setting
+
+        now = datetime.datetime.utcnow()
+        apiKeyDurationDays = apiKeyDuration or Setting().get(SettingKey.API_KEY_LIFETIME)
+
         apiKey = {
             'created': datetime.datetime.utcnow(),
             'lastUse': None,
@@ -100,7 +119,9 @@ class ApiKey(AccessControlledModel):
             'scope': scope,
             'userId': user['_id'],
             'key': genToken(40),
-            'active': active
+            'active': active,
+            'apiKeyDuration': apiKeyDuration,
+            'expires': now + datetime.timedelta(days=float(apiKeyDurationDays))
         }
 
         return self.setUserAccess(apiKey, user, level=AccessType.ADMIN, save=True)
