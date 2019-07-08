@@ -24,6 +24,7 @@ class SettingKey(object):
     COLLECTION_CREATE_POLICY = 'core.collection_create_policy'
     CONTACT_EMAIL_ADDRESS = 'core.contact_email_address'
     COOKIE_LIFETIME = 'core.cookie_lifetime'
+    API_KEY_LIFETIME = 'core.api_key_lifetime'
     CORS_ALLOW_HEADERS = 'core.cors.allow_headers'
     CORS_ALLOW_METHODS = 'core.cors.allow_methods'
     CORS_ALLOW_ORIGIN = 'core.cors.allow_origin'
@@ -65,6 +66,7 @@ class SettingDefault(object):
         },
         SettingKey.CONTACT_EMAIL_ADDRESS: 'kitware@kitware.com',
         SettingKey.COOKIE_LIFETIME: 180,
+        SettingKey.API_KEY_LIFETIME: 180,
         # These headers are necessary to allow the web server to work with just
         # changes to the CORS origin
         SettingKey.CORS_ALLOW_HEADERS:
@@ -182,6 +184,17 @@ class SettingValidator(object):
         except ValueError:
             pass  # We want to raise the ValidationException
         raise ValidationException('Cookie lifetime must be an integer > 0.', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.API_KEY_LIFETIME)
+    def _validateApiKeyLifetime(doc):
+        try:
+            doc['value'] = int(doc['value'])
+            if doc['value'] > 0:
+                return
+        except ValueError:
+            pass  # We want to raise the ValidationException
+        raise ValidationException('Api Key lifetime must be an integer > 0.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.CORS_ALLOW_HEADERS)
