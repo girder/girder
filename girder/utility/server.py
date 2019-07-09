@@ -176,9 +176,6 @@ def setup(mode=None, plugins=None, curConfig=None):
         if name != constants.GIRDER_ROUTE_ID and name in pluginWebroots:
             cherrypy.tree.mount(pluginWebroots[name], route, appconf)
 
-    if mode and mode != ServerMode.PRODUCTION:
-        application.merge({'server': {'mode': mode}})
-
     return application
 
 
