@@ -9,7 +9,7 @@ from girder.constants import ServerMode
 
 
 @click.command(name='serve', short_help='Run the Girder server.', help='Run the Girder server.')
-@click.option('--dev', default=False, is_flag=True, help='Sets the server mode to development')
+@click.option('--dev', default=False, is_flag=True, help='Alias for --mode=development')
 @click.option('--mode', type=click.Choice([
     ServerMode.PRODUCTION,
     ServerMode.DEVELOPMENT,
