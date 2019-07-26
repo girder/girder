@@ -16,7 +16,7 @@ var ConfigView = View.extend({
                 key: 'sentry.backend_dsn',
                 value: this.$('#g-sentry-server-dsn').val().trim()
             }], {
-                error_target: '#g-sentry-server-error-message'
+                errorTarget: '#g-sentry-server-error-message'
             });
         },
         'submit #g-sentry-client-form': function (event) {
@@ -27,7 +27,7 @@ var ConfigView = View.extend({
                 key: 'sentry.frontend_dsn',
                 value: this.$('#g-sentry-client-dsn').val().trim()
             }], {
-                error_target: '#g-sentry-client-error-message'
+                errorTarget: '#g-sentry-client-error-message'
             });
         }
     },
@@ -79,7 +79,7 @@ var ConfigView = View.extend({
                 timeout: 4000
             });
         }).fail((resp) => {
-            this.$(params.error_target).text(
+            this.$(params.errorTarget).text(
                 resp.responseJSON.message
             );
         });
