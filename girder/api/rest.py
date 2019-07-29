@@ -19,7 +19,7 @@ from girder.external.mongodb_proxy import MongoProxy
 
 from . import docs
 from girder import auditLogger, events, logger, logprint
-from girder.constants import TokenScope, SortDir
+from girder.constants import TokenScope, SortDir, ServerMode
 from girder.exceptions import AccessException, GirderException, ValidationException, RestException
 from girder.models.setting import Setting
 from girder.models.token import Token
@@ -666,7 +666,7 @@ def endpoint(fun):
             cherrypy.response.status = 500
             val = dict(type='internal', uid=cherrypy.request.girderRequestUid)
 
-            if config.getConfig()['server']['mode'] == 'production':
+            if config.getServerMode() == ServerMode.PRODUCTION:
                 # Sanitize errors in production mode
                 val['message'] = 'An unexpected error occurred on the server.'
             else:

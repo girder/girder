@@ -54,6 +54,12 @@ def registerAccessFlag(key, name, description=None, admin=False):
     }
 
 
+class ServerMode(object):
+    PRODUCTION = 'production'
+    DEVELOPMENT = 'development'
+    TESTING = 'testing'
+
+
 class TerminalColor(object):
     """
     Provides a set of values that can be used to color text in the terminal.
