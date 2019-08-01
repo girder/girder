@@ -1755,20 +1755,9 @@ class GirderClientModule(GirderClient):
             else:
                 ret['previous_value'] = ret['current_value'] = existing_value
 
-        elif self.module.params['state'] == 'absent':
-            # Removing a setting is a way of explicitly forcing it to be the default
-            existing_value = self.get('system/setting', parameters={'key': key})
-            default = self.get('system/setting', parameters={'key': key, 'default': 'default'})
-
-            if existing_value != default:
-                try:
-                    self.delete('system/setting', parameters={'key': key})
-                    self.changed = True
-
-                    ret['previous_value'] = existing_value
-                    ret['current_value'] = default
-                except requests.HTTPError as e:
-                    self.fail(e.response.json()['message'])
+        else:
+            self.fail('%s state isn\'t supported by Girder setting module.' %
+                      self.module.params['state'])
 
         return ret
 
