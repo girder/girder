@@ -45,13 +45,16 @@
     username: "admin"
     password: "letmein"
     setting:
-      key: "{{ item.key }}"
-      value: "{{ item.value }}"
+      key: "{{ setting_item.key }}"
+      value: "{{ setting_item.value }}"
   loop:
     - key: "core.email_from_address"
       value: "girder@girder.girder"
     - key: "core.email_host"
       value: "myemailhost"
+  loop_control:
+    # The playbook already defines an {{ item }} variable
+    loop_var: setting_item
 
 - name: Get email settings
   girder:
