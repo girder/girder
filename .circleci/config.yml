@@ -486,15 +486,6 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Create virtual environment (if necessary)
-          command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
-      - run:
-          name: Activate virtual environment
-          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
-      - run:
-          name: Install tox
-          command: pip install --upgrade pip tox
-      - run:
           name: Test public symbols
           command: tox -e public_names
           working_directory: girder
@@ -509,35 +500,17 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
-          name: Create virtual environment (if necessary)
-          command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
-      - run:
-          name: Activate virtual environment
-          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
-      - run:
-          name: Install tox
-          command: pip install --upgrade pip tox
-      - run:
           name: Run Ansible tests
           command: tox -e ansible
           working_directory: girder
 
   release:
     docker:
-      - image: circleci/python:2.7
+      - image: girder/girder_test:latest-py3
     working_directory: /home/circleci/project
     steps:
       - checkout:
           path: girder
-      - run:
-          name: Create virtual environment (if necessary)
-          command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
-      - run:
-          name: Activate virtual environment
-          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
-      - run:
-          name: Install tox
-          command: pip install --upgrade pip tox
       - run:
           name: Publish python packages
           command: tox -e release

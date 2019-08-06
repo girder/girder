@@ -20,6 +20,10 @@ RUN apt-get update \
 # Install Girder development prereqs
 RUN apt-get update \
   && apt-get install --assume-yes \
-    cmake
+    cmake \
+  && pip install --no-cache --upgrade \
+    pip \
+    setuptools \
+    tox
 
 USER circleci

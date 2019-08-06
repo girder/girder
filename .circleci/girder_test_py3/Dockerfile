@@ -22,6 +22,10 @@ RUN apt-get update \
   && make \
   && make install \
   && cd .. \
-  && rm -rf ./ctags
+  && rm -rf ./ctags \
+  && pip3 install --no-cache --upgrade \
+    pip \
+    setuptools \
+    tox
 
 USER circleci
