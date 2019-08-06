@@ -1756,7 +1756,7 @@ class GirderClientModule(GirderClient):
                 ret['previous_value'] = ret['current_value'] = existing_value
 
         else:
-            self.fail('%s state isn\'t supported by Girder setting module.' %
+            self.fail("%s state isn't supported by Girder setting module." %
                       self.module.params['state'])
 
         return ret
