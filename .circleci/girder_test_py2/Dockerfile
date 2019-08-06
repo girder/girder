@@ -7,7 +7,7 @@ USER root
 # Install Node.js 8
 RUN curl --silent --location https://deb.nodesource.com/setup_8.x | bash - \
   && apt-get install --assume-yes \
-    nodejs \
+    'nodejs=8.*' \
   && npm install --global \
     npm
 
