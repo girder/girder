@@ -24,8 +24,6 @@ if (args && args.length < 2) {
     phantom.exit(2);
 }
 
-var env = system.env;
-
 var pageUrl = args[0];
 var spec = args[1];
 var page = new WebPage();
@@ -70,14 +68,6 @@ page.onConsoleMessage = function (msg) {
         page.render(screenshotFile);
         console.log('Created screenshot: ' + screenshotFile);
 
-        if (env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === undefined ||
-            env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === 1 ||
-            env['PHANTOMJS_OUTPUT_AJAX_TRACE'] === true) {
-            console.log(page.evaluate(function () {
-                var log = girderTest.ajaxLog(true);
-                return 'XHR log (last ' + log.length + '):\n' + JSON.stringify(log, null, '  ');
-            }));
-        }
         return;
     } else if (msg === 'ConsoleReporter finished') {
         var success = this.page.evaluate(function () {

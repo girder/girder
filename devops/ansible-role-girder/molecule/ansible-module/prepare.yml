@@ -1,10 +1,15 @@
 ---
 - name: Prepare
-  hosts: all
-  gather_facts: false
-  tasks:
-    - name: Install python for Ansible
-      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
-      become: true
-      become_user: root
-      changed_when: false
+  hosts: targets
+  pre_tasks:
+    # gpg is needed to add other APT repositories
+    - name: Install gnupg2
+      apt:
+        name: gnupg2
+        state: present
+        force_apt_get: true
+  roles:
+    - role: girder.girder
+      vars:
+        girder_database_uri: "mongodb://mongodb:27017/girder"
+        girder_web: false
