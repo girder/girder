@@ -1,4 +1,4 @@
-FROM circleci/python:3.5
+FROM circleci/python:3.6
 MAINTAINER Kitware, Inc. <kitware@kitware.com>
 
 # Don't use "sudo"
