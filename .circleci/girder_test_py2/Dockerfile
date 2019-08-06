@@ -20,7 +20,6 @@ RUN apt-get update \
 # Install Girder development prereqs
 RUN apt-get update \
   && apt-get install --assume-yes \
-# CMake < 3.1 does not install properly from binaries, so fetch 3.0 from packages
     cmake
 
 USER circleci

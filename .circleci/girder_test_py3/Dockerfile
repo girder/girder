@@ -16,13 +16,9 @@ RUN apt-get update \
     libsasl2-dev
 
 # Install Girder development prereqs
-# Get a very recent version of CMake
-RUN mkdir --parents "/opt/cmake" \
-  && curl --location "https://cmake.org/files/v3.12/cmake-3.12.2-Linux-x86_64.tar.gz" | \
-    gunzip --stdout | \
-    tar --extract --directory "/opt/cmake" --strip-components 1 \
-  && ln --symbolic --force "/opt/cmake/bin/cmake" "/usr/local/bin/cmake" \
-  && ln --symbolic --force "/opt/cmake/bin/ctest" "/usr/local/bin/ctest" \
+RUN apt-get update \
+  && apt-get install --assume-yes \
+    cmake \
   # Note: universal-ctags is installed for use in the public_names CI job.
   && git clone "https://github.com/universal-ctags/ctags.git" "./ctags" \
   && cd ./ctags \
