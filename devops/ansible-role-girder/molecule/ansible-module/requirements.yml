@@ -1,0 +1,3 @@
+---
+- src: girder.girder
+  version: master
