@@ -1,5 +1,5 @@
 FROM node:8-stretch
-MAINTAINER Kitware, Inc. <kitware@kitware.com>
+LABEL maintainer="Kitware, Inc. <kitware@kitware.com>"
 
 EXPOSE 8080
 

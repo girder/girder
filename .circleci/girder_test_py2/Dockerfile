@@ -1,5 +1,5 @@
 FROM circleci/python:2.7
-MAINTAINER Kitware, Inc. <kitware@kitware.com>
+LABEL maintainer="Kitware, Inc. <kitware@kitware.com>"
 
 # Don't use "sudo"
 USER root
