@@ -10,7 +10,8 @@ RUN curl --silent --location https://deb.nodesource.com/setup_10.x | bash - \
   && npm install --global npm
 
 # Install Girder system prereqs (including those for all plugins)
-RUN apt-get update && apt-get install --assume-yes \
+RUN apt-get update \
+  && apt-get install --assume-yes \
     libldap2-dev \
     libsasl2-dev
 
