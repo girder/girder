@@ -862,7 +862,10 @@ girder
             addTemplateDirectory
             getEmailUrlPrefix
             renderTemplate
-            sendEmail
+            sendMail
+            sendMailIndividually
+            sendMailSync
+            sendMailToAdmins
             validateEmailAddress
         mkdir
         model_importer

@@ -93,7 +93,7 @@ def _uploadComplete(event):
             'itemName': item['name'],
             'itemDescription': item.get('description', '')
         })
-        mail_utils.sendEmail(to=user['email'], subject='Authorized upload complete', text=text)
+        mail_utils.sendMail('Authorized upload complete', text, [user['email']])
         Token().remove(token)
 
 

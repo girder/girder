@@ -41,6 +41,26 @@ def getEmailUrlPrefix():
     return Setting().get(SettingKey.EMAIL_HOST)
 
 
+_templateDir = os.path.join(PACKAGE_DIR, 'mail_templates')
+_templateLookup = TemplateLookup(directories=[_templateDir], collection_size=50)
+
+
+def addTemplateDirectory(dir, prepend=False):
+    """
+    Adds a directory to the search path for mail templates. This is useful
+    for plugins that have their own set of mail templates.
+
+    :param dir: The directory to add to the template lookup path.
+    :type dir: str
+    :param prepend: If True, adds this directory at the beginning of the path so
+        that it will override any existing templates with the same name.
+        Otherwise appends to the end of the lookup path.
+    :type prepend: bool
+    """
+    idx = 0 if prepend else len(_templateLookup.directories)
+    _templateLookup.directories.insert(idx, dir)
+
+
 def renderTemplate(name, params=None):
     """
     Renders one of the HTML mail templates located in girder/mail_templates.
@@ -64,75 +84,39 @@ def renderTemplate(name, params=None):
     return template.render(**params)
 
 
-def sendEmail(to=None, subject=None, text=None, toAdmins=False, bcc=None):
-    """
-    Send an email. This builds the appropriate email object and then triggers
-    an asynchronous event to send the email (handled in _sendmail).
-
-    :param to: The recipient's email address, or a list of addresses.
-    :type to: str, list/tuple, or None
-    :param subject: The subject line of the email.
-    :type subject: str
-    :param text: The body of the email.
-    :type text: str
-    :param toAdmins: To send an email to all site administrators, set this
-        to True, which will override any "to" argument that was passed.
-    :type toAdmins: bool
-    :param bcc: Recipient email address(es) that should be specified using the
-        Bcc header.
-    :type bcc: str, list/tuple, or None
-    """
+def _createMessage(subject, text, to, bcc):
     from girder.models.setting import Setting
-    from girder.models.user import User
 
-    to = to or ()
-    bcc = bcc or ()
-
-    if toAdmins:
-        to = [u['email'] for u in User().getAdmins()]
-    else:
-        if isinstance(to, six.string_types):
-            to = (to,)
-        if isinstance(bcc, six.string_types):
-            bcc = (bcc,)
-
+    # Coerce and validate arguments
+    if isinstance(to, six.string_types):
+        to = [to]
+    if isinstance(bcc, six.string_types):
+        bcc = [bcc]
+    elif bcc is None:
+        bcc = []
     if not to and not bcc:
-        raise Exception('You must specify email recipients via "to" or "bcc", '
-                        'or use toAdmins=True.')
+        raise Exception('You must specify email recipients via "to" or "bcc".')
+
+    if not subject:
+        subject = '[no subject]'
 
     if isinstance(text, six.text_type):
+        # TODO: needed?
         text = text.encode('utf8')
 
+    # Build message
     msg = MIMEText(text, 'html', 'UTF-8')
-    msg['Subject'] = subject or '[no subject]'
-
     if to:
         msg['To'] = ', '.join(to)
     if bcc:
         msg['Bcc'] = ', '.join(bcc)
-
+    msg['Subject'] = subject
     msg['From'] = Setting().get(SettingKey.EMAIL_FROM_ADDRESS)
 
-    events.daemon.trigger('_sendmail', info={
-        'message': msg,
-        'recipients': list(set(to) | set(bcc))
-    })
+    # Compute recipients
+    recipients = list(set(to) | set(bcc))
 
-
-def addTemplateDirectory(dir, prepend=False):
-    """
-    Adds a directory to the search path for mail templates. This is useful
-    for plugins that have their own set of mail templates.
-
-    :param dir: The directory to add to the template lookup path.
-    :type dir: str
-    :param prepend: If True, adds this directory at the beginning of the path so
-        that it will override any existing templates with the same name.
-        Otherwise appends to the end of the lookup path.
-    :type prepend: bool
-    """
-    idx = 0 if prepend else len(_templateLookup.directories)
-    _templateLookup.directories.insert(idx, dir)
+    return msg, recipients
 
 
 class _SMTPConnection(object):
@@ -162,11 +146,8 @@ class _SMTPConnection(object):
         self.connection.quit()
 
 
-def _sendmail(event):
+def _submitEmail(msg, recipients):
     from girder.models.setting import Setting
-
-    msg = event.info['message']
-    recipients = event.info['recipients']
 
     setting = Setting()
     smtp = _SMTPConnection(
@@ -183,6 +164,52 @@ def _sendmail(event):
         smtp.send(msg['From'], recipients, msg.as_string())
 
 
-_templateDir = os.path.join(PACKAGE_DIR, 'mail_templates')
-_templateLookup = TemplateLookup(directories=[_templateDir], collection_size=50)
+def _sendmail(event):
+    msg = event.info['message']
+    recipients = event.info['recipients']
+    _submitEmail(msg, recipients)
+
+
 events.bind('_sendmail', 'core.email', _sendmail)
+
+
+def sendMailSync(subject, text, to, bcc=None):
+    """Send an email synchronously."""
+    msg, recipients = _createMessage(subject, text, to, bcc)
+
+    _submitEmail(msg, recipients)
+
+
+def sendMail(subject, text, to, bcc=None):
+    """
+    Send an email asynchronously.
+
+    :param subject: The subject line of the email.
+    :type subject: str
+    :param text: The body of the email.
+    :type text: str
+    :param to: The list of recipient email addresses.
+    :type to: list
+    :param bcc: Recipient email addresses that should be specified using the Bcc header.
+    :type bcc: list or None
+    """
+    msg, recipients = _createMessage(subject, text, to, bcc)
+
+    events.daemon.trigger('_sendmail', info={
+        'message': msg,
+        'recipients': recipients
+    })
+
+
+def sendMailToAdmins(subject, text):
+    """Send an email asynchronously to site admins."""
+    from girder.models.user import User
+
+    to = [u['email'] for u in User().getAdmins()]
+    sendMail(subject, text, to)
+
+
+def sendMailIndividually(subject, text, to):
+    """Send emails asynchronously to all recipients individually."""
+    for address in to:
+        sendMail(address, subject, text)

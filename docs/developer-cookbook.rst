@@ -273,7 +273,7 @@ below: ::
             'param1': 'foo',
             'param2': 'bar'
         })
-        mail_utils.sendEmail(to=email, subject='My mail from Girder', text=html)
+        mail_utils.sendMail(subject='My mail from Girder', text=html, to=[email])
 
 If you wish to send email from within a plugin, simply create a
 **mail_templates** directory within your plugin and register it inside your
@@ -287,12 +287,11 @@ plugin should be prefixed by your plugin name, e.g.,
 ``my_plugin.my_template.mako``.
 
 If you want to send email to all of the site administrators, there is a
-convenience keyword argument for that. Rather than setting the ``to`` field,
-pass ``toAdmins=True``.
+convenience function for that:
 
 .. code-block:: python
 
-    mail_utils.sendEmail(toAdmins=True, subject='...', text='...')
+    mail_utils.sendMailToAdmins(subject='...', text='...')
 
 .. note:: All emails are sent as rich text (``text/html`` MIME type).
 

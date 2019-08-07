@@ -234,10 +234,10 @@ class Group(Resource):
                     'user': user,
                     'group': group
                 })
-                mail_utils.sendEmail(
-                    to=userToInvite['email'], text=html,
-                    subject="%s: You've been invited to a group"
-                    % Setting().get(SettingKey.BRAND_NAME)
+                mail_utils.sendMail(
+                    "%s: You've been invited to a group" % Setting().get(SettingKey.BRAND_NAME),
+                    html,
+                    [userToInvite['email']]
                 )
 
         group['access'] = groupModel.getFullAccessList(group)
