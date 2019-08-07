@@ -55,15 +55,10 @@ def _computeSlowStatus(process, status, db):
             # exception
             pass
     status['mongoDbStats'] = db.command('dbStats')
-    try:
-        # I don't know if this will work with a sharded database, so guard
-        # it and don't throw an exception
-        status['mongoDbPath'] = getDbConnection().admin.command(
-            'getCmdLineOpts')['parsed']['storage']['dbPath']
-        status['mongoDbDiskUsage'] = _objectToDict(
-            psutil.disk_usage(status['mongoDbPath']))
-    except Exception:
-        pass
+    status['mongoDbPath'] = getDbConnection().admin.command(
+        'getCmdLineOpts')['parsed']['storage']['dbPath']
+    status['mongoDbDiskUsage'] = _objectToDict(
+        psutil.disk_usage(status['mongoDbPath']))
 
     status['processDirectChildrenCount'] = len(process.children())
     status['processAllChildrenCount'] = len(process.children(True))

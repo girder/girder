@@ -29,8 +29,7 @@ var NewAssetstoreWidget = View.extend({
                 name: this.$('#g-new-gridfs-name').val(),
                 db: this.$('#g-new-gridfs-db').val(),
                 mongohost: this.$('#g-new-gridfs-mongohost').val(),
-                replicaset: this.$('#g-new-gridfs-replicaset').val(),
-                shard: this.$('#g-new-gridfs-shard-auto').is(':checked') ? 'auto' : false
+                replicaset: this.$('#g-new-gridfs-replicaset').val()
             });
         },
 

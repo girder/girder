@@ -419,38 +419,6 @@ class UploadTestCase(base.TestCase):
         self._uploadFile('rs_upload_3')
         mongo_replicaset.stopMongoReplicaSet(rscfg)
 
-    def testGridFSShardingAssetstoreUpload(self):
-        verbose = 0
-        if 'REPLICASET' in os.environ.get('EXTRADEBUG', '').split():
-            verbose = 2
-        # Starting the sharding service takes time
-        rscfg = mongo_replicaset.makeConfig(port=27073, shard=True, sharddb=None)
-        mongo_replicaset.startMongoReplicaSet(rscfg, verbose=verbose)
-        # Clear the assetstore database and create a GridFS assetstore
-        Assetstore().remove(Assetstore().getCurrent())
-        self.assetstore = Assetstore().createGridFsAssetstore(
-            name='Test', db='girder_assetstore_shard_upload_test',
-            mongohost='mongodb://127.0.0.1:27073', shard='auto')
-        self._testUpload()
-        # Verify that we have successfully sharded the collection
-        adapter = assetstore_utilities.getAssetstoreAdapter(self.assetstore)
-        stat = adapter.chunkColl.database.command('collstats', adapter.chunkColl.name)
-        self.assertTrue(bool(stat['sharded']))
-        # Although we have asked for multiple shards, the chunks may all be on
-        # one shard.  Make sure at least one shard is reported.
-        self.assertGreaterEqual(len(stat['shards']), 1)
-
-        # Asking for the same database again should also report sharding.  Use
-        # a slightly differt URI to ensure that the sharding is checked anew.
-        assetstore = Assetstore().createGridFsAssetstore(
-            name='Test 2', db='girder_assetstore_shard_upload_test',
-            mongohost='mongodb://127.0.0.1:27073/?', shard='auto')
-        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        stat = adapter.chunkColl.database.command('collstats', adapter.chunkColl.name)
-        self.assertTrue(bool(stat['sharded']))
-
-        mongo_replicaset.stopMongoReplicaSet(rscfg)
-
     def testS3AssetstoreUpload(self):
         # Clear the assetstore database and create an S3 assetstore
         Assetstore().remove(self.assetstore)
