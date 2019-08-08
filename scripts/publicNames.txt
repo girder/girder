@@ -1236,10 +1236,10 @@ plugins
                 load
             rest
                 Sentry
-                    getDsn
             settings
                 PluginSettings
-                    DSN
+                    BACKEND_DSN
+                    FRONTEND_DSN
     terms
         girder_terms
             TermsPlugin
