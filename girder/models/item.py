@@ -501,7 +501,9 @@ class Item(acl_mixin.AccessControlMixin, Model):
         metadataFile = 'girder-item-metadata.json'
 
         fileModel = File()
-        for file in self.childFiles(item=doc):
+        # Eagerly evaluate this list, as the MongoDB cursor can time out on long requests
+        childFiles = list(self.childFiles(item=doc))
+        for file in childFiles:
             if not self._mimeFilter(file, mimeFilter):
                 continue
             if file['name'] == metadataFile:
