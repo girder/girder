@@ -910,144 +910,29 @@ javascript code, then this is not necessary.
 Automated testing for plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Girder makes it easy to add automated testing to your plugin that integrates with the main Girder
-testing framework. In general, any CMake code for configuring testing can be added to the
-``plugin.cmake`` file in your plugin. For example:
+We recommend using `pytest <https://docs.pytest.org/en/latest/>`_ to create automated tests for your plugin code.
+The core Girder development team maintains the `pytest-girder <https://pypi.org/project/pytest-girder/>`_ package,
+which contains several useful fixtures and other utilities that make testing Girder plugins easier.
 
-.. code-block:: bash
+Example
+*******
 
-    cd plugins/cats ; touch plugin.cmake
-
-That file will be automatically included when Girder is configured by CMake. To add tests for your
-plugin, you can make use of a handy CMake function provided by the core system. Simply add to your
-``plugin.cmake``:
-
-.. code-block:: cmake
-
-    add_standard_plugin_tests(PACKAGE "girder_cats")
-
-This will automatically detect and run any tests in the special ``plugin_tests`` directory of your
-plugin, provided that server-side tests are named with the suffix ``_test.py`` (and the directory
-contains a ``__init__.py`` to make it a Python module) and client-side tests are named with the
-suffix ``Spec.js``. For example:
-
-.. code-block:: bash
-
-    mkdir plugin_tests ; cd plugin_tests ; touch __init__.py cat_test.py catSpec.js
-
-For more sophisticated configuration of plugin testing, options to ``add_standard_plugin_tests`` can
-be used to disable some of the automatically-added tests, so they can be explicitly added with
-additional options. See the ``add_standard_plugin_tests`` implementation for full option
-documentation.
-
-.. note::
-
-    For auto-discovery of tests via plugin.cmake, you must copy your plugin's
-    code inside Girder's ``/plugins`` directory.  This is the only case where
-    the location of your plugin on the file system matters.
-
-    TODO: We should think about an alternative discovery mechanism.
-
-
-Testing Server-Side Code
-************************
-
-TODO: Replace this content with a pytest example.
-
-The ``plugin_tests/cat_test.py`` file should look like:
+This example shows the use of the ``server`` fixture, which spins up the Girder server and allows requests to be
+made against its REST API.
 
 .. code-block:: python
 
-    from tests import base
+    from girder_cats.models import Cat
+    import pytest
+    from pytest_girder.assertions import assertStatusOk
 
-
-    def setUpModule():
-        base.enabledPlugins.append('cats')
-        base.startServer()
-
-
-    def tearDownModule():
-        base.stopServer()
-
-
-    class CatsCatTestCase(base.TestCase):
-
-        def testCatsWork(self):
-            ...
-
-You can use all of the testing utilities provided by the ``base.TestCase`` class
-from core. You will also get coverage results for your plugin aggregated with
-the main Girder coverage results.
-
-.. note:: Only files residing under the plugin's package directory will be included in coverage.
-          See :ref:`python-coverage-paths` to change the paths used to generate Python coverage
-          reports.
-
-Linting Client-Side Code
-************************
-To perform static analysis and style checking of web client code with the same rules as upstream
-Girder, external plugins may apply the
-`@girder/eslint-config <https://www.npmjs.com/package/@girder/eslint-config>`_ rules.
-
-Testing Client-Side Code
-************************
-
-Web client components may also be tested, using the
-`Jasmine 1.3 test framework <https://jasmine.github.io/1.3/introduction>`_.
-
-At the start of a plugin client test file, the built plugin files must be explicitly loaded,
-typically with the ``girderTest.importPlugin`` function.
-
-.. note:: Plugin dependency resolution will not take place when loading built plugin files in the
-          test environment. If your plugin has dependencies on other Girder plugins, you should
-          make multiple calls to ``girderTest.importPlugin``, loading any dependant plugins in
-          topologically sorted order, before loading your plugin with ``girderTest.importPlugin``
-          last.
-
-If the plugin test requires an instance of the Girder client app to be running, it can be
-started with ``girderTest.startApp()`` immediately after plugins are imported. Plugin tests that
-perform only unit tests or standalone instantiation of views may be able to skip starting the Girder
-client app.
-
-Jasmine specs (defined with ``it``) are not run until the plugin (and app, if started) are fully
-loaded, so they should be defined directly inside a suite (defined with ``describe``) at the
-top-level.
-
-For example, the cats plugin would define tests in a ``plugin_tests/catSpec.js`` file, like:
-
-.. code-block:: javascript
-
-    girderTest.importPlugin('cats');
-    girderTest.startApp();
-
-    describe("Test the cats plugin", function() {
-        it("tests some new functionality", function() {
-            ...
-        });
-    });
-
-
-Using External Data Artifacts
-*****************************
-
-TODO: Should we deprecate/remove this capability for plugins?
-
-Plugin tests can also use the external data artifact interface provided by Girder as described in
-:ref:`use_external_data`.  The artifact key files should be placed inside a directory
-called ``plugin_tests/data/``.  Tests which depend on these artifacts should be explicitly added
-using the ``EXTERNAL_DATA`` option, with arguments of data artifact names (without the hash file
-extension) prefixed by ``plugins/<plugin_name>``. For example:
-
-.. code-block:: cmake
-
-    add_standard_plugin_tests(NO_SERVER_TESTS)
-    add_python_test(cats_server_test PLUGIN cats EXTERNAL_DATA plugins/cats/test_file.txt)
-
-Then, within your test environment, the artifact will be available
-under the a location specified by the ``GIRDER_TEST_DATA_PREFIX`` environment variable, in the
-subdirectory ``plugins/<plugin_name>``. For example, in the same ``cats_server_test``, the artifact
-file can be loaded at the path:
-
-.. code-block:: python
-
-    os.path.join(os.environ['GIRDER_TEST_DATA_PREFIX'], 'plugins', 'cats', 'test_file.txt')
+    @pytest.mark.plugin('cats')    # Makes sure the cats plugin will load for this test
+    def testCatCreation(server):
+        resp = server.request('/cat', method='POST', params={
+            'name': 'Helga',
+            'age': 4
+        })
+        assertStatusOk(resp)
+        records = Cat().find()
+        assert records.count() == 1
+        assert records[0]['name'] == 'Helga'

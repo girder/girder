@@ -103,12 +103,6 @@ version, so if your event handler requires access to the job log, you should man
 full document in the handler.
 
 
-Geospatial
-----------
-
-TODO: Add migration notice
-
-
 Google Analytics
 ----------------
 

@@ -53,37 +53,19 @@ section: :ref:`run-girder`.
 Install from Git repository
 +++++++++++++++++++++++++++
 
+If you wish to develop Girder itself, or need to switch to an unreleased branch, you can install Girder via git.
 Obtain the Girder source code by cloning the Git repository on
-**TODO: change this for girder 3**
 
 `GitHub <https://github.com>`_: ::
 
-    git clone --branch 2.x-maintenance https://github.com/girder/girder.git
-    cd girder
+    git clone https://github.com/girder/girder.git
+    pip install -e ./girder
 
-.. note:: Note, it is strongly recommended that downstream (i.e. for production or to
-   support plugin development) users installing from Git track the ``2.x-maintenance`` branch, as
-   this branch will always point to the latest version (which is typically pre-release) in the 2.x.x
-   series.
-
-To run the server, you must install some external Python package
-dependencies: ::
-
-    pip install -e .
-
-or: ::
-
-    pip install -e ./plugins/<plugin name>
-
-to install individual plugins as well.
-
-To build the client-side code project, cd into the root of the repository
-and run: ::
+Plugins must be installed as separate packages. Once all plugins are installed,
+you can build the web client code by running: ::
 
     girder build
 
-This will run multiple `Grunt <http://gruntjs.com>`_ tasks, to build all of
-the Javascript and CSS files needed to run the web client application.
 
 .. _run-girder:
 
