@@ -313,13 +313,14 @@ def serverContext(plugins=None, bindPort=False):
     import girder.events
     from girder.api import docs
     from girder.utility.server import setup as setupServer
+    from girder.constants import ServerMode
 
     girder.events.daemon = girder.events.AsyncEventsThread()
 
     if plugins is None:
         # By default, pass "[]" to "plugins", disabling any installed plugins
         plugins = []
-    server = setupServer(test=True, plugins=plugins)
+    server = setupServer(mode=ServerMode.TESTING, plugins=plugins)
     server.request = request
     server.uploadFile = uploadFile
     cherrypy.server.unsubscribe()

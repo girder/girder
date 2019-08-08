@@ -39,40 +39,6 @@ def _ensureChunkIndices(collection):
     ], unique=True)
 
 
-def _setupSharding(collection, keyname='uuid'):
-    """
-    If we are communicating with a sharded server, and the collection is not
-    sharded, ask for it to be sharded based on a key.
-
-    :param collection: a connection to a mongo collection.
-    :param keyname: the name of the key to shard on.
-    :returns: True if sharding was added, False if it could not be added, or
-        'present' if already sharded.
-    """
-    database = collection.database
-    client = database.client
-    stat = client.admin.command('serverStatus')
-    # sharding will be non-None if the client is communicating with a mongos
-    # instance. For mongo 3.0 we have to check the process name for 'mongos'.
-    if not stat.get('sharding') and 'mongos' not in stat.get('process', ''):
-        return False
-    if database.command('collstats', collection.name).get('sharded'):
-        return 'present'
-    try:
-        client.admin.command('enableSharding', database.name)
-    except pymongo.errors.OperationFailure:
-        # sharding may already be enabled
-        pass
-    try:
-        client.admin.command(
-            'shardCollection', '%s.%s' % (database.name, collection.name),
-            key={keyname: 1})
-        return True
-    except pymongo.errors.OperationFailure:
-        pass
-    return False
-
-
 class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
     """
     This assetstore type stores files within MongoDB using the GridFS data
@@ -115,8 +81,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         try:
             # Guard in case the connectionArgs is unhashable
             key = (self.assetstore.get('mongohost'),
-                   self.assetstore.get('replicaset'),
-                   self.assetstore.get('shard'))
+                   self.assetstore.get('replicaset'))
             if key in _recentConnections:
                 recent = (time.time() - _recentConnections[key]['created']
                           < RECENT_CONNECTION_CACHE_TIME)
@@ -132,8 +97,6 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             self.chunkColl = MongoProxy(client[self.assetstore['db']].chunk)
             if not recent:
                 _ensureChunkIndices(self.chunkColl)
-                if self.assetstore.get('shard') == 'auto':
-                    _setupSharding(self.chunkColl)
                 if key is not None:
                     if len(_recentConnections) >= RECENT_CONNECTION_CACHE_MAX_SIZE:
                         _recentConnections.clear()

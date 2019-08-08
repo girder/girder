@@ -1,16 +1,10 @@
-#!/usr/bin/python
 import json
 import os
 
+from ansible.module_utils.basic import AnsibleModule
 from inspect import getmembers, ismethod, isfunction, getargspec
 import requests
 import six
-
-# Ansible's module magic requires this to be
-# 'from ansible.module_utils.basic import *' otherwise it will error out. See:
-# https://github.com/ansible/ansible/blob/v1.9.4-1/lib/ansible/module_common.py#L41-L59
-# For more information on this magic. For now we noqa to prevent flake8 errors
-from ansible.module_utils.basic import *  # noqa
 
 try:
     from girder_client import GirderClient, AuthenticationError
@@ -1761,20 +1755,9 @@ class GirderClientModule(GirderClient):
             else:
                 ret['previous_value'] = ret['current_value'] = existing_value
 
-        elif self.module.params['state'] == 'absent':
-            # Removing a setting is a way of explicitly forcing it to be the default
-            existing_value = self.get('system/setting', parameters={'key': key})
-            default = self.get('system/setting', parameters={'key': key, 'default': 'default'})
-
-            if existing_value != default:
-                try:
-                    self.delete('system/setting', parameters={'key': key})
-                    self.changed = True
-
-                    ret['previous_value'] = existing_value
-                    ret['current_value'] = default
-                except requests.HTTPError as e:
-                    self.fail(e.response.json()['message'])
+        else:
+            self.fail("%s state isn't supported by Girder setting module." %
+                      self.module.params['state'])
 
         return ret
 
@@ -1799,9 +1782,15 @@ def main():
 
         # authenticate
         'username': dict(),
-        'password': dict(),
-        'token': dict(),
-        'apiKey': dict(),
+        'password': dict(
+            no_log=True
+        ),
+        'token': dict(
+            no_log=True
+        ),
+        'apiKey': dict(
+            no_log=True
+        ),
 
         # General
         'state': dict(default='present', choices=['present', 'absent'])
@@ -1812,7 +1801,7 @@ def main():
     for method in gcm.required_one_of:
         argument_spec[method] = dict(type=gcm.spec[method]['type'])
 
-    module = AnsibleModule(  # noqa
+    module = AnsibleModule(
         argument_spec=argument_spec,
         required_one_of=[gcm.required_one_of,
                          ['token', 'username', 'user', 'apiKey']],

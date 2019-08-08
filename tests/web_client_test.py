@@ -167,7 +167,13 @@ class WebClientTestCase(base.TestCase):
         for _ in range(int(retry_count)):
             retry = False
             task = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ROOT_DIR)
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ROOT_DIR,
+                env=dict(
+                    # https://github.com/bazelbuild/rules_closure/pull/353
+                    OPENSSL_CONF='/dev/null',
+                    **os.environ
+                )
+            )
             jasmineFinished = False
             for line in iter(task.stdout.readline, b''):
                 if isinstance(line, six.binary_type):

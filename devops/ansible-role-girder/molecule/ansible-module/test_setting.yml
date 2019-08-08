@@ -45,13 +45,16 @@
     username: "admin"
     password: "letmein"
     setting:
-      key: "{{ item.key }}"
-      value: "{{ item.value }}"
-  with_items:
+      key: "{{ setting_item.key }}"
+      value: "{{ setting_item.value }}"
+  loop:
     - key: "core.email_from_address"
       value: "girder@girder.girder"
     - key: "core.email_host"
       value: "myemailhost"
+  loop_control:
+    # The playbook already defines an {{ item }} variable
+    loop_var: setting_item
 
 - name: Get email settings
   girder:
@@ -69,37 +72,3 @@
     that:
       - ret["gc_return"]["core.email_from_address"] == "girder@girder.girder"
       - ret["gc_return"]["core.email_host"] == "myemailhost"
-
-- name: Tear down all settings we manipulated
-  girder:
-    port: 8080
-    username: "admin"
-    password: "letmein"
-    setting:
-      key: "{{ item }}"
-    state: absent
-  with_items:
-    - "core.user_default_folders"
-    - "core.email_from_address"
-    - "core.email_host"
-    - "core.route_table"
-  register: ret
-
-- name: Retrieve manipulated settings
-  girder:
-    port: 8080
-    username: "admin"
-    password: "letmein"
-    get:
-      path: "system/setting"
-      parameters:
-        list: "{{ ['core.email_from_address', 'core.email_host',
-                    'core.user_default_folders'] | to_json }}"
-        default: "none"
-  register: ret
-
-- name: Check that manipulated settings are all back to defaults
-  assert:
-    that:
-      - ret["gc_return"]["{{ item }}"] == none
-  with_items: "{{ ret['gc_return'] }}"

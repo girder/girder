@@ -110,7 +110,7 @@ will override the defaults.
 Server Development
 ------------------
 
-All commits to the core python code must work in both python 2.7 and 3.5.
+All commits to the core python code must work in both python 2.7 and 3.6.
 Python code in plugins should also work in both, but some plugins may depend
 on third party libraries that do not support python 3. If that is the case, those
 plugins should declare ``"python_requires<3.0`` in their **setup.py** file
@@ -222,7 +222,7 @@ environments. By default, running ``tox`` will create a virtual environment, ins
 dependencies, install Girder, and run ``pytest`` for each version of Python that Girder supports.
 
 Sometimes it might be desirable to only run ``tox`` against a single Python environment, such as
-Python 3.5. To do this run ``tox -e py35``. Note that a list of valid environments can be found by
+Python 3.6. To do this run ``tox -e py36``. Note that a list of valid environments can be found by
 running ``tox -a``.
 
 Specific arguments can be passed through to ``pytest`` by adding them after the ``tox``

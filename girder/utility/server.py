@@ -11,6 +11,7 @@ from girder.models.setting import Setting
 from girder import plugin
 from girder.settings import SettingKey
 from girder.utility import config
+from girder.constants import ServerMode
 from . import webroot
 
 with open(os.path.join(os.path.dirname(__file__), 'error.mako')) as f:
@@ -33,13 +34,13 @@ def getStaticPublicPath():
     return config.getConfig()['server']['static_public_path']
 
 
-def configureServer(test=False, plugins=None, curConfig=None):
+def configureServer(mode=None, plugins=None, curConfig=None):
     """
     Function to setup the cherrypy server. It configures it, but does
     not actually start it.
 
-    :param test: Set to True when running in the tests.
-    :type test: bool
+    :param mode: The server mode to start in.
+    :type mode: string
     :param plugins: If you wish to start the server with a custom set of
         plugins, pass this as a list of plugins to load. Otherwise,
         all installed plugins will be loaded.
@@ -51,7 +52,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
     appconf = {
         '/': {
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
-            'request.show_tracebacks': test,
+            'request.show_tracebacks': mode == ServerMode.TESTING,
             'request.methods_with_bodies': ('POST', 'PUT', 'PATCH'),
             'response.headers.server': 'Girder %s' % __version__,
             'error_page.default': _errorDefault
@@ -64,13 +65,11 @@ def configureServer(test=False, plugins=None, curConfig=None):
     mimetypes.add_type('application/font-woff', '.woff')
 
     curConfig.update(appconf)
+    if mode:
+        curConfig['server']['mode'] = mode
 
-    if test:
-        curConfig['server']['mode'] = 'testing'
-
-    mode = curConfig['server']['mode'].lower()
-    logprint.info('Running in mode: ' + mode)
-    cherrypy.config['engine.autoreload.on'] = mode == 'development'
+    logprint.info('Running in mode: ' + curConfig['server']['mode'])
+    cherrypy.config['engine.autoreload.on'] = mode == ServerMode.DEVELOPMENT
 
     _setupCache()
 
@@ -137,21 +136,22 @@ def loadRouteTable(reconcileRoutes=False):
     return {name: route for (name, route) in six.viewitems(routeTable) if route}
 
 
-def setup(test=False, plugins=None, curConfig=None):
+def setup(mode=None, plugins=None, curConfig=None):
     """
     Configure and mount the Girder server and plugins under the
     appropriate routes.
 
     See ROUTE_TABLE setting.
 
-    :param test: Whether to start in test mode.
+    :param mode: The server mode to start in.
+    :type mode: string
     :param plugins: List of plugins to enable.
     :param curConfig: The config object to update.
     """
     logStdoutStderr()
 
     pluginWebroots = plugin.getPluginWebroots()
-    girderWebroot, appconf = configureServer(test, plugins, curConfig)
+    girderWebroot, appconf = configureServer(mode, plugins, curConfig)
     routeTable = loadRouteTable(reconcileRoutes=True)
 
     # Mount Girder
@@ -175,9 +175,6 @@ def setup(test=False, plugins=None, curConfig=None):
     for name, route in six.viewitems(routeTable):
         if name != constants.GIRDER_ROUTE_ID and name in pluginWebroots:
             cherrypy.tree.mount(pluginWebroots[name], route, appconf)
-
-    if test:
-        application.merge({'server': {'mode': 'testing'}})
 
     return application
 

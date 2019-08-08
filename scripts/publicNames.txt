@@ -395,6 +395,10 @@ girder
         ROOT_DIR
         STATIC_PREFIX
         STATIC_ROOT_DIR
+        ServerMode
+            DEVELOPMENT
+            PRODUCTION
+            TESTING
         SortDir
             ASCENDING
             DESCENDING
@@ -818,6 +822,7 @@ girder
         camelcase
         config
             getConfig
+            getServerMode
             loadConfig
         filesystem_assetstore_adapter
             BUF_SIZE
@@ -857,7 +862,10 @@ girder
             addTemplateDirectory
             getEmailUrlPrefix
             renderTemplate
-            sendEmail
+            sendMail
+            sendMailIndividually
+            sendMailSync
+            sendMailToAdmins
             validateEmailAddress
         mkdir
         model_importer
