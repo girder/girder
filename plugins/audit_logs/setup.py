@@ -40,7 +40,7 @@ setup(
     ],
     packages=find_packages(),
     zip_safe=False,
-    install_requires=['girder>=3.0.0a1'],
+    install_requires=['girder>=3'],
     entry_points={
         'girder.plugin': [
             'audit_logs = girder_audit_logs:AuditLogsPlugin'

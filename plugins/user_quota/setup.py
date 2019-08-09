@@ -43,7 +43,7 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder>=3.0.0a1'],
+    install_requires=['girder>=3'],
     entry_points={
         'girder.plugin': [
             'user_quota = girder_user_quota:UserQuotaPlugin'

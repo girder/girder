@@ -42,7 +42,7 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder>=3.0.0a1'],
+    install_requires=['girder>=3'],
     entry_points={
         'girder.plugin': [
             'virtual_folders = girder_virtual_folders:VirtualFoldersPlugin'
