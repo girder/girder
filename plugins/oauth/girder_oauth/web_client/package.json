@@ -1,6 +1,6 @@
 {
     "name": "@girder/oauth",
-    "version": "3.0.0-alpha.1",
+    "version": "0.0.0",
     "description": "Allow users to login via supported OAuth2 providers.",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#oauth-login",
     "bugs": {

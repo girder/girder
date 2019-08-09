@@ -1,6 +1,6 @@
 {
     "name": "@girder/autojoin",
-    "version": "0.2.0-alpha.1",
+    "version": "0.0.0",
     "description": "Automatically assign new users to groups based on their email domain",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#auto-join",
     "bugs": {

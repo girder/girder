@@ -1,6 +1,6 @@
 {
   "name": "@girder/pug-lint-config",
-  "version": "3.0.0-rc1",
+  "version": "0.0.0",
   "description": "Pug-lint configuration for Girder.",
   "license": "Apache-2.0",
   "repository": {
