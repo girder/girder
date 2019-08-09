@@ -693,7 +693,10 @@ class Folder(AccessControlledModel):
         metadataFile = 'girder-folder-metadata.json'
 
         # Eagerly evaluate this list, as the MongoDB cursor can time out on long requests
-        childFolders = list(self.childFolders(parentType='folder', parent=doc, user=user))
+        childFolders = list(self.childFolders(
+            parentType='folder', parent=doc, user=user,
+            fields=['name'] + (['meta'] if includeMetadata else [])
+        ))
         for sub in childFolders:
             if sub['name'] == metadataFile:
                 metadataFile = None
@@ -703,7 +706,9 @@ class Folder(AccessControlledModel):
                 yield (filepath, file)
 
         # Eagerly evaluate this list, as the MongoDB cursor can time out on long requests
-        childItems = list(self.childItems(folder=doc))
+        childItems = list(self.childItems(
+            folder=doc, fields=['name'] + (['meta'] if includeMetadata else [])
+        ))
         for item in childItems:
             if item['name'] == metadataFile:
                 metadataFile = None

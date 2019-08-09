@@ -502,6 +502,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         fileModel = File()
         # Eagerly evaluate this list, as the MongoDB cursor can time out on long requests
+        # Don't use a "filter" projection here, since returning the full file document is promised
+        # by this function, and file objects tend to not have large fields present
         childFiles = list(self.childFiles(item=doc))
         for file in childFiles:
             if not self._mimeFilter(file, mimeFilter):
