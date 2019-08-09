@@ -43,7 +43,7 @@ setup(
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
     install_requires=[
-        'girder>=3.0.0a1',
+        'girder>=3',
         'sentry-sdk'
     ],
     entry_points={

@@ -42,7 +42,7 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder>=3.0.0a1', 'pyldap'],
+    install_requires=['girder>=3', 'pyldap'],
     entry_points={
         'girder.plugin': [
             'ldap= girder_ldap:LDAPPlugin'

@@ -1,6 +1,6 @@
 {
     "name": "@girder/sentry",
-    "version": "0.2.0-alpha.1",
+    "version": "0.0.0",
     "description": "Allow the tracking of errors via Sentry.",
     "homepage": "https://github.com/girder/girder",
     "bugs": {
