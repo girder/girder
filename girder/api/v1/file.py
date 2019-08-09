@@ -212,6 +212,10 @@ class File(Resource):
         upload. The passed offset is a verification mechanism for ensuring the
         server and client agree on the number of bytes sent/received.
         """
+        if cherrypy.request.headers.get('Content-Type', '').startswith('multipart/form-data'):
+            raise RestException('Multipart encoding is no longer supported. Send the chunk in '
+                                'the request body, and other parameters in the query string.')
+
         if 'chunk' in params:
             # If we see the undocumented "chunk" query string parameter, then we abort trying to
             # read the body, use the query string value as chunk, and pass it through to
