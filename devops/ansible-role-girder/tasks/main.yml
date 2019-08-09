@@ -23,8 +23,10 @@
 - name: Install Girder
   pip:
     name: "{{ girder_package }}"
-    version: "{{ girder_version|default(omit) }}"
-    extra_args: "{{ girder_pip_extra_args|default(omit) }}"
+    version: "{{ girder_version if girder_version not in ['latest', 'release'] else omit }}"
+    extra_args: "{{ '--pre' if girder_version == 'latest' else omit }}"
+    state: "{{ 'latest' if girder_version in ['latest', 'release'] else omit }}"
+    editable: "{{ girder_development_mode }}"
     virtualenv: "{{ girder_virtualenv }}"
     # Implicitly create a Python 3 virtualenv if it doesn't exist
     virtualenv_command: "/usr/bin/python3 -m venv"

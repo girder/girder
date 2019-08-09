@@ -55,7 +55,6 @@
         girder_daemonize: false
         girder_development_mode: true
         girder_package: "{{ ansible_user_dir }}/girder"
-        girder_pip_extra_args: "--editable"
         # girder_virtualenv is overridden too
 
   post_tasks:
