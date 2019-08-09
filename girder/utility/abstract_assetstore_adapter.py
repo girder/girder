@@ -3,6 +3,8 @@ import os
 import re
 import six
 
+from cherrypy._cpreqbody import Part
+
 from girder.api.rest import setResponseHeader, setContentDisposition
 from girder.exceptions import GirderException, ValidationException, FilePathException
 from girder.models.setting import Setting
@@ -301,7 +303,7 @@ class AbstractAssetstoreAdapter(object):
         :type chunk: a file-like object or a string
         :returns: the length of the chunk if known, or None.
         """
-        if isinstance(chunk, (six.BytesIO, RequestBodyStream)):
+        if isinstance(chunk, (six.BytesIO, RequestBodyStream, Part)):
             return
         elif hasattr(chunk, 'fileno'):
             return os.fstat(chunk.fileno()).st_size
