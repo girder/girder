@@ -266,7 +266,12 @@ class Collection(AccessControlledModel):
             path = os.path.join(path, doc['name'])
 
         folderModel = Folder()
-        for folder in folderModel.childFolders(parentType='collection', parent=doc, user=user):
+        # Eagerly evaluate this list, as the MongoDB cursor can time out on long requests
+        childFolders = list(folderModel.childFolders(
+            parentType='collection', parent=doc, user=user,
+            fields=['name'] + (['meta'] if includeMetadata else [])
+        ))
+        for folder in childFolders:
             for (filepath, file) in folderModel.fileList(
                     folder, user, path, includeMetadata, subpath=True,
                     mimeFilter=mimeFilter, data=data):

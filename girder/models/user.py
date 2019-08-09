@@ -552,7 +552,12 @@ class User(AccessControlledModel):
         if subpath:
             path = os.path.join(path, doc['login'])
         folderModel = Folder()
-        for folder in folderModel.childFolders(parentType='user', parent=doc, user=user):
+        # Eagerly evaluate this list, as the MongoDB cursor can time out on long requests
+        childFolders = list(folderModel.childFolders(
+            parentType='user', parent=doc, user=user,
+            fields=['name'] + (['meta'] if includeMetadata else [])
+        ))
+        for folder in childFolders:
             for (filepath, file) in folderModel.fileList(
                     folder, user, path, includeMetadata, subpath=True, data=data):
                 yield (filepath, file)
