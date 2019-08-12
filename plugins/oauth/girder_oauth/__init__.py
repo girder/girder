@@ -17,15 +17,28 @@ def checkOauthUser(event):
     if user.get('oauth'):
         if isinstance(user['oauth'], dict):
             # Handle a legacy format where only 1 provider (Google) was stored
-            prettyProviderNames = 'Google'
+            userProviders = ['google']
         else:
+            userProviders = [val['provider'] for val in user['oauth']]
+
+        # Silently skip non-installed providers
+        availableUserProviders = [
+            userProvider for userProvider in userProviders
+            if userProvider in providers.idMap
+        ]
+
+        if availableUserProviders:
             prettyProviderNames = ', '.join(
-                providers.idMap[val['provider']].getProviderName(external=True)
-                for val in user['oauth']
+                providers.idMap[userProvider].getProviderName(external=True)
+                for userProvider in availableUserProviders
             )
+            helpMessage = 'Please log in with %s, or use the password reset link.' % \
+                          prettyProviderNames
+        else:
+            helpMessage = 'Please use the password reset link.'
+
         raise ValidationException(
-            "You don't have a password. Please log in with %s, or use the "
-            'password reset link.' % prettyProviderNames)
+            "You don't have a password. %s" % helpMessage)
 
 
 class OAuthPlugin(GirderPlugin):
