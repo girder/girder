@@ -68,6 +68,23 @@ def testAuthenticatedRestRequestLogging(server, admin, freshLog):
     assert record['userId'] == admin['_id']
 
 
+@pytest.mark.parametrize('requestParams, logParams', [
+    ({'foo': 'bar'}, {'foo': 'bar'}),
+    ({'foo\x00': 'bar'}, {'foo%00': 'bar'}),
+    ({'\x00': 'bar'}, {'%00': 'bar'}),
+    ({'fo.o': 'bar'}, {'fo%2Eo': 'bar'}),
+    ({'fo$o': 'bar'}, {'fo%24o': 'bar'}),
+])
+@pytest.mark.plugin('audit_logs')
+def testDangerousParamsRestRequestLogging(server, admin, freshLog, requestParams, logParams):
+    server.request('/folder', params=requestParams)
+
+    records = Record().find()
+    assert records.count() == 1
+    details = records[0]['details']
+    assert details['params'] == logParams
+
+
 @pytest.mark.plugin('audit_logs')
 def testDownloadLogging(server, admin, fsAssetstore, freshLog):
     folder = Folder().find({

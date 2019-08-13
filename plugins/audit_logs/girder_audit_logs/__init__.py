@@ -2,6 +2,7 @@ import cherrypy
 import datetime
 import logging
 import six
+from six.moves import urllib
 from girder import auditLogger
 from girder.models.model_base import Model
 from girder.api.rest import getCurrentUser
@@ -20,18 +21,18 @@ class _AuditLogDatabaseHandler(logging.Handler):
     def handle(self, record):
         user = getCurrentUser()
 
-        # Null characters may not be stored as MongoDB Object keys
-        # RFC3986 technically allows such characters to be encoded in the query string, and 'params'
-        # also contains data from form bodies, which may contain arbitrary field names
-        if record.msg == 'rest.request' and any(
-            '\x00' in paramKey
-            for paramKey in six.viewkeys(record.details['params'])
-        ):
+        if record.msg == 'rest.request':
+            # Some characters may not be stored as MongoDB Object keys
+            # https://docs.mongodb.com/manual/core/document/#field-names
+            # RFC3986 technically allows such characters to be encoded in the query string, and
+            # 'params' also contains data from form bodies, which may contain arbitrary field names
+            # For MongoDB, '\x00', '.', and '$' must be encoded, and for invertibility, '%' must be
+            # encoded too, but just encode everything for simplicity
             record.details['params'] = {
-                paramKey.replace('\x00', ''): paramValue
+                # 'urllib.parse.quote' alone doesn't replace '.'
+                urllib.parse.quote(paramKey, safe='').replace('.', '%2E'): paramValue
                 for paramKey, paramValue in six.viewitems(record.details['params'])
             }
-
         Record().save({
             'type': record.msg,
             'details': record.details,
