@@ -12,6 +12,7 @@ from girder.plugin import GirderPlugin
 class Record(Model):
     def initialize(self):
         self.name = 'audit_log_record'
+        self.ensureIndices(['type', 'when'])
 
     def validate(self, doc):
         return doc
