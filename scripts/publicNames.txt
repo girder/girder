@@ -12,6 +12,7 @@ clients
                 MAX_CHUNK_SIZE
                 addFolderUploadCallback
                 addItemUploadCallback
+                addMetadataToCollection
                 addMetadataToFolder
                 addMetadataToItem
                 authenticate

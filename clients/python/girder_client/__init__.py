@@ -1126,6 +1126,17 @@ class GirderClient(object):
         obj = self.put(path, json=metadata)
         return obj
 
+    def addMetadataToCollection(self, collectionId, metadata):
+        """
+        Takes a collection ID and a dictionary containing the metadata
+
+        :param collectionId: ID of the collection to set metadata on.
+        :param metadata: dictionary of metadata to set on collection.
+        """
+        path = 'collection/' + collectionId + '/metadata'
+        obj = self.put(path, json=metadata)
+        return obj
+
     def transformFilename(self, name):
         """
         Sanitize a resource name from Girder into a name that is safe to use
