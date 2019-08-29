@@ -319,21 +319,20 @@ class AssetstoreTestCase(base.TestCase):
         self.assertTrue(inspect.isgeneratorfunction(adapter.findInvalidFiles))
 
         with ProgressContext(True, user=self.admin, title='test') as p:
-            for i, info in enumerate(
-                    adapter.findInvalidFiles(progress=p, filters={
-                        'imported': True
-                    }), 1):
-                self.assertEqual(info['reason'], 'missing')
-                self.assertEqual(info['file']['_id'], fakeImport['_id'])
-            self.assertEqual(i, 1)
+            invalidFiles = list(adapter.findInvalidFiles(progress=p, filters={
+                'imported': True
+            }))
+            self.assertEqual(len(invalidFiles), 1)
+            self.assertEqual(invalidFiles[0]['reason'], 'missing')
+            self.assertEqual(invalidFiles[0]['file']['_id'], fakeImport['_id'])
             self.assertEqual(p.progress['data']['current'], 2)
             self.assertEqual(p.progress['data']['total'], 2)
 
-            for i, info in enumerate(
-                    adapter.findInvalidFiles(progress=p), 1):
-                self.assertEqual(info['reason'], 'missing')
-                self.assertIn(info['file']['_id'], (fakeImport['_id'], fake['_id']))
-            self.assertEqual(i, 2)
+            invalidFiles = list(adapter.findInvalidFiles(progress=p))
+            self.assertEqual(len(invalidFiles), 2)
+            for invalidFile in invalidFiles:
+                self.assertEqual(invalidFile['reason'], 'missing')
+                self.assertIn(invalidFile['file']['_id'], (fakeImport['_id'], fake['_id']))
             self.assertEqual(p.progress['data']['current'], 3)
             self.assertEqual(p.progress['data']['total'], 3)
 
@@ -346,8 +345,8 @@ class AssetstoreTestCase(base.TestCase):
         # Create a second assetstore so that when we delete the first one, the
         # current assetstore will be switched to the second one.
         secondStore = Assetstore().createFilesystemAssetstore(
-            'Another Store',  os.path.join(ROOT_DIR, 'tests', 'assetstore',
-                                           'server_assetstore_test2'))
+            'Another Store',
+            os.path.join(ROOT_DIR, 'tests', 'assetstore', 'server_assetstore_test2'))
         # make sure our original asset store is the current one
         current = Assetstore().getCurrent()
         self.assertEqual(current['_id'], assetstore['_id'])
@@ -780,7 +779,7 @@ class AssetstoreTestCase(base.TestCase):
                 client.get_object(Bucket='bucketname', Key=file['s3Key'])
             except botocore.exceptions.ClientError:
                 break
-            if time.time()-startTime > 15:
+            if time.time() - startTime > 15:
                 break  # give up and fail
             time.sleep(0.1)
         with self.assertRaises(botocore.exceptions.ClientError):

@@ -36,7 +36,7 @@ def uuidMock():
 
 @pytest.mark.parametrize('mode,msg,hasTrace', [
     ('production', 'An unexpected error occurred on the server.', False),
-    ('development', 'Exception: Exception(\'Specific message 1234\',)', True)
+    ('development', "Exception: Exception('Specific message 1234',)", True)
 ])
 def testExceptionHandlingBasedOnServerMode(exceptionServer, uuidMock, mode, msg, hasTrace):
     with serverMode(mode):

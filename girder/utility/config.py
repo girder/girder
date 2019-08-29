@@ -72,3 +72,7 @@ def getConfig():
         loadConfig()
     # When in Sphinx, cherrypy may be mocked and returning None
     return cherrypy.config or {}
+
+
+def getServerMode():
+    return getConfig()['server']['mode']

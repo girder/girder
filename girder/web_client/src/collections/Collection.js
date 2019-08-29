@@ -256,7 +256,7 @@ var Collection = Backbone.Collection.extend({
                 }
                 return undefined;
             });
-            xhr.girder = {fetch: true};
+            xhr.girder = { fetch: true };
             return result;
         }
 

@@ -14,4 +14,4 @@ class SentryPlugin(GirderPlugin):
     def load(self, info):
         info['apiRoot'].sentry = rest.Sentry()
 
-        sentry_sdk.init(dsn=Setting().get(PluginSettings.DSN))
+        sentry_sdk.init(dsn=Setting().get(PluginSettings.BACKEND_DSN))

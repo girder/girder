@@ -112,11 +112,11 @@ class UploadTestCase(base.TestCase):
         # s3 uses a different method for uploading chunks
         # This has no error checking at all
         if not upload['s3']['chunked']:
-            _send_s3_request(upload['s3']['request'], chunk1+chunk2)
+            _send_s3_request(upload['s3']['request'], chunk1 + chunk2)
             if partial is not False:
                 return
         else:
-            chunk1 = chunk1+chunk2
+            chunk1 = chunk1 + chunk2
             s3resp = _send_s3_request(upload['s3']['request'])
             matches = re.search('<UploadId>(.*)</UploadId>', s3resp.text)
             s3uploadId = matches.groups()[0]
@@ -135,7 +135,7 @@ class UploadTestCase(base.TestCase):
                     chunk2 = chunk1[upload['s3']['chunkLength']:]
                     chunk1 = chunk1[:upload['s3']['chunkLength']]
                 else:
-                    chunk2 = ""
+                    chunk2 = ''
                 resp = _send_s3_request(upload['s3']['request'], chunk1)
                 etags.append(resp.headers['ETag'])
                 chunk1 = chunk2
@@ -260,7 +260,7 @@ class UploadTestCase(base.TestCase):
         self.assertEqual(resp.json[0]['_id'], partialUploads[0]['_id'])
         # We should now have one less partial upload
         resp = self.request(path='/system/uploads', user=self.admin)
-        self.assertEqual(len(resp.json), len(partialUploads)-1)
+        self.assertEqual(len(resp.json), len(partialUploads) - 1)
         # If we ask to delete everything more than one day old, nothing should
         # be deleted.
         resp = self.request(
@@ -417,38 +417,6 @@ class UploadTestCase(base.TestCase):
         # Have the set come back online and upload once more
         mongo_replicaset.pauseMongoReplicaSet(rscfg, [False, False], verbose=verbose)
         self._uploadFile('rs_upload_3')
-        mongo_replicaset.stopMongoReplicaSet(rscfg)
-
-    def testGridFSShardingAssetstoreUpload(self):
-        verbose = 0
-        if 'REPLICASET' in os.environ.get('EXTRADEBUG', '').split():
-            verbose = 2
-        # Starting the sharding service takes time
-        rscfg = mongo_replicaset.makeConfig(port=27073, shard=True, sharddb=None)
-        mongo_replicaset.startMongoReplicaSet(rscfg, verbose=verbose)
-        # Clear the assetstore database and create a GridFS assetstore
-        Assetstore().remove(Assetstore().getCurrent())
-        self.assetstore = Assetstore().createGridFsAssetstore(
-            name='Test', db='girder_assetstore_shard_upload_test',
-            mongohost='mongodb://127.0.0.1:27073', shard='auto')
-        self._testUpload()
-        # Verify that we have successfully sharded the collection
-        adapter = assetstore_utilities.getAssetstoreAdapter(self.assetstore)
-        stat = adapter.chunkColl.database.command('collstats', adapter.chunkColl.name)
-        self.assertTrue(bool(stat['sharded']))
-        # Although we have asked for multiple shards, the chunks may all be on
-        # one shard.  Make sure at least one shard is reported.
-        self.assertGreaterEqual(len(stat['shards']), 1)
-
-        # Asking for the same database again should also report sharding.  Use
-        # a slightly differt URI to ensure that the sharding is checked anew.
-        assetstore = Assetstore().createGridFsAssetstore(
-            name='Test 2', db='girder_assetstore_shard_upload_test',
-            mongohost='mongodb://127.0.0.1:27073/?', shard='auto')
-        adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        stat = adapter.chunkColl.database.command('collstats', adapter.chunkColl.name)
-        self.assertTrue(bool(stat['sharded']))
-
         mongo_replicaset.stopMongoReplicaSet(rscfg)
 
     def testS3AssetstoreUpload(self):

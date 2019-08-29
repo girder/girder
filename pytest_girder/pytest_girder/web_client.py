@@ -131,7 +131,11 @@ def runWebClientTest(boundServer, spec, jasmineTimeout=None):
         str(jasmineTimeout or ''),
         )
 
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=dict(
+        # https://github.com/bazelbuild/rules_closure/pull/353
+        OPENSSL_CONF='/dev/null',
+        **os.environ
+    ))
     jasmineFinished = False
     for line in iter(p.stdout.readline, b''):
         print(line.rstrip())

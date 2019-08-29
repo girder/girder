@@ -194,9 +194,9 @@ describe('Test the hierarchy browser modal', function () {
                 expect(select.find('optgroup:eq(1)').prop('label')).toBe('Custom');
 
                 returnVal = [
-                    {_id: 'abc', name: 'custom 1', _modelType: 'collection'},
-                    {_id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin'},
-                    {_id: '123', name: 'custom 3', _modelType: 'folder'}
+                    { _id: 'abc', name: 'custom 1', _modelType: 'collection' },
+                    { _id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin' },
+                    { _id: '123', name: 'custom 3', _modelType: 'folder' }
                 ];
                 view.render.reset();
                 col.fetch();
@@ -228,9 +228,9 @@ describe('Test the hierarchy browser modal', function () {
 
             runs(function () {
                 returnVal = [
-                    {_id: 'abc', name: 'custom 1', _modelType: 'collection'},
-                    {_id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin'},
-                    {_id: '123', name: 'custom 3', _modelType: 'folder'}
+                    { _id: 'abc', name: 'custom 1', _modelType: 'collection' },
+                    { _id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin' },
+                    { _id: '123', name: 'custom 3', _modelType: 'folder' }
                 ];
                 col = new girder.collections.CollectionCollection();
                 col.fetch();
@@ -287,9 +287,9 @@ describe('Test the hierarchy browser modal', function () {
 
             runs(function () {
                 returnVal = [
-                    {_id: 'abc', name: 'custom 1', _modelType: 'collection'},
-                    {_id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin'},
-                    {_id: '123', name: 'custom 3', _modelType: 'folder'}
+                    { _id: 'abc', name: 'custom 1', _modelType: 'collection' },
+                    { _id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin' },
+                    { _id: '123', name: 'custom 3', _modelType: 'folder' }
                 ];
                 col = new girder.collections.CollectionCollection();
                 col.fetch();
@@ -339,9 +339,9 @@ describe('Test the hierarchy browser modal', function () {
             var col;
             var view;
             returnVal = [
-                {_id: 'abc', name: 'custom 1', _modelType: 'collection'},
-                {_id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin'},
-                {_id: '123', name: 'custom 3', _modelType: 'folder'}
+                { _id: 'abc', name: 'custom 1', _modelType: 'collection' },
+                { _id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin' },
+                { _id: '123', name: 'custom 3', _modelType: 'folder' }
             ];
 
             runs(function () {

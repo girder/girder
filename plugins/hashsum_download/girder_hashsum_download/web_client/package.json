@@ -1,6 +1,6 @@
 {
     "name": "@girder/hashsum_download",
-    "version": "0.2.0-alpha.1",
+    "version": "0.0.0",
     "description": "Allows download of a file by its hashsum.",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#hashsum-download",
     "bugs": {

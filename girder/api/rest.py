@@ -19,7 +19,7 @@ from girder.external.mongodb_proxy import MongoProxy
 
 from . import docs
 from girder import auditLogger, events, logger, logprint
-from girder.constants import TokenScope, SortDir
+from girder.constants import TokenScope, SortDir, ServerMode
 from girder.exceptions import AccessException, GirderException, ValidationException, RestException
 from girder.models.setting import Setting
 from girder.models.token import Token
@@ -194,8 +194,9 @@ def getCurrentUser(returnToken=False):
         else:
             return user
 
-    if (token is None or token['expires'] < datetime.datetime.utcnow() or
-            'userId' not in token):
+    if (token is None
+            or token['expires'] < datetime.datetime.utcnow()
+            or 'userId' not in token):
         return retVal(None, token)
     else:
         try:
@@ -235,8 +236,8 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
         Content-Disposition header, but do not set it.
     :returns: the content-disposition header value.
     """
-    if (not disposition or (disposition not in ('inline', 'attachment') and
-                            not disposition.startswith('form-data'))):
+    if (not disposition or (disposition not in ('inline', 'attachment')
+                            and not disposition.startswith('form-data'))):
         raise RestException(
             'Error: Content-Disposition (%r) is not a recognized value.' % disposition)
     if not filename:
@@ -255,7 +256,7 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
         quotedFilename = six.moves.urllib.parse.quote(utf8Filename)
         if not isinstance(quotedFilename, six.binary_type):
             quotedFilename = quotedFilename.encode('iso8859-1', 'ignore')
-        value += b'; filename*=UTF-8\'\'' + quotedFilename
+        value += b"; filename*=UTF-8''" + quotedFilename
     value = value.decode('utf8')
     if setHeader:
         setResponseHeader('Content-Disposition', value)
@@ -347,6 +348,7 @@ class loadmodel(object):  # noqa: class name
     :param requiredFlags: Access flags that are required on the object being loaded.
     :type requiredFlags: str or list/set/tuple of str or None
     """
+
     def __init__(self, map=None, model=None, plugin='_core', level=None,
                  force=False, exc=True, requiredFlags=None, **kwargs):
         if map is None:
@@ -528,7 +530,7 @@ def _createResponse(val):
 def _handleRestException(e):
     # Handle all user-error exceptions from the REST layer
     cherrypy.response.status = e.code
-    val = {'message': e.message, 'type': 'rest'}
+    val = {'message': str(e), 'type': 'rest'}
     if e.extra is not None:
         val['extra'] = e.extra
     return val
@@ -541,7 +543,7 @@ def _handleAccessException(e):
         cherrypy.response.status = 401
     else:
         cherrypy.response.status = 403
-    val = {'message': e.message, 'type': 'access'}
+    val = {'message': str(e), 'type': 'access'}
     if e.extra is not None:
         val['extra'] = e.extra
     return val
@@ -551,7 +553,7 @@ def _handleGirderException(e):
     # Handle general Girder exceptions
     logger.exception('500 Error')
     cherrypy.response.status = 500
-    val = {'message': e.message, 'type': 'girder'}
+    val = {'message': str(e), 'type': 'girder'}
     if e.identifier is not None:
         val['identifier'] = e.identifier
     return val
@@ -559,21 +561,33 @@ def _handleGirderException(e):
 
 def _handleValidationException(e):
     cherrypy.response.status = 400
-    val = {'message': e.message, 'type': 'validation'}
+    val = {'message': str(e), 'type': 'validation'}
     if e.field is not None:
         val['field'] = e.field
     return val
 
 
+def disableAuditLog(fun):
+    """
+    If calls to a REST route should not be logged in the audit log, decorate it with this function.
+    """
+    @six.wraps(fun)
+    def wrapped(*args, **kwargs):
+        cherrypy.request.girderNoAuditLog = True
+        return fun(*args, **kwargs)
+    return wrapped
+
+
 def _logRestRequest(resource, path, params):
-    auditLogger.info('rest.request', extra={
-        'details': {
-            'method': cherrypy.request.method.upper(),
-            'route': (getattr(resource, 'resourceName', resource.__class__.__name__),) + path,
-            'params': params,
-            'status': cherrypy.response.status or 200
-        }
-    })
+    if not hasattr(cherrypy.request, 'girderNoAuditLog'):
+        auditLogger.info('rest.request', extra={
+            'details': {
+                'method': cherrypy.request.method.upper(),
+                'route': (getattr(resource, 'resourceName', resource.__class__.__name__),) + path,
+                'params': params,
+                'status': cherrypy.response.status or 200
+            }
+        })
 
 
 def _mongoCursorToList(val):
@@ -652,7 +666,7 @@ def endpoint(fun):
             cherrypy.response.status = 500
             val = dict(type='internal', uid=cherrypy.request.girderRequestUid)
 
-            if config.getConfig()['server']['mode'] == 'production':
+            if config.getServerMode() == ServerMode.PRODUCTION:
                 # Sanitize errors in production mode
                 val['message'] = 'An unexpected error occurred on the server.'
             else:
@@ -727,6 +741,7 @@ class Resource(object):
     All REST resources should inherit from this class, which provides utilities
     for adding resources/routes to the REST API.
     """
+
     exposed = True
 
     def __init__(self):
@@ -908,7 +923,7 @@ class Resource(object):
             handler, 'requiredScopes', None) or TokenScope.USER_AUTH
 
         if getattr(handler, 'cookieAuth', False):
-            setattr(cherrypy.request, 'girderAllowCookie', True)
+            cherrypy.request.girderAllowCookie = True
 
         kwargs['params'] = params
         # Add before call for the API method. Listeners can return
@@ -1251,4 +1266,5 @@ class Prefix(object):
     """
     Utility class used to provide api prefixes.
     """
+
     exposed = True

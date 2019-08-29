@@ -1,6 +1,6 @@
 {
   "name": "@girder/fontello",
-  "version": "3.0.0-alpha.1",
+  "version": "0.0.0",
   "description": "Built Fontello files for use in Girder.",
   "license": "Apache-2.0",
   "repository": {
@@ -12,7 +12,8 @@
   },
   "main": "index.js",
   "scripts": {
-    "build": "grunt"
+    "build": "grunt",
+    "prepublishOnly": "$npm_execpath install && $npm_execpath run build"
   },
   "devDependencies": {
     "grunt": "^1.0.3",

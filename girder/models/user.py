@@ -463,20 +463,19 @@ class User(AccessControlledModel):
             'user': user,
             'url': url
         })
-        mail_utils.sendEmail(
-            toAdmins=True,
-            subject='Girder: Account pending approval',
-            text=text)
+        mail_utils.sendMailToAdmins(
+            'Girder: Account pending approval',
+            text)
 
     def _sendApprovedEmail(self, user):
         text = mail_utils.renderTemplate('accountApproved.mako', {
             'user': user,
             'url': mail_utils.getEmailUrlPrefix()
         })
-        mail_utils.sendEmail(
-            to=user.get('email'),
-            subject='Girder: Account approved',
-            text=text)
+        mail_utils.sendMail(
+            'Girder: Account approved',
+            text,
+            [user.get('email')])
 
     def _sendVerificationEmail(self, user):
         from .token import Token
@@ -488,10 +487,10 @@ class User(AccessControlledModel):
         text = mail_utils.renderTemplate('emailVerification.mako', {
             'url': url
         })
-        mail_utils.sendEmail(
-            to=user.get('email'),
-            subject='Girder: Email verification',
-            text=text)
+        mail_utils.sendMail(
+            'Girder: Email verification',
+            text,
+            [user.get('email')])
 
     def _grantSelfAccess(self, event):
         """
@@ -553,7 +552,12 @@ class User(AccessControlledModel):
         if subpath:
             path = os.path.join(path, doc['login'])
         folderModel = Folder()
-        for folder in folderModel.childFolders(parentType='user', parent=doc, user=user):
+        # Eagerly evaluate this list, as the MongoDB cursor can time out on long requests
+        childFolders = list(folderModel.childFolders(
+            parentType='user', parent=doc, user=user,
+            fields=['name'] + (['meta'] if includeMetadata else [])
+        ))
+        for folder in childFolders:
             for (filepath, file) in folderModel.fileList(
                     folder, user, path, includeMetadata, subpath=True, data=data):
                 yield (filepath, file)

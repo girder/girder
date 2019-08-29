@@ -13,6 +13,7 @@ from girder.utility import mail_utils
 
 class Group(Resource):
     """API Endpoint for groups."""
+
     def __init__(self):
         super(Group, self).__init__()
         self.resourceName = 'group'
@@ -210,14 +211,14 @@ class Group(Resource):
                 if addGroup not in ['no', 'yesadmin', 'yesmod']:
                     addGroup = addPolicy
                 if (groupModel.hasAccess(
-                        group, user, AccessType.ADMIN) and
-                        ('mod' in addPolicy or 'admin' in addPolicy) and
-                        addGroup.startswith('yes')):
+                        group, user, AccessType.ADMIN)
+                        and ('mod' in addPolicy or 'admin' in addPolicy)
+                        and addGroup.startswith('yes')):
                     mustBeAdmin = False
                 elif (groupModel.hasAccess(
-                        group, user, AccessType.WRITE) and
-                        'mod' in addPolicy and
-                        addGroup == 'yesmod'):
+                        group, user, AccessType.WRITE)
+                        and 'mod' in addPolicy
+                        and addGroup == 'yesmod'):
                     mustBeAdmin = False
                 if mustBeAdmin:
                     self.requireAdmin(user)
@@ -233,10 +234,10 @@ class Group(Resource):
                     'user': user,
                     'group': group
                 })
-                mail_utils.sendEmail(
-                    to=userToInvite['email'], text=html,
-                    subject="%s: You've been invited to a group"
-                    % Setting().get(SettingKey.BRAND_NAME)
+                mail_utils.sendMail(
+                    "%s: You've been invited to a group" % Setting().get(SettingKey.BRAND_NAME),
+                    html,
+                    [userToInvite['email']]
                 )
 
         group['access'] = groupModel.getFullAccessList(group)

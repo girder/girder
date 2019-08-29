@@ -10,7 +10,7 @@ events.on('g:appload.after', function () {
         url: 'sentry/dsn'
     }).done((resp) => {
         if (resp.sentry_dsn) {
-            sentryInit({dsn: resp.sentry_dsn});
+            sentryInit({ dsn: resp.sentry_dsn });
         }
     });
 });

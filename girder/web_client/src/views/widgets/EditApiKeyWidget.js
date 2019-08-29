@@ -94,7 +94,7 @@ var EditApiKeyWidget = View.extend({
                 }
             }
         });
-        modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
+        modal.trigger($.Event('ready.girder.modal', { relatedTarget: modal }));
 
         this.$('#g-api-key-name').focus();
 

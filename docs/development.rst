@@ -18,7 +18,7 @@ provide helpful development tools and to allow the test suite to run: ::
 
     pip install -r requirements-dev.txt
 
-Install front-end web client development dependencies. This will install npm modules eslint and pug-lint, which are needed to run tests. This will also build the web client code: ::
+Install front-end web client development dependencies and build the web client code: ::
 
     girder build --dev
 
@@ -110,7 +110,7 @@ will override the defaults.
 Server Development
 ------------------
 
-All commits to the core python code must work in both python 2.7 and 3.5.
+All commits to the core python code must work in both python 2.7 and 3.6.
 Python code in plugins should also work in both, but some plugins may depend
 on third party libraries that do not support python 3. If that is the case, those
 plugins should declare ``"python_requires<3.0`` in their **setup.py** file
@@ -222,7 +222,7 @@ environments. By default, running ``tox`` will create a virtual environment, ins
 dependencies, install Girder, and run ``pytest`` for each version of Python that Girder supports.
 
 Sometimes it might be desirable to only run ``tox`` against a single Python environment, such as
-Python 3.5. To do this run ``tox -e py35``. Note that a list of valid environments can be found by
+Python 3.6. To do this run ``tox -e py36``. Note that a list of valid environments can be found by
 running ``tox -a``.
 
 Specific arguments can be passed through to ``pytest`` by adding them after the ``tox``
@@ -251,7 +251,16 @@ under **build/test/artifacts/**.
 Client Side Testing
 -------------------
 
-Using the same setup as above for the Server Side Tests, your environment will be set up
+Running the Tests with npm
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+To run static analysis tests on client side code, run from the top-level Girder directory:
+
+    npm i
+    npm run lint
+
+Running the Tests with CTest
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using the same setup as above for the Server Side Tests, your environment will be set up.
 The client side tests and server side tests are both harnessed with CTest, so use the following commands to run both ::
 
     cd girder-build
@@ -260,7 +269,7 @@ The client side tests and server side tests are both harnessed with CTest, so us
 will run all of the tests, which include the client side tests.  Our client tests use the
 Jasmine JS testing framework.
 
-If you encounter errors regarding ESLINT or PUG_LINT, there is a chance you missed certain steps for setting up development dependencies.
+If you encounter errors, there is a chance you missed certain steps for setting up development dependencies.
 You could use ``ccmake`` to change ``CMake`` configuration. Or, it might be easier to recreate the environment from the beginning.
 
 When running client side tests, if you try to SIGINT (ctrl+c) the CTest process, CTest

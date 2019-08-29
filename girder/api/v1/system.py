@@ -34,6 +34,7 @@ class System(Resource):
     """
     The system endpoints are for querying and managing system-wide properties.
     """
+
     def __init__(self):
         super(System, self).__init__()
         self.resourceName = 'system'
@@ -203,7 +204,7 @@ class System(Resource):
             if limit == 0:
                 uploadList += untrackedList
             elif len(uploadList) < limit:
-                uploadList += untrackedList[:limit-len(uploadList)]
+                uploadList += untrackedList[:limit - len(uploadList)]
         return uploadList
 
     @access.admin(scope=TokenScope.PARTIAL_UPLOAD_CLEAN)
@@ -437,8 +438,7 @@ class System(Resource):
                 baseParent = model.parentsToRoot(doc, force=True)[0]
                 baseParentType = baseParent['type']
                 baseParentId = baseParent['object']['_id']
-                if (doc['baseParentType'] != baseParentType or
-                        doc['baseParentId'] != baseParentId):
+                if (doc['baseParentType'] != baseParentType or doc['baseParentId'] != baseParentId):
                     model.update({'_id': doc['_id']}, update={
                         '$set': {
                             'baseParentType': baseParentType,

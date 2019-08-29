@@ -20,11 +20,13 @@ def _objectToDict(obj):
     :param obj: a python object or class.
     :returns: a dictionary of values for the object.
     """
-    return {key: getattr(obj, key) for key in dir(obj) if
-            not key.startswith('_') and
-            isinstance(getattr(obj, key),
-                       tuple([float, tuple] + list(six.string_types) +
-                             list(six.integer_types)))}
+    return {
+        key: getattr(obj, key)
+        for key in dir(obj)
+        if not key.startswith('_') and isinstance(
+            getattr(obj, key),
+            tuple([float, tuple] + list(six.string_types) + list(six.integer_types)))
+    }
 
 
 def _computeSlowStatus(process, status, db):
@@ -53,15 +55,10 @@ def _computeSlowStatus(process, status, db):
             # exception
             pass
     status['mongoDbStats'] = db.command('dbStats')
-    try:
-        # I don't know if this will work with a sharded database, so guard
-        # it and don't throw an exception
-        status['mongoDbPath'] = getDbConnection().admin.command(
-            'getCmdLineOpts')['parsed']['storage']['dbPath']
-        status['mongoDbDiskUsage'] = _objectToDict(
-            psutil.disk_usage(status['mongoDbPath']))
-    except Exception:
-        pass
+    status['mongoDbPath'] = getDbConnection().admin.command(
+        'getCmdLineOpts')['parsed']['storage']['dbPath']
+    status['mongoDbDiskUsage'] = _objectToDict(
+        psutil.disk_usage(status['mongoDbPath']))
 
     status['processDirectChildrenCount'] = len(process.children())
     status['processAllChildrenCount'] = len(process.children(True))
@@ -195,4 +192,4 @@ class StatusMonitor(cherrypy.Tool):
 
 
 cherrypy.tools.status = StatusMonitor()
-cherrypy.config.update({"tools.status.on": True})
+cherrypy.config.update({'tools.status.on': True})

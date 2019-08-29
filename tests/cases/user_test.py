@@ -508,13 +508,13 @@ class UserTestCase(base.TestCase):
         resp = self.request(path='/user/password/temporary', method='PUT',
                             params={'email': 'bad_email@user.com'})
         self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], "That email is not registered.")
+        self.assertEqual(resp.json['message'], 'That email is not registered.')
         # Actually generate temporary access token
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
         resp = self.request(path='/user/password/temporary', method='PUT',
                             params={'email': 'user@user.com'})
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json['message'], "Sent temporary access email.")
+        self.assertEqual(resp.json['message'], 'Sent temporary access email.')
         self.assertTrue(base.mockSmtp.waitForMail())
         msg = base.mockSmtp.getMail(parse=True)
         # Pull out the auto-generated token from the email
@@ -548,8 +548,8 @@ class UserTestCase(base.TestCase):
 
         # Artificially adjust the token to have expired.
         token = Token().load(tokenId, force=True, objectId=False)
-        token['expires'] = (datetime.datetime.utcnow() -
-                            datetime.timedelta(days=1))
+        token['expires'] = (datetime.datetime.utcnow()
+                            - datetime.timedelta(days=1))
         Token().save(token)
         resp = self.request(path=path, method='GET', params={'token': tokenId})
         self.assertStatus(resp, 401)

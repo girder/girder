@@ -155,6 +155,7 @@ girder
                 sendAuthTokenCookie
                 setRawResponse
             boundHandler
+            disableAuditLog
             endpoint
             ensureTokenScopes
             filtermodel
@@ -394,6 +395,10 @@ girder
         ROOT_DIR
         STATIC_PREFIX
         STATIC_ROOT_DIR
+        ServerMode
+            DEVELOPMENT
+            PRODUCTION
+            TESTING
         SortDir
             ASCENDING
             DESCENDING
@@ -464,6 +469,7 @@ girder
             Executable
             MongoClient
             MongoProxy
+                next
             MongoReplicaSetClient
             get_methods
     getLogPaths
@@ -816,6 +822,7 @@ girder
         camelcase
         config
             getConfig
+            getServerMode
             loadConfig
         filesystem_assetstore_adapter
             BUF_SIZE
@@ -855,7 +862,10 @@ girder
             addTemplateDirectory
             getEmailUrlPrefix
             renderTemplate
-            sendEmail
+            sendMail
+            sendMailIndividually
+            sendMailSync
+            sendMailToAdmins
             validateEmailAddress
         mkdir
         model_importer
@@ -959,7 +969,8 @@ plugins
             Record
                 initialize
                 validate
-        scripts
+            cleanup
+                cleanup
             report
                 get_file_download_records
                 index_folder
@@ -1225,10 +1236,10 @@ plugins
                 load
             rest
                 Sentry
-                    getDsn
             settings
                 PluginSettings
-                    DSN
+                    BACKEND_DSN
+                    FRONTEND_DSN
     terms
         girder_terms
             TermsPlugin

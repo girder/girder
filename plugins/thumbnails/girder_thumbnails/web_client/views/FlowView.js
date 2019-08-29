@@ -14,7 +14,7 @@ var FlowView = View.extend({
     events: {
         'click .g-thumbnail-delete': function (e) {
             var container = $(e.currentTarget).parents('.g-thumbnail-container');
-            var file = new FileModel({_id: container.attr('g-file-id')});
+            var file = new FileModel({ _id: container.attr('g-file-id') });
 
             confirm({
                 text: 'Are you sure you want to delete this thumbnail?',

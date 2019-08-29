@@ -105,7 +105,7 @@ class DownloadStatisticsTestCase(base.TestCase):
         path = '/file/%s/download' % str(fileId)
         for i in range(1, 5):
             params = {
-                'offset': i-1,
+                'offset': i - 1,
                 'endByte': i
             }
             resp = self.request(path, method='GET', isJson=False, params=params)
@@ -135,7 +135,7 @@ class DownloadStatisticsTestCase(base.TestCase):
 
         # Download item and its files several times and ensure downloads are recorded
         # Each file is downloaded 10 times
-        for n in range(0, 5):
+        for _ in range(0, 5):
             self._downloadItem(item['_id'])
             self._downloadFile(file1['_id'])
             self._downloadFile(file2['_id'])

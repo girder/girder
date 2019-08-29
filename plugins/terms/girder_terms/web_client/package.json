@@ -1,6 +1,6 @@
 {
     "name": "@girder/terms",
-    "version": "0.2.0-alpha.1",
+    "version": "0.0.0",
     "description": "Allows Girder collections to require users to accept terms of use before browsing.",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#terms-of-use",
     "bugs": {

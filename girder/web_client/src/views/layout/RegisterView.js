@@ -59,7 +59,7 @@ var RegisterView = View.extend({
                         });
                     }
 
-                    handleClose('register', {replace: true});
+                    handleClose('register', { replace: true });
                 }
 
                 this.$el.modal('hide');
@@ -90,11 +90,11 @@ var RegisterView = View.extend({
             .on('shown.bs.modal', () => {
                 this.$('#g-login').focus();
             }).on('hidden.bs.modal', () => {
-                handleClose('register', {replace: true});
+                handleClose('register', { replace: true });
             });
         this.$('#g-login').focus();
 
-        handleOpen('register', {replace: true});
+        handleOpen('register', { replace: true });
 
         return this;
     }

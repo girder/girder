@@ -59,7 +59,7 @@ def _validateLogo(doc):
         logoFile = File().load(doc['value'], level=AccessType.READ, user=None, exc=True)
     except ValidationException as e:
         # Invalid ObjectId, or non-existent document
-        raise ValidationException(e.message, 'value')
+        raise ValidationException(str(e), 'value')
     except AccessException:
         raise ValidationException('Logo must be publicly readable', 'value')
 

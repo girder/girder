@@ -10,7 +10,6 @@ def prerelease_local_scheme(version):
     pre-release in which case it ignores the hash and produces a
     PEP440 compliant pre-release version number (e.g. 0.0.0.dev<N>).
     """
-
     from setuptools_scm.version import get_local_node_and_date
 
     if os.getenv('CIRCLE_BRANCH') == 'master':
@@ -32,7 +31,7 @@ setup(
     ],
     packages=find_packages(),
     install_requires=[
-        'girder>=3.0.0a1',
+        'girder>=3',
         'mock',
         'mongomock',
         'pytest>=3.6',

@@ -10,10 +10,10 @@ import PluginConfigBreadcrumbTemplate from '@girder/core/templates/widgets/plugi
 var PluginConfigBreadcrumbWidget = View.extend({
     events: {
         'click a.g-admin-console-link': function () {
-            router.navigate('admin', {trigger: true});
+            router.navigate('admin', { trigger: true });
         },
         'click a.g-plugins-link': function () {
-            router.navigate('plugins', {trigger: true});
+            router.navigate('plugins', { trigger: true });
         }
     },
 

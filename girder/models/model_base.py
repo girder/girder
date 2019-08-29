@@ -1313,10 +1313,8 @@ class AccessControlledModel(Model):
         # Check remaining required flags against user's permissions
         perms = doc.get('access', {})
         for flag in requiredFlags:
-            if (not self._hasGroupAccessFlag(
-                    perms.get('groups', ()), user.get('groups', ()), flag) and
-                    not self._hasUserAccessFlag(
-                        perms.get('users', ()), user['_id'], flag)):
+            if (not self._hasGroupAccessFlag(perms.get('groups', ()), user.get('groups', ()), flag)
+                    and not self._hasUserAccessFlag(perms.get('users', ()), user['_id'], flag)):
                 return False
 
         return True
@@ -1498,8 +1496,8 @@ class AccessControlledModel(Model):
         """
         if flags:
             def hasAccess(doc):
-                return (self.hasAccess(doc, user=user, level=level) and
-                        self.hasAccessFlags(doc, user=user, flags=flags))
+                return (self.hasAccess(doc, user=user, level=level)
+                        and self.hasAccessFlags(doc, user=user, flags=flags))
         else:
             hasAccess = functools.partial(self.hasAccess, user=user, level=level)
 

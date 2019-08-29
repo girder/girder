@@ -14,7 +14,7 @@ wrap(ItemView, 'render', function (render) {
     // so we must listen for a render event.
     this.once('g:rendered', function () {
         const thumbnails = new FileCollection(
-            _.map(this.model.get('_thumbnails'), (id) => ({_id: id}))
+            _.map(this.model.get('_thumbnails'), (id) => ({ _id: id }))
         );
 
         if (thumbnails && thumbnails.length) {

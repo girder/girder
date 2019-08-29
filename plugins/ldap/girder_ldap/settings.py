@@ -38,7 +38,7 @@ def _validateServers(doc):
     try:
         jsonschema.validate(doc['value'], serversSchema)
     except jsonschema.ValidationError as e:
-        raise ValidationException('Invalid LDAP servers list: ' + e.message)
+        raise ValidationException('Invalid LDAP servers list: ' + str(e))
 
     for server in doc['value']:
         if '://' not in server['uri']:

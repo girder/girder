@@ -182,7 +182,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
             # this would be:
             # size += File().recalculateSize(file)
             size += file.get('size', 0)
-        delta = size-item.get('size', 0)
+        delta = size - item.get('size', 0)
         if delta:
             logger.info('Item %s was wrong size: was %d, is %d' % (
                 item['_id'], item['size'], size))
@@ -495,13 +495,17 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         if subpath:
             files = list(self.childFiles(item=doc, limit=2))
-            if (len(files) != 1 or files[0]['name'] != doc['name'] or
-                    (includeMetadata and doc.get('meta', {}))):
+            if (len(files) != 1 or files[0]['name'] != doc['name']
+                    or (includeMetadata and doc.get('meta', {}))):
                 path = os.path.join(path, doc['name'])
         metadataFile = 'girder-item-metadata.json'
 
         fileModel = File()
-        for file in self.childFiles(item=doc):
+        # Eagerly evaluate this list, as the MongoDB cursor can time out on long requests
+        # Don't use a "filter" projection here, since returning the full file document is promised
+        # by this function, and file objects tend to not have large fields present
+        childFiles = list(self.childFiles(item=doc))
+        for file in childFiles:
             if not self._mimeFilter(file, mimeFilter):
                 continue
             if file['name'] == metadataFile:

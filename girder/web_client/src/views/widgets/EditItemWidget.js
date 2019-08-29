@@ -73,7 +73,7 @@ var EditItemWidget = View.extend({
                 this.create = true;
             }
         });
-        modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
+        modal.trigger($.Event('ready.girder.modal', { relatedTarget: modal }));
         this.descriptionEditor.setElement(this.$('.g-description-editor-container')).render();
 
         return this;

@@ -87,10 +87,10 @@ var LoginView = View.extend({
             .on('shown.bs.modal', () => {
                 this.$('#g-login').focus();
             }).on('hidden.bs.modal', () => {
-                handleClose('login', {replace: true});
+                handleClose('login', { replace: true });
             });
 
-        handleOpen('login', {replace: true});
+        handleOpen('login', { replace: true });
         this.$('#g-login').focus();
 
         return this;

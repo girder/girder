@@ -44,7 +44,7 @@ var ConfigView = View.extend({
             }]);
         },
         'click #g-autojoin-cancel': function (event) {
-            router.navigate('plugins', {trigger: true});
+            router.navigate('plugins', { trigger: true });
         }
     },
 

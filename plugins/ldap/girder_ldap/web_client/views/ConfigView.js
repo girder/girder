@@ -26,7 +26,7 @@ var ConfigView = View.extend({
         },
         'click .g-ldap-add-server': function () {
             this.$('.g-ldap-server-accordion').append(newServerTemplate({
-                server: {collapsedClass: 'in'},
+                server: { collapsedClass: 'in' },
                 index: this.$('.g-ldap-server-panel').length
             }));
         },

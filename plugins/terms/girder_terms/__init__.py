@@ -17,9 +17,9 @@ from girder.plugin import GirderPlugin
 @access.user(scope=TokenScope.DATA_READ)
 @boundHandler
 @autoDescribeRoute(
-    Description('Accept a collection\'s Terms of Use for the current user.')
+    Description("Accept a collection's Terms of Use for the current user.")
     .modelParam('id', model=CollectionModel, level=AccessType.READ)
-    .param('termsHash', 'The SHA-256 hash of this collection\'s terms, encoded in hexadecimal.')
+    .param('termsHash', "The SHA-256 hash of this collection's terms, encoded in hexadecimal.")
 )
 def acceptCollectionTerms(self, collection, termsHash):
     if not collection.get('terms'):

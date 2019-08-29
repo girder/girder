@@ -77,7 +77,6 @@ class Description(object):
         """
         Returns this description object as an appropriately formatted dict
         """
-
         # Responses Object spec:
         # The Responses Object MUST contain at least one response code, and it
         # SHOULD be the response for a successful operation call.
@@ -432,6 +431,7 @@ class ApiDocs(WebrootBase):
     """
     This serves up the Swagger page.
     """
+
     def __init__(self, templatePath=None):
         if not templatePath:
             templatePath = os.path.join(constants.PACKAGE_DIR,
@@ -629,6 +629,8 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             params = {k: v for k, v in six.viewitems(kwargs) if k != 'params'}
             params.update(kwargs.get('params', {}))
 
+            kwargs['params'] = kwargs.get('params', {})
+
             for descParam in self.description.params:
                 # We need either a type or a schema ( for message body )
                 if 'type' not in descParam and 'schema' not in descParam:
@@ -688,7 +690,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
                 jsonschema.validate(val, info['schema'])
             except jsonschema.ValidationError as e:
                 raise RestException('Invalid JSON object for parameter %s: %s' % (
-                    name, e.message))
+                    name, str(e)))
         elif info['requireObject'] and not isinstance(val, dict):
             raise RestException('Parameter %s must be a JSON object.' % name)
         elif info['requireArray'] and not isinstance(val, list):

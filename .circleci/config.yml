@@ -52,7 +52,6 @@ jobs:
             TEST_GROUP: python
             PYTHON_VERSION: 2.7
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
-            VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/virtualenv
           working_directory: girder_build
       - run:
           name: Run tox
@@ -87,7 +86,7 @@ jobs:
           name: Generate python environment checksum file
           command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
       - restore_cache:
-          key: venv-py3.5-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
+          key: venv-py3.6-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - run:
           name: Create virtual environment (if necessary)
           command: if [ ! -d girder_env ]; then python3 -m venv girder_env; fi
@@ -108,7 +107,7 @@ jobs:
             pyclean girder_env
       - save_cache:
           paths: girder_env
-          key: venv-py3.5-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
+          key: venv-py3.6-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -138,13 +137,12 @@ jobs:
           command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake" --exclude-regex '^server_pytest_core$'
           environment:
             TEST_GROUP: python
-            PYTHON_VERSION: 3.5
+            PYTHON_VERSION: 3.6
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
-            VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
           working_directory: girder_build
       - run:
           name: Run tox
-          command: tox -e circleci-py35,docs
+          command: tox -e lint,circleci-py36,docs
           working_directory: girder
       - store_test_results:
           path: girder/build/test/results
@@ -184,6 +182,10 @@ jobs:
           paths: npm_cache
           key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
       - run:
+          name: Run Javascript linting
+          command: npm run lint
+          working_directory: girder
+      - run:
           name: Create Girder build directory
           command: mkdir girder_build
       - run:
@@ -191,9 +193,8 @@ jobs:
           command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: browser
-            PYTHON_VERSION: 3.5
+            PYTHON_VERSION: 3.6
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
-            VIRTUALENV_EXECUTABLE: /home/circleci/project/girder_env/bin/python3 -m venv
             JASMINE_TIMEOUT: 15000
           working_directory: girder_build
       - store_artifacts:
@@ -250,7 +251,7 @@ jobs:
             sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
             echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
             sudo apt-get update
-            sudo apt-get install -y mongodb-org-server mongodb-org-mongos
+            sudo apt-get install -y mongodb-org-server
       - run:
           # Boto doesn't work as a library if there is a /etc/boto.cfg file
           # from a different version of Python, so remove the file.
@@ -290,7 +291,7 @@ jobs:
             girder build --dev | cat
       - run:
           name: CMake
-          command: cmake ../girder -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
+          command: cmake ../girder -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
@@ -376,7 +377,7 @@ jobs:
             sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
             echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
             sudo apt-get update
-            sudo apt-get install -y mongodb-org-server mongodb-org-mongos
+            sudo apt-get install -y mongodb-org-server
       - run:
           # The "d3" npm package (required by some Girder plugins) has an optional dependency of
           # "canvas", which requires "node-gyp" to build. node-gyp strictly requires Python 2
@@ -388,10 +389,10 @@ jobs:
           name: Allow Boto to work with Python 3
           command: sudo rm --force /etc/boto.cfg
       - run:
-          name: Set up Python 3.5
+          name: Set up Python 3.6
           command: |
-             pyenv install 3.5.4 || true
-             pyenv global 3.5.4
+             pyenv install 3.6.3 || true
+             pyenv global 3.6.3
       - run:
           name: Create and activate virtual environment
           command: |
@@ -419,7 +420,7 @@ jobs:
             girder build --dev | cat
       - run:
           name: CMake
-          command: cmake ../girder -DPYTHON_VERSION=3.5 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python -DVIRTUALENV_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/virtualenv
+          command: cmake ../girder -DPYTHON_VERSION=3.6 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python
           working_directory: girder_build
       - run:
           name: make
@@ -456,7 +457,7 @@ jobs:
           command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: coverage
-            PYTHON_VERSION: 3.5
+            PYTHON_VERSION: 3.6
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
             JASMINE_TIMEOUT: 15000
             BUILD_JAVASCRIPT_TESTS: "ON"
@@ -485,15 +486,6 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Create virtual environment (if necessary)
-          command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
-      - run:
-          name: Activate virtual environment
-          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
-      - run:
-          name: Install tox
-          command: pip install --upgrade pip tox
-      - run:
           name: Test public symbols
           command: tox -e public_names
           working_directory: girder
@@ -508,35 +500,17 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
-          name: Create virtual environment (if necessary)
-          command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
-      - run:
-          name: Activate virtual environment
-          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
-      - run:
-          name: Install tox
-          command: pip install --upgrade pip tox
-      - run:
           name: Run Ansible tests
           command: tox -e ansible
           working_directory: girder
 
   release:
     docker:
-      - image: circleci/python:2.7
+      - image: girder/girder_test:latest-py3
     working_directory: /home/circleci/project
     steps:
       - checkout:
           path: girder
-      - run:
-          name: Create virtual environment (if necessary)
-          command: if [ ! -d girder_env ]; then virtualenv girder_env; fi
-      - run:
-          name: Activate virtual environment
-          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
-      - run:
-          name: Install tox
-          command: pip install --upgrade pip tox
       - run:
           name: Publish python packages
           command: tox -e release
@@ -558,7 +532,7 @@ jobs:
           name: Generate python environment checksum file
           command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
       - restore_cache:
-          key: venv-py3.5-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
+          key: venv-py3.6-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - run:
           name: Activate virtual environment
           command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV

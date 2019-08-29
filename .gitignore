@@ -1,5 +1,6 @@
 # Build outputs
 /build/
+/.tox/
 **/dist/
 **/.eggs/
 girder-*.tar.gz

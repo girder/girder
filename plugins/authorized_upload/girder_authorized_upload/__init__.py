@@ -2,6 +2,7 @@
 import os
 
 from bson.objectid import ObjectId
+from bson.errors import InvalidId
 from girder import events
 from girder.api import access
 from girder.api.rest import getCurrentToken, setCurrentUser
@@ -63,7 +64,11 @@ def _authorizeUploadStep(event):
     upload is an authorized upload.
     """
     token = getCurrentToken()
-    uploadId = ObjectId(event.info['params'].get('uploadId'))
+    try:
+        uploadId = ObjectId(event.info['params'].get('uploadId', ''))
+    except InvalidId:
+        # Take no action, 'uploadId' will be validated again by the endpoint
+        return
 
     if token and 'authorizedUploadId' in token and token['authorizedUploadId'] == uploadId:
         user = User().load(token['userId'], force=True)
@@ -93,7 +98,7 @@ def _uploadComplete(event):
             'itemName': item['name'],
             'itemDescription': item.get('description', '')
         })
-        mail_utils.sendEmail(to=user['email'], subject='Authorized upload complete', text=text)
+        mail_utils.sendMail('Authorized upload complete', text, [user['email']])
         Token().remove(token)
 
 

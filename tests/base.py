@@ -15,7 +15,7 @@ from six import BytesIO
 from six.moves import urllib
 from girder.utility._cache import cache, requestCache
 from girder.utility.server import setup as setupServer
-from girder.constants import AccessType, ROOT_DIR
+from girder.constants import AccessType, ROOT_DIR, ServerMode
 from girder.models import getDbConnection
 from girder.models.model_base import _modelSingletons
 from girder.models.assetstore import Assetstore
@@ -49,7 +49,7 @@ def startServer(mock=True, mockS3=False):
     usedDBs[dbName] = True
 
     # By default, this passes "[]" to "plugins", disabling any installed plugins
-    server = setupServer(test=True, plugins=enabledPlugins)
+    server = setupServer(mode=ServerMode.TESTING, plugins=enabledPlugins)
 
     if mock:
         cherrypy.server.unsubscribe()
@@ -148,14 +148,14 @@ class TestCase(unittest.TestCase):
     Test case base class for the application. Adds helpful utilities for
     database and HTTP communication.
     """
+
     def setUp(self, assetstoreType=None, dropModels=True):
         """
         We want to start with a clean database each time, so we drop the test
         database before each test. We then add an assetstore so the file model
         can be used without 500 errors.
         :param assetstoreType: if 'gridfs' or 's3', use that assetstore.
-            'gridfsrs' uses a GridFS assetstore with a replicaset, and
-            'gridfsshard' one with a sharding server.  For any other value, use
+            'gridfsrs' uses a GridFS assetstore with a replicaset. For any other value, use
             a filesystem assetstore.
         """
         self.assetstoreType = assetstoreType
@@ -177,14 +177,6 @@ class TestCase(unittest.TestCase):
                 name='Test', db=gridfsDbName,
                 mongohost='mongodb://127.0.0.1:27070,127.0.0.1:27071,'
                 '127.0.0.1:27072', replicaset='replicaset')
-        elif assetstoreType == 'gridfsshard':
-            gridfsDbName = 'girder_test_%s_shard_assetstore_auto' % assetstoreName
-            self.replicaSetConfig = mongo_replicaset.makeConfig(
-                port=27073, shard=True, sharddb=None)
-            mongo_replicaset.startMongoReplicaSet(self.replicaSetConfig)
-            self.assetstore = Assetstore().createGridFsAssetstore(
-                name='Test', db=gridfsDbName,
-                mongohost='mongodb://127.0.0.1:27073', shard='auto')
         elif assetstoreType == 's3':
             self.assetstore = Assetstore().createS3Assetstore(
                 name='Test', bucket='bucketname', accessKeyId='test',
@@ -207,7 +199,7 @@ class TestCase(unittest.TestCase):
         Stop any services that we started just for this test.
         """
         # If "self.setUp" is overridden, "self.assetstoreType" may not be set
-        if getattr(self, 'assetstoreType', None) in ('gridfsrs', 'gridfsshard'):
+        if getattr(self, 'assetstoreType', None) == 'gridfsrs':
             mongo_replicaset.stopMongoReplicaSet(self.replicaSetConfig)
 
         # Invalidate cache regions which persist across tests
@@ -413,7 +405,6 @@ class TestCase(unittest.TestCase):
         """
         Helper method for creating an authentication token for the user.
         """
-
         token = Token().createToken(user)
         return str(token['_id'])
 
@@ -521,7 +512,7 @@ class TestCase(unittest.TestCase):
                 raise AssertionError('Received non-JSON response: ' + body)
 
         if not exception and response.output_status.startswith(b'500'):
-            raise AssertionError("Internal server error: %s" % self.getBody(response))
+            raise AssertionError('Internal server error: %s' % self.getBody(response))
 
         return response
 

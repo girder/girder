@@ -137,7 +137,7 @@ Other backwards incompatible changes affecting plugins
     @pytest.mark.plugin('failing_plugin', FailingPlugin)
     def test_with_failing_plugin(server):
         # the test plugin will be installed in this context
-* When running the server in testing mode (``girder serve --testing``), the source directory
+* When running the server in testing mode (``girder serve --mode=testing``), the source directory
   is no longer served.  If you need any assets for testing, they have to be installed into
   the static directory during the client build process.
 * Automatic registration of plugin models is no longer provided.  If your plugin contains any
@@ -345,6 +345,12 @@ now be imported from the ``girder.settings`` module.
 
     from girder.settings import SettingDefault, SettingKey
 
+The API for sending email has changed
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The ``mail_utils.sendEmail`` function has been replaced with several new functions:
+``mail_utils.sendMailSync``, ``mail_utils.sendMail``, ``mail_utils.sendMailToAdmins``,
+``mail_utils.sendMailIndividually``. Note that the argument order and expected types have changed.
+See function documentation for details on the new usage.
 
 Removed or moved plugins
 ++++++++++++++++++++++++

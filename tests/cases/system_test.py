@@ -347,10 +347,10 @@ class SystemTestCase(base.TestCase):
         from girder import logger, _attachFileLogHandlers
         _attachFileLogHandlers()
         for handler in logger.handlers:
-            if getattr(handler, '_girderLogHandler') == 'info':
+            if handler._girderLogHandler == 'info':
                 handler.emit = mock.MagicMock()
                 infoEmit = handler.emit
-            elif getattr(handler, '_girderLogHandler') == 'error':
+            elif handler._girderLogHandler == 'error':
                 handler.emit = mock.MagicMock()
                 errorEmit = handler.emit
         # We should be an info level

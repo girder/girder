@@ -85,6 +85,7 @@ conn.execute(
 
 db_lock = threading.Lock()
 
+
 def synchronized(lock):
     def decorator(f):
         @wraps(f)
@@ -93,6 +94,7 @@ def synchronized(lock):
                 return f(*args, **kwargs)
         return wrapper
     return decorator
+
 
 @synchronized(db_lock)
 def migrated(type, id):
@@ -104,11 +106,13 @@ def migrated(type, id):
         logger.info('DONE %s %s' % (type, id))
     return result
 
+
 @synchronized(db_lock)
 def set_migrated(type, id):
     conn.execute(
         'insert into migrated (type, id) values (?, ?);', (type, id))
     conn.commit()
+
 
 @synchronized(db_lock)
 def created(type, id):
@@ -118,6 +122,7 @@ def created(type, id):
     row = cursor.fetchone()
     return row and {'_id': row[0]}
 
+
 @synchronized(db_lock)
 def set_created(type, id, newId):
     conn.execute(
@@ -125,12 +130,14 @@ def set_created(type, id, newId):
         (type, id, newId))
     conn.commit()
 
+
 # Helper functions
 
 def delete_default_folders(user):
     folders = gc.listFolder(user['_id'], 'user')
     for folder in folders:
         gc.delete('folder/%s' % folder['_id'])
+
 
 def generate_login(user, seen):
     for i in range(1000):
@@ -143,10 +150,12 @@ def generate_login(user, seen):
             break
     return login
 
+
 def generate_password(length, seed):
     r = random.Random(seed)
     alphabet = string.ascii_letters + string.digits
     return ''.join(r.choice(alphabet) for _ in range(length))
+
 
 def write_temp_file(iter_content):
     length = 0
@@ -158,8 +167,10 @@ def write_temp_file(iter_content):
     f.close()
     return f.name, length
 
+
 def breadcrumb(name, bc, extra=''):
     logger.info('%9s: %s %s' % (name, '/'.join(bc), extra))
+
 
 def skip(bc):
     bc = '/'.join(bc)
@@ -177,6 +188,7 @@ def skip(bc):
             return False
     return True
 
+
 # Migration code
 
 def lookup_resource(bc):
@@ -186,19 +198,21 @@ def lookup_resource(bc):
     except requests.HTTPError:
         return None
 
+
 def get_or_create(type, id, timestamp, bc, func, args):
     newObj = created(type, id)
     if newObj:
         return newObj
     try:
         newObj = func(*args)
-    except requests.HTTPError as e:
+    except requests.HTTPError:
         newObj = lookup_resource(bc)
         if not newObj:
             raise
     gc.setResourceTimestamp(newObj['_id'], type, created=timestamp)
     set_created(type, id, newObj['_id'])
     return newObj
+
 
 def handle_file(item, newItem, bc):
     if migrated('file', item['item_id']):
@@ -226,6 +240,7 @@ def handle_file(item, newItem, bc):
             if path:
                 os.remove(path)
 
+
 def handle_item(item, parent, depth, bc):
     if migrated('item', item['item_id']):
         return
@@ -239,7 +254,7 @@ def handle_item(item, parent, depth, bc):
             parent['_id'],
             item['name'],
             item['description'],
-            True, # reuseExisting
+            True,  # reuseExisting
         )
         newItem = get_or_create(
             'item', item['item_id'], item['date_creation'], bc, func, args)
@@ -259,6 +274,7 @@ def handle_item(item, parent, depth, bc):
             if not DRY_RUN:
                 gc.addMetadataToItem(newItem['_id'], metadata)
     set_migrated('item', item['item_id'])
+
 
 def handle_folder(folder, parent, parentType, depth, bc):
     if migrated('folder', folder['folder_id']):
@@ -291,6 +307,7 @@ def handle_folder(folder, parent, parentType, depth, bc):
         delayed(handle_item)(item, newFolder, depth + 1, bc) for item in items)
     set_migrated('folder', folder['folder_id'])
 
+
 def handle_community(community):
     if migrated('community', community['community_id']):
         return
@@ -316,6 +333,7 @@ def handle_community(community):
         handle_folder(folder, newCollection, 'collection', 1, bc)
     set_migrated('community', community['community_id'])
 
+
 def handle_user(user, args):
     if migrated('user', user['user_id']):
         return
@@ -336,6 +354,7 @@ def handle_user(user, args):
         handle_folder(folder, newUser, 'user', 1, bc)
     set_migrated('user', user['user_id'])
 
+
 def migrate_users():
     seen = set()
     users = mc.list_users(limit=0)
@@ -355,17 +374,20 @@ def migrate_users():
     Parallel(n_jobs=N_JOBS, backend='threading')(
         delayed(handle_user)(user, args) for user, args in to_create)
 
+
 def migrate_collections():
     communities = mc.list_communities(token)
     for community in communities:
         handle_community(community)
 
+
 def login():
-    global token, mc, gc # TODO - not global
+    global token, mc, gc  # TODO - not global
     token = pydas.login(email=MIDAS_LOGIN, api_key=MIDAS_API_KEY, url=MIDAS_URL)
     mc = pydas.session.communicator
     gc = girder_client.GirderClient(apiUrl=GIRDER_URL)
     gc.authenticate(username=GIRDER_LOGIN, apiKey=GIRDER_API_KEY)
+
 
 def main():
     login()
@@ -373,6 +395,7 @@ def main():
         migrate_users()
     if MIGRATE_COLLECTIONS:
         migrate_collections()
+
 
 if __name__ == '__main__':
     while True:

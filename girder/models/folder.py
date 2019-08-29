@@ -291,8 +291,8 @@ class Folder(AccessControlledModel):
                            or folder).
         :type parentType: str
         """
-        if (parentType == 'folder' and (self._isAncestor(folder, parent) or
-                                        folder['_id'] == parent['_id'])):
+        if (parentType == 'folder' and (
+                self._isAncestor(folder, parent) or folder['_id'] == parent['_id'])):
             raise ValidationException(
                 'You may not move a folder underneath itself.')
 
@@ -691,19 +691,31 @@ class Folder(AccessControlledModel):
         if subpath:
             path = os.path.join(path, doc['name'])
         metadataFile = 'girder-folder-metadata.json'
-        for sub in self.childFolders(parentType='folder', parent=doc, user=user):
+
+        # Eagerly evaluate this list, as the MongoDB cursor can time out on long requests
+        childFolders = list(self.childFolders(
+            parentType='folder', parent=doc, user=user,
+            fields=['name'] + (['meta'] if includeMetadata else [])
+        ))
+        for sub in childFolders:
             if sub['name'] == metadataFile:
                 metadataFile = None
             for (filepath, file) in self.fileList(
                     sub, user, path, includeMetadata, subpath=True,
                     mimeFilter=mimeFilter, data=data):
                 yield (filepath, file)
-        for item in self.childItems(folder=doc):
+
+        # Eagerly evaluate this list, as the MongoDB cursor can time out on long requests
+        childItems = list(self.childItems(
+            folder=doc, fields=['name'] + (['meta'] if includeMetadata else [])
+        ))
+        for item in childItems:
             if item['name'] == metadataFile:
                 metadataFile = None
             for (filepath, file) in itemModel.fileList(
                     item, user, path, includeMetadata, mimeFilter=mimeFilter, data=data):
                 yield (filepath, file)
+
         if includeMetadata and metadataFile and doc.get('meta', {}):
             def stream():
                 yield json.dumps(doc['meta'], default=str)

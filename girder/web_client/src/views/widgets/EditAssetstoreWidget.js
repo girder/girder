@@ -61,7 +61,7 @@ var EditAssetstoreWidget = View.extend({
         }).on('hidden.bs.modal', () => {
             handleClose('assetstoreedit', undefined, this.model.get('id'));
         });
-        modal.trigger($.Event('ready.girder.modal', {relatedTarget: modal}));
+        modal.trigger($.Event('ready.girder.modal', { relatedTarget: modal }));
         return this;
     },
 
@@ -105,15 +105,13 @@ fieldsMap[AssetstoreType.GRIDFS] = {
         return {
             db: this.$('#g-edit-gridfs-db').val(),
             mongohost: this.$('#g-edit-gridfs-mongohost').val(),
-            replicaset: this.$('#g-edit-gridfs-replicaset').val(),
-            shard: this.$('#g-edit-gridfs-shard-auto').is(':checked') ? 'auto' : false
+            replicaset: this.$('#g-edit-gridfs-replicaset').val()
         };
     },
     set: function () {
         this.$('#g-edit-gridfs-db').val(this.model.get('db'));
         this.$('#g-edit-gridfs-mongohost').val(this.model.get('mongohost'));
         this.$('#g-edit-gridfs-replicaset').val(this.model.get('replicaset'));
-        this.$('#g-edit-gridfs-shard-auto').attr('checked', this.model.get('shard') === 'auto');
     }
 };
 

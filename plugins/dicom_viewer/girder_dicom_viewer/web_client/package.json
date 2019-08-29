@@ -1,6 +1,6 @@
 {
     "name": "@girder/dicom-viewer",
-    "version": "0.2.0-alpha.1",
+    "version": "0.0.0",
     "description": "View DICOM images in the browser",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#dicom-viewer",
     "bugs": {

@@ -4,28 +4,10 @@ if("${MONGOD_EXECUTABLE}" STREQUAL "MONGOD_EXECUTABLE-NOTFOUND")
   set(MONGOD_EXECUTABLE "local mongod required")
 endif()
 
-# Test if mongos is present for tests that require it.
-find_program(MONGOS_EXECUTABLE mongod)
-if("${MONGOS_EXECUTABLE}" STREQUAL "MONGOS_EXECUTABLE-NOTFOUND")
-  set(MONGOS_EXECUTABLE "local mongos required")
-endif()
-
 python_tests_init()
 javascript_tests_init()
 
 if(RUN_CORE_TESTS)
-  add_eslint_test(grunt_main Gruntfile.js)
-  add_eslint_test(grunt_modules grunt_tasks)
-  add_eslint_test(test_specs girder/web_client/test)
-  add_eslint_test(swagger girder/web_client/static/girder-swagger.js)
-
-  add_python_style_test(python_static_analysis_core "${PROJECT_SOURCE_DIR}/girder")
-  add_python_style_test(python_static_analysis_core_tests "${PROJECT_SOURCE_DIR}/test")
-  add_python_style_test(python_static_analysis_core_tests_legacy "${PROJECT_SOURCE_DIR}/tests")
-  add_python_style_test(python_static_analysis_core_pytest_girder "${PROJECT_SOURCE_DIR}/pytest_girder")
-  add_python_style_test(python_static_analysis_ansible_client_tests
-    "${PROJECT_SOURCE_DIR}/devops/ansible-role-girder/library")
-
   # These are performed approximately in the order listed.
   add_python_test(api_describe)
   add_python_test(assetstore)
@@ -54,7 +36,7 @@ if(RUN_CORE_TESTS)
   add_python_test(system)
   set_property(TEST server_system PROPERTY LABELS girder_integration)
   # Upload test uses mongo replicaset and a lot of resources, so we run it by itself
-  add_python_test(upload RUN_SERIAL RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}" "${MONGOS_EXECUTABLE}")
+  add_python_test(upload RUN_SERIAL RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}")
   set_property(TEST server_upload PROPERTY LABELS girder_integration)
   add_python_test(user)
   add_python_test(setup_database)
@@ -67,10 +49,6 @@ if(RUN_CORE_TESTS)
   add_web_client_test(data_gridfsrs "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE gridfsrs RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}")
   if (BUILD_JAVASCRIPT_TESTS)
     set_property(TEST web_client_data_gridfsrs PROPERTY LABELS girder_integration)
-  endif()
-  add_web_client_test(data_gridfsshard "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE gridfsshard RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}" "${MONGOS_EXECUTABLE}")
-  if (BUILD_JAVASCRIPT_TESTS)
-    set_property(TEST web_client_data_gridfsshard PROPERTY LABELS girder_integration)
   endif()
   add_web_client_test(data_s3 "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE s3 WEBSECURITY false)
   add_web_client_test(admin "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/adminSpec.js" ASSETSTORE s3 WEBSECURITY false
@@ -105,25 +83,19 @@ if(RUN_CORE_TESTS)
   )
   set_property(TEST server_external_data_core PROPERTY LABELS girder_integration)
   set_property(TEST server_external_data_plugin PROPERTY LABELS girder_integration)
-
-  add_subdirectory(clients)
 endif()
 
 macro(add_standard_plugin_tests)
   # Add a set of basic tests for a plugin.
   # This will add:
-  #   * Server static analysis, if a server component exists.
-  #   * Client static analysis (for both Javascript and Pug), if a web_client component exists.
-  #   * Server plugin_tests and associated static analysis, if they exist.
-  #   * Client plugin_tests and associated static analysis, if they exist as "*Spec.js" files.
+  #   * Server plugin_tests, if they exist.
+  #   * Client plugin_tests, if they exist as "*Spec.js" files.
   #
   # Optional parameters:
-  #   * NO_SERVER: Never add server static analysis.
-  #   * NO_CLIENT: Never add client static analysis.
   #   * NO_SERVER_TESTS: Never add server plugin_tests and associated static analysis.
   #   * NO_CLIENT_TESTS: Never add client plugin_tests and associated static analysis.
 
-  set(_options NO_SERVER NO_CLIENT NO_SERVER_TESTS NO_CLIENT_TESTS)
+  set(_options NO_SERVER_TESTS NO_CLIENT_TESTS)
   set(_args "PACKAGE")
   set(_multival_args "")
   cmake_parse_arguments(_fn "${_options}" "${_args}" "${_multival_args}" ${ARGN})
@@ -131,22 +103,6 @@ macro(add_standard_plugin_tests)
   set(_pluginDir "${CMAKE_CURRENT_LIST_DIR}")
   set(_packageDir "${_pluginDir}/${_fn_PACKAGE}")
   get_filename_component(_pluginName "${CMAKE_CURRENT_LIST_DIR}" NAME)
-
-  # Server static analysis
-  if(IS_DIRECTORY "${_packageDir}" AND (NOT _fn_NO_SERVER))
-    add_python_style_test(python_static_analysis_${_pluginName} "${_packageDir}")
-  endif()
-
-  # Client static analysis
-  if(IS_DIRECTORY "${_packageDir}/web_client" AND (NOT _fn_NO_CLIENT))
-    add_eslint_test(${_pluginName} "${_packageDir}/web_client")
-    if(IS_DIRECTORY "${_pluginDir}/web_client/templates")
-      add_puglint_test(${_pluginName} "${_packageDir}/web_client/templates")
-    endif()
-    if(IS_DIRECTORY "${_packageDir}/web_client/stylesheets")
-      add_stylint_test(${_pluginName} "${_packageDir}/web_client/stylesheets")
-    endif()
-  endif()
 
   # Server plugin_tests
   file(GLOB _serverTests "${_pluginDir}/plugin_tests/*_test.py")
@@ -156,7 +112,6 @@ macro(add_standard_plugin_tests)
       string(REGEX REPLACE "_test\\.py$" "" _serverTestName "${_serverTestFileName}")
       add_python_test(${_serverTestName} PLUGIN ${_pluginName} PACKAGE "${_fn_PACKAGE}")
     endforeach()
-    add_python_style_test(python_static_analysis_${_pluginName}_tests "${_pluginDir}/plugin_tests")
   endif()
 
   # Client plugin_tests
@@ -167,7 +122,6 @@ macro(add_standard_plugin_tests)
       string(REGEX REPLACE "Spec\\.js$" "" _clientTestName "${_clientTestFileName}")
       add_web_client_test(${_clientTestName} "${_clientTestFile}" PLUGIN ${_pluginName})
     endforeach()
-    add_eslint_test(${_pluginName}_tests "${_pluginDir}/plugin_tests")
   endif()
 endmacro()
 

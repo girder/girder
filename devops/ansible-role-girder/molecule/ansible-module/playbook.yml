@@ -1,48 +1,22 @@
 ---
 - name: Converge
-  hosts: all
-
+  hosts: targets
   vars:
-    girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
-
+    girder_module_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder_module"
   pre_tasks:
-    - name: Install mongo
-      apt:
-        name: mongodb-server
-        force_apt_get: true
-      become: true
-      become_user: root
-
-    - name: Ensure girder client is installed
+    - name: Install girder client
       pip:
         name: girder-client
-      become: true
-      become_user: root
-
-  roles:
-    - role: ansible-role-girder
-      vars:
-        girder_web: false
-        # girder_virtualenv is overridden too
-
-  post_tasks:
-    - name: Install Girder plugins
-      pip:
-        name:
-          - "girder-gravatar"
-          - "girder-jobs"
-          - "girder-thumbnails"
-          - "girder-autojoin"
-        extra_args: "--pre"  # TODO Remove on Girder3 release
-        virtualenv: "{{ girder_virtualenv }}"
-      notify: Restart Girder
-
+        extra_args: "--pre"
+        virtualenv: "{{ girder_module_virtualenv }}"
+        virtualenv_command: "/usr/bin/python3 -m venv"
     - name: Wait for Girder to be listening
       wait_for:
         port: 8080
         host: "localhost"
-        delay: 5
-
+  tasks:
     - include_tasks: "{{ item }}"
       with_fileglob:
         - "test_*.yml"
+      vars:
+        ansible_python_interpreter: "{{ girder_module_virtualenv }}/bin/python3"

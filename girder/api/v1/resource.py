@@ -22,6 +22,7 @@ class Resource(BaseResource):
     """
     API Endpoints that deal with operations across multiple resource types.
     """
+
     def __init__(self):
         super(Resource, self).__init__()
         self.resourceName = 'resource'
@@ -308,8 +309,8 @@ class Resource(BaseResource):
                         if parent['_id'] != doc['folderId']:
                             model.move(doc, parent)
                     elif kind == 'folder':
-                        if ((parentType, parent['_id']) !=
-                                (doc['parentCollection'], doc['parentId'])):
+                        if ((parentType, parent['_id'])
+                                != (doc['parentCollection'], doc['parentId'])):
                             model.move(doc, parent, parentType)
                     ctx.update(increment=1)
 

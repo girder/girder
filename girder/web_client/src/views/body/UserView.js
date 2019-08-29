@@ -24,7 +24,7 @@ var UserView = View.extend({
     events: {
         'click a.g-edit-user': function () {
             var editUrl = 'useraccount/' + this.model.get('_id') + '/info';
-            router.navigate(editUrl, {trigger: true});
+            router.navigate(editUrl, { trigger: true });
         },
 
         'click a.g-delete-user': function () {
@@ -35,7 +35,7 @@ var UserView = View.extend({
                 escapedHtml: true,
                 confirmCallback: () => {
                     this.model.on('g:deleted', function () {
-                        router.navigate('', {trigger: true});
+                        router.navigate('', { trigger: true });
                     }).destroy();
                 }
             });
@@ -43,17 +43,17 @@ var UserView = View.extend({
 
         'click a.g-approve-user': function () {
             this._setAndSave(
-                {status: 'enabled'}, 'Approved user account.');
+                { status: 'enabled' }, 'Approved user account.');
         },
 
         'click a.g-disable-user': function () {
             this._setAndSave(
-                {status: 'disabled'}, 'Disabled user account.');
+                { status: 'disabled' }, 'Disabled user account.');
         },
 
         'click a.g-enable-user': function () {
             this._setAndSave(
-                {status: 'enabled'}, 'Enabled user account.');
+                { status: 'enabled' }, 'Enabled user account.');
         }
     },
 

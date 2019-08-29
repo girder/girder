@@ -11,7 +11,6 @@ def prerelease_local_scheme(version):
     pre-release in which case it ignores the hash and produces a
     PEP440 compliant pre-release version number (e.g. 0.0.0.dev<N>).
     """
-
     from setuptools_scm.version import get_local_node_and_date
 
     if os.getenv('CIRCLE_BRANCH') == 'master':
@@ -40,12 +39,12 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5'
+        'Programming Language :: Python :: 3.6'
     ],
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder>=3.0.0a1'],
+    install_requires=['girder>=3'],
     entry_points={
         'girder.plugin': [
             'authorized_upload = girder_authorized_upload:AuthorizedUploadPlugin'

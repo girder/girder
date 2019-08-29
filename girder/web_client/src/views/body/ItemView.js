@@ -92,7 +92,7 @@ var ItemView = View.extend({
             escapedHtml: true,
             confirmCallback: () => {
                 this.model.on('g:deleted', () => {
-                    router.navigate(parentRoute, {trigger: true});
+                    router.navigate(parentRoute, { trigger: true });
                 }).off('g:error').on('g:error', () => {
                     this.render();
                     events.trigger('g:alert', {

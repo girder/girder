@@ -403,15 +403,15 @@ class TestFindWithPermissions(object):
         # Test with fields
         for currentUser in (user, admin):
             query, fields = _model._textSearchFilters('names')
-            assert 'name' in _model.findWithPermissions(
-                query, fields=fields, user=currentUser).next()
-            assert 'field1' in _model.findWithPermissions(
-                query, fields=fields, user=currentUser).next()
+            assert 'name' in next(_model.findWithPermissions(
+                query, fields=fields, user=currentUser))
+            assert 'field1' in next(_model.findWithPermissions(
+                query, fields=fields, user=currentUser))
             query, fields = _model._textSearchFilters('names', fields={'name': True})
-            assert 'name' in _model.findWithPermissions(
-                query, fields=fields, user=currentUser).next()
-            assert 'field1' not in _model.findWithPermissions(
-                query, fields=fields, user=currentUser).next()
+            assert 'name' in next(_model.findWithPermissions(
+                query, fields=fields, user=currentUser))
+            assert 'field1' not in next(_model.findWithPermissions(
+                query, fields=fields, user=currentUser))
 
     def testFindWithPermissions(self, db, admin, user, group, FakeAcModel):
         _model = FakeAcModel()

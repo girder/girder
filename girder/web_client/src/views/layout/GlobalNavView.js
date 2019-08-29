@@ -21,7 +21,7 @@ var LayoutGlobalNavView = View.extend({
 
             var link = $(event.currentTarget);
 
-            router.navigate(link.attr('g-target'), {trigger: true});
+            router.navigate(link.attr('g-target'), { trigger: true });
 
             // Must call this after calling navigateTo, since that
             // deactivates all global nav links.

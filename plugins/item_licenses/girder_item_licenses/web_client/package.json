@@ -1,6 +1,6 @@
 {
     "name": "@girder/item_licenses",
-    "version": "0.2.0-alpha.1",
+    "version": "0.0.0",
     "description": "Add a license field to items.",
     "bugs": {
         "url": "https://github.com/girder/girder/issues"

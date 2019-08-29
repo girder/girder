@@ -363,8 +363,8 @@ class ServerFuseTestCase(base.TestCase):
         op = mount.ServerFuse()
         fh = op.open(self.publicFileName, os.O_RDONLY)
         data = op.read(self.publicFileName, 200, 0, fh)
-        if (isinstance(data, six.binary_type) and
-                not isinstance(self.knownPaths[self.publicFileName], six.binary_type)):
+        if (isinstance(data, six.binary_type)
+                and not isinstance(self.knownPaths[self.publicFileName], six.binary_type)):
             self.assertEqual(data.decode('utf8').strip(), self.knownPaths[self.publicFileName])
         else:
             self.assertEqual(data.strip(), self.knownPaths[self.publicFileName])

@@ -17,7 +17,7 @@ var GroupModsWidget = View.extend({
     events: {
         'click .g-group-mod-promote': function (e) {
             var userid = $(e.currentTarget).parents('li').attr('userid');
-            var user = new UserModel({_id: userid});
+            var user = new UserModel({ _id: userid });
             this.model.off('g:promoted').on('g:promoted', function () {
                 this.trigger('g:adminAdded');
             }, this).promoteUser(user, AccessType.ADMIN);

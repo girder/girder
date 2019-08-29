@@ -30,8 +30,8 @@ from six.moves import urllib
 # this is a bug or intended behavior.
 #  https://github.com/spulec/moto/issues/1793#issuecomment-431459262
 #  https://github.com/spulec/moto/issues/1924
-os.environ['AWS_ACCESS_KEY_ID'] = "access"
-os.environ['AWS_SECRET_ACCESS_KEY'] = "secret"
+os.environ['AWS_ACCESS_KEY_ID'] = 'access'
+os.environ['AWS_SECRET_ACCESS_KEY'] = 'secret'
 os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
 
@@ -52,6 +52,7 @@ class FileTestCase(base.TestCase):
     Tests the uploading, downloading, and storage of files in each different
     type of assetstore.
     """
+
     def setUp(self):
         base.TestCase.setUp(self)
 
@@ -201,7 +202,7 @@ class FileTestCase(base.TestCase):
         # Trying to send too many bytes should fail
         currentOffset = resp.json['offset']
         resp = self.request(
-            path='/file/chunk', method='POST', body='extra_'+chunk2+'_bytes', params={
+            path='/file/chunk', method='POST', body='extra_' + chunk2 + '_bytes', params={
                 'offset': currentOffset,
                 'uploadId': uploadId
             }, user=self.user, type='text/plain')
@@ -627,7 +628,7 @@ class FileTestCase(base.TestCase):
             'itemId': item['_id']
         }
         resp = self.request(path='/file/%s/copy' % str(file['_id']),
-                            method='POST',  params=params, user=self.user)
+                            method='POST', params=params, user=self.user)
         self.assertStatusOk(resp)
         copy = resp.json
         # Assert the copy is attached to the item
@@ -938,7 +939,7 @@ class FileTestCase(base.TestCase):
         currentOffset = resp.json['offset']
         with httmock.HTTMock(mockChunkUpload):
             resp = self.request(
-                path='/file/chunk', method='POST', body='extra_'+chunk2+'_bytes', params={
+                path='/file/chunk', method='POST', body='extra_' + chunk2 + '_bytes', params={
                     'offset': currentOffset,
                     'uploadId': uploadId
                 }, user=self.user, type='application/octet-stream')
@@ -1073,7 +1074,7 @@ class FileTestCase(base.TestCase):
             data = chunk1 + chunk2
             if request.headers.get('range', '').startswith('bytes='):
                 start, end = request.headers['range'].split('bytes=')[1].split('-')
-                data = data[int(start):int(end)+1]
+                data = data[int(start):int(end) + 1]
             return data
 
         with httmock.HTTMock(s3_range_mock):

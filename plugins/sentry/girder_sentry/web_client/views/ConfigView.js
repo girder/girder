@@ -8,14 +8,27 @@ import '../stylesheets/configView.styl';
 
 var ConfigView = View.extend({
     events: {
-        'submit #g-sentry-form': function (event) {
+        'submit #g-sentry-server-form': function (event) {
             event.preventDefault();
-            this.$('#g-sentry-error-message').empty();
+            this.$('#g-sentry-server-error-message').empty();
 
             this._saveSettings([{
-                key: 'sentry.dsn',
-                value: this.$('#g-sentry-dsn').val().trim()
-            }]);
+                key: 'sentry.backend_dsn',
+                value: this.$('#g-sentry-server-dsn').val().trim()
+            }], {
+                errorTarget: '#g-sentry-server-error-message'
+            });
+        },
+        'submit #g-sentry-client-form': function (event) {
+            event.preventDefault();
+            this.$('#g-sentry-client-error-message').empty();
+
+            this._saveSettings([{
+                key: 'sentry.frontend_dsn',
+                value: this.$('#g-sentry-client-dsn').val().trim()
+            }], {
+                errorTarget: '#g-sentry-client-error-message'
+            });
         }
     },
     initialize: function () {
@@ -23,12 +36,15 @@ var ConfigView = View.extend({
             method: 'GET',
             url: 'system/setting',
             data: {
-                list: JSON.stringify(['sentry.dsn'])
+                list: JSON.stringify(['sentry.backend_dsn', 'sentry.frontend_dsn'])
             }
         }).done((resp) => {
             this.render();
-            this.$('#g-sentry-dsn').val(
-                resp['sentry.dsn']
+            this.$('#g-sentry-server-dsn').val(
+                resp['sentry.backend_dsn']
+            );
+            this.$('#g-sentry-client-dsn').val(
+                resp['sentry.frontend_dsn']
             );
         });
     },
@@ -47,7 +63,7 @@ var ConfigView = View.extend({
         return this;
     },
 
-    _saveSettings: function (settings) {
+    _saveSettings: function (settings, params) {
         restRequest({
             method: 'PUT',
             url: 'system/setting',
@@ -63,7 +79,7 @@ var ConfigView = View.extend({
                 timeout: 4000
             });
         }).fail((resp) => {
-            this.$('#g-sentry-error-message').text(
+            this.$(params.errorTarget).text(
                 resp.responseJSON.message
             );
         });

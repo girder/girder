@@ -264,11 +264,11 @@ class QuotaPolicy(Resource):
             model = 'item'
             resource = Item().load(id=resource['itemId'], force=True)
         if model in ('folder', 'item'):
-            if ('baseParentType' not in resource or
-                    'baseParentId' not in resource):
+            if ('baseParentType' not in resource
+                    or 'baseParentId' not in resource):
                 resource = ModelImporter.model(model).load(id=resource['_id'], force=True)
-            if ('baseParentType' not in resource or
-                    'baseParentId' not in resource):
+            if ('baseParentType' not in resource
+                    or 'baseParentId' not in resource):
                 return None, None
             model = resource['baseParentType']
             resourceId = resource['baseParentId']

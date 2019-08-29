@@ -22,7 +22,7 @@ var CollectionsView = View.extend({
     events: {
         'click a.g-collection-link': function (event) {
             var cid = $(event.currentTarget).attr('g-collection-cid');
-            router.navigate('collection/' + this.collection.get(cid).id, {trigger: true});
+            router.navigate('collection/' + this.collection.get(cid).id, { trigger: true });
         },
         'click button.g-collection-create-button': 'createCollectionDialog',
         'submit .g-collections-search-form': function (event) {
@@ -63,7 +63,7 @@ var CollectionsView = View.extend({
             parentView: this
         }).on('g:saved', function (collection) {
             router.navigate('collection/' + collection.get('_id'),
-                {trigger: true});
+                { trigger: true });
         }, this).render();
     },
 
@@ -93,7 +93,7 @@ var CollectionsView = View.extend({
     _gotoCollection: function (result) {
         var collection = new CollectionModel();
         collection.set('_id', result.id).on('g:fetched', function () {
-            router.navigate('/collection/' + collection.get('_id'), {trigger: true});
+            router.navigate('/collection/' + collection.get('_id'), { trigger: true });
         }, this).fetch();
     },
 

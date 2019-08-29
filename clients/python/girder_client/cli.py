@@ -36,7 +36,7 @@ class GirderCli(GirderClient):
         """
         def _progressBar(*args, **kwargs):
             bar = click.progressbar(*args, **kwargs)
-            bar.bar_template = "[%(bar)s]  %(info)s  %(label)s"
+            bar.bar_template = '[%(bar)s]  %(info)s  %(label)s'
             bar.show_percent = True
             bar.show_pos = True
 
@@ -135,18 +135,18 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 # Advanced options
 @click.option('--host', default=None,
               cls=_AdvancedOption,
-              help="[default: %s]" % GirderClient.DEFAULT_HOST)
+              help='[default: %s]' % GirderClient.DEFAULT_HOST)
 @click.option('--scheme', default=None,
               cls=_AdvancedOption,
-              help="[default: %s if %s else %s]" % (
+              help='[default: %s if %s else %s]' % (
                   GirderClient.getDefaultScheme(GirderClient.DEFAULT_HOST),
                   GirderClient.DEFAULT_HOST,
-                  GirderClient.getDefaultScheme("girder.example.com")))
+                  GirderClient.getDefaultScheme('girder.example.com')))
 @click.option('--port', default=None,
               cls=_AdvancedOption,
-              help="[default: %s if %s; %s if %s else %s]" % (
-                  GirderClient.DEFAULT_HTTPS_PORT, "https",
-                  GirderClient.DEFAULT_LOCALHOST_PORT, "localhost",
+              help='[default: %s if %s; %s if %s else %s]' % (
+                  GirderClient.DEFAULT_HTTPS_PORT, 'https',
+                  GirderClient.DEFAULT_LOCALHOST_PORT, 'localhost',
                   GirderClient.DEFAULT_HTTP_PORT,
                   ))
 @click.option('--api-root', default=None,
@@ -159,8 +159,8 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               show_default=True,
               cls=_AdvancedOption
               )
-@click.option('--certificate', default=None,
-              help='Specify path to SSL certificate',
+@click.option('--ca-certificate', default=None,
+              help='Specify path to CA certificate to use to verify the server',
               show_default=True,
               cls=_AdvancedOption
               )
@@ -175,7 +175,7 @@ _CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.pass_context
 def main(ctx, username, password,
          api_key, api_url, scheme, host, port, api_root,
-         no_ssl_verify, certificate, token, retries, verbose):
+         no_ssl_verify, ca_certificate, token, retries, verbose):
     """Perform common Girder CLI operations.
 
     The CLI is particularly suited to upload (or download) large, nested
@@ -199,14 +199,14 @@ def main(ctx, username, password,
         if has_api_url and has_url_part:
             raise click.BadArgumentUsage(
                 'Option "--api-url" and option "--%s" are mutually exclusive.' %
-                name.replace("_", "-"))
-    if certificate and no_ssl_verify:
+                name.replace('_', '-'))
+    if ca_certificate and no_ssl_verify:
         raise click.BadArgumentUsage(
-            'Option "--no-ssl-verify" and option "--certificate" are mutually exclusive.')
+            'Option "--no-ssl-verify" and option "--ca-certificate" are mutually exclusive.')
 
     ssl_verify = True
-    if certificate:
-        ssl_verify = certificate
+    if ca_certificate:
+        ssl_verify = ca_certificate
     if no_ssl_verify:
         ssl_verify = False
 
@@ -214,10 +214,6 @@ def main(ctx, username, password,
         username, password, host=host, port=port, apiRoot=api_root,
         scheme=scheme, apiUrl=api_url, apiKey=api_key, sslVerify=ssl_verify, token=token,
         retries=retries)
-
-    if certificate and ctx.obj.scheme != 'https':
-        raise click.BadArgumentUsage(
-            'A URI scheme of "https" is required for option "--certificate"')
 
 
 def _set_logging_level(verbosity):

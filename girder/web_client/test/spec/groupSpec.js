@@ -416,14 +416,14 @@ describe('Test group actions', function () {
 
     it('check ability to directly add users to groups', function () {
         var policyTest = [
-            {setting: 'never', user: 1, mayAdd: false},
-            {setting: 'nomod', user: 1, mayAdd: false},
-            {setting: 'yesadmin', user: 1, mayAdd: true},
-            {setting: 'yesadmin', user: 2, mayAdd: false},
-            {setting: 'yesadmin', user: 3, mayAdd: null},
-            {setting: 'yesmod', user: 2, mayAdd: true},
-            {setting: 'never', user: 'admin', mayAdd: true},
-            {setting: 'nomod', user: 'admin', mayAdd: true}
+            { setting: 'never', user: 1, mayAdd: false },
+            { setting: 'nomod', user: 1, mayAdd: false },
+            { setting: 'yesadmin', user: 1, mayAdd: true },
+            { setting: 'yesadmin', user: 2, mayAdd: false },
+            { setting: 'yesadmin', user: 3, mayAdd: null },
+            { setting: 'yesmod', user: 2, mayAdd: true },
+            { setting: 'never', user: 'admin', mayAdd: true },
+            { setting: 'nomod', user: 'admin', mayAdd: true }
         ];
         /* Add a bunch of users to facilitate testing */
         runs(function () {

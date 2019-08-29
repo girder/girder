@@ -11,13 +11,14 @@ class CherrypyRequestBackend(MemoryBackend):
     to work in a thread-safe manner using cherrypy.request, a thread local
     storage that only lasts for the duration of a request.
     """
+
     def __init__(self, arguments):
         pass
 
     @property
     def _cache(self):
         if not hasattr(cherrypy.request, '_girderCache'):
-            setattr(cherrypy.request, '_girderCache', {})
+            cherrypy.request._girderCache = {}
 
         return cherrypy.request._girderCache
 

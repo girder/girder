@@ -4,6 +4,7 @@ import io
 import json
 import shutil
 import six
+from six.moves import zip_longest
 import zipfile
 
 from .. import base
@@ -384,7 +385,6 @@ class ItemTestCase(base.TestCase):
         """
         Test CRUD of metadata.
         """
-
         # Create an item
         params = {
             'name': 'item with metadata',
@@ -535,7 +535,6 @@ class ItemTestCase(base.TestCase):
         """
         Test filtering private metadata from items.
         """
-
         # Create an item
         params = {
             'name': 'item with metadata',
@@ -733,9 +732,8 @@ class ItemTestCase(base.TestCase):
         self._testDownloadMultiFileItem(origItem, self.users[0],
                                         {'file_1': 'foobar', 'file_2': 'foobz',
                                          'link_file': 'http://www.google.com'})
-        for index, file in enumerate(origFiles):
-            self.assertNotEqual(origFiles[index]['_id'],
-                                newFiles[index]['_id'])
+        for origFile, newFile in zip_longest(origFiles, newFiles):
+            self.assertNotEqual(origFile['_id'], newFile['_id'])
 
     def testCookieAuth(self):
         """

@@ -1,6 +1,6 @@
 {
     "name": "@girder/homepage",
-    "version": "2.0.0-alpha.1",
+    "version": "0.0.0",
     "description": "Customize the homepage using Markdown.",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#homepage",
     "bugs": {

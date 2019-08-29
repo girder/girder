@@ -32,7 +32,7 @@ var MetadataMixin = {
         var meta = this.get(opts.field || 'meta');
         if (meta && _.has(meta, key)) {
             if (_.isFunction(errorCallback)) {
-                errorCallback({message: key + ' is already a metadata key'});
+                errorCallback({ message: key + ' is already a metadata key' });
             }
         } else {
             this._sendMetadata(datum, successCallback, errorCallback, opts);
@@ -73,7 +73,7 @@ var MetadataMixin = {
         } else {
             if (_.has(this.get(opts.field || 'meta'), newKey)) {
                 if (_.isFunction(errorCallback)) {
-                    errorCallback({message: newKey + ' is already a metadata key'});
+                    errorCallback({ message: newKey + ' is already a metadata key' });
                 }
             } else {
                 var metas = {};

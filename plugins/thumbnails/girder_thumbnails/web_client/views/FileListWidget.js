@@ -32,6 +32,6 @@ FileListWidget.prototype.events['click a.g-create-thumbnail'] = function (e) {
         file: this.collection.get(cid)
     }).once('g:created', function (params) {
         Backbone.history.fragment = null;
-        router.navigate(params.attachedToType + '/' + params.attachedToId, {trigger: true});
+        router.navigate(params.attachedToType + '/' + params.attachedToId, { trigger: true });
     }, this).render();
 };

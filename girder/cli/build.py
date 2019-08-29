@@ -10,7 +10,7 @@ import click
 import six
 
 import girder
-from girder.constants import STATIC_ROOT_DIR
+from girder.constants import STATIC_ROOT_DIR, ServerMode
 from girder.plugin import allPlugins, getPlugin
 from girder.utility import server
 
@@ -22,27 +22,35 @@ _GIRDER_BUILD_ASSETS_PATH = os.path.realpath(resource_filename('girder', 'web_cl
 
 
 @click.command(name='build', help='Build web client static assets.')
-@click.option('--dev/--no-dev', default=False,
-              help='Build girder client for development.')
+@click.option('--dev', default=False, is_flag=True, help='Alias for --mode=development')
+@click.option('--mode', type=click.Choice([ServerMode.PRODUCTION, ServerMode.DEVELOPMENT]),
+              default=None, show_default=True, help='Specify the server mode')
 @click.option('--watch', default=False, is_flag=True,
-              help='Build girder library bundle in watch mode (implies --dev --no-reinstall).')
+              help='Build girder library bundle in '
+              'watch mode (implies --mode=development --no-reinstall).')
 @click.option('--watch-plugin',
-              help='Build a girder plugin bundle in watch mode (implies --dev --no-reinstall).')
+              help='Build a girder plugin bundle in '
+              'watch mode (implies --mode=development --no-reinstall).')
 @click.option('--npm', default=os.getenv('NPM_EXE', 'npm'),
               help='Full path to the npm executable to use.')
 @click.option('--reinstall/--no-reinstall', default=True,
               help='Force regenerate node_modules.')
-def main(dev, watch, watch_plugin, npm, reinstall):
+def main(dev, mode, watch, watch_plugin, npm, reinstall):
     if shutil.which(npm) is None:
         raise click.UsageError(
             'No npm executable was detected.  Please ensure the npm executable is in your '
             'path, use the --npm flag, or set the "NPM_EXE" environment variable.'
         )
 
+    if dev and mode:
+        raise click.ClickException('Conflict between --dev and --mode')
+    if dev:
+        mode = ServerMode.DEVELOPMENT
+
     if watch and watch_plugin:
         raise click.UsageError('--watch and --watch-plugins cannot be used together')
     if watch or watch_plugin:
-        dev = True
+        mode = ServerMode.DEVELOPMENT
         reinstall = False
 
     staging = _GIRDER_BUILD_ASSETS_PATH
@@ -56,7 +64,7 @@ def main(dev, watch, watch_plugin, npm, reinstall):
         if os.path.exists(npmLockFile):
             os.unlink(npmLockFile)
         installCommand = [npm, 'install']
-        if not dev:
+        if mode == ServerMode.PRODUCTION:
             installCommand.append('--production')
         check_call(installCommand, cwd=staging)
 
@@ -75,7 +83,7 @@ def main(dev, watch, watch_plugin, npm, reinstall):
             '--watch',
             'webpack:plugin_%s' % watch_plugin
         ])
-    if dev:
+    if mode == ServerMode.DEVELOPMENT:
         buildCommand.append('--env=dev')
     else:
         buildCommand.append('--env=prod')
