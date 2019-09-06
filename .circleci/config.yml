@@ -144,6 +144,9 @@ jobs:
           name: Run tox
           command: tox -e lint,circleci-py36,docs
           working_directory: girder
+      - run:
+          name: make coverage file distinct
+          command: cp girder/build/test/coverage/python_temp/.coverage girder/build/test/coverage/python_temp/.coverage.py3Coverage
       - store_test_results:
           path: girder/build/test/results
       - persist_to_workspace:
