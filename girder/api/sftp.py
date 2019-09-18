@@ -232,7 +232,7 @@ class SftpServer(socketserver.ThreadingTCPServer):
 
     allow_reuse_address = True
 
-    def __init__(self, address, hostKey, *args, **kwargs):
+    def __init__(self, address, hostKey, sftpServerAdapter=None):
         """
         Creates but does not start a Girder SFTP server.
 
@@ -244,7 +244,8 @@ class SftpServer(socketserver.ThreadingTCPServer):
         self.hostKey = hostKey
         paramiko.Transport.load_server_moduli()
 
-        sftpServerAdapter = kwargs.pop('sftpServerAdapter', _SftpServerAdapter)
+        if sftpServerAdapter is None:
+            sftpServerAdapter = _SftpServerAdapter
         socketserver.TCPServer.__init__(
             self, address, partial(_SftpRequestHandler, sftpServerAdapter=sftpServerAdapter))
 
