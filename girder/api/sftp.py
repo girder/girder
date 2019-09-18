@@ -100,6 +100,9 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface):
         self.server = server
         paramiko.SFTPServerInterface.__init__(self, server, *args, **kwargs)
 
+    def _processPath(self, path):
+        return path.rstrip('/')
+
     def _list(self, model, document):
         entries = []
         if model in ('collection', 'user', 'folder'):
@@ -118,7 +121,7 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface):
 
     @_handleErrors
     def list_folder(self, path):
-        path = path.rstrip('/')
+        path = self._processPath(path)
         entries = []
 
         if path == '':
@@ -140,6 +143,7 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface):
 
     @_handleErrors
     def open(self, path, flags, attr):
+        path = self._processPath(path)
         obj = lookUpPath(path, filter=False, user=self.server.girderUser)
 
         if obj['model'] != 'file':
@@ -149,7 +153,7 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface):
 
     @_handleErrors
     def stat(self, path):
-        path = path.rstrip('/')
+        path = self._processPath(path)
         if path == '':
             info = paramiko.SFTPAttributes()
             info.st_size = 0
