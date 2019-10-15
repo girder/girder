@@ -8,7 +8,7 @@ An Ansible role to install [Girder](https://github.com/girder/girder).
 
 Ubuntu 16.04+.
 
-Running Ansible with Python 3 on the target host is reccomended.
+Running Ansible with Python 3 on the target host is recommended.
 [Setting `ansible_python_interpreter: auto`](https://docs.ansible.com/ansible/latest/reference_appendices/interpreter_discovery.html)
 will enable this behavior.
 
@@ -37,10 +37,10 @@ environment.
 
 When `girder_virtualenv` is defined by the playbook before this role is run,
 this role will install Girder to the virtual environment at
-`girder_virtualenv`. If no virtual envirnment exists at this location, one
-will be implictly created using the system Python 3. This allows Girder to be
+`girder_virtualenv`. If no virtual environment exists at this location, one
+will be implicitly created using the system Python 3. This allows Girder to be
 installed to a virtual environment with custom specifications. For example,
-such virtual environments coud be at a particular path on disk or be
+such virtual environments could be at a particular path on disk or be
 pre-created using a specific version of Python.
 
 ## Example Playbook
