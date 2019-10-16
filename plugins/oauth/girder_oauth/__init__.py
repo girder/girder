@@ -46,7 +46,6 @@ class OAuthPlugin(GirderPlugin):
         User().ensureIndex((
             (('oauth.provider', SortDir.ASCENDING),
              ('oauth.id', SortDir.ASCENDING)), {}))
-        User().reconnect()
 
         events.bind('no_password_login_attempt', 'oauth', checkOauthUser)
 
