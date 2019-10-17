@@ -4,6 +4,7 @@ import logging
 import six
 from six.moves import urllib
 from girder import auditLogger
+from girder.constants import SortDir
 from girder.models.model_base import Model
 from girder.api.rest import getCurrentUser
 from girder.plugin import GirderPlugin
@@ -12,7 +13,11 @@ from girder.plugin import GirderPlugin
 class Record(Model):
     def initialize(self):
         self.name = 'audit_log_record'
-        self.ensureIndices(['type', 'when'])
+        compoundFilterIndex = (
+            ('when', SortDir.ASCENDING),
+            ('type', SortDir.ASCENDING)
+        )
+        self.ensureIndices([(compoundFilterIndex, {}), 'type', 'when'])
 
     def validate(self, doc):
         return doc
