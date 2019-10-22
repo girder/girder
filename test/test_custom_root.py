@@ -1,4 +1,3 @@
-
 import os
 import pytest
 
@@ -9,7 +8,6 @@ from six.moves.urllib.parse import urlparse
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import boundHandler, rawResponse, Resource, setResponseHeader
-from girder.api.v1.collection import Collection
 from girder.constants import TokenScope
 from girder.utility.server import staticFile
 from girder.plugin import GirderPlugin
@@ -29,17 +27,6 @@ def unboundHandlerDefaultNoArgs(self, params):
 def unboundHandlerDefault(self, params):
     self.requireParams('val', params)
     return not self.boolParam('val', params)
-
-
-@access.user(scope=TokenScope.ANONYMOUS_SESSION)
-@boundHandler(Collection())
-@describeRoute(None)
-def unboundHandlerExplicit(self, params):
-    currentUser = self.getCurrentUser()
-    return {
-        'userLogin': currentUser['login'] if currentUser else None,
-        'name': self.resourceName
-    }
 
 
 class CustomAppRoot(object):
@@ -101,8 +88,6 @@ class CustomRoot(GirderPlugin):
                                          unboundHandlerDefaultNoArgs)
         info['apiRoot'].collection.route('GET', ('unbound', 'default'),
                                          unboundHandlerDefault)
-        info['apiRoot'].collection.route('GET', ('unbound', 'explicit'),
-                                         unboundHandlerExplicit)
 
         info['apiRoot'].other = Other()
         path = os.path.join(os.path.dirname(__file__), 'data', 'static.txt')
