@@ -15,21 +15,6 @@ def _uid(node):
     return '_'.join((node.module.__name__, node.cls.__name__ if node.cls else '', node.name))
 
 
-@pytest.fixture(scope='session', autouse=True)
-def fastCrypt():
-    """
-    Use faster password hashing to avoid unnecessary testing bottlenecks.
-    """
-    from girder.models.user import User
-
-    # CryptContext.update could be used to mutate the existing instance, but if this fixture's scope
-    # is ever made more limited (so that the teardown matters), this approach is more maintainable
-    originalCryptContext = User()._cryptContext
-    User()._cryptContext = originalCryptContext.copy(schemes=['plaintext'])
-    yield
-    User()._cryptContext = originalCryptContext
-
-
 @pytest.fixture
 def db(request):
     """
@@ -41,6 +26,7 @@ def db(request):
     """
     from girder.models import _dbClients, getDbConnection, pymongo
     from girder.models import model_base
+    from girder.models.user import User
     from girder.external import mongodb_proxy
 
     mockDb = request.config.getoption('--mock-db')
@@ -66,7 +52,14 @@ def db(request):
     for model in model_base._modelSingletons:
         model.reconnect()
 
+    # Use faster password hashing to avoid unnecessary testing bottlenecks. Any test case
+    # that creates a user goes through the password hashing process, so we avoid actual bcrypt.
+    originalCryptContext = User()._cryptContext
+    User()._cryptContext = originalCryptContext.copy(schemes=['plaintext'])
+
     yield connection
+
+    User()._cryptContext = originalCryptContext
 
     if not keepDb:
         connection.drop_database(dbName)
@@ -198,4 +191,4 @@ def fsAssetstore(db, request):
         shutil.rmtree(path)
 
 
-__all__ = ('admin', 'fastCrypt', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp')
+__all__ = ('admin', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp')

@@ -1302,7 +1302,6 @@ pytest_girder
             admin
             boundServer
             db
-            fastCrypt
             fsAssetstore
             server
             smtp
