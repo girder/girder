@@ -1,4 +1,5 @@
 import hashlib
+import mock
 import mongomock
 import os
 import pytest
@@ -13,6 +14,18 @@ def _uid(node):
     Generate a unique name from a pytest request node object.
     """
     return '_'.join((node.module.__name__, node.cls.__name__ if node.cls else '', node.name))
+
+
+@pytest.fixture(scope='session', autouse=True)
+def _disableRealDatabaseConnectivity():
+    from girder.utility.config import getConfig
+
+    class MockDict(dict):
+        def get(self, *args, **kwargs):
+            raise Exception('You must use the "db" fixture in tests that connect to the database.')
+
+    with mock.patch.dict(getConfig(), {'database': MockDict()}):
+        yield
 
 
 @pytest.fixture
@@ -66,6 +79,11 @@ def db(request):
 
     connection.close()
 
+    # Clear connection cache and model singletons
+    _dbClients.clear()
+    for model in model_base._modelSingletons:
+        model.__class__._instance = None
+
     if mockDb:
         mongodb_proxy.EXECUTABLE_MONGO_METHODS = executable_methods
         pymongo.MongoClient = realMongoClient
@@ -116,7 +134,6 @@ def boundServer(db, request):
         plugins = _getPluginsFromMarker(request, registry)
         with serverContext(plugins, bindPort=True) as server:
             yield server
-
 
 @pytest.fixture
 def smtp(db, server):
@@ -191,4 +208,5 @@ def fsAssetstore(db, request):
         shutil.rmtree(path)
 
 
-__all__ = ('admin', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp')
+__all__ = ('admin', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp',
+           '_disableRealDatabaseConnectivity')
