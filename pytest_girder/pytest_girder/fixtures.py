@@ -135,6 +135,7 @@ def boundServer(db, request):
         with serverContext(plugins, bindPort=True) as server:
             yield server
 
+
 @pytest.fixture
 def smtp(db, server):
     """
@@ -208,5 +209,4 @@ def fsAssetstore(db, request):
         shutil.rmtree(path)
 
 
-__all__ = ('admin', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp',
-           '_disableRealDatabaseConnectivity')
+__all__ = ('admin', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp')
