@@ -446,3 +446,14 @@ class TestFindWithPermissions(object):
         _model.save({'name': 'second second', 'parentId': d3['_id'], 'field1': 'value1'})
         _model.save({'name': 'fourth names', 'parentId': d4['_id'], 'field1': 'value1'})
         self.generalTest(_model, admin, user)
+
+
+def testDatabaseConnectivityRequiresDbFixtureInTesting():
+    """
+    This test exists to verify that attempting to use Girder's model layer without using the
+    `db` fixture will raise a reasonable exception rather than accidentally polluting users'
+    actual databases.
+    """
+    with pytest.raises(Exception) as e:
+        User().find()
+    assert str(e.value) == 'You must use the "db" fixture in tests that connect to the database.'

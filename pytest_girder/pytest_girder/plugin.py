@@ -1,5 +1,6 @@
 import os
 from .fixtures import *  # noqa
+from .fixtures import _disableRealDatabaseConnectivity  # noqa
 
 
 def _makeCoverageDirs(config):
