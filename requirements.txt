@@ -1,5 +1,5 @@
 # girder core
-bcrypt==2.0.0
+bcrypt
 boto==2.40.0
 cffi==1.6.0
 CherryPy==6.0.1
