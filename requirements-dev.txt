@@ -33,6 +33,7 @@ moto[server]>=1.3.7
 pytest>=3.6
 pytest-cov>=2.6
 pytest-xdist
-python-dateutil
+# python-dateutil is pinned because of github.com/boto/botocore/issues/1872
+python-dateutil<=2.8.0
 tox
 virtualenv
