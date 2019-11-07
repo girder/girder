@@ -1,4 +1,5 @@
 import hashlib
+import mock
 import mongomock
 import os
 import pytest
@@ -16,18 +17,15 @@ def _uid(node):
 
 
 @pytest.fixture(scope='session', autouse=True)
-def fastCrypt():
-    """
-    Use faster password hashing to avoid unnecessary testing bottlenecks.
-    """
-    from girder.models.user import User
+def _disableRealDatabaseConnectivity():
+    from girder.utility.config import getConfig
 
-    # CryptContext.update could be used to mutate the existing instance, but if this fixture's scope
-    # is ever made more limited (so that the teardown matters), this approach is more maintainable
-    originalCryptContext = User()._cryptContext
-    User()._cryptContext = originalCryptContext.copy(schemes=['plaintext'])
-    yield
-    User()._cryptContext = originalCryptContext
+    class MockDict(dict):
+        def get(self, *args, **kwargs):
+            raise Exception('You must use the "db" fixture in tests that connect to the database.')
+
+    with mock.patch.dict(getConfig(), {'database': MockDict()}):
+        yield
 
 
 @pytest.fixture
@@ -41,6 +39,7 @@ def db(request):
     """
     from girder.models import _dbClients, getDbConnection, pymongo
     from girder.models import model_base
+    from girder.models.user import User
     from girder.external import mongodb_proxy
 
     mockDb = request.config.getoption('--mock-db')
@@ -66,12 +65,24 @@ def db(request):
     for model in model_base._modelSingletons:
         model.reconnect()
 
+    # Use faster password hashing to avoid unnecessary testing bottlenecks. Any test case
+    # that creates a user goes through the password hashing process, so we avoid actual bcrypt.
+    originalCryptContext = User()._cryptContext
+    User()._cryptContext = originalCryptContext.copy(schemes=['plaintext'])
+
     yield connection
+
+    User()._cryptContext = originalCryptContext
 
     if not keepDb:
         connection.drop_database(dbName)
 
     connection.close()
+
+    # Clear connection cache and model singletons
+    _dbClients.clear()
+    for model in model_base._modelSingletons:
+        model.__class__._instance = None
 
     if mockDb:
         mongodb_proxy.EXECUTABLE_MONGO_METHODS = executable_methods
@@ -198,4 +209,4 @@ def fsAssetstore(db, request):
         shutil.rmtree(path)
 
 
-__all__ = ('admin', 'fastCrypt', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp')
+__all__ = ('admin', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp')

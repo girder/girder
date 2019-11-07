@@ -3,6 +3,7 @@ import os
 import re
 import six
 
+import cherrypy
 from cherrypy._cpreqbody import Part
 
 from girder.api.rest import setResponseHeader, setContentDisposition
@@ -327,13 +328,14 @@ class AbstractAssetstoreAdapter(object):
             be set to 'attachment; filename=$filename'.
         :type contentDisposition: str or None
         """
+        isRangeRequest = cherrypy.request.headers.get('Range')
         setResponseHeader(
             'Content-Type',
             file.get('mimeType') or 'application/octet-stream')
         setContentDisposition(file['name'], contentDisposition or 'attachment')
         setResponseHeader('Content-Length', max(endByte - offset, 0))
 
-        if (offset or endByte < file['size']) and file['size']:
+        if (offset or endByte < file['size'] or isRangeRequest) and file['size']:
             setResponseHeader(
                 'Content-Range',
                 'bytes %d-%d/%d' % (offset, endByte - 1, file['size']))

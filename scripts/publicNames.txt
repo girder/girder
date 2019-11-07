@@ -12,6 +12,7 @@ clients
                 MAX_CHUNK_SIZE
                 addFolderUploadCallback
                 addItemUploadCallback
+                addMetadataToCollection
                 addMetadataToFolder
                 addMetadataToItem
                 authenticate
@@ -1301,7 +1302,6 @@ pytest_girder
             admin
             boundServer
             db
-            fastCrypt
             fsAssetstore
             server
             smtp

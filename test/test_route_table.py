@@ -34,7 +34,7 @@ class HasWebroot(GirderPlugin):
         'other': 'route_without_a_leading_slash'
     }, r'Routes must begin with a forward slash\.$')
 ])
-def testRouteTableValidationFailure(value, err):
+def testRouteTableValidationFailure(value, err, db):
     with pytest.raises(ValidationException, match=err):
         Setting().validate({
             'key': SettingKey.ROUTE_TABLE,
@@ -47,7 +47,7 @@ def testRouteTableValidationFailure(value, err):
         GIRDER_ROUTE_ID: '/',
     }
 ])
-def testRouteTableValidationSuccess(value):
+def testRouteTableValidationSuccess(value, db):
     Setting().validate({
         'key': SettingKey.ROUTE_TABLE,
         'value': value

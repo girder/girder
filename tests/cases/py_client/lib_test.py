@@ -15,6 +15,7 @@ from girder import config, events
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
+from girder.models.collection import Collection
 from girder.models.upload import Upload
 from girder.models.user import User
 from tests import base
@@ -642,6 +643,15 @@ class PythonClientTestCase(base.TestCase):
         self.client.addMetadataToFolder(self.publicFolder['_id'], meta)
         updatedFolder = Folder().load(self.publicFolder['_id'], force=True)
         self.assertEqual(updatedFolder['meta'], meta)
+
+    def testAddMetadataToCollection(self):
+        collection = self.client.createCollection('CoolCollection', description='', public=True)
+        meta = {
+            'nothing': 'to see here!'
+        }
+        self.client.addMetadataToCollection(collection['_id'], meta)
+        updatedCollection = Collection().load(collection['_id'], force=True)
+        self.assertEqual(updatedCollection['meta'], meta)
 
     def testPatch(self):
         patchUrl = 'patch'

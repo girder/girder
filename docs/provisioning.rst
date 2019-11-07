@@ -2,20 +2,19 @@
 
 Provisioning
 ============
-Girder is packaged for provisioning through the popular IT automation tool Ansible.
+Girder can be automatically be provisioned using the popular IT automation tool Ansible.
 
-Specifically, Girder is available as an Ansible role, which allows a user to point
-their own Ansible playbook at a number of servers and deploy Girder with a single
-command. Provided with the role are `testing playbooks` which can serve as
-additional reference documentation.
+See the published Ansible roles:
 
-.. note:: Our playbooks are only currently supporting Ubuntu 16.04 and newer.
+* `girder.girder <https://galaxy.ansible.com/girder/girder>`_
+* `girder.mongodb <https://galaxy.ansible.com/girder/mongodb>`_
+* `girder.nginx <https://galaxy.ansible.com/girder/nginx>`_
 
 Using Ansible to configure a running Girder instance
 ####################################################
-The Girder role also provides a fully fledged Ansible client to configure Girder in a declarative manner.
+The Girder role also provides a fully fledged Ansible module to configure Girder in a declarative manner.
 
-For details on usage, see the documentation on the Girder Ansible client.
+For details on usage, see the documentation on the Girder Ansible module.
 
 FAQ
 ###
