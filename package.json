@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "as-jqplot": "1.0.8",
-    "backbone": "~1.1.2",
+    "backbone": "~1.4.0",
     "bootstrap": "3.3.6",
     "bootstrap-switch": "3.3.2",
     "d3": "3.4.8",
@@ -38,7 +38,7 @@
     "jquery": "2.1.1",
     "sprintf-js": "1.0.2",
     "swagger-ui": "2.0.22",
-    "underscore": "~1.5",
+    "underscore": "^1.8.3",
     "colors": "0.6.2",
     "event-source": "0.1.1",
     "jsoneditor": "4.1.2",
