@@ -913,7 +913,7 @@ class Resource(object):
             try:
                 # If we can't create the item,  try and return
                 # The item with the same name
-                ret = self.resource_by_name[kwargs['name']]
+                ret = self.resources_by_name[kwargs['name']]
             except KeyError:
                 raise htErr
         return ret
