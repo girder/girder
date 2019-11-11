@@ -220,8 +220,7 @@ def bind(eventName, handlerName, handler):
 
     if handlerName in _mapping[eventName]:
         girder.logger.warning('Event binding already exists: %s -> %s' % (eventName, handlerName))
-    else:
-        _mapping[eventName][handlerName] = handler
+    _mapping[eventName][handlerName] = handler
 
 
 def unbind(eventName, handlerName):
