@@ -5,6 +5,7 @@ import re
 from six.moves import urllib
 
 import httmock
+import jwt
 import requests
 import six
 
@@ -438,7 +439,7 @@ class OauthTest(base.TestCase):
                 'value': 'google_test_client_secret'
             },
             'allowed_callback_re': r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/google/callback$',
-            'url_re': r'^https://accounts\.google\.com/o/oauth2/auth',
+            'url_re': r'^https://accounts\.google\.com/o/oauth2/v2/auth',
             'accounts': {
                 'existing': {
                     'auth_code': 'google_existing_auth_code',
@@ -476,14 +477,14 @@ class OauthTest(base.TestCase):
         # Test inclusion of custom scope
         Google.addScopes(['custom_scope', 'foo'])
 
-        @httmock.urlmatch(scheme='https', netloc='^accounts.google.com$',
-                          path='^/o/oauth2/auth$', method='GET')
+        @httmock.urlmatch(scheme='https', netloc=r'^accounts\.google\.com$',
+                          path=r'^/o/oauth2/v2/auth$', method='GET')
         def mockGoogleRedirect(url, request):
             try:
                 params = urllib.parse.parse_qs(url.query)
                 self.assertEqual(params['response_type'], ['code'])
                 self.assertEqual(params['access_type'], ['online'])
-                self.assertEqual(params['scope'], ['profile email custom_scope foo'])
+                self.assertEqual(params['scope'], ['openid profile email custom_scope foo'])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 400,
@@ -523,8 +524,8 @@ class OauthTest(base.TestCase):
                 }
             }
 
-        @httmock.urlmatch(scheme='https', netloc='^accounts.google.com$',
-                          path='^/o/oauth2/token$', method='POST')
+        @httmock.urlmatch(scheme='https', netloc=r'^oauth2\.googleapis\.com$',
+                          path=r'^/token$', method='POST')
         def mockGoogleToken(url, request):
             try:
                 params = urllib.parse.parse_qs(request.body)
@@ -557,48 +558,39 @@ class OauthTest(base.TestCase):
                 'token_type': 'Bearer',
                 'access_token': account['access_token'],
                 'expires_in': 3546,
-                'id_token': 'google_id_token'
+                'id_token': jwt.encode({
+                    'sub': account['user']['oauth']['id'],
+                    'email': account['user']['email'],
+                }, 'secret').decode()
             })
 
-        @httmock.urlmatch(scheme='https', netloc='^www.googleapis.com$',
-                          path='^/plus/v1/people/me$', method='GET')
-        def mockGoogleApi(url, request):
-            try:
-                for account in six.viewvalues(providerInfo['accounts']):
-                    if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
-                        break
-                else:
-                    self.fail()
-
-                params = urllib.parse.parse_qs(url.query)
-                self.assertSetEqual(set(params['fields'][0].split(',')), {'id', 'emails', 'name'})
-            except AssertionError as e:
-                return {
-                    'status_code': 401,
-                    'content': json.dumps({
-                        'error': repr(e)
-                    })
-                }
+        @httmock.urlmatch(scheme='https', netloc=r'^accounts\.google\.com$',
+                          path=r'^/.well-known/openid-configuration$', method='GET')
+        def mockGoogleDiscovery(url, request):
             return json.dumps({
-                'id': account['user']['oauth']['id'],
-                'name': {
-                    'givenName': account['user']['firstName'],
-                    'familyName': account['user']['lastName']
-                },
-                'emails': [
-                    {
-                        'type': 'other',
-                        'value': 'styx@hades.gov'
-                    }, {
-                        'type': 'account',
-                        'value': account['user']['email']
-                    }
-                ]
+                'userinfo_endpoint': 'https://openidconnect.googleapis.com/v1/userinfo'
+            })
+
+        @httmock.urlmatch(scheme='https', netloc=r'^openidconnect\.googleapis\.com$',
+                          path=r'^/v1/userinfo$', method='GET')
+        def mockGoogleApi(url, request):
+            for account in six.viewvalues(providerInfo['accounts']):
+                if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
+                    break
+            else:
+                self.fail()
+
+            return json.dumps({
+                'sub': account['user']['oauth']['id'],
+                'given_name': account['user']['firstName'],
+                'family_name': account['user']['lastName'],
+                'email': account['user']['email']
             })
 
         with httmock.HTTMock(
             mockGoogleRedirect,
             mockGoogleToken,
+            mockGoogleDiscovery,
             mockGoogleApi,
             # Must keep 'mockOtherRequest' last
             self.mockOtherRequest
