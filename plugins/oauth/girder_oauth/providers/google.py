@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from six.moves import urllib
 
+import jwt
+
 from girder.api.rest import getApiUrl
 from girder.exceptions import RestException
 from girder.models.setting import Setting
@@ -10,11 +12,11 @@ from ..settings import PluginSettings
 
 
 class Google(ProviderBase):
-    _AUTH_URL = 'https://accounts.google.com/o/oauth2/auth'
+    # https://developers.google.com/identity/protocols/OpenIDConnect
+    _AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
     _AUTH_SCOPES = ['profile', 'email']
-    _TOKEN_URL = 'https://accounts.google.com/o/oauth2/token'
-    _API_USER_URL = 'https://www.googleapis.com/plus/v1/people/me'
-    _API_USER_FIELDS = ('id', 'emails', 'name')
+    _TOKEN_URL = 'https://oauth2.googleapis.com/token'
+    _DISCOVERY_URL = 'https://accounts.google.com/.well-known/openid-configuration'
 
     def getClientIdSetting(self):
         return Setting().get(PluginSettings.GOOGLE_CLIENT_ID)
@@ -25,7 +27,6 @@ class Google(ProviderBase):
     @classmethod
     def getUrl(cls, state):
         clientId = Setting().get(PluginSettings.GOOGLE_CLIENT_ID)
-
         if not clientId:
             raise Exception('No Google client ID setting is present.')
 
@@ -37,7 +38,9 @@ class Google(ProviderBase):
             'client_id': clientId,
             'redirect_uri': callbackUrl,
             'state': state,
-            'scope': ' '.join(cls._AUTH_SCOPES)
+            'scope': 'openid %s' % ' '.join(cls._AUTH_SCOPES)
+            # Google supports a 'nonce', but does not require it, and Girder's particular checks
+            # and invalidation of the 'state' token provides the same security guarantees
         })
         return '%s?%s' % (cls._AUTH_URL, query)
 
@@ -49,54 +52,31 @@ class Google(ProviderBase):
             'client_secret': self.clientSecret,
             'redirect_uri': self.redirectUri
         }
-        resp = self._getJson(method='POST', url=self._TOKEN_URL,
-                             data=params)
+        resp = self._getJson(method='POST', url=self._TOKEN_URL, data=params)
         return resp
 
     def getUser(self, token):
-        headers = {
-            'Authorization': ' '.join((
-                token['token_type'], token['access_token']))
-        }
-        # For privacy and efficiency, fetch only the specific needed fields
-        # https://developers.google.com/+/web/api/rest/#partial-response
-        query = urllib.parse.urlencode({
-            'fields': ','.join(self._API_USER_FIELDS)
+        idToken = token['id_token']
+
+        # Because the token came directly from Google's API, we don't need to verify it
+        payload = jwt.decode(idToken, verify=False)
+
+        oauthId = payload['sub']
+
+        email = payload.get('email')
+        if not email:
+            raise RestException('This Google user has no available email address.', code=502)
+
+        # The user's full name is in the payload, but is not split into first and last names
+
+        discovery = self._getJson(method='GET', url=self._DISCOVERY_URL)
+        userinfoUrl = discovery['userinfo_endpoint']
+
+        userinfo = self._getJson(method='GET', url=userinfoUrl, headers={
+            'Authorization': '%s %s' % (token['token_type'], token['access_token'])
         })
-        resp = self._getJson(method='GET',
-                             url='%s?%s' % (self._API_USER_URL, query),
-                             headers=headers)
-
-        # Get user's OAuth2 ID
-        oauthId = resp.get('id')
-        if not oauthId:
-            raise RestException(
-                'Google Plus did not return a user ID.', code=502)
-
-        # Get user's email address
-        # Prefer email address with 'account' type
-        emails = [
-            email.get('value')
-            for email in resp.get('emails', [])
-            if email.get('type') == 'account'
-        ]
-        if not emails:
-            # If an 'account' email can't be found, consider them all
-            emails = [
-                email.get('value')
-                for email in resp.get('emails', [])
-            ]
-        if emails:
-            # Even if there are multiple emails, just use the first one
-            email = emails[0]
-        else:
-            raise RestException(
-                'This Google Plus user has no available email address.',
-                code=502)
-
-        # Get user's name
-        firstName = resp.get('name', {}).get('givenName', '')
-        lastName = resp.get('name', {}).get('familyName', '')
+        firstName = userinfo.get('given_name', '')
+        lastName = userinfo.get('family_name', '')
 
         user = self._createOrReuseUser(oauthId, email, firstName, lastName)
         return user
