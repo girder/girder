@@ -116,7 +116,7 @@ Web Client Build
 ----------------
 Building Girder's web client has the following system dependencies:
 
-* `Node.js <https://nodejs.org/>`_ v8+
+* `Node.js <https://nodejs.org/>`_ v10+
 
   * This is necessary to execute many aspects of the web client build system.
 

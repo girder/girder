@@ -174,7 +174,7 @@ MongoDB
 
 Node.js
 -------
-Node.js v8.0 is the `active LTS release <https://github.com/nodejs/Release#release-schedule>`_, though later versions
+Node.js v12.0 is the `active LTS release <https://github.com/nodejs/Release#release-schedule>`_, though later versions
 can also be used instead.
 
 .. tabs::
@@ -184,7 +184,7 @@ can also be used instead.
 
       .. code-block:: bash
 
-         curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+         curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
          sudo apt-get install -y nodejs
 
    .. group-tab:: Ubuntu 14.04
@@ -193,7 +193,7 @@ can also be used instead.
 
       .. code-block:: bash
 
-         curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+         curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
          sudo apt-get install -y nodejs
 
    .. group-tab:: RHEL (CentOS) 7
@@ -202,7 +202,7 @@ can also be used instead.
 
       .. code-block:: bash
 
-         curl --silent --location https://rpm.nodesource.com/setup_8.x | sudo bash -
+         curl --silent --location https://rpm.nodesource.com/setup_12.x | sudo bash -
          sudo yum -y install nodejs
 
    .. group-tab:: macOS

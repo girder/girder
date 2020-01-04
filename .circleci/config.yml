@@ -230,14 +230,14 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Install NodeJS 8
+          name: Install NodeJS 10
           # CircleCI resets the Bash environment between every step, so any steps using node or npm
           # must first:
           #   source $NVM_DIR/nvm.sh
           command: |
             source $NVM_DIR/nvm.sh
-            nvm install v8
-            nvm alias default v8
+            nvm install v10
+            nvm alias default v10
       - run:
           # Technically, we should add the circleci user to the fuse group, log
           # out, and log back in for it to take effect.  This allows fuse to be
@@ -356,14 +356,14 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Install NodeJS 10
+          name: Install NodeJS 12
           # CircleCI resets the Bash environment between every step, so any steps using node or npm
           # must first:
           #   source $NVM_DIR/nvm.sh
           command: |
             source $NVM_DIR/nvm.sh
-            nvm install v10
-            nvm alias default v10
+            nvm install v12
+            nvm alias default v12
       - run:
           # Technically, we should add the circleci user to the fuse group, log
           # out, and log back in for it to take effect.  This allows fuse to be
