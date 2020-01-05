@@ -21,6 +21,7 @@ module.exports = {
                 ImportDeclaration: true
             }
         }],
+        'no-var': 'error',
         'no-throw-literal': 'off', // This would be desirable, but interferes with use in Promise.then
         'one-var': 'off',
         quotes: ['error', 'single', {
