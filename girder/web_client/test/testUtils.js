@@ -335,7 +335,7 @@ girderTest.testMetadata = function () {
             }
 
             for (var arrKey in value) {
-                if (value.hasOwnProperty(arrKey)) {
+                if (Object.prototype.hasOwnProperty.call(value, arrKey)) {
                     $('.jsoneditor button.jsoneditor-contextmenu', elem).click();
                     $('.jsoneditor-contextmenu button.jsoneditor-insert').click();
                     $('.jsoneditor table.jsoneditor-values div.jsoneditor-field.jsoneditor-empty', elem).text(arrKey);
