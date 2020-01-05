@@ -6,7 +6,7 @@ An Ansible role to install [Girder](https://github.com/girder/girder).
 
 ## Requirements
 
-Ubuntu 16.04+.
+Ubuntu 18.04+.
 
 Using Python 3 as
 [the target host Python interpreter](https://docs.ansible.com/ansible/latest/reference_appendices/interpreter_discovery.html)
