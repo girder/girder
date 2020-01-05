@@ -58,7 +58,7 @@ module.exports = {
         'import/exports-last': 'error',
         'import/named': 'error',
         'import/order': ['error', {
-            'groups': ['builtin', 'external', ['parent', 'sibling', 'index']],
+            'groups': ['builtin', 'external', ['internal', 'parent', 'sibling', 'index']],
             'newlines-between': 'always-and-inside-groups'
         }],
         'promise/always-return': 'error',
@@ -110,6 +110,7 @@ module.exports = {
                 'View',
                 'MetadatumEditWidget'
             ]
-        }
+        },
+        'import/internal-regex': '^@scope/'
     }
 };

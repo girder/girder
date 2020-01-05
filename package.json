@@ -17,21 +17,21 @@
     },
     "devDependencies": {
         "@girder/eslint-config": "file:./girder/web_client/eslint-config",
-        "esdoc": "^1.0.4",
-        "eslint": "^5.16.0",
-        "eslint-config-semistandard": "^13.0.0",
-        "eslint-config-standard": "^12.0.0",
+        "esdoc": "^1.1.0",
+        "eslint": "^6.8.0",
+        "eslint-config-semistandard": "^15.0.0",
+        "eslint-config-standard": "^13.0.1",
         "eslint-plugin-backbone": "^2.1.1",
-        "eslint-plugin-import": "^2.17.3",
-        "eslint-plugin-node": "^9.1.0",
-        "eslint-plugin-promise": "^4.1.1",
-        "eslint-plugin-standard": "^4.0.0",
+        "eslint-plugin-import": "^2.19.1",
+        "eslint-plugin-node": "^11.0.0",
+        "eslint-plugin-promise": "^4.2.1",
+        "eslint-plugin-standard": "^4.0.1",
         "eslint-plugin-underscore": "0.0.10",
-        "nyc": "^13.1.0",
+        "nyc": "^15.0.0",
         "phantomjs-prebuilt": "^2.1.16",
         "pug-lint": "^2.6.0",
         "@girder/pug-lint-config": "file:./girder/web_client/pug-lint-config",
-        "stylint": "^1.5.9"
+        "stylint": "^2.0.0"
     },
     "scripts": {
         "lint": "eslint --cache . && pug-lint . && stylint",
@@ -96,7 +96,8 @@
     "pugLintConfig": {
         "extends": "@girder/pug-lint-config",
         "excludeFiles": [
-            "**/node_modules/"
+            "**/node_modules/",
+            "**/.tox/"
         ]
     },
     "stylintrc": {
@@ -132,7 +133,8 @@
             "error": true
         },
         "exclude": [
-            "**/node_modules/**"
+            "**/node_modules/**",
+            "**/.tox/**"
         ],
         "extendPref": "@extend",
         "globalDupe": false,
