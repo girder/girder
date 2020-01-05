@@ -58,7 +58,7 @@ var ItemModel = Model.extend({
         return restRequest({
             url: `${this.resourceName}/${this.id}/files`
         }).then((resp) => {
-            let fileCollection = new FileCollection(resp);
+            const fileCollection = new FileCollection(resp);
             this.trigger('g:files', fileCollection);
             return fileCollection;
         }).fail((err) => {

@@ -59,8 +59,8 @@ var RootSelectorWidget = View.extend({
 
         // collections are provided for public access here
         this.groups = {
-            'Collections': new CollectionCollection(),
-            'Users': new UserCollection()
+            Collections: new CollectionCollection(),
+            Users: new UserCollection()
         };
 
         this.groups.Collections.pageLimit = settings.pageLimit;

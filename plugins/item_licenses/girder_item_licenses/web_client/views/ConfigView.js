@@ -25,7 +25,7 @@ var ConfigView = View.extend({
                 method: 'GET',
                 url: 'item/licenses',
                 data: {
-                    'default': true
+                    default: true
                 }
             }).done((resp) => {
                 this.licenses = resp;

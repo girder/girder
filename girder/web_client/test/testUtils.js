@@ -536,14 +536,14 @@ girderTest.testMetadata = function () {
         _editMetadata('simple_key', null, null, 'delete');
         _editMetadata('json_key', 'json_rename', null);
 
-        _editMetadata(null, 'plain_json', { 'some': 'json' }, 'save', null, 'json');
+        _editMetadata(null, 'plain_json', { some: 'json' }, 'save', null, 'json');
 
         _editMetadata(null, 'non_object_or_array_json', false, 'save', null, 'json');
         _toggleMetadata('non_object_or_array_json', 'json');
 
         // converting json to simple
-        _editMetadata(null, 'a_json_key', { 'foo': 'bar' }, 'save', null, 'json');
-        _editMetadata('a_json_key', 'a_json_key', { 'foo': 'bar' }, 'cancel', null, 'json');
+        _editMetadata(null, 'a_json_key', { foo: 'bar' }, 'save', null, 'json');
+        _editMetadata('a_json_key', 'a_json_key', { foo: 'bar' }, 'cancel', null, 'json');
         _toggleMetadata('a_json_key', 'json');
 
         // a simple key that happens to be valid JSON

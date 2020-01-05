@@ -1,14 +1,14 @@
 module.exports = {
-    'extends': 'semistandard',
-    'rules': {
+    extends: 'semistandard',
+    rules: {
         'arrow-parens': 'error',
-        'eqeqeq': ['error',
-            'always', { 'null': 'always' }
+        eqeqeq: ['error',
+            'always', { null: 'always' }
         ],
         'for-direction': 'error',
         'getter-return': 'error',
-        'indent': ['error', 4, {
-            'SwitchCase': 1
+        indent: ['error', 4, {
+            SwitchCase: 1
         }],
         'multiline-ternary': [
             'error',
@@ -16,20 +16,20 @@ module.exports = {
         ],
         'no-alert': 'error',
         'no-multi-spaces': ['error', {
-            'exceptions': {
-                'VariableDeclarator': true,
-                'ImportDeclaration': true
+            exceptions: {
+                VariableDeclarator: true,
+                ImportDeclaration: true
             }
         }],
         'no-throw-literal': 'off', // This would be desirable, but interferes with use in Promise.then
         'one-var': 'off',
-        'quotes': ['error', 'single', {
-            'avoidEscape': true,
-            'allowTemplateLiterals': true
+        quotes: ['error', 'single', {
+            avoidEscape: true,
+            allowTemplateLiterals: true
         }],
         'space-before-function-paren': ['error', {
-            'anonymous': 'always',
-            'named': 'never'
+            anonymous: 'always',
+            named: 'never'
         }],
         'switch-colon-spacing': 'error',
         'backbone/collection-model': 'error',
@@ -38,9 +38,9 @@ module.exports = {
         'backbone/events-on-top': ['error', ['tagName', 'className']],
         'backbone/events-sort': 'off',
         'backbone/initialize-on-top': ['error', {
-            'View': ['tagName', 'className', 'events'],
-            'Model': ['resourceName', 'url', 'urlRoot', 'defaults'],
-            'Collection': ['model', 'resourceName', 'url']
+            View: ['tagName', 'className', 'events'],
+            Model: ['resourceName', 'url', 'urlRoot', 'defaults'],
+            Collection: ['model', 'resourceName', 'url']
         }],
         'backbone/model-defaults': 'off',
         'backbone/no-changed-set': 'error',
@@ -58,7 +58,7 @@ module.exports = {
         'import/exports-last': 'error',
         'import/named': 'error',
         'import/order': ['error', {
-            'groups': ['builtin', 'external', ['internal', 'parent', 'sibling', 'index']],
+            groups: ['builtin', 'external', ['internal', 'parent', 'sibling', 'index']],
             'newlines-between': 'always-and-inside-groups'
         }],
         'promise/always-return': 'error',
@@ -90,23 +90,23 @@ module.exports = {
         'underscore/preferred-alias': 'error',
         'underscore/prop-shorthand': ['error', 'always']
     },
-    'env': {
-        'browser': true
+    env: {
+        browser: true
     },
-    'plugins': [
+    plugins: [
         'backbone',
         'underscore'
     ],
-    'settings': {
-        'backbone': {
-            'Collection': [
+    settings: {
+        backbone: {
+            Collection: [
                 'Collection'
             ],
-            'Model': [
+            Model: [
                 'Model',
                 'AccessControlledModel'
             ],
-            'View': [
+            View: [
                 'View',
                 'MetadatumEditWidget'
             ]

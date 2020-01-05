@@ -118,22 +118,22 @@ var SearchResultsTypeView = View.extend({
 
     _getTypeName: function (type) {
         const names = {
-            'collection': 'Collections',
-            'group': 'Groups',
-            'user': 'Users',
-            'folder': 'Folders',
-            'item': 'Items'
+            collection: 'Collections',
+            group: 'Groups',
+            user: 'Users',
+            folder: 'Folders',
+            item: 'Items'
         };
         return names[type] || type;
     },
 
     _getTypeIcon: function (type) {
         const icons = {
-            'user': 'user',
-            'group': 'users',
-            'collection': 'sitemap',
-            'folder': 'folder',
-            'item': 'doc-text-inv'
+            user: 'user',
+            group: 'users',
+            collection: 'sitemap',
+            folder: 'folder',
+            item: 'doc-text-inv'
         };
         return icons[type] || 'icon-attention-alt';
     },

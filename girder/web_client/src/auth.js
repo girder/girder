@@ -84,7 +84,7 @@ function login(username, password, cors = corsAuth, otpToken = null) {
     var auth = 'Basic ' + window.btoa(username + ':' + password);
 
     const headers = {
-        'Authorization': auth
+        Authorization: auth
     };
     if (_.isString(otpToken)) {
         // Use _.isString to send header with empty string

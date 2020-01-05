@@ -65,7 +65,7 @@ setApiRoot(
  * @returns {$.Promise} A jqXHR promise, which resolves and rejects
  *          {@link http://api.jquery.com/jQuery.ajax/#jqXHR as documented by $.ajax}.
  */
-let restRequest = function (opts) {
+const restRequest = function (opts) {
     opts = opts || {};
     const defaults = {
         // the default 'method' is 'GET', as set by 'jquery.ajax'

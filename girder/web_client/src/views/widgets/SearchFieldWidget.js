@@ -316,9 +316,9 @@ var SearchFieldWidget = View.extend({
             throw new Error(`The mode "${mode}" exist already. You can't change it`);
         }
         SearchFieldWidget._allowedSearchMode[mode] = {
-            'types': types,
-            'description': description,
-            'help': help
+            types: types,
+            description: description,
+            help: help
         };
     },
 
