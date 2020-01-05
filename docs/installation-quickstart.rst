@@ -103,7 +103,7 @@ MongoDB
       .. code-block:: bash
 
          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
-         echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+         echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
          sudo apt-get update
          sudo apt-get install -y mongodb-org-server mongodb-org-shell
 
@@ -122,7 +122,7 @@ MongoDB
       .. code-block:: bash
 
          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
-         echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+         echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/4.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
          sudo apt-get update
          sudo apt-get install -y mongodb-org-server mongodb-org-shell
 
@@ -131,16 +131,16 @@ MongoDB
 
    .. group-tab:: RHEL (CentOS) 7
 
-      To install, create a file at ``/etc/yum.repos.d/mongodb-org-3.6.repo``, with:
+      To install, create a file at ``/etc/yum.repos.d/mongodb-org-4.2.repo``, with:
 
       .. code-block:: cfg
 
-         [mongodb-org-3.6]
+         [mongodb-org-4.2]
          name=MongoDB Repository
-         baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/3.6/x86_64/
+         baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/4.2/x86_64/
          gpgcheck=1
          enabled=1
-         gpgkey=https://www.mongodb.org/static/pgp/server-3.6.asc
+         gpgkey=https://www.mongodb.org/static/pgp/server-4.2.asc
 
       then run the command:
 

@@ -7,7 +7,7 @@ jobs:
       # This image uses the oldest version of many dependencies
       - image: girder/girder_test:latest-py2
       # Use the oldest supported MongoDB
-      - image: circleci/mongo:3.4-ram
+      - image: circleci/mongo:3.6-ram
         # The "ephemeralForTest" storage engine https://docs.mongodb.com/v3.2/release-notes/3.2/#ephemeralfortest-storage-engine
         # is likely a free (and poorly documented) analogue to the enterprise-only "inMemory"
         # storage engine. We can pass alternate options to "mongod" by overwriting the default "CMD"
@@ -118,7 +118,7 @@ jobs:
     docker:
       - image: girder/girder_test:latest-py3
       # Use the latest MongoDB
-      - image: circleci/mongo:3.6-ram
+      - image: circleci/mongo:4.2-ram
         command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
 
     working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
@@ -157,7 +157,7 @@ jobs:
   py3_webBuild_webTest:
     docker:
       - image: girder/girder_test:latest-py3
-      - image: circleci/mongo:3.6-ram
+      - image: circleci/mongo:4.2-ram
         command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
 
     working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
@@ -319,7 +319,7 @@ jobs:
   py2_coverage:
     docker:
       - image: girder/girder_test:latest-py2
-      - image: circleci/mongo:3.4-ram
+      - image: circleci/mongo:3.6-ram
         command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
     working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
     steps:
@@ -446,7 +446,7 @@ jobs:
   py3_coverage:
     docker:
       - image: girder/girder_test:latest-py3
-      - image: circleci/mongo:3.6-ram
+      - image: circleci/mongo:4.2-ram
         command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
     working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
     steps:
