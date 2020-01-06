@@ -4,10 +4,10 @@ LABEL maintainer="Kitware, Inc. <kitware@kitware.com>"
 # Don't use "sudo"
 USER root
 
-# Install Node.js 8
-RUN curl --silent --location https://deb.nodesource.com/setup_8.x | bash - \
+# Install Node.js 10
+RUN curl --silent --location https://deb.nodesource.com/setup_10.x | bash - \
   && apt-get install --assume-yes \
-    'nodejs=8.*' \
+    'nodejs=10.*' \
   && npm install --global \
     npm
 
