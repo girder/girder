@@ -282,11 +282,7 @@ class AccessControlMixin(object):
             #  Note, this also handles models which use attachedToType and
             # attachedToId, since ModelImporter.model(None) will not be an access
             # controlled model.
-            #  This is also the fall-back for Mongo < 3.4, as those versions do
-            # not support the aggregation steps that are used.
-            if (not isinstance(ModelImporter.model(self.resourceColl), AccessControlledModel)
-                    or not getattr(self, '_dbserver_version', None)
-                    or getattr(self, '_dbserver_version', None) < (3, 4)):
+            if not isinstance(ModelImporter.model(self.resourceColl), AccessControlledModel):
                 return self._findWithPermissionsFallback(
                     query, offset, limit, timeout, fields, sort, user, level,
                     **kwargs)

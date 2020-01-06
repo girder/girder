@@ -86,7 +86,7 @@ Server Runtime
 --------------
 Running Girder's server has the following additional system dependencies:
 
-* `MongoDB <https://www.mongodb.org/>`_ v3.4+
+* `MongoDB <https://www.mongodb.org/>`_ v3.6+
 
   * This is necessary for Girder's primary application database.
 
