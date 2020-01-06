@@ -1401,7 +1401,7 @@ class GirderClient(object):
         try:
             with open(os.path.join(dest, '.girder_metadata'), 'r') as fh:
                 self.localMetadata = json.loads(fh.read())
-        except (IOError, OSError):
+        except (OSError if six.PY3 else (IOError, OSError)):
             print('Local metadata does not exists. Falling back to download.')
 
     def inheritAccessControlRecursive(self, ancestorFolderId, access=None, public=None):
