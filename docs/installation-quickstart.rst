@@ -1,7 +1,7 @@
 Installation Quickstart
 =======================
 
-This process will install Girder's prerequisites for a Python 2 environment on common systems.
+This process will install Girder's prerequisites for a Python 3 environment on common systems.
 
 Basic System Prerequisites
 --------------------------
@@ -13,7 +13,7 @@ Basic System Prerequisites
 
       .. code-block:: bash
 
-         sudo apt-get install -y python-pip python-virtualenv
+         sudo apt-get install -y python3-venv python3-setuptools python3-dev
 
       To install system prerequisites for Girder's ``ldap`` plugin, run the command:
 
@@ -35,7 +35,7 @@ Basic System Prerequisites
 
         .. code-block:: bash
 
-           sudo yum -y install python2-pip python-virtualenv gcc python-devel curl
+           sudo yum -y install python-pip python-virtualenv gcc python-devel curl
 
       To install system prerequisites for Girder's ``ldap`` plugin, run the command:
 
@@ -66,7 +66,7 @@ To create and enable a Python virtual environment, run the commands:
 
 .. code-block:: bash
 
-   virtualenv girder_env
+   virtualenv -p python3 girder_env
    source girder_env/bin/activate
    pip install -U pip setuptools
 
@@ -100,7 +100,6 @@ MongoDB
 
          sudo systemctl start mongod
          sudo systemctl enable mongod
-
 
    .. group-tab:: RHEL (CentOS) 7
 
