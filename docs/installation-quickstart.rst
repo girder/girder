@@ -7,27 +7,13 @@ Basic System Prerequisites
 --------------------------
 
 .. tabs::
-   .. group-tab:: Ubuntu 16.04
+   .. group-tab:: Ubuntu 18.04
 
       To install basic system prerequisites, run the command:
 
       .. code-block:: bash
 
          sudo apt-get install -y python-pip python-virtualenv
-
-      To install system prerequisites for Girder's ``ldap`` plugin, run the command:
-
-      .. code-block:: bash
-
-         sudo apt-get install -y libldap2-dev libsasl2-dev
-
-   .. group-tab:: Ubuntu 14.04
-
-      To install basic system prerequisites, run the command:
-
-      .. code-block:: bash
-
-         sudo apt-get install -y python-pip python-virtualenv python-dev
 
       To install system prerequisites for Girder's ``ldap`` plugin, run the command:
 
@@ -96,14 +82,14 @@ MongoDB
 -------
 
 .. tabs::
-   .. group-tab:: Ubuntu 16.04
+   .. group-tab:: Ubuntu 18.04
 
       To install, run the commands:
 
       .. code-block:: bash
 
-         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
-         echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E162F504A20CDF15827F718D4B7C549A058F8B6B
+         echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
          sudo apt-get update
          sudo apt-get install -y mongodb-org-server mongodb-org-shell
 
@@ -115,19 +101,6 @@ MongoDB
          sudo systemctl start mongod
          sudo systemctl enable mongod
 
-   .. group-tab:: Ubuntu 14.04
-
-      To install, run the commands:
-
-      .. code-block:: bash
-
-         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
-         echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/4.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
-         sudo apt-get update
-         sudo apt-get install -y mongodb-org-server mongodb-org-shell
-
-      MongoDB server will register itself as an Upstart service (called ``mongod``), and will automatically start
-      immediately and on every reboot.
 
    .. group-tab:: RHEL (CentOS) 7
 
@@ -178,16 +151,7 @@ Node.js v12.0 is the `active LTS release <https://github.com/nodejs/Release#rele
 can also be used instead.
 
 .. tabs::
-   .. group-tab:: Ubuntu 16.04
-
-      To install, run the commands:
-
-      .. code-block:: bash
-
-         curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
-         sudo apt-get install -y nodejs
-
-   .. group-tab:: Ubuntu 14.04
+   .. group-tab:: Ubuntu 18.04
 
       To install, run the commands:
 

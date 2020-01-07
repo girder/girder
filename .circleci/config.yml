@@ -223,7 +223,8 @@ jobs:
             - girder_env
 
   py2_integrationTests:
-    machine: true
+    machine:
+      image: ubuntu-1604:201903-01
     working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
 
     steps:
@@ -252,9 +253,10 @@ jobs:
           name: Install MongoDB
           command: |
             sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
-            echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+            echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
             sudo apt-get update
             sudo apt-get install -y mongodb-org-server
+            sudo systemctl start mongod
       - run:
           # Boto doesn't work as a library if there is a /etc/boto.cfg file
           # from a different version of Python, so remove the file.
@@ -349,7 +351,8 @@ jobs:
           command: codecov --disable search pycov gcov --root girder --file girder/build/test/coverage/py_coverage.xml
 
   py3_integrationTests:
-    machine: true
+    machine:
+      image: ubuntu-1604:201903-01
     working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
 
     steps:
@@ -378,9 +381,10 @@ jobs:
           name: Install MongoDB
           command: |
             sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
-            echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+            echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
             sudo apt-get update
             sudo apt-get install -y mongodb-org-server
+            sudo systemctl start mongod
       - run:
           # The "d3" npm package (required by some Girder plugins) has an optional dependency of
           # "canvas", which requires "node-gyp" to build. node-gyp strictly requires Python 2
