@@ -186,7 +186,7 @@ module.exports = {
         extensions: ['.js'],
         symlinks: false,
         alias: {
-            'jquery': require.resolve('jquery'), // ensure that all plugins use the same "jquery"
+            jquery: require.resolve('jquery'), // ensure that all plugins use the same "jquery"
             // For some reason, this is necessary to ensure DllPlugin splitting works properly
             '@girder/core': path.dirname(require.resolve('@girder/core'))
         }

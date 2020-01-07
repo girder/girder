@@ -32,7 +32,7 @@ FileInfoWidget.prototype.events['click .g-hashsum-compute'] = function () {
         url: `file/${this.model.id}/hashsum`,
         method: 'POST',
         data: {
-            'progress': true
+            progress: true
         }
     }).done((resp) => {
         this.model.set(resp);

@@ -50,7 +50,7 @@ var QuotaPoliciesWidget = View.extend({
     },
 
     _destroyPlots: function () {
-        for (let plot of this.plots) {
+        for (const plot of this.plots) {
             plot.data('jqplot').destroy();
         }
         this.plots = [];

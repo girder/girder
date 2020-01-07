@@ -15,10 +15,10 @@ var JobModel = AccessControlledModel.extend({
     calculateSegmentation: function () {
         var segments = [];
 
-        let timestamps = this.get('timestamps');
+        const timestamps = this.get('timestamps');
 
         if (timestamps && timestamps.length) {
-            let startTime = this.get('created');
+            const startTime = this.get('created');
             segments.push({
                 start: startTime,
                 end: timestamps[0].time,

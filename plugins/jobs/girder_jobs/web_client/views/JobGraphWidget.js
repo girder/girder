@@ -58,14 +58,14 @@ const JobGraphWidget = View.extend({
         };
 
         if (this.view === 'timing-history') {
-            let config = $.extend(true, {}, timingHistoryChartConfig);
+            const config = $.extend(true, {}, timingHistoryChartConfig);
             // limit the width to the size of the container. When there are fewer records,
             // further limit the size based on the number of records plus some padding for labels and tooltip to make it looks better
-            let width = Math.min(this.$el.width(), this.collection.size() * 30 + 400);
+            const width = Math.min(this.$el.width(), this.collection.size() * 30 + 400);
             // the minimum width needed for each job is 10px
-            let numberOfJobs = Math.min(this.collection.size(), Math.floor(width / 10));
-            let vegaData = this._prepareDataForChart(numberOfJobs);
-            let widthForEachJob = width / numberOfJobs;
+            const numberOfJobs = Math.min(this.collection.size(), Math.floor(width / 10));
+            const vegaData = this._prepareDataForChart(numberOfJobs);
+            const widthForEachJob = width / numberOfJobs;
             // if the width for each job is less than 20px, remove axe labels
             if (widthForEachJob < 20) {
                 config.axes[0].encode.labels.opacity = { value: 0 };
@@ -78,7 +78,7 @@ const JobGraphWidget = View.extend({
             config.data[1].values = [minval < -86400 ? -86400 : minval];
 
             config.scales[1].type = this.yScale;
-            let allStatus = JobStatus.getAll().filter((status) => this.timingFilter ? this.timingFilter[status.text] : true);
+            const allStatus = JobStatus.getAll().filter((status) => this.timingFilter ? this.timingFilter[status.text] : true);
             config.scales[2].domain = allStatus.map((status) => status.text);
             config.scales[2].range = allStatus.map((status) => status.color);
             config.scales[3].domain = this.collection.pluck('_id');
@@ -92,19 +92,19 @@ const JobGraphWidget = View.extend({
                 .run();
             view.addEventListener('click', openDetailView(view));
 
-            let positiveTimings = _.clone(this.timingFilter);
+            const positiveTimings = _.clone(this.timingFilter);
             this.timingFilterWidget.setItems(positiveTimings);
         }
 
         if (this.view === 'time') {
-            let config = $.extend(true, {}, timeChartConfig);
+            const config = $.extend(true, {}, timeChartConfig);
             // limit the width to the size of the container. When there are fewer records,
             // further limit the size based on the number of records plus some padding for labels and tooltip to make it looks better
-            let width = Math.min(this.$el.width(), this.collection.size() * 30 + 400);
+            const width = Math.min(this.$el.width(), this.collection.size() * 30 + 400);
             // the minimum width needed for each job is 6px
-            let numberOfJobs = Math.min(this.collection.size(), Math.floor(width / 6));
-            let vegaData = this._prepareDataForChart(numberOfJobs);
-            let widthForEachJob = width / numberOfJobs;
+            const numberOfJobs = Math.min(this.collection.size(), Math.floor(width / 6));
+            const vegaData = this._prepareDataForChart(numberOfJobs);
+            const widthForEachJob = width / numberOfJobs;
             // if the width for each job is less than 20px, remove date axe and axe labels
             if (widthForEachJob < 20) {
                 config.axes.splice(0, 1);
@@ -119,7 +119,7 @@ const JobGraphWidget = View.extend({
                 (job) => moment(job.get('updated')).format('MM/DD'));
             config.scales[3].domain = this.collection.pluck('_id');
             config.scales[3].range = this.collection.pluck('title');
-            let allStatus = JobStatus.getAll().filter((status) => {
+            const allStatus = JobStatus.getAll().filter((status) => {
                 if (status.text !== 'Inactive' && status.text !== 'Queued') {
                     if (this.timingFilter) {
                         return this.timingFilter[status.text];
@@ -139,7 +139,7 @@ const JobGraphWidget = View.extend({
                 .run();
             view.addEventListener('click', openDetailView(view));
 
-            let positiveTimings = _.clone(this.timingFilter);
+            const positiveTimings = _.clone(this.timingFilter);
             delete positiveTimings['Inactive'];
             delete positiveTimings['Queued'];
             this.timingFilterWidget.setItems(positiveTimings);
@@ -150,14 +150,14 @@ const JobGraphWidget = View.extend({
         let allRecords = [];
 
         for (var i = numberOfJobs - 1; i >= 0; i--) {
-            let job = this.collection.at(i);
-            let id = job.get('_id');
-            let title = job.get('title');
-            let currentStatus = JobStatus.text(job.get('status'));
-            let updated = moment(job.get('updated')).format('L LT');
-            let records = job.calculateSegmentation()
+            const job = this.collection.at(i);
+            const id = job.get('_id');
+            const title = job.get('title');
+            const currentStatus = JobStatus.text(job.get('status'));
+            const updated = moment(job.get('updated')).format('L LT');
+            const records = job.calculateSegmentation()
                 .map((segment) => {
-                    let status = segment.status;
+                    const status = segment.status;
                     let elapsed = '';
                     switch (status) {
                         case 'Inactive':

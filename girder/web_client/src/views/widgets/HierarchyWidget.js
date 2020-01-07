@@ -678,7 +678,7 @@ var HierarchyWidget = View.extend({
         }
 
         // Disable folder actions if checkboxes are checked
-        let anyChecked = folders.length + items.length > 0;
+        const anyChecked = folders.length + items.length > 0;
         this.$('.g-folder-actions-button').girderEnable(!anyChecked);
 
         this.checkedMenuWidget.update({

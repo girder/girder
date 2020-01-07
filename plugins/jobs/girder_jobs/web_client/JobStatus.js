@@ -54,7 +54,7 @@ var JobStatus = {
         _.each(status, function (info, name) {
             this[name] = info.value;
 
-            let statusInfo = {
+            const statusInfo = {
                 text: info.text,
                 icon: info.icon,
                 color: info.color,

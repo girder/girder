@@ -135,7 +135,7 @@ var JobListWidget = View.extend({
             parentView: this
         });
 
-        let statusTextToStatusCode = {};
+        const statusTextToStatusCode = {};
         this.listenTo(this.statusFilterWidget, 'g:triggerCheckBoxMenuChanged', function (e) {
             this.statusFilter = _.keys(e).reduce((arr, key) => {
                 if (e[key]) {
@@ -157,7 +157,7 @@ var JobListWidget = View.extend({
             this.typeFilterWidget.setItems(typesFilter);
 
             var statusFilter = result.statuses.map((status) => {
-                let statusText = JobStatus.text(status);
+                const statusText = JobStatus.text(status);
                 statusTextToStatusCode[statusText] = status;
                 return statusText;
             }).reduce((obj, statusText) => {
@@ -266,7 +266,7 @@ var JobListWidget = View.extend({
     },
 
     _statusChange: function (event) {
-        let job = this.collection.get(event.data._id);
+        const job = this.collection.get(event.data._id);
         if (!job) {
             return;
         }

@@ -473,16 +473,16 @@ describe('Unit test the job list widget.', function () {
                     type: type,
                     timestamps: [
                         {
-                            'status': girder.plugins.jobs.JobStatus.QUEUED,
-                            'time': '2017-03-10T18:31:59.008Z'
+                            status: girder.plugins.jobs.JobStatus.QUEUED,
+                            time: '2017-03-10T18:31:59.008Z'
                         },
                         {
-                            'status': girder.plugins.jobs.JobStatus.RUNNING,
-                            'time': '2017-03-10T18:32:06.190Z'
+                            status: girder.plugins.jobs.JobStatus.RUNNING,
+                            time: '2017-03-10T18:32:06.190Z'
                         },
                         {
-                            'status': girder.plugins.jobs.JobStatus.ERROR,
-                            'time': '2017-03-10T18:32:34.760Z'
+                            status: girder.plugins.jobs.JobStatus.ERROR,
+                            time: '2017-03-10T18:32:34.760Z'
                         }
                     ],
                     updated: '2017-03-10T18:32:34.760Z',
