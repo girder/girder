@@ -158,7 +158,7 @@ def _startMongoProcesses(config, timeout=60, verbose=0):
     for idx, server in enumerate(config):
         cmd = [
             os.environ.get('MONGOD_EXECUTABLE', 'mongod'),
-            '--noprealloc', '--smallfiles', '--oplogSize', '128',
+            '--oplogSize', '128',
             '--port', str(server['port']),
             '--dbpath', server['dir'],
             '--replSet', server['replicaset']
