@@ -1,31 +1,33 @@
-FROM node:12-buster
+FROM python:3.6-buster
 LABEL maintainer="Kitware, Inc. <kitware@kitware.com>"
-
 EXPOSE 8080
 
-RUN mkdir /girder
-
-RUN apt-get update && apt-get install -qy \
-    gcc \
-    libpython3-dev \
-    git \
-    libldap2-dev \
-    libsasl2-dev && \
-  apt-get clean && rm -rf /var/lib/apt/lists/*
-
-RUN wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py
-
-WORKDIR /girder
-COPY . /girder/
-
-# See http://click.pocoo.org/5/python3/#python-3-surrogate-handling for more detail on
-# why this is necessary.
+# Set environment to support Unicode: http://click.pocoo.org/5/python3/#python-3-surrogate-handling
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-# TODO: Do we want to create editable installs of plugins as well?  We
-# will need a plugin only requirements file for this.
-RUN pip install --upgrade --upgrade-strategy eager --editable .
-RUN girder build
+# Install NodeJS
+RUN \
+  curl -sL https://deb.nodesource.com/setup_12.x | bash - && \
+  apt-get install --assume-yes nodejs && \
+  apt-get clean && \
+  rm --recursive --force /var/lib/apt/lists/*
 
-ENTRYPOINT ["girder", "serve"]
+COPY . /opt/girder/
+
+# TODO: install as editable?
+# TODO: Creating an egg-link means there's no concrete version in egg-info
+# TODO: install some plugins?
+RUN pip install --editable --no-cache-dir /opt/girder
+
+RUN \
+  girder build && \
+  rm --recursive --force \
+    /root/.npm \
+    /usr/local/lib/python*/site-packages/girder/web_client/node_modules
+
+# Add a config file, to bind the server to all network interfaces inside the container
+RUN echo '[global]\nserver.socket_host = "0.0.0.0"\n' > /etc/girder.cfg
+
+WORKDIR /opt/girder
+ENTRYPOINT ["/sbin/tini", "--", "girder", "serve"]

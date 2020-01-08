@@ -1,4 +1,10 @@
-**/node_modules
-*.egg-info
-Dockerfile
-*.Dockerfile
+*
+!LICENSE
+!README.rst
+!setup.py
+!girder/
+girder/**/node_modules
+
+# TODO: remove....
+!.git/
+!plugins/
