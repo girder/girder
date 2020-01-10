@@ -181,7 +181,6 @@ var AccessWidget = View.extend({
             if (!$(el).data('bs.popover')) {
                 $(el).popover({
                     trigger: 'manual',
-                    html: true,
                     placement: 'left',
                     viewport: {
                         selector: 'body',
@@ -189,7 +188,9 @@ var AccessWidget = View.extend({
                     },
                     content: function () {
                         return $(this).parent().find('.g-flags-popover-container').html();
-                    }
+                    },
+                    html: true,
+                    sanitize: false
                 }).click(function () {
                     $(this).popover('toggle');
                 });
@@ -202,7 +203,6 @@ var AccessWidget = View.extend({
             if (!$(el).data('bs.popover')) {
                 $(el).popover({
                     trigger: 'manual',
-                    html: true,
                     placement: 'right',
                     viewport: {
                         selector: 'body',
@@ -210,7 +210,9 @@ var AccessWidget = View.extend({
                     },
                     content: function () {
                         return $(this).parent().find('.g-public-flags-popover-container').html();
-                    }
+                    },
+                    html: true,
+                    sanitize: false
                 }).click(function () {
                     $(this).popover('toggle');
                 });

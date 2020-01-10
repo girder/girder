@@ -14,7 +14,7 @@
     "dependencies": {
         "as-jqplot": "~1.0.8",
         "backbone": "~1.4.0",
-        "bootstrap": "3.4.0",
+        "bootstrap": "~3.4.1",
         "bootstrap-switch": "~3.3.4",
         "eonasdan-bootstrap-datetimepicker": "~4.17",
         "@girder/fontello": "*",
