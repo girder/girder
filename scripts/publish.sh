@@ -34,7 +34,10 @@ PUBLISHED_NPM_PACKAGES=(
 for d in "${PUBLISHED_NPM_PACKAGES[@]}"; do
   pushd $d
   npm version --allow-same-version --no-git-tag-version "$GIT_VERSION"
-  npm publish
+  # NPM_AUTH_TOKEN must be set by the build environment
+  # CircleCI does not consider environment variables in npm's "npm_config_" format to be valid
+  # https://npm.community/t/cannot-set-npm-config-keys-containing-underscores-registry-auth-tokens-for-example-via-npm-config-environment-variables/233/9
+  env "npm_config_//registry.npmjs.org/:_authtoken=${NPM_AUTH_TOKEN}" npm publish
   popd
 done
 
