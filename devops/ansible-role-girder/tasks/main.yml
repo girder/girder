@@ -50,6 +50,8 @@
     - section: server
       option: mode
       value: "\"{{ 'development' if girder_development_mode else 'production' }}\""
+  notify:
+    - Restart Girder
 
 # Setup systemd service
 - block:
