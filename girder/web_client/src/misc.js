@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import _ from 'underscore';
-import Remarkable from 'remarkable';
+import { Remarkable } from 'remarkable';
 
 import { MONTHS } from '@girder/core/constants';
 

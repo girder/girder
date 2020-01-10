@@ -23,7 +23,7 @@
         "moment": "~2.24.0",
         "moment-timezone": "~0.5.27",
         "qrcode": "~1.4.4",
-        "remarkable": "~1.7.1",
+        "remarkable": "~2.0.0",
         "sprintf-js": "~1.1.2",
         "swagger-ui": "~2.2.10",
         "typeface-open-sans": "^0.0.75",
