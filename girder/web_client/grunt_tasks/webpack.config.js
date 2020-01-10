@@ -61,7 +61,7 @@ module.exports = {
                     {
                         loader: 'babel-loader',
                         options: {
-                            // Without any options, 'preset-env' behavies like 'preset-latest'
+                            // Without any options, 'preset-env' behaves like 'preset-latest'
                             presets: [babelPresets],
                             cacheDirectory: true
                         }

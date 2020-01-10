@@ -4,6 +4,8 @@
  */
 var path = require('path');
 
+const babelPresets = require.resolve('babel-preset-env');
+
 module.exports = function (grunt) {
     if (grunt.config.get('environment') !== 'dev') {
         return;
@@ -21,6 +23,15 @@ module.exports = function (grunt) {
     }
 
     grunt.config.merge({
+        babel: {
+            test: {
+                src: resolveTestPath('testUtils.js'),
+                dest: resolveBuiltPath('testUtils.es5.js')
+            },
+            options: {
+                presets: [babelPresets]
+            }
+        },
         uglify: {
             test: {
                 files: {
@@ -29,7 +40,7 @@ module.exports = function (grunt) {
                         require.resolve('whatwg-fetch/fetch.js'),
                         resolveTestPath('lib/jasmine-1.3.1/jasmine.js'),
                         resolveTestPath('lib/jasmine-1.3.1/ConsoleReporter.js'),
-                        resolveTestPath('testUtils.js')
+                        resolveBuiltPath('testUtils.es5.js')
                     ]
                 }
             }
@@ -64,6 +75,7 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask('test-env-html', 'Build the phantom test html page.', [
+        'babel:test',
         'uglify:test',
         'copy:test',
         'pug:test'
