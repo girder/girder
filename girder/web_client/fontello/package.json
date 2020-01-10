@@ -18,7 +18,7 @@
   "devDependencies": {
     "grunt": "^1.0.3",
     "grunt-contrib-clean": "^2.0.0",
-    "grunt-fontello": "^0.3.6"
+    "grunt-fontello": "^0.3.7"
   },
   "keywords": [
     "fontello",
