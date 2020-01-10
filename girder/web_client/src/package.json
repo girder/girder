@@ -19,7 +19,7 @@
         "eonasdan-bootstrap-datetimepicker": "~4.17",
         "@girder/fontello": "*",
         "jquery": "~3.2.1",
-        "jsoneditor": "~5.9.3",
+        "jsoneditor": "~8.1.1",
         "moment": "~2.20.1",
         "moment-timezone": "~0.4.1",
         "qrcode": "~1.2.0",
