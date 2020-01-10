@@ -19,5 +19,9 @@
     "grunt": "^1.0.3",
     "grunt-contrib-clean": "^2.0.0",
     "grunt-fontello": "^0.3.6"
-  }
+  },
+  "keywords": [
+    "fontello",
+    "girder"
+  ]
 }
