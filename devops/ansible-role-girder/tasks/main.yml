@@ -18,6 +18,7 @@
   become_user: root
 
 - import_tasks: nodejs.yml
+  when: girder_web|bool
 
 - name: Install Girder
   pip:
