@@ -40,8 +40,7 @@ installReqs = [
     'PyYAML',
     'psutil',
     'pyOpenSSL',
-    # python-dateutil is pinned because of github.com/boto/botocore/issues/1872
-    'python-dateutil<=2.8.0',
+    'python-dateutil',
     'pytz',
     'requests',
     "shutilwhich ; python_version < '3'",
