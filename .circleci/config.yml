@@ -35,10 +35,12 @@ jobs:
           command: pip install --upgrade pip setuptools virtualenv
       - run:
           name: Install Girder
-          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] --editable clients/python --requirement requirements-dev.txt
-          # Until https://github.com/pypa/pip/pull/4208 is available in pip 10, the install of
-          # "requirements-dev.txt" must be run from the "girder" working directory
-          working_directory: girder
+          command: >-
+            pip install
+            --upgrade --upgrade-strategy eager
+            --editable ./girder[sftp,mount]
+            --editable ./girder/clients/python
+            --requirement ./girder/requirements-dev.txt
       - save_cache:
           paths: girder_env
           key: venv-py2-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
@@ -98,8 +100,12 @@ jobs:
           command: pip install --upgrade pip setuptools
       - run:
           name: Install Girder
-          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] --editable clients/python --requirement requirements-dev.txt
-          working_directory: girder
+          command: >-
+            pip install
+            --upgrade --upgrade-strategy eager
+            --editable ./girder[sftp,mount]
+            --editable ./girder/clients/python
+            --requirement ./girder/requirements-dev.txt
       - run:
           name: Reduce workspace size
           command: |
@@ -282,10 +288,9 @@ jobs:
           command: >-
             pip install
             --upgrade --upgrade-strategy eager
-            --editable .[sftp,mount]
-            --editable clients/python
-            --requirement requirements-dev.txt
-          working_directory: girder
+            --editable ./girder[sftp,mount]
+            --editable ./girder/clients/python
+            --requirement ./girder/requirements-dev.txt
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
@@ -413,10 +418,9 @@ jobs:
           command: >-
             pip install
             --upgrade --upgrade-strategy eager
-            --editable .[sftp,mount]
-            --editable clients/python
-            --requirement requirements-dev.txt
-          working_directory: girder
+            --editable ./girder[sftp,mount]
+            --editable ./girder/clients/python
+            --requirement ./girder/requirements-dev.txt
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
