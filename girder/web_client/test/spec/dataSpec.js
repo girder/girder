@@ -60,7 +60,7 @@ describe('Create a data hierarchy', function () {
     it('create a folder', function () {
         runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(0);
-            $('.g-user-text>a:first').click();
+            $('.g-user-text>a').first().click();
         });
         girderTest.waitForLoad();
         runs(function () {
@@ -77,9 +77,9 @@ describe('Create a data hierarchy', function () {
 
         runs(function () {
             expect($('.g-item-count').length).toBe(0);
-            expect($('a.g-folder-list-link:first').text()).toBe('Private');
-            expect($('.g-folder-privacy:first').text()).toBe('Private');
-            $('a.g-folder-list-link:first').click();
+            expect($('a.g-folder-list-link').first().text()).toBe('Private');
+            expect($('.g-folder-privacy').first().text()).toBe('Private');
+            $('a.g-folder-list-link').first().click();
         });
         girderTest.waitForLoad();
 
@@ -112,23 +112,23 @@ describe('Create a data hierarchy', function () {
         }, 'the new folder to display in the list');
 
         runs(function () {
-            expect($('a.g-folder-list-link:first').text()).toBe(
+            expect($('a.g-folder-list-link').first().text()).toBe(
                 'John\'s subfolder');
-            expect($('.g-folder-privacy:first').text()).toBe('Private');
+            expect($('.g-folder-privacy').first().text()).toBe('Private');
         });
 
         // Recursively set this folder to public
         girderTest.folderAccessControl('private', 'public', true);
 
         waitsFor(function () {
-            return $('.g-folder-privacy:first').text() === 'Public';
+            return $('.g-folder-privacy').first().text() === 'Public';
         }, 'public flag to propagate to subfolder');
 
         // Change back to private
         girderTest.folderAccessControl('public', 'private', true);
 
         runs(function () {
-            $('a.g-folder-list-link:first').click();
+            $('a.g-folder-list-link').first().click();
         });
 
         girderTest.waitForLoad();
@@ -263,9 +263,9 @@ describe('Create a data hierarchy', function () {
         }, 'my folders list to display');
 
         runs(function () {
-            expect($('a.g-folder-list-link:first').text()).toBe('Private');
-            expect($('.g-folder-privacy:first').text()).toBe('Private');
-            $('a.g-folder-list-link:first').click();
+            expect($('a.g-folder-list-link').first().text()).toBe('Private');
+            expect($('.g-folder-privacy').first().text()).toBe('Private');
+            $('a.g-folder-list-link').first().click();
         });
 
         waitsFor(function () {
@@ -398,7 +398,7 @@ describe('Create a data hierarchy', function () {
 
     it('move picked items', function () {
         runs(function () {
-            $('.g-list-checkbox:last').click();
+            $('.g-list-checkbox').last().click();
         });
         waitsFor(function () {
             return $('.g-list-checkbox:checked').length === 1 &&
@@ -444,7 +444,7 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             $('.g-select-all').click();
             $('.g-select-all').click();
-            $('.g-list-checkbox:first').click();
+            $('.g-list-checkbox').first().click();
         });
         waitsFor(function () {
             return $('.g-list-checkbox:checked').length === 1 &&
@@ -466,7 +466,7 @@ describe('Create a data hierarchy', function () {
         /* Navigate to the user page and make sure move and copy are no longer
          * offered, since we can't move items to a user. */
         runs(function () {
-            $('.g-breadcrumb-link:first').click();
+            $('.g-breadcrumb-link').first().click();
         });
         waitsFor(function () {
             return $('.g-list-checkbox').length === 2 &&
@@ -482,7 +482,7 @@ describe('Create a data hierarchy', function () {
             expect($('a.g-copy-picked').length).toBe(0);
             expect($('a.g-move-picked').length).toBe(0);
             expect($('a.g-clear-picked').length).toBe(1);
-            $('a.g-folder-list-link:last').click();
+            $('a.g-folder-list-link').last().click();
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -505,7 +505,7 @@ describe('Create a data hierarchy', function () {
         /* Change the permission of the moved folder, then navigate back to the
          * private folder, to save the public data for permissions tests. */
         runs(function () {
-            $('a.g-folder-list-link:first').click();
+            $('a.g-folder-list-link').first().click();
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -513,14 +513,14 @@ describe('Create a data hierarchy', function () {
         }, 'subfolder to be shown');
         girderTest.folderAccessControl('private', 'public');
         runs(function () {
-            $('.g-breadcrumb-link:first').click();
+            $('.g-breadcrumb-link').first().click();
         });
         waitsFor(function () {
             return $('.g-list-checkbox').length === 2 &&
                    $('.g-checked-actions-button:disabled').length === 1;
         }, 'just two folders to be visible and no picked items');
         runs(function () {
-            $('a.g-folder-list-link:first').click();
+            $('a.g-folder-list-link').first().click();
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -600,7 +600,7 @@ describe('Create a data hierarchy', function () {
             return $('.g-list-checkbox').length === 1;
         }, 'User folders to be shown');
         runs(function () {
-            $('a.g-folder-list-link:first').click();
+            $('a.g-folder-list-link').first().click();
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -608,7 +608,7 @@ describe('Create a data hierarchy', function () {
         }, 'Public folder to be shown');
         /* Select one item and make sure we can't copy or move */
         runs(function () {
-            $('.g-list-checkbox:last').click();
+            $('.g-list-checkbox').last().click();
         });
         waitsFor(function () {
             return $('.g-list-checkbox:checked').length === 1 &&
@@ -647,7 +647,7 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             $('.g-select-all').click();
             $('.g-select-all').click();
-            $('.g-list-checkbox:first').click();
+            $('.g-list-checkbox').first().click();
         });
         waitsFor(function () {
             return $('.g-list-checkbox:checked').length === 1 &&
@@ -683,7 +683,7 @@ describe('Create a data hierarchy', function () {
         }, 'checked actions menu to hide');
         girderTest.goToUsersPage()();
         runs(function () {
-            $('.g-user-link:first').click();
+            $('.g-user-link').first().click();
         });
         waitsFor(function () {
             return $('.g-list-checkbox').length === 2;
@@ -708,7 +708,7 @@ describe('Create a data hierarchy', function () {
             /* Skip a bunch of UI actions to more quickly get back to have one
              * item selected. */
             girder.views.widgets.HierarchyWidget.resetPickedResources(oldPicked);
-            $('a.g-folder-list-link:first').click();
+            $('a.g-folder-list-link').first().click();
         });
         girderTest.waitForLoad();
         waitsFor(function () {

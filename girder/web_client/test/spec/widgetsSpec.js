@@ -47,10 +47,10 @@ describe('Test widgets that are not covered elsewhere', function () {
             _setProgress('error', 0, null, null);
         });
         waitsFor(function () {
-            return $('.g-task-progress-title:last').text() === 'Progress Test';
+            return $('.g-task-progress-title').last().text() === 'Progress Test';
         }, 'progress to be shown');
         waitsFor(function () {
-            return $('.g-task-progress-message:last').text() === 'Error: Progress error test.';
+            return $('.g-task-progress-message').last().text() === 'Error: Progress error test.';
         }, 'progress to report an error');
 
         var onErrorEvent;
@@ -95,7 +95,8 @@ describe('Test widgets that are not covered elsewhere', function () {
 
         waitsFor(function () {
             /* Make sure the progress notification links to that resource */
-            return $('.g-task-progress-title:last a').attr('href') === '#folder/some_folder_id';
+            return $('.g-task-progress-title').last().find('a').attr('href') ===
+              '#folder/some_folder_id';
         }, 'progress for a folder to be shown');
 
         runs(function () {
@@ -104,7 +105,7 @@ describe('Test widgets that are not covered elsewhere', function () {
             _setProgress('success', 100, null, null);
         });
         waitsFor(function () {
-            return $('.g-task-progress-message:last').text() === 'Progress Message';
+            return $('.g-task-progress-message').last().text() === 'Progress Message';
         }, 'progress to be shown');
         runs(function () {
             expect($('.g-progress-widget-container').length > 0);
@@ -112,8 +113,8 @@ describe('Test widgets that are not covered elsewhere', function () {
         waitsFor(function () {
             /* Wait until at least 4% has progressed, as it makes our
              * subsequent test not require an explicit wait */
-            return parseFloat($('.progress-status .progress-percent:last').text()) >= 4 &&
-              /left$/.test($('.progress-status .progress-left:last').text());
+            return parseFloat($('.progress-status .progress-percent').last().text()) >= 4 &&
+              /left$/.test($('.progress-status .progress-left').last().text());
         }, 'progress to show estimated time');
 
         /* There is a 5 second timeout for fading out the success message.  We

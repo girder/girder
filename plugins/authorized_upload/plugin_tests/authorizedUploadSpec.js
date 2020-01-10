@@ -8,7 +8,7 @@ describe('Create an authorized upload.', function () {
 
     it('go to the authorize upload page', function () {
         runs(function () {
-            $('.g-user-text>a:first').click();
+            $('.g-user-text>a').first().click();
         });
         girderTest.waitForLoad();
         runs(function () {
@@ -23,7 +23,7 @@ describe('Create an authorized upload.', function () {
         }, 'my folders list to display');
 
         runs(function () {
-            $('a.g-folder-list-link:first').click();
+            $('a.g-folder-list-link').first().click();
         });
         girderTest.waitForLoad();
 

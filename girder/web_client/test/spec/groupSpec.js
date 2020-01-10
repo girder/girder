@@ -276,7 +276,7 @@ describe('Test group actions', function () {
         runs(function () {
             expect($('.g-group-list-entry').text().match('pubGroup').length === 1);
             expect($('.g-group-list-entry').text().match('public group').length === 1);
-            $('.g-group-link:first').click();
+            $('.g-group-link').first().click();
         });
 
         waitsFor(function () {

@@ -9,7 +9,7 @@ describe('Test the thumbnail creation UI.', function () {
     it('uploads the thumbnail', function () {
         runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(0);
-            $('.g-user-text>a:first').click();
+            $('.g-user-text>a').first().click();
         });
         girderTest.waitForLoad();
 
@@ -24,7 +24,7 @@ describe('Test the thumbnail creation UI.', function () {
         });
 
         runs(function () {
-            $('a.g-folder-list-link:last').click();
+            $('a.g-folder-list-link').last().click();
         });
         girderTest.waitForLoad();
 
@@ -36,7 +36,7 @@ describe('Test the thumbnail creation UI.', function () {
         girderTest.binaryUpload('girder/web_client/src/assets/Girder_Mark.png');
 
         runs(function () {
-            $('.g-item-list-link:first').click();
+            $('.g-item-list-link').first().click();
         });
 
         waitsFor(function () {

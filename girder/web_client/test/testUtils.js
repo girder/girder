@@ -321,11 +321,11 @@ girderTest.testMetadata = function () {
 
         if (type === 'tree') {
             if (!_.isObject(value)) {
-                $('.jsoneditor button.jsoneditor-contextmenu:first', elem).click();
-                $('.jsoneditor-contextmenu .jsoneditor-type-object:first').click();
+                $('.jsoneditor button.jsoneditor-contextmenu', elem).first().click();
+                $('.jsoneditor-contextmenu .jsoneditor-type-object').first().click();
 
-                $('.jsoneditor button.jsoneditor-contextmenu:first', elem).click();
-                $('.jsoneditor-contextmenu .jsoneditor-type-auto:first').click();
+                $('.jsoneditor button.jsoneditor-contextmenu', elem).first().click();
+                $('.jsoneditor-contextmenu .jsoneditor-type-auto').first().click();
 
                 $('.jsoneditor table.jsoneditor-values div.jsoneditor-value.jsoneditor-empty', elem).text(value);
 

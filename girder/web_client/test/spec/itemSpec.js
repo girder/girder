@@ -297,7 +297,7 @@ describe('Test item creation, editing, and deletion', function () {
         var fileListLength;
         runs(function () {
             fileListLength = $('.g-file-list-entry').length;
-            $('.g-file-actions-container:first .g-delete-file').click();
+            $('.g-file-actions-container').first().find('.g-delete-file').click();
         });
 
         waitsFor(function () {

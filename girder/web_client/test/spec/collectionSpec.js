@@ -144,7 +144,7 @@ describe('Test collection actions', function () {
         // save fragment of Private folder
         runs(function () {
             expect($('.g-collection-actions-button:visible').length).toBe(1);
-            $('.g-folder-list-link:first').click();
+            $('.g-folder-list-link').first().click();
         });
 
         waitsFor(function () {
@@ -184,7 +184,7 @@ describe('Test collection actions', function () {
         }, 'collection list to appear');
 
         runs(function () {
-            $('.g-collection-link:last').click();
+            $('.g-collection-link').last().click();
         });
 
         waitsFor(function () {
@@ -307,7 +307,7 @@ describe('Test collection actions', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            $('.g-collection-link:first').click();
+            $('.g-collection-link').first().click();
         });
 
         waitsFor(function () {

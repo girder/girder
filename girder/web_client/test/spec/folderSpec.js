@@ -312,12 +312,12 @@ describe('Test folder creation, editing, and deletion', function () {
 
         waitsFor(function () {
             return $('.g-item-name:contains(Test Item Name)').length &&
-                   $('a.g-item-breadcrumb-link:last').length > 0;
+                   $('a.g-item-breadcrumb-link').last().length > 0;
         }, 'the item page to load');
         girderTest.waitForLoad();
 
         runs(function () {
-            $('a.g-item-breadcrumb-link:last').click();
+            $('a.g-item-breadcrumb-link').last().click();
         });
 
         waitsFor(function () {
