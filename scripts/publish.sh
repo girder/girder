@@ -8,13 +8,13 @@ PUBLISHED_PYTHON_PACKAGES=(
   pytest_girder
   clients/python
 )
-for d in "${PUBLISHED_PYTHON_PACKAGES[@]}"; do
-    pushd $d
+for directory in "${PUBLISHED_PYTHON_PACKAGES[@]}"; do
+    pushd "$directory"
     rm -fr dist
     python setup.py sdist
     popd
+    twine upload --skip-existing "$directory/dist/*"
 done
-twine upload --skip-existing dist/* plugins/*/dist/* clients/python/dist/* pytest_girder/dist/*
 
 # Publish npm packages for selected locations
 GIT_VERSION=$(git describe --tags)
@@ -31,10 +31,12 @@ PUBLISHED_NPM_PACKAGES=(
   plugins/oauth/girder_oauth/web_client
   plugins/gravatar/girder_gravatar/web_client
 )
-for d in "${PUBLISHED_NPM_PACKAGES[@]}"; do
-  pushd $d
+for directory in "${PUBLISHED_NPM_PACKAGES[@]}"; do
+  pushd "$directory"
   npm version --allow-same-version --no-git-tag-version "$GIT_VERSION"
-  npm publish
+  # NPM_AUTH_TOKEN must be set by the build environment
+  # CircleCI does not consider environment variables in npm's "npm_config_" format to be valid
+  # https://npm.community/t/cannot-set-npm-config-keys-containing-underscores-registry-auth-tokens-for-example-via-npm-config-environment-variables/233/9
+  env "npm_config_//registry.npmjs.org/:_authtoken=${NPM_AUTH_TOKEN}" npm publish
   popd
 done
-
