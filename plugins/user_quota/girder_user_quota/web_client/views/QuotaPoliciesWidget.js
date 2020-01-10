@@ -155,14 +155,14 @@ var QuotaPoliciesWidget = View.extend({
             capacityString: ' ' + this.capacityString(),
             defaultQuotaString: defaultQuotaString
         })).girderModal(this).on('shown.bs.modal', () => {
-            this.$('#g-fileSizeQuota').focus();
+            this.$('#g-fileSizeQuota').trigger('focus');
             this.capacityChart(this, '.g-quota-capacity-chart');
         }).on('hidden.bs.modal', () => {
             handleClose('quota');
             this.trigger('g:hidden');
         });
         modal.trigger($.Event('ready.girder.modal', { relatedTarget: modal }));
-        this.$('#g-fileSizeQuota').focus();
+        this.$('#g-fileSizeQuota').trigger('focus');
         handleOpen('quota');
         return this;
     },
@@ -177,7 +177,7 @@ var QuotaPoliciesWidget = View.extend({
         }, this).off('g:error').on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-policies').girderEnable(true);
-            this.$('#g-' + err.responseJSON.field).focus();
+            this.$('#g-' + err.responseJSON.field).trigger('focus');
         }, this).updateQuotaPolicy();
     }
 });

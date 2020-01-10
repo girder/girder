@@ -12,7 +12,7 @@ describe('Test collection actions', function () {
 
     it('go to collections page', function () {
         runs(function () {
-            $('a.g-nav-link[g-target="collections"]').click();
+            $('a.g-nav-link[g-target="collections"]').trigger('click');
         });
 
         waitsFor(function () {
@@ -29,7 +29,7 @@ describe('Test collection actions', function () {
 
     it('make sure nFolder is fetch', function () {
         runs(function () {
-            $('.g-collection-info-button').click();
+            $('.g-collection-info-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -47,7 +47,7 @@ describe('Test collection actions', function () {
         });
 
         runs(function () {
-            $('.btn-default').click();
+            $('.btn-default').trigger('click');
         });
 
         waitsFor(function () {
@@ -57,7 +57,7 @@ describe('Test collection actions', function () {
 
     it('go back to collections page', function () {
         runs(function () {
-            $('a.g-nav-link[g-target="collections"]').click();
+            $('a.g-nav-link[g-target="collections"]').trigger('click');
         });
 
         waitsFor(function () {
@@ -74,13 +74,13 @@ describe('Test collection actions', function () {
             expect($('.g-collection-description:visible').length).toBe(0);
 
             // Show description
-            $('.g-show-description').click();
+            $('.g-show-description').trigger('click');
             expect($('.g-collection-subtitle').text()).toBe('Hide description');
             expect($('.g-collection-description:visible').length).toBe(1);
             expect($('.g-collection-description').text().trim()).toBe('coll Desc 0');
 
             // Hide description
-            $('.g-show-description').click();
+            $('.g-show-description').trigger('click');
             expect($('.g-collection-subtitle').text()).toBe('Show description');
             expect($('.g-collection-description:visible').length).toBe(0);
         });
@@ -95,7 +95,7 @@ describe('Test collection actions', function () {
         }, 'collection actions link to appear');
 
         runs(function () {
-            $('.g-collection-actions-button').click();
+            $('.g-collection-actions-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -104,7 +104,7 @@ describe('Test collection actions', function () {
 
         runs(function () {
             privateCollectionFragment = Backbone.history.fragment;
-            $('.g-edit-collection').click();
+            $('.g-edit-collection').trigger('click');
         });
         girderTest.waitForDialog();
 
@@ -114,7 +114,7 @@ describe('Test collection actions', function () {
 
         runs(function () {
             $('#collection-description-write .g-markdown-text').val('New Description');
-            $('.g-save-collection').click();
+            $('.g-save-collection').trigger('click');
         });
 
         waitsFor(function () {
@@ -134,7 +134,7 @@ describe('Test collection actions', function () {
         }, 'collection actions link to appear');
 
         runs(function () {
-            $('.g-collection-actions-button').click();
+            $('.g-collection-actions-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -144,7 +144,7 @@ describe('Test collection actions', function () {
         // save fragment of Private folder
         runs(function () {
             expect($('.g-collection-actions-button:visible').length).toBe(1);
-            $('.g-folder-list-link').first().click();
+            $('.g-folder-list-link').first().trigger('click');
         });
 
         waitsFor(function () {
@@ -172,7 +172,7 @@ describe('Test collection actions', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
 
         runs(function () {
-            $('a.g-nav-link[g-target="collections"]').click();
+            $('a.g-nav-link[g-target="collections"]').trigger('click');
         });
 
         waitsFor(function () {
@@ -184,7 +184,7 @@ describe('Test collection actions', function () {
         }, 'collection list to appear');
 
         runs(function () {
-            $('.g-collection-link').last().click();
+            $('.g-collection-link').last().trigger('click');
         });
 
         waitsFor(function () {
@@ -192,7 +192,7 @@ describe('Test collection actions', function () {
         }, 'collection actions link to appear');
 
         runs(function () {
-            $('.g-collection-actions-button').click();
+            $('.g-collection-actions-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -200,7 +200,7 @@ describe('Test collection actions', function () {
         }, 'access control menu item to appear');
 
         runs(function () {
-            $('.g-collection-access-control').click();
+            $('.g-collection-access-control').trigger('click');
         });
         girderTest.waitForDialog();
 
@@ -210,7 +210,7 @@ describe('Test collection actions', function () {
         }, 'dialog and public access radio button to appear');
 
         runs(function () {
-            $('#g-access-public').click();
+            $('#g-access-public').trigger('click');
         });
 
         waitsFor(function () {
@@ -219,7 +219,7 @@ describe('Test collection actions', function () {
         }, 'access save button to appear');
 
         runs(function () {
-            $('.g-save-access-list').click();
+            $('.g-save-access-list').trigger('click');
         });
 
         girderTest.waitForLoad();
@@ -250,7 +250,7 @@ describe('Test collection actions', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
 
         runs(function () {
-            $('a.g-nav-link[g-target="collections"]').click();
+            $('a.g-nav-link[g-target="collections"]').trigger('click');
         });
 
         waitsFor(function () {
@@ -272,7 +272,7 @@ describe('Test collection actions', function () {
 
     it('check if public collection is viewable (and ensure private is not)', function () {
         runs(function () {
-            $('a.g-nav-link[g-target="collections"]').click();
+            $('a.g-nav-link[g-target="collections"]').trigger('click');
         });
 
         waitsFor(function () {
@@ -293,7 +293,7 @@ describe('Test collection actions', function () {
 
     it('delete the collection', function () {
         runs(function () {
-            $('a.g-nav-link[g-target="collections"]').click();
+            $('a.g-nav-link[g-target="collections"]').trigger('click');
         });
 
         waitsFor(function () {
@@ -307,7 +307,7 @@ describe('Test collection actions', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            $('.g-collection-link').first().click();
+            $('.g-collection-link').first().trigger('click');
         });
 
         waitsFor(function () {
@@ -321,7 +321,7 @@ describe('Test collection actions', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            $('.g-collection-actions-button').click();
+            $('.g-collection-actions-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -329,7 +329,7 @@ describe('Test collection actions', function () {
         }, 'delete button to appear');
 
         runs(function () {
-            $('.g-delete-collection').click();
+            $('.g-delete-collection').trigger('click');
         });
 
         waitsFor(function () {
@@ -344,7 +344,7 @@ describe('Test collection actions', function () {
         }, 'enter the wrong message of delete confirmation');
 
         runs(function () {
-            $('#g-confirm-button').click();
+            $('#g-confirm-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -357,7 +357,7 @@ describe('Test collection actions', function () {
         }, 'forget to enter the message of delete confirmation');
 
         runs(function () {
-            $('#g-confirm-button').click();
+            $('#g-confirm-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -370,7 +370,7 @@ describe('Test collection actions', function () {
         }, 'enter the right message of delete confirmation');
 
         runs(function () {
-            $('#g-confirm-button').click();
+            $('#g-confirm-button').trigger('click');
         });
 
         waitsFor(function () {

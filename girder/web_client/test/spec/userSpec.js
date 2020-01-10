@@ -18,7 +18,7 @@ describe('Create an admin and non-admin user', function () {
 
         runs(function () {
             expect($('.g-user-create-button').length).toBe(1);
-            $('.g-user-create-button').click();
+            $('.g-user-create-button').trigger('click');
         });
         girderTest.waitForDialog();
 
@@ -29,7 +29,7 @@ describe('Create an admin and non-admin user', function () {
             $('#g-lastName').val('2');
             $('#g-password,#g-password2').val('password');
 
-            $('#g-register-button').click();
+            $('#g-register-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -59,7 +59,7 @@ describe('Create an admin and non-admin user', function () {
         });
 
         runs(function () {
-            $('a.g-user-link:contains("Admin Admin")').click();
+            $('a.g-user-link:contains("Admin Admin")').trigger('click');
         });
 
         waitsFor(function () {
@@ -110,14 +110,14 @@ describe('Create an admin and non-admin user', function () {
         });
         runs(function () {
             $('#g-firstName').val('');
-            $('button').has('.icon-edit').click();
+            $('button').has('.icon-edit').trigger('click');
         });
         waitsFor(function () {
             return $('#g-user-info-error-msg').text() === 'First name must not be empty.';
         }, 'Name error to occur');
         runs(function () {
             $('#g-firstName').val('Admin');
-            $('button').has('.icon-edit').click();
+            $('button').has('.icon-edit').trigger('click');
         });
         waitsFor(function () {
             return $('#g-user-info-error-msg').text() === '';
@@ -140,7 +140,7 @@ describe('Create an admin and non-admin user', function () {
             expect($('#g-password-old').length).toBe(0);
 
             $('#g-password-new,#g-password-retype').val('a new password');
-            $('#g-password-change-form button[type="submit"]').click();
+            $('#g-password-change-form button[type="submit"]').trigger('click');
         });
 
         waitsFor(function () {
@@ -152,14 +152,14 @@ describe('Create an admin and non-admin user', function () {
     it('test reset password', function () {
         girderTest.logout()();
         runs(function () {
-            $('.g-login').click();
+            $('.g-login').trigger('click');
         });
         girderTest.waitForDialog();
         waitsFor(function () {
             return $('input#g-login').length > 0;
         }, 'login dialog to appear');
         runs(function () {
-            $('.g-forgot-password').click();
+            $('.g-forgot-password').trigger('click');
         });
         waitsFor(function () {
             return $('.g-password-reset-explanation').length > 0;
@@ -167,7 +167,7 @@ describe('Create an admin and non-admin user', function () {
         girderTest.waitForDialog();
         runs(function () {
             $('#g-email').val('invalid@email.com');
-            $('#g-reset-password-button').click();
+            $('#g-reset-password-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-validation-failed-message').text().indexOf(
@@ -175,7 +175,7 @@ describe('Create an admin and non-admin user', function () {
         }, 'error message to appear');
         runs(function () {
             $('#g-email').val('nonadmin@email.com');
-            $('#g-reset-password-button').click();
+            $('#g-reset-password-button').trigger('click');
         });
         girderTest.waitForLoad();
         runs(function () {
@@ -204,7 +204,7 @@ describe('Create an admin and non-admin user', function () {
         runs(function () {
             $('#g-password-new').val('newpassword');
             $('#g-password-retype').val('newpassword2');
-            $('button').has('.icon-lock').click();
+            $('button').has('.icon-lock').trigger('click');
         });
         waitsFor(function () {
             return $('#g-password-change-error-msg').text() === 'Passwords do not match, try again.';
@@ -212,7 +212,7 @@ describe('Create an admin and non-admin user', function () {
         runs(function () {
             $('#g-password-new').val('new');
             $('#g-password-retype').val('new');
-            $('button').has('.icon-lock').click();
+            $('button').has('.icon-lock').trigger('click');
         });
         waitsFor(function () {
             return $('#g-password-change-error-msg').text() === 'Password must be at least 6 characters.';
@@ -220,7 +220,7 @@ describe('Create an admin and non-admin user', function () {
         runs(function () {
             $('#g-password-new').val('newpassword');
             $('#g-password-retype').val('newpassword');
-            $('button').has('.icon-lock').click();
+            $('button').has('.icon-lock').trigger('click');
         });
         waitsFor(function () {
             return $('#g-password-new').val() === '';
@@ -235,7 +235,7 @@ describe('Create an admin and non-admin user', function () {
 describe('test the API key management tab', function () {
     it('go to the API keys tab', function () {
         runs(function () {
-            $('.g-account-tabs li>a[name="apikeys"]').click();
+            $('.g-account-tabs li>a[name="apikeys"]').trigger('click');
         });
         waitsFor(function () {
             return $('.g-api-keys-empty-message').length > 0;
@@ -244,7 +244,7 @@ describe('test the API key management tab', function () {
 
     it('create a new API key', function () {
         runs(function () {
-            $('button.g-api-key-new').click();
+            $('button.g-api-key-new').trigger('click');
         });
         girderTest.waitForDialog();
 
@@ -257,12 +257,12 @@ describe('test the API key management tab', function () {
             $('#g-api-key-name').val('test key');
 
             // Test radio button and checkbox state
-            $('#g-scope-mode-custom').click();
+            $('#g-scope-mode-custom').trigger('click');
             expect($('#g-scope-mode-full:checked').length).toBe(0);
             expect($('#g-scope-mode-custom:checked').length).toBe(1);
             expect($('.g-custom-scope-checkbox:disabled').length).toBe(0);
 
-            $('.g-save-api-key').click();
+            $('.g-save-api-key').trigger('click');
         });
 
         waitsFor(function () {
@@ -271,8 +271,8 @@ describe('test the API key management tab', function () {
         }, 'API key validation failure to appear');
 
         runs(function () {
-            $('.g-custom-scope-checkbox').first().click();
-            $('.g-save-api-key').click();
+            $('.g-custom-scope-checkbox').first().trigger('click');
+            $('.g-save-api-key').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -290,15 +290,15 @@ describe('test the API key management tab', function () {
 
     it('edit the API key', function () {
         runs(function () {
-            $('button.g-api-key-edit').click();
+            $('button.g-api-key-edit').trigger('click');
         });
         girderTest.waitForDialog();
 
         runs(function () {
             $('#g-api-key-name').val('new name');
             $('#g-api-key-token-duration').val('20');
-            $('#g-scope-mode-full').click();
-            $('.g-save-api-key').click();
+            $('#g-scope-mode-full').trigger('click');
+            $('.g-save-api-key').trigger('click');
         });
 
         girderTest.waitForLoad();
@@ -317,11 +317,11 @@ describe('test the API key management tab', function () {
 
     it('deactivate/reactivate the API key', function () {
         runs(function () {
-            $('.g-api-key-toggle-active').click();
+            $('.g-api-key-toggle-active').trigger('click');
         });
         girderTest.waitForDialog();
         runs(function () {
-            $('#g-confirm-button').click();
+            $('#g-confirm-button').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -335,7 +335,7 @@ describe('test the API key management tab', function () {
             expect(row.find('td[col="lastUse"]').text()).toBe('Never');
             expect(row.find('button.g-api-key-toggle-active.btn-success').length).toBe(1);
 
-            $('.g-api-key-toggle-active').click();
+            $('.g-api-key-toggle-active').trigger('click');
         });
 
         waitsFor(function () {
@@ -345,11 +345,11 @@ describe('test the API key management tab', function () {
 
     it('delete the API key', function () {
         runs(function () {
-            $('.g-api-key-delete').click();
+            $('.g-api-key-delete').trigger('click');
         });
         girderTest.waitForDialog();
         runs(function () {
-            $('#g-confirm-button').click();
+            $('#g-confirm-button').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -365,7 +365,7 @@ describe('test the API key management tab', function () {
 describe('test the API key management tab', function () {
     it('go to the two-factor authentication tab', function () {
         runs(function () {
-            $('.g-account-tabs li>a[name="otp"]').click();
+            $('.g-account-tabs li>a[name="otp"]').trigger('click');
         });
         waitsFor(function () {
             return $('.g-account-otp-info-text').length > 0;
@@ -374,7 +374,7 @@ describe('test the API key management tab', function () {
 
     it('begin activation of 2FA', function () {
         runs(function () {
-            $('#g-user-otp-initialize-enable').click();
+            $('#g-user-otp-initialize-enable').trigger('click');
         });
         waitsFor(function () {
             return $('.g-account-otp-enter-manual').length > 0;
@@ -390,14 +390,14 @@ describe('test email verification', function () {
         girderTest.logout()();
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
         runs(function () {
-            $('a.g-nav-link[g-target="admin"]').click();
+            $('a.g-nav-link[g-target="admin"]').trigger('click');
         });
         waitsFor(function () {
             return $('.g-server-config').length > 0;
         }, 'admin page to load');
         girderTest.waitForLoad();
         runs(function () {
-            $('.g-server-config').click();
+            $('.g-server-config').trigger('click');
         });
         waitsFor(function () {
             return $('input#g-core-cookie-lifetime').length > 0;
@@ -405,7 +405,7 @@ describe('test email verification', function () {
         girderTest.waitForLoad();
         runs(function () {
             $('#g-core-email-verification').val('required');
-            $('.g-submit-settings').click();
+            $('.g-submit-settings').trigger('click');
         });
         waitsFor(function () {
             return girder.rest.numberOutstandingRestRequests() === 0;
@@ -424,7 +424,7 @@ describe('test email verification', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            $('.g-login').click();
+            $('.g-login').trigger('click');
         });
 
         girderTest.waitForDialog();
@@ -435,7 +435,7 @@ describe('test email verification', function () {
         runs(function () {
             $('#g-login').val('user2');
             $('#g-password').val('password');
-            $('#g-login-button').click();
+            $('#g-login-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -443,7 +443,7 @@ describe('test email verification', function () {
         }, 'email verification message to appear');
 
         runs(function () {
-            $('a[data-dismiss="modal"]').click();
+            $('a[data-dismiss="modal"]').trigger('click');
         });
     });
 });
@@ -452,14 +452,14 @@ describe('test account approval', function () {
     it('Turn on approval policy', function () {
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
         runs(function () {
-            $('a.g-nav-link[g-target="admin"]').click();
+            $('a.g-nav-link[g-target="admin"]').trigger('click');
         });
         waitsFor(function () {
             return $('.g-server-config').length > 0;
         }, 'admin page to load');
         girderTest.waitForLoad();
         runs(function () {
-            $('.g-server-config').click();
+            $('.g-server-config').trigger('click');
         });
         waitsFor(function () {
             return $('input#g-core-cookie-lifetime').length > 0;
@@ -468,7 +468,7 @@ describe('test account approval', function () {
         runs(function () {
             $('#g-core-registration-policy').val('approve');
             $('#g-core-email-verification').val('disabled');
-            $('.g-submit-settings').click();
+            $('.g-submit-settings').trigger('click');
         });
         waitsFor(function () {
             return girder.rest.numberOutstandingRestRequests() === 0;
@@ -481,7 +481,7 @@ describe('test account approval', function () {
             return $('.g-disable-user').length > 0;
         }, 'user page to load');
         runs(function () {
-            $('.g-disable-user').click();
+            $('.g-disable-user').trigger('click');
         });
         waitsFor(function () {
             return girder.rest.numberOutstandingRestRequests() === 0;
@@ -500,7 +500,7 @@ describe('test account approval', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            $('.g-login').click();
+            $('.g-login').trigger('click');
         });
 
         girderTest.waitForDialog();
@@ -511,7 +511,7 @@ describe('test account approval', function () {
         runs(function () {
             $('#g-login').val('nonadmin');
             $('#g-password').val('newpassword');
-            $('#g-login-button').click();
+            $('#g-login-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -519,7 +519,7 @@ describe('test account approval', function () {
         }, 'approval message to appear');
 
         runs(function () {
-            $('a[data-dismiss="modal"]').click();
+            $('a[data-dismiss="modal"]').trigger('click');
         });
     });
 });

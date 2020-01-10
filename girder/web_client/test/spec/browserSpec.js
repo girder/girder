@@ -412,7 +412,7 @@ describe('Test the hierarchy browser modal', function () {
                 return $(view.$el).is(':visible');
             });
             runs(function () {
-                view.$('a:contains(Cancel)').click();
+                view.$('a:contains(Cancel)').trigger('click');
                 expect($(view.$el).is(':visible')).toBe(false);
             });
         });
@@ -454,7 +454,7 @@ describe('Test the hierarchy browser modal', function () {
                 return $(view.$el).is(':visible');
             });
             runs(function () {
-                view.$('.g-submit-button').click();
+                view.$('.g-submit-button').trigger('click');
             });
             waitsFor(function () {
                 return $('.g-validation-failed-message').text();
@@ -512,7 +512,7 @@ describe('Test the hierarchy browser modal', function () {
                 return $(view.$el).is(':visible');
             });
             runs(function () {
-                view.$('.g-submit-button').click();
+                view.$('.g-submit-button').trigger('click');
             });
             waitsFor(function () {
                 return !$(view.$el).is(':visible');
@@ -606,7 +606,7 @@ describe('Test the hierarchy browser modal', function () {
 
                 // test an invalid input
                 view.$('#g-input-element').val('input value');
-                view.$('.g-submit-button').click();
+                view.$('.g-submit-button').trigger('click');
             });
             waitsFor(function () {
                 return $('.g-validation-failed-message').text();
@@ -623,7 +623,7 @@ describe('Test the hierarchy browser modal', function () {
                 });
                 validateReturn = undefined;
                 view.$('#g-input-element').val('input value');
-                view.$('.g-submit-button').click();
+                view.$('.g-submit-button').trigger('click');
             });
 
             waitsFor(function () {

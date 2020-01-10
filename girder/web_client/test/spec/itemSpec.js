@@ -10,7 +10,7 @@ function _editItem(button, buttonText) {
     }, 'the item actions button to appear');
 
     runs(function () {
-        $('.g-item-actions-button').click();
+        $('.g-item-actions-button').trigger('click');
     });
 
     waitsFor(function () {
@@ -18,7 +18,7 @@ function _editItem(button, buttonText) {
     }, 'the item edit action to appear');
 
     runs(function () {
-        $('.g-edit-item').click();
+        $('.g-edit-item').trigger('click');
     });
 
     waitsFor(function () {
@@ -35,7 +35,7 @@ function _editItem(button, buttonText) {
     }, 'the button to appear');
 
     runs(function () {
-        $(button).click();
+        $(button).trigger('click');
     });
     girderTest.waitForLoad();
 }
@@ -52,7 +52,7 @@ function _addItemToFolder(folder) {
     }, 'the ' + folder + ' folder to be clickable');
 
     runs(function () {
-        $('a.g-folder-list-link:contains(' + folder + ')').click();
+        $('a.g-folder-list-link:contains(' + folder + ')').trigger('click');
     });
 
     waitsFor(function () {
@@ -61,7 +61,7 @@ function _addItemToFolder(folder) {
     }, 'message that the folder is empty');
 
     runs(function () {
-        $('.g-folder-actions-button:visible').click();
+        $('.g-folder-actions-button:visible').trigger('click');
     });
 
     waitsFor(function () {
@@ -69,7 +69,7 @@ function _addItemToFolder(folder) {
     }, 'create item option is clickable');
 
     runs(function () {
-        $('.g-create-item:visible').click();
+        $('.g-create-item:visible').trigger('click');
     });
 
     waitsFor(function () {
@@ -84,7 +84,7 @@ function _addItemToFolder(folder) {
     runs(function () {
         $('#g-name').val('Test Item Name');
         $('#item-description-write .g-markdown-text').val('Test Item Description');
-        $('.g-save-item').click();
+        $('.g-save-item').trigger('click');
     });
 
     waitsFor(function () {
@@ -94,7 +94,7 @@ function _addItemToFolder(folder) {
 
     runs(function () {
         expect($('li.g-item-list-entry').attr('public')).toBe(isPublic);
-        $('a.g-item-list-link:contains(Test Item Name)').click();
+        $('a.g-item-list-link:contains(Test Item Name)').trigger('click');
     });
 
     waitsFor(function () {
@@ -142,7 +142,7 @@ describe('Test item creation, editing, and deletion', function () {
         });
 
         runs(function () {
-            $('a.g-user-link:contains("Not Admin")').click();
+            $('a.g-user-link:contains("Not Admin")').trigger('click');
         });
 
         waitsFor(function () {
@@ -163,7 +163,7 @@ describe('Test item creation, editing, and deletion', function () {
 
     it('view the users on the user page and click on one', function () {
         runs(function () {
-            $('a.g-user-link:contains("Not Admin")').click();
+            $('a.g-user-link:contains("Not Admin")').trigger('click');
         });
 
         waitsFor(function () {
@@ -211,7 +211,7 @@ describe('Test item creation, editing, and deletion', function () {
         }, 'the upload files to item action to appear');
 
         runs(function () {
-            $('.g-upload-into-item').click();
+            $('.g-upload-into-item').trigger('click');
         });
         girderTest.waitForDialog();
 
@@ -227,7 +227,7 @@ describe('Test item creation, editing, and deletion', function () {
 
         runs(function () {
             $('#g-files').parent().addClass('hide');
-            $('.g-start-upload').click();
+            $('.g-start-upload').trigger('click');
         });
 
         waitsFor(function () {
@@ -243,7 +243,7 @@ describe('Test item creation, editing, and deletion', function () {
             return $('.g-file-list-entry .g-update-info').length === 2;
         }, 'the files to be listed');
         runs(function () {
-            $('.g-file-list-entry .g-update-info').eq(0).click();
+            $('.g-file-list-entry .g-update-info').eq(0).trigger('click');
         });
         waitsFor(function () {
             return window.location.hash.split('?dialog=fileedit&').length === 2;
@@ -260,21 +260,21 @@ describe('Test item creation, editing, and deletion', function () {
         }, 'the cancel button to appear');
         runs(function () {
             $('#g-name').val('');
-            $('button.g-save-file').click();
+            $('button.g-save-file').trigger('click');
         });
         waitsFor(function () {
             return $('.modal-dialog .g-validation-failed-message').text() === 'File name must not be empty.';
         }, 'error message to appear');
         runs(function () {
             fileId1 = window.location.hash.split('dialogid=')[1];
-            $('a.btn-default').click();
+            $('a.btn-default').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
             return $('.g-file-list-entry .g-update-info').length === 2;
         }, 'the files to be listed');
         runs(function () {
-            $('.g-file-list-entry .g-update-info').eq(1).click();
+            $('.g-file-list-entry .g-update-info').eq(1).trigger('click');
         });
         waitsFor(function () {
             return window.location.hash.split('?dialog=fileedit&').length === 2;
@@ -289,7 +289,7 @@ describe('Test item creation, editing, and deletion', function () {
         runs(function () {
             expect(window.location.hash.split('dialogid=')[1] === fileId1)
                 .toBe(false);
-            $('button.g-save-file').click();
+            $('button.g-save-file').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -297,7 +297,7 @@ describe('Test item creation, editing, and deletion', function () {
         var fileListLength;
         runs(function () {
             fileListLength = $('.g-file-list-entry').length;
-            $('.g-file-actions-container').first().find('.g-delete-file').click();
+            $('.g-file-actions-container').first().find('.g-delete-file').trigger('click');
         });
 
         waitsFor(function () {
@@ -306,7 +306,7 @@ describe('Test item creation, editing, and deletion', function () {
         girderTest.waitForDialog();
 
         runs(function () {
-            $('#g-confirm-button').click();
+            $('#g-confirm-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -321,7 +321,7 @@ describe('Test item creation, editing, and deletion', function () {
         }, 'the item actions button to appear');
 
         runs(function () {
-            $('.g-item-actions-button').click();
+            $('.g-item-actions-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -329,7 +329,7 @@ describe('Test item creation, editing, and deletion', function () {
         }, 'the item delete action to appear');
 
         runs(function () {
-            $('.g-delete-item').click();
+            $('.g-delete-item').trigger('click');
         });
 
         girderTest.waitForDialog();
@@ -339,7 +339,7 @@ describe('Test item creation, editing, and deletion', function () {
         }, 'delete confirmation to appear');
 
         runs(function () {
-            $('#g-confirm-button').click();
+            $('#g-confirm-button').trigger('click');
         });
 
         waitsFor(function () {

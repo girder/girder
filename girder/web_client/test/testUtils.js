@@ -25,7 +25,7 @@ girderTest.createUser = function (login, email, firstName, lastName, password, u
         }, 'Girder app to render');
 
         runs(function () {
-            $('.g-register').click();
+            $('.g-register').trigger('click');
         });
 
         girderTest.waitForDialog();
@@ -39,7 +39,7 @@ girderTest.createUser = function (login, email, firstName, lastName, password, u
             $('#g-firstName').val(firstName);
             $('#g-lastName').val(lastName);
             $('#g-password,#g-password2').val(password);
-            $('#g-register-button').click();
+            $('#g-register-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -72,7 +72,7 @@ girderTest.login = function (login, firstName, lastName, password) {
         girderTest.waitForLoad();
 
         runs(function () {
-            $('.g-login').click();
+            $('.g-login').trigger('click');
         });
 
         girderTest.waitForDialog();
@@ -83,7 +83,7 @@ girderTest.login = function (login, firstName, lastName, password) {
         runs(function () {
             $('#g-login').val(login);
             $('#g-password').val(password);
-            $('#g-login-button').click();
+            $('#g-login-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -110,7 +110,7 @@ girderTest.logout = function (desc) {
         }, 'logout link to render');
 
         runs(function () {
-            $('.g-logout').click();
+            $('.g-logout').trigger('click');
         });
 
         waitsFor(function () {
@@ -135,7 +135,7 @@ girderTest.goToCurrentUserSettings = function () {
         }, 'my account link to render');
 
         runs(function () {
-            $('.g-my-settings').click();
+            $('.g-my-settings').trigger('click');
         });
 
         waitsFor(function () {
@@ -163,7 +163,7 @@ girderTest.createCollection = function (collName, collDesc, createFolderName) {
         girderTest.waitForLoad();
 
         runs(function () {
-            $('.g-collection-create-button').click();
+            $('.g-collection-create-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -180,7 +180,7 @@ girderTest.createCollection = function (collName, collDesc, createFolderName) {
         runs(function () {
             $('#g-name').val(collName);
             $('#collection-description-write .g-markdown-text').val(collDesc);
-            $('.g-save-collection').click();
+            $('.g-save-collection').trigger('click');
         });
         waitsFor(function () {
             return $('.g-collection-name').text() === collName &&
@@ -194,7 +194,7 @@ girderTest.createCollection = function (collName, collDesc, createFolderName) {
             }, 'hierarchy widget to load');
 
             runs(function () {
-                return $('.g-create-subfolder').click();
+                return $('.g-create-subfolder').trigger('click');
             });
             girderTest.waitForDialog();
             waitsFor(function () {
@@ -203,7 +203,7 @@ girderTest.createCollection = function (collName, collDesc, createFolderName) {
 
             runs(function () {
                 $('#g-name').val(createFolderName);
-                $('.g-save-folder').click();
+                $('.g-save-folder').trigger('click');
             });
             girderTest.waitForLoad();
             waitsFor(function () {
@@ -223,7 +223,7 @@ girderTest.goToGroupsPage = function () {
         }, 'groups nav link to appear');
 
         runs(function () {
-            $('a.g-nav-link[g-target="groups"]').click();
+            $('a.g-nav-link[g-target="groups"]').trigger('click');
         });
 
         waitsFor(function () {
@@ -243,7 +243,7 @@ girderTest.goToUsersPage = function () {
         }, 'users nav link to appear');
 
         runs(function () {
-            $('a.g-nav-link[g-target="users"]').click();
+            $('a.g-nav-link[g-target="users"]').trigger('click');
         });
 
         waitsFor(function () {
@@ -264,7 +264,7 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
         }, 'create group button to appear');
 
         runs(function () {
-            $('.g-group-create-button').click();
+            $('.g-group-create-button').trigger('click');
         });
 
         girderTest.waitForDialog();
@@ -278,7 +278,7 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
 
         if (pub) {
             runs(function () {
-                $('#g-access-public').click();
+                $('#g-access-public').trigger('click');
             });
 
             waitsFor(function () {
@@ -290,7 +290,7 @@ girderTest.createGroup = function (groupName, groupDesc, pub) {
         runs(function () {
             $('#g-name').val(groupName);
             $('#g-description').val(groupDesc);
-            $('.g-save-group').click();
+            $('.g-save-group').trigger('click');
         });
 
         waitsFor(function () {
@@ -321,11 +321,11 @@ girderTest.testMetadata = function () {
 
         if (type === 'tree') {
             if (!_.isObject(value)) {
-                $('.jsoneditor button.jsoneditor-contextmenu', elem).first().click();
-                $('.jsoneditor-contextmenu .jsoneditor-type-object').first().click();
+                $('.jsoneditor button.jsoneditor-contextmenu', elem).first().trigger('click');
+                $('.jsoneditor-contextmenu .jsoneditor-type-object').first().trigger('click');
 
-                $('.jsoneditor button.jsoneditor-contextmenu', elem).first().click();
-                $('.jsoneditor-contextmenu .jsoneditor-type-auto').first().click();
+                $('.jsoneditor button.jsoneditor-contextmenu', elem).first().trigger('click');
+                $('.jsoneditor-contextmenu .jsoneditor-type-auto').first().trigger('click');
 
                 $('.jsoneditor table.jsoneditor-values div.jsoneditor-value.jsoneditor-empty', elem).text(value);
 
@@ -336,8 +336,8 @@ girderTest.testMetadata = function () {
 
             for (var arrKey in value) {
                 if (Object.prototype.hasOwnProperty.call(value, arrKey)) {
-                    $('.jsoneditor button.jsoneditor-contextmenu', elem).click();
-                    $('.jsoneditor-contextmenu button.jsoneditor-insert').click();
+                    $('.jsoneditor button.jsoneditor-contextmenu', elem).trigger('click');
+                    $('.jsoneditor-contextmenu button.jsoneditor-insert').trigger('click');
                     $('.jsoneditor table.jsoneditor-values div.jsoneditor-field.jsoneditor-empty', elem).text(arrKey);
                     $('.jsoneditor table.jsoneditor-values div.jsoneditor-value.jsoneditor-empty', elem).text(value[arrKey]);
 
@@ -362,7 +362,7 @@ girderTest.testMetadata = function () {
             beforeValue = elem.attr('g-value');
 
             // Edit the metadata
-            $('.g-widget-metadata-edit-button', elem).click();
+            $('.g-widget-metadata-edit-button', elem).trigger('click');
         });
 
         waitsFor(function () {
@@ -371,10 +371,10 @@ girderTest.testMetadata = function () {
 
         runs(function () {
             // Toggle the action
-            $('.g-widget-metadata-toggle-button', elem).click();
+            $('.g-widget-metadata-toggle-button', elem).trigger('click');
 
             // Cancel or save
-            $('.g-widget-metadata-' + action + '-button').click();
+            $('.g-widget-metadata-' + action + '-button').trigger('click');
         });
 
         if (errorMessage) {
@@ -431,7 +431,7 @@ girderTest.testMetadata = function () {
             }, 'the add metadata button to appear');
             runs(function () {
                 expectedNum = $('.g-widget-metadata-row').length;
-                $('a.g-add-' + type + '-metadata').click();
+                $('a.g-add-' + type + '-metadata').trigger('click');
             });
         } else {
             runs(function () {
@@ -439,7 +439,7 @@ girderTest.testMetadata = function () {
                 expect(elem.length).toBe(1);
                 expect($('.g-widget-metadata-edit-button', elem).length).toBe(1);
                 expectedNum = $('.g-widget-metadata-row').length;
-                $('.g-widget-metadata-edit-button', elem).click();
+                $('.g-widget-metadata-edit-button', elem).trigger('click');
             });
         }
         waitsFor(function () {
@@ -466,7 +466,7 @@ girderTest.testMetadata = function () {
         });
         if (errorMessage) {
             runs(function () {
-                $('.g-widget-metadata-save-button').click();
+                $('.g-widget-metadata-save-button').trigger('click');
             });
             waitsFor(function () {
                 return $('.alert').text().match(errorMessage);
@@ -475,19 +475,19 @@ girderTest.testMetadata = function () {
         switch (action) {
             case 'cancel':
                 runs(function () {
-                    $('.g-widget-metadata-cancel-button').click();
+                    $('.g-widget-metadata-cancel-button').trigger('click');
                 });
                 break;
             case 'delete':
                 runs(function () {
-                    $('.g-widget-metadata-delete-button').click();
+                    $('.g-widget-metadata-delete-button').trigger('click');
                 });
                 girderTest.waitForDialog();
                 waitsFor(function () {
                     return $('#g-confirm-button:visible').length > 0;
                 }, 'delete confirmation to appear');
                 runs(function () {
-                    $('#g-confirm-button').click();
+                    $('#g-confirm-button').trigger('click');
                     expectedNum -= 1;
                 });
                 girderTest.waitForLoad();
@@ -495,7 +495,7 @@ girderTest.testMetadata = function () {
             default:
                 action = 'save';
                 runs(function () {
-                    $('.g-widget-metadata-save-button').click();
+                    $('.g-widget-metadata-save-button').trigger('click');
                     if (origKey === null) {
                         expectedNum += 1;
                     }
@@ -692,7 +692,7 @@ girderTest.folderAccessControl = function (current, action, recurse) {
     }, 'folder access button to be available');
 
     runs(function () {
-        $('.g-folder-access-button').click();
+        $('.g-folder-access-button').trigger('click');
     });
     girderTest.waitForDialog();
 
@@ -703,12 +703,12 @@ girderTest.folderAccessControl = function (current, action, recurse) {
 
     runs(function () {
         expect($('#g-access-' + current + ':checked').length).toBe(1);
-        $('#g-access-' + action).click();
+        $('#g-access-' + action).trigger('click');
 
         if (recurse) {
-            $('#g-apply-recursive').click();
+            $('#g-apply-recursive').trigger('click');
         } else {
-            $('#g-apply-nonrecursive').click();
+            $('#g-apply-nonrecursive').trigger('click');
         }
     });
 
@@ -729,7 +729,7 @@ girderTest.folderAccessControl = function (current, action, recurse) {
     }, 'access save button to appear');
 
     runs(function () {
-        $('.g-save-access-list').click();
+        $('.g-save-access-list').trigger('click');
     });
 
     girderTest.waitForLoad();
@@ -900,7 +900,7 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
 
     runs(function () {
         origLen = $('.g-item-list-entry').length;
-        $('.g-upload-here-button').click();
+        $('.g-upload-here-button').trigger('click');
     });
 
     waitsFor(function () {
@@ -924,7 +924,7 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
 
     runs(function () {
         $('#g-files').parent().addClass('hide');
-        $('.g-start-upload').click();
+        $('.g-start-upload').trigger('click');
     });
 
     if (needResume) {
@@ -940,12 +940,12 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
             girderTest._uploadDataExtra = 0;
 
             if (needResume === 'abort') {
-                $('.btn-default').click();
+                $('.btn-default').trigger('click');
                 origLen -= 1;
             } else if ($('.g-resume-upload:visible').length > 0) {
-                $('.g-resume-upload').click();
+                $('.g-resume-upload').trigger('click');
             } else {
-                $('.g-restart-upload').click();
+                $('.g-restart-upload').trigger('click');
             }
         });
     }
@@ -982,7 +982,7 @@ girderTest.testUploadDrop = function (itemSize, multiple) {
 
     runs(function () {
         origLen = $('.g-item-list-entry').length;
-        $('.g-upload-here-button').click();
+        $('.g-upload-here-button').trigger('click');
     });
 
     waitsFor(function () {
@@ -1007,7 +1007,7 @@ girderTest.testUploadDrop = function (itemSize, multiple) {
 
     runs(function () {
         $('#g-files').parent().addClass('hide');
-        $('.g-start-upload').click();
+        $('.g-start-upload').trigger('click');
     });
 
     waitsFor(function () {
@@ -1105,7 +1105,7 @@ girderTest.confirmDialog = function () {
         return $('#g-confirm-button:visible').length > 0;
     }, 'confirmation to appear');
     runs(function () {
-        $('#g-confirm-button').click();
+        $('#g-confirm-button').trigger('click');
     });
     girderTest.waitForLoad();
 };
@@ -1138,7 +1138,7 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
         }, 'login dialog to appear');
 
         runs(function () {
-            $('.modal-header .close').click();
+            $('.modal-header .close').trigger('click');
         });
 
         girderTest.waitForLoad();
@@ -1265,7 +1265,7 @@ girderTest.startApp = function () {
                 start: false
             });
             /* Add a handler to allow tests to use
-             *   $(<a element with href>).click()
+             *   $(<a element with href>).trigger('click')
              * to test clicking on links. */
             girder.app.events = girder.app.events || {};
             girder.app.events['click a'] = function (evt) {

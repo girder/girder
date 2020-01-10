@@ -35,7 +35,7 @@ var LoginView = View.extend({
                         this.$('#g-login-otp-group').hasClass('hidden')
                     ) {
                         this.$('#g-login-otp-group').removeClass('hidden');
-                        this.$('#g-login-otp').focus();
+                        this.$('#g-login-otp').trigger('focus');
                         return;
                     }
 
@@ -85,13 +85,13 @@ var LoginView = View.extend({
             showOtp: true
         })).girderModal(this)
             .on('shown.bs.modal', () => {
-                this.$('#g-login').focus();
+                this.$('#g-login').trigger('focus');
             }).on('hidden.bs.modal', () => {
                 handleClose('login', { replace: true });
             });
 
         handleOpen('login', { replace: true });
-        this.$('#g-login').focus();
+        this.$('#g-login').trigger('focus');
 
         return this;
     }
