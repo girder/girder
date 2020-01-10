@@ -190,7 +190,7 @@ var AccessWidget = View.extend({
                     content: function () {
                         return $(this).parent().find('.g-flags-popover-container').html();
                     }
-                }).click(function () {
+                }).on('click', function () {
                     $(this).popover('toggle');
                 });
             }
@@ -211,7 +211,7 @@ var AccessWidget = View.extend({
                     content: function () {
                         return $(this).parent().find('.g-public-flags-popover-container').html();
                     }
-                }).click(function () {
+                }).on('click', function () {
                     $(this).popover('toggle');
                 });
             }

@@ -142,21 +142,21 @@ In your JavaScript, perform callbacks such as the following:
     import LoginView from '@girder/core/views/layout/LoginView';
     import RegisterView from '@girder/core/views/layout/RegisterView';
 
-    $('#login').click(function () {
+    $('#login').on('click', function () {
         var loginView = new LoginView({
             el: $('#dialog-container')
         });
         loginView.render();
     });
 
-    $('#register').click(function () {
+    $('#register').on('click', function () {
         var registerView = new RegisterView({
             el: $('#dialog-container')
         });
         registerView.render();
     });
 
-    $('#logout').click(function () {
+    $('#logout').on('click', function () {
         restRequest({
             url: 'user/authentication',
             type: 'DELETE'

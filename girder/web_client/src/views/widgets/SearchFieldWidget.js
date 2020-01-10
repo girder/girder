@@ -175,7 +175,7 @@ var SearchFieldWidget = View.extend({
                     modeHelp: SearchFieldWidget.getModeHelp(this.currentMode)
                 });
             }
-        }).click(function () {
+        }).on('click', function () {
             $(this).popover('toggle');
         });
 
@@ -193,7 +193,7 @@ var SearchFieldWidget = View.extend({
                     getModeDescription: SearchFieldWidget.getModeDescription
                 });
             }
-        }).click(function () {
+        }).on('click', function () {
             $(this).popover('toggle');
         });
 
