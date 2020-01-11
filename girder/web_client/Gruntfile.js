@@ -57,6 +57,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-pug');
     grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-babel');
     grunt.loadNpmTasks('grunt-webpack');
 
     /**

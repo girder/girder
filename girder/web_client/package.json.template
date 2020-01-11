@@ -22,6 +22,7 @@
         "grunt-contrib-pug": "^1.0.0",
         "grunt-contrib-stylus": "^1.2.0",
         "grunt-contrib-uglify": "^3.0.1",
+        "grunt-babel": "^7.0.0",
         "grunt-webpack": "^3.0.2",
         "mkdirp": "^0.5.1",
         "nib": "^1.1.2",
