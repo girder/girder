@@ -522,6 +522,9 @@ jobs:
           name: Publish Python packages
           command: tox -e publish
           working_directory: girder
+      - run:
+          name: Publish Javascript docs
+          command: npm run publish-esdoc
 
   publish_release:
     docker:
@@ -555,9 +558,6 @@ jobs:
       - run:
           name: Activate virtual environment
           command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
-      - run:
-          name: Upload documentation to ESDoc
-          command: curl 'https://doc.esdoc.org/api/create' -X POST --data-urlencode "gitUrl=git@github.com:girder/girder.git"
       - run:
           name: Deploy roles to Ansible Galaxy
           command: .circleci/galaxy_deploy.sh
