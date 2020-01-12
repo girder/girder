@@ -86,7 +86,7 @@ describe('Test routing paths', function () {
         });
         girderTest.testRoute('useraccount/' + ids.admin + '/info', false,
             function () {
-                return $('input#g-email').val() === 'admin@email.com';
+                return $('input#g-email').val() === 'admin@girder.test';
             });
         girderTest.testRoute('useraccount/' + ids.admin + '/password', false,
             function () {

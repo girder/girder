@@ -69,7 +69,7 @@ class PythonClientTestCase(base.TestCase):
             'lastName': 'Last',
             'login': 'mylogin',
             'password': self.password,
-            'email': 'email@email.com'
+            'email': 'email@girder.test'
         })
         self.client.authenticate(self.user['login'], self.password)
         self.publicFolder = self.getPublicFolder(self.user)
@@ -221,9 +221,9 @@ class PythonClientTestCase(base.TestCase):
 
         # Test user creation and retrieval
         u1 = self.client.createUser(
-            'user1', 'user1@example.com', 'John', 'Doe', 'password', True)
+            'user1', 'user1@girder.test', 'John', 'Doe', 'password', True)
         u2 = self.client.createUser(
-            'user2', 'user2@example.com', 'John', 'Doe', 'password')
+            'user2', 'user2@girder.test', 'John', 'Doe', 'password')
         users = list(self.client.listUser())
         self.assertEqual(len(users), 3)
         ids = [u['_id'] for u in users]
@@ -239,7 +239,7 @@ class PythonClientTestCase(base.TestCase):
     def testUploadCallbacks(self):
         callbackUser = User().createUser(
             firstName='Callback', lastName='Last', login='callback',
-            password='password', email='Callback@email.com')
+            password='password', email='Callback@girder.test')
         callbackPublicFolder = six.next(Folder().childFolders(
             parentType='user', parent=callbackUser, user=None, limit=1))
         callbackCounts = {'folder': 0, 'item': 0}
@@ -746,7 +746,7 @@ class PythonClientTestCase(base.TestCase):
     def testUploadWithPath(self):
         testUser = User().createUser(
             firstName='Jeffrey', lastName='Abrams', login='jjabrams',
-            password='password', email='jjabrams@email.com')
+            password='password', email='jjabrams@girder.test')
         publicFolder = six.next(Folder().childFolders(
             parentType='user', parent=testUser, user=None, limit=1))
         self.client.upload(self.libTestDir, '/user/jjabrams/Public')

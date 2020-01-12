@@ -7,7 +7,7 @@
       lastName: "Doe"
       login: "admin"
       password: "letmein"
-      email: "john.doe@test.com"
+      email: "john.doe@girder.test"
       admin: true
     state: present
 
@@ -49,7 +49,7 @@
       value: "{{ setting_item.value }}"
   loop:
     - key: "core.email_from_address"
-      value: "girder@girder.girder"
+      value: "girder@girder.test"
     - key: "core.email_host"
       value: "myemailhost"
   loop_control:
@@ -70,5 +70,5 @@
 - name: Check that proper email settings are set
   assert:
     that:
-      - ret["gc_return"]["core.email_from_address"] == "girder@girder.girder"
+      - ret["gc_return"]["core.email_from_address"] == "girder@girder.test"
       - ret["gc_return"]["core.email_host"] == "myemailhost"

@@ -19,7 +19,7 @@ describe('Test EventStream', function () {
 
             onVisibilityStateChangeSpy = spyOn(girder.utilities.eventStream, '_onVisibilityStateChange');
         }, 'spy on EventStream');
-        runs(girderTest.createUser('johndoe', 'john.doe@email.com', 'John', 'Doe', 'password!'),
+        runs(girderTest.createUser('johndoe', 'john.doe@girder.test', 'John', 'Doe', 'password!'),
             'login with a user');
         waitsFor(function () {
             return onEventStreamStart.wasCalled;

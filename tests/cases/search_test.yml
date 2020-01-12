@@ -1,7 +1,7 @@
 ---
 users:
   - login: 'adminlogin'
-    email: 'admin@email.com'
+    email: 'admin@girder.test'
     firstName: 'Admin'
     lastName: 'Last'
     password: 'adminpassword'
@@ -9,7 +9,7 @@ users:
     defaultFolders: true
 
   - login: 'goodlogin'
-    email: 'good@email.com'
+    email: 'good@girder.test'
     firstName: 'First'
     lastName: 'Last'
     password: 'goodpassword'

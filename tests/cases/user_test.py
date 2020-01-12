@@ -88,7 +88,7 @@ class UserTestCase(base.TestCase):
         self.assertValidationError(resp, 'email')
 
         # Now successfully create the user
-        params['email'] = 'good@email.com'
+        params['email'] = 'good@girder.test'
         resp = self.request(path='/user', method='POST', params=params)
         self.assertStatusOk(resp)
         self._verifyUserDocument(resp.json)
@@ -115,19 +115,19 @@ class UserTestCase(base.TestCase):
 
         # Login with unregistered email
         resp = self.request(path='/user/authentication', method='GET',
-                            basicAuth='incorrect@email.com:badpassword')
+                            basicAuth='incorrect@girder.test:badpassword')
         self.assertStatus(resp, 401)
         self.assertEqual('Login failed.', resp.json['message'])
 
         # Correct email, but wrong password
         resp = self.request(path='/user/authentication', method='GET',
-                            basicAuth='good@email.com:badpassword')
+                            basicAuth='good@girder.test:badpassword')
         self.assertStatus(resp, 401)
         self.assertEqual('Login failed.', resp.json['message'])
 
         # Login successfully with email
         resp = self.request(path='/user/authentication', method='GET',
-                            basicAuth='good@email.com:good:password')
+                            basicAuth='good@girder.test:good:password')
         self.assertStatusOk(resp)
         self.assertHasKeys(resp.json, ['authToken'])
         self.assertHasKeys(
@@ -168,7 +168,7 @@ class UserTestCase(base.TestCase):
         Tests for the GET and PUT user endpoints.
         """
         params = {
-            'email': 'good@email.com',
+            'email': 'good@girder.test',
             'login': 'goodlogin',
             'firstName': 'First',
             'lastName': 'Last',
@@ -176,7 +176,7 @@ class UserTestCase(base.TestCase):
         }
         user = User().createUser(**params)
 
-        params['email'] = 'notasgood@email.com'
+        params['email'] = 'notasgood@girder.test'
         params['login'] = 'notasgoodlogin'
         nonAdminUser = User().createUser(**params)
 
@@ -198,18 +198,18 @@ class UserTestCase(base.TestCase):
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'], 'Invalid email address.')
 
-        params['email'] = 'valid@email.com '
+        params['email'] = 'valid@girder.test '
         resp = self.request(path='/user/%s' % user['_id'], method='PUT',
                             user=user, params=params)
         self.assertStatusOk(resp)
         self._verifyUserDocument(resp.json)
-        self.assertEqual(resp.json['email'], 'valid@email.com')
+        self.assertEqual(resp.json['email'], 'valid@girder.test')
         self.assertEqual(resp.json['firstName'], 'NewFirst')
         self.assertEqual(resp.json['lastName'], 'New Last')
 
         # test admin checkbox
         params = {
-            'email': 'valid@email.com',
+            'email': 'valid@girder.test',
             'firstName': 'NewFirst ',
             'lastName': ' New Last ',
             'admin': 'true'
@@ -224,7 +224,7 @@ class UserTestCase(base.TestCase):
         user = User().load(user['_id'], force=True)
         self.assertEqual(user['admin'], True)
         params = {
-            'email': 'valid@email.com',
+            'email': 'valid@girder.test',
             'firstName': 'NewFirst ',
             'lastName': ' New Last ',
             'admin': 'false'
@@ -247,7 +247,7 @@ class UserTestCase(base.TestCase):
         """
         # Create a couple of users
         users = [User().createUser(
-            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
+            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@girder.test' % num)
             for num in [0, 1]]
 
         # Create a folder and give both users some access on it
@@ -312,7 +312,7 @@ class UserTestCase(base.TestCase):
         # Create some users.
         for x in ('c', 'a', 'b'):
             user = User().createUser(
-                'usr%s' % x, 'passwd', 'tst', '%s_usr' % x, 'u%s@u.com' % x)
+                'usr%s' % x, 'passwd', 'tst', '%s_usr' % x, 'u%s@girder.test' % x)
         resp = self.request(path='/user', method='GET', params={
             'limit': 2,
             'offset': 1
@@ -326,8 +326,8 @@ class UserTestCase(base.TestCase):
         self.assertEqual(resp.json[1]['lastName'], 'c_usr')
 
     def testPasswordChange(self):
-        user = User().createUser('user1', 'passwd', 'tst', 'usr', 'user@user.com')
-        user2 = User().createUser('user2', 'passwd', 'tst', 'usr', 'user2@user.com')
+        user = User().createUser('user1', 'passwd', 'tst', 'usr', 'user@girder.test')
+        user2 = User().createUser('user2', 'passwd', 'tst', 'usr', 'user2@girder.test')
 
         # Must be logged in
         resp = self.request(path='/user/password', method='PUT', params={
@@ -369,7 +369,7 @@ class UserTestCase(base.TestCase):
 
         # Make sure we can login with new password
         resp = self.request(path='/user/authentication', method='GET',
-                            basicAuth='user@user.com:something_else')
+                            basicAuth='user@girder.test:something_else')
         self.assertStatusOk(resp)
         self.assertHasKeys(resp.json, ('authToken',))
         self.assertHasKeys(
@@ -402,13 +402,13 @@ class UserTestCase(base.TestCase):
         self._verifyAuthCookie(resp)
 
     def testAccountApproval(self):
-        admin = User().createUser('admin', 'password', 'Admin', 'Admin', 'admin@example.com')
+        admin = User().createUser('admin', 'password', 'Admin', 'Admin', 'admin@girder.test')
 
         Setting().set(SettingKey.REGISTRATION_POLICY, 'approve')
 
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
 
-        user = User().createUser('user', 'password', 'User', 'User', 'user@example.com')
+        user = User().createUser('user', 'password', 'User', 'User', 'user@girder.test')
 
         # pop email
         self.assertTrue(base.mockSmtp.waitForMail())
@@ -468,12 +468,12 @@ class UserTestCase(base.TestCase):
 
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
 
-        User().createUser('admin', 'password', 'Admin', 'Admin', 'admin@example.com')
+        User().createUser('admin', 'password', 'Admin', 'Admin', 'admin@girder.test')
 
         self.assertTrue(base.mockSmtp.waitForMail())
         base.mockSmtp.getMail(parse=True)
 
-        User().createUser('user', 'password', 'User', 'User', 'user@example.com')
+        User().createUser('user', 'password', 'User', 'User', 'user@girder.test')
 
         self.assertTrue(base.mockSmtp.waitForMail())
         msg = base.mockSmtp.getMail(parse=True)
@@ -500,19 +500,19 @@ class UserTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
     def testTemporaryPassword(self):
-        User().createUser('user1', 'passwd', 'tst', 'usr', 'user@user.com')
+        User().createUser('user1', 'passwd', 'tst', 'usr', 'user@girder.test')
         # Temporary password should require email param
         self.ensureRequiredParams(
             path='/user/password/temporary', method='PUT', required={'email'})
         # Temporary password with an incorrect email
         resp = self.request(path='/user/password/temporary', method='PUT',
-                            params={'email': 'bad_email@user.com'})
+                            params={'email': 'bad_email@girder.test'})
         self.assertStatus(resp, 400)
         self.assertEqual(resp.json['message'], 'That email is not registered.')
         # Actually generate temporary access token
         self.assertTrue(base.mockSmtp.isMailQueueEmpty())
         resp = self.request(path='/user/password/temporary', method='PUT',
-                            params={'email': 'user@user.com'})
+                            params={'email': 'user@girder.test'})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['message'], 'Sent temporary access email.')
         self.assertTrue(base.mockSmtp.waitForMail())
@@ -566,14 +566,14 @@ class UserTestCase(base.TestCase):
         self.assertEqual(token, None)
 
     def testUserCreation(self):
-        admin = User().createUser('user1', 'passwd', 'tst', 'usr', 'user@user.com')
+        admin = User().createUser('user1', 'passwd', 'tst', 'usr', 'user@girder.test')
         self.assertTrue(admin['admin'])
 
         # Close registration
         Setting().set(SettingKey.REGISTRATION_POLICY, 'closed')
 
         params = {
-            'email': 'some.email@email.com',
+            'email': 'some.email@girder.test',
             'login': 'otheruser',
             'firstName': 'First',
             'lastName': 'Last',
@@ -604,7 +604,7 @@ class UserTestCase(base.TestCase):
 
         # Admins should be able to create other admin users
         params = {
-            'email': 'other.email@email.com',
+            'email': 'other.email@girder.test',
             'login': 'otheruser2',
             'firstName': 'First',
             'lastName': 'Last',
@@ -618,7 +618,7 @@ class UserTestCase(base.TestCase):
 
     def testDefaultUserFolders(self):
         Setting().set(SettingKey.USER_DEFAULT_FOLDERS, 'public_private')
-        user1 = User().createUser('folderuser1', 'passwd', 'tst', 'usr', 'folderuser1@user.com')
+        user1 = User().createUser('folderuser1', 'passwd', 'tst', 'usr', 'folderuser1@girder.test')
         user1Folders = Folder().find({
             'parentId': user1['_id'],
             'parentCollection': 'user'})
@@ -638,7 +638,8 @@ class UserTestCase(base.TestCase):
         self.assertEqual(resp.json['nFolders'], 1)
 
         Setting().set(SettingKey.USER_DEFAULT_FOLDERS, 'none')
-        user2 = User().createUser('folderuser2', 'mypass', 'First', 'Last', 'folderuser2@user.com')
+        user2 = User().createUser(
+            'folderuser2', 'mypass', 'First', 'Last', 'folderuser2@girder.test')
         user2Folders = Folder().find({
             'parentId': user2['_id'],
             'parentCollection': 'user'})
@@ -648,11 +649,11 @@ class UserTestCase(base.TestCase):
         )
 
     def testAdminFlag(self):
-        admin = User().createUser('user1', 'passwd', 'tst', 'usr', 'user@user.com')
+        admin = User().createUser('user1', 'passwd', 'tst', 'usr', 'user@girder.test')
         self.assertTrue(admin['admin'])
 
         params = {
-            'email': 'some.email@email.com',
+            'email': 'some.email@girder.test',
             'login': 'otheruser',
             'firstName': 'First',
             'lastName': 'Last',
@@ -683,7 +684,7 @@ class UserTestCase(base.TestCase):
         with events.bound('model.user.save.created', 'test', createdSave):
             user = User().createUser(
                 login='myuser', password='passwd', firstName='A', lastName='A',
-                email='email@email.com')
+                email='email@girder.test')
             self.assertEqual(count['created'], 1)
 
             count = collections.defaultdict(int)
@@ -712,7 +713,7 @@ class UserTestCase(base.TestCase):
         # Register a private user (non-admin)
         pvt = User().createUser(
             firstName='Guy', lastName='Noir', login='guynoir',
-            email='guy.noir@email.com', password='guynoir', public=False)
+            email='guy.noir@girder.test', password='guynoir', public=False)
 
         self.assertEqual(pvt['public'], False)
 
@@ -739,7 +740,7 @@ class UserTestCase(base.TestCase):
             email='admin@admin.com', password='adminadmin')
         # Create a couple of users
         users = [User().createUser(
-            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num, public=False)
+            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@girder.test' % num, public=False)
             for num in [0, 1]]
         resp = self.request(path='/user/details', user=admin, method='GET')
         self.assertStatusOk(resp)

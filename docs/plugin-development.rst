@@ -51,7 +51,7 @@ package we are going to create.
       version='1.0.0',
       description='A contrived example of a Girder plugin.',
       author='Plugin Development, Inc.',
-      author_email='plugin-developer@email.com',
+      author_email='plugin-developer@girder.test',
       url='https://my-plugin-documentation-page.com/cats',
       license='Apache 2.0',
       classifiers=[

@@ -29,7 +29,7 @@ describe('Test hierarchy widget non-standard options', function () {
             var _user = new girder.models.UserModel({
                 login: 'mylogin',
                 password: 'mypassword',
-                email: 'email@email.com',
+                email: 'email@girder.test',
                 firstName: 'First',
                 lastName: 'Last'
             }).on('g:saved', function () {

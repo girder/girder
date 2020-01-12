@@ -24,7 +24,7 @@ class GroupTestCase(base.TestCase):
         # Create a set of users so we can work with these groups.  User 0 is
         # an admin
         self.users = [User().createUser(
-            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
+            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@girder.test' % num)
             for num in range(6)]
 
     def testDirectAdd(self):

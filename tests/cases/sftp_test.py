@@ -63,13 +63,13 @@ def tearDownModule():
 class SftpTestCase(base.TestCase):
     def testSftpService(self):
         users = ({
-            'email': 'admin@email.com',
+            'email': 'admin@girder.test',
             'login': 'admin',
             'firstName': 'First',
             'lastName': 'Last',
             'password': 'passwd'
         }, {
-            'email': 'regularuser@email.com',
+            'email': 'regularuser@girder.test',
             'login': 'regularuser',
             'firstName': 'First',
             'lastName': 'Last',

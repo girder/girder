@@ -28,7 +28,7 @@ class JobsTestCase(base.TestCase):
         base.TestCase.setUp(self)
 
         self.users = [User().createUser(
-            'usr' + str(n), 'passwd', 'tst', 'usr', 'u%d@u.com' % n)
+            'usr' + str(n), 'passwd', 'tst', 'usr', 'u%d@girder.test' % n)
             for n in range(3)]
 
         self.jobModel = Job()

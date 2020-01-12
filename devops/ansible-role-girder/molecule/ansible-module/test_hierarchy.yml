@@ -8,7 +8,7 @@
       lastName: "Doe"
       login: "admin"
       password: "letmein"
-      email: "john.doe@test.com"
+      email: "john.doe@girder.test"
       admin: true
     state: present
 
@@ -31,7 +31,7 @@
       lastName: "Doe"
       login: "alice"
       password: "letmein"
-      email: "alice.doe@test.com"
+      email: "alice.doe@girder.test"
       folders:
         - name: "Public"
         - name: "Private"
@@ -100,7 +100,7 @@
       lastName: "Doe"
       login: "bill"
       password: "letmein"
-      email: "bill.doe@test.com"
+      email: "bill.doe@girder.test"
     state: present
 
 # Create an 'chris' user
@@ -114,7 +114,7 @@
       lastName: "Doe"
       login: "chris"
       password: "letmein"
-      email: "chris.doe@test.com"
+      email: "chris.doe@girder.test"
     state: present
 
 - name: Create a test group with users
@@ -391,7 +391,7 @@
       lastName: "Doe"
       login: "alice"
       password: "letmein"
-      email: "alice.doe@test.com"
+      email: "alice.doe@girder.test"
     state: absent
 
 - name: Remove 'bill' User
@@ -404,7 +404,7 @@
       lastName: "Doe"
       login: "bill"
       password: "letmein"
-      email: "bill.doe@test.com"
+      email: "bill.doe@girder.test"
     state: absent
 
 - name: Remove 'chris' User
@@ -417,5 +417,5 @@
       lastName: "Doe"
       login: "chris"
       password: "letmein"
-      email: "chris.doe@test.com"
+      email: "chris.doe@girder.test"
     state: absent

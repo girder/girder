@@ -1,7 +1,7 @@
 ---
 users:
   - login: 'admin'
-    email: 'admin@email.com'
+    email: 'admin@girder.test'
     firstName: 'Admin'
     lastName: 'Last'
     password: 'adminpassword'
@@ -23,7 +23,7 @@ users:
                 path: 'mount_test_files/file2.txt'
           - name: 'Item Without File'
   - login: 'user'
-    email: 'user@email.com'
+    email: 'user@girder.test'
     firstName: 'User'
     lastName: 'Last'
     password: 'userpassword'
@@ -53,7 +53,7 @@ users:
                   - name: 'File 5'
                     path: 'mount_test_files/file5.txt'
   - login: 'second'
-    email: 'second@email.com'
+    email: 'second@girder.test'
     firstName: 'Second'
     lastName: 'User'
     password: 'userpassword'

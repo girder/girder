@@ -27,7 +27,7 @@ class MountCommandTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
         info = {
-            'email': 'admin@email.com',
+            'email': 'admin@girder.test',
             'login': 'admin',
             'firstName': 'Admin',
             'lastName': 'Admin',

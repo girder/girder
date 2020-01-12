@@ -4,7 +4,7 @@ girderTest.startApp();
 var secureUrl = null;
 describe('Create an authorized upload.', function () {
     it('register a user', girderTest.createUser(
-        'admin', 'admin@email.com', 'Admin', 'Admin', 'passwd'));
+        'admin', 'admin@girder.test', 'Admin', 'Admin', 'passwd'));
 
     it('go to the authorize upload page', function () {
         runs(function () {

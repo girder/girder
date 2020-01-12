@@ -7,7 +7,7 @@ describe('Create an admin and non-admin user', function () {
 
     it('register a user (first is admin)',
         girderTest.createUser('admin',
-            'admin@email.com',
+            'admin@girder.test',
             'Admin',
             'Admin',
             'adminpassword!',
@@ -24,7 +24,7 @@ describe('Create an admin and non-admin user', function () {
 
         runs(function () {
             $('#g-login').val('user2');
-            $('#g-email').val('user2@user2.com');
+            $('#g-email').val('user2@girder.test');
             $('#g-firstName').val('user');
             $('#g-lastName').val('2');
             $('#g-password,#g-password2').val('password');
@@ -45,7 +45,7 @@ describe('Create an admin and non-admin user', function () {
 
     it('register another user',
         girderTest.createUser('nonadmin',
-            'nonadmin@email.com',
+            'nonadmin@girder.test',
             'Not',
             'Admin',
             'password!',
@@ -166,7 +166,7 @@ describe('Create an admin and non-admin user', function () {
         }, 'forgotton password dialog to appear');
         girderTest.waitForDialog();
         runs(function () {
-            $('#g-email').val('invalid@email.com');
+            $('#g-email').val('invalid@girder.test');
             $('#g-reset-password-button').click();
         });
         waitsFor(function () {
@@ -174,7 +174,7 @@ describe('Create an admin and non-admin user', function () {
                 'not registered') >= 0;
         }, 'error message to appear');
         runs(function () {
-            $('#g-email').val('nonadmin@email.com');
+            $('#g-email').val('nonadmin@girder.test');
             $('#g-reset-password-button').click();
         });
         girderTest.waitForLoad();

@@ -25,7 +25,7 @@ class NotificationTestCase(base.TestCase):
         base.TestCase.setUp(self)
 
         self.admin = User().createUser(
-            email='admin@email.com', login='admin', firstName='first',
+            email='admin@girder.test', login='admin', firstName='first',
             lastName='last', password='mypasswd')
 
     def _testStream(self, user, token=None):

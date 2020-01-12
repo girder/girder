@@ -57,7 +57,7 @@ class FileTestCase(base.TestCase):
         base.TestCase.setUp(self)
 
         user = {
-            'email': 'good@email.com',
+            'email': 'good@girder.test',
             'login': 'goodlogin',
             'firstName': 'First',
             'lastName': 'Last',
@@ -72,7 +72,7 @@ class FileTestCase(base.TestCase):
             else:
                 self.privateFolder = folder
         secondUser = {
-            'email': 'second@email.com',
+            'email': 'second@girder.test',
             'login': 'secondlogin',
             'firstName': 'Second',
             'lastName': 'User',

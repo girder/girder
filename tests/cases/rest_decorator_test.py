@@ -52,7 +52,7 @@ class TestEndpointDecoratorException(base.TestCase):
 
     @unittest.skip('TODO: port plugin changes')
     def testBoundHandlerDecorator(self):
-        user = User().createUser('tester', 'password', 'Test', 'User', 'test@test.com')
+        user = User().createUser('tester', 'password', 'Test', 'User', 'test@girder.test')
 
         resp = self.request('/collection/unbound/default/noargs', user=user, params={
             'val': False

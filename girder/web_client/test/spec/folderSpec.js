@@ -105,7 +105,7 @@ function _editFolder(button, buttonText, testValidation) {
 describe('Test folder creation, editing, and deletion', function () {
     it('register a user',
         girderTest.createUser('admin',
-            'admin@email.com',
+            'admin@girder.test',
             'Admin',
             'Admin',
             'adminpassword!'));

@@ -3,7 +3,7 @@ girderTest.startApp();
 
 describe('Test the thumbnail creation UI.', function () {
     it('register a user', girderTest.createUser(
-        'johndoe', 'john.doe@email.com', 'John', 'Doe', 'password!'
+        'johndoe', 'john.doe@girder.test', 'John', 'Doe', 'password!'
     ));
 
     it('uploads the thumbnail', function () {

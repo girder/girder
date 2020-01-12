@@ -157,20 +157,20 @@ describe('test the user quota plugin', function () {
     var collectionDialogRoute, userDialogRoute, userRoute;
     it('create resources', function () {
         girderTest.createUser(
-            'admin', 'admin@email.com', 'Quota', 'Admin', 'testpassword')();
+            'admin', 'admin@girder.test', 'Quota', 'Admin', 'testpassword')();
         _goToCollection();
         girderTest.createCollection('Collection A', 'ColDescription')();
         _goToCollection();
         girderTest.createCollection('Collection B', 'ColDescription')();
         girderTest.logout('logout from admin')();
         girderTest.createUser(
-            'user1', 'user@email.com', 'Quota', 'User', 'testpassword')();
+            'user1', 'user@girder.test', 'Quota', 'User', 'testpassword')();
         girderTest.logout('logout from user1')();
         girderTest.createUser(
-            'user2', 'user2@email.com', 'Another', 'User', 'testpassword')();
+            'user2', 'user2@girder.test', 'Another', 'User', 'testpassword')();
         girderTest.logout('logout from user2')();
         girderTest.createUser(
-            'user3', 'user3@email.com', 'Third', 'User', 'testpassword')();
+            'user3', 'user3@girder.test', 'Third', 'User', 'testpassword')();
     });
     it('make the collections public', function () {
         girderTest.logout('logout from user3')();

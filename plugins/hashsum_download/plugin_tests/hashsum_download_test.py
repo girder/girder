@@ -47,7 +47,7 @@ class HashsumDownloadTest(base.TestCase):
             password='multipass',
             firstName='Leeloominai',
             lastName='Sebat',
-            email='quinque@universe.org'
+            email='quinque@universe.test'
         )
 
         for folder in Folder().childFolders(parent=self.user, parentType='user', user=self.user):
@@ -103,7 +103,7 @@ class HashsumDownloadTest(base.TestCase):
             password='mortis',
             firstName='Jean-Baptiste',
             lastName='Zorg',
-            email='nullus@universe.org'
+            email='nullus@universe.test'
         )
 
     @staticmethod

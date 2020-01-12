@@ -94,7 +94,7 @@ class LdapTestCase(base.TestCase):
 
         # Test fallback to logging in with core auth
         normalUser = User().createUser(
-            login='normal', firstName='Normal', lastName='User', email='normal@user.com',
+            login='normal', firstName='Normal', lastName='User', email='normal@girder.test',
             password='normaluser')
         with mock.patch('ldap.initialize', return_value=MockLdap(searchFail=True)):
             resp = self.request('/user/authentication', basicAuth='normal:normaluser')

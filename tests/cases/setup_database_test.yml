@@ -17,7 +17,7 @@ users:
     password: 'password'
     firstName: 'First'
     lastName: 'Last'
-    email: 'admin@email.com'
+    email: 'admin@girder.test'
     admin: true
     import: 'setup_database_test/admin'
 
@@ -26,7 +26,7 @@ users:
     password: 'defaultFolders'
     firstName: 'User'
     lastName: 'One'
-    email: 'user1@email.com'
+    email: 'user1@girder.test'
     admin: false
     defaultFolders: true
     public: false
@@ -40,7 +40,7 @@ users:
     password: 'user2password'
     firstName: 'User'
     lastName: 'Two'
-    email: 'user2@email.com'
+    email: 'user2@girder.test'
     admin: false
     import: 'setup_database_test/user2'
 
@@ -49,7 +49,7 @@ users:
     password: 'creatorTest'
     firstName: 'User'
     lastName: 'Three'
-    email: 'user3@email.com'
+    email: 'user3@girder.test'
     admin: false
     folders:
       - name: 'Created by admin'
@@ -61,7 +61,7 @@ users:
     password: 'aliasTest'
     firstName: 'User'
     lastName: 'Four'
-    email: 'user4@email.com'
+    email: 'user4@girder.test'
     admin: false
     <<: *common
 
