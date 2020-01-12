@@ -511,7 +511,7 @@ jobs:
           command: tox -e ansible
           working_directory: girder
 
-  release:
+  publish:
     docker:
       - image: girder/girder_test:latest-py3
     working_directory: /home/circleci/project
@@ -519,8 +519,20 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Publish python packages
-          command: tox -e release
+          name: Publish Python packages
+          command: tox -e publish
+          working_directory: girder
+
+  publish_release:
+    docker:
+      - image: girder/girder_test:latest-py3
+    working_directory: /home/circleci/project
+    steps:
+      - checkout:
+          path: girder
+      - run:
+          name: Publish npm packages
+          command: npm run publish-all
           working_directory: girder
 
   deploy:
@@ -606,7 +618,7 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+.*/
-      - release:
+      - publish:
           requires:
             - public_symbols
             - py2_coverage
@@ -616,6 +628,16 @@ workflows:
               only: /^v[0-9]+.*/
             branches:
               only: master
+      - publish_release:
+          requires:
+            - public_symbols
+            - py2_coverage
+            - py3_coverage
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+            branches:
+              ignore: /.*/
       - deploy:
           requires:
             - release
