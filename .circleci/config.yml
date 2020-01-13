@@ -511,7 +511,7 @@ jobs:
           command: tox -e ansible
           working_directory: girder
 
-  release:
+  publish:
     docker:
       - image: girder/girder_test:latest-py3
     working_directory: /home/circleci/project
@@ -519,36 +519,27 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Publish python packages
-          command: tox -e release
+          name: Publish Python packages
+          command: tox -e publish
+          working_directory: girder
+      - run:
+          name: Publish Javascript docs
+          command: npm run publish-esdoc
+      - run:
+          name: Publish Ansible role
+          command: tox -e release_ansible
           working_directory: girder
 
-  deploy:
+  publish_release:
     docker:
       - image: girder/girder_test:latest-py3
-    working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
+    working_directory: /home/circleci/project
     steps:
-      # This step depends on both "py2_coverage" and "py3_coverage", as it should only run when
-      # everything succeeds. However, this means that "attach_workspace" cannot be used, as the
-      # workspace will have conflicting coverage files from both.
       - checkout:
           path: girder
-      # Since this cache must have been created in a previous step of this workflow, we can get
-      # a virtualenv without having to create one or install anything.
       - run:
-          name: Generate python environment checksum file
-          command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
-      - restore_cache:
-          key: venv-py3.6-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
-      - run:
-          name: Activate virtual environment
-          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
-      - run:
-          name: Upload documentation to ESDoc
-          command: curl 'https://doc.esdoc.org/api/create' -X POST --data-urlencode "gitUrl=git@github.com:girder/girder.git"
-      - run:
-          name: Deploy roles to Ansible Galaxy
-          command: .circleci/galaxy_deploy.sh
+          name: Publish npm packages
+          command: npm run publish-all
           working_directory: girder
 
 workflows:
@@ -606,7 +597,7 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+.*/
-      - release:
+      - publish:
           requires:
             - public_symbols
             - py2_coverage
@@ -616,11 +607,13 @@ workflows:
               only: /^v[0-9]+.*/
             branches:
               only: master
-      - deploy:
+      - publish_release:
           requires:
-            - release
+            - public_symbols
+            - py2_coverage
+            - py3_coverage
           filters:
             tags:
               only: /^v[0-9]+.*/
             branches:
-              only: master
+              ignore: /.*/

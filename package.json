@@ -35,7 +35,9 @@
     },
     "scripts": {
         "lint": "eslint --cache . && pug-lint . && stylint",
-        "docs": "esdoc"
+        "docs": "esdoc",
+        "publish-all": "./.circleci/publish_npm.sh",
+        "publish-esdoc": "./.circleci/publish_esdoc.sh"
     },
     "esdoc": {
         "source": "girder/web_client/src",
