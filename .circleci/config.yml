@@ -1,8 +1,8 @@
 ---
-version: 2
+version: 2.1
 
-jobs:
-  py2_serverInstall_serverTest:
+executors:
+  py2-mongo:
     docker:
       # This image uses the oldest version of many dependencies
       - image: girder/girder_test:latest-py2
@@ -13,9 +13,29 @@ jobs:
         # storage engine. We can pass alternate options to "mongod" by overwriting the default "CMD"
         # used to start the Docker image: https://github.com/circleci/circleci-images/blob/master/mongo/resources/Dockerfile-ram.template
         command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
+    working_directory: /home/circleci/project # as $CIRCLE_WORKING_DIRECTORY
+  py3:
+    docker:
+      # This image uses the newest version of many dependencies
+      - image: girder/girder_test:latest-py3
+    working_directory: /home/circleci/project
+  py3-mongo:
+    docker:
+      - image: girder/girder_test:latest-py3
+      # Use the latest MongoDB
+      - image: circleci/mongo:4.2-ram
+        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
+    working_directory: /home/circleci/project
+  machine:
+    machine:
+      image: ubuntu-1604:201903-01
+    working_directory: /home/circleci/project
 
-    working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
 
+
+jobs:
+  py2_serverInstall_serverTest:
+    executor: py2-mongo
     steps:
       - checkout:
           path: girder
@@ -73,12 +93,7 @@ jobs:
             - girder_build
 
   py3_serverInstall:
-    docker:
-      # This image uses the newest version of many dependencies
-      - image: girder/girder_test:latest-py3
-
-    working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
-
+    executor: py3
     steps:
       - checkout:
           path: girder
@@ -115,14 +130,7 @@ jobs:
             - girder_env
 
   py3_serverTest:
-    docker:
-      - image: girder/girder_test:latest-py3
-      # Use the latest MongoDB
-      - image: circleci/mongo:4.2-ram
-        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
-
-    working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
-
+    executor: py3-mongo
     steps:
       - attach_workspace:
           at: /home/circleci/project
@@ -155,13 +163,7 @@ jobs:
             - girder
 
   py3_webBuild_webTest:
-    docker:
-      - image: girder/girder_test:latest-py3
-      - image: circleci/mongo:4.2-ram
-        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
-
-    working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
-
+    executor: py3-mongo
     steps:
       - attach_workspace:
           at: /home/circleci/project
@@ -223,10 +225,7 @@ jobs:
             - girder_env
 
   py2_integrationTests:
-    machine:
-      image: ubuntu-1604:201903-01
-    working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
-
+    executor: machine
     steps:
       - checkout:
           path: girder
@@ -319,11 +318,7 @@ jobs:
             - girder/build/test/coverage
 
   py2_coverage:
-    docker:
-      - image: girder/girder_test:latest-py2
-      - image: circleci/mongo:3.6-ram
-        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
-    working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
+    executor: py2-mongo
     steps:
       - attach_workspace:
           at: /home/circleci/project
@@ -351,10 +346,7 @@ jobs:
           command: codecov --disable search pycov gcov --root girder --file girder/build/test/coverage/py_coverage.xml
 
   py3_integrationTests:
-    machine:
-      image: ubuntu-1604:201903-01
-    working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
-
+    executor: machine
     steps:
       - checkout:
           path: girder
@@ -448,11 +440,7 @@ jobs:
             - girder/build/test/coverage
 
   py3_coverage:
-    docker:
-      - image: girder/girder_test:latest-py3
-      - image: circleci/mongo:4.2-ram
-        command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
-    working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
+    executor: py3
     steps:
       - attach_workspace:
           at: /home/circleci/project
@@ -486,9 +474,7 @@ jobs:
           command: codecov --disable search pycov gcov --root girder --file girder/build/test/coverage/py_coverage.xml girder/build/test/coverage/cobertura-coverage.xml
 
   public_symbols:
-    docker:
-      - image: girder/girder_test:latest-py3
-    working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
+    executor: py3
     steps:
       - checkout:
           path: girder
@@ -498,9 +484,7 @@ jobs:
           working_directory: girder
 
   ansible:
-    docker:
-      - image: girder/girder_test:latest-py3
-    working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
+    executor: py3
     steps:
       - checkout:
           path: girder
@@ -511,44 +495,32 @@ jobs:
           command: tox -e ansible
           working_directory: girder
 
-  release:
-    docker:
-      - image: girder/girder_test:latest-py3
-    working_directory: /home/circleci/project
+  publish:
+    executor: py3
     steps:
       - checkout:
           path: girder
       - run:
-          name: Publish python packages
-          command: tox -e release
+          name: Publish Python packages
+          command: tox -e publish
+          working_directory: girder
+      - run:
+          name: Publish Javascript docs
+          command: npm run publish-esdoc
+          working_directory: girder
+      - run:
+          name: Publish Ansible role
+          command: tox -e release_ansible
           working_directory: girder
 
-  deploy:
-    docker:
-      - image: girder/girder_test:latest-py3
-    working_directory: /home/circleci/project  # as $CIRCLE_WORKING_DIRECTORY
+  publish_release:
+    executor: py3
     steps:
-      # This step depends on both "py2_coverage" and "py3_coverage", as it should only run when
-      # everything succeeds. However, this means that "attach_workspace" cannot be used, as the
-      # workspace will have conflicting coverage files from both.
       - checkout:
           path: girder
-      # Since this cache must have been created in a previous step of this workflow, we can get
-      # a virtualenv without having to create one or install anything.
       - run:
-          name: Generate python environment checksum file
-          command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
-      - restore_cache:
-          key: venv-py3.6-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
-      - run:
-          name: Activate virtual environment
-          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
-      - run:
-          name: Upload documentation to ESDoc
-          command: curl 'https://doc.esdoc.org/api/create' -X POST --data-urlencode "gitUrl=git@github.com:girder/girder.git"
-      - run:
-          name: Deploy roles to Ansible Galaxy
-          command: .circleci/galaxy_deploy.sh
+          name: Publish npm packages
+          command: npm run publish-all
           working_directory: girder
 
 workflows:
@@ -606,7 +578,7 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+.*/
-      - release:
+      - publish:
           requires:
             - public_symbols
             - py2_coverage
@@ -616,11 +588,13 @@ workflows:
               only: /^v[0-9]+.*/
             branches:
               only: master
-      - deploy:
+      - publish_release:
           requires:
-            - release
+            - public_symbols
+            - py2_coverage
+            - py3_coverage
           filters:
             tags:
               only: /^v[0-9]+.*/
             branches:
-              only: master
+              ignore: /.*/

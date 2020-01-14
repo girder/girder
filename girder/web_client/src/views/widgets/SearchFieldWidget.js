@@ -164,7 +164,6 @@ var SearchFieldWidget = View.extend({
 
         this.$('.g-search-options-button').popover({
             trigger: 'manual',
-            html: true,
             viewport: {
                 selector: 'body',
                 padding: 10
@@ -174,14 +173,15 @@ var SearchFieldWidget = View.extend({
                     mode: this.currentMode,
                     modeHelp: SearchFieldWidget.getModeHelp(this.currentMode)
                 });
-            }
+            },
+            html: true,
+            sanitize: false
         }).on('click', function () {
             $(this).popover('toggle');
         });
 
         this.$('.g-search-mode-choose').popover({
             trigger: 'manual',
-            html: true,
             viewport: {
                 selector: 'body',
                 padding: 10
@@ -192,7 +192,9 @@ var SearchFieldWidget = View.extend({
                     currentMode: this.currentMode,
                     getModeDescription: SearchFieldWidget.getModeDescription
                 });
-            }
+            },
+            html: true,
+            sanitize: false
         }).on('click', function () {
             $(this).popover('toggle');
         });

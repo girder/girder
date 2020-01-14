@@ -48,7 +48,7 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
         mode = ServerMode.DEVELOPMENT
 
     if watch and watch_plugin:
-        raise click.UsageError('--watch and --watch-plugins cannot be used together')
+        raise click.UsageError('--watch and --watch-plugin cannot be used together')
     if watch or watch_plugin:
         mode = ServerMode.DEVELOPMENT
         reinstall = False
