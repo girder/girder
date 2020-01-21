@@ -1,12 +1,7 @@
 #!/bin/bash
 set -e
-
 # Publish npm packages for selected locations
-
 # NPM_AUTH_TOKEN must be set by the build environment
-# CircleCI does not consider environment variables in npm's "npm_config_" format to be valid
-# https://npm.community/t/cannot-set-npm-config-keys-containing-underscores-registry-auth-tokens-for-example-via-npm-config-environment-variables/233/9
-export "npm_config_//registry.npmjs.org/:_authtoken=${NPM_AUTH_TOKEN}"
 
 readonly GIT_VERSION=$(git describe --tags)
 readonly PUBLISHED_NPM_PACKAGES=(
@@ -24,7 +19,10 @@ readonly PUBLISHED_NPM_PACKAGES=(
 )
 for directory in "${PUBLISHED_NPM_PACKAGES[@]}"; do
   pushd "$directory"
+  # Trying to set the auth token via 'npm_config_' environment variables does not work
+  echo '//registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN}' > ./.npmrc
   npm version --allow-same-version --no-git-tag-version "$GIT_VERSION"
-  npm publish
+  npm publish --access public
+  rm --interactive=never ./.npmrc
   popd
 done
