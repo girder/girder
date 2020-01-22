@@ -11,7 +11,6 @@ from bson.errors import InvalidId
 from pymongo.errors import WriteError
 from girder import events, logprint, logger, auditLogger
 from girder.constants import AccessType, CoreEventHandler, ACCESS_FLAGS, TEXT_SCORE_SORT_MAX
-from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.exceptions import AccessException, ValidationException
 
@@ -113,7 +112,7 @@ class Model(object):
         db_connection = getDbConnection()
         self._dbserver_version = tuple(db_connection.server_info()['versionArray'])
         self.database = db_connection.get_database()
-        self.collection = MongoProxy(self.database[self.name])
+        self.collection = self.database[self.name]
 
         for index in self._indices:
             self._createIndex(index)

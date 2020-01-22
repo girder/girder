@@ -464,15 +464,6 @@ girder
         ResourcePathNotFound
         RestException
         ValidationException
-    external
-        mongodb_proxy
-            EXECUTABLE_MONGO_METHODS
-            Executable
-            MongoClient
-            MongoProxy
-                next
-            MongoReplicaSetClient
-            get_methods
     getLogPaths
     logStdoutStderr
     logger

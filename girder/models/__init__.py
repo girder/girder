@@ -3,8 +3,7 @@ import pymongo
 import six
 from six.moves import urllib
 
-from girder import logger, logprint
-from girder.external.mongodb_proxy import MongoProxy
+from girder import logprint
 from girder.utility import config
 
 _dbClients = {}
@@ -19,7 +18,7 @@ def getDbConfig():
         return {}
 
 
-def getDbConnection(uri=None, replicaSet=None, autoRetry=True, quiet=False, **kwargs):
+def getDbConnection(uri=None, replicaSet=None, quiet=False, **kwargs):
     """
     Get a MongoClient object that is connected to the configured database.
     We lazy-instantiate a module-level singleton, the MongoClient objects
@@ -29,12 +28,6 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, quiet=False, **kw
     :param uri: if specified, connect to this mongo db rather than the one in
                 the config.
     :param replicaSet: if uri is specified, use this replica set.
-    :param autoRetry: if this connection should automatically retry operations
-        in the event of an AutoReconnect exception. If you're testing the
-        connection, set this to False. If disabled, this also will not cache
-        the mongo client, so make sure to only disable if you're testing a
-        connection.
-    :type autoRetry: bool
     :param quiet: if true, don't logprint warnings and success.
     :type quiet: bool
     """
@@ -104,8 +97,6 @@ def getDbConnection(uri=None, replicaSet=None, autoRetry=True, quiet=False, **kw
     # Make sure we can connect to the mongo server at startup
     client.server_info()
 
-    if autoRetry:
-        client = MongoProxy(client, logger=logger)
-        _dbClients[origKey] = _dbClients[(uri, replicaSet)] = client
+    _dbClients[origKey] = _dbClients[(uri, replicaSet)] = client
 
     return client
