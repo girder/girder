@@ -146,13 +146,14 @@ class User(Resource):
     @autoDescribeRoute(
         Description('Create a new user.')
         .responseClass('User')
-        .param('login', "The user's requested login.")
-        .param('email', "The user's email address.")
-        .param('firstName', "The user's first name.")
-        .param('lastName', "The user's last name.")
-        .param('password', "The user's requested password")
+        .param('login', "The user's requested login.", paramType='formData')
+        .param('email', "The user's email address.", paramType='formData')
+        .param('firstName', "The user's first name.", paramType='formData')
+        .param('lastName', "The user's last name.", paramType='formData')
+        .param('password', "The user's requested password", paramType='formData',
+               dataType='password')
         .param('admin', 'Whether this user should be a site administrator.',
-               required=False, dataType='boolean', default=False)
+               required=False, dataType='boolean', default=False, paramType='formData')
         .errorResponse('A parameter was invalid, or the specified login or'
                        ' email already exists in the system.')
     )
@@ -244,7 +245,7 @@ class User(Resource):
         Description("Change a user's password.")
         .notes('Only administrators may use this endpoint.')
         .modelParam('id', model=UserModel, level=AccessType.ADMIN)
-        .param('password', "The user's new password.")
+        .param('password', "The user's new password.", paramType='formData', dataType='password')
         .errorResponse('You are not an administrator.', 403)
         .errorResponse('The new password is invalid.')
     )
@@ -255,8 +256,9 @@ class User(Resource):
     @access.user
     @autoDescribeRoute(
         Description('Change your password.')
-        .param('old', 'Your current password or a temporary access token.')
-        .param('new', 'Your new password.')
+        .param('old', 'Your current password or a temporary access token.', paramType='formData',
+               dataType='password')
+        .param('new', 'Your new password.', paramType='formData', dataType='password')
         .errorResponse(('You are not logged in.',
                         'Your old password is incorrect.'), 401)
         .errorResponse('Your new password is invalid.')
@@ -320,7 +322,7 @@ class User(Resource):
                     'for the specified user.  If the token is valid, returns '
                     'information on the token and user.')
         .modelParam('id', 'The user ID to check.', model=UserModel, force=True)
-        .param('token', 'The token to check.')
+        .param('token', 'The token to check.', paramType='formData')
         .errorResponse('The token does not grant temporary access to the specified user.', 401)
     )
     def checkTemporaryPassword(self, user, token):
@@ -418,7 +420,7 @@ class User(Resource):
     @autoDescribeRoute(
         Description('Verify an email address using a token.')
         .modelParam('id', 'The user ID to check.', model=UserModel, force=True)
-        .param('token', 'The token to check.')
+        .param('token', 'The token to check.', paramType='formData')
         .errorResponse('The token is invalid or expired.', 401)
     )
     def verifyEmail(self, user, token):
