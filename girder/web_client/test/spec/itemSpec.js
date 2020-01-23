@@ -111,7 +111,7 @@ function _addItemToFolder(folder) {
 describe('Test item creation, editing, and deletion', function () {
     it('register a user (first is admin)',
         girderTest.createUser('admin',
-            'admin@email.com',
+            'admin@girder.test',
             'Admin',
             'Admin',
             'adminpassword!'));
@@ -120,7 +120,7 @@ describe('Test item creation, editing, and deletion', function () {
 
     it('register another user',
         girderTest.createUser('seconduser',
-            'seconduser@email.com',
+            'seconduser@girder.test',
             'Second',
             'User',
             'password!'));
@@ -129,7 +129,7 @@ describe('Test item creation, editing, and deletion', function () {
 
     it('register a third user',
         girderTest.createUser('nonadmin',
-            'nonadmin@email.com',
+            'nonadmin@girder.test',
             'Not',
             'Admin',
             'password!'));

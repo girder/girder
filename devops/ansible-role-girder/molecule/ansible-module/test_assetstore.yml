@@ -12,7 +12,7 @@
       lastName: "Doe"
       login: "admin"
       password: "letmein"
-      email: "john.doe@test.com"
+      email: "john.doe@girder.test"
       admin: true
     state: present
 

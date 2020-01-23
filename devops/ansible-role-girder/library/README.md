@@ -26,7 +26,7 @@ The girder ansible module relies on the girder-client to do most of the heavy li
       lastName: "Doe"
       login: "admin"
       password: "letmein"
-      email: "john.doe@test.com"
+      email: "john.doe@girder.test"
       admin: yes
     state: present
 ```
@@ -42,7 +42,7 @@ The girder ansible module relies on the girder-client to do most of the heavy li
       lastName: "Bar"
       login: "foobar"
       password: "foobarbaz"
-      email: "foo.bar@test.com"
+      email: "foo.bar@girder.test"
       admin: yes
     state: present
 ```

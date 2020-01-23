@@ -31,7 +31,7 @@ class ThumbnailsTestCase(base.TestCase):
 
         # Create some test documents with an item
         admin = {
-            'email': 'admin@email.com',
+            'email': 'admin@girder.test',
             'login': 'adminlogin',
             'firstName': 'Admin',
             'lastName': 'Last',
@@ -41,7 +41,7 @@ class ThumbnailsTestCase(base.TestCase):
         self.admin = User().createUser(**admin)
 
         user = {
-            'email': 'good@email.com',
+            'email': 'good@girder.test',
             'login': 'goodlogin',
             'firstName': 'First',
             'lastName': 'Last',

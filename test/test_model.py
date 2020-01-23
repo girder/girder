@@ -108,7 +108,7 @@ class TestProjectionUtilsRemoveSupplementalFields(object):
             '_id': '1234',
             'public': True,
             'access': True,
-            'email': 'email@email.com',
+            'email': 'email@girder.test',
             'login': 'login'}
 
     def testInclusionProjDict(self, doc, inclusionProjDict):
@@ -117,7 +117,7 @@ class TestProjectionUtilsRemoveSupplementalFields(object):
             '_id': '1234',
             'public': True,
             'access': True,
-            'email': 'email@email.com',
+            'email': 'email@girder.test',
             'login': 'login'}
 
     def testNoneEdgeCase(self, doc):
@@ -129,7 +129,7 @@ class TestProjectionUtilsRemoveSupplementalFields(object):
         doc = {
             '_id': 'id',
             'login': 'login',
-            'email': 'email@email.com',
+            'email': 'email@girder.test',
             'firstName': 'fname',
             'lastName': 'lname'
         }
@@ -143,7 +143,7 @@ class TestProjectionUtilsRemoveSupplementalFields(object):
         Model._removeSupplementalFields(doc, fields)
         assert doc == {
             'login': 'login',
-            'email': 'email@email.com',
+            'email': 'email@girder.test',
             'firstName': 'fname',
             'lastName': 'lname'}
 
@@ -169,7 +169,7 @@ def doc():
         '_id': '1234',
         'public': True,
         'access': True,
-        'email': 'email@email.com',
+        'email': 'email@girder.test',
         'login': 'login',
         'password': 'password1',
         'admin': False,

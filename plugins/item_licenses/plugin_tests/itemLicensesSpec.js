@@ -4,7 +4,7 @@ girderTest.startApp();
 describe('item_licenses plugin test', function () {
     it('registers admin user',
         girderTest.createUser('admin',
-            'admin@email.com',
+            'admin@girder.test',
             'Admin',
             'User',
             'CxV`%EOsq9'));
@@ -13,7 +13,7 @@ describe('item_licenses plugin test', function () {
 
     it('registers normal user',
         girderTest.createUser('user',
-            'user@email.com',
+            'user@girder.test',
             'Normal',
             'User',
             'a*z/Swb?td'));

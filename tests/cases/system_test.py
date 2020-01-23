@@ -54,7 +54,7 @@ class SystemTestCase(base.TestCase):
         base.TestCase.setUp(self)
 
         self.users = [User().createUser(
-            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
+            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@girder.test' % num)
             for num in [0, 1]]
 
         self.group = Group().createGroup('test group', creator=self.users[1])

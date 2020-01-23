@@ -20,7 +20,7 @@ class AutoJoinTest(base.TestCase):
         base.TestCase.setUp(self)
 
         self.users = [User().createUser(
-            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
+            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@girder4.test' % num)
             for num in [0, 1]]
 
     def testAutoJoinBehavior(self):
@@ -34,17 +34,17 @@ class AutoJoinTest(base.TestCase):
         # set auto join rules
         rules = [
             {
-                'pattern': '@test.com',
+                'pattern': '@girder2.test',
                 'groupId': str(g1['_id']),
                 'level': AccessType.ADMIN
             },
             {
-                'pattern': '@example.com',
+                'pattern': '@girder1.test',
                 'groupId': str(g2['_id']),
                 'level': AccessType.READ
             },
             {
-                'pattern': '@example.com',
+                'pattern': '@girder1.test',
                 'groupId': str(g3['_id']),
                 'level': AccessType.WRITE
             },
@@ -56,9 +56,9 @@ class AutoJoinTest(base.TestCase):
         self.assertStatusOk(resp)
 
         # create users
-        user1 = User().createUser('user1', 'password', 'John', 'Doe', 'user1@example.com')
-        user2 = User().createUser('user2', 'password', 'John', 'Doe', 'user2@test.com')
-        user3 = User().createUser('user3', 'password', 'John', 'Doe', 'user3@test.co')
+        user1 = User().createUser('user1', 'password', 'John', 'Doe', 'user1@girder1.test')
+        user2 = User().createUser('user2', 'password', 'John', 'Doe', 'user2@girder2.test')
+        user3 = User().createUser('user3', 'password', 'John', 'Doe', 'user3@girder3.test')
 
         # check correct groups were joined
         self.assertEqual(user1['groups'], [g2['_id'], g3['_id']])

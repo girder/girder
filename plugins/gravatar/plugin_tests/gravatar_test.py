@@ -24,7 +24,7 @@ class GravatarTest(base.TestCase):
         base.TestCase.setUp(self, dropModels=False)
 
         self.admin = User().createUser(
-            email='not.a.real.email@mail.com',
+            email='not.a.real.email@girder.test',
             login='admin',
             firstName='first',
             lastName='last',
@@ -64,7 +64,7 @@ class GravatarTest(base.TestCase):
             params={
                 'firstName': 'first',
                 'lastName': 'last',
-                'email': 'new_email@email.com'
+                'email': 'new_email@girder.test'
             })
         self.assertStatusOk(resp)
         self.admin = User().load(self.admin['_id'], force=True)
@@ -79,7 +79,7 @@ class GravatarTest(base.TestCase):
 
     def testUserInfoUpdate(self):
         user = User().createUser(
-            email='normaluser@mail.com',
+            email='normaluser@girder.test',
             login='normal',
             firstName='normal',
             lastName='normal',
@@ -90,7 +90,7 @@ class GravatarTest(base.TestCase):
         resp = self.request(
             '/user/%s' % str(user['_id']), method='PUT', user=user,
             params={
-                'email': 'newemail@mail.com',
+                'email': 'newemail@girder.test',
                 'firstName': 'normal',
                 'lastName': 'normal'
             })

@@ -33,7 +33,7 @@ class DicomViewerTest(base.TestCase):
             os.environ['GIRDER_TEST_DATA_PREFIX'], 'plugins', 'dicom_viewer')
 
         self.users = [User().createUser(
-            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@u.com' % num)
+            'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@girder.test' % num)
             for num in [0, 1]]
 
     def testRemoveUniqueMetadata(self):

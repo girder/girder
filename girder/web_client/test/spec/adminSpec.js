@@ -7,7 +7,7 @@ describe('Create an admin and non-admin user', function () {
 
     it('register a user (first is admin)',
         girderTest.createUser('admin',
-            'admin@email.com',
+            'admin@girder.test',
             'Admin',
             'Admin',
             'adminpassword!'));
@@ -28,7 +28,7 @@ describe('Create an admin and non-admin user', function () {
 
     it('register a (normal user)',
         girderTest.createUser('johndoe',
-            'john.doe@email.com',
+            'john.doe@girder.test',
             'John',
             'Doe',
             'password!'));

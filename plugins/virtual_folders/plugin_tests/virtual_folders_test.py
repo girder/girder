@@ -26,7 +26,7 @@ class VirtualFoldersTestCase(base.TestCase):
             email='admin@admin.com', login='admin', lastName='admin', firstName='admin',
             password='passwd', admin=True)
         self.user = User().createUser(
-            email='user@user.com', login='user', lastName='u', firstName='u', password='passwd')
+            email='user@girder.test', login='user', lastName='u', firstName='u', password='passwd')
 
         self.f1 = Folder().createFolder(self.admin, 'f1', creator=self.admin, parentType='user')
         self.f2 = Folder().createFolder(self.admin, 'f2', creator=self.admin, parentType='user')

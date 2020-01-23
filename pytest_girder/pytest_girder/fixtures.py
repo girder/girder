@@ -164,7 +164,7 @@ def admin(db):
     Provides a user with the admin flag set to True.
     """
     from girder.models.user import User
-    u = User().createUser(email='admin@email.com', login='admin', firstName='Admin',
+    u = User().createUser(email='admin@girder.test', login='admin', firstName='Admin',
                           lastName='Admin', password='password', admin=True)
 
     yield u
@@ -179,7 +179,7 @@ def user(db, admin):
     the admin fixture since an administrative user must exist before a regular user can.
     """
     from girder.models.user import User
-    u = User().createUser(email='user@email.com', login='user', firstName='user',
+    u = User().createUser(email='user@girder.test', login='user', firstName='user',
                           lastName='user', password='password', admin=False)
 
     yield u

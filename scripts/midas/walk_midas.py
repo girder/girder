@@ -1,7 +1,7 @@
 import pydas
 
 MIDAS_URL = 'http://127.0.0.1'
-MIDAS_LOGIN = 'user@example.com'
+MIDAS_LOGIN = 'user@girder.test'
 MIDAS_API_KEY = 'API_KEY'
 
 token = pydas.login(email=MIDAS_LOGIN, api_key=MIDAS_API_KEY, url=MIDAS_URL)

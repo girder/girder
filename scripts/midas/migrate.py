@@ -39,7 +39,7 @@ import time
 # Configuration
 
 MIDAS_URL = 'http://127.0.0.1'
-MIDAS_LOGIN = 'user@example.com'
+MIDAS_LOGIN = 'user@girder.test'
 MIDAS_API_KEY = 'API_KEY'
 
 GIRDER_URL = 'http://127.0.0.1/api/v1'

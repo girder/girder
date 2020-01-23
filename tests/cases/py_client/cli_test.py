@@ -92,7 +92,7 @@ class PythonCliTestCase(base.TestCase):
 
         self.user = User().createUser(
             firstName='First', lastName='Last', login='mylogin',
-            password='password', email='email@email.com')
+            password='password', email='email@girder.test')
         self.publicFolder = six.next(Folder().childFolders(
             parentType='user', parent=self.user, user=None, limit=1))
         self.apiKey = ApiKey().createApiKey(self.user, name='')

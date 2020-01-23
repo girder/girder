@@ -322,7 +322,7 @@ before executing your test.  A typical example of this format is as follows
         password: 'password'
         firstName: 'First'
         lastName: 'Last'
-        email: 'admin@email.com'
+        email: 'admin@girder.test'
         admin: true
         import: 'files/user'
 

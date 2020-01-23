@@ -452,7 +452,7 @@ EXAMPLES = """
       lastName: "Doe"
       login: "admin"
       password: "letmein"
-      email: "john.due@test.com"
+      email: "john.due@girder.test"
       admin: yes
     state: present
 
@@ -466,7 +466,7 @@ EXAMPLES = """
       lastName: "Bar"
       login: "foobar"
       password: "foobarbaz"
-      email: "foo.bar@test.com"
+      email: "foo.bar@girder.test"
       admin: yes
     state: present
 
@@ -495,7 +495,7 @@ EXAMPLES = """
       lastName: "Doe"
       login: "alice"
       password: "letmein"
-      email: "alice.doe@test.com"
+      email: "alice.doe@girder.test"
     state: present
 
 # Create a 'bill' user
@@ -509,7 +509,7 @@ EXAMPLES = """
       lastName: "Doe"
       login: "bill"
       password: "letmein"
-      email: "bill.doe@test.com"
+      email: "bill.doe@girder.test"
     state: present
 
 # Create a 'chris' user
@@ -523,7 +523,7 @@ EXAMPLES = """
       lastName: "Doe"
       login: "chris"
       password: "letmein"
-      email: "chris.doe@test.com"
+      email: "chris.doe@girder.test"
     state: present
 
 - name: Create a test group with users

@@ -5,7 +5,7 @@ var registeredUsers = [];
 describe('Sort user list', function () {
     it('register a user (first is admin)',
         girderTest.createUser('admin',
-            'admin@email.com',
+            'admin@girder.test',
             'BFirstName',
             'BLastName',
             'adminpassword!',
@@ -14,7 +14,7 @@ describe('Sort user list', function () {
 
     it('register another user',
         girderTest.createUser('nonadmin',
-            'nonadmin@email.com',
+            'nonadmin@girder.test',
             'CFirstName',
             'CLastName',
             'password!',
@@ -23,7 +23,7 @@ describe('Sort user list', function () {
 
     it('register third user',
         girderTest.createUser('nonadmin2',
-            'nonadmin2@email.com',
+            'nonadmin2@girder.test',
             'AFirstName',
             'ALastName',
             'password!',

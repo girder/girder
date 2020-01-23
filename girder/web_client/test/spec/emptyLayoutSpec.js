@@ -37,7 +37,7 @@ describe('Test empty and default layouts', function () {
 
     it('register a user (first is admin)',
         girderTest.createUser('admin',
-            'admin@email.com',
+            'admin@girder.test',
             'Admin',
             'Admin',
             'adminpassword!'));

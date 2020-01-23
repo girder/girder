@@ -149,7 +149,7 @@ function _testDirectAdd(policy, curUser, curSetting) {
 describe('Test group actions', function () {
     it('register a user (first is admin)',
         girderTest.createUser('admin',
-            'admin@email.com',
+            'admin@girder.test',
             'Admin',
             'Admin',
             'adminpassword!'));
@@ -429,7 +429,7 @@ describe('Test group actions', function () {
         runs(function () {
             for (var i = 1; i <= 3; i += 1) {
                 girderTest.logout()();
-                girderTest.createUser('user' + i, 'user' + i + '@email.com',
+                girderTest.createUser('user' + i, 'user' + i + '@girder.test',
                     'User' + i, 'User', 'password!')();
             }
         });

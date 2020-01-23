@@ -50,7 +50,7 @@ function _verifyHomepageSettings(elem) {
 
 describe('homepage plugin test', function () {
     it('registers an admin user', girderTest.createUser(
-        'admin', 'admin@example.com', 'Mark', 'Down', 'password'
+        'admin', 'admin@girder.test', 'Mark', 'Down', 'password'
     ));
 
     it('goes to homepage plugin settings', _goToHomepagePluginSettings);

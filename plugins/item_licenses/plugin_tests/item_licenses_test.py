@@ -26,7 +26,7 @@ class ItemLicensesTestCase(base.TestCase):
 
         # Create a user
         user = {
-            'email': 'user1@email.com',
+            'email': 'user1@girder.test',
             'login': 'user1login',
             'firstName': 'First',
             'lastName': 'Last',

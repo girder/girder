@@ -26,7 +26,7 @@ class DownloadStatisticsTestCase(base.TestCase):
         base.TestCase.setUp(self)
 
         # Create admin user
-        admin = {'email': 'admin@email.com',
+        admin = {'email': 'admin@girder.test',
                  'login': 'adminLogin',
                  'firstName': 'adminFirst',
                  'lastName': 'adminLast',

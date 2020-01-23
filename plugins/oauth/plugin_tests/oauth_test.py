@@ -53,13 +53,13 @@ class OauthTest(base.TestCase):
         """
         Unit tests the _deriveLogin method of the provider classes.
         """
-        login = ProviderBase._deriveLogin('1234@mail.com', 'John', 'Doe')
+        login = ProviderBase._deriveLogin('1234@girder.test', 'John', 'Doe')
         self.assertEqual(login, 'johndoe')
 
-        login = ProviderBase._deriveLogin('hello#world#foo@mail.com', 'A', 'B')
+        login = ProviderBase._deriveLogin('hello#world#foo@girder.test', 'A', 'B')
         self.assertEqual(login, 'helloworldfoo')
 
-        login = ProviderBase._deriveLogin('hello.world@mail.com', 'A', 'B', 'user2')
+        login = ProviderBase._deriveLogin('hello.world@girder.test', 'A', 'B', 'user2')
         self.assertEqual(login, 'user2')
 
         # This should conflict with the saved admin user

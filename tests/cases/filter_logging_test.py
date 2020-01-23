@@ -37,7 +37,7 @@ class FilterLoggingTestCase(base.TestCase):
         base.TestCase.setUp(self)
 
         user = {
-            'email': 'good@email.com',
+            'email': 'good@girder.test',
             'login': 'goodlogin',
             'firstName': 'First',
             'lastName': 'Last',

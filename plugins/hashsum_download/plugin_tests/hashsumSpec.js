@@ -47,7 +47,7 @@ describe('Unit test the file view augmentation', function () {
 
 describe('Test configuration page', function () {
     it('register admin', girderTest.createUser(
-        'admin', 'admin@email.com', 'John', 'Doe', 'password!'));
+        'admin', 'admin@girder.test', 'John', 'Doe', 'password!'));
 
     it('navigate to config page', function () {
         window.location.assign('#plugins/hashsum_download/config');

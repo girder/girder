@@ -13,7 +13,7 @@ class SetupDatabaseTestCase(base.TestCase):
         self.assertDictContains({
             'firstName': 'First',
             'lastName': 'Last',
-            'email': 'admin@email.com',
+            'email': 'admin@girder.test',
             'admin': True
         }, admin, 'Admin user')
 

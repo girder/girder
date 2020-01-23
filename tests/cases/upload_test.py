@@ -43,7 +43,7 @@ class UploadTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
         admin = {
-            'email': 'admin@email.com',
+            'email': 'admin@girder.test',
             'login': 'admin',
             'firstName': 'Admin',
             'lastName': 'Admin',
@@ -52,7 +52,7 @@ class UploadTestCase(base.TestCase):
         }
         self.admin = User().createUser(**admin)
         user = {
-            'email': 'good@email.com',
+            'email': 'good@girder.test',
             'login': 'goodlogin',
             'firstName': 'First',
             'lastName': 'Last',

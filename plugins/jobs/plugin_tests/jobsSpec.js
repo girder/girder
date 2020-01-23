@@ -175,7 +175,7 @@ describe('Unit test the job list widget.', function () {
         var jobs, rows, widget;
 
         girderTest.createUser(
-            'admin', 'admin@email.com', 'Quota', 'Admin', 'testpassword')();
+            'admin', 'admin@girder.test', 'Quota', 'Admin', 'testpassword')();
 
         runs(function () {
             widget = new girder.plugins.jobs.views.JobListWidget({

@@ -3,7 +3,7 @@ girderTest.startApp();
 
 describe('test the autojoin ui', function () {
     it('register an admin', girderTest.createUser(
-        'admin', 'admin@example.com', 'Joe', 'Admin', 'password'
+        'admin', 'admin@girder2.test', 'Joe', 'Admin', 'password'
     ));
 
     var group1, group2, group3;
@@ -59,17 +59,17 @@ describe('test the autojoin ui', function () {
 
     it('create auto join rules', function () {
         runs(function () {
-            $('#g-autojoin-pattern').val('@test.com');
+            $('#g-autojoin-pattern').val('@girder1.test');
             $('#g-autojoin-group').val(group1);
             $('#g-autojoin-level').val(2);
             $('#g-autojoin-add').trigger('click');
 
-            $('#g-autojoin-pattern').val('@example.com');
+            $('#g-autojoin-pattern').val('@girder2.test');
             $('#g-autojoin-group').val(group2);
             $('#g-autojoin-level').val(1);
             $('#g-autojoin-add').trigger('click');
 
-            $('#g-autojoin-pattern').val('@example.com');
+            $('#g-autojoin-pattern').val('@girder2.test');
             $('#g-autojoin-group').val(group3);
             $('#g-autojoin-level').val(0);
             $('#g-autojoin-add').trigger('click');
@@ -83,7 +83,7 @@ describe('test the autojoin ui', function () {
 
     it('logout', girderTest.logout());
     it('register a user', girderTest.createUser(
-        'user1', 'user1@example.com', 'Joe', 'User', 'password'
+        'user1', 'user1@girder2.test', 'Joe', 'User', 'password'
     ));
     it('go to groups page', girderTest.goToGroupsPage());
     it('verify correct groups', function () {
@@ -94,7 +94,7 @@ describe('test the autojoin ui', function () {
 
     it('logout', girderTest.logout());
     it('register a user', girderTest.createUser(
-        'user2', 'user2@test.com', 'Joe', 'User', 'password'
+        'user2', 'user2@girder1.test', 'Joe', 'User', 'password'
     ));
     it('go to groups page', girderTest.goToGroupsPage());
     it('verify correct groups', function () {

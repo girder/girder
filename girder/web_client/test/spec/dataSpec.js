@@ -52,7 +52,7 @@ describe('Create a data hierarchy', function () {
 
     it('register a user',
         girderTest.createUser('johndoe',
-            'john.doe@email.com',
+            'john.doe@girder.test',
             'John',
             'Doe',
             'password!'));
@@ -568,7 +568,7 @@ describe('Create a data hierarchy', function () {
 
     it('register a second user',
         girderTest.createUser('janedoe',
-            'jane.doe@email.com',
+            'jane.doe@girder.test',
             'Jane',
             'Doe',
             'password!'));

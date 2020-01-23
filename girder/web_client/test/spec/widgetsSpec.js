@@ -26,7 +26,7 @@ function _setProgress(test, duration, resourceId, resourceName) {
 describe('Test widgets that are not covered elsewhere', function () {
     it('register a user',
         girderTest.createUser('admin',
-            'admin@email.com',
+            'admin@girder.test',
             'Admin',
             'Admin',
             'adminpassword!'));

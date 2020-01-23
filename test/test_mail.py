@@ -28,7 +28,7 @@ def testEmailAdmins(smtp):
             password='password', admin=True, email='admin%d@admin.com' % i)
 
     # Set the email from address
-    Setting().set(SettingKey.EMAIL_FROM_ADDRESS, 'a@test.com')
+    Setting().set(SettingKey.EMAIL_FROM_ADDRESS, 'a@girder.test')
 
     # Test sending email to admin users
     mail_utils.sendMailToAdmins('Notification', 'hello')
@@ -38,7 +38,7 @@ def testEmailAdmins(smtp):
     assert message['subject'] == 'Notification'
     assert message['content-type'] == 'text/html; charset="utf-8"'
     assert message['to'] == 'admin0@admin.com, admin1@admin.com'
-    assert message['from'] == 'a@test.com'
+    assert message['from'] == 'a@girder.test'
     assert message.get_payload(decode=True) == b'hello'
 
     # Test sending email to multiple recipients
@@ -49,7 +49,7 @@ def testEmailAdmins(smtp):
     message = smtp.getMail(parse=True)
     assert message['subject'] == 'Email alert'
     assert message['to'] == 'a@abc.com, b@abc.com'
-    assert message['from'] == 'a@test.com'
+    assert message['from'] == 'a@girder.test'
     assert message.get_payload(decode=True) == b'world'
 
     # Pass empty list in the "to" field, check exception

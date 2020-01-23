@@ -29,7 +29,7 @@ class ResourceTestCase(base.TestCase):
     def setUp(self):
         base.TestCase.setUp(self)
         admin = {
-            'email': 'good@email.com',
+            'email': 'good@girder.test',
             'login': 'goodlogin',
             'firstName': 'First',
             'lastName': 'Last',
@@ -37,7 +37,7 @@ class ResourceTestCase(base.TestCase):
         }
         self.admin = User().createUser(**admin)
         user = {
-            'email': 'user@email.com',
+            'email': 'user@girder.test',
             'login': 'userlogin',
             'firstName': 'Normal',
             'lastName': 'User',
@@ -338,7 +338,7 @@ class ResourceTestCase(base.TestCase):
                             params={'type': 'user'})
         self.assertStatusOk(resp)
         self.assertEqual(str(resp.json['_id']), str(self.admin['_id']))
-        self.assertEqual(resp.json['email'], 'good@email.com')
+        self.assertEqual(resp.json['email'], 'good@girder.test')
         # Get a file via this method
         resp = self.request(path='/resource/%s' % self.file1['_id'],
                             method='GET', user=self.admin,

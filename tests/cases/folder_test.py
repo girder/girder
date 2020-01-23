@@ -26,13 +26,13 @@ class FolderTestCase(base.TestCase):
         base.TestCase.setUp(self)
 
         users = ({
-            'email': 'good@email.com',
+            'email': 'good@girder.test',
             'login': 'goodlogin',
             'firstName': 'First',
             'lastName': 'Last',
             'password': 'goodpassword'
         }, {
-            'email': 'regularuser@email.com',
+            'email': 'regularuser@girder.test',
             'login': 'regularuser',
             'firstName': 'First',
             'lastName': 'Last',
