@@ -21,7 +21,7 @@ is recommended. Setting `ansible_python_interpreter: auto` will enable this beha
 | `girder_database_uri`     | no       | `mongodb://localhost:27017/girder`           | The Connection String URI for MongoDB.                                                                                             |
 | `girder_development_mode` | no       | `false`                                      | Whether to enable Girder's development mode, disable HTTP reverse proxy configuration, and install the Python package as editable. |
 | `girder_package`          | no       | `girder`                                     | Package name to install via `pip`, can be a path.                                                                                  |
-| `girder_version`          | no       | `latest`                                     | PyPI version of Girder to install: ``latest``, or ``release``.                                                                     |
+| `girder_version`          | no       | `latest`                                     | The version of Girder to install, as either ``latest``, ``release``, or a PyPI version.                                            |
 | `girder_virtualenv`       | no       | `{{ ansible_user_dir }}/.virtualenvs/girder` | Path to a Python virtual environment to install Girder in.                                                                         |
 | `girder_web`              | no       | `true`                                       | Whether to build the Girder web client.                                                                                            |
 
