@@ -23,7 +23,7 @@ platforms:
     groups:
       - targets
   - name: mongodb
-    image: mongo:4.0
+    image: mongo:4.2
     pre_build_image: true
     override_command: false
     networks:
