@@ -77,10 +77,10 @@ var CreateThumbnailView = View.extend({
             file: this.file,
             item: this.item
         })).girderModal(this).on('shown.bs.modal', () => {
-            this.$('#g-thumbnail-width').focus();
+            this.$('#g-thumbnail-width').trigger('focus');
         });
 
-        this.$('#g-thumbnail-width').focus();
+        this.$('#g-thumbnail-width').trigger('focus');
 
         this.searchWidget.setElement(this.$('.g-search-field-container')).render();
 

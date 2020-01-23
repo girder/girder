@@ -15,7 +15,6 @@ import unicodedata
 import uuid
 
 from dogpile.cache.util import kwarg_function_key_generator
-from girder.external.mongodb_proxy import MongoProxy
 
 from . import docs
 from girder import auditLogger, events, logger, logprint
@@ -33,7 +32,7 @@ from six.moves import range, urllib
 # Arbitrary buffer length for stream-reading request bodies
 READ_BUFFER_LEN = 65536
 
-_MONGO_CURSOR_TYPES = (MongoProxy, pymongo.cursor.Cursor, pymongo.command_cursor.CommandCursor)
+_MONGO_CURSOR_TYPES = (pymongo.cursor.Cursor, pymongo.command_cursor.CommandCursor)
 
 
 def getUrlParts(url=None):

@@ -47,7 +47,7 @@ describe('Test the hierarchy browser modal', function () {
             runs(function () {
                 var select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
-                expect(select.find('option:eq(0)').text()).toBe('Select a root...');
+                expect(select.find('option').first().text()).toBe('Select a root...');
                 expect(select.find('optgroup[label="Collections"]').length).toBe(1);
                 expect(select.find('optgroup[label="Users"]').length).toBe(1);
             });
@@ -73,7 +73,7 @@ describe('Test the hierarchy browser modal', function () {
             runs(function () {
                 var select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
-                expect(select.find('option:eq(0)').text()).toBe('Select a root...');
+                expect(select.find('option').first().text()).toBe('Select a root...');
                 expect(select.find('optgroup[label="Collections"]').length).toBe(0);
                 expect(select.find('optgroup[label="Users"]').length).toBe(1);
             });
@@ -104,7 +104,7 @@ describe('Test the hierarchy browser modal', function () {
             runs(function () {
                 var select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
-                expect(select.find('option:eq(0)').text()).toBe('Select a root...');
+                expect(select.find('option').first().text()).toBe('Select a root...');
                 expect(select.find('option[value="0"]').text()).toBe('Home');
             });
         });
@@ -158,7 +158,7 @@ describe('Test the hierarchy browser modal', function () {
             runs(function () {
                 var select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
-                expect(select.find('option:eq(0)').text()).toBe('Select a root...');
+                expect(select.find('option').first().text()).toBe('Select a root...');
                 expect(select.find('option[value="0"]').text()).toBe('Home');
             });
         });
@@ -189,9 +189,9 @@ describe('Test the hierarchy browser modal', function () {
             runs(function () {
                 var select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
-                expect(select.find('option:eq(0)').text()).toBe('Select a root...');
-                expect(select.find('optgroup:eq(0)').prop('label')).toBe('Collections');
-                expect(select.find('optgroup:eq(1)').prop('label')).toBe('Custom');
+                expect(select.find('option').first().text()).toBe('Select a root...');
+                expect(select.find('optgroup').first().prop('label')).toBe('Collections');
+                expect(select.find('optgroup').eq(1).prop('label')).toBe('Custom');
 
                 returnVal = [
                     { _id: 'abc', name: 'custom 1', _modelType: 'collection' },
@@ -412,7 +412,7 @@ describe('Test the hierarchy browser modal', function () {
                 return $(view.$el).is(':visible');
             });
             runs(function () {
-                view.$('a:contains(Cancel)').click();
+                view.$('a:contains(Cancel)').trigger('click');
                 expect($(view.$el).is(':visible')).toBe(false);
             });
         });
@@ -454,7 +454,7 @@ describe('Test the hierarchy browser modal', function () {
                 return $(view.$el).is(':visible');
             });
             runs(function () {
-                view.$('.g-submit-button').click();
+                view.$('.g-submit-button').trigger('click');
             });
             waitsFor(function () {
                 return $('.g-validation-failed-message').text();
@@ -512,7 +512,7 @@ describe('Test the hierarchy browser modal', function () {
                 return $(view.$el).is(':visible');
             });
             runs(function () {
-                view.$('.g-submit-button').click();
+                view.$('.g-submit-button').trigger('click');
             });
             waitsFor(function () {
                 return !$(view.$el).is(':visible');
@@ -606,7 +606,7 @@ describe('Test the hierarchy browser modal', function () {
 
                 // test an invalid input
                 view.$('#g-input-element').val('input value');
-                view.$('.g-submit-button').click();
+                view.$('.g-submit-button').trigger('click');
             });
             waitsFor(function () {
                 return $('.g-validation-failed-message').text();
@@ -623,7 +623,7 @@ describe('Test the hierarchy browser modal', function () {
                 });
                 validateReturn = undefined;
                 view.$('#g-input-element').val('input value');
-                view.$('.g-submit-button').click();
+                view.$('.g-submit-button').trigger('click');
             });
 
             waitsFor(function () {

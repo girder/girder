@@ -54,7 +54,7 @@ var EditAssetstoreWidget = View.extend({
             assetstore: this.model,
             types: AssetstoreType
         })).girderModal(this).on('shown.bs.modal', () => {
-            this.$('#g-edit-name').focus();
+            this.$('#g-edit-name').trigger('focus');
             handleOpen('assetstoreedit', undefined, this.model.get('id'));
             this.$('#g-edit-name').val(this.model.get('name'));
             this.fieldsMap[this.model.get('type')].set.call(this);
@@ -78,7 +78,7 @@ var EditAssetstoreWidget = View.extend({
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-assetstore').girderEnable(true);
-            this.$('#g-' + err.responseJSON.field).focus();
+            this.$('#g-' + err.responseJSON.field).trigger('focus');
             this.model.set(oldfields);
         }, this).save();
     }

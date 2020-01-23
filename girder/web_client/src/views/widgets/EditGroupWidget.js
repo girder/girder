@@ -61,7 +61,7 @@ var EditGroupWidget = View.extend({
             groupAddAllowed: groupAddAllowed,
             addAllowed: this.model ? this.model.get('addAllowed') : false
         })).girderModal(this).on('shown.bs.modal', () => {
-            this.$('#g-name').focus();
+            this.$('#g-name').trigger('focus');
             if (this.model) {
                 handleOpen('edit');
             } else {
@@ -83,7 +83,7 @@ var EditGroupWidget = View.extend({
             }
         });
         modal.trigger($.Event('ready.girder.modal', { relatedTarget: modal }));
-        this.$('#g-name').focus();
+        this.$('#g-name').trigger('focus');
 
         this.privacyChanged();
 
@@ -99,7 +99,7 @@ var EditGroupWidget = View.extend({
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-group').girderEnable(true);
-            this.$('#g-' + err.responseJSON.field).focus();
+            this.$('#g-' + err.responseJSON.field).trigger('focus');
         }, this).save();
     },
 
@@ -111,7 +111,7 @@ var EditGroupWidget = View.extend({
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-group').girderEnable(true);
-            this.$('#g-' + err.responseJSON.field).focus();
+            this.$('#g-' + err.responseJSON.field).trigger('focus');
         }, this).save();
     },
 

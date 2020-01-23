@@ -297,17 +297,17 @@ describe('Unit test the job list widget.', function () {
             // one item should be unchecked
             expect(widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]:checked').length).toBe(2);
 
-            widget.$('.g-job-filter-container .type .dropdown ul li input').first().click();
+            widget.$('.g-job-filter-container .type .dropdown ul li input').first().trigger('click');
 
             expect(widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]:checked').length).toBe(1);
 
-            widget.$('.g-job-filter-container .type .dropdown .g-job-checkall input').click();
+            widget.$('.g-job-filter-container .type .dropdown .g-job-checkall input').trigger('click');
 
             // all should be checked after clicking Check all
             expect(widget.$('.g-job-filter-container .type .dropdown ul li input[type="checkbox"]:checked').length).toBe(3);
             expect($('.g-job-filter-container .type .dropdown .g-job-checkall input').is(':checked')).toBe(true);
 
-            widget.$('.g-job-filter-container .status .dropdown .g-job-checkall input').click();
+            widget.$('.g-job-filter-container .status .dropdown .g-job-checkall input').trigger('click');
 
             expect(widget.$('.g-job-filter-container .status .dropdown ul li input[type="checkbox"]:checked').length).toBe(0);
 
@@ -364,7 +364,7 @@ describe('Unit test the job list widget.', function () {
             widget.on('g:jobClicked', function () {
                 fired = true;
             });
-            widget.$('.g-job-trigger-link').click();
+            widget.$('.g-job-trigger-link').trigger('click');
             expect(fired).toBe(true);
         });
     });
@@ -431,20 +431,20 @@ describe('Unit test the job list widget.', function () {
             // button is disabled when no job is checked
             expect(widget.$('.g-job-check-menu-button').is(':disabled')).toBe(true);
 
-            widget.$('input:checkbox:not(:checked).g-job-checkbox').click();
-            widget.$('input:checkbox:not(:checked).g-job-checkbox').click();
-            widget.$('input:checkbox:not(:checked).g-job-checkbox').click();
+            widget.$('input:checkbox:not(:checked).g-job-checkbox').trigger('click');
+            widget.$('input:checkbox:not(:checked).g-job-checkbox').trigger('click');
+            widget.$('input:checkbox:not(:checked).g-job-checkbox').trigger('click');
 
             expect(widget.$('.g-job-check-menu-button').is(':disabled')).toBe(false);
             expect(widget.$('.g-job-checkbox-all').is(':checked')).toBe(true);
-            widget.$('.g-job-checkbox-all').click();
+            widget.$('.g-job-checkbox-all').trigger('click');
 
             expect(widget.$('input:checkbox:not(:checked).g-job-checkbox').length).toBe(3);
 
-            widget.$('.g-job-checkbox-all').click();
+            widget.$('.g-job-checkbox-all').trigger('click');
             expect(widget.$('input:checkbox:not(:checked).g-job-checkbox').length).toBe(0);
 
-            widget.$('.g-jobs-list-cancel').click();
+            widget.$('.g-jobs-list-cancel').trigger('click');
         });
     });
 
@@ -510,7 +510,7 @@ describe('Unit test the job list widget.', function () {
 
         runs(function () {
             expect(widget.$('.g-jobs-graph svg .mark-symbol.circle path').length).toBe(3);
-            $('.g-job-filter-container .timing .dropdown .g-job-checkall input').click();
+            $('.g-job-filter-container .timing .dropdown .g-job-checkall input').trigger('click');
         });
         waitsFor(function () {
             return !widget.$('.g-jobs-graph svg .mark-symbol.circle path').length;

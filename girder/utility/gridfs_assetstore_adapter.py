@@ -9,7 +9,6 @@ import uuid
 
 from girder import logger
 from girder.api.rest import setResponseHeader
-from girder.external.mongodb_proxy import MongoProxy
 from girder.models import getDbConnection
 from girder.exceptions import ValidationException
 from girder.models.file import File
@@ -59,7 +58,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
 
         try:
             chunkColl = getDbConnection(
-                doc.get('mongohost'), doc.get('replicaset'), autoRetry=False,
+                doc.get('mongohost'), doc.get('replicaset'),
                 serverSelectionTimeoutMS=10000)[doc['db']].chunk
             _ensureChunkIndices(chunkColl)
         except pymongo.errors.ServerSelectionTimeoutError as e:
@@ -94,7 +93,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             client = getDbConnection(self.assetstore.get('mongohost'),
                                      self.assetstore.get('replicaset'),
                                      quiet=recent)
-            self.chunkColl = MongoProxy(client[self.assetstore['db']].chunk)
+            self.chunkColl = client[self.assetstore['db']].chunk
             if not recent:
                 _ensureChunkIndices(self.chunkColl)
                 if key is not None:

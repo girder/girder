@@ -24,11 +24,11 @@ var MarkdownWidget = View.extend({
         },
 
         'shown.bs.tab .g-write-link': function () {
-            this.$('.g-markdown-text').focus();
+            this.$('.g-markdown-text').trigger('focus');
         },
 
         'click .g-browse': function () {
-            this.$('.g-file-input').click();
+            this.$('.g-file-input').trigger('click');
         },
 
         'change .g-file-input': function (e) {

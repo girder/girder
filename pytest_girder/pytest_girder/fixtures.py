@@ -40,17 +40,14 @@ def db(request):
     from girder.models import _dbClients, getDbConnection, pymongo
     from girder.models import model_base
     from girder.models.user import User
-    from girder.external import mongodb_proxy
 
     mockDb = request.config.getoption('--mock-db')
     dbUri = request.config.getoption('--mongo-uri')
     dbName = 'girder_test_%s' % hashlib.md5(_uid(request.node).encode('utf8')).hexdigest()
     keepDb = request.config.getoption('--keep-db')
-    executable_methods = mongodb_proxy.EXECUTABLE_MONGO_METHODS
     realMongoClient = pymongo.MongoClient
 
     if mockDb:
-        mongodb_proxy.EXECUTABLE_MONGO_METHODS = set()
         pymongo.MongoClient = mongomock.MongoClient
 
     connection = getDbConnection(uri='%s/%s' % (dbUri, dbName), quiet=False)
@@ -85,7 +82,6 @@ def db(request):
         model.__class__._instance = None
 
     if mockDb:
-        mongodb_proxy.EXECUTABLE_MONGO_METHODS = executable_methods
         pymongo.MongoClient = realMongoClient
 
 

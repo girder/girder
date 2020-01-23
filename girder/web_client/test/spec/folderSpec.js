@@ -13,7 +13,7 @@ function _editFolder(button, buttonText, testValidation) {
     }, 'the folder actions button to appear');
 
     runs(function () {
-        $('.g-folder-actions-button').click();
+        $('.g-folder-actions-button').trigger('click');
     });
 
     waitsFor(function () {
@@ -21,7 +21,7 @@ function _editFolder(button, buttonText, testValidation) {
     }, 'the folder edit action to appear');
 
     runs(function () {
-        $('.g-edit-folder').click();
+        $('.g-edit-folder').trigger('click');
     });
 
     waitsFor(function () {
@@ -38,7 +38,7 @@ function _editFolder(button, buttonText, testValidation) {
             expect($('.g-upload-footer').length).toBe(1);
             oldval = $('#g-name').val();
             $('#g-name').val('');
-            $('.g-save-folder').click();
+            $('.g-save-folder').trigger('click');
         });
         waitsFor(function () {
             return $('.g-validation-failed-message').text() === 'Folder name must not be empty.';
@@ -69,7 +69,7 @@ function _editFolder(button, buttonText, testValidation) {
         runs(function () {
             expect($('#g-dialog-container .g-markdown-text').val()).toMatch(
                 /!\[fake\.jpg]\(.*\/download\)/);
-            $('#g-dialog-container .g-preview-link').click();
+            $('#g-dialog-container .g-preview-link').trigger('click');
         });
 
         waitsFor(function () {
@@ -79,7 +79,7 @@ function _editFolder(button, buttonText, testValidation) {
         /* Test drag-and-drop.  Don't bother actually transferring a file --
          * that functionality is already tested. */
         runs(function () {
-            $('#g-dialog-container .g-write-link').click();
+            $('#g-dialog-container .g-write-link').trigger('click');
         });
         waitsFor(function () {
             return $('.g-markdown-text:visible').length > 0;
@@ -97,7 +97,7 @@ function _editFolder(button, buttonText, testValidation) {
     }
 
     runs(function () {
-        $(button).click();
+        $(button).trigger('click');
     });
     girderTest.waitForLoad();
 }
@@ -118,7 +118,7 @@ describe('Test folder creation, editing, and deletion', function () {
         });
 
         runs(function () {
-            $('a.g-user-link:contains("Admin")').click();
+            $('a.g-user-link:contains("Admin")').trigger('click');
         });
 
         waitsFor(function () {
@@ -137,7 +137,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'the private folder to be clickable');
 
         runs(function () {
-            $('a.g-folder-list-link:contains(Private)').click();
+            $('a.g-folder-list-link:contains(Private)').trigger('click');
         });
 
         waitsFor(function () {
@@ -159,7 +159,7 @@ describe('Test folder creation, editing, and deletion', function () {
         });
 
         runs(function () {
-            $('a.g-user-link:contains("Admin")').click();
+            $('a.g-user-link:contains("Admin")').trigger('click');
         });
 
         waitsFor(function () {
@@ -178,7 +178,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'the public folder to be clickable');
 
         runs(function () {
-            $('a.g-folder-list-link:contains(Public)').click();
+            $('a.g-folder-list-link:contains(Public)').trigger('click');
         });
 
         waitsFor(function () {
@@ -187,7 +187,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'message that the folder is empty');
 
         runs(function () {
-            $('.g-folder-actions-button:visible').click();
+            $('.g-folder-actions-button:visible').trigger('click');
         });
 
         waitsFor(function () {
@@ -195,7 +195,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'create folder option is clickable');
 
         runs(function () {
-            $('.g-create-subfolder:visible').click();
+            $('.g-create-subfolder:visible').trigger('click');
         });
 
         girderTest.waitForDialog();
@@ -209,7 +209,7 @@ describe('Test folder creation, editing, and deletion', function () {
 
         runs(function () {
             expect($('.g-upload-footer').length).toBe(0);
-            $('.g-save-folder').click();
+            $('.g-save-folder').trigger('click');
         });
         waitsFor(function () {
             return $('.g-validation-failed-message').text() === 'Folder name must not be empty.';
@@ -219,7 +219,7 @@ describe('Test folder creation, editing, and deletion', function () {
             $('#g-name').val('Test Folder Name');
             $('.g-description-editor-container .g-markdown-text').val(
                 '## Test Description');
-            $('.g-description-editor-container .g-preview-link').click();
+            $('.g-description-editor-container .g-preview-link').trigger('click');
         });
 
         waitsFor(function () {
@@ -227,7 +227,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'markdown preview to show up correctly');
 
         runs(function () {
-            $('.g-save-folder').click();
+            $('.g-save-folder').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -236,7 +236,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'the new folder to appear in the list');
 
         runs(function () {
-            $('.g-folder-info-button').click();
+            $('.g-folder-info-button').trigger('click');
         });
         girderTest.waitForDialog();
 
@@ -248,12 +248,12 @@ describe('Test folder creation, editing, and deletion', function () {
             expect($('.g-folder-info-line[property="created"]').text()).toContain(
                 'Created ');
             expect($('.g-folder-description').length).toBe(0);
-            $('.modal-footer a[data-dismiss="modal"]').click();
+            $('.modal-footer a[data-dismiss="modal"]').trigger('click');
         });
         girderTest.waitForLoad();
 
         runs(function () {
-            $('a.g-folder-list-link:contains("Test Folder Name")').click();
+            $('a.g-folder-list-link:contains("Test Folder Name")').trigger('click');
         });
 
         waitsFor(function () {
@@ -280,7 +280,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'folder actions to be available');
 
         runs(function () {
-            $('.g-folder-actions-button:visible').click();
+            $('.g-folder-actions-button:visible').trigger('click');
         });
 
         waitsFor(function () {
@@ -288,7 +288,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'create item option is clickable');
 
         runs(function () {
-            $('.g-create-item:visible').click();
+            $('.g-create-item:visible').trigger('click');
         });
 
         girderTest.waitForDialog();
@@ -298,7 +298,7 @@ describe('Test folder creation, editing, and deletion', function () {
 
         runs(function () {
             $('#g-name').val('Test Item Name');
-            $('.g-save-item').click();
+            $('.g-save-item').trigger('click');
         });
 
         waitsFor(function () {
@@ -307,17 +307,17 @@ describe('Test folder creation, editing, and deletion', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            $('a.g-item-list-link:contains(Test Item Name)').click();
+            $('a.g-item-list-link:contains(Test Item Name)').trigger('click');
         });
 
         waitsFor(function () {
             return $('.g-item-name:contains(Test Item Name)').length &&
-                   $('a.g-item-breadcrumb-link:last').length > 0;
+                   $('a.g-item-breadcrumb-link').last().length > 0;
         }, 'the item page to load');
         girderTest.waitForLoad();
 
         runs(function () {
-            $('a.g-item-breadcrumb-link:last').click();
+            $('a.g-item-breadcrumb-link').last().trigger('click');
         });
 
         waitsFor(function () {
@@ -327,7 +327,7 @@ describe('Test folder creation, editing, and deletion', function () {
 
         runs(function () {
             expect($('.g-widget-metadata-row').length).toNotBe(0);
-            $('i.icon-level-up').click();
+            $('i.icon-level-up').trigger('click');
         });
 
         waitsFor(function () {
@@ -338,7 +338,7 @@ describe('Test folder creation, editing, and deletion', function () {
         runs(function () {
             /* This folder shouldn't show any metadata */
             expect($('.g-widget-metadata-row').length).toBe(0);
-            $('a.g-breadcrumb-link').click();
+            $('a.g-breadcrumb-link').trigger('click');
         });
 
         waitsFor(function () {
@@ -351,7 +351,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'the public folder to be clickable');
 
         runs(function () {
-            $('a.g-folder-list-link:contains(Public)').click();
+            $('a.g-folder-list-link:contains(Public)').trigger('click');
         });
 
         waitsFor(function () {
@@ -359,7 +359,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'the public folder to be clickable');
 
         runs(function () {
-            $('a.g-folder-list-link:contains(Test Folder Name)').click();
+            $('a.g-folder-list-link:contains(Test Folder Name)').trigger('click');
         });
         waitsFor(function () {
             return $('a.g-breadcrumb-link').length === 2;
@@ -377,7 +377,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'the folder actions button to appear');
 
         runs(function () {
-            $('.g-folder-actions-button').click();
+            $('.g-folder-actions-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -385,7 +385,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'the folder delete action to appear');
 
         runs(function () {
-            $('.g-delete-folder').click();
+            $('.g-delete-folder').trigger('click');
         });
 
         girderTest.waitForDialog();
@@ -395,7 +395,7 @@ describe('Test folder creation, editing, and deletion', function () {
         }, 'delete confirmation to appear');
 
         runs(function () {
-            $('#g-confirm-button').click();
+            $('#g-confirm-button').trigger('click');
         });
 
         waitsFor(function () {

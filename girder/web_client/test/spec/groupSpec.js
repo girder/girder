@@ -28,7 +28,7 @@ function _invite(name, level, action, check) {
 
         expect(results.find('a[data-resource-type="user"]').length).toBe(1);
 
-        results.find('a[data-resource-type="user"]').click();
+        results.find('a[data-resource-type="user"]').trigger('click');
     });
     girderTest.waitForDialog();
     waitsFor(function () {
@@ -41,19 +41,19 @@ function _invite(name, level, action, check) {
             case 'admin': sel = 'administrator'; break;
         }
         if (sel !== 'member') {
-            $('.panel-title:contains("Invite as ' + sel + '") a').click();
+            $('.panel-title:contains("Invite as ' + sel + '") a').trigger('click');
         }
     });
     runs(function () {
         if (check === true) {
             expect($('.g-' + action + '-as-' + level).length).toBe(1);
-            $('.modal-footer a').click();
+            $('.modal-footer a').trigger('click');
         } else if (check === false) {
             expect($('.g-' + action + '-as-' + level).length).toBe(0);
             expect($('.g-invite-as-' + level).length).toBe(1);
-            $('.modal-footer a').click();
+            $('.modal-footer a').trigger('click');
         } else {
-            $('.g-' + action + '-as-' + level).click();
+            $('.g-' + action + '-as-' + level).trigger('click');
         }
     });
     girderTest.waitForLoad();
@@ -97,7 +97,7 @@ function _testDirectAdd(policy, curUser, curSetting) {
                        $('.g-group-list-entry:contains("pubGroup") .g-group-link').length === 1;
             }, 'the two groups to show up');
             runs(function () {
-                $('.g-group-list-entry:contains("pubGroup") .g-group-link').click();
+                $('.g-group-list-entry:contains("pubGroup") .g-group-link').trigger('click');
             });
             waitsFor(function () {
                 return $('.g-group-name').text() === 'pubGroup' &&
@@ -125,7 +125,7 @@ function _testDirectAdd(policy, curUser, curSetting) {
                    $('.g-group-list-entry:contains("pubGroup") .g-group-link').length === 1;
         }, 'the public groups to show up');
         runs(function () {
-            $('.g-group-list-entry:contains("pubGroup") .g-group-link').click();
+            $('.g-group-list-entry:contains("pubGroup") .g-group-link').trigger('click');
         });
         waitsFor(function () {
             return $('.g-group-name').text() === 'pubGroup' &&
@@ -181,7 +181,7 @@ describe('Test group actions', function () {
         }, 'the group actions button to appear');
 
         runs(function () {
-            $('.g-group-actions-button').click();
+            $('.g-group-actions-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -189,7 +189,7 @@ describe('Test group actions', function () {
         }, 'the group edit action to appear');
 
         runs(function () {
-            $('.g-edit-group').click();
+            $('.g-edit-group').trigger('click');
         });
 
         waitsFor(function () {
@@ -202,14 +202,14 @@ describe('Test group actions', function () {
         }, 'the cancel button to appear');
 
         runs(function () {
-            $('a.btn-default').click();
+            $('a.btn-default').trigger('click');
         });
         girderTest.waitForLoad();
     });
 
     it('have the admin remove and then force add themself to the group', function () {
         runs(function () {
-            $('.g-group-admin-remove').click();
+            $('.g-group-admin-remove').trigger('click');
         });
 
         girderTest.waitForDialog();
@@ -220,7 +220,7 @@ describe('Test group actions', function () {
 
         // Admin user removes themself from the group
         runs(function () {
-            $('#g-confirm-button').click();
+            $('#g-confirm-button').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -276,7 +276,7 @@ describe('Test group actions', function () {
         runs(function () {
             expect($('.g-group-list-entry').text().match('pubGroup').length === 1);
             expect($('.g-group-list-entry').text().match('public group').length === 1);
-            $('.g-group-link:first').click();
+            $('.g-group-link').first().trigger('click');
         });
 
         waitsFor(function () {
@@ -292,7 +292,7 @@ describe('Test group actions', function () {
                    $('.g-group-list-entry:contains("pubGroup") .g-group-link').length === 1;
         }, 'the two groups to show up');
         runs(function () {
-            $('.g-group-list-entry:contains("pubGroup") .g-group-link').click();
+            $('.g-group-list-entry:contains("pubGroup") .g-group-link').trigger('click');
         });
         waitsFor(function () {
             return $('.g-group-name').text() === 'pubGroup' &&
@@ -302,13 +302,13 @@ describe('Test group actions', function () {
                    $('.g-group-members .g-member-name').length === 1;
         }, 'the group page to load');
         runs(function () {
-            $('.g-group-members .g-group-member-controls .dropdown .g-group-member-promote').click();
+            $('.g-group-members .g-group-member-controls .dropdown .g-group-member-promote').trigger('click');
         });
         waitsFor(function () {
             return $('.g-group-members .g-group-member-controls .g-promote-moderator:visible').length === 1;
         }, 'wait for member drop down dialog to appear');
         runs(function () {
-            $('.g-group-members .g-group-member-controls .g-promote-moderator').click();
+            $('.g-group-members .g-group-member-controls .g-promote-moderator').trigger('click');
         });
         waitsFor(function () {
             return $('.g-group-members .g-member-list-empty').length === 1 &&
@@ -316,7 +316,7 @@ describe('Test group actions', function () {
                    $('.g-group-mod-promote').length === 1;
         }, 'the member to become a moderator');
         runs(function () {
-            $('.g-group-mod-promote').click();
+            $('.g-group-mod-promote').trigger('click');
         });
         waitsFor(function () {
             return $('.g-group-members .g-member-list-empty').length === 1 &&
@@ -325,13 +325,13 @@ describe('Test group actions', function () {
                    $('.g-group-admin-demote').length === 1;
         }, 'the member to become an admin');
         runs(function () {
-            $('.g-group-admin-demote').click();
+            $('.g-group-admin-demote').trigger('click');
         });
         waitsFor(function () {
             return $('.g-group-admins .g-demote-member:visible').length === 1;
         }, 'wait for admin drop down dialog to appear');
         runs(function () {
-            $('.g-group-admins .g-demote-moderator').click();
+            $('.g-group-admins .g-demote-moderator').trigger('click');
         });
         girderTest.confirmDialog();
         waitsFor(function () {
@@ -341,7 +341,7 @@ describe('Test group actions', function () {
                    $('.g-group-mod-promote').length === 1;
         }, 'the member to become a moderator');
         runs(function () {
-            $('.g-group-mod-demote').click();
+            $('.g-group-mod-demote').trigger('click');
         });
         girderTest.confirmDialog();
         waitsFor(function () {
@@ -350,13 +350,13 @@ describe('Test group actions', function () {
                    $('.g-group-members .g-member-name').length === 1;
         }, 'the member to be a plain member');
         runs(function () {
-            $('.g-group-members .g-group-member-controls .dropdown .g-group-member-promote').click();
+            $('.g-group-members .g-group-member-controls .dropdown .g-group-member-promote').trigger('click');
         });
         waitsFor(function () {
             return $('.g-group-members .g-group-member-controls .g-promote-admin:visible').length === 1;
         }, 'wait for member drop down dialog to appear');
         runs(function () {
-            $('.g-group-members .g-group-member-controls .g-promote-admin').click();
+            $('.g-group-members .g-group-member-controls .g-promote-admin').trigger('click');
         });
         waitsFor(function () {
             return $('.g-group-members .g-member-list-empty').length === 1 &&
@@ -365,13 +365,13 @@ describe('Test group actions', function () {
                    $('.g-group-admin-demote').length === 1;
         }, 'the member to become an admin');
         runs(function () {
-            $('.g-group-admin-demote').click();
+            $('.g-group-admin-demote').trigger('click');
         });
         waitsFor(function () {
             return $('.g-group-admins .g-demote-member:visible').length === 1;
         }, 'wait for admin drop down dialog to appear');
         runs(function () {
-            $('.g-group-admins .g-demote-member').click();
+            $('.g-group-admins .g-demote-member').trigger('click');
         });
         girderTest.confirmDialog();
         waitsFor(function () {
@@ -383,7 +383,7 @@ describe('Test group actions', function () {
 
     it('check member addition and removal', function () {
         runs(function () {
-            $('.g-group-member-remove').click();
+            $('.g-group-member-remove').trigger('click');
         });
         girderTest.confirmDialog();
         _invite('admin', 'member', 'invite');
@@ -397,7 +397,7 @@ describe('Test group actions', function () {
                    $('.g-group-mod-promote').length === 1;
         }, 'the member to become a moderator');
         runs(function () {
-            $('.g-group-mod-remove').click();
+            $('.g-group-mod-remove').trigger('click');
         });
         girderTest.confirmDialog();
         _invite('admin', 'admin', 'add');
@@ -408,7 +408,7 @@ describe('Test group actions', function () {
                    $('.g-group-admin-demote').length === 1;
         }, 'the member to become an admin');
         runs(function () {
-            $('.g-group-admin-remove').click();
+            $('.g-group-admin-remove').trigger('click');
         });
         girderTest.confirmDialog();
         _invite('admin', 'admin', 'add');
@@ -443,7 +443,7 @@ describe('Test group actions', function () {
                        $('.g-group-list-entry:contains("pubGroup") .g-group-link').length === 1;
             }, 'the two groups to show up');
             runs(function () {
-                $('.g-group-list-entry:contains("pubGroup") .g-group-link').click();
+                $('.g-group-list-entry:contains("pubGroup") .g-group-link').trigger('click');
             });
             waitsFor(function () {
                 return $('.g-group-name').text() === 'pubGroup' &&
@@ -468,20 +468,20 @@ describe('Test group actions', function () {
             return $('.g-group-actions-button:visible').length === 1;
         }, 'the group actions button to appear');
         runs(function () {
-            $('.g-group-actions-button').click();
+            $('.g-group-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-edit-group:visible').length === 1;
         }, 'the group edit action to appear');
         runs(function () {
-            $('.g-edit-group').click();
+            $('.g-edit-group').trigger('click');
         });
         girderTest.waitForDialog();
         waitsFor(function () {
             return $('#g-add-to-group').length === 1;
         }, 'the add-to-group control to appear');
         runs(function () {
-            $('button.btn-primary').click();
+            $('button.btn-primary').trigger('click');
         });
         girderTest.waitForLoad();
     });

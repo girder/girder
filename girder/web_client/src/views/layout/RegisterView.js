@@ -21,7 +21,7 @@ var RegisterView = View.extend({
 
             if (this.$('#g-password').val() !== this.$('#g-password2').val()) {
                 this.$('#g-group-password,#g-group-password2').addClass('has-error');
-                this.$('#g-password').focus();
+                this.$('#g-password').trigger('focus');
                 this.$('.g-validation-failed-message').text('Passwords must match.');
                 return;
             }
@@ -68,7 +68,7 @@ var RegisterView = View.extend({
                 this.$('.g-validation-failed-message').text(resp.message);
                 if (resp.field) {
                     this.$('#g-group-' + resp.field).addClass('has-error');
-                    this.$('#g-' + resp.field).focus();
+                    this.$('#g-' + resp.field).trigger('focus');
                 }
                 this.$('#g-register-button').girderEnable(true);
             }, this).save();
@@ -88,11 +88,11 @@ var RegisterView = View.extend({
             title: getCurrentUser() ? 'Create new user' : 'Sign up'
         })).girderModal(this)
             .on('shown.bs.modal', () => {
-                this.$('#g-login').focus();
+                this.$('#g-login').trigger('focus');
             }).on('hidden.bs.modal', () => {
                 handleClose('register', { replace: true });
             });
-        this.$('#g-login').focus();
+        this.$('#g-login').trigger('focus');
 
         handleOpen('register', { replace: true });
 

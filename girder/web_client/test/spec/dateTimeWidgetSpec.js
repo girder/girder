@@ -74,7 +74,7 @@ describe('Test DateTimeWidget', function () {
             expect(widget.$('.icon-calendar').length).toBe(0);
 
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(0);
-            widget.$('input').focus();
+            widget.$('input').trigger('focus');
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(1);
         });
 
@@ -90,7 +90,7 @@ describe('Test DateTimeWidget', function () {
             expect(widget.$('.icon-calendar').length).toBe(1);
 
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(0);
-            widget.$('.icon-calendar').click();
+            widget.$('.icon-calendar').trigger('click');
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(1);
         });
     });
@@ -253,14 +253,14 @@ describe('Test DateTimeRangeWidget', function () {
             expect(widget.$('.icon-calendar').length).toBe(0);
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(0);
 
-            widget.$('input').eq(0).focus();
+            widget.$('input').eq(0).trigger('focus');
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(1);
-            widget.$('input').eq(0).blur();
+            widget.$('input').eq(0).trigger('blur');
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(0);
 
-            widget.$('input').eq(1).focus();
+            widget.$('input').eq(1).trigger('focus');
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(1);
-            widget.$('input').eq(1).blur();
+            widget.$('input').eq(1).trigger('blur');
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(0);
         });
 
@@ -276,14 +276,14 @@ describe('Test DateTimeRangeWidget', function () {
             expect(widget.$('.icon-calendar').length).toBe(2);
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(0);
 
-            widget.$('.icon-calendar').eq(0).click();
+            widget.$('.icon-calendar').eq(0).trigger('click');
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(1);
-            widget.$('.icon-calendar').eq(0).click();
+            widget.$('.icon-calendar').eq(0).trigger('click');
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(0);
 
-            widget.$('.icon-calendar').eq(1).click();
+            widget.$('.icon-calendar').eq(1).trigger('click');
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(1);
-            widget.$('.icon-calendar').eq(1).click();
+            widget.$('.icon-calendar').eq(1).trigger('click');
             expect(widget.$('.bootstrap-datetimepicker-widget').length).toBe(0);
         });
 

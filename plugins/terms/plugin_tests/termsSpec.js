@@ -35,7 +35,7 @@ describe('Create and log in to a user for testing', function () {
 describe('Ensure that basic collections still work', function () {
     it('go to collections page', function () {
         runs(function () {
-            $('a.g-nav-link[g-target="collections"]').click();
+            $('a.g-nav-link[g-target="collections"]').trigger('click');
         });
         waitsFor(function () {
             return $('.g-collection-create-button:visible').length > 0;
@@ -51,7 +51,7 @@ describe('Ensure that basic collections still work', function () {
 describe('Navigate to a non-collection folder and item', function () {
     it('navigate to user folders page', function () {
         runs(function () {
-            $('a.g-my-folders').click();
+            $('a.g-my-folders').trigger('click');
         });
         waitsFor(function () {
             return $('.g-user-header').length > 0 && $('.g-folder-list-entry').length > 0;
@@ -62,7 +62,7 @@ describe('Navigate to a non-collection folder and item', function () {
         runs(function () {
             var folderLink = $('.g-folder-list-link:contains("Public")');
             expect(folderLink.length).toBe(1);
-            folderLink.click();
+            folderLink.trigger('click');
         });
         waitsFor(function () {
             return $('.g-item-count-container:visible').length === 1;
@@ -89,7 +89,7 @@ describe('Navigate to a non-collection folder and item', function () {
 
     it('create an item', function () {
         runs(function () {
-            $('.g-create-item').click();
+            $('.g-create-item').trigger('click');
         });
         girderTest.waitForDialog();
 
@@ -98,7 +98,7 @@ describe('Navigate to a non-collection folder and item', function () {
         });
         runs(function () {
             $('#g-name').val('User Item');
-            $('.g-save-item').click();
+            $('.g-save-item').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -110,7 +110,7 @@ describe('Navigate to a non-collection folder and item', function () {
         runs(function () {
             var itemLink = $('.g-item-list-link:contains("User Item")');
             expect(itemLink.length).toBe(1);
-            itemLink.click();
+            itemLink.trigger('click');
         });
         waitsFor(function () {
             return $('.g-item-header').length > 0;
@@ -127,7 +127,7 @@ var termsCollectionId, termsFolderId, termsItemId;
 describe('Create a collection with terms', function () {
     it('go to collections page', function () {
         runs(function () {
-            $('a.g-nav-link[g-target="collections"]').click();
+            $('a.g-nav-link[g-target="collections"]').trigger('click');
         });
         waitsFor(function () {
             return $('.g-collection-create-button:visible').length > 0;
@@ -139,7 +139,7 @@ describe('Create a collection with terms', function () {
             return $('.g-collection-create-button').is(':enabled');
         });
         runs(function () {
-            $('.g-collection-create-button').click();
+            $('.g-collection-create-button').trigger('click');
         });
         girderTest.waitForDialog();
         waitsFor(function () {
@@ -152,7 +152,7 @@ describe('Create a collection with terms', function () {
             $('#g-name').val('Terms Collection');
             $('#collection-description-write .g-markdown-text').val('Some other description.');
             $('#collection-terms-write .g-markdown-text').val('# Sample Terms of Use\n\n**\u00af\\\\\\_(\u30c4)\\_/\u00af**');
-            $('.g-save-collection').click();
+            $('.g-save-collection').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -167,19 +167,19 @@ describe('Create a collection with terms', function () {
 
     it('make the collection public', function () {
         runs(function () {
-            $('.g-edit-access').click();
+            $('.g-edit-access').trigger('click');
         });
         girderTest.waitForDialog();
         runs(function () {
-            $('#g-access-public').click();
-            $('.g-save-access-list').click();
+            $('#g-access-public').trigger('click');
+            $('.g-save-access-list').trigger('click');
         });
         girderTest.waitForLoad();
     });
 
     it('check the collection info dialog', function () {
         runs(function () {
-            $('.g-collection-info-button').click();
+            $('.g-collection-info-button').trigger('click');
         });
         girderTest.waitForDialog();
         waitsFor(function () {
@@ -189,14 +189,14 @@ describe('Create a collection with terms', function () {
             expect($('.g-terms-info>h1').text()).toBe('Sample Terms of Use');
         });
         runs(function () {
-            $('.modal-header .close').click();
+            $('.modal-header .close').trigger('click');
         });
         girderTest.waitForLoad();
     });
 
     it('create a folder', function () {
         runs(function () {
-            return $('.g-create-subfolder').click();
+            return $('.g-create-subfolder').trigger('click');
         });
         girderTest.waitForDialog();
         waitsFor(function () {
@@ -204,7 +204,7 @@ describe('Create a collection with terms', function () {
         });
         runs(function () {
             $('#g-name').val('Terms Folder');
-            $('.g-save-folder').click();
+            $('.g-save-folder').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -216,7 +216,7 @@ describe('Create a collection with terms', function () {
         runs(function () {
             var folderLink = $('.g-folder-list-link:contains("Terms Folder")');
             expect(folderLink.length).toBe(1);
-            folderLink.click();
+            folderLink.trigger('click');
         });
         waitsFor(function () {
             return $('.g-item-count-container:visible').length === 1;
@@ -230,7 +230,7 @@ describe('Create a collection with terms', function () {
 
     it('create an item', function () {
         runs(function () {
-            return $('.g-create-item').click();
+            return $('.g-create-item').trigger('click');
         });
         girderTest.waitForDialog();
         waitsFor(function () {
@@ -238,7 +238,7 @@ describe('Create a collection with terms', function () {
         });
         runs(function () {
             $('#g-name').val('Terms Item');
-            $('.g-save-item').click();
+            $('.g-save-item').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -250,7 +250,7 @@ describe('Create a collection with terms', function () {
         runs(function () {
             var itemLink = $('.g-item-list-link:contains("Terms Item")');
             expect(itemLink.length).toBe(1);
-            itemLink.click();
+            itemLink.trigger('click');
         });
         waitsFor(function () {
             return $('.g-item-header').length > 0;
@@ -280,7 +280,7 @@ describe('Ensure that anonymous users are presented with terms', function () {
         });
         runs(function () {
             expect($('.g-terms-info>h1').text()).toBe('Sample Terms of Use');
-            $('#g-terms-reject').click();
+            $('#g-terms-reject').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -297,7 +297,7 @@ describe('Ensure that anonymous users are presented with terms', function () {
         });
         runs(function () {
             expect($('.g-terms-info>h1').text()).toBe('Sample Terms of Use');
-            $('#g-terms-accept').click();
+            $('#g-terms-accept').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -317,7 +317,7 @@ describe('Ensure that anonymous users are presented with terms', function () {
         });
         runs(function () {
             expect($('.g-terms-info>h1').text()).toBe('Sample Terms of Use');
-            $('#g-terms-accept').click();
+            $('#g-terms-accept').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -337,7 +337,7 @@ describe('Ensure that anonymous users are presented with terms', function () {
         });
         runs(function () {
             expect($('.g-terms-info>h1').text()).toBe('Sample Terms of Use');
-            $('#g-terms-accept').click();
+            $('#g-terms-accept').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -356,14 +356,14 @@ describe('Change the terms', function () {
 
     it('navigate to the terms collection', function () {
         runs(function () {
-            $('a.g-nav-link[g-target="collections"]').click();
+            $('a.g-nav-link[g-target="collections"]').trigger('click');
         });
         waitsFor(function () {
             return $('.g-collection-list-entry').length > 0;
         });
         girderTest.waitForLoad();
         runs(function () {
-            $('.g-collection-link:contains("Terms Collection")').click();
+            $('.g-collection-link:contains("Terms Collection")').trigger('click');
         });
         waitsFor(function () {
             return $('.g-collection-header').length > 0;
@@ -373,7 +373,7 @@ describe('Change the terms', function () {
 
     it('edit the collection terms', function () {
         runs(function () {
-            $('.g-edit-folder').click();
+            $('.g-edit-folder').trigger('click');
         });
         girderTest.waitForDialog();
         waitsFor(function () {
@@ -381,7 +381,7 @@ describe('Change the terms', function () {
         });
         runs(function () {
             $('#collection-terms-write .g-markdown-text').val('# New Terms of Use\n\nThese have changed.');
-            $('.g-save-collection').click();
+            $('.g-save-collection').trigger('click');
         });
         girderTest.waitForLoad();
         runs(function () {
@@ -406,7 +406,7 @@ describe('Ensure that anonymous users need to re-accept the updated terms', func
         });
         runs(function () {
             expect($('.g-terms-info>h1').text()).toBe('New Terms of Use');
-            $('#g-terms-accept').click();
+            $('#g-terms-accept').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {

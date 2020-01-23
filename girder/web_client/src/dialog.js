@@ -100,7 +100,7 @@ function confirm(params) {
         }
     }
 
-    $('#g-confirm-button').off('click').click(function () {
+    $('#g-confirm-button').off('click').on('click', function () {
         if (params['msgConfirmation']) {
             const key = `${params.yesText.toUpperCase()} ${params.name}`;
             const msg = $('#g-confirm-text').val();

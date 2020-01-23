@@ -23,7 +23,7 @@ describe('item_licenses plugin test', function () {
             return $('a.g-my-folders').length > 0;
         }, 'my folders link to load');
         runs(function () {
-            $('a.g-my-folders').click();
+            $('a.g-my-folders').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -31,7 +31,7 @@ describe('item_licenses plugin test', function () {
             return $('a.g-folder-list-link:contains(Public)').length > 0;
         }, 'the folders list to load');
         runs(function () {
-            $('a.g-folder-list-link:contains(Public)').click();
+            $('a.g-folder-list-link:contains(Public)').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -39,7 +39,7 @@ describe('item_licenses plugin test', function () {
             return $('button.g-folder-actions-button:visible').length === 1;
         }, 'folder actions button to be visible');
         runs(function () {
-            $('button.g-folder-actions-button:visible').click();
+            $('button.g-folder-actions-button:visible').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -47,7 +47,7 @@ describe('item_licenses plugin test', function () {
             return $('a.g-create-item:visible').length === 1;
         }, 'create item here link to be visible');
         runs(function () {
-            $('a.g-create-item:visible').click();
+            $('a.g-create-item:visible').trigger('click');
         });
 
         waitsFor(function () {
@@ -69,7 +69,7 @@ describe('item_licenses plugin test', function () {
             // Set item info and save
             $('input#g-name').val('Test Item');
             $('#g-license').val('The MIT License (MIT)');
-            $('button.g-save-item').click();
+            $('button.g-save-item').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -77,7 +77,7 @@ describe('item_licenses plugin test', function () {
             return $('a.g-item-list-link:contains(Test Item)').length === 1;
         }, 'the created item to appear in the items list');
         runs(function () {
-            $('a.g-item-list-link:contains(Test Item)').click();
+            $('a.g-item-list-link:contains(Test Item)').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -98,7 +98,7 @@ describe('item_licenses plugin test', function () {
             return $('.g-item-actions-button:visible').length === 1;
         }, 'the item actions button to appear');
         runs(function () {
-            $('.g-item-actions-button').click();
+            $('.g-item-actions-button').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -106,7 +106,7 @@ describe('item_licenses plugin test', function () {
             return $('.g-edit-item:visible').length === 1;
         }, 'the item edit action to appear');
         runs(function () {
-            $('.g-edit-item').click();
+            $('.g-edit-item').trigger('click');
         });
 
         waitsFor(function () {
@@ -127,7 +127,7 @@ describe('item_licenses plugin test', function () {
 
             // Change the item's license
             $('#g-license').val('Apache License 2');
-            $('button.g-save-item').click();
+            $('button.g-save-item').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -147,7 +147,7 @@ describe('item_licenses plugin test', function () {
             return $('.g-upload-into-item:visible').length === 1;
         }, 'the upload into item action to appear');
         runs(function () {
-            $('.g-upload-into-item').click();
+            $('.g-upload-into-item').trigger('click');
         });
 
         waitsFor(function () {
@@ -167,14 +167,14 @@ describe('item_licenses plugin test', function () {
             return $('button.close:visible').length === 1;
         }, 'the dialog close button to appear');
         runs(function () {
-            $('button.close').click();
+            $('button.close').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
             return $('a.g-item-breadcrumb-link:contains(Public):visible').length === 1;
         }, 'the breadcrumb link to the public folder to appear');
         runs(function () {
-            $('a.g-item-breadcrumb-link:contains(Public)').click();
+            $('a.g-item-breadcrumb-link:contains(Public)').trigger('click');
         });
         girderTest.waitForLoad();
     });
@@ -184,7 +184,7 @@ describe('item_licenses plugin test', function () {
             return $('.g-upload-here-button:visible').length === 1;
         }, 'the upload here button to appear');
         runs(function () {
-            $('.g-upload-here-button').click();
+            $('.g-upload-here-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -214,7 +214,7 @@ describe('item_licenses plugin test', function () {
         }, 'the filesChanged event to happen');
         runs(function () {
             $('#g-files').parent().addClass('hide');
-            $('.g-start-upload').click();
+            $('.g-start-upload').trigger('click');
         });
         waitsFor(function () {
             return $('.modal-content:visible').length === 0 &&
@@ -227,7 +227,7 @@ describe('item_licenses plugin test', function () {
             return $('a.g-item-list-link:contains(testFile.txt)').length === 1;
         }, 'the uploaded file to appear in the items list');
         runs(function () {
-            $('a.g-item-list-link:contains(testFile.txt)').click();
+            $('a.g-item-list-link:contains(testFile.txt)').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -245,7 +245,7 @@ describe('item_licenses plugin test', function () {
             return $('a.g-item-breadcrumb-link:contains(Public):visible').length === 1;
         }, 'the breadcrumb link to the public folder to appear');
         runs(function () {
-            $('a.g-item-breadcrumb-link:contains(Public)').click();
+            $('a.g-item-breadcrumb-link:contains(Public)').trigger('click');
         });
         girderTest.waitForLoad();
     });
@@ -255,7 +255,7 @@ describe('item_licenses plugin test', function () {
             return $('button.g-folder-actions-button:visible').length === 1;
         }, 'folder actions button to be visible');
         runs(function () {
-            $('button.g-folder-actions-button:visible').click();
+            $('button.g-folder-actions-button:visible').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -263,7 +263,7 @@ describe('item_licenses plugin test', function () {
             return $('a.g-create-item:visible').length === 1;
         }, 'create item here link to be visible');
         runs(function () {
-            $('a.g-create-item:visible').click();
+            $('a.g-create-item:visible').trigger('click');
         });
 
         waitsFor(function () {
@@ -281,7 +281,7 @@ describe('item_licenses plugin test', function () {
             // Set item info and save
             $('input#g-name').val('Test Item 2');
             $('#g-license').val('');
-            $('button.g-save-item').click();
+            $('button.g-save-item').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -289,7 +289,7 @@ describe('item_licenses plugin test', function () {
             return $('a.g-item-list-link:contains(Test Item 2)').length === 1;
         }, 'the created item to appear in the items list');
         runs(function () {
-            $('a.g-item-list-link:contains(Test Item 2)').click();
+            $('a.g-item-list-link:contains(Test Item 2)').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -310,7 +310,7 @@ describe('item_licenses plugin test', function () {
             return $('.g-item-actions-button:visible').length === 1;
         }, 'the item actions button to appear');
         runs(function () {
-            $('.g-item-actions-button').click();
+            $('.g-item-actions-button').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -318,7 +318,7 @@ describe('item_licenses plugin test', function () {
             return $('.g-edit-item:visible').length === 1;
         }, 'the item edit action to appear');
         runs(function () {
-            $('.g-edit-item').click();
+            $('.g-edit-item').trigger('click');
         });
 
         waitsFor(function () {
@@ -341,7 +341,7 @@ describe('item_licenses plugin test', function () {
 
             // Change the item's license
             $('#g-license').val('The MIT License (MIT)');
-            $('button.g-save-item').click();
+            $('button.g-save-item').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -361,7 +361,7 @@ describe('item_licenses plugin test', function () {
             return $('.g-item-actions-button:visible').length === 1;
         }, 'the item actions button to appear');
         runs(function () {
-            $('.g-item-actions-button').click();
+            $('.g-item-actions-button').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -369,7 +369,7 @@ describe('item_licenses plugin test', function () {
             return $('.g-edit-item:visible').length === 1;
         }, 'the item edit action to appear');
         runs(function () {
-            $('.g-edit-item').click();
+            $('.g-edit-item').trigger('click');
         });
 
         waitsFor(function () {
@@ -392,7 +392,7 @@ describe('item_licenses plugin test', function () {
 
             // Change the item's license
             $('#g-license').val('');
-            $('button.g-save-item').click();
+            $('button.g-save-item').trigger('click');
         });
         girderTest.waitForLoad();
 

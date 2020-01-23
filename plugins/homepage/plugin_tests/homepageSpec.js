@@ -7,7 +7,7 @@ function _goToHomepagePluginSettings() {
     }, 'admin console link to display');
 
     runs(function () {
-        $('a[g-target="admin"]:visible').click();
+        $('a[g-target="admin"]:visible').trigger('click');
     });
 
     waitsFor(function () {
@@ -15,7 +15,7 @@ function _goToHomepagePluginSettings() {
     }, 'admin console to display');
 
     runs(function () {
-        $('.g-plugins-config:visible').click();
+        $('.g-plugins-config:visible').trigger('click');
     });
 
     waitsFor(function () {
@@ -23,7 +23,7 @@ function _goToHomepagePluginSettings() {
     }, 'plugins page to display');
 
     runs(function () {
-        $('a[g-route="plugins/homepage/config"]:visible').click();
+        $('a[g-route="plugins/homepage/config"]:visible').trigger('click');
     });
 
     waitsFor(function () {
@@ -62,12 +62,12 @@ describe('homepage plugin test', function () {
                     'Markdown. You can even [link to Girder!](https://girder.readthedocs.io/)'
             );
 
-            $('.g-homepage-container a.g-preview-link').click();
+            $('.g-homepage-container a.g-preview-link').trigger('click');
 
             _verifyMarkdownContent($('.g-markdown-preview'));
 
             $('#g-alerts-container').empty();
-            $('#g-homepage-form').submit();
+            $('#g-homepage-form').trigger('submit');
         });
 
         waitsFor(function () {
@@ -77,7 +77,7 @@ describe('homepage plugin test', function () {
 
     it('verifies homepage content as admin user', function () {
         runs(function () {
-            $('.g-app-title').click();
+            $('.g-app-title').trigger('click');
         });
 
         waitsFor(function () {
@@ -116,12 +116,12 @@ describe('homepage plugin test', function () {
         runs(function () {
             $('.g-homepage-container textarea.g-markdown-text').val('');
 
-            $('.g-homepage-container a.g-preview-link').click();
+            $('.g-homepage-container a.g-preview-link').trigger('click');
 
             expect($('.g-homepage-container .g-markdown-preview').text()).toBe('Nothing to show\n');
 
             $('#g-alerts-container').empty();
-            $('#g-homepage-form').submit();
+            $('#g-homepage-form').trigger('submit');
         });
 
         waitsFor(function () {
@@ -140,12 +140,12 @@ describe('homepage plugin test', function () {
                 'Markdown. You can even [link to Girder!](https://girder.readthedocs.io/)'
             );
 
-            $('.g-homepage-welcome-text-container a.g-preview-link').click();
+            $('.g-homepage-welcome-text-container a.g-preview-link').trigger('click');
 
             _verifyMarkdownContent($('.g-homepage-welcome-text-container .g-markdown-preview'));
 
             $('#g-alerts-container').empty();
-            $('#g-homepage-form').submit();
+            $('#g-homepage-form').trigger('submit');
         });
 
         waitsFor(function () {
@@ -155,7 +155,7 @@ describe('homepage plugin test', function () {
 
     it('verifies homepage content as admin user', function () {
         runs(function () {
-            $('.g-app-title').click();
+            $('.g-app-title').trigger('click');
         });
 
         waitsFor(function () {

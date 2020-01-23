@@ -55,7 +55,7 @@ var EditFolderWidget = View.extend({
         var modal = this.$el.html(EditFolderWidgetTemplate({
             folder: this.folder
         })).girderModal(this).on('shown.bs.modal', () => {
-            this.$('#g-name').focus();
+            this.$('#g-name').trigger('focus');
             if (this.folder) {
                 handleOpen('folderedit');
             } else {
@@ -77,7 +77,7 @@ var EditFolderWidget = View.extend({
             }
         });
         modal.trigger($.Event('ready.girder.modal', { relatedTarget: modal }));
-        this.$('#g-name').focus();
+        this.$('#g-name').trigger('focus');
         this.descriptionEditor.setElement(
             this.$('.g-description-editor-container')).render();
 
@@ -96,7 +96,7 @@ var EditFolderWidget = View.extend({
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-folder').girderEnable(true);
-            this.$('#g-' + err.responseJSON.field).focus();
+            this.$('#g-' + err.responseJSON.field).trigger('focus');
         }, this).save();
     },
 
@@ -108,7 +108,7 @@ var EditFolderWidget = View.extend({
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-folder').girderEnable(true);
-            this.$('#g-' + err.responseJSON.field).focus();
+            this.$('#g-' + err.responseJSON.field).trigger('focus');
         }, this).save();
     }
 });

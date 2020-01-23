@@ -33,7 +33,7 @@ describe('test the autojoin ui', function () {
         }, 'admin console link to display');
 
         runs(function () {
-            $('a[g-target="admin"]:visible').click();
+            $('a[g-target="admin"]:visible').trigger('click');
         });
 
         waitsFor(function () {
@@ -41,7 +41,7 @@ describe('test the autojoin ui', function () {
         }, 'admin console to display');
 
         runs(function () {
-            $('.g-plugins-config:visible').click();
+            $('.g-plugins-config:visible').trigger('click');
         });
 
         waitsFor(function () {
@@ -49,7 +49,7 @@ describe('test the autojoin ui', function () {
         }, 'plugins page to display');
 
         runs(function () {
-            $('a[g-route="plugins/autojoin/config"]:visible').click();
+            $('a[g-route="plugins/autojoin/config"]:visible').trigger('click');
         });
 
         waitsFor(function () {
@@ -62,19 +62,19 @@ describe('test the autojoin ui', function () {
             $('#g-autojoin-pattern').val('@girder1.test');
             $('#g-autojoin-group').val(group1);
             $('#g-autojoin-level').val(2);
-            $('#g-autojoin-add').click();
+            $('#g-autojoin-add').trigger('click');
 
             $('#g-autojoin-pattern').val('@girder2.test');
             $('#g-autojoin-group').val(group2);
             $('#g-autojoin-level').val(1);
-            $('#g-autojoin-add').click();
+            $('#g-autojoin-add').trigger('click');
 
             $('#g-autojoin-pattern').val('@girder2.test');
             $('#g-autojoin-group').val(group3);
             $('#g-autojoin-level').val(0);
-            $('#g-autojoin-add').click();
+            $('#g-autojoin-add').trigger('click');
 
-            $('#g-autojoin-save').click();
+            $('#g-autojoin-save').trigger('click');
         });
         waitsFor(function () {
             return $('#g-alerts-container').text().indexOf('Settings saved') !== -1;

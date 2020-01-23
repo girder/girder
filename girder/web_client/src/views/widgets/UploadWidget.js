@@ -44,7 +44,7 @@ var UploadWidget = View.extend({
             }
         },
         'click .g-drop-zone': function () {
-            this.$('#g-files').click();
+            this.$('#g-files').trigger('click');
         },
         'dragenter .g-drop-zone': function (e) {
             e.stopPropagation();

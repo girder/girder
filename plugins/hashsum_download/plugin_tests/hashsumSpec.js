@@ -59,8 +59,8 @@ describe('Test configuration page', function () {
 
     it('update auto compute setting', function () {
         expect($('#g-hashsum-download-auto-compute').is(':checked')).toBe(false);
-        $('#g-hashsum-download-auto-compute').click();
-        $('.btn[value="Save"]').click();
+        $('#g-hashsum-download-auto-compute').trigger('click');
+        $('.btn[value="Save"]').trigger('click');
 
         waitsFor(function () {
             return $('#g-alerts-container .alert-success').length > 0;

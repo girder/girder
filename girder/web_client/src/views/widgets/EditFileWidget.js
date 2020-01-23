@@ -24,7 +24,7 @@ var EditFileWidget = View.extend({
             }, this).on('g:error', function (err) {
                 this.$('.g-validation-failed-message').text(err.responseJSON.message);
                 this.$('button.g-save-file').girderEnable(true);
-                this.$('#g-' + err.responseJSON.field).focus();
+                this.$('#g-' + err.responseJSON.field).trigger('focus');
             }, this).save();
 
             this.$('button.g-save-file').girderEnable(false);
@@ -44,7 +44,7 @@ var EditFileWidget = View.extend({
         }
         this.$el.html(EditFileWidgetTemplate({ file: this.file }))
             .girderModal(this).on('shown.bs.modal', () => {
-                this.$('#g-name').select().focus();
+                this.$('#g-name').trigger('select').trigger('focus');
             }).on('hidden.bs.modal', () => {
                 handleClose('fileedit', undefined, this.file.get('_id'));
             });

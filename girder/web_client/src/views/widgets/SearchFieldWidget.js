@@ -176,7 +176,7 @@ var SearchFieldWidget = View.extend({
             },
             html: true,
             sanitize: false
-        }).click(function () {
+        }).on('click', function () {
             $(this).popover('toggle');
         });
 
@@ -195,7 +195,7 @@ var SearchFieldWidget = View.extend({
             },
             html: true,
             sanitize: false
-        }).click(function () {
+        }).on('click', function () {
             $(this).popover('toggle');
         });
 

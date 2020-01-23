@@ -36,7 +36,7 @@ $.fn.girderModal = function (view) {
         // register the event in .on('shown.bs.modal', cb). Let's show
         // the modal in the next animation frame to fix this behavior for now.
         setTimeout(() => {
-            this.modal().find('[data-dismiss="modal"]').off('click').click(() => {
+            this.modal().find('[data-dismiss="modal"]').off('click').on('click', () => {
                 this.modal('hide');
             });
         }, 0);

@@ -9,13 +9,13 @@ describe('Test the thumbnail creation UI.', function () {
     it('uploads the thumbnail', function () {
         runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(0);
-            $('.g-user-text>a:first').click();
+            $('.g-user-text>a').first().trigger('click');
         });
         girderTest.waitForLoad();
 
         runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(1);
-            $('a.g-my-folders').click();
+            $('a.g-my-folders').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -24,7 +24,7 @@ describe('Test the thumbnail creation UI.', function () {
         });
 
         runs(function () {
-            $('a.g-folder-list-link:last').click();
+            $('a.g-folder-list-link').last().trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -36,7 +36,7 @@ describe('Test the thumbnail creation UI.', function () {
         girderTest.binaryUpload('girder/web_client/src/assets/Girder_Mark.png');
 
         runs(function () {
-            $('.g-item-list-link:first').click();
+            $('.g-item-list-link').first().trigger('click');
         });
 
         waitsFor(function () {
@@ -44,7 +44,7 @@ describe('Test the thumbnail creation UI.', function () {
         }, 'the create thumbnail button to appear');
 
         runs(function () {
-            $('.g-create-thumbnail').click();
+            $('.g-create-thumbnail').trigger('click');
         });
 
         waitsFor(function () {
@@ -54,7 +54,7 @@ describe('Test the thumbnail creation UI.', function () {
 
         runs(function () {
             $('#g-thumbnail-width').val('64');
-            $('.g-submit-create-thumbnail').click();
+            $('.g-submit-create-thumbnail').trigger('click');
         });
         girderTest.waitForLoad();
 
