@@ -287,7 +287,7 @@ var MetadatumEditWidget = View.extend({
             newDatum: this.newDatum,
             AccessType: AccessType
         }));
-        this.$el.find('.g-widget-metadata-key-input').focus();
+        this.$el.find('.g-widget-metadata-key-input').trigger('focus');
 
         return this;
     }

@@ -40,7 +40,7 @@ var UserAccountView = View.extend({
 
             this.user.off('g:error').on('g:error', function (err) {
                 var msg = err.responseJSON.message;
-                this.$('#g-' + err.responseJSON.field).focus();
+                this.$('#g-' + err.responseJSON.field).trigger('focus');
                 this.$('#g-user-info-error-msg').text(msg);
             }, this).off('g:saved')
                 .on('g:saved', function () {
@@ -62,7 +62,7 @@ var UserAccountView = View.extend({
                     'Passwords do not match, try again.'
                 );
                 this.$('#g-password-retype,#g-password-new').val('');
-                this.$('#g-password-new').focus();
+                this.$('#g-password-new').trigger('focus');
                 return;
             }
 

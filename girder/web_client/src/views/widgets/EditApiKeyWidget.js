@@ -80,7 +80,7 @@ var EditApiKeyWidget = View.extend({
             apiKey: this.model,
             tokenScopes: tokenScopes
         })).girderModal(this).on('shown.bs.modal', () => {
-            this.$('#g-api-key-name').focus();
+            this.$('#g-api-key-name').trigger('focus');
         }).on('ready.girder.modal', () => {
             if (this.model) {
                 this.$('#g-api-key-name').val(this.model.get('name'));
@@ -96,7 +96,7 @@ var EditApiKeyWidget = View.extend({
         });
         modal.trigger($.Event('ready.girder.modal', { relatedTarget: modal }));
 
-        this.$('#g-api-key-name').focus();
+        this.$('#g-api-key-name').trigger('focus');
 
         return this;
     },

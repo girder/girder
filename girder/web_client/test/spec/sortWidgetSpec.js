@@ -35,7 +35,7 @@ describe('Sort user list', function () {
             expect($('.g-user-list-entry').length).toBe(3);
             var defaultOrder = /.*AFirstName.*ALastName.*BFirstName.*BLastName.*CFirstName.*CLastName.*/;
             expect($('a.g-user-link').text()).toMatch(defaultOrder);
-            $('a.g-sort-order-button:not(.hide)').click();
+            $('a.g-sort-order-button:not(.hide)').trigger('click');
         });
 
         waitsFor(function () {
@@ -48,7 +48,7 @@ describe('Sort user list', function () {
         });
 
         runs(function () {
-            $('.g-collection-sort-actions').click();
+            $('.g-collection-sort-actions').trigger('click');
         });
 
         waitsFor(function () {
@@ -57,7 +57,7 @@ describe('Sort user list', function () {
 
         runs(function () {
             expect($('a.g-collection-sort-link:contains("Creation Date")').length).toBe(1);
-            $('a.g-collection-sort-link:contains("Creation Date")').click();
+            $('a.g-collection-sort-link:contains("Creation Date")').trigger('click');
         });
 
         waitsFor(function () {

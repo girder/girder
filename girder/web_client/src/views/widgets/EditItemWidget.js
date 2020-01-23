@@ -52,7 +52,7 @@ var EditItemWidget = View.extend({
         var modal = this.$el.html(EditItemWidgetTemplate({
             item: this.item
         })).girderModal(this).on('shown.bs.modal', () => {
-            this.$('#g-name').focus();
+            this.$('#g-name').trigger('focus');
             if (this.item) {
                 handleOpen('itemedit');
             } else {
@@ -90,7 +90,7 @@ var EditItemWidget = View.extend({
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-item').girderEnable(true);
-            this.$('#g-' + err.responseJSON.field).focus();
+            this.$('#g-' + err.responseJSON.field).trigger('focus');
         }, this).save();
     },
 
@@ -102,7 +102,7 @@ var EditItemWidget = View.extend({
         }, this).on('g:error', function (err) {
             this.$('.g-validation-failed-message').text(err.responseJSON.message);
             this.$('button.g-save-item').girderEnable(true);
-            this.$('#g-' + err.responseJSON.field).focus();
+            this.$('#g-' + err.responseJSON.field).trigger('focus');
         }, this).save();
     }
 });

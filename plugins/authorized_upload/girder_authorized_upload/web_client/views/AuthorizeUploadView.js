@@ -16,7 +16,7 @@ var AuthorizeUploadView = View.extend({
                 }
             }).done((data) => {
                 this.$('.g-url-container').removeClass('hide');
-                this.$('.g-authorized-upload-url-target').val(data.url).select();
+                this.$('.g-authorized-upload-url-target').val(data.url).trigger('select');
             });
         }
     },

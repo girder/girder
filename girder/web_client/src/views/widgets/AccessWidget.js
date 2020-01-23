@@ -191,7 +191,7 @@ var AccessWidget = View.extend({
                     },
                     html: true,
                     sanitize: false
-                }).click(function () {
+                }).on('click', function () {
                     $(this).popover('toggle');
                 });
             }
@@ -213,7 +213,7 @@ var AccessWidget = View.extend({
                     },
                     html: true,
                     sanitize: false
-                }).click(function () {
+                }).on('click', function () {
                     $(this).popover('toggle');
                 });
             }

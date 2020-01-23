@@ -910,8 +910,8 @@ var HierarchyWidget = View.extend({
         _.each(data, function (value, key) {
             form.append($('<input/>').attr({ type: 'text', name: key, value: value }));
         });
-        // $(form).submit() will *not* work w/ Firefox (http://stackoverflow.com/q/7117084/250457)
-        $(form).appendTo('body').submit().remove();
+        // $(form).trigger('submit') will *not* work w/ Firefox (http://stackoverflow.com/q/7117084/250457)
+        $(form).appendTo('body').trigger('submit').remove();
     },
 
     editAccess: function () {

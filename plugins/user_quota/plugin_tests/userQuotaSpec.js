@@ -8,7 +8,7 @@ girderTest.startApp();
  */
 function _goToCollection(collection) {
     runs(function () {
-        $('a.g-nav-link[g-target=\'collections\']').click();
+        $('a.g-nav-link[g-target=\'collections\']').trigger('click');
     });
     waitsFor(function () {
         return $('.g-collections-search-container:visible').length > 0;
@@ -17,7 +17,7 @@ function _goToCollection(collection) {
     if (collection) {
         runs(function () {
             $('a.g-collection-link').has('b:contains(' + collection +
-                                         ')').click();
+                                         ')').trigger('click');
         });
         waitsFor(function () {
             return $('.g-collection-actions-button:visible').is(':enabled');
@@ -35,7 +35,7 @@ function _goToUser(user) {
     girderTest.goToUsersPage()();
     if (user) {
         runs(function () {
-            $('a.g-user-link:contains("' + user + '")').click();
+            $('a.g-user-link:contains("' + user + '")').trigger('click');
         });
         waitsFor(function () {
             return $('.g-user-name').text() === user;
@@ -51,13 +51,13 @@ function _goToUser(user) {
 function _makeCollectionPublic(collection) {
     _goToCollection(collection);
     runs(function () {
-        $('.g-collection-actions-button').click();
+        $('.g-collection-actions-button').trigger('click');
     });
     waitsFor(function () {
         return $('.g-collection-access-control[role="menuitem"]:visible').length === 1;
     }, 'access control menu item to appear');
     runs(function () {
-        $('.g-collection-access-control').click();
+        $('.g-collection-access-control').trigger('click');
     });
     girderTest.waitForDialog();
     waitsFor(function () {
@@ -65,7 +65,7 @@ function _makeCollectionPublic(collection) {
                $('#g-access-public:visible').is(':enabled');
     }, 'dialog and public access radio button to appear');
     runs(function () {
-        $('#g-access-public').click();
+        $('#g-access-public').trigger('click');
         $('#g-dialog-container .g-search-field').val('user1');
         $('#g-dialog-container input.g-search-field').trigger('input');
     });
@@ -73,7 +73,7 @@ function _makeCollectionPublic(collection) {
         return $('.g-search-result').length === 2;
     }, 'user1 to be listed');
     runs(function () {
-        $('a.g-search-result-element').click();
+        $('a.g-search-result-element').trigger('click');
     });
     waitsFor(function () {
         return $('.g-user-access-entry').length === 2;
@@ -86,7 +86,7 @@ function _makeCollectionPublic(collection) {
                $('.radio.g-selected').text().match('Public').length > 0;
     }, 'access save button to appear');
     runs(function () {
-        $('.g-save-access-list').click();
+        $('.g-save-access-list').trigger('click');
     });
     girderTest.waitForLoad();
     waitsFor(function () {
@@ -115,7 +115,7 @@ function _testQuotaDialogAsAdmin(hasChart, capacity) {
         /* The change() call should automatically set the custom quota radio
          * button. */
         $('#g-user-quota-size-value').val('abc').trigger('input');
-        $('.g-save-policies').click();
+        $('.g-save-policies').trigger('click');
     });
     waitsFor(function () {
         return $('.g-validation-failed-message').text().indexOf('Invalid quota') >= 0;
@@ -124,7 +124,7 @@ function _testQuotaDialogAsAdmin(hasChart, capacity) {
         $('#g-user-quota-size-value').val(capacity || '');
     });
     runs(function () {
-        $('.g-save-policies').click();
+        $('.g-save-policies').trigger('click');
     });
     girderTest.waitForLoad('quota dialog to hide');
 }
@@ -148,7 +148,7 @@ function _testQuotaDialogAsUser(hasChart) {
         expect($('#g-user-quota-size-value').length).toBe(0);
     });
     runs(function () {
-        $('a.btn-default').click();
+        $('a.btn-default').trigger('click');
     });
     girderTest.waitForLoad();
 }
@@ -183,13 +183,13 @@ describe('test the user quota plugin', function () {
             return $('a.g-nav-link[g-target="admin"]').length > 0;
         }, 'admin console link to load');
         runs(function () {
-            $('a.g-nav-link[g-target="admin"]').click();
+            $('a.g-nav-link[g-target="admin"]').trigger('click');
         });
         waitsFor(function () {
             return $('.g-plugins-config').length > 0;
         }, 'the admin console to load');
         runs(function () {
-            $('.g-plugins-config').click();
+            $('.g-plugins-config').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -197,7 +197,7 @@ describe('test the user quota plugin', function () {
         }, 'the plugins page to load');
         runs(function () {
             expect($('.g-plugin-config-link[g-route="plugins/user_quota/config"]').length > 0);
-            $('.g-plugin-config-link[g-route="plugins/user_quota/config"]').click();
+            $('.g-plugin-config-link[g-route="plugins/user_quota/config"]').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -205,14 +205,14 @@ describe('test the user quota plugin', function () {
         }, 'quota default settings to be shown');
         runs(function () {
             $('input#g-user-quota-user-size-value').val('abc');
-            $('#g-user-quota-form input.btn-primary').click();
+            $('#g-user-quota-form input.btn-primary').trigger('click');
         });
         waitsFor(function () {
             return $('#g-user-quota-error-message').text().indexOf('Invalid quota') >= 0;
         }, 'error message to appear');
         runs(function () {
             $('input#g-user-quota-user-size-value').val('512000');
-            $('#g-user-quota-form input.btn-primary').click();
+            $('#g-user-quota-form input.btn-primary').trigger('click');
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
@@ -228,13 +228,13 @@ describe('test the user quota plugin', function () {
     it('check that admin can set quota for collections and users', function () {
         _goToCollection('Collection A');
         runs(function () {
-            $('.g-collection-actions-button').click();
+            $('.g-collection-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-collection-policies[role="menuitem"]:visible').length === 1;
         }, 'collection actions menu to appear');
         runs(function () {
-            $('.g-collection-policies').click();
+            $('.g-collection-policies').trigger('click');
         });
         girderTest.waitForDialog();
         runs(function () {
@@ -242,20 +242,20 @@ describe('test the user quota plugin', function () {
         });
         _testQuotaDialogAsAdmin(false, 2048);
         runs(function () {
-            $('.g-collection-policies').click();
+            $('.g-collection-policies').trigger('click');
         });
         /* We should now have a chart */
         _testQuotaDialogAsAdmin(true, '32 kB');
         _goToUser('Quota User');
         runs(function () {
             userRoute = window.location.hash;
-            $('.g-user-actions-button').click();
+            $('.g-user-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-user-policies[role="menuitem"]:visible').length === 1;
         }, 'user actions menu to appear');
         runs(function () {
-            $('.g-user-policies').click();
+            $('.g-user-policies').trigger('click');
         });
         girderTest.waitForDialog();
         runs(function () {
@@ -274,13 +274,13 @@ describe('test the user quota plugin', function () {
             return $('.g-quota-capacity').length === 1;
         });
         runs(function () {
-            $('a[data-dismiss="modal"]').click();
+            $('a[data-dismiss="modal"]').trigger('click');
         });
         girderTest.waitForLoad();
     });
     it('upload', function () {
         runs(function () {
-            $('a.g-folder-list-link').eq(0).click();
+            $('a.g-folder-list-link').eq(0).trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -300,24 +300,24 @@ describe('test the user quota plugin', function () {
         girderTest.login('user1', 'Quota', 'User', 'testpassword')();
         _goToCollection('Collection A');
         runs(function () {
-            $('.g-collection-actions-button').click();
+            $('.g-collection-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-collection-policies[role="menuitem"]:visible').length === 1;
         }, 'collection actions menu to appear');
         runs(function () {
-            $('.g-collection-policies').click();
+            $('.g-collection-policies').trigger('click');
         });
         _testQuotaDialogAsUser(true);
         _goToUser('Quota User');
         runs(function () {
-            $('.g-user-actions-button').click();
+            $('.g-user-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-user-policies[role="menuitem"]:visible').length === 1;
         }, 'user actions menu to appear');
         runs(function () {
-            $('.g-user-policies').click();
+            $('.g-user-policies').trigger('click');
         });
         _testQuotaDialogAsUser(true);
     });
@@ -329,7 +329,7 @@ describe('test the user quota plugin', function () {
             return $('.g-collection-actions-button:visible').is(':enabled');
         }, 'collection actions link to appear');
         runs(function () {
-            $('.g-collection-actions-button').click();
+            $('.g-collection-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-download-collection[role="menuitem"]:visible').length === 1;
@@ -349,13 +349,13 @@ describe('test the user quota plugin', function () {
             return $('a.g-nav-link[g-target="admin"]').length > 0;
         }, 'admin console link to load');
         runs(function () {
-            $('a.g-nav-link[g-target="admin"]').click();
+            $('a.g-nav-link[g-target="admin"]').trigger('click');
         });
         waitsFor(function () {
             return $('.g-plugins-config').length > 0;
         }, 'the admin console to load');
         runs(function () {
-            $('.g-plugins-config').click();
+            $('.g-plugins-config').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -363,7 +363,7 @@ describe('test the user quota plugin', function () {
         }, 'the plugins page to load');
         runs(function () {
             expect($('.g-plugin-config-link[g-route="plugins/user_quota/config"]').length > 0);
-            $('.g-plugin-config-link[g-route="plugins/user_quota/config"]').click();
+            $('.g-plugin-config-link[g-route="plugins/user_quota/config"]').trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -371,7 +371,7 @@ describe('test the user quota plugin', function () {
         }, 'quota default settings to be shown');
         runs(function () {
             $('input#g-user-quota-collection-size-value').val('256000');
-            $('#g-user-quota-form input.btn-primary').click();
+            $('#g-user-quota-form input.btn-primary').trigger('click');
         });
         waitsFor(function () {
             var resp = girder.rest.restRequest({
@@ -389,13 +389,13 @@ describe('test the user quota plugin', function () {
         girderTest.login('user3', 'Third', 'User', 'testpassword')();
         _goToUser('Third User');
         runs(function () {
-            $('.g-user-actions-button').click();
+            $('.g-user-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-user-policies[role="menuitem"]:visible').length === 1;
         }, 'user actions menu to appear');
         runs(function () {
-            $('.g-user-policies').click();
+            $('.g-user-policies').trigger('click');
         });
         _testQuotaDialogAsUser(true);
     });
@@ -404,13 +404,13 @@ describe('test the user quota plugin', function () {
         girderTest.login('user1', 'Quota', 'User', 'testpassword')();
         _goToCollection('Collection B');
         runs(function () {
-            $('.g-collection-actions-button').click();
+            $('.g-collection-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-collection-policies[role="menuitem"]:visible').length === 1;
         }, 'collection actions menu to appear');
         runs(function () {
-            $('.g-collection-policies').click();
+            $('.g-collection-policies').trigger('click');
         });
         _testQuotaDialogAsUser(true);
     });

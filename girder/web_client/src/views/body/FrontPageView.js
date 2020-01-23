@@ -22,7 +22,7 @@ var FrontPageView = View.extend({
             events.trigger('g:loginUi');
         },
         'click .g-quicksearch-link': function () {
-            $('.g-quick-search-container .g-search-field').focus();
+            $('.g-quick-search-container .g-search-field').trigger('focus');
         }
     },
 

@@ -8,11 +8,11 @@ describe('Create an authorized upload.', function () {
 
     it('go to the authorize upload page', function () {
         runs(function () {
-            $('.g-user-text>a:first').click();
+            $('.g-user-text>a').first().trigger('click');
         });
         girderTest.waitForLoad();
         runs(function () {
-            $('a.g-my-folders').click();
+            $('a.g-my-folders').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -23,7 +23,7 @@ describe('Create an authorized upload.', function () {
         }, 'my folders list to display');
 
         runs(function () {
-            $('a.g-folder-list-link:first').click();
+            $('a.g-folder-list-link').first().trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -33,7 +33,7 @@ describe('Create an authorized upload.', function () {
         }, 'descending into Private folder');
 
         runs(function () {
-            $('.g-folder-actions-button').click();
+            $('.g-folder-actions-button').trigger('click');
             expect($('.g-folder-actions-menu li>a.g-authorize-upload-here').length).toBeGreaterThan(0);
             window.location.assign($('.g-authorize-upload-here').attr('href'));
         });
@@ -45,7 +45,7 @@ describe('Create an authorized upload.', function () {
 
     it('create an authorized upload', function () {
         runs(function () {
-            $('btn.g-create-authorized-upload').click();
+            $('btn.g-create-authorized-upload').trigger('click');
         });
 
         waitsFor(function () {
@@ -74,7 +74,7 @@ describe('Perform authorized upload', function () {
             girderTest._prepareTestUpload();
             girderTest.sendFile('girder/web_client/test/testFile.txt');
             $('#g-files').parent().addClass('hide');
-            $('.g-start-upload').click();
+            $('.g-start-upload').trigger('click');
         });
 
         waitsFor(function () {

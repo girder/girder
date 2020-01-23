@@ -127,7 +127,7 @@ describe('Test hierarchy widget non-standard options', function () {
             expect($('.g-item-list-link').text()).toBe('an item');
             expect(widget.getSelectedItem()).toBe(null);
 
-            $('.g-item-list-link').click();
+            $('.g-item-list-link').trigger('click');
         });
 
         waitsFor(function () {
@@ -329,7 +329,7 @@ describe('Test hierarchy widget non-standard options', function () {
             expect($('.g-item-list-link').length).toBe(0);
             expect($('button.g-select-folder').length).toBe(1);
 
-            $('button.g-select-folder').click();
+            $('button.g-select-folder').trigger('click');
         });
 
         waitsFor(
@@ -475,10 +475,10 @@ describe('Test access widget with non-standard options', function () {
             expect($('.g-action-manage-public-flags:visible').length).toBe(0);
 
             // Switching resource to public should show public flags link
-            $('#g-access-public').click();
+            $('#g-access-public').trigger('click');
             expect($('.g-action-manage-public-flags:visible').length).toBe(1);
 
-            $('.g-action-manage-public-flags').click();
+            $('.g-action-manage-public-flags').trigger('click');
         });
 
         waitsFor(function () {
@@ -502,11 +502,11 @@ describe('Test access widget with non-standard options', function () {
             expect(openCheckbox.is(':disabled')).toBe(false);
 
             // Enable the open flag and close the popover
-            openCheckbox.click();
+            openCheckbox.trigger('click');
             expect($(countSel).text()).toBe('1');
             expect($(countSel).is(':visible')).toBe(true);
 
-            $('.popover .g-close-public-flags-popover').click();
+            $('.popover .g-close-public-flags-popover').trigger('click');
         });
 
         waitsFor(function () {
@@ -514,7 +514,7 @@ describe('Test access widget with non-standard options', function () {
         }, 'public flags popover to disappear');
 
         runs(function () {
-            $('.g-action-manage-flags').click();
+            $('.g-action-manage-flags').trigger('click');
         });
 
         waitsFor(function () {
@@ -537,11 +537,11 @@ describe('Test access widget with non-standard options', function () {
             expect(adminCheckbox.is(':disabled')).toBe(true);
             expect(openCheckbox.is(':disabled')).toBe(false);
 
-            openCheckbox.click();
+            openCheckbox.trigger('click');
 
             expect($(countSel).text()).toBe('1');
             expect($(countSel).is(':visible')).toBe(true);
-            $('.popover .g-close-flags-popover').click();
+            $('.popover .g-close-flags-popover').trigger('click');
         });
 
         waitsFor(function () {
@@ -552,7 +552,7 @@ describe('Test access widget with non-standard options', function () {
             widget.once('g:accessListSaved', function () {
                 saved = true;
             });
-            $('.g-save-access-list').click();
+            $('.g-save-access-list').trigger('click');
         });
 
         waitsFor(function () {
@@ -594,7 +594,7 @@ describe('Test access widget with non-standard options', function () {
         }, 'the access widget to render');
 
         runs(function () {
-            $('.g-action-manage-flags').click();
+            $('.g-action-manage-flags').trigger('click');
         });
 
         waitsFor(function () {
@@ -653,7 +653,7 @@ describe('Test access widget with non-standard options', function () {
             e.which = 13;
             widget.$('.g-search-field').trigger(e);
             // this should add the user to the access list
-            widget.$('.g-search-result-element').eq(0).click();
+            widget.$('.g-search-result-element').eq(0).trigger('click');
         });
         waitsFor(function () {
             return widget.getAccessList().users.length > 0;
@@ -719,7 +719,7 @@ describe('Test search widget with non-standard options', function () {
             expect($('li.g-search-result').length).toBe(0);
             expect($('li.g-no-search-results.disabled').length).toBe(1);
 
-            $('.g-search-mode-choose').click();
+            $('.g-search-mode-choose').trigger('click');
         });
 
         waitsFor(function () {
@@ -732,7 +732,7 @@ describe('Test search widget with non-standard options', function () {
             expect($('.popover-content .g-search-mode-radio[value="prefix"]:checked').length).toBe(0);
             expect($('.popover-content .g-search-mode-radio[value="text"]:checked').length).toBe(1);
 
-            $('.popover-content .g-search-mode-radio[value="prefix"]').click();
+            $('.popover-content .g-search-mode-radio[value="prefix"]').trigger('click');
         });
 
         waitsFor(function () {
@@ -783,7 +783,7 @@ describe('Test metadata widget with non-standard options', function () {
             expect(addCbCalled).toBe(false);
             expect(editCbCalled).toBe(false);
 
-            $('.g-widget-metadata-add-button').click();
+            $('.g-widget-metadata-add-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -792,11 +792,11 @@ describe('Test metadata widget with non-standard options', function () {
 
         runs(function () {
             // Save a metadata key, make sure add callback was called
-            $('.g-add-simple-metadata').click();
+            $('.g-add-simple-metadata').trigger('click');
             expect($('.g-widget-metadata-row').length).toBe(1);
             $('.g-widget-metadata-key-input').val('foo');
             $('.g-widget-metadata-value-input').val('bar');
-            $('.g-widget-metadata-save-button').click();
+            $('.g-widget-metadata-save-button').trigger('click');
             expect(addCbCalled).toBe(true);
             expect(editCbCalled).toBe(false);
             expect($('.g-widget-metadata-key-input').length).toBe(0);
@@ -810,9 +810,9 @@ describe('Test metadata widget with non-standard options', function () {
             expect($('.g-widget-metadata-value').text()).toBe('bar');
 
             // Edit the existing field, make sure edit callback was called
-            $('.g-widget-metadata-edit-button').click();
+            $('.g-widget-metadata-edit-button').trigger('click');
             $('.g-widget-metadata-value-input').val('baz');
-            $('.g-widget-metadata-save-button').click();
+            $('.g-widget-metadata-save-button').trigger('click');
             expect($('.g-widget-metadata-row').length).toBe(1);
             expect($('.g-widget-metadata-key').text()).toBe('foo');
             expect($('.g-widget-metadata-value').text()).toBe('baz');

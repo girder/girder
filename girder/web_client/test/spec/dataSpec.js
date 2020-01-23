@@ -60,12 +60,12 @@ describe('Create a data hierarchy', function () {
     it('create a folder', function () {
         runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(0);
-            $('.g-user-text>a:first').click();
+            $('.g-user-text>a').first().trigger('click');
         });
         girderTest.waitForLoad();
         runs(function () {
             expect($('#g-user-action-menu.open').length).toBe(1);
-            $('a.g-my-folders').click();
+            $('a.g-my-folders').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -77,9 +77,9 @@ describe('Create a data hierarchy', function () {
 
         runs(function () {
             expect($('.g-item-count').length).toBe(0);
-            expect($('a.g-folder-list-link:first').text()).toBe('Private');
-            expect($('.g-folder-privacy:first').text()).toBe('Private');
-            $('a.g-folder-list-link:first').click();
+            expect($('a.g-folder-list-link').first().text()).toBe('Private');
+            expect($('.g-folder-privacy').first().text()).toBe('Private');
+            $('a.g-folder-list-link').first().trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -89,8 +89,8 @@ describe('Create a data hierarchy', function () {
         }, 'descending into Private folder');
 
         runs(function () {
-            $('.g-folder-actions-button').click();
-            $('.g-create-subfolder').click();
+            $('.g-folder-actions-button').trigger('click');
+            $('.g-create-subfolder').trigger('click');
         });
 
         waitsFor(function () {
@@ -103,7 +103,7 @@ describe('Create a data hierarchy', function () {
             $('.g-description-editor-container .g-markdown-text').val(
                 ' Some description');
 
-            $('.g-save-folder').click();
+            $('.g-save-folder').trigger('click');
         });
         girderTest.waitForLoad();
 
@@ -112,30 +112,30 @@ describe('Create a data hierarchy', function () {
         }, 'the new folder to display in the list');
 
         runs(function () {
-            expect($('a.g-folder-list-link:first').text()).toBe(
+            expect($('a.g-folder-list-link').first().text()).toBe(
                 'John\'s subfolder');
-            expect($('.g-folder-privacy:first').text()).toBe('Private');
+            expect($('.g-folder-privacy').first().text()).toBe('Private');
         });
 
         // Recursively set this folder to public
         girderTest.folderAccessControl('private', 'public', true);
 
         waitsFor(function () {
-            return $('.g-folder-privacy:first').text() === 'Public';
+            return $('.g-folder-privacy').first().text() === 'Public';
         }, 'public flag to propagate to subfolder');
 
         // Change back to private
         girderTest.folderAccessControl('public', 'private', true);
 
         runs(function () {
-            $('a.g-folder-list-link:first').click();
+            $('a.g-folder-list-link').first().trigger('click');
         });
 
         girderTest.waitForLoad();
         runs(function () {
             // Description of current node should appear in breadcrumb bar
             expect($('.g-hierarchy-breadcrumb-bar').text()).toContain('Some description');
-            $('a.g-edit-folder').click();
+            $('a.g-edit-folder').trigger('click');
         });
 
         waitsFor(function () {
@@ -149,7 +149,7 @@ describe('Create a data hierarchy', function () {
         }, 'the edit folder save button to appear');
 
         runs(function () {
-            $('button.g-save-folder').click();
+            $('button.g-save-folder').trigger('click');
         });
         girderTest.waitForLoad();
     });
@@ -169,7 +169,7 @@ describe('Create a data hierarchy', function () {
 
     it('download the file', function () {
         runs(function () {
-            $('.g-item-list-link').click();
+            $('.g-item-list-link').trigger('click');
         });
 
         waitsFor(function () {
@@ -223,7 +223,7 @@ describe('Create a data hierarchy', function () {
             expect(results.find('a[data-resource-type="folder"]').length).toBe(1);
             expect(results.find('a[data-resource-type="user"]').length).toBe(1);
 
-            results.find('a[data-resource-type="user"]').click();
+            results.find('a[data-resource-type="user"]').trigger('click');
 
             expect(Backbone.history.fragment).toBe(
                 'user/' + girder.auth.getCurrentUser().get('_id'));
@@ -263,9 +263,9 @@ describe('Create a data hierarchy', function () {
         }, 'my folders list to display');
 
         runs(function () {
-            expect($('a.g-folder-list-link:first').text()).toBe('Private');
-            expect($('.g-folder-privacy:first').text()).toBe('Private');
-            $('a.g-folder-list-link:first').click();
+            expect($('a.g-folder-list-link').first().text()).toBe('Private');
+            expect($('.g-folder-privacy').first().text()).toBe('Private');
+            $('a.g-folder-list-link').first().trigger('click');
         });
 
         waitsFor(function () {
@@ -309,7 +309,7 @@ describe('Create a data hierarchy', function () {
             return $('.g-folder-actions-button:visible').length === 1;
         }, 'the folder actions button to appear');
         runs(function () {
-            $('.g-folder-actions-button').click();
+            $('.g-folder-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-download-folder:visible').length === 1;
@@ -331,7 +331,7 @@ describe('Create a data hierarchy', function () {
         var redirect = { method: null, url: null, data: { resources: null } }, widget;
         /* select a folder and the first item */
         runs(function () {
-            $('.g-list-checkbox').slice(0, 2).click();
+            $('.g-list-checkbox').slice(0, 2).trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
@@ -345,7 +345,7 @@ describe('Create a data hierarchy', function () {
                 redirect = { method: method, url: url, data: data };
                 widget.redirectViaForm.originalValue(method, 'javascript: void(0)', data);
             });
-            $('a.g-download-checked').click();
+            $('a.g-download-checked').trigger('click');
         });
         runs(function () {
             expect(widget.redirectViaForm).toHaveBeenCalled();
@@ -359,34 +359,34 @@ describe('Create a data hierarchy', function () {
 
     it('copy picked items', function () {
         runs(function () {
-            $('.g-select-all').click();
+            $('.g-select-all').trigger('click');
         });
         waitsFor(function () {
             return $('.g-list-checkbox:not(:checked)').length === 0 &&
                    $('.g-checked-actions-button:disabled').length === 0;
         }, 'all items to be checked');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
                    $('a.g-pick-checked').length > 0;
         }, 'checked actions menu');
         runs(function () {
-            $('a.g-pick-checked').click();
+            $('a.g-pick-checked').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu:visible').length === 0;
         }, 'checked actions menu to hide');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
                    $('a.g-copy-picked').length > 0;
         }, 'checked actions menu');
         runs(function () {
-            $('a.g-copy-picked').click();
+            $('a.g-copy-picked').trigger('click');
         });
         waitsFor(function () {
             return $('.g-task-progress-title').text().indexOf('Copying resources') !== -1;
@@ -398,67 +398,67 @@ describe('Create a data hierarchy', function () {
 
     it('move picked items', function () {
         runs(function () {
-            $('.g-list-checkbox:last').click();
+            $('.g-list-checkbox').last().trigger('click');
         });
         waitsFor(function () {
             return $('.g-list-checkbox:checked').length === 1 &&
                    $('.g-checked-actions-button:disabled').length === 0;
         }, 'one item to be checked');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
                    $('a.g-pick-checked').length > 0;
         }, 'checked actions menu');
         runs(function () {
-            $('a.g-pick-checked').click();
+            $('a.g-pick-checked').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu:visible').length === 0;
         }, 'checked actions menu to hide');
         /* select a second item and add it to our picked list */
         runs(function () {
-            $('.g-select-all').click();
-            $('.g-select-all').click();
-            $('.g-list-checkbox').slice(-2, -1).click();
+            $('.g-select-all').trigger('click');
+            $('.g-select-all').trigger('click');
+            $('.g-list-checkbox').slice(-2, -1).trigger('click');
         });
         waitsFor(function () {
             return $('.g-list-checkbox:checked').length === 1 &&
                    $('.g-checked-actions-button:disabled').length === 0;
         }, 'one item to be checked');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
                    $('a.g-pick-checked').length > 0;
         }, 'checked actions menu');
         runs(function () {
-            $('a.g-pick-checked').click();
+            $('a.g-pick-checked').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu:visible').length === 0;
         }, 'checked actions menu to hide');
         /* add the first folder to our picked list */
         runs(function () {
-            $('.g-select-all').click();
-            $('.g-select-all').click();
-            $('.g-list-checkbox:first').click();
+            $('.g-select-all').trigger('click');
+            $('.g-select-all').trigger('click');
+            $('.g-list-checkbox').first().trigger('click');
         });
         waitsFor(function () {
             return $('.g-list-checkbox:checked').length === 1 &&
                    $('.g-checked-actions-button:disabled').length === 0;
         }, 'one item to be checked');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
                    $('a.g-pick-checked').length > 0;
         }, 'checked actions menu');
         runs(function () {
-            $('a.g-pick-checked').click();
+            $('a.g-pick-checked').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu:visible').length === 0;
@@ -466,14 +466,14 @@ describe('Create a data hierarchy', function () {
         /* Navigate to the user page and make sure move and copy are no longer
          * offered, since we can't move items to a user. */
         runs(function () {
-            $('.g-breadcrumb-link:first').click();
+            $('.g-breadcrumb-link').first().trigger('click');
         });
         waitsFor(function () {
             return $('.g-list-checkbox').length === 2 &&
                    $('.g-checked-actions-button:disabled').length === 0;
         }, 'just two folders to be visible');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0;
@@ -482,7 +482,7 @@ describe('Create a data hierarchy', function () {
             expect($('a.g-copy-picked').length).toBe(0);
             expect($('a.g-move-picked').length).toBe(0);
             expect($('a.g-clear-picked').length).toBe(1);
-            $('a.g-folder-list-link:last').click();
+            $('a.g-folder-list-link').last().trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -490,14 +490,14 @@ describe('Create a data hierarchy', function () {
                    $('.g-empty-parent-message').length === 1;
         }, 'Public folder to be visible');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
                    $('a.g-copy-picked').length > 0;
         }, 'checked actions menu');
         runs(function () {
-            $('a.g-move-picked').click();
+            $('a.g-move-picked').trigger('click');
         });
         waitsFor(function () {
             return $('.g-list-checkbox').length === 3;
@@ -505,7 +505,7 @@ describe('Create a data hierarchy', function () {
         /* Change the permission of the moved folder, then navigate back to the
          * private folder, to save the public data for permissions tests. */
         runs(function () {
-            $('a.g-folder-list-link:first').click();
+            $('a.g-folder-list-link').first().trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -513,14 +513,14 @@ describe('Create a data hierarchy', function () {
         }, 'subfolder to be shown');
         girderTest.folderAccessControl('private', 'public');
         runs(function () {
-            $('.g-breadcrumb-link:first').click();
+            $('.g-breadcrumb-link').first().trigger('click');
         });
         waitsFor(function () {
             return $('.g-list-checkbox').length === 2 &&
                    $('.g-checked-actions-button:disabled').length === 1;
         }, 'just two folders to be visible and no picked items');
         runs(function () {
-            $('a.g-folder-list-link:first').click();
+            $('a.g-folder-list-link').first().trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -530,28 +530,28 @@ describe('Create a data hierarchy', function () {
 
     it('delete checked items', function () {
         runs(function () {
-            $('.g-select-all').click();
+            $('.g-select-all').trigger('click');
         });
         waitsFor(function () {
             return $('.g-list-checkbox:not(:checked)').length === 0 &&
                    $('.g-checked-actions-button:disabled').length === 0;
         }, 'all items to be checked');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
                    $('a.g-delete-checked').length > 0;
         }, 'checked actions menu');
         runs(function () {
-            $('a.g-delete-checked').click();
+            $('a.g-delete-checked').trigger('click');
         });
 
         waitsFor(function () {
             return $('#g-confirm-button:visible').length > 0;
         }, 'delete confirmation to appear');
         runs(function () {
-            $('#g-confirm-button').click();
+            $('#g-confirm-button').trigger('click');
         });
 
         waitsFor(function () {
@@ -592,7 +592,7 @@ describe('Create a data hierarchy', function () {
             expect(results.find('a[data-resource-type="folder"]').length).toBe(1);
             expect(results.find('a[data-resource-type="user"]').length).toBe(1);
 
-            results.find('a[data-resource-type="user"]').click();
+            results.find('a[data-resource-type="user"]').trigger('click');
         });
 
         var oldPicked;
@@ -600,7 +600,7 @@ describe('Create a data hierarchy', function () {
             return $('.g-list-checkbox').length === 1;
         }, 'User folders to be shown');
         runs(function () {
-            $('a.g-folder-list-link:first').click();
+            $('a.g-folder-list-link').first().trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
@@ -608,27 +608,27 @@ describe('Create a data hierarchy', function () {
         }, 'Public folder to be shown');
         /* Select one item and make sure we can't copy or move */
         runs(function () {
-            $('.g-list-checkbox:last').click();
+            $('.g-list-checkbox').last().trigger('click');
         });
         waitsFor(function () {
             return $('.g-list-checkbox:checked').length === 1 &&
                    $('.g-checked-actions-button:disabled').length === 0;
         }, 'one item to be checked');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
                    $('a.g-pick-checked').length > 0;
         }, 'checked actions menu');
         runs(function () {
-            $('a.g-pick-checked').click();
+            $('a.g-pick-checked').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu:visible').length === 0;
         }, 'checked actions menu to hide');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
@@ -638,36 +638,36 @@ describe('Create a data hierarchy', function () {
             expect($('a.g-move-picked').length).toBe(0);
             expect($('a.g-copy-picked').length).toBe(0);
             oldPicked = girder.views.widgets.HierarchyWidget.getPickedResources();
-            $('.g-clear-picked').click();
+            $('.g-clear-picked').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu:visible').length === 0;
         }, 'checked actions menu to hide');
         /* Select one folder and make sure we can't move or copy. */
         runs(function () {
-            $('.g-select-all').click();
-            $('.g-select-all').click();
-            $('.g-list-checkbox:first').click();
+            $('.g-select-all').trigger('click');
+            $('.g-select-all').trigger('click');
+            $('.g-list-checkbox').first().trigger('click');
         });
         waitsFor(function () {
             return $('.g-list-checkbox:checked').length === 1 &&
                    $('.g-checked-actions-button:disabled').length === 0;
         }, 'one folder to be checked');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
                    $('a.g-pick-checked').length > 0;
         }, 'checked actions menu');
         runs(function () {
-            $('a.g-pick-checked').click();
+            $('a.g-pick-checked').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu:visible').length === 0;
         }, 'checked actions menu to hide');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
@@ -676,20 +676,20 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             expect($('a.g-move-picked').length).toBe(0);
             expect($('a.g-copy-picked').length).toBe(0);
-            $('#g-app-body-container').click();
+            $('#g-app-body-container').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu:visible').length === 0;
         }, 'checked actions menu to hide');
         girderTest.goToUsersPage()();
         runs(function () {
-            $('.g-user-link:first').click();
+            $('.g-user-link').first().trigger('click');
         });
         waitsFor(function () {
             return $('.g-list-checkbox').length === 2;
         }, 'user folders to be shown');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
@@ -699,7 +699,7 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             expect($('a.g-move-picked').length).toBe(0);
             expect($('a.g-copy-picked').length).toBe(1);
-            $('#g-app-body-container').click();
+            $('#g-app-body-container').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu:visible').length === 0;
@@ -708,14 +708,14 @@ describe('Create a data hierarchy', function () {
             /* Skip a bunch of UI actions to more quickly get back to have one
              * item selected. */
             girder.views.widgets.HierarchyWidget.resetPickedResources(oldPicked);
-            $('a.g-folder-list-link:first').click();
+            $('a.g-folder-list-link').first().trigger('click');
         });
         girderTest.waitForLoad();
         waitsFor(function () {
             return $('.g-empty-parent-message:visible').length === 1;
         }, 'empty folder to be shown');
         runs(function () {
-            $('.g-checked-actions-button').click();
+            $('.g-checked-actions-button').trigger('click');
         });
         waitsFor(function () {
             return $('.g-checked-actions-menu').length > 0 &&
@@ -725,7 +725,7 @@ describe('Create a data hierarchy', function () {
         runs(function () {
             expect($('a.g-move-picked').length).toBe(0);
             expect($('a.g-copy-picked').length).toBe(1);
-            $('#g-app-body-container').click();
+            $('#g-app-body-container').trigger('click');
         });
     });
 
@@ -743,7 +743,7 @@ describe('Create a data hierarchy', function () {
         }, 'the upload here button to appear');
 
         runs(function () {
-            $('.g-upload-here-button').click();
+            $('.g-upload-here-button').trigger('click');
         });
 
         waitsFor(function () {

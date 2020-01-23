@@ -36,7 +36,7 @@ const EditCollectionWidget = View.extend({
                 })
                 .fail((err) => {
                     this.$('.g-validation-failed-message').text(err.responseJSON.message);
-                    this.$('#g-' + err.responseJSON.field).focus();
+                    this.$('#g-' + err.responseJSON.field).trigger('focus');
                 });
         }
     },
@@ -61,7 +61,7 @@ const EditCollectionWidget = View.extend({
         const modal = this.$el
             .girderModal(this)
             .on('shown.bs.modal', () => {
-                this.$('#g-name').focus();
+                this.$('#g-name').trigger('focus');
             })
             .on('hidden.bs.modal', () => {
                 handleClose(this.create ? 'create' : 'edit');
@@ -74,7 +74,7 @@ const EditCollectionWidget = View.extend({
             });
         modal.trigger($.Event('ready.girder.modal', { relatedTarget: modal }));
         this.descriptionEditor.setElement(this.$('.g-description-editor-container')).render();
-        this.$('#g-name').focus();
+        this.$('#g-name').trigger('focus');
 
         handleOpen(this.create ? 'create' : 'edit');
 
