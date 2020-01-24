@@ -63,6 +63,18 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
         npmLockFile = os.path.join(staging, 'package-lock.json')
         if os.path.exists(npmLockFile):
             os.unlink(npmLockFile)
+
+        # Remove any lingering node_modules to ensure clean install
+        web_client_core = os.path.join(staging, 'src')
+        plugin_dirs = [path.replace('file:', '') for path in _collectPluginDependencies().values()]
+        node_module_dirs = [os.path.join(d, 'node_modules') for d in (staging, web_client_core, *plugin_dirs)]
+
+        for path in node_module_dirs:
+            # Include ignore_errors=True to delete readonly files
+            # and skip over nonexistant directories
+            shutil.rmtree(path, ignore_errors=True)
+
+        # Run npm install
         installCommand = [npm, 'install']
         if mode == ServerMode.PRODUCTION:
             installCommand.append('--production')
