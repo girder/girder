@@ -67,7 +67,7 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
         # Remove any lingering node_modules to ensure clean install
         web_client_core = os.path.join(staging, 'src')
         plugin_dirs = [path.replace('file:', '') for path in _collectPluginDependencies().values()]
-        node_module_dirs = [os.path.join(d, 'node_modules') for d in (staging, web_client_core, *plugin_dirs)]
+        node_module_dirs = [os.path.join(d, 'node_modules') for d in [staging, web_client_core].extend(plugin_dirs)]
 
         for path in node_module_dirs:
             # Include ignore_errors=True to delete readonly files
