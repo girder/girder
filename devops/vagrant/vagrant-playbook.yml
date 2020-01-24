@@ -54,7 +54,7 @@
         girder_bind_public: true
         girder_daemonize: false
         girder_development_mode: true
-        girder_package: "{{ ansible_user_dir }}/girder"
+        girder_package_path: "{{ ansible_user_dir }}/girder"
         # girder_virtualenv is overridden too
 
   post_tasks:
