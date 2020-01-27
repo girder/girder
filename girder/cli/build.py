@@ -67,10 +67,13 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
             os.unlink(npmLockFile)
 
         # Remove any lingering node_modules to ensure clean install
-        pluginDirs = [version.replace('file:', '') for version in
-                      filter(lambda ver: 'file:' in ver, pluginDependencies.values())]
-        dirs = [staging, os.path.join(staging, 'src')] + pluginDirs
-        nodeModuleDirs = [os.path.join(d, 'node_modules') for d in dirs]
+        pluginDirs = [
+            version.replace('file:', '')
+            for version in pluginDependencies.values()
+            if version.startswith('file:')
+        ]
+        pluginSrcDirs = [staging, os.path.join(staging, 'src')] + pluginDirs
+        nodeModuleDirs = [os.path.join(d, 'node_modules') for d in pluginSrcDirs]
 
         for path in nodeModuleDirs:
             # Include ignore_errors=True to delete readonly files
