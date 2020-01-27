@@ -55,7 +55,8 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
 
     staging = _GIRDER_BUILD_ASSETS_PATH
     pluginDependencies = _collectPluginDependencies()
-    _generatePackageJSON(staging, os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'package.json.template'), pluginDependencies)
+    _generatePackageJSON(staging, os.path.join(_GIRDER_BUILD_ASSETS_PATH,
+                         'package.json.template'), pluginDependencies)
 
     if not os.path.isdir(os.path.join(staging, 'node_modules')) or reinstall:
         # The autogeneration of package.json breaks how package-lock.json is
@@ -66,7 +67,8 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
             os.unlink(npmLockFile)
 
         # Remove any lingering node_modules to ensure clean install
-        pluginDirs = [version.replace('file:', '') for version in filter(lambda ver: 'file:' in ver, pluginDependencies.values())]
+        pluginDirs = [version.replace('file:', '') for version in
+                      filter(lambda ver: 'file:' in ver, pluginDependencies.values())]
         dirs = [staging, os.path.join(staging, 'src')] + pluginDirs
         nodeModuleDirs = [os.path.join(d, 'node_modules') for d in dirs]
 
