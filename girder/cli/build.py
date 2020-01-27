@@ -54,7 +54,9 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
         reinstall = False
 
     staging = _GIRDER_BUILD_ASSETS_PATH
-    _generatePackageJSON(staging, os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'package.json.template'))
+    pluginDependencies = _collectPluginDependencies()
+    _generatePackageJSON(staging, os.path.join(_GIRDER_BUILD_ASSETS_PATH,
+                         'package.json.template'), pluginDependencies)
 
     if not os.path.isdir(os.path.join(staging, 'node_modules')) or reinstall:
         # The autogeneration of package.json breaks how package-lock.json is
@@ -63,6 +65,22 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
         npmLockFile = os.path.join(staging, 'package-lock.json')
         if os.path.exists(npmLockFile):
             os.unlink(npmLockFile)
+
+        # Remove any lingering node_modules to ensure clean install
+        pluginDirs = [
+            version.replace('file:', '')
+            for version in pluginDependencies.values()
+            if version.startswith('file:')
+        ]
+        pluginSrcDirs = [staging, os.path.join(staging, 'src')] + pluginDirs
+        nodeModuleDirs = [os.path.join(d, 'node_modules') for d in pluginSrcDirs]
+
+        for path in nodeModuleDirs:
+            # Include ignore_errors=True to delete readonly files
+            # and skip over nonexistant directories
+            shutil.rmtree(path, ignore_errors=True)
+
+        # Run npm install
         installCommand = [npm, 'install']
         if mode == ServerMode.PRODUCTION:
             installCommand.append('--production')
@@ -98,12 +116,11 @@ def _collectPluginDependencies():
     return packages
 
 
-def _generatePackageJSON(staging, source):
+def _generatePackageJSON(staging, source, plugins):
     with open(source, 'r') as f:
         sourceJSON = json.load(f)
     deps = sourceJSON['dependencies']
     deps['@girder/core'] = 'file:%s' % os.path.join(os.path.dirname(source), 'src')
-    plugins = _collectPluginDependencies()
     deps.update(plugins)
     sourceJSON['girder'] = {
         'plugins': list(plugins.keys())
