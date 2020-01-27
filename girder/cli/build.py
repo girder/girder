@@ -54,7 +54,8 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
         reinstall = False
 
     staging = _GIRDER_BUILD_ASSETS_PATH
-    _generatePackageJSON(staging, os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'package.json.template'))
+    pluginDependencies = _collectPluginDependencies()
+    _generatePackageJSON(staging, os.path.join(_GIRDER_BUILD_ASSETS_PATH, 'package.json.template'), pluginDependencies)
 
     if not os.path.isdir(os.path.join(staging, 'node_modules')) or reinstall:
         # The autogeneration of package.json breaks how package-lock.json is
@@ -65,12 +66,11 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
             os.unlink(npmLockFile)
 
         # Remove any lingering node_modules to ensure clean install
-        plugin_dirs = [path.replace('file:', '') for path in _collectPluginDependencies().values()]
-        dirs = [staging, os.path.join(staging, 'src')]
-        dirs.extend(plugin_dirs)
-        node_module_dirs = [os.path.join(d, 'node_modules') for d in dirs]
+        pluginDirs = [version.replace('file:', '') for version in pluginDependencies.values()]
+        dirs = [staging, os.path.join(staging, 'src')] + pluginDirs
+        nodeModuleDirs = [os.path.join(d, 'node_modules') for d in dirs]
 
-        for path in node_module_dirs:
+        for path in nodeModuleDirs:
             # Include ignore_errors=True to delete readonly files
             # and skip over nonexistant directories
             shutil.rmtree(path, ignore_errors=True)
@@ -111,12 +111,11 @@ def _collectPluginDependencies():
     return packages
 
 
-def _generatePackageJSON(staging, source):
+def _generatePackageJSON(staging, source, plugins):
     with open(source, 'r') as f:
         sourceJSON = json.load(f)
     deps = sourceJSON['dependencies']
     deps['@girder/core'] = 'file:%s' % os.path.join(os.path.dirname(source), 'src')
-    plugins = _collectPluginDependencies()
     deps.update(plugins)
     sourceJSON['girder'] = {
         'plugins': list(plugins.keys())
