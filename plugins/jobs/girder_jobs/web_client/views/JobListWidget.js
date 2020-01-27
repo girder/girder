@@ -37,7 +37,9 @@ var JobListWidget = View.extend({
             } else {
                 delete this.jobCheckedStates[jobId];
             }
-            this._renderData();
+            // this._renderData recreates the DOM that this event handler is attached to,
+            // so run it after the conclusion of the handler
+            setTimeout(_.bind(this._renderData, this), 0);
         },
         'click input.g-job-checkbox-all': function (e) {
             e.stopPropagation();
@@ -48,7 +50,9 @@ var JobListWidget = View.extend({
             } else {
                 this.jobCheckedStates = {};
             }
-            this._renderData();
+            // this._renderData recreates the DOM that this event handler is attached to,
+            // so run it after the conclusion of the handler
+            setTimeout(_.bind(this._renderData, this), 0);
         },
         'click .check-menu-dropdown a.g-jobs-list-cancel': function (e) {
             this._cancelJobs();
