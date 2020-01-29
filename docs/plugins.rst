@@ -297,8 +297,8 @@ plugin configuration page. Each server in the list has several properties:
   older versions of the protocol might work, but is not tested at this time.
 
 
-OAuth Login
------------
+OAuth2 Login
+------------
 This plugin allows users to log in using OAuth against a set of supported providers,
 rather than storing their credentials in the Girder instance. Specific instructions
 for each provider can be found below.
@@ -377,8 +377,8 @@ users have their acceptances stored and remembered permanently, while anonymous 
 acceptances stored only on the local browser.
 
 
-Remote Worker
--------------
+Worker
+------
 This plugin should be enabled if you want to use the Girder worker distributed
 processing engine to execute batch jobs initiated by the server. This is useful
 for deploying service architectures that involve both data management and

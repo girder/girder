@@ -193,7 +193,7 @@ def _computeHash(file, progress=noProgress):
 
 
 class HashsumDownloadPlugin(GirderPlugin):
-    DISPLAY_NAME = 'Hashsum download'
+    DISPLAY_NAME = 'Hashsum Download'
     CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):

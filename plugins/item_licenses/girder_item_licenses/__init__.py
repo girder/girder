@@ -78,7 +78,7 @@ def validateItem(event):
 
 
 class ItemLicensesPlugin(GirderPlugin):
-    DISPLAY_NAME = 'Item licenses'
+    DISPLAY_NAME = 'Item Licenses'
     CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
