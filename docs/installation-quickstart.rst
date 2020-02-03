@@ -156,7 +156,7 @@ can also be used instead.
 
       .. code-block:: bash
 
-         curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+         curl -fsL https://deb.nodesource.com/setup_12.x | sudo -E bash -
          sudo apt-get install -y nodejs
 
    .. group-tab:: RHEL (CentOS) 7
@@ -165,7 +165,7 @@ can also be used instead.
 
       .. code-block:: bash
 
-         curl --silent --location https://rpm.nodesource.com/setup_12.x | sudo bash -
+         curl -fsL https://rpm.nodesource.com/setup_12.x | sudo bash -
          sudo yum -y install nodejs
 
    .. group-tab:: macOS

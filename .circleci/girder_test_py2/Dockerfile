@@ -5,7 +5,7 @@ LABEL maintainer="Kitware, Inc. <kitware@kitware.com>"
 USER root
 
 # Install Node.js 10
-RUN curl --silent --location https://deb.nodesource.com/setup_10.x | bash - \
+RUN curl --fail --silent --location 'https://deb.nodesource.com/setup_10.x' | bash - \
   && apt-get install --assume-yes \
     'nodejs=10.*' \
   && npm install --global \
