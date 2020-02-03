@@ -184,7 +184,7 @@ E.g., upload my_datafile.txt and download the my_data.txt.sha512 file, then chec
 my_data.txt.sha512 file into your source repository.
 
 You can use the Girder API to get the hash of the file given the file id, with the endpoint
-``api/v1/file/<file id>/hashsum_file/sha512``, where the file id comes from the specific file in
+``/api/v1/file/<file id>/hashsum_file/sha512``, where the file id comes from the specific file in
 Girder.
 
 You can also use the API to download the file based on the hash returned by the previous endpoint,

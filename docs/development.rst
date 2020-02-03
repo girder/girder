@@ -137,8 +137,8 @@ Client Development
 If you are writing a custom client application that communicates with the Girder
 REST API, you should look at the Swagger page that describes all of the available
 API endpoints. The Swagger page can be accessed by navigating a web browser to
-``api/v1`` relative to the server root. If you wish to consume the Swagger-compliant
-API specification programmatically, the JSON listing is served out of ``api/v1/describe``.
+``/api/v1``. If you wish to consume the Swagger-compliant
+API specification programmatically, the JSON listing is served out of ``/api/v1/describe``.
 
 If you are working on the main Girder web client, either in core or extending it via
 plugins, there are a few conventions that should be followed. Namely, if you write

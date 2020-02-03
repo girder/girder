@@ -16,7 +16,7 @@ Authenticating to the web API
 Clients can make authenticated web API calls by passing a secure temporary token
 with their requests. Tokens are obtained via the login process; the standard
 login process requires the client to make an HTTP ``GET`` request to the
-``api/v1/user/authentication`` route, using HTTP Basic Auth to pass the user
+``/api/v1/user/authentication`` route, using HTTP Basic Auth to pass the user
 credentials. For example, for a user with login "john" and password "hello",
 first base-64 encode the string ``"john:hello"`` which yields ``"am9objpoZWxsbw=="``.
 Then take the base-64 encoded value and pass it via the ``Authorization`` header: ::
