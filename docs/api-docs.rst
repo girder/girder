@@ -15,8 +15,7 @@ that uses `Swagger <https://swagger.io>`_ to document
 all available RESTful endpoints in the web API and also provide an easy way
 for users to execute those endpoints with parameters of their choosing. In
 this way, the Swagger page is just the simplest and lightest client application
-for Girder. This page is served out of the path ``/api`` under the root path of
-your Girder instance.
+for Girder. This page is served out of the path ``/api``.
 
 
 Internal Python API
