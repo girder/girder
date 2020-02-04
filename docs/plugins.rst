@@ -10,8 +10,15 @@ a listing and brief documentation of some of Girder's standard plugins that come
 pre-packaged with the application.
 
 
+Audit Logging
+-------------
+`PyPI package <https://pypi.org/project/girder-audit-logs/>`__: ``girder-audit-logs``
+
+
 Authorized Uploads
 ------------------
+`PyPI package <https://pypi.org/project/girder-authorized-upload/>`__: ``girder-authorized-upload``
+
 This plugin allows registered users to grant access to others to upload data on their behalf
 via a secure URL. The secure URL allows a third party to upload a single file into the selected
 folder, even if that third party does not have a registered user in Girder.
@@ -34,6 +41,8 @@ To authorize an upload on behalf of your user:
 
 Auto Join
 ---------
+`PyPI package <https://pypi.org/project/girder-autojoin/>`__: ``girder-autojoin``
+
 The Auto Join plugin allows you to define rules to automatically assign new
 users to groups based on their email address domain. Typically, this is used in
 conjunction with email verification.
@@ -47,6 +56,8 @@ level.
 
 DICOM Viewer
 ------------
+`PyPI package <https://pypi.org/project/girder-dicom-viewer/>`__: ``girder-dicom-viewer``
+
 The DICOM Viewer plugin adds support for previewing DICOM files when viewing
 an item in girder. If multiple DICOM files are present in a single item, they
 are presented as multiple slices. The DICOM image is shown as well as a table
@@ -65,6 +76,8 @@ images by series and instance.
 
 Download Statistics
 -------------------
+`PyPI package <https://pypi.org/project/girder-download-statistics/>`__: ``girder-download-statistics``
+
 This plugin tracks and records file download activity. The recorded information
 (downloads started, downloads completed, and total requests made) is stored on the
 file model: ::
@@ -76,6 +89,8 @@ file model: ::
 
 Google Analytics
 ----------------
+`PyPI package <https://pypi.org/project/girder-google-analytics/>`__: ``girder-google-analytics``
+
 The Google Analytics plugin enables the use of Google Analytics to track
 page views with the Girder one-page application. It is primarily a client-side
 plugin with the tracking ID stored in the database. Each routing change will
@@ -88,6 +103,8 @@ plugin configuration page.
 
 Gravatar Portraits
 ------------------
+`PyPI package <https://pypi.org/project/girder-gravatar/>`__: ``girder-gravatar``
+
 This lightweight plugin makes all users' Gravatar image URLs available for use
 in clients. When enabled, user documents sent through the REST API will contain
 a new field ``gravatar_baseUrl`` if the value has been computed. If that field
@@ -118,6 +135,8 @@ internally. You can use it on any user model with the ``_id`` field set, as in t
 
 Hashsum Download
 ----------------
+`PyPI package <https://pypi.org/project/girder-hashsum-download/>`__: ``girder-hashsum-download``
+
 The hashum_download plugin allows a file to be downloaded from Girder given a hash value and hash
 algorithm. Use this plugin when you have large data that you don’t want to keep in a software
 repository, but want to access that data from the repository, e.g. during a build or test of that
@@ -194,16 +213,25 @@ comes from the specific file in Girder.
 
 Homepage
 --------
+`PyPI package <https://pypi.org/project/girder-homepage/>`__: ``girder-homepage``
+
 The Homepage plugin allows the default Girder front page to be replaced by
 content written in `Markdown <https://daringfireball.net/projects/markdown/>`_
 format. After enabling this plugin, visit the plugin configuration page
 to edit and preview the Markdown.
 
 
+Item Licenses
+-------------
+`PyPI package <https://pypi.org/project/girder-item-licenses/>`__: ``girder-item-licenses``
+
+
 .. _jobsplugin:
 
 Jobs
 ----
+`PyPI package <https://pypi.org/project/girder-jobs/>`__: ``girder-jobs``
+
 The jobs plugin is useful for representing long-running (usually asynchronous) jobs
 in the Girder data model. Since the notion of tracking batch jobs is so common to
 many applications of Girder, this plugin is very generic and is meant to be an
@@ -271,6 +299,8 @@ re-fetch the full document in the handler.
 
 LDAP Authentication
 -------------------
+`PyPI package <https://pypi.org/project/girder-ldap/>`__: ``girder-ldap``
+
 This plugin allows administrators to configure the server so that users can
 log in against one or more LDAP servers. If the user fails to authenticate to
 any of the available LDAP servers, they will fall back to normal core
@@ -299,6 +329,8 @@ plugin configuration page. Each server in the list has several properties:
 
 OAuth2 Login
 ------------
+`PyPI package <https://pypi.org/project/girder-oauth/>`__: ``girder-oauth``
+
 This plugin allows users to log in using OAuth against a set of supported providers,
 rather than storing their credentials in the Girder instance. Specific instructions
 for each provider can be found below.
@@ -364,17 +396,36 @@ if this is the first time logging in with these OAuth credentials).
 
 Sentry
 ------
+`PyPI package <https://pypi.org/project/girder-sentry/>`__: ``girder-sentry``
+
 The Sentry plugin enables the use of `Sentry <https://sentry.io>`_ to detect and report errors in
 Girder.
 
 
 Terms of Use
 ------------
+`PyPI package <https://pypi.org/project/girder-terms/>`__: ``girder-terms``
+
 This plugin allows collection admins to define a set of textual "Terms of Use", which other users
 must accept before browsing within the collection. The terms may be set with markdown-formatted
 text, and users will be required to re-accept the terms whenever the content changes. Logged-in
 users have their acceptances stored and remembered permanently, while anonymous users have their
 acceptances stored only on the local browser.
+
+
+Thumbnails
+----------
+`PyPI package <https://pypi.org/project/girder-thumbnails/>`__: ``girder-thumbnails``
+
+
+User and Collection Quotas
+--------------------------
+`PyPI package <https://pypi.org/project/girder-user-quota/>`__: ``girder-user-quota``
+
+
+Virtual Folders
+---------------
+`PyPI package <https://pypi.org/project/girder-virtual-folders/>`__: ``girder-virtual-folders``
 
 
 Worker
