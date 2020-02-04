@@ -106,7 +106,7 @@ def _virtualChildItems(self, event):
 
 
 class VirtualFoldersPlugin(GirderPlugin):
-    DISPLAY_NAME = 'Virtual folders'
+    DISPLAY_NAME = 'Virtual Folders'
 
     def load(self, info):
         name = 'virtual_folders'

@@ -49,7 +49,7 @@ def _userUpdate(event):
 
 
 class GravatarPlugin(GirderPlugin):
-    DISPLAY_NAME = 'Gravatar portraits'
+    DISPLAY_NAME = 'Gravatar Portraits'
     CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):

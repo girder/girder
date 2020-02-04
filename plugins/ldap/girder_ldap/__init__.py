@@ -141,7 +141,7 @@ def _ldapServerTest(self, uri, bindName, password, params):
 
 
 class LDAPPlugin(GirderPlugin):
-    DISPLAY_NAME = 'LDAP authentication'
+    DISPLAY_NAME = 'LDAP Authentication'
     CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):

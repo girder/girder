@@ -49,7 +49,7 @@ class _AuditLogDatabaseHandler(logging.Handler):
 
 
 class AuditLogsPlugin(GirderPlugin):
-    DISPLAY_NAME = 'Audit logging'
+    DISPLAY_NAME = 'Audit Logging'
 
     def load(self, info):
         auditLogger.addHandler(_AuditLogDatabaseHandler())

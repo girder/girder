@@ -39,7 +39,7 @@ def checkOauthUser(event):
 
 
 class OAuthPlugin(GirderPlugin):
-    DISPLAY_NAME = 'OAuth2 login'
+    DISPLAY_NAME = 'OAuth2 Login'
     CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):

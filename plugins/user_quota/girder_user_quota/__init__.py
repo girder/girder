@@ -6,7 +6,7 @@ from .quota import QuotaPolicy
 
 
 class UserQuotaPlugin(GirderPlugin):
-    DISPLAY_NAME = 'User and collection quotas and policies'
+    DISPLAY_NAME = 'User and Collection Quotas'
     CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
