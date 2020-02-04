@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 
-curl 'https://doc.esdoc.org/api/create' -X POST --data-urlencode "gitUrl=git@github.com:girder/girder.git"
+curl --fail --request 'POST' --data-urlencode 'gitUrl=git@github.com:girder/girder.git' 'https://doc.esdoc.org/api/create'
