@@ -17,7 +17,9 @@
     },
     "devDependencies": {
         "@girder/eslint-config": "file:./girder/web_client/eslint-config",
+        "@girder/pug-lint-config": "file:./girder/web_client/pug-lint-config",
         "esdoc": "^1.1.0",
+        "esdoc-standard-plugin": "^1.0.0",
         "eslint": "^6.8.0",
         "eslint-config-semistandard": "^15.0.0",
         "eslint-config-standard": "^13.0.1",
@@ -30,14 +32,12 @@
         "nyc": "^15.0.0",
         "phantomjs-prebuilt": "^2.1.16",
         "pug-lint": "^2.6.0",
-        "@girder/pug-lint-config": "file:./girder/web_client/pug-lint-config",
         "stylint": "^2.0.0"
     },
     "scripts": {
         "lint": "eslint --cache . && pug-lint . && stylint",
         "docs": "esdoc",
-        "publish-all": "./.circleci/publish_npm.sh",
-        "publish-esdoc": "./.circleci/publish_esdoc.sh"
+        "publish-all": "./.circleci/publish_npm.sh"
     },
     "esdoc": {
         "source": "girder/web_client/src",

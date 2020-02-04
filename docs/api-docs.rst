@@ -255,5 +255,8 @@ See :ref:`python-client`
 Web client
 ----------
 
-Documentation for Girder's web client library is built and hosted by esdoc and can be found
-`here <https://doc.esdoc.org/github.com/girder/girder>`_.
+Documentation for Girder's web client library is not hosted online, but may be built locally by
+running (from the top-level directory):
+```bash
+npm install && npm run docs
+```
