@@ -505,10 +505,6 @@ jobs:
           command: tox -e publish
           working_directory: girder
       - run:
-          name: Publish Javascript docs
-          command: npm run publish-esdoc
-          working_directory: girder
-      - run:
           name: Publish Ansible role
           command: tox -e release_ansible
           working_directory: girder
