@@ -90,4 +90,4 @@ class PatchedPythonDomain(PythonDomain):
 
 
 def setup(sphinx):
-    sphinx.override_domain(PatchedPythonDomain)
+    sphinx.add_domain(PatchedPythonDomain, override=True)
