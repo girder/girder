@@ -1,8 +1,11 @@
 import $ from 'jquery';
 import _ from 'underscore';
-import { Remarkable } from 'remarkable';
 
 import { MONTHS } from '@girder/core/constants';
+
+import { Remarkable } from 'remarkable';
+
+import { linkify } from 'remarkable/linkify';
 
 /**
  * This file contains utility functions for general use in the application
@@ -192,9 +195,7 @@ function defineFlags(options, allOption) {
  *        return the HTML value.
  */
 var renderMarkdown = (function () {
-    var md = new Remarkable({
-        linkify: true
-    });
+    var md = new Remarkable().use(linkify);
     return function (val, el) {
         if (el) {
             $(el).html(md.render(val));
