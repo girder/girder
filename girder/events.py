@@ -282,6 +282,8 @@ def trigger(eventName, info=None, pre=None, asynchronous=False, daemon=False):
     :type daemon: bool
     """
     e = Event(eventName, info, asynchronous=asynchronous)
+    # We take a copy of the items here using list(...) in case the dict is
+    # modified while we are iterating
     for name, handler in list(six.viewitems(_mapping.get(eventName, {}))):
         if daemon and not asynchronous:
             girder.logprint.warning(
