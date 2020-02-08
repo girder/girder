@@ -28,6 +28,7 @@ example, we have the following:
 
     [server]
     api_root = "/girder/api/v1"
+    static_public_path = "/girder/static"
 
 .. note:: If your chosen proxy server does not add the appropriate
    ``X-Forwarded-Host`` header (containing the host used in http requests,
@@ -39,6 +40,8 @@ example, we have the following:
 
        tools.proxy.base = "http://www.example.com/girder"
        tools.proxy.local = ""
+
+Note that after changing these parameters, it is necessary to rebuild the web client.
 
 Apache
 ++++++
