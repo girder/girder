@@ -500,11 +500,11 @@ jobs:
     steps:
       - checkout:
           path: girder
-      - run:
+      - deploy:
           name: Publish Python packages
           command: tox -e publish
           working_directory: girder
-      - run:
+      - deploy:
           name: Publish Ansible role
           command: tox -e release_ansible
           working_directory: girder
@@ -514,7 +514,7 @@ jobs:
     steps:
       - checkout:
           path: girder
-      - run:
+      - deploy:
           name: Publish npm packages
           command: npm run publish-all
           working_directory: girder
