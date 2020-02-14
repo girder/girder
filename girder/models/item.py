@@ -433,7 +433,8 @@ class Item(acl_mixin.AccessControlMixin, Model):
         newItem = self.createItem(
             folder=folder, name=name, creator=creator, description=description)
         # copy metadata and other extension values
-        newItem['meta'] = copy.deepcopy(srcItem['meta'])
+        if srcItem.get('meta'):
+            newItem['meta'] = copy.deepcopy(srcItem['meta'])
         filteredItem = self.filter(newItem, creator)
         for key in srcItem:
             if key not in filteredItem and key not in newItem:

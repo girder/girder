@@ -801,7 +801,7 @@ class Folder(AccessControlledModel):
 
         # copy metadata and other extension values
         updated = False
-        if srcFolder['meta']:
+        if srcFolder.get('meta'):
             newFolder['meta'] = copy.deepcopy(srcFolder['meta'])
             updated = True
 
