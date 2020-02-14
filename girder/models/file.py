@@ -5,6 +5,7 @@ import os
 import six
 
 from .model_base import Model, AccessControlledModel
+import girder
 from girder import auditLogger, events
 from girder.constants import AccessType, CoreEventHandler
 from girder.exceptions import FilePathException, ValidationException
@@ -58,9 +59,13 @@ class File(acl_mixin.AccessControlMixin, Model):
 
         if file['itemId']:
             item = Item().load(file['itemId'], force=True)
-            # files that are linkUrls might not have a size field
-            if 'size' in file:
-                self.propagateSizeChange(item, -file['size'], updateItemSize)
+            if item is not None:
+                # files that are linkUrls might not have a size field
+                if 'size' in file:
+                    self.propagateSizeChange(item, -file['size'], updateItemSize)
+            else:
+                girder.logger.warning('Broken reference in file %s: no item %s exists' %
+                                      (file['_id'], file['itemId']))
 
         Model.remove(self, file)
 
