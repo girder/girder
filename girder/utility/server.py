@@ -105,7 +105,7 @@ def configureServer(test=False, plugins=None, curConfig=None):
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
             'request.show_tracebacks': test,
             'request.methods_with_bodies': ('POST', 'PUT', 'PATCH'),
-            'response.headers.server': 'Girder %s' % __version__,
+            'response.headers.server': 'Girder',
             'error_page.default': _errorDefault
         }
     }
