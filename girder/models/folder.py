@@ -800,18 +800,13 @@ class Folder(AccessControlledModel):
         from .item import Item
 
         # copy metadata and other extension values
-        updated = False
-        if srcFolder['meta']:
+        if 'meta' in srcFolder:
             newFolder['meta'] = copy.deepcopy(srcFolder['meta'])
-            updated = True
-
         filteredFolder = self.filter(newFolder, creator)
         for key in srcFolder:
             if key not in filteredFolder and key not in newFolder:
                 newFolder[key] = copy.deepcopy(srcFolder[key])
-                updated = True
-        if updated:
-            newFolder = self.save(newFolder, triggerEvents=False)
+        newFolder = self.save(newFolder, triggerEvents=False)
         # Give listeners a chance to change things
         events.trigger('model.folder.copy.prepare', (srcFolder, newFolder))
         # copy items
