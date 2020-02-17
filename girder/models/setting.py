@@ -118,7 +118,7 @@ class Setting(Model):
         else:
             setting['value'] = value
 
-        # Invlidate the cache so that events that listen for a change in the
+        # Invalidate the cache so that events that listen for a change in the
         # setting will be get the right value from a get.  We don't set it here
         # as it could fail to validate and save.
         self._get.invalidate(self, key)
