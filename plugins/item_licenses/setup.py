@@ -19,10 +19,10 @@ def prerelease_local_scheme(version):
         return get_local_node_and_date(version)
 
 
-# perform the install
+root = os.path.dirname(__file__) + '/../..'
 setup(
     name='girder-item-licenses',
-    use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
+    use_scm_version={'root': root, 'local_scheme': prerelease_local_scheme},
     setup_requires=['setuptools-scm', 'setuptools-git'],
     description='Add a license field to items.',
     author='Kitware, Inc.',

@@ -19,9 +19,10 @@ def prerelease_local_scheme(version):
         return get_local_node_and_date(version)
 
 
+root = os.path.dirname(__file__) + '/../..'
 setup(
     name='girder-audit-logs',
-    use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
+    use_scm_version={'root': root, 'local_scheme': prerelease_local_scheme},
     setup_requires=['setuptools-scm'],
     description='Keeps detailed logs of every REST request and low-level file download event.',
     author='Kitware, Inc.',
