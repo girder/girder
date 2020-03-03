@@ -79,6 +79,9 @@ def _ldapAuth(event):
     login, password = event.info['login'], event.info['password']
     servers = Setting().get(PluginSettings.SERVERS)
 
+    if not login or not password:
+        return
+
     for server in servers:
         try:
             # ldap requires a uri complete with protocol.
@@ -122,11 +125,11 @@ def _ldapAuth(event):
     .errorResponse('You are not an administrator.', 403)
 )
 def _ldapServerTest(self, uri, bindName, password, params):
-    conn = ldap.initialize(uri)
-    conn.set_option(ldap.OPT_TIMEOUT, _CONNECT_TIMEOUT)
-    conn.set_option(ldap.OPT_NETWORK_TIMEOUT, _CONNECT_TIMEOUT)
-
+    conn = None
     try:
+        conn = ldap.initialize(uri)
+        conn.set_option(ldap.OPT_TIMEOUT, _CONNECT_TIMEOUT)
+        conn.set_option(ldap.OPT_NETWORK_TIMEOUT, _CONNECT_TIMEOUT)
         conn.bind_s(bindName, password, ldap.AUTH_SIMPLE)
         return {
             'connected': True
@@ -137,7 +140,8 @@ def _ldapServerTest(self, uri, bindName, password, params):
             'error': 'LDAP connection error: ' + e.args[0].get('desc', 'failed to connect')
         }
     finally:
-        conn.unbind_s()
+        if conn:
+            conn.unbind_s()
 
 
 class LDAPPlugin(GirderPlugin):
