@@ -23,6 +23,12 @@ class _MockDistribution(object):
         meta.version = version
         meta.description = description
         meta.url = url
+
+        # required for compatiblity with setuptools wrapped classes
+        meta.long_description_content_type = 'text/plain'
+        meta.project_urls = {}
+        meta.provides_extras = False
+
         pkgInfo = six.StringIO()
         meta.write_pkg_file(pkgInfo)
         return pkgInfo.getvalue()
