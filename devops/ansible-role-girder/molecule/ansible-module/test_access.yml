@@ -85,7 +85,7 @@
 
 - assert:
     that:
-      - ret['gc_return']['public'] == false
+      - ret['gc_return']['public'] == false  # noqa 601
       - ret['gc_return']['name'] == "Test Group"
       - ret['gc_return']['description'] == "Basic test group"
 
@@ -103,7 +103,7 @@
 
 - assert:
     that:
-      - ret['changed'] == false
+      - ret['changed'] == false  # noqa 601
 
 
 # Change group description
@@ -253,7 +253,7 @@
 
 - assert:
     that:
-      - ret['changed'] == false
+      - ret['changed'] == false  # noqa 601
 
 
 #########
@@ -582,7 +582,7 @@
 - assert:
     that:
       - test_collection['changed']
-      - test_collection['gc_return']['public'] == false
+      - test_collection['gc_return']['public'] == false  # noqa 601
 
 
 - name: Get collection from girder
@@ -601,7 +601,7 @@
 # the update is different from what is actually stored in mongo).
 - assert:
     that:
-      - ret['gc_return']['public'] == false
+      - ret['gc_return']['public'] == false  # noqa 601
 
 
 - name: Make the collection public again
@@ -670,7 +670,7 @@
 # Test that no change was recorded
 - assert:
     that:
-      - test_collection['changed'] == false
+      - test_collection['changed'] == false  # noqa 601
 
 #########
 #  Test: Add bill to Test Collection
@@ -856,7 +856,7 @@
     password: "letmein"
     folder:
       parentType: "collection"
-      parentId: "{{test_collection['gc_return']['_id'] }}"
+      parentId: "{{ test_collection['gc_return']['_id'] }}"
       name: "test folder"
       description: "A test folder"
       access:
@@ -910,7 +910,7 @@
     password: "letmein"
     folder:
       parentType: "collection"
-      parentId: "{{test_collection['gc_return']['_id'] }}"
+      parentId: "{{ test_collection['gc_return']['_id'] }}"
       name: "test folder"
       description: "A test folder"
     state: absent

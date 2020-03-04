@@ -43,7 +43,7 @@
     password: "letmein"
     folder:
       parentType: "collection"
-      parentId: "{{test_collection['gc_return']['_id'] }}"
+      parentId: "{{ test_collection['gc_return']['_id'] }}"
       name: "test folder"
       description: "A test folder"
   register: test_folder
@@ -64,7 +64,7 @@
     username: "admin"
     password: "letmein"
     item:
-      folderId: "{{test_folder['gc_return']['_id'] }}"
+      folderId: "{{ test_folder['gc_return']['_id'] }}"
       name: "test item"
       description: "A test item"
   register: test_item
@@ -101,7 +101,7 @@
 
 - assert:
     that:
-      - ret.changed == false
+      - ret.changed == false  # noqa 601
       - ret['gc_return']['added']|length == 0
       - ret['gc_return']['removed']|length == 0
 

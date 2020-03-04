@@ -47,7 +47,7 @@
 - name: Check that deleting an assetstore that doesnt exist doesnt trigger a failure
   assert:
     that:
-      - ret["changed"] == false
+      - ret["changed"] == false  # noqa 601
 
 
 - name: Create filesystem assetstore
@@ -88,7 +88,7 @@
 # show no change.
 # - assert:
 #     that:
-#       - ret['changed'] == false
+#       - ret['changed'] == false  # noqa 601
 
 
 - name: Create other temp directory
@@ -118,7 +118,7 @@
     that:
       - ret["changed"]
       - ret["gc_return"]|length > 0
-      - ret["gc_return"]["current"] == false
+      - ret["gc_return"]["current"] == false  # noqa 601
       - ret["gc_return"]["root"] == "/tmp2/"
 
 # Update should trigger a change

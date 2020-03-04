@@ -24,7 +24,7 @@
 - name: Check that user default folders are set to none
   assert:
     that:
-      - ret["changed"] == true
+      - ret["changed"] == true  # noqa 601
       - ret["gc_return"]["previous_value"] == "public_private"
       - ret["gc_return"]["current_value"] == "none"
 
