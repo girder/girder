@@ -12,6 +12,7 @@ driver:
 platforms:
   - name: ubuntu18
     image: solita/ubuntu-systemd:18.04
+    dockerfile: Dockerfile.j2
     privileged: false
     override_command: false
     volumes:
