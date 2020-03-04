@@ -1,6 +1,9 @@
 ---
-lint:
-  name: yamllint
+lint: |
+  set -e
+  yamllint .
+  ansible-lint
+  flake8
 dependency:
   name: galaxy
   enabled: false
@@ -32,8 +35,6 @@ platforms:
       - services
 provisioner:
   name: ansible
-  lint:
-    name: ansible-lint
   inventory:
     group_vars:
       all:
@@ -42,13 +43,8 @@ provisioner:
         ansible_python_interpreter: "/usr/bin/python3"
   playbooks:
     prepare: prepare.yml
-    converge: playbook.yml
-scenario:
-  name: default
+    converge: converge.yml
 verifier:
   name: testinfra
   options:
     hosts: targets
-    W: ignore::DeprecationWarning
-  lint:
-    name: flake8
