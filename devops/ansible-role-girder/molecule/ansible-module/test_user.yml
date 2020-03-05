@@ -50,7 +50,7 @@
 # Last action reported no change
 - assert:
     that:
-      - ret.changed == false
+      - ret.changed == false  # noqa 601
 
 
 # Should show 'changed'  because we update the name

@@ -1,14 +1,17 @@
 ---
-lint:
-  name: yamllint
+lint: |
+  set -e
+  yamllint .
+  ansible-lint
+  flake8
 dependency:
   name: galaxy
 driver:
   name: docker
-
 platforms:
   - name: ubuntu18
     image: solita/ubuntu-systemd:18.04
+    dockerfile: Dockerfile.j2
     privileged: false
     override_command: false
     volumes:
@@ -32,8 +35,6 @@ platforms:
       - services
 provisioner:
   name: ansible
-  lint:
-    name: ansible-lint
   inventory:
     group_vars:
       all:
@@ -42,10 +43,8 @@ provisioner:
         ansible_python_interpreter: "/usr/bin/python3"
   playbooks:
     prepare: prepare.yml
-    converge: playbook.yml
-
+    converge: converge.yml
 scenario:
-  name: ansible-module
   # Redefine the test_sequence to exclude idempotence and verify.
   # Currently, the verification is just running the test* playbooks, and they
   # are not idempotent.

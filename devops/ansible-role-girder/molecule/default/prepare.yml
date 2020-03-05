@@ -8,9 +8,3 @@
         name: gnupg2
         state: present
         force_apt_get: true
-    # The "ss" tool is needed by testinfra for socket inspection
-    - name: Install ss
-      apt:
-        name: iproute2
-        state: present
-        force_apt_get: true
