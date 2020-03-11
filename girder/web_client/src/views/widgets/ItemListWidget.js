@@ -83,6 +83,9 @@ var ItemListWidget = View.extend({
             selectedItemId: (this._selectedItem || {}).id
         }));
 
+        if (this._selectedItem) {
+            this.observerPosition();
+        }
         return this;
     },
 
@@ -142,6 +145,70 @@ var ItemListWidget = View.extend({
         this.checked = _.map(this.$('.g-list-checkbox:checked'), function (checkbox) {
             return $(checkbox).attr('g-item-cid');
         }, this);
+    },
+
+    /**
+     * This will look at the position of the selected item and update it as images load and
+     * the DOM reflows
+     */
+    observerPosition: function () {
+        if (window.MutationObserver) {
+            let selector = $('li.g-item-list-entry.g-selected');
+            let target = $('.g-hierarchy-widget-container');
+            let observer = new MutationObserver(function (mutations) {
+                // for every mutation
+                mutations.forEach(function (mutation) {
+                    // for every added element
+                    mutation.addedNodes.forEach(function (node) {
+                        // console.log(node);
+                        // Check if we appended a node type that isn't
+                        // an element that we can search for images inside,
+                        // like a text node.
+
+                        if (_.isFunction(node.getElementsByTagName)) {
+                            let imgs = node.getElementsByTagName('img');
+                            console.log(imgs);
+                            for (let i = 0; i < imgs.length; i++) {
+                                let img = imgs[i];
+                                // if it hasn't loaded yet
+                                if (!img.complete) {
+                                    let onLoadImage = function (event) {
+                                        if (selector.length !== 1) {
+                                            return;
+                                        }
+                                        target.scrollTop(selector.offset().top - target.height());
+                                    };
+                                    // when the image is done loading, call the function above
+                                    img.addEventListener('load', onLoadImage);
+                                }
+                            }
+
+                            // return;
+                        }
+
+                        /*
+
+                        let imgs = node.getElementsByTagName('img');
+                        console.log(imgs);
+                        // for every new image
+                        imgs.forEach(function (img) {
+                            // if it hasn't loaded yet
+                            if (!img.complete) {
+                                let onLoadImage = function (event) {
+                                    target.scrollTop($(selector).offset().top - target.height());
+                                };
+                                // when the image is done loading, call the function above
+                                img.addEventListener('load', onLoadImage);
+                            }
+                        });
+                        */
+                    });
+                });
+            });
+
+            // bind mutation observer to a specific element (probably a div somewhere)
+            observer.observe(target[0], { childList: true, subtree: true });
+        }
     }
 });
 
