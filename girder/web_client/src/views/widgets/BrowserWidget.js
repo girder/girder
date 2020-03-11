@@ -37,6 +37,9 @@ var BrowserWidget = View.extend({
      * @param {object} [rootSelectorSettings] Settings passed to the root selector widget
      * @param {boolean} [showMetadata=false] Show the metadata editor inside the hierarchy widget
      * @param {Model} [root] The default root model to pass to the hierarchy widget
+     * @param {Model} [defaultSelectedResource] default resource item to be selected.  It will start
+     *  the browser with this item selected and highlighted.  Will override the root to the parent of
+     *  the defaultSelectedResource
      * @param {boolean} [selectItem=false] Adjust behavior to enable selecting items rather
      *   than folders. This will add a handler to the hierarchy widget responding to
      *   clicks on items to select a target rather than inferring it from the browsed
@@ -51,6 +54,8 @@ var BrowserWidget = View.extend({
         promise should resolve if the selection is acceptable and reject with a string value (as an
         error message) if the selection is unacceptable.
      * @param {string} [input.placeholder] A placeholder string for the input element.
+     * @param {boolean} [highlightItem=false] highlights the selected item in the list and applies
+     * appropriate styling.
      */
     initialize: function (settings) {
         // store options
@@ -62,9 +67,11 @@ var BrowserWidget = View.extend({
         this.showPreview = _.isUndefined(settings.showPreview) ? true : !!settings.showPreview;
         this.submitText = settings.submitText || 'Save';
         this.root = settings.root;
+        this.defaultSelectedResource = settings.defaultSelectedResource;
         this.input = settings.input;
         this.selectItem = !!settings.selectItem;
         this.showMetadata = !!settings.showMetadata;
+        this.highlightItem = !!settings.highlightItem;
         this._selected = null;
 
         // generate the root selection view and listen to it's events
@@ -75,9 +82,13 @@ var BrowserWidget = View.extend({
             this.root = evt.root;
             this._renderHierarchyView();
         });
+        if (this.defaultSelectedResource) {
+            this.root = this.defaultSelectedResource.parent;
+        }
     },
 
     render: function () {
+        let defaultResourcename = (this.highlightItem && this.defaultSelectedResource && this.defaultSelectedResource.get('name'));
         this.$el.html(
             BrowserWidgetTemplate({
                 title: this.titleText,
@@ -85,7 +96,8 @@ var BrowserWidget = View.extend({
                 preview: this.showPreview,
                 submit: this.submitText,
                 input: this.input,
-                selectItem: this.selectItem
+                selectItem: this.selectItem,
+                defaultSelectedResource: defaultResourcename
             })
         ).girderModal(this);
         this._renderRootSelection();
@@ -123,6 +135,7 @@ var BrowserWidget = View.extend({
             showActions: false,
             showItems: this.showItems,
             onItemClick: _.bind(this._selectItem, this),
+            defaultSelectedItem: this.defaultSelectedResource,
             showMetadata: this.showMetadata
         });
         this.listenTo(this._hierarchyView, 'g:setCurrentModel', this._selectModel);
@@ -137,6 +150,9 @@ var BrowserWidget = View.extend({
         this.$('#g-selected-model').val('');
         if (this._selected) {
             this.$('#g-selected-model').val(this._selected.get('name'));
+            if (this.highlightItem) {
+                this._hierarchyView.selectItem(this._selected);
+            }
         }
     },
 

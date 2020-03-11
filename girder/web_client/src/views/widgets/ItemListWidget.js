@@ -47,6 +47,7 @@ var ItemListWidget = View.extend({
             _.has(settings, 'showSizes') ? settings.showSizes : true);
         this.accessLevel = settings.accessLevel;
         this.public = settings.public;
+        this._selectedItem = settings.selectedItem;
 
         new LoadingAnimation({
             el: this.$el,
@@ -78,7 +79,8 @@ var ItemListWidget = View.extend({
             checkboxes: this._checkboxes,
             downloadLinks: this._downloadLinks,
             viewLinks: this._viewLinks,
-            showSizes: this._showSizes
+            showSizes: this._showSizes,
+            selectedItemId: (this._selectedItem || {}).id
         }));
 
         return this;
