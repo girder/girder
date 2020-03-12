@@ -88,7 +88,7 @@ var BrowserWidget = View.extend({
     },
 
     render: function () {
-        let defaultResourcename = (this.highlightItem && this.defaultSelectedResource && this.defaultSelectedResource.get('name'));
+        const defaultResourcename = (this.highlightItem && this.defaultSelectedResource && this.defaultSelectedResource.get('name'));
         this.$el.html(
             BrowserWidgetTemplate({
                 title: this.titleText,

@@ -83,6 +83,7 @@ var ItemListWidget = View.extend({
             selectedItemId: (this._selectedItem || {}).id
         }));
 
+        // If we set a selected item in the beginning we will center the selection while loading
         if (this._selectedItem) {
             this.observerPosition();
         }
@@ -147,67 +148,78 @@ var ItemListWidget = View.extend({
         }, this);
     },
 
+    centerSelected: function (widgetcontainer, selected, breadCrumbHeight = 0) {
+        if (widgetcontainer.length > 0 && selected.length > 0 && selected.position().top > 0) {
+            const centerPos = (widgetcontainer.height() / 2.0) + (selected.outerHeight() / 2.0);
+            const scrollPos = (widgetcontainer.scrollTop() + breadCrumbHeight + selected.position().top - centerPos);
+
+            var e = document.createEvent('UIEvents');
+            e.initUIEvent('scroll', true, true, window, 9999);
+            widgetcontainer[0].scrollTop = scrollPos;
+            widgetcontainer[0].dispatchEvent(e);
+        }
+    },
     /**
      * This will look at the position of the selected item and update it as images load and
      * the DOM reflows
      */
     observerPosition: function () {
-        if (window.MutationObserver) {
-            let selector = $('li.g-item-list-entry.g-selected');
-            let target = $('.g-hierarchy-widget-container');
-            let observer = new MutationObserver(function (mutations) {
-                // for every mutation
-                mutations.forEach(function (mutation) {
-                    // for every added element
-                    mutation.addedNodes.forEach(function (node) {
-                        // console.log(node);
-                        // Check if we appended a node type that isn't
-                        // an element that we can search for images inside,
-                        // like a text node.
+        // Set the default selected height for the selected item
+        const target = $('.g-item-list');
+        if (window.MutationObserver && target.length > 0) {
+            const widgetcontainer = $('.g-hierarchy-widget-container');
+            const selected = $('li.g-item-list-entry.g-selected');
+            const breadCrumbHeight =  (($('.g-hierarchy-breadcrumb-bar') || {}).height() || 0);
 
+            this.observer = new MutationObserver((mutations) => {
+                // for every mutation
+                mutations.forEach((mutation) => {
+                    // for every added element
+                    this.centerSelected(widgetcontainer, selected, breadCrumbHeight);
+
+                    mutation.addedNodes.forEach((node) => {
                         if (_.isFunction(node.getElementsByTagName)) {
-                            let imgs = node.getElementsByTagName('img');
-                            console.log(imgs);
+                            const imgs = node.getElementsByTagName('img');
+                            // console.log(imgs);
                             for (let i = 0; i < imgs.length; i++) {
-                                let img = imgs[i];
+                                const img = imgs[i];
                                 // if it hasn't loaded yet
+
                                 if (!img.complete) {
-                                    let onLoadImage = function (event) {
-                                        if (selector.length !== 1) {
-                                            return;
+                                    const onLoadImage = (event) => {
+                                        if (this.observer) {
+                                            // console.log('Calling regular selected');
+                                            this.centerSelected(widgetcontainer, selected, breadCrumbHeight);
                                         }
-                                        target.scrollTop(selector.offset().top - target.height());
                                     };
                                     // when the image is done loading, call the function above
                                     img.addEventListener('load', onLoadImage);
                                 }
                             }
-
-                            // return;
                         }
-
-                        /*
-
-                        let imgs = node.getElementsByTagName('img');
-                        console.log(imgs);
-                        // for every new image
-                        imgs.forEach(function (img) {
-                            // if it hasn't loaded yet
-                            if (!img.complete) {
-                                let onLoadImage = function (event) {
-                                    target.scrollTop($(selector).offset().top - target.height());
-                                };
-                                // when the image is done loading, call the function above
-                                img.addEventListener('load', onLoadImage);
-                            }
-                        });
-                        */
                     });
                 });
             });
 
             // bind mutation observer to a specific element (probably a div somewhere)
-            observer.observe(target[0], { childList: true, subtree: true });
+            this.observer.observe(target.parent()[0], { childList: true, subtree: true });
+
+            // Add in scroll event to kill observer if the user scrolls the area
+            this.tempScrollPos = widgetcontainer[0].scrollTop;
+            widgetcontainer.scroll((evt) => {
+                console.log(`Type: ${(evt.originalEvent instanceof UIEvent)} Old: ${this.tempScrollPos} New: ${widgetcontainer[0].scrollTop} detail: ${evt.detail}`);
+                if (this.tempScrollPos !== widgetcontainer[0].scrollTop) {
+                    if (evt.detail === undefined) {
+                        if (this.observer) {
+                            widgetcontainer.unbind('scroll');
+                            this.observer.disconnect();
+                            this.observer = null;
+                            console.log('User Scroll');
+                        }
+                    }
+                    this.tempScrollPos = widgetcontainer[0].scrollTop;
+                }
+            });
         }
     }
 });
