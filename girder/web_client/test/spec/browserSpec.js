@@ -377,6 +377,49 @@ describe('Test the hierarchy browser modal', function () {
                 expect(select.val()).toBe('123');
             });
         });
+
+        it('preselected by Resource Option', function () {
+            var col;
+            var view;
+            returnVal = [
+                { _id: 'abc', name: 'custom 1', _modelType: 'collection' },
+                { _id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin' },
+                { _id: '123', name: 'custom 3', _modelType: 'folder' }
+            ];
+
+            runs(function () {
+                col = new girder.collections.CollectionCollection();
+                col.fetch();
+            });
+
+            waitsFor(function () {
+                return col.size() === 3;
+            });
+
+            runs(function () {
+                returnVal = [];
+                view = new girder.views.widgets.RootSelectorWidget({
+                    el: testEl,
+                    parentView: null,
+                    groups: {
+                        Custom: col
+                    },
+                    display: ['Collections', 'Custom'],
+                    selectByResource: { baseParentId: 'def', baseParentGroup: 'user' }
+                });
+                spyOn(view, 'render').andCallThrough();
+            });
+
+            waitsFor(function () {
+                return view.render.callCount >= 3;
+            });
+
+            runs(function () {
+                var select = view.$('select#g-root-selector');
+                expect(select.length).toBe(1);
+                expect(select.val()).toBe('def');
+            });
+        });
     });
 
     describe('browser modal', function () {

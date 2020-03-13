@@ -216,5 +216,10 @@
             "expect": 5,
             "error": true
         }
+    },
+    "dependencies": {
+        "lint": "^0.7.0",
+        "npm": "^6.14.2",
+        "run": "^1.4.0"
     }
 }

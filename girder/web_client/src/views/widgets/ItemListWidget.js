@@ -71,6 +71,10 @@ var ItemListWidget = View.extend({
 
     render: function () {
         this.checked = [];
+        if (this._selectedItem) {
+            this.observerPosition();
+        }
+
         this.$el.html(ItemListTemplate({
             items: this.collection.toArray(),
             isParentPublic: this.public,
@@ -84,9 +88,6 @@ var ItemListWidget = View.extend({
         }));
 
         // If we set a selected item in the beginning we will center the selection while loading
-        if (this._selectedItem) {
-            this.observerPosition();
-        }
         return this;
     },
 
@@ -157,7 +158,7 @@ var ItemListWidget = View.extend({
             const centerPos = (widgetcontainer.height() / 2.0) + (selected.outerHeight() / 2.0);
             $('.g-hierarchy-widget-container').css({ 'overflow-y': 'visible' });
             const scrollPos = selected.position().top - centerPos;
-            console.log(`Old: ${this.tempScrollPos} top: ${selected.position().top} center: ${centerPos}`);
+            // console.log(`Old: ${this.tempScrollPos} top: ${selected.position().top} center: ${centerPos}`);
             $('.g-hierarchy-widget-container').css({ 'overflow-y': 'scroll' });
             if (this.tempScrollPos === undefined) {
                 this.tempScrollPos = scrollPos;
@@ -183,25 +184,32 @@ var ItemListWidget = View.extend({
                 // for every mutation
                 mutations.forEach((mutation) => {
                     // for every added element
-                    this.centerSelected(widgetcontainer, selected, breadCrumbHeight);
 
                     mutation.addedNodes.forEach((node) => {
+                        if (node.className && node.className.indexOf('g-item-list') !== -1) {
+                            // We want to do a onetime scroll to position if the screen is idle
+                            if ('requestIdleCallback' in window) {
+                                // Processing time is 2 seconds, but should be much lower
+                                requestIdleCallback(() => {
+                                    this.centerSelected(widgetcontainer, selected, breadCrumbHeight);
+                                }, { timeout: 2000 });
+                            } else {
+                                this.centerSelected(widgetcontainer, selected, breadCrumbHeight);
+                            }
+                        }
+
                         if (_.isFunction(node.getElementsByTagName)) {
                             const imgs = node.getElementsByTagName('img');
                             // console.log(imgs);
                             for (let i = 0; i < imgs.length; i++) {
-                                const img = imgs[i];
-                                // if it hasn't loaded yet
-
-                                if (!img.complete) {
+                                if (!imgs[i].complete) {
                                     const onLoadImage = (event) => {
                                         if (this.observer) {
-                                            // console.log('Calling regular selected');
                                             this.centerSelected(widgetcontainer, selected, breadCrumbHeight);
                                         }
                                     };
                                     // when the image is done loading, call the function above
-                                    img.addEventListener('load', onLoadImage);
+                                    imgs[i].addEventListener('load', onLoadImage);
                                 }
                             }
                         }
@@ -214,10 +222,9 @@ var ItemListWidget = View.extend({
 
             // Add in scroll event to kill observer if the user scrolls the area
             widgetcontainer.scroll((evt) => {
-                // console.log(evt);
-                console.log(`Old: ${this.tempScrollPos} New: ${widgetcontainer[0].scrollTop} detail: ${evt.detail}`);
                 if (this.tempScrollPos !== undefined && this.tempScrollPos !== widgetcontainer[0].scrollTop) {
                     this.tempScrollPos = widgetcontainer[0].scrollTop;
+                    // If the event detail is not 9999 the scroll is either a reflow or user controller
                     if (evt.detail !== 9999) {
                         if (this.observer) {
                             widgetcontainer.unbind('scroll');
