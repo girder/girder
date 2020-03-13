@@ -149,13 +149,21 @@ var ItemListWidget = View.extend({
     },
 
     centerSelected: function (widgetcontainer, selected, breadCrumbHeight = 0) {
-        if (widgetcontainer.length > 0 && selected.length > 0 && selected.position().top > 0) {
-            const centerPos = (widgetcontainer.height() / 2.0) + (selected.outerHeight() / 2.0);
-            const scrollPos = (widgetcontainer.scrollTop() + breadCrumbHeight + selected.position().top - centerPos);
+        widgetcontainer = $('.g-hierarchy-widget-container');
+        selected = $('li.g-item-list-entry.g-selected');
+        breadCrumbHeight = (($('.g-hierarchy-breadcrumb-bar') || {}).height() || 0);
 
-            var e = document.createEvent('UIEvents');
-            e.initUIEvent('scroll', true, true, window, 9999);
-            widgetcontainer[0].scrollTop = scrollPos;
+        if (widgetcontainer.length > 0 && selected.length > 0) {
+            const centerPos = (widgetcontainer.height() / 2.0) + (selected.outerHeight() / 2.0);
+            $('.g-hierarchy-widget-container').css({ 'overflow-y': 'visible' });
+            const scrollPos = selected.position().top - centerPos;
+            console.log(`Old: ${this.tempScrollPos} top: ${selected.position().top} center: ${centerPos}`);
+            $('.g-hierarchy-widget-container').css({ 'overflow-y': 'scroll' });
+            if (this.tempScrollPos === undefined) {
+                this.tempScrollPos = scrollPos;
+            }
+            var e = new CustomEvent('scroll', { detail: 9999 });
+            widgetcontainer[0].scroll(0, scrollPos);
             widgetcontainer[0].dispatchEvent(e);
         }
     },
@@ -205,11 +213,12 @@ var ItemListWidget = View.extend({
             this.observer.observe(target.parent()[0], { childList: true, subtree: true });
 
             // Add in scroll event to kill observer if the user scrolls the area
-            this.tempScrollPos = widgetcontainer[0].scrollTop;
             widgetcontainer.scroll((evt) => {
-                console.log(`Type: ${(evt.originalEvent instanceof UIEvent)} Old: ${this.tempScrollPos} New: ${widgetcontainer[0].scrollTop} detail: ${evt.detail}`);
-                if (this.tempScrollPos !== widgetcontainer[0].scrollTop) {
-                    if (evt.detail === undefined) {
+                // console.log(evt);
+                console.log(`Old: ${this.tempScrollPos} New: ${widgetcontainer[0].scrollTop} detail: ${evt.detail}`);
+                if (this.tempScrollPos !== undefined && this.tempScrollPos !== widgetcontainer[0].scrollTop) {
+                    this.tempScrollPos = widgetcontainer[0].scrollTop;
+                    if (evt.detail !== 9999) {
                         if (this.observer) {
                             widgetcontainer.unbind('scroll');
                             this.observer.disconnect();
@@ -217,7 +226,6 @@ var ItemListWidget = View.extend({
                             console.log('User Scroll');
                         }
                     }
-                    this.tempScrollPos = widgetcontainer[0].scrollTop;
                 }
             });
         }
