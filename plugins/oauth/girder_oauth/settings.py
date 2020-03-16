@@ -24,6 +24,9 @@ class PluginSettings(object):
     BOX_CLIENT_ID = 'oauth.box_client_id'
     BOX_CLIENT_SECRET = 'oauth.box_client_secret'
 
+    SYNAPSE_CLIENT_ID = 'oauth.synapse_client_id'
+    SYNAPSE_CLIENT_SECRET = 'oauth.synapse_client_secret'
+
 
 @setting_utilities.default(PluginSettings.PROVIDERS_ENABLED)
 def _defaultProvidersEnabled():
@@ -47,7 +50,10 @@ def _defaultIgnoreRegistrationPolicy():
     PluginSettings.GITHUB_CLIENT_SECRET,
     PluginSettings.LINKEDIN_CLIENT_SECRET,
     PluginSettings.BITBUCKET_CLIENT_SECRET,
-    PluginSettings.BOX_CLIENT_SECRET
+    PluginSettings.BOX_CLIENT_SECRET,
+    PluginSettings.SYNAPSE_CLIENT_ID,
+    PluginSettings.SYNAPSE_CLIENT_SECRET
+
 })
 def _defaultOtherSettings():
     return ''
@@ -77,7 +83,9 @@ def _validateIgnoreRegistrationPolicy(doc):
     PluginSettings.GITHUB_CLIENT_SECRET,
     PluginSettings.LINKEDIN_CLIENT_SECRET,
     PluginSettings.BITBUCKET_CLIENT_SECRET,
-    PluginSettings.BOX_CLIENT_SECRET
+    PluginSettings.BOX_CLIENT_SECRET,
+    PluginSettings.SYNAPSE_CLIENT_ID,
+    PluginSettings.SYNAPSE_CLIENT_SECRET
 })
 def _validateOtherSettings(doc):
     pass

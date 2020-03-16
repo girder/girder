@@ -23,9 +23,11 @@ COPY . /girder/
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
-# TODO: Do we want to create editable installs of plugins as well?  We
-# will need a plugin only requirements file for this.
 RUN pip install --upgrade --upgrade-strategy eager --editable .
+
+ARG plugins
+RUN for plugin in $plugins; do pip install --upgrade --upgrade-strategy eager --editable ./plugins/$plugin; done
+
 RUN girder build
 
 ENTRYPOINT ["girder", "serve"]

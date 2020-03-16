@@ -7,6 +7,7 @@ from .github import GitHub
 from .linkedin import LinkedIn
 from .bitbucket import Bitbucket
 from .box import Box
+from .synapse import Synapse
 
 
 def addProvider(provider):
@@ -22,3 +23,4 @@ addProvider(GitHub)
 addProvider(LinkedIn)
 addProvider(Bitbucket)
 addProvider(Box)
+addProvider(Synapse)

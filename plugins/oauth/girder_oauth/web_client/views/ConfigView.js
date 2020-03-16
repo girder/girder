@@ -95,6 +95,15 @@ var ConfigView = View.extend({
             instructions: 'Client IDs and secret keys are managed in the Box ' +
                           'Developer Services page. When creating your client ID ' +
                           'there, use the following as the authorization callback URL:'
+        }, {
+            id: 'synapse',
+            name: 'Synapse',
+            icon: 'synapse',
+            hasAuthorizedOrigins: false,
+            instructions: 'Client IDs and secret keys are managed in Synapse. (See ' +
+                          'https://docs.synapse.org/articles/using_synapse_as_an_oauth_server.html.) ' +
+                          'When creating your client ID there, use the following value.  NOTE:  Girder requires ' +
+                          ' that you leave userinfo_signed_response_alg empty (set to None).'
         }];
         this.providerIds = _.pluck(this.providers, 'id');
 

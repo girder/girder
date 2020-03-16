@@ -1200,6 +1200,13 @@ plugins
                         getToken
                         getUrl
                         getUser
+                synapse
+                    Synapse
+                        getClientIdSetting
+                        getClientSecretSetting
+                        getToken
+                        getUrl
+                        getUser
             rest
                 OAuth
                     callback
@@ -1220,6 +1227,8 @@ plugins
                     LINKEDIN_CLIENT_ID
                     LINKEDIN_CLIENT_SECRET
                     PROVIDERS_ENABLED
+                    SYNAPSE_CLIENT_ID
+                    SYNAPSE_CLIENT_SECRET
     sentry
         girder_sentry
             SentryPlugin
