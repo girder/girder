@@ -34,8 +34,8 @@ class Synapse(ProviderBase):
 
         callbackUrl = '/'.join((getApiUrl(), 'oauth', 'synapse', 'callback'))
 
-        #OIDC claims. The complete list is here: 
-        #https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/model/oauth/OIDCClaimName.html
+        # OIDC claims. The complete list is here:
+        # https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/model/oauth/OIDCClaimName.html
         claims = {
             'email': None,
             'given_name': None,
@@ -64,8 +64,8 @@ class Synapse(ProviderBase):
         }
         basicAuth = ':'.join((str(self.clientId), str(self.clientSecret)))
         auth = base64.b64encode(basicAuth.encode('utf8'))
-        resp = self._getJson(method='POST', url=self._TOKEN_URL, 
-            data=params, headers={'Authorization': 'Basic %s' % auth.decode()})
+        resp = self._getJson(method='POST', url=self._TOKEN_URL,
+                             data=params, headers={'Authorization': 'Basic %s' % auth.decode()})
         return resp
 
     def getUser(self, token):
