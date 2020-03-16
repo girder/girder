@@ -378,13 +378,13 @@ describe('Test the hierarchy browser modal', function () {
             });
         });
 
-        it('preselected by Resource Option', function () {
+        it('preselected by Resource Option (object or Model)', function () {
             var col;
             var view;
             returnVal = [
                 { _id: 'abc', name: 'custom 1', _modelType: 'collection' },
                 { _id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin' },
-                { _id: '123', name: 'custom 3', _modelType: 'folder' }
+                { _id: '123', name: 'custom 3', _modelType: 'custom' }
             ];
 
             runs(function () {
@@ -405,7 +405,7 @@ describe('Test the hierarchy browser modal', function () {
                         Custom: col
                     },
                     display: ['Collections', 'Custom'],
-                    selectByResource: { baseParentId: 'def', baseParentGroup: 'user' }
+                    selectbyResource: { attributes: { baseParentId: 'def' } }
                 });
                 spyOn(view, 'render').andCallThrough();
             });
@@ -418,6 +418,49 @@ describe('Test the hierarchy browser modal', function () {
                 var select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
                 expect(select.val()).toBe('def');
+            });
+        });
+
+        it('preselected by Resource Option (String Id)', function () {
+            var col;
+            var view;
+            returnVal = [
+                { _id: 'abc', name: 'custom 1', _modelType: 'collection' },
+                { _id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin' },
+                { _id: '123', name: 'custom 3', _modelType: 'custom' }
+            ];
+
+            runs(function () {
+                col = new girder.collections.CollectionCollection();
+                col.fetch();
+            });
+
+            waitsFor(function () {
+                return col.size() === 3;
+            });
+
+            runs(function () {
+                returnVal = [];
+                view = new girder.views.widgets.RootSelectorWidget({
+                    el: testEl,
+                    parentView: null,
+                    groups: {
+                        Custom: col
+                    },
+                    display: ['Collections', 'Custom'],
+                    selectbyResource: '123'
+                });
+                spyOn(view, 'render').andCallThrough();
+            });
+
+            waitsFor(function () {
+                return view.render.callCount >= 3;
+            });
+
+            runs(function () {
+                var select = view.$('select#g-root-selector');
+                expect(select.length).toBe(1);
+                expect(select.val()).toBe('123');
             });
         });
     });
@@ -554,6 +597,7 @@ describe('Test the hierarchy browser modal', function () {
             waitsFor(function () {
                 return $(view.$el).is(':visible');
             });
+
             runs(function () {
                 view.$('.g-submit-button').trigger('click');
             });
@@ -594,6 +638,7 @@ describe('Test the hierarchy browser modal', function () {
             waitsFor(function () {
                 return $(view.$el).is(':visible');
             });
+
             runs(function () {
                 expect(view.selectedModel()).toBe(null);
                 view.$('#g-root-selector').val('0').trigger('change').trigger('select');
@@ -672,6 +717,108 @@ describe('Test the hierarchy browser modal', function () {
             waitsFor(function () {
                 return submitCalled;
             });
+        });
+    });
+});
+
+describe('browser hierarchy selection', function () {
+    var user, folder, item, widget;
+    var testEl;
+    var transition;
+
+    beforeEach(function () {
+        testEl = $('<div/>').appendTo('body');
+
+        transition = $.support.transition;
+        $.support.transition = false;
+    });
+    afterEach(function () {
+        testEl.remove();
+        $.support.transition = transition;
+    });
+    it('register a user', function () {
+        runs(function () {
+            var _user = new girder.models.UserModel({
+                login: 'mylogin',
+                password: 'mypassword',
+                email: 'email@girder.test',
+                firstName: 'First',
+                lastName: 'Last'
+            }).on('g:saved', function () {
+                user = _user;
+            });
+
+            _user.save();
+        });
+
+        waitsFor(function () {
+            return !!user;
+        }, 'user registration');
+    });
+
+    it('create top level folder', function () {
+        runs(function () {
+            var _folder = new girder.models.FolderModel({
+                parentType: 'user',
+                parentId: user.get('_id'),
+                name: 'top level folder'
+            }).on('g:saved', function () {
+                folder = _folder;
+            });
+
+            _folder.save();
+        });
+
+        waitsFor(function () {
+            return !!folder;
+        }, 'folder creation');
+    });
+
+    it('create item', function () {
+        runs(function () {
+            var _item = new girder.models.ItemModel({
+                folderId: folder.get('_id'),
+                name: 'an item'
+            }).on('g:saved', function () {
+                item = _item;
+            });
+
+            _item.save();
+        });
+
+        waitsFor(function () {
+            return !!item;
+        }, 'item creation');
+    });
+
+    it('test custom hierarchy widget options', function () {
+        runs(function () {
+            $('body').off();
+
+            widget = new girder.views.widgets.HierarchyWidget({
+                el: 'body',
+                parentModel: folder,
+                onItemClick: function (item) {
+                    widget.selectItem(item);
+                },
+                showActions: false,
+                parentView: null,
+                defaultSelectedItem: item
+            });
+        });
+
+        waitsFor(function () {
+            return $('.g-hierarchy-widget').length > 0 &&
+                               $('.g-item-list-link').length > 0;
+        }, 'the hierarchy widget to display');
+
+        runs(function () {
+            waits(1000);
+        });
+        runs(function () {
+            console.log('__SCREENSHOT__WIDGET');
+            var link = $('.g-item-list-entry.g-selected a.g-item-list-link').attr('href').replace('#item/', '');
+            expect(link).toBe(item.get('_id'));
         });
     });
 });

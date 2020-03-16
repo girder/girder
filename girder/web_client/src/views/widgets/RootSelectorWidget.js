@@ -51,8 +51,8 @@ var RootSelectorWidget = View.extend({
      * @param {Model} [settings.selected] The default/current selection
      * @param {string[]} [settings.display=['Home', 'Collections', 'Users'] Display order
      * @param {boolean} [settings.reset=true] Always fetch from offset 0
-     * @param {Model} [settings.selectbyResource] use the baseParentType and baseParentId to
-     * set the default selected item, can use a model which
+     * @param {Model} [settings.selectbyResource] use the baseParentId to
+     * set the default selected item, can use a model based like an object, or a specific base ParentId
      *
      */
     initialize: function (settings) {
@@ -97,9 +97,9 @@ var RootSelectorWidget = View.extend({
 
     render: function () {
         this._home = this.home || getCurrentUser();
-        // Set the selected item if it already defined
-        if (this.selected === undefined && this.selectbyResource) {
-            this.setRootByBaseParent(this.selectbyResource.attributes);
+        // Set the selected item if it already defined and get it by resource if not
+        if (this.selectbyResource) {
+            this.setRootByBaseParent(this.selectbyResource);
         }
         this.$el.html(
             RootSelectorWidgetTemplate({
@@ -114,16 +114,18 @@ var RootSelectorWidget = View.extend({
         return this;
     },
 
-    setRootByBaseParent: function (baseParent) {
-        if (baseParent && baseParent.baseParentId && baseParent.baseParentType) {
+    setRootByBaseParent: function (baseParentId) {
+        // Filter for an Id String from an object if given
+        if (_.isObject(baseParentId)) {
+            if ((baseParentId.attributes || {}).baseParentId !== undefined) {
+                baseParentId = baseParentId.attributes.baseParentId;
+            }
+        }
+
+        if (_.isString(baseParentId)) {
             _.each(this.groups, (group) => {
-                if (group.resourceName === baseParent.baseParentType) {
-                    this.selected = group.get(baseParent.baseParentId);
-                    if (this.selected) {
-                        // Calling a triger here will re-render the hierachy view as well
-                        // probably better to just set the selected in the DOM
-                        this.render();
-                    }
+                if (group.get(baseParentId) !== undefined) {
+                    this.selected = group.get(baseParentId);
                 }
             });
         }

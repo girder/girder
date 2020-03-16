@@ -156,9 +156,9 @@ var ItemListWidget = View.extend({
 
         if (widgetcontainer.length > 0 && selected.length > 0) {
             const centerPos = (widgetcontainer.height() / 2.0) + (selected.outerHeight() / 2.0);
+            // Performance penalty but needed to get the acurate position of the selected object
             $('.g-hierarchy-widget-container').css({ 'overflow-y': 'visible' });
             const scrollPos = selected.position().top - centerPos;
-            // console.log(`Old: ${this.tempScrollPos} top: ${selected.position().top} center: ${centerPos}`);
             $('.g-hierarchy-widget-container').css({ 'overflow-y': 'scroll' });
             if (this.tempScrollPos === undefined) {
                 this.tempScrollPos = scrollPos;
@@ -178,17 +178,21 @@ var ItemListWidget = View.extend({
         if (window.MutationObserver && target.length > 0) {
             const widgetcontainer = $('.g-hierarchy-widget-container');
             const selected = $('li.g-item-list-entry.g-selected');
-            const breadCrumbHeight =  (($('.g-hierarchy-breadcrumb-bar') || {}).height() || 0);
+            const breadCrumbHeight =  ($('.g-hierarchy-breadcrumb-bar').height() || 36);
 
             this.observer = new MutationObserver((mutations) => {
                 // for every mutation
                 mutations.forEach((mutation) => {
-                    // for every added element
+                    // If no nodes are added we can return
+                    if (!mutations.addedNodes) {
+                        return;
+                    }
 
+                    // for every added element
                     mutation.addedNodes.forEach((node) => {
                         if (node.className && node.className.indexOf('g-item-list') !== -1) {
                             // We want to do a onetime scroll to position if the screen is idle
-                            if ('requestIdleCallback' in window) {
+                            if (window.requestIdleCallback) {
                                 // Processing time is 2 seconds, but should be much lower
                                 requestIdleCallback(() => {
                                     this.centerSelected(widgetcontainer, selected, breadCrumbHeight);
@@ -198,19 +202,17 @@ var ItemListWidget = View.extend({
                             }
                         }
 
+                        // For any images added we wait until loaded and rescroll to the selected
                         if (_.isFunction(node.getElementsByTagName)) {
                             const imgs = node.getElementsByTagName('img');
-                            // console.log(imgs);
                             for (let i = 0; i < imgs.length; i++) {
-                                if (!imgs[i].complete) {
-                                    const onLoadImage = (event) => {
-                                        if (this.observer) {
-                                            this.centerSelected(widgetcontainer, selected, breadCrumbHeight);
-                                        }
-                                    };
-                                    // when the image is done loading, call the function above
-                                    imgs[i].addEventListener('load', onLoadImage);
-                                }
+                                const onLoadImage = (event) => {
+                                    if (this.observer) {
+                                        this.centerSelected(widgetcontainer, selected, breadCrumbHeight);
+                                    }
+                                };
+                                // add the event listener to the onload of each image
+                                imgs[i].addEventListener('load', onLoadImage);
                             }
                         }
                     });
@@ -220,19 +222,31 @@ var ItemListWidget = View.extend({
             // bind mutation observer to a specific element (probably a div somewhere)
             this.observer.observe(target.parent()[0], { childList: true, subtree: true });
 
-            // Add in scroll event to kill observer if the user scrolls the area
-            widgetcontainer.scroll((evt) => {
+            /*
+            *  Add in scroll event to kill observer if the user scrolls the area
+            *  This doesn't work in FireFox because it handles reflows and scrolls differently than Chrome
+            */
+            widgetcontainer.bind('scroll.observerscroll', (evt) => {
                 if (this.tempScrollPos !== undefined && this.tempScrollPos !== widgetcontainer[0].scrollTop) {
                     this.tempScrollPos = widgetcontainer[0].scrollTop;
-                    // If the event detail is not 9999 the scroll is either a reflow or user controller
+                    // If the event detail is not 9999 the scroll is should be a user initiated scroll
                     if (evt.detail !== 9999) {
                         if (this.observer) {
-                            widgetcontainer.unbind('scroll');
+                            widgetcontainer.unbind('scroll.observerscroll');
+                            widgetcontainer.unbind('wheel.observerscroll');
                             this.observer.disconnect();
                             this.observer = null;
-                            console.log('User Scroll');
                         }
                     }
+                }
+            });
+            // Backup function to kill observer if user moves scrollwheel
+            widgetcontainer.bind('wheel.selectionobserver', (evt) => {
+                if (this.observer) {
+                    widgetcontainer.unbind('scroll.observerscroll');
+                    widgetcontainer.unbind('wheel.observerscroll');
+                    this.observer.disconnect();
+                    this.observer = null;
                 }
             });
         }
