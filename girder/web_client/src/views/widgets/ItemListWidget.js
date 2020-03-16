@@ -178,18 +178,17 @@ var ItemListWidget = View.extend({
         if (window.MutationObserver && target.length > 0) {
             const widgetcontainer = $('.g-hierarchy-widget-container');
             const selected = $('li.g-item-list-entry.g-selected');
-            const breadCrumbHeight =  ($('.g-hierarchy-breadcrumb-bar').height() || 36);
+            const breadCrumbHeight =  ($('.g-hierarchy-breadcrumb-bar').height() || 0);
 
             this.observer = new MutationObserver((mutations) => {
                 // for every mutation
-                mutations.forEach((mutation) => {
+                _.each(mutations, (mutation) => {
                     // If no nodes are added we can return
-                    if (!mutations.addedNodes) {
+                    if (!mutation.addedNodes) {
                         return;
                     }
-
                     // for every added element
-                    mutation.addedNodes.forEach((node) => {
+                    _.each(mutation.addedNodes, (node) => {
                         if (node.className && node.className.indexOf('g-item-list') !== -1) {
                             // We want to do a onetime scroll to position if the screen is idle
                             if (window.requestIdleCallback) {
