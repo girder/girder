@@ -97,7 +97,7 @@ var RootSelectorWidget = View.extend({
 
     render: function () {
         this._home = this.home || getCurrentUser();
-        // Set the selected item if it already defined and get it by resource if not
+        // Set the selected item if it us already defined and get it by resource if not
         if (this.selectbyResource) {
             this.setRootByBaseParent(this.selectbyResource);
         }

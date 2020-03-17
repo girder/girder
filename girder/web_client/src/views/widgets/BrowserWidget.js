@@ -54,7 +54,7 @@ var BrowserWidget = View.extend({
         promise should resolve if the selection is acceptable and reject with a string value (as an
         error message) if the selection is unacceptable.
      * @param {string} [input.placeholder] A placeholder string for the input element.
-     * @param {boolean} [highlightItem=false] highlights the selected item in the list and applies
+     * @param {boolean} [highlightItem=false] highlights the selected item in the hierarchy list and applies
      * appropriate styling.
      */
     initialize: function (settings) {
@@ -82,13 +82,15 @@ var BrowserWidget = View.extend({
             this.root = evt.root;
             this._renderHierarchyView();
         });
-        if (this.defaultSelectedResource) {
+        if (this.defaultSelectedResource && this.defaultSelectedResource.parent) {
             this.root = this.defaultSelectedResource.parent;
+        } else {
+            this.defaultSelectedResource = undefined;
         }
     },
 
     render: function () {
-        const defaultResourcename = (this.highlightItem && this.defaultSelectedResource && this.defaultSelectedResource.get('name'));
+        const defaultResourcename = (this.highlightItem && this.defaultSelectedResource.get('name'));
         this.$el.html(
             BrowserWidgetTemplate({
                 title: this.titleText,

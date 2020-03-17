@@ -813,10 +813,6 @@ describe('browser hierarchy selection', function () {
         }, 'the hierarchy widget to display');
 
         runs(function () {
-            waits(1000);
-        });
-        runs(function () {
-            console.log('__SCREENSHOT__WIDGET');
             var link = $('.g-item-list-entry.g-selected a.g-item-list-link').attr('href').replace('#item/', '');
             expect(link).toBe(item.get('_id'));
         });

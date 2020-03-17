@@ -112,7 +112,7 @@ var HierarchyWidget = View.extend({
      *   [onItemClick]: A function that will be called when an item is clicked,
      *                  passed the Item model as its first argument and the
      *                  event as its second.
-     *   [defaultSelectedItem] : default selected Item resource which will highlight
+     *   [defaultSelectedItem] : default selected Item resource which will highlight and center
      */
     initialize: function (settings) {
         this.parentModel = settings.parentModel;
