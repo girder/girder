@@ -35,7 +35,7 @@ def ValidateSizeQuota(value):
               and a recommended error message or None.
     :rtype: (int or None, str or None)
     """
-    if value is None or value == '' or value == 0:
+    if value is None or value == '':
         return None, None
     error = False
     try:
@@ -45,10 +45,8 @@ def ValidateSizeQuota(value):
     except ValueError:
         error = True
     if error:
-        return (value, 'Invalid quota.  Must be blank or a positive integer '
-                       'representing the limit in bytes.')
-    if value == 0:
-        return None, None
+        return (value, 'Invalid quota.  Must be blank or a non-negative '
+                       'integer representing the limit in bytes.')
     return value, None
 
 
@@ -318,7 +316,7 @@ class QuotaPolicy(Resource):
         :param model: the type of resource (e.g., user or collection)
         :param resource: the resource document.
         :returns: the fileSizeQuota.  None for no quota (unlimited), otherwise
-                 a positive integer.
+                 a non-negative integer.
         """
         useDefault = resource[QUOTA_FIELD].get('useQuotaDefault', True)
         quota = resource[QUOTA_FIELD].get('fileSizeQuota', None)
@@ -331,7 +329,7 @@ class QuotaPolicy(Resource):
                 key = None
             if key:
                 quota = Setting().get(key)
-        if not quota or quota < 0 or not isinstance(quota, six.integer_types):
+        if not isinstance(quota, six.integer_types) or quota < 0:
             return None
         return quota
 
@@ -353,7 +351,7 @@ class QuotaPolicy(Resource):
         if resource is None:
             return None
         fileSizeQuota = self._getFileSizeQuota(model, resource)
-        if not fileSizeQuota:
+        if fileSizeQuota is None:
             return None
         newSize = resource['size'] + upload['size'] - origSize
         # always allow replacement with a smaller object

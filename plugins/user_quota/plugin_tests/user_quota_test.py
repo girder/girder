@@ -158,7 +158,7 @@ class QuotaTestCase(base.TestCase):
         if not results:
             results = policy
         for key in results:
-            if results[key] or results[key] is False:
+            if results[key] or results[key] == 0 or results[key] is False:
                 self.assertEqual(currentPolicy[key], results[key])
             else:
                 self.assertEqual(currentPolicy[key], None)
@@ -258,7 +258,44 @@ class QuotaTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertGreaterEqual(len(resp.json), 1)
         folder = resp.json[0]
-        # Start by uploading one file so that there is some use
+        # Set 0 b quota so nothing can be uploaded
+        self._setQuotaDefault(model, 0)
+        # Upload one file, it should fail
+        self._uploadFile(
+            'File too large',
+            folder,
+            size=1024,
+            validationError='Upload would exceed file storage quota',
+        )
+        # Upload a tiny file, it should also fail
+        self._uploadFile(
+            'File too large',
+            folder,
+            size=1,
+            validationError='Upload would exceed file storage quota',
+        )
+        # Set quota to None so anything can be uploaded
+        self._setQuotaDefault(model, None)
+        # Set a 0 b policy so nothing can be uploaded
+        self._setPolicy({'fileSizeQuota': 0, 'useQuotaDefault': False},
+                        model, resource, user)
+        # Upload one file, it should fail
+        self._uploadFile(
+            'File too large',
+            folder,
+            size=1024,
+            validationError='Upload would exceed file storage quota',
+        )
+        # Upload a tiny file, it should also fail
+        self._uploadFile(
+            'File too large',
+            folder,
+            size=1,
+            validationError='Upload would exceed file storage quota',
+        )
+        # Reset the policy to use the default so anything can be uploaded
+        self._setPolicy({'useQuotaDefault': True}, model, resource, user)
+        # Upload one file so that there is some use
         self._uploadFile('First upload', folder, size=1024)
         # Set a policy limiting things to 4 kb, then a 4 kb file should fail
         self._setPolicy({'fileSizeQuota': 4096, 'useQuotaDefault': False},
@@ -393,10 +430,10 @@ class QuotaTestCase(base.TestCase):
         # fileSizeQuota can be None, blank, 0, or a positive integer
         self._setPolicy({'fileSizeQuota': 0},
                         'user', self.user, self.admin,
-                        results={'fileSizeQuota': None})
+                        results={'fileSizeQuota': 0})
         self._setPolicy({'fileSizeQuota': '00'},
                         'user', self.user, self.admin,
-                        results={'fileSizeQuota': None})
+                        results={'fileSizeQuota': 0})
         self._setPolicy({'fileSizeQuota': ''},
                         'user', self.user, self.admin,
                         results={'fileSizeQuota': None})
@@ -418,8 +455,8 @@ class QuotaTestCase(base.TestCase):
         self._setPolicy({'useQuotaDefault': 'not_a_boolean'}, 'user',
                         self.user, self.admin, error='Invalid useQuotaDefault')
         # the resource default values behave like fileSizeQuota
-        self._setQuotaDefault('user', 0, None)
-        self._setQuotaDefault('user', '00', None)
+        self._setQuotaDefault('user', 0, 0)
+        self._setQuotaDefault('user', '00', 0)
         self._setQuotaDefault('user', '', None)
         self._setQuotaDefault('user', 'not an integer', error='Invalid quota')
         self._setQuotaDefault('user', -1, error='Invalid quota')
@@ -430,6 +467,7 @@ class QuotaTestCase(base.TestCase):
         Test the formatSize function
         """
         testList = [
+            (0, '0 B'),
             (1000, '1000 B'),
             (10000, '10000 B'),
             (20000, '19.53 kB'),
