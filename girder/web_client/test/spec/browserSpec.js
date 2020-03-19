@@ -803,7 +803,7 @@ describe('browser hierarchy selection', function () {
                 },
                 showActions: false,
                 parentView: null,
-                defaultSelectedItem: item
+                defaultSelectedResource: item
             });
         });
 

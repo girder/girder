@@ -243,9 +243,7 @@ var ItemListWidget = View.extend({
                 }
             });
             // Backup function to kill observer if user moves scrollwheel, or touchpad equivalent
-            widgetcontainer.bind('wheel.selectionobserver', (evt) => {
-                unbindDisconnect();
-            });
+            widgetcontainer.bind('wheel.selectionobserver', unbindDisconnect);
         }
     }
 });
