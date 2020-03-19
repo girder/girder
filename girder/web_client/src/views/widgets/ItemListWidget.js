@@ -161,7 +161,7 @@ var ItemListWidget = View.extend({
                 this.tempScrollPos = scrollPos;
             }
             // Call a custom scroll event to prevent thinking the user initiated it
-            var e = new CustomEvent('scroll', { detail: 9999 });
+            var e = new CustomEvent('scroll', { detail: 'selected_item_scroll' });
             widgetcontainer[0].scroll(0, scrollPos);
             widgetcontainer[0].dispatchEvent(e);
         }
@@ -195,6 +195,7 @@ var ItemListWidget = View.extend({
                     if (!mutation.addedNodes) {
                         return;
                     }
+
                     // for every added node
                     _.each(mutation.addedNodes, (node) => {
                         if (node.className && node.className.indexOf('g-item-list') !== -1) {
@@ -211,11 +212,7 @@ var ItemListWidget = View.extend({
 
                         // For any images added we wait until loaded and rescroll to the selected
                         if (_.isFunction(node.getElementsByTagName)) {
-                            const imgs = node.getElementsByTagName('img');
-                            for (let i = 0; i < imgs.length; i++) {
-                                // add the event listener to the onload of each image
-                                imgs[i].addEventListener('load', onLoadImage);
-                            }
+                            $('img', node).on('load', onLoadImage);
                         }
                     });
                 });
@@ -224,24 +221,8 @@ var ItemListWidget = View.extend({
             // bind mutation observer to a specific element (probably a div somewhere)
             this.observer.observe(target.parent()[0], { childList: true, subtree: true });
 
-            // Add in scroll event to monitor the scrollPos to prevent uncessary updates and also kill observer when user scrolls
-            widgetcontainer.bind('scroll.observerscroll', (evt) => {
-                if (this.tempScrollPos !== undefined && this.tempScrollPos !== widgetcontainer[0].scrollTop) {
-                    this.tempScrollPos = widgetcontainer[0].scrollTop;
-                    // If the event detail is not 9999 the scroll is should be a user initiated scroll
-                    if (evt.detail !== 9999) {
-                        if (this.observer) {
-                            widgetcontainer.unbind('scroll.observerscroll');
-                            widgetcontainer.unbind('wheel.observerscroll');
-                            this.observer.disconnect();
-                            this.observer = null;
-                            this.tempScrollPos = undefined;
-                        }
-                    }
-                }
-            });
-            // Backup function to kill observer if user moves scrollwheel, or touchpad equivalent
-            widgetcontainer.bind('wheel.selectionobserver', (evt) => {
+            // Remove event listeners and disconnect observer
+            const unbindDisconnect = () => {
                 if (this.observer) {
                     widgetcontainer.unbind('scroll.observerscroll');
                     widgetcontainer.unbind('wheel.observerscroll');
@@ -249,6 +230,21 @@ var ItemListWidget = View.extend({
                     this.observer = null;
                     this.tempScrollPos = undefined;
                 }
+            };
+
+            // Add in scroll event to monitor the scrollPos to prevent uncessary updates and also kill observer when user scrolls
+            widgetcontainer.bind('scroll.observerscroll', (evt) => {
+                if (this.tempScrollPos !== undefined && this.tempScrollPos !== widgetcontainer[0].scrollTop) {
+                    this.tempScrollPos = widgetcontainer[0].scrollTop;
+                    // If the event detail is not 'selected_item_scroll' the scroll is should be a user initiated scroll
+                    if (evt.detail !== 'selected_item_scroll') {
+                        unbindDisconnect();
+                    }
+                }
+            });
+            // Backup function to kill observer if user moves scrollwheel, or touchpad equivalent
+            widgetcontainer.bind('wheel.selectionobserver', (evt) => {
+                unbindDisconnect();
             });
         }
     }
