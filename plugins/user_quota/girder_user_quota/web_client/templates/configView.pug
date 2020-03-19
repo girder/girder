@@ -13,7 +13,7 @@ form#g-user-quota-form(role="form")
         | quota is explicitly set.
       input.input-sm.g-sizeValue.form-control(
           id=`g-user-quota-${resource.model}-size-value`,
-          type="text", value=resource.sizeValue || '',
+          type="text", value=resource.sizeValue,
           placeholder="Maximum allowed size of all files, or blank for no limit")
       select.form-control.input-sm.g-sizeUnits(
           id=`g-user-quota-${resource.model}-size-units`)
