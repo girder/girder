@@ -99,10 +99,14 @@ def _virtualChildItems(self, event):
         sort = json.loads(folder['virtualItemsSort'])
 
     item = Item()
-    # These items may reside in folders that the user cannot read, so we must filter
-    items = item.filterResultsByPermission(
-        item.find(q, sort=sort), user, level=AccessType.READ, limit=limit, offset=offset)
-    event.preventDefault().addResponse([item.filter(i, user) for i in items])
+    # These items may reside in folders that the user cannot read, so we must
+    # find with permissions
+    items = item.findWithPermissions(
+        q, sort=sort, user=user, level=AccessType.READ, limit=limit, offset=offset)
+    # We don't perform this filter on the standard item/find endpoint, so don't
+    # do it here.  Otherwise, we could return
+    # [item.filter(i, user) for i in items]
+    event.preventDefault().addResponse(items)
 
 
 class VirtualFoldersPlugin(GirderPlugin):
