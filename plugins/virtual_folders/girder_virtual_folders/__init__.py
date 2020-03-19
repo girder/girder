@@ -83,13 +83,13 @@ def _folderUpdate(self, event):
 def _virtualChildItems(self, event):
     params = event.info['params']
 
-    if 'folderId' not in params:
+    if not params.get('folderId'):
         return  # This is not a child listing request
 
     user = self.getCurrentUser()
     folder = Folder().load(params['folderId'], user=user, level=AccessType.READ)
 
-    if not folder.get('isVirtual') or 'virtualItemsQuery' not in folder:
+    if not folder or not folder.get('isVirtual') or 'virtualItemsQuery' not in folder:
         return  # Parent is not a virtual folder, proceed as normal
 
     limit, offset, sort = self.getPagingParameters(params, defaultSortField='name')
