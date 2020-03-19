@@ -11,7 +11,7 @@ function sizeToValueAndUnits(sizeValue) {
                 1024 === sizeValue; sizeUnits += 1) {
             sizeValue /= 1024;
         }
-    } else {
+    } else if (sizeValue !== 0) {
         sizeValue = '';
     }
     return { sizeUnits: sizeUnits, sizeValue: sizeValue };
