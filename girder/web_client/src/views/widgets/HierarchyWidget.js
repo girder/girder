@@ -112,8 +112,8 @@ var HierarchyWidget = View.extend({
      *   [onItemClick]: A function that will be called when an item is clicked,
      *                  passed the Item model as its first argument and the
      *                  event as its second.
-     *   [defaultSelectedResource] : default selected Resource which will highlight and center for items,
-     *                               or be the root parent model for  Folders
+     *   [defaultSelectedResource] : default selected Resource item , will open up to this resource
+     *   [highlightItem=false] : sets the item to be styled as selected and will scroll to it in the list
      */
     initialize: function (settings) {
         this.parentModel = settings.parentModel;

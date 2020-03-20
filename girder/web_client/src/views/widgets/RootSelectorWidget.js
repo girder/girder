@@ -51,8 +51,8 @@ var RootSelectorWidget = View.extend({
      * @param {Model} [settings.selected] The default/current selection
      * @param {string[]} [settings.display=['Home', 'Collections', 'Users'] Display order
      * @param {boolean} [settings.reset=true] Always fetch from offset 0
-     * @param {Model} [settings.selectByResource] use the baseParentId to
-     * set the default selected item, can use a model based like an object, or a specific base ParentId
+     * @param {Model|string} [settings.selectByResource] use the baseParentId to
+     * set the default selected item, can use a model based like an object, or a specific string ParentId
      *
      */
     initialize: function (settings) {
@@ -97,7 +97,7 @@ var RootSelectorWidget = View.extend({
 
     render: function () {
         this._home = this.home || getCurrentUser();
-        // Set the selected item if it us already defined and get it by resource if not
+        // Set the selected item if it is already defined and get it by resource if not
         if (this.selectByResource) {
             this.setRootByBaseParent(this.selectByResource);
         }
