@@ -350,7 +350,7 @@ var HierarchyWidget = View.extend({
      * Called when the "select this folder" link is clicked.
      */
     selectFolder: function () {
-        if (this.onFolderSelect) {
+        if (_.isFunction(this._onFolderSelect)) {
             this._onFolderSelect(this.parentModel);
         }
     },
