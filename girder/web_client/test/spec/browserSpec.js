@@ -405,7 +405,7 @@ describe('Test the hierarchy browser modal', function () {
                         Custom: col
                     },
                     display: ['Collections', 'Custom'],
-                    selectbyResource: { attributes: { baseParentId: 'def' } }
+                    selectByResource: { attributes: { baseParentId: 'def' } }
                 });
                 spyOn(view, 'render').andCallThrough();
             });
@@ -448,7 +448,7 @@ describe('Test the hierarchy browser modal', function () {
                         Custom: col
                     },
                     display: ['Collections', 'Custom'],
-                    selectbyResource: '123'
+                    selectByResource: '123'
                 });
                 spyOn(view, 'render').andCallThrough();
             });
@@ -722,7 +722,7 @@ describe('Test the hierarchy browser modal', function () {
 });
 
 describe('browser hierarchy selection', function () {
-    var user, folder, item, widget;
+    var user, folder, subfolder, item, widget;
     var testEl;
     var transition;
 
@@ -774,6 +774,24 @@ describe('browser hierarchy selection', function () {
         }, 'folder creation');
     });
 
+    it('create subfolder', function () {
+        runs(function () {
+            var _subfolder = new girder.models.FolderModel({
+                parentType: 'folder',
+                parentId: folder.get('_id'),
+                name: 'subfolder'
+            }).on('g:saved', function () {
+                subfolder = _subfolder;
+            });
+
+            _subfolder.save();
+        });
+
+        waitsFor(function () {
+            return !!subfolder;
+        }, 'subfolder creation');
+    });
+
     it('create item', function () {
         runs(function () {
             var _item = new girder.models.ItemModel({
@@ -791,18 +809,19 @@ describe('browser hierarchy selection', function () {
         }, 'item creation');
     });
 
-    it('test custom hierarchy widget options', function () {
+    it('test custom hierarchy widget options [file] - highlighted', function () {
         runs(function () {
             $('body').off();
 
             widget = new girder.views.widgets.HierarchyWidget({
-                el: 'body',
+                el: testEl,
                 parentModel: folder,
                 onItemClick: function (item) {
                     widget.selectItem(item);
                 },
                 showActions: false,
                 parentView: null,
+                highlightItem: true,
                 defaultSelectedResource: item
             });
         });
@@ -815,6 +834,81 @@ describe('browser hierarchy selection', function () {
         runs(function () {
             var link = $('.g-item-list-entry.g-selected a.g-item-list-link').attr('href').replace('#item/', '');
             expect(link).toBe(item.get('_id'));
+        });
+    });
+
+    it('test browserwidget defaultSelectedResource [file]', function () {
+        runs(function () {
+            $('.g-hierarchy-widget').remove();
+            widget = new girder.views.widgets.BrowserWidget({
+                parentView: null,
+                el: testEl,
+                helpText: 'This is helpful',
+                titleText: 'This is a title',
+                defaultSelectedResource: item,
+                selectItem: true,
+                showItems: true
+            }).render();
+        });
+
+        waitsFor(function () {
+            return $(widget.$el).is(':visible');
+        });
+
+        runs(function () {
+            expect(widget.$('#g-selected-model').val()).toBe('an item');
+        });
+    });
+
+    it('test browserwidget defaultSelectedResource [file] -highlighted', function () {
+        runs(function () {
+            $('.g-hierarchy-widget').remove();
+            widget = new girder.views.widgets.BrowserWidget({
+                parentView: null,
+                el: testEl,
+                helpText: 'This is helpful',
+                titleText: 'This is a title',
+                defaultSelectedResource: item,
+                selectItem: true,
+                showItems: true,
+                highlightItem: true
+            }).render();
+        });
+
+        waitsFor(function () {
+            return $(widget.$el).is(':visible');
+        });
+
+        waitsFor(function () {
+            return $('.g-hierarchy-widget').length > 0 &&
+                               $('.g-item-list-link').length > 0;
+        }, 'the hierarchy widget to display');
+
+        runs(function () {
+            expect(widget.$('#g-selected-model').val()).toBe('an item');
+            var link = $('.g-item-list-entry.g-selected a.g-item-list-link').attr('href').replace('#item/', '');
+            expect(link).toBe(item.get('_id'));
+        });
+    });
+
+    it('test browserwidget defaultSelectedResource [folder]', function () {
+        runs(function () {
+            widget = new girder.views.widgets.BrowserWidget({
+                parentView: null,
+                el: testEl,
+                helpText: 'This is helpful',
+                titleText: 'This is a title',
+                defaultSelectedResource: subfolder,
+                selectItem: false
+            }).render();
+        });
+
+        waitsFor(function () {
+            return $(widget.$el).is(':visible');
+        });
+
+        runs(function () {
+            expect(widget.$('#g-selected-model').val()).toBe('subfolder');
         });
     });
 });

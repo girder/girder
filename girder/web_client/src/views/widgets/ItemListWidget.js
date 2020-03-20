@@ -45,6 +45,9 @@ var ItemListWidget = View.extend({
             _.has(settings, 'viewLinks') ? settings.viewLinks : true);
         this._showSizes = (
             _.has(settings, 'showSizes') ? settings.showSizes : true);
+        this._highlightItem = (
+            _.has(settings, 'highlightItem') ? settings.highlightItem : false);
+
         this.accessLevel = settings.accessLevel;
         this.public = settings.public;
         this._selectedItem = settings.selectedItem;
@@ -71,7 +74,7 @@ var ItemListWidget = View.extend({
 
     render: function () {
         this.checked = [];
-        if (this._selectedItem) {
+        if (this._selectedItem && this._highlightItem) {
             this.scrollPositionObserver();
         }
 
@@ -84,6 +87,7 @@ var ItemListWidget = View.extend({
             downloadLinks: this._downloadLinks,
             viewLinks: this._viewLinks,
             showSizes: this._showSizes,
+            highlightItem: this._highlightItem,
             selectedItemId: (this._selectedItem || {}).id
         }));
 
@@ -162,7 +166,7 @@ var ItemListWidget = View.extend({
             }
             // Call a custom scroll event to prevent thinking the user initiated it
             var e = new CustomEvent('scroll', { detail: 'selected_item_scroll' });
-            widgetcontainer[0].scroll(0, scrollPos);
+            widgetcontainer[0].scrollTop = scrollPos;
             widgetcontainer[0].dispatchEvent(e);
         }
     },

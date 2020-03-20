@@ -94,44 +94,12 @@ var BrowserWidget = View.extend({
             this._renderHierarchyView();
         });
         if (this.defaultSelectedResource && !this.root) {
-            // We need to calculate the parent model of the default.selectedResoure
-
-            const modelTypes = {
-                folder: FolderModel,
-                collection: CollectionModel,
-                user: UserModel
-            };
-            let modelType = 'folder';
-            let modelId = null;
-            // If it is an item it will have a folderId associated with it as a parent item
-            if (this.defaultSelectedResource.get('folderId')) {
-                modelId = this.defaultSelectedResource.get('folderId');
-            } else if (this.defaultSelectedResource.get('parentCollection')) {
-                // If we are are only using folders, the root is the defaultselectedResource then
-                if (!this.selectItem) {
-                    this.root = this.defaultSelectedResource;
-                }
-                // Below might never be used, item is always going to have folder parent and selecting a folder
-                // Item is either 'user' | 'folder' | 'collection', most likely folder though
-                modelType = this.defaultSelectedResource.get('parentCollection');
-                modelId = this.defaultSelectedResource.get('parentId');
-            }
-            if (!this.root && modelTypes[modelType] && modelId) {
-                const parentModel = new modelTypes[modelType]();
-                parentModel.set({
-                    _id: modelId
-                }).on('g:fetched', function () {
-                    this.root = parentModel;
-                    this.render();
-                }, this).on('g:error', function () {
-                    this.render();
-                }, this).fetch();
-            }
+            this._calculateDefaultSelectedRoot();
         }
     },
 
     render: function () {
-        const defaultResourcename = (this.highlightItem && this.defaultSelectedResource && this.defaultSelectedResource.get('name'));
+        const defaultResourcename = (this.defaultSelectedResource && this.defaultSelectedResource.get('name'));
         this.$el.html(
             BrowserWidgetTemplate({
                 title: this.titleText,
@@ -179,6 +147,7 @@ var BrowserWidget = View.extend({
             showItems: this.showItems,
             onItemClick: _.bind(this._selectItem, this),
             defaultSelectedResource: this.defaultSelectedResource,
+            highlightItem: this.highlightItem,
             showMetadata: this.showMetadata
         });
         this.listenTo(this._hierarchyView, 'g:setCurrentModel', this._selectModel);
@@ -299,6 +268,42 @@ var BrowserWidget = View.extend({
                         _.escape(invalidInputElement) + '<br>' + _.escape(invalidSelectedModel));
                 }
             });
+    },
+
+    _calculateDefaultSelectedRoot: function () {
+        // If we are are only using folders, the root is the defaultselectedResource then
+        if (!this.selectItem) {
+            this.root = this.defaultSelectedResource;
+            return;
+        }
+        // We need to calculate the parent model of the default.selectedResoure when selectItem is true
+        const modelTypes = {
+            folder: FolderModel,
+            collection: CollectionModel,
+            user: UserModel
+        };
+        let modelType = 'folder'; // folder type by default, other types if necessary
+        let modelId = null;
+        // If it is an item it will have a folderId associated with it as a parent item
+        if (this.defaultSelectedResource.get('folderId')) {
+            modelId = this.defaultSelectedResource.get('folderId');
+        } else if (this.defaultSelectedResource.get('parentCollection')) {
+            // Case for providing a folder as the defaultSelectedResource but want the user to select an item
+            // folder parent is either 'user' | 'folder' | 'collection', most likely folder though
+            modelType = this.defaultSelectedResource.get('parentCollection');
+            modelId = this.defaultSelectedResource.get('parentId');
+        }
+        if (modelTypes[modelType] && modelId) {
+            const parentModel = new modelTypes[modelType]();
+            parentModel.set({
+                _id: modelId
+            }).on('g:fetched', function () {
+                this.root = parentModel;
+                this.render();
+            }, this).on('g:error', function () {
+                this.render();
+            }, this).fetch();
+        }
     }
 });
 

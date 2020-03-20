@@ -135,6 +135,7 @@ var HierarchyWidget = View.extend({
             router.navigate('item/' + item.get('_id'), { trigger: true });
         };
         this._defaultSelectedResource = settings.defaultSelectedResource;
+        this._highlightItem = _.has(settings, 'highlightItem') ? settings.highlightItem : false;
 
         this._onFolderSelect = settings.onFolderSelect;
 
@@ -222,6 +223,7 @@ var HierarchyWidget = View.extend({
                 viewLinks: this._viewLinks,
                 showSizes: this._showSizes,
                 selectedItem: this._defaultSelectedResource,
+                highlightItem: this._highlightItem,
                 parentView: this
             });
             this.listenTo(this.itemListView, 'g:itemClicked', this._onItemClick);
