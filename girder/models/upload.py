@@ -6,7 +6,7 @@ from bson.objectid import ObjectId
 from girder import events, logger
 from girder.api import rest
 from .model_base import Model
-from girder.exceptions import GirderException, ValidationException
+from girder.exceptions import GirderException, ValidationException, NoAssetstoreAdapter
 from girder.settings import SettingKey
 from girder.utility import RequestBodyStream
 from girder.utility.progress import noProgress
@@ -512,7 +512,10 @@ class Upload(Model):
         for assetstore in Assetstore().list():
             if assetstoreId and assetstoreId != assetstore['_id']:
                 continue
-            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            try:
+                adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            except NoAssetstoreAdapter:
+                continue
             try:
                 results.extend(adapter.untrackedUploads(
                     knownUploads, delete=(action == 'delete')))
