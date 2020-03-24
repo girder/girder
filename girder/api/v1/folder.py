@@ -2,7 +2,7 @@
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
-from girder.constants import AccessType, TokenScope
+from girder.constants import AccessType, TokenScope, SortDir
 from girder.exceptions import RestException
 from girder.models.folder import Folder as FolderModel
 from girder.utility import ziputil
@@ -20,6 +20,7 @@ class Folder(Resource):
         self.route('DELETE', (':id',), self.deleteFolder)
         self.route('DELETE', (':id', 'contents'), self.deleteContents)
         self.route('GET', (), self.find)
+        self.route('GET', ('position', ':id'), self.findPosition)
         self.route('GET', (':id',), self.getFolder)
         self.route('GET', (':id', 'details'), self.getFolderDetails)
         self.route('GET', (':id', 'access'), self.getFolderAccess)
@@ -63,13 +64,16 @@ class Folder(Resource):
         2. Searching with full text search across all folders in the system.
            Simply pass a "text" parameter for this mode.
         """
+        return self._find(parentType, parentId, text, name, limit, offset, sort)
+
+    def _find(self, parentType, parentId, text, name, limit, offset, sort, filters=None):
         user = self.getCurrentUser()
 
+        filters = (filters.copy() if filters else {})
         if parentType and parentId:
             parent = ModelImporter.model(parentType).load(
                 parentId, user=user, level=AccessType.READ, exc=True)
 
-            filters = {}
             if text:
                 filters['$text'] = {
                     '$search': text
@@ -82,9 +86,40 @@ class Folder(Resource):
                 offset=offset, limit=limit, sort=sort, filters=filters)
         elif text:
             return self._model.textSearch(
-                text, user=user, limit=limit, offset=offset, sort=sort)
+                text, user=user, limit=limit, offset=offset, sort=sort, filters=filters)
         else:
             raise RestException('Invalid search mode.')
+
+    @access.public(scope=TokenScope.DATA_READ)
+    @autoDescribeRoute(
+        Description('Report the offset of a folder in a list or search.')
+        .notes('You must pass either a "folderId" or "text" field '
+               'to specify how you are searching for folders.  '
+               'If you omit one of these parameters the request will fail and respond : '
+               '"Invalid search mode."')
+        .modelParam('id', model=FolderModel, level=AccessType.READ)
+        .param('parentType', "Type of the folder's parent", required=False,
+               enum=['folder', 'user', 'collection'])
+        .param('parentId', "The ID of the folder's parent.", required=False)
+        .param('text', 'Pass to perform a text search.', required=False)
+        .param('name', 'Pass to lookup a folder by exact name match. Must '
+               'pass parentType and parentId as well when using this.', required=False)
+        .pagingParams(defaultSort='lowerName')
+        .errorResponse()
+        .errorResponse('Read access was denied on the parent resource.', 403)
+    )
+    def findPosition(self, folder, parentType, parentId, text, name, limit, offset, sort):
+        filters = {}
+        if len(sort) != 1 or sort[0][0] not in folder:
+            raise RestException('Invalid sort mode.')
+        dir = '$lt' if sort[0][1] == SortDir.ASCENDING else '$gt'
+        filters = {'$or': [
+            {sort[0][0]: {dir: folder.get(sort[0][0])}},
+            {sort[0][0]: folder.get(sort[0][0]), '_id': {dir: folder['_id']}}
+        ]}
+        # limit and offset are actually ignored
+        cursor = self._find(parentType, parentId, text, name, limit, offset, sort, filters)
+        return cursor.count()
 
     @access.public(scope=TokenScope.DATA_READ)
     @autoDescribeRoute(

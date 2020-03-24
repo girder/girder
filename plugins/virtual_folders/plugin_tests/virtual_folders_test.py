@@ -73,6 +73,13 @@ class VirtualFoldersTestCase(base.TestCase):
         self.assertEqual([i['name'] for i in listItems()], ['6', '7', '8', '9'])
         self.assertEqual(getDetails(), 4)
 
+        # item/position/:id should work
+        items = listItems()
+        resp = self.request('/item/position/%s' % items[2]['_id'], user=self.user, params={
+            'folderId': self.virtual['_id']})
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json, 2)
+
         # Add a custom sort
         self.virtual['virtualItemsSort'] = json.dumps([('meta.someVal', SortDir.DESCENDING)])
         self.virtual = Folder().save(self.virtual)
