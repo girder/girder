@@ -89,14 +89,14 @@ over the instance, so the first thing you should do after starting your instance
 the first time is to register a user. After that succeeds, you should see a link
 appear in the navigation bar that says ``Admin console``.
 
-Enable Plugins
-++++++++++++++
+Plugins
++++++++
 
-The next recommended action is to enable any plugins you want to run on your server.
-Click the ``Admin console`` navigation link, then click ``Plugins``. Here, you
-can turn plugins on or off. Whenever you change the set of plugins that are
-enabled, you need to press the **Restart** button at the top of the
-Plugins page to restart the server and apply the change.
+Plugins are added to the system by installing them via pip.  Once installed,
+you may need to rerun ``girder build`` and ``girder serve``.  To change
+settings for plugins, click the ``Admin console`` navigation link, then click
+``Plugins``. Here, you will see a list of installed plugins. If the plugin has
+settings, click on the associated gear icon to modify them.
 
 For information about specific plugins, see the :ref:`Plugins <plugins>` section.
 
