@@ -2,7 +2,7 @@
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.utility import ziputil
-from girder.constants import AccessType, TokenScope
+from girder.constants import AccessType, TokenScope, SortDir
 from girder.exceptions import RestException
 from girder.api import access
 from girder.models.file import File
@@ -19,6 +19,7 @@ class Item(Resource):
 
         self.route('DELETE', (':id',), self.deleteItem)
         self.route('GET', (), self.find)
+        self.route('GET', ('position', ':id'), self.findPosition)
         self.route('GET', (':id',), self.getItem)
         self.route('GET', (':id', 'files'), self.getFiles)
         self.route('GET', (':id', 'download'), self.download)
@@ -33,7 +34,7 @@ class Item(Resource):
     @filtermodel(model=ItemModel)
     @autoDescribeRoute(
         Description('List or search for items.')
-        .notes('You must pass either a "itemId" or "text" field '
+        .notes('You must pass either a "folderId" or "text" field '
                'to specify how you are searching for items.  '
                'If you omit one of these parameters the request will fail and respond : '
                '"Invalid search mode."')
@@ -60,12 +61,15 @@ class Item(Resource):
         2. Searching with full text search across all items in the system.
            Simply pass a "text" parameter for this mode.
         """
+        return self._find(folderId, text, name, limit, offset, sort)
+
+    def _find(self, folderId, text, name, limit, offset, sort, filters=None):
         user = self.getCurrentUser()
 
+        filters = (filters.copy() if filters else {})
         if folderId:
             folder = Folder().load(
                 id=folderId, user=user, level=AccessType.READ, exc=True)
-            filters = {}
             if text:
                 filters['$text'] = {
                     '$search': text
@@ -77,9 +81,40 @@ class Item(Resource):
                 folder=folder, limit=limit, offset=offset, sort=sort, filters=filters)
         elif text is not None:
             return self._model.textSearch(
-                text, user=user, limit=limit, offset=offset, sort=sort)
+                text, user=user, limit=limit, offset=offset, sort=sort, filters=filters)
         else:
             raise RestException('Invalid search mode.')
+
+    @access.public(scope=TokenScope.DATA_READ)
+    @autoDescribeRoute(
+        Description('Report the offset of an item in a list or search.')
+        .notes('You must pass either a "folderId" or "text" field '
+               'to specify how you are searching for items.  '
+               'If you omit one of these parameters the request will fail and respond : '
+               '"Invalid search mode."')
+        .modelParam('id', model=ItemModel, level=AccessType.READ)
+        .param('folderId', 'Pass this to list all items in a folder.',
+               required=False)
+        .param('text', 'Pass this to perform a full text search for items.',
+               required=False)
+        .param('name', 'Pass to lookup an item by exact name match. Must '
+               'pass folderId as well when using this.', required=False)
+        .pagingParams(defaultSort='lowerName')
+        .errorResponse()
+        .errorResponse('Read access was denied on the parent folder.', 403)
+    )
+    def findPosition(self, item, folderId, text, name, limit, offset, sort):
+        filters = {}
+        if len(sort) != 1 or sort[0][0] not in item:
+            raise RestException('Invalid sort mode.')
+        dir = '$lt' if sort[0][1] == SortDir.ASCENDING else '$gt'
+        filters = {'$or': [
+            {sort[0][0]: {dir: item[sort[0][0]]}},
+            {sort[0][0]: item[sort[0][0]], '_id': {dir: item['_id']}}
+        ]}
+        # limit and offset are actually ignored
+        cursor = self._find(folderId, text, name, limit, offset, sort, filters)
+        return cursor.count()
 
     @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model=ItemModel)
