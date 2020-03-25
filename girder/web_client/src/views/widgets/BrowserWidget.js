@@ -6,7 +6,7 @@ import RootSelectorWidget from '@girder/core/views/widgets/RootSelectorWidget';
 import View from '@girder/core/views/View';
 import CollectionModel from '@girder/core/models/CollectionModel';
 import FolderModel from '@girder/core/models/FolderModel';
-import  UserModel from '@girder/core/models/UserModel';
+import UserModel from '@girder/core/models/UserModel';
 
 import BrowserWidgetTemplate from '@girder/core/templates/widgets/browserWidget.pug';
 

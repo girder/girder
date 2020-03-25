@@ -840,6 +840,7 @@ describe('browser hierarchy selection', function () {
     it('test browserwidget defaultSelectedResource [file]', function () {
         runs(function () {
             $('.g-hierarchy-widget').remove();
+            testEl.remove();
             widget = new girder.views.widgets.BrowserWidget({
                 parentView: null,
                 el: testEl,
@@ -860,9 +861,10 @@ describe('browser hierarchy selection', function () {
         });
     });
 
-    it('test browserwidget defaultSelectedResource [file] -highlighted', function () {
+    it('test browserwidget defaultSelectedResource [file] - highlighted', function () {
         runs(function () {
             $('.g-hierarchy-widget').remove();
+            testEl.remove();
             widget = new girder.views.widgets.BrowserWidget({
                 parentView: null,
                 el: testEl,
@@ -888,11 +890,23 @@ describe('browser hierarchy selection', function () {
             expect(widget.$('#g-selected-model').val()).toBe('an item');
             var link = $('.g-item-list-entry.g-selected a.g-item-list-link').attr('href').replace('#item/', '');
             expect(link).toBe(item.get('_id'));
-        });
+        }, 'Make sure proper item is selected');
+
+        runs(function () {
+            var widgetcontainer = $('.g-hierarchy-widget-container');
+            var scrollnamespace = $._data(widgetcontainer[0], 'events').scroll[0].namespace;
+            expect(scrollnamespace).toBe('observerscroll');
+            // cause a scroll event
+            widgetcontainer.trigger('click');
+            // check again to confirm that the bound event handler is no longer there
+            scrollnamespace = $._data(widgetcontainer[0], 'events').scroll;
+            expect(scrollnamespace).toBe(undefined);
+        }, 'Testing that the observer disconnects properly on user interaction');
     });
 
     it('test browserwidget defaultSelectedResource [folder]', function () {
         runs(function () {
+            testEl.remove();
             widget = new girder.views.widgets.BrowserWidget({
                 parentView: null,
                 el: testEl,
@@ -908,6 +922,37 @@ describe('browser hierarchy selection', function () {
         });
 
         runs(function () {
+            expect(widget.$('#g-selected-model').val()).toBe('subfolder');
+        });
+    });
+
+    it('test browserwidget defaultSelectedResource [item with folder selected]', function () {
+        runs(function () {
+            testEl.remove();
+            widget = new girder.views.widgets.BrowserWidget({
+                parentView: null,
+                el: testEl,
+                helpText: 'This is helpful',
+                titleText: 'This is a title',
+                defaultSelectedResource: subfolder,
+                selectItem: true,
+                showItems: true
+            }).render();
+        });
+
+        waitsFor(function () {
+            return $(widget.$el).is(':visible');
+        });
+
+        waitsFor(function () {
+            return $('.g-hierarchy-widget').length > 0 &&
+                               $('.g-item-list-link').length > 0;
+        }, 'the hierarchy widget to display');
+
+        runs(function () {
+            // We should get opened the parent of subfolder so we should be able to see subfolder and other items
+            expect($('.g-item-list-entry').length).toBe(1);
+            expect($('.g-folder-list-entry').length).toBe(1);
             expect(widget.$('#g-selected-model').val()).toBe('subfolder');
         });
     });

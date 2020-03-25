@@ -230,9 +230,12 @@ var ItemListWidget = View.extend({
                 if (this.observer) {
                     widgetcontainer.unbind('scroll.observerscroll');
                     widgetcontainer.unbind('wheel.observerscroll');
+                    widgetcontainer.unbind('click.observerscroll');
                     this.observer.disconnect();
                     this.observer = null;
                     this.tempScrollPos = undefined;
+                    // Prevents scrolling once clicking has more
+                    this._highlightItem = false;
                 }
             };
 
@@ -246,8 +249,9 @@ var ItemListWidget = View.extend({
                     }
                 }
             });
-            // Backup function to kill observer if user moves scrollwheel, or touchpad equivalent
+            // Backup function to kill observer if user clicks an item, moves scrollwheel, or touchpad equivalent
             widgetcontainer.bind('wheel.selectionobserver', unbindDisconnect);
+            widgetcontainer.bind('click.selectionobserver', unbindDisconnect);
         }
     }
 });
