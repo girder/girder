@@ -11,6 +11,10 @@ import sys
 
 _ver = sys.version_info
 _HASHLIB_INLINE_EVP_STRUCT = _ver < (2, 7, 13) or (_ver >= (3,) and _ver < (3, 5, 3))
+# This is the offset to the EVP_MD_CTX structure in CPython's _hashopenssl.c
+# EVPObject.  It changed for Python 3.8 in
+# https://github.com/python/cpython/pull/16023
+_HASHLIB_EVP_STRUCT_OFFSET = 3 if _ver < (3, 8) else 2
 
 
 def _getHashStateDataPointer(hashObject):
@@ -58,7 +62,8 @@ def _getHashStateDataPointer(hashObject):
         # In cpython 2.7.13, hashlib changed to store a pointer to the OpenSSL hash
         # object rather than inlining it in the struct, so we require an extra dereference. See
         # https://github.com/python/cpython/commit/9d9615f6782be4b1f38b47d4d56cee208c26a970
-        evpStruct = ctypes.cast(hashPointer[3], ctypes.POINTER(ctypes.c_void_p))
+        evpStruct = ctypes.cast(hashPointer[_HASHLIB_EVP_STRUCT_OFFSET],
+                                ctypes.POINTER(ctypes.c_void_p))
         stateDataPointer = ctypes.cast(evpStruct[3], ctypes.POINTER(ctypes.c_char))
 
     assert stateDataPointer
