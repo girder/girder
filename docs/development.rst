@@ -110,14 +110,7 @@ will override the defaults.
 Server Development
 ------------------
 
-All commits to the core python code must work in both python 2.7 and 3.6.
-Python code in plugins should also work in both, but some plugins may depend
-on third party libraries that do not support python 3. If that is the case, those
-plugins should declare ``"python_requires<3.0`` in their **setup.py** file
-to indicate that they do not support being run in python 3. Automated testing of
-those plugins should also be disabled for python3 if those tests would fail in a
-python 3 environment. This can be achieved by passing an additional flag ``PY2_ONLY``
-to ``add_python_test`` in your **plugin.cmake** file.
+All commits to the core python code must work in Python 3.6 and above.
 
 Python Style
 ^^^^^^^^^^^^
