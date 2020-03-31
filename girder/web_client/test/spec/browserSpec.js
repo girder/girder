@@ -883,7 +883,8 @@ describe('browser hierarchy selection', function () {
 
         waitsFor(function () {
             return $('.g-hierarchy-widget').length > 0 &&
-                               $('.g-item-list-link').length > 0;
+                               $('.g-item-list-link').length > 0 && 
+                                $('.g-item-list-entry.g-selected').length > 0;
         }, 'the hierarchy widget to display');
 
         runs(function () {
@@ -894,8 +895,13 @@ describe('browser hierarchy selection', function () {
 
         runs(function () {
             var widgetcontainer = $('.g-hierarchy-widget-container');
-            var scrollnamespace = $._data(widgetcontainer[0], 'events').scroll[0].namespace;
-            expect(scrollnamespace).toBe('observerscroll');
+            // force a centerSelected scroll event
+            widget._hierarchyView.itemListView.centerSelected();
+            var scrollnamespace = null;
+            if (((($._data(widgetcontainer[0], 'events') || {} ).scroll[0]) || {}).namespace) {
+                scrollnamespace = $._data(widgetcontainer[0], 'events').scroll[0].namespace;
+                expect(scrollnamespace).toBe('observerscroll');
+            }
             // cause a scroll event
             widgetcontainer.trigger('click');
             // check again to confirm that the bound event handler is no longer there
