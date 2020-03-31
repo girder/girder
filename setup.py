@@ -32,7 +32,6 @@ installReqs = [
     'click-plugins',
     'dogpile.cache',
     'filelock',
-    "funcsigs ; python_version < '3'",
     'jsonschema',
     'Mako',
     'passlib [bcrypt,totp]',
@@ -43,7 +42,6 @@ installReqs = [
     'python-dateutil',
     'pytz',
     'requests',
-    "shutilwhich ; python_version < '3'",
     'six>=1.9',
 ]
 
@@ -72,8 +70,6 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
@@ -83,7 +79,7 @@ setup(
         exclude=('girder.test', 'tests.*', 'tests', '*.plugin_tests.*', '*.plugin_tests')
     ),
     include_package_data=True,
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
+    python_requires='>=3.6',
     install_requires=installReqs,
     extras_require=extrasReqs,
     zip_safe=False,
