@@ -272,7 +272,7 @@ var BrowserWidget = View.extend({
 
     /**
      * If we have a defaultSelectedResource we need the root item for the hiearachyWidget
-     * This will calcualte what the root item should be if one hasn't been supplied
+     * This will calculate what the root item should be if one hasn't been supplied
      */
     _calculateDefaultSelectedRoot: function () {
         // If we are are only using folders, the root is the defaultselectedResource then

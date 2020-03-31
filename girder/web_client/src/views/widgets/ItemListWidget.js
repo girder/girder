@@ -154,8 +154,8 @@ var ItemListWidget = View.extend({
     },
 
     centerSelected: function () {
-        const widgetcontainer = $('.g-hierarchy-widget-container');
-        const selected = $('li.g-item-list-entry.g-selected');
+        const widgetcontainer = this.$el.parents('.g-hierarchy-widget-container');
+        const selected = this.$('li.g-item-list-entry.g-selected');
 
         if (widgetcontainer.length > 0 && selected.length > 0) {
             const centerPos = (widgetcontainer.height() / 2.0) + (selected.outerHeight() / 2.0);
@@ -165,7 +165,7 @@ var ItemListWidget = View.extend({
                 this.tempScrollPos = scrollPos;
             }
             // Call a custom scroll event to prevent thinking the user initiated it
-            var e = new CustomEvent('scroll', { detail: 'selected_item_scroll' });
+            const e = new CustomEvent('scroll', { detail: 'selected_item_scroll' });
             widgetcontainer[0].scrollTop = scrollPos;
             widgetcontainer[0].dispatchEvent(e);
         }
@@ -176,10 +176,10 @@ var ItemListWidget = View.extend({
      */
     scrollPositionObserver: function () {
         // Set the default selected height for the selected item
-        const target = $('.g-item-list');
+        const target = this.$('.g-item-list');
         if (window.MutationObserver && target.length > 0) {
             // Default items to monitor for the scroll position
-            const widgetcontainer = $('.g-hierarchy-widget-container');
+            const widgetcontainer = this.$el.parents('.g-hierarchy-widget-container');
             // If the observer already exists disconnect it so it can be recreated
             if (this.observer && this.observer.disconnect) {
                 this.observer.disconnect();
@@ -216,7 +216,7 @@ var ItemListWidget = View.extend({
 
                         // For any images added we wait until loaded and rescroll to the selected
                         if (_.isFunction(node.getElementsByTagName)) {
-                            $('img', node).on('load', onLoadImage);
+                            this.$('img', node).on('load', onLoadImage);
                         }
                     });
                 });
