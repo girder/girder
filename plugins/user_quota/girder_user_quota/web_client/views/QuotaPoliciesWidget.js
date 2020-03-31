@@ -118,7 +118,7 @@ var QuotaPoliciesWidget = View.extend({
                 quota = this.model.get('quotaPolicy')._currentFileSizeQuota;
             }
         }
-        if (!quota) {
+        if (!quota && quota !== 0) {
             return 'Unlimited';
         }
         used = this.model.get('size');
@@ -137,7 +137,7 @@ var QuotaPoliciesWidget = View.extend({
         sizeInfo = sizeToValueAndUnits(
             this.model.get('quotaPolicy').fileSizeQuota);
         defaultQuota = this.model.get('defaultQuota');
-        if (!defaultQuota) {
+        if (!defaultQuota && defaultQuota !== 0) {
             defaultQuotaString = 'Unlimited';
         } else {
             defaultQuotaString = formatSize(defaultQuota);
