@@ -265,6 +265,7 @@ girder
                     deleteMetadata
                     download
                     find
+                    findPosition
                     getFiles
                     getItem
                     rootpath
