@@ -898,8 +898,8 @@ describe('browser hierarchy selection', function () {
             if ($('.g-hierarchy-widget-container').length > 1) {
                 $('.g-hierarchy-widget-container').get(0).remove();
             }
-            return $._data($('.g-hierarchy-widget-container')[0], 'events');          
-        }, 'waiting for the scroll events to be bound')
+            return $._data($('.g-hierarchy-widget-container')[0], 'events');
+        }, 'waiting for the scroll events to be bound');
 
         runs(function () {
             var widgetcontainer = $('.g-hierarchy-widget-container');
