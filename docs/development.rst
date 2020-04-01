@@ -265,7 +265,7 @@ When running client side tests, if you try to SIGINT (ctrl+c) the CTest process,
 won't pass that signal down to the test processes for them to handle.  This can result
 in orphaned python unittest processes and can prevent future runs of client tests.  If you
 run a client side test and see an error message similar to ``IOError: Port 30015 not free on '0.0.0.0'``,
-then look for an existing process similar to ``/usr/bin/python2.7 -m unittest -v tests.web_client_test``,
+then look for an existing process similar to ``/usr/bin/python3 -m unittest -v tests.web_client_test``,
 kill the process, and then try your tests again.
 
 Adding a New Client Side Test

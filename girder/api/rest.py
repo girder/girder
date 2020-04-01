@@ -44,8 +44,6 @@ def getUrlParts(url=None):
     :return: The URL's separate components.
     :rtype: `urllib.parse.ParseResult`_
 
-    .. note:: This is compatible with both Python 2 and 3.
-
     .. _urllib.parse.urlparse: https://docs.python.org/3/library/
        urllib.parse.html#urllib.parse.urlparse
 
