@@ -204,17 +204,8 @@ class User(AccessControlledModel):
         elif isinstance(otpToken, str):
             raise AccessException('The user has not enabled one-time passwords.')
 
-        # This has the same behavior as User.canLogin, but returns more
-        # detailed error messages
-        if user.get('status', 'enabled') == 'disabled':
-            raise AccessException('Account is disabled.', extra='disabled')
-
-        if self.emailVerificationRequired(user):
-            raise AccessException(
-                'Email verification required.', extra='emailVerification')
-
-        if self.adminApprovalRequired(user):
-            raise AccessException('Account approval required.', extra='accountApproval')
+        # Verify the user account is enabled and auth policies are fulfilled
+        self.verifyLogin(user)
 
         return user
 
@@ -424,16 +415,26 @@ class User(AccessControlledModel):
 
         return user
 
+    def verifyLogin(self, user):
+        """
+        Raises an exception if user's account is disabled or one of the auth policies
+        is not fulfilled.
+        """
+        if user.get('status', 'enabled') == 'disabled':
+            raise AccessException('Account is disabled.', extra='disabled')
+        if self.emailVerificationRequired(user):
+            raise AccessException('Email verification required.', extra='emailVerification')
+        if self.adminApprovalRequired(user):
+            raise AccessException('Account approval required.', extra='accountApproval')
+
     def canLogin(self, user):
         """
         Returns True if the user is allowed to login, e.g. email verification
         is not needed and admin approval is not needed.
         """
-        if user.get('status', 'enabled') == 'disabled':
-            return False
-        if self.emailVerificationRequired(user):
-            return False
-        if self.adminApprovalRequired(user):
+        try:
+            self.verifyLogin(user)
+        except AccessException:
             return False
         return True
 
