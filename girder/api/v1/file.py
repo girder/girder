@@ -181,7 +181,7 @@ class File(Resource):
         """
         offset = Upload().requestOffset(upload)
 
-        if isinstance(offset, six.integer_types):
+        if isinstance(offset, int):
             upload['received'] = offset
             Upload().save(upload)
             return {'offset': offset}

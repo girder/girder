@@ -329,7 +329,7 @@ class QuotaPolicy(Resource):
                 key = None
             if key:
                 quota = Setting().get(key)
-        if not isinstance(quota, six.integer_types) or quota < 0:
+        if not isinstance(quota, int) or quota < 0:
             return None
         return quota
 

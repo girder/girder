@@ -25,7 +25,7 @@ def _objectToDict(obj):
         for key in dir(obj)
         if not key.startswith('_') and isinstance(
             getattr(obj, key),
-            tuple([float, tuple] + list(str) + list(six.integer_types)))
+            tuple([float, tuple] + list(str) + list(int)))
     }
 
 
