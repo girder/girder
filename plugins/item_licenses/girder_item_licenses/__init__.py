@@ -20,7 +20,7 @@ def validateString(value):
     :returns: the unicode string version of the value.
     """
     if value is None:
-        value = six.u('')
+        value = ''
     if not isinstance(value, str):
         value = str(value)
     return value
