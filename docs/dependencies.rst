@@ -7,15 +7,11 @@ Server Install
 --------------
 Installation of Girder's server has the following system dependencies:
 
-* `Python <https://www.python.org>`_ v2.7 or v3.6+
+* `Python <https://www.python.org>`_ v3.6+
 
   * This is necessary to run most of the server software.
 
-  .. warning:: Some Girder plugins do not support Python v3 at this time due to third party library dependencies.
-               Namely, the ``hdfs_assetstore`` plugin and the ``metadata_extractor`` plugin will only be available in a
-               Python v2.7 environment.
-
-  .. note:: Girder performs continuous integration testing using Python v2.7 and Python v3.6. Girder *should* work on
+  .. note:: Girder performs continuous integration testing using Python v3.6. Girder *should* work on
             newer Python v3.7+ versions as well, but that support is not verified by Girder's automated testing at this
             time, so use at your own risk.
 

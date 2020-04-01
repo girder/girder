@@ -21,10 +21,7 @@ from girder.utility.resource import _apiRouteMap
 from . import docs, access
 from .rest import Resource, getApiUrl, getUrlParts
 
-if six.PY3:
-    from inspect import signature, Parameter
-else:
-    from funcsigs import signature, Parameter
+from inspect import signature, Parameter
 
 SWAGGER_VERSION = '2.0'
 

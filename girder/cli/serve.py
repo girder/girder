@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import cherrypy
 import click
-import six
 
 from girder import _attachFileLogHandlers
 from girder.utility import server
@@ -29,11 +28,6 @@ def main(dev, mode, database, host, port):
 
     # If the user provides no options, the existing config values get re-set through click
     cherrypy.config['database']['uri'] = database
-    if six.PY2:
-        # On Python 2, click returns the value as unicode and CherryPy expects a str
-        # Keep this conversion explicitly for Python 2 only, so it can be removed when Python 2
-        # support is dropped
-        host = str(host)
     cherrypy.config['server.socket_host'] = host
     cherrypy.config['server.socket_port'] = port
 

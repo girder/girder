@@ -8,9 +8,9 @@ An Ansible role to install [Girder](https://github.com/girder/girder).
 
 Ubuntu 18.04+.
 
-Using Python 3 as
-[the target host Python interpreter](https://docs.ansible.com/ansible/latest/reference_appendices/interpreter_discovery.html)
-is recommended. Setting `ansible_python_interpreter: auto` will enable this behavior.
+Python 3 should be used as
+[the target host Python interpreter](https://docs.ansible.com/ansible/latest/reference_appendices/interpreter_discovery.html).
+Setting `ansible_python_interpreter: auto` will enable this behavior.
 
 ## Role Variables
 
