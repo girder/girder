@@ -241,7 +241,7 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
         raise RestException('Error: Content-Disposition filename is empty.')
     if not isinstance(disposition, six.binary_type):
         disposition = disposition.encode('iso8859-1', 'ignore')
-    if not isinstance(filename, six.text_type):
+    if not isinstance(filename, str):
         filename = filename.decode('utf8', 'ignore')
     # Decompose the name before trying to encode it.  This will de-accent
     # characters rather than remove them in some instances.
@@ -495,7 +495,7 @@ def _createResponse(val):
     thread, this will simply return the response raw.
     """
     if getattr(cherrypy.request, 'girderRawResponse', False) is True:
-        if isinstance(val, six.text_type):
+        if isinstance(val, str):
             # If we were given a non-encoded text response, we have
             # to encode it, so we use UTF-8.
             ctype = cherrypy.response.headers['Content-Type'].split(';', 1)

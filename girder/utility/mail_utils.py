@@ -100,7 +100,7 @@ def _createMessage(subject, text, to, bcc):
     if not subject:
         subject = '[no subject]'
 
-    if isinstance(text, six.text_type):
+    if isinstance(text, str):
         # TODO: needed?
         text = text.encode('utf8')
 

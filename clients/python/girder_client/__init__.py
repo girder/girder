@@ -925,7 +925,7 @@ class GirderClient(object):
 
         if size <= self.MAX_CHUNK_SIZE and self.getServerVersion() >= ['2', '3']:
             chunk = stream.read(size)
-            if isinstance(chunk, six.text_type):
+            if isinstance(chunk, str):
                 chunk = chunk.encode('utf8')
             with self.progressReporterCls(label=filename, length=size) as reporter:
                 return self.post(
@@ -1002,7 +1002,7 @@ class GirderClient(object):
                 if not chunk:
                     break
 
-                if isinstance(chunk, six.text_type):
+                if isinstance(chunk, str):
                     chunk = chunk.encode('utf8')
 
                 uploadObj = self.post(

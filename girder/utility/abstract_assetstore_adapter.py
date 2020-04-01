@@ -308,7 +308,7 @@ class AbstractAssetstoreAdapter(object):
             return
         elif hasattr(chunk, 'fileno'):
             return os.fstat(chunk.fileno()).st_size
-        elif isinstance(chunk, six.text_type):
+        elif isinstance(chunk, str):
             return len(chunk.encode('utf8'))
         else:
             return len(chunk)

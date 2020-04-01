@@ -140,7 +140,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # If we know the chunk size is too large or small, fail early.
         self.checkUploadSize(upload, self.getChunkSize(chunk))
 
-        if isinstance(chunk, six.text_type):
+        if isinstance(chunk, str):
             chunk = chunk.encode('utf8')
 
         if isinstance(chunk, six.binary_type):

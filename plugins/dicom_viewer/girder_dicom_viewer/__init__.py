@@ -148,7 +148,7 @@ def _coerceValue(value):
         int,
         float,
         six.binary_type,
-        six.text_type,
+        str,
         datetime.datetime,
         datetime.date,
         datetime.time,

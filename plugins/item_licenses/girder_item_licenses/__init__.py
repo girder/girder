@@ -21,8 +21,8 @@ def validateString(value):
     """
     if value is None:
         value = six.u('')
-    if not isinstance(value, six.text_type):
-        value = six.text_type(value)
+    if not isinstance(value, str):
+        value = str(value)
     return value
 
 

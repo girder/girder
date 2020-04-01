@@ -169,13 +169,13 @@ def request(path='/', method='GET', params=None, user=None,
     if additionalHeaders:
         headers.extend(additionalHeaders)
 
-    if isinstance(body, six.text_type):
+    if isinstance(body, str):
         body = body.encode('utf8')
 
     if params:
         # Python2 can't urlencode unicode and this does no harm in Python3
         qs = urllib.parse.urlencode({
-            k: v.encode('utf8') if isinstance(v, six.text_type) else v
+            k: v.encode('utf8') if isinstance(v, str) else v
             for k, v in params.items()})
 
     if params and body:
