@@ -10,8 +10,8 @@ executors:
   py3-mongo:
     docker:
       - image: girder/girder_test:latest-py3
-      # Use the latest MongoDB
-      - image: circleci/mongo:4.2-ram
+      # Use the oldest supported MongoDB
+      - image: circleci/mongo:3.6-ram
         command: ["mongod", "--storageEngine", "ephemeralForTest", "--dbpath", "/dev/shm/mongo"]
     working_directory: /home/circleci/project
   machine:
