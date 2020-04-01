@@ -58,6 +58,7 @@ var BrowserWidget = View.extend({
         error message) if the selection is unacceptable.
      * @param {string} [input.placeholder] A placeholder string for the input element.
      * @param {boolean} [highlightItem=false] highlights the selected item in the hierarchy and scrolls to it.
+     * @param {boolean} [paginated=false] the browser widget is paginated
      */
     initialize: function (settings) {
         // store options
@@ -74,6 +75,7 @@ var BrowserWidget = View.extend({
         this.selectItem = !!settings.selectItem;
         this.showMetadata = !!settings.showMetadata;
         this.highlightItem = !!settings.highlightItem;
+        this.paginated = !!settings.paginated;
         this._selected = null;
 
         // Sets RootSelectorWidget to open properly to the root if not already set in the settings
@@ -148,6 +150,7 @@ var BrowserWidget = View.extend({
             onItemClick: _.bind(this._selectItem, this),
             defaultSelectedResource: this.defaultSelectedResource,
             highlightItem: this.highlightItem,
+            paginated: this.paginated,
             showMetadata: this.showMetadata
         });
         this.listenTo(this._hierarchyView, 'g:setCurrentModel', this._selectModel);

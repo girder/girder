@@ -69,7 +69,13 @@ var Collection = Backbone.Collection.extend({
     hasNextPage: function () {
         return this._hasMorePages;
     },
-
+    /**
+     *  This value is populated whenever the list length exceeds the pageLimit.
+     *  It is used to determine how many pages are needed based on the page limit
+     */
+    getTotalCount: function () {
+        return this._totalCount || 1;
+    },
     /**
      * Fetch the previous page of this collection, emitting g:changed when done.
      */
@@ -117,6 +123,20 @@ var Collection = Backbone.Collection.extend({
             return this.pageOffsetStack.length - 1;
         }
         return Math.ceil((this.offset - this.length) / this.pageLimit);
+    },
+
+    /**
+     * Sets a specific pagenumber for loading by caluclating the offset
+     * If we have append on I think we don't want to execute this.
+     * @param {*} pageNumber  - the page that should be loaded based on the pageLimit size
+     */
+    fetchPage: function (pageNumber, params) {
+        // Make sure the page Number is within range
+        pageNumber = pageNumber - 1;
+        if (!this.append && pageNumber * this.pageLimit < this._totalCount && pageNumber >= 0) {
+            this.offset = pageNumber * this.pageLimit;
+            return this.fetch(_.extend({}, this.params, params || {}));
+        }
     },
 
     /**
@@ -169,6 +189,7 @@ var Collection = Backbone.Collection.extend({
                     // This means we have more pages to display still. Pop off
                     // the extra that we fetched.
                     list.pop();
+                    this._totalCount = xhr.getResponseHeader('girder-total-count');
                     this._hasMorePages = true;
                 } else {
                     this._hasMorePages = false;

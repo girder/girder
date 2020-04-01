@@ -5,6 +5,7 @@ import ItemCollection from '@girder/core/collections/ItemCollection';
 import LoadingAnimation from '@girder/core/views/widgets/LoadingAnimation';
 import View from '@girder/core/views/View';
 import { formatSize } from '@girder/core/misc';
+import { restRequest } from '@girder/core/rest';
 
 import ItemListTemplate from '@girder/core/templates/widgets/itemList.pug';
 
@@ -47,6 +48,8 @@ var ItemListWidget = View.extend({
             _.has(settings, 'showSizes') ? settings.showSizes : true);
         this._highlightItem = (
             _.has(settings, 'highlightItem') ? settings.highlightItem : false);
+        this._paginated = (
+            _.has(settings, 'paginated') ? settings.paginated : false);
 
         this.accessLevel = settings.accessLevel;
         this.public = settings.public;
@@ -60,16 +63,54 @@ var ItemListWidget = View.extend({
         this.collection = new ItemCollection();
         this.collection.append = true; // Append, don't replace pages
         this.collection.filterFunc = settings.itemFilter;
+        this.currentPage = 1; // By default we want to be on the first page
 
-        this.collection.on('g:changed', function () {
-            if (this.accessLevel !== undefined) {
-                this.collection.each((model) => {
-                    model.set('_accessLevel', this.accessLevel);
-                });
+        if (this._paginated) {
+            this.collection.append = false;
+        }
+
+        this.collection.fetch({ folderId: settings.folderId }).done(() => {
+            this.totalPages = Math.ceil(this.collection.getTotalCount() / this.collection.pageLimit);
+            if (this._paginated && this.collection.hasNextPage && this._selectedItem) {
+                // Tells the parent container that the item is paginated so it can render the page selector
+                this.trigger('g:paginated');
+                // We need to get the position in the list
+                this.trigger('g:paginated');
+                // We need to get the position in the list
+                restRequest({
+                    url: `item/position/${this._selectedItem.get('_id')}`,
+                    method: 'GET',
+                    data: { folderId: this._selectedItem.get('folderId') }
+                }).done((val) => {
+                    // Now we fetch the correct page for the position
+                    val = Number(val);
+                    if (val >= this.collection.pageLimit) {
+                        const pageLimit = this.collection.pageLimit;
+                        const calculatedPage = 1 + Math.ceil((val - (val % pageLimit)) / pageLimit);
+                        this.collection.fetchPage(calculatedPage);
+                    }
+                }).done(() => this.bindOnChanged());
+            } else {
+                this.bindOnChanged();
             }
-            this.render();
-            this.trigger('g:changed');
-        }, this).fetch({ folderId: settings.folderId });
+        });
+    },
+
+    bindOnChanged: function () {
+        this.collection.on('g:changed', this.changedFunc, this);
+        this.changedFunc();
+    },
+    changedFunc: function () {
+        if (this.accessLevel !== undefined) {
+            this.collection.each((model) => {
+                model.set('_accessLevel', this.accessLevel);
+            });
+        }
+        if (this._paginated) {
+            this.currentPage = this.collection.pageNum() + 1;
+        }
+        this.render();
+        this.trigger('g:changed');
     },
 
     render: function () {
@@ -88,13 +129,24 @@ var ItemListWidget = View.extend({
             viewLinks: this._viewLinks,
             showSizes: this._showSizes,
             highlightItem: this._highlightItem,
-            selectedItemId: (this._selectedItem || {}).id
+            selectedItemId: (this._selectedItem || {}).id,
+            paginated: this._paginated
+
         }));
 
         // If we set a selected item in the beginning we will center the selection while loading
         return this;
     },
 
+    /**
+     * Externally facing function to allow hierarchyWidget and others to set the current page if the item is paginated
+     * @param {Number} page - 1 index integer specifying the page to fetch
+     */
+    setPage(page) {
+        if (this._paginated && this.collection && this.collection.fetchPage) {
+            this.collection.fetchPage(page);
+        }
+    },
     /**
      * Insert an item into the collection and re-render it.
      */
@@ -234,7 +286,7 @@ var ItemListWidget = View.extend({
                     this.observer.disconnect();
                     this.observer = null;
                     this.tempScrollPos = undefined;
-                    // Prevents scrolling once clicking has more
+                    // Prevents scrolling when user clicks 'show more...'
                     this._highlightItem = false;
                 }
             };
@@ -255,5 +307,3 @@ var ItemListWidget = View.extend({
         }
     }
 });
-
-export default ItemListWidget;

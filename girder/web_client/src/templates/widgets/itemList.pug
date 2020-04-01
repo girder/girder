@@ -20,7 +20,7 @@ ul.g-item-list
           i.icon-eye
       if showSizes
         .g-item-size= formatSize(item.get('size'))
-  if (hasMore)
+  if (hasMore && !paginated)
     li.g-show-more
       a.g-show-more-items
         i.icon-level-down

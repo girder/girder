@@ -728,12 +728,13 @@ describe('browser hierarchy selection', function () {
 
     beforeEach(function () {
         testEl = $('<div/>').appendTo('body');
-
+        $('.modal').remove();
         transition = $.support.transition;
         $.support.transition = false;
     });
     afterEach(function () {
         testEl.remove();
+        $('.modal').remove();
         $.support.transition = transition;
     });
     it('register a user', function () {
@@ -923,6 +924,7 @@ describe('browser hierarchy selection', function () {
 
     it('test browserwidget defaultSelectedResource [folder]', function () {
         runs(function () {
+            $('.g-hierarchy-widget-container').remove();
             testEl.remove();
             widget = new girder.views.widgets.BrowserWidget({
                 parentView: null,
@@ -945,6 +947,7 @@ describe('browser hierarchy selection', function () {
 
     it('test browserwidget defaultSelectedResource [item with folder selected]', function () {
         runs(function () {
+            $('.g-hierarchy-widget-container').remove();
             testEl.remove();
             widget = new girder.views.widgets.BrowserWidget({
                 parentView: null,
@@ -972,5 +975,211 @@ describe('browser hierarchy selection', function () {
             expect($('.g-folder-list-entry').length).toBe(1);
             expect(widget.$('#g-selected-model').val()).toBe('subfolder');
         });
+    });
+});
+
+describe('browser hierarchy paginated selection', function () {
+    var user, folder, subfolder, item, widget, itemlist;
+    var testEl;
+    var transition;
+
+    beforeEach(function () {
+        testEl = $('<div/>').appendTo('body');
+        $('.modal').remove();
+
+        transition = $.support.transition;
+        $.support.transition = false;
+    });
+    afterEach(function () {
+        testEl.remove();
+        $('.modal').remove();
+        $.support.transition = transition;
+    });
+    it('register a user', function () {
+        runs(function () {
+            var _user = new girder.models.UserModel({
+                login: 'mylogin2',
+                password: 'mypassword',
+                email: 'email2@girder.test',
+                firstName: 'First',
+                lastName: 'Last'
+            }).on('g:saved', function () {
+                user = _user;
+            });
+
+            _user.save();
+        });
+
+        waitsFor(function () {
+            return !!user;
+        }, 'user registration');
+    });
+
+    it('create top level folder', function () {
+        runs(function () {
+            var _folder = new girder.models.FolderModel({
+                parentType: 'user',
+                parentId: user.get('_id'),
+                name: 'top level folder'
+            }).on('g:saved', function () {
+                folder = _folder;
+            });
+
+            _folder.save();
+        });
+
+        waitsFor(function () {
+            return !!folder;
+        }, 'folder creation');
+    });
+
+    it('create subfolder', function () {
+        runs(function () {
+            var _subfolder = new girder.models.FolderModel({
+                parentType: 'folder',
+                parentId: folder.get('_id'),
+                name: 'subfolder'
+            }).on('g:saved', function () {
+                subfolder = _subfolder;
+            });
+
+            _subfolder.save();
+        });
+
+        waitsFor(function () {
+            return !!subfolder;
+        }, 'subfolder creation');
+    });
+
+    it('create item', function () {
+        runs(function () {
+            var _item = new girder.models.ItemModel({
+                folderId: folder.get('_id'),
+                name: 'an item'
+            }).on('g:saved', function () {
+                item = _item;
+            });
+
+            _item.save();
+        });
+
+        waitsFor(function () {
+            return !!item;
+        }, 'item creation');
+    });
+
+    it('create lots of items', function () {
+        runs(function () {
+            itemlist = [];
+            for (var i = 0; i < 100; i++) {
+                var _item = new girder.models.ItemModel({
+                    folderId: folder.get('_id'),
+                    name: ('item#: ' + i)
+                }).on('g:saved', function () {
+                    itemlist.push(_item);
+                });
+
+                _item.save();
+            }
+        });
+    });
+
+    it('test browserwidget defaultSelectedResource [item with paginated views]', function () {
+        runs(function () {
+            $('.g-hierarchy-widget-container').remove();
+            testEl.remove();
+            widget = new girder.views.widgets.BrowserWidget({
+                parentView: null,
+                el: testEl,
+                helpText: 'This is helpful',
+                titleText: 'This is a title',
+                defaultSelectedResource: item,
+                selectItem: true,
+                paginated: true,
+                highlightItem: true,
+                showItems: true
+            }).render();
+        });
+
+        waitsFor(function () {
+            return $(widget.$el).is(':visible');
+        });
+
+        waitsFor(function () {
+            return $('.g-hierarchy-widget').length > 0 &&
+                               $('.g-item-list-link').length > 0;
+        }, 'the hierarchy widget to display');
+
+        runs(function () {
+            expect(widget.$('#g-selected-model').val()).toBe('an item');
+            expect($('.g-hierarachy-paginated-bar').length).toBe(1);
+            expect($('.g-hierarachy-paginated-bar').hasClass('g-hierarchy-sticky')).toBe(true);
+            expect($('.g-hierarchy-breadcrumb-bar').hasClass('g-hierarchy-sticky')).toBe(true);
+        }, 'Make sure paginated text is displayed with proper settings');
+    });
+    it('test browserwidget defaultSelectedResource [second page in paginated', function () {
+        runs(function () {
+            $('.modal').remove();
+            widget = new girder.views.widgets.BrowserWidget({
+                parentView: null,
+                el: testEl,
+                helpText: 'This is helpful',
+                titleText: 'This is a title',
+                defaultSelectedResource: itemlist[itemlist.length - 1],
+                selectItem: true,
+                paginated: true,
+                highlightItem: true,
+                showItems: true
+            }).render();
+        });
+
+        waitsFor(function () {
+            return $(widget.$el).is(':visible');
+        });
+
+        waitsFor(function () {
+            return $('.g-hierarchy-widget').length > 0 &&
+                               $('.g-item-list-link').length > 0;
+        }, 'the hierarchy widget to display');
+
+        waitsFor(function () {
+            console.log($('#g-page-selection-input').val());
+            return $('#g-page-selection-input').val() === '2';
+        }, 'waits for it to go to the second page');
+
+        runs(function () {
+            expect(widget.$('#g-selected-model').val()).toBe('item#: 99');
+            expect($('.g-hierarachy-paginated-bar').length).toBe(1);
+            expect($('#g-page-selection-input').val()).toBe('2');
+            expect($('.g-hierarchy-breadcrumb-bar').hasClass('g-hierarchy-sticky')).toBe(true);
+        }, 'Make sure paginated text is displayed with proper settings');
+
+        runs(function () {
+            $('.g-folder-list-link').trigger('click');
+        });
+
+        waitsFor(function () {
+            return $('.g-hierarachy-paginated-bar').length === 0;
+        }, 'The removal of the page selection');
+
+        runs(function () {
+            expect($('.g-hierarachy-paginated-bar').length).toBe(0);
+            $('.g-breadcrumb-link[g-index="1"]').trigger('click');
+        }, 'Make sure paginated text is removed when a folder has less than one page');
+
+        waitsFor(function () {
+            return $('.g-hierarachy-paginated-bar').length === 1 && $('.g-item-list-entry').length > 10;
+        }, 'The removal of the page selection');
+
+        waitsFor(function () {
+            console.log($('#g-page-selection-input').val());
+            return $('#g-page-selection-input').val() === '1';
+        }, 'waits for it to go to the second page');
+
+        runs(function () {
+            expect($('.g-hierarachy-paginated-bar').length).toBe(1);
+            expect($('#g-page-selection-input').val()).toBe('1');
+            expect($('.g-hierarchy-breadcrumb-bar').hasClass('g-hierarchy-sticky')).toBe(true);
+        }, 'Returning to the folder should bring us to the first page');
     });
 });
