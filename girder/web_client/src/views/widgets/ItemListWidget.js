@@ -307,3 +307,5 @@ var ItemListWidget = View.extend({
         }
     }
 });
+
+export default ItemListWidget;

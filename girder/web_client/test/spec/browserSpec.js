@@ -1143,7 +1143,6 @@ describe('browser hierarchy paginated selection', function () {
         }, 'the hierarchy widget to display');
 
         waitsFor(function () {
-            console.log($('#g-page-selection-input').val());
             return $('#g-page-selection-input').val() === '2';
         }, 'waits for it to go to the second page');
 
@@ -1172,7 +1171,6 @@ describe('browser hierarchy paginated selection', function () {
         }, 'The removal of the page selection');
 
         waitsFor(function () {
-            console.log($('#g-page-selection-input').val());
             return $('#g-page-selection-input').val() === '1';
         }, 'waits for it to go to the second page');
 
