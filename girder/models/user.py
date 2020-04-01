@@ -202,7 +202,7 @@ class User(AccessControlledModel):
                     'User authentication must include a one-time password '
                     '(typically in the "Girder-OTP" header).')
             self.verifyOtp(user, otpToken)
-        elif isinstance(otpToken, six.string_types):
+        elif isinstance(otpToken, str):
             raise AccessException('The user has not enabled one-time passwords.')
 
         # This has the same behavior as User.canLogin, but returns more

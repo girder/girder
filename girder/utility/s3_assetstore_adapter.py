@@ -193,7 +193,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             and S3 upload ID. If a normal chunk file-like object is passed,
             we will send the data to S3.
         """
-        if isinstance(chunk, six.string_types):
+        if isinstance(chunk, str):
             return self._clientUploadChunk(upload, chunk)
         else:
             return self._proxiedUploadChunk(upload, chunk)

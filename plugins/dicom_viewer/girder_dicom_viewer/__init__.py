@@ -255,7 +255,7 @@ def dicomSubstringSearchHandler(query, types, user=None, level=None, limit=0, of
     """
     if types != ['item']:
         raise RestException('The dicom search is only able to search in Item.')
-    if not isinstance(query, six.string_types):
+    if not isinstance(query, str):
         raise RestException('The search query must be a string.')
 
     jsQuery = """

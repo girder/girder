@@ -178,7 +178,7 @@ class File(acl_mixin.AccessControlMixin, Model):
 
         if file.get('assetstoreType'):
             try:
-                if isinstance(file['assetstoreType'], six.string_types):
+                if isinstance(file['assetstoreType'], str):
                     return ModelImporter.model(file['assetstoreType'])
                 else:
                     return ModelImporter.model(*file['assetstoreType'])
@@ -426,7 +426,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         """
         if file.get('attachedToId'):
             attachedToType = file.get('attachedToType')
-            if isinstance(attachedToType, six.string_types):
+            if isinstance(attachedToType, str):
                 modelType = ModelImporter.model(attachedToType)
             elif isinstance(attachedToType, list) and len(attachedToType) == 2:
                 modelType = ModelImporter.model(*attachedToType)

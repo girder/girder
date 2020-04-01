@@ -696,7 +696,7 @@ def ensureTokenScopes(token, scope):
 
     if not tokenModel.hasScope(token, scope):
         setCurrentUser(None)
-        if isinstance(scope, six.string_types):
+        if isinstance(scope, str):
             scope = (scope,)
         raise AccessException(
             'Invalid token scope.\n'
@@ -1011,7 +1011,7 @@ class Resource(object):
                 if val is None:
                     raise RestException('Parameter "%s" is required.' % name)
         else:
-            if isinstance(required, six.string_types):
+            if isinstance(required, str):
                 required = (required,)
 
             for param in required:
@@ -1082,7 +1082,7 @@ class Resource(object):
 
         if 'sort' in params:
             sort = [(params['sort'].strip(), sortdir)]
-        elif isinstance(defaultSortField, six.string_types):
+        elif isinstance(defaultSortField, str):
             sort = [(defaultSortField, sortdir)]
         else:
             sort = None

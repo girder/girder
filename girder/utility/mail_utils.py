@@ -88,9 +88,9 @@ def _createMessage(subject, text, to, bcc):
     from girder.models.setting import Setting
 
     # Coerce and validate arguments
-    if isinstance(to, six.string_types):
+    if isinstance(to, str):
         to = [to]
-    if isinstance(bcc, six.string_types):
+    if isinstance(bcc, str):
         bcc = [bcc]
     elif bcc is None:
         bcc = []

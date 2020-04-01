@@ -74,7 +74,7 @@ class validator(object):  # noqa: class name
     """
 
     def __init__(self, key, replace=False):
-        if isinstance(key, six.string_types):
+        if isinstance(key, str):
             key = {key}
         self.keys = key
         self.replace = replace
@@ -95,7 +95,7 @@ class default(object):  # noqa: class name
     """
 
     def __init__(self, key):
-        if isinstance(key, six.string_types):
+        if isinstance(key, str):
             key = {key}
         self.keys = key
 

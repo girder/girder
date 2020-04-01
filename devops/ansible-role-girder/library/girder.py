@@ -825,7 +825,7 @@ def unjsonify(a):
     limit, or until at some other run-time limit.
     """
     # if string, try to loads() it
-    if isinstance(a, six.string_types):
+    if isinstance(a, str):
         try:
             a = json.loads(a)
             # pass-through to below
