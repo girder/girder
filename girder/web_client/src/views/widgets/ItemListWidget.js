@@ -45,8 +45,12 @@ var ItemListWidget = View.extend({
             _.has(settings, 'viewLinks') ? settings.viewLinks : true);
         this._showSizes = (
             _.has(settings, 'showSizes') ? settings.showSizes : true);
+        this._highlightItem = (
+            _.has(settings, 'highlightItem') ? settings.highlightItem : false);
+
         this.accessLevel = settings.accessLevel;
         this.public = settings.public;
+        this._selectedItem = settings.selectedItem;
 
         new LoadingAnimation({
             el: this.$el,
@@ -70,6 +74,10 @@ var ItemListWidget = View.extend({
 
     render: function () {
         this.checked = [];
+        if (this._selectedItem && this._highlightItem) {
+            this.scrollPositionObserver();
+        }
+
         this.$el.html(ItemListTemplate({
             items: this.collection.toArray(),
             isParentPublic: this.public,
@@ -78,9 +86,12 @@ var ItemListWidget = View.extend({
             checkboxes: this._checkboxes,
             downloadLinks: this._downloadLinks,
             viewLinks: this._viewLinks,
-            showSizes: this._showSizes
+            showSizes: this._showSizes,
+            highlightItem: this._highlightItem,
+            selectedItemId: (this._selectedItem || {}).id
         }));
 
+        // If we set a selected item in the beginning we will center the selection while loading
         return this;
     },
 
@@ -140,6 +151,108 @@ var ItemListWidget = View.extend({
         this.checked = _.map(this.$('.g-list-checkbox:checked'), function (checkbox) {
             return $(checkbox).attr('g-item-cid');
         }, this);
+    },
+
+    centerSelected: function () {
+        const widgetcontainer = this.$el.parents('.g-hierarchy-widget-container');
+        const selected = this.$('li.g-item-list-entry.g-selected');
+
+        if (widgetcontainer.length > 0 && selected.length > 0) {
+            const centerPos = (widgetcontainer.height() / 2.0) + (selected.outerHeight() / 2.0);
+            // Take the current scroll top position and add it to the position of the top of the selected item, then center it
+            const scrollPos = widgetcontainer[0].scrollTop + selected.position().top - centerPos;
+            if (this.tempScrollPos === undefined) {
+                this.tempScrollPos = scrollPos;
+            }
+            // Call a custom scroll event to prevent thinking the user initiated it
+            const e = new CustomEvent('scroll', { detail: 'selected_item_scroll' });
+            widgetcontainer[0].scrollTop = scrollPos;
+            widgetcontainer[0].dispatchEvent(e);
+        }
+    },
+    /**
+     * This will look at the position of the selected item and update it as images load and
+     * the DOM reflows
+     */
+    scrollPositionObserver: function () {
+        // Set the default selected height for the selected item
+        const target = this.$('.g-item-list');
+        if (window.MutationObserver && target.length > 0) {
+            // Default items to monitor for the scroll position
+            const widgetcontainer = this.$el.parents('.g-hierarchy-widget-container');
+            // If the observer already exists disconnect it so it can be recreated
+            if (this.observer && this.observer.disconnect) {
+                this.observer.disconnect();
+            }
+
+            // Event handler for loading images declared once
+            const onLoadImage = (event) => {
+                if (this.observer) {
+                    this.centerSelected();
+                }
+            };
+
+            this.observer = new MutationObserver((mutations) => {
+                // for every mutation
+                _.each(mutations, (mutation) => {
+                    // If no nodes are added we can return
+                    if (!mutation.addedNodes) {
+                        return;
+                    }
+
+                    // for every added node
+                    _.each(mutation.addedNodes, (node) => {
+                        if (node.className && node.className.indexOf('g-item-list') !== -1) {
+                            // We want to do a onetime scroll to position if the screen is idle
+                            if (window.requestIdleCallback) {
+                                // Processing time is 2 seconds, but should finish much faster
+                                requestIdleCallback(() => {
+                                    this.centerSelected();
+                                }, { timeout: 2000 });
+                            } else {
+                                this.centerSelected();
+                            }
+                        }
+
+                        // For any images added we wait until loaded and rescroll to the selected
+                        if (_.isFunction(node.getElementsByTagName)) {
+                            this.$('img', node).on('load', onLoadImage);
+                        }
+                    });
+                });
+            });
+
+            // bind mutation observer to a specific element (probably a div somewhere)
+            this.observer.observe(target.parent()[0], { childList: true, subtree: true });
+
+            // Remove event listeners and disconnect observer
+            const unbindDisconnect = () => {
+                if (this.observer) {
+                    widgetcontainer.unbind('scroll.observerscroll');
+                    widgetcontainer.unbind('wheel.observerscroll');
+                    widgetcontainer.unbind('click.observerscroll');
+                    this.observer.disconnect();
+                    this.observer = null;
+                    this.tempScrollPos = undefined;
+                    // Prevents scrolling once clicking has more
+                    this._highlightItem = false;
+                }
+            };
+
+            // Add in scroll event to monitor the scrollPos to prevent uncessary updates and also kill observer when user scrolls
+            widgetcontainer.bind('scroll.observerscroll', (evt) => {
+                if (this.tempScrollPos !== undefined && this.tempScrollPos !== widgetcontainer[0].scrollTop) {
+                    this.tempScrollPos = widgetcontainer[0].scrollTop;
+                    // If the event detail is not 'selected_item_scroll' the scroll should be a user initiated scroll
+                    if (evt.detail !== 'selected_item_scroll') {
+                        unbindDisconnect();
+                    }
+                }
+            });
+            // Backup function to kill observer if user clicks an item, moves scrollwheel, or touchpad equivalent
+            widgetcontainer.bind('wheel.selectionobserver', unbindDisconnect);
+            widgetcontainer.bind('click.selectionobserver', unbindDisconnect);
+        }
     }
 });
 

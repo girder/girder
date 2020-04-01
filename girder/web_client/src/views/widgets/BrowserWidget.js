@@ -4,6 +4,9 @@ import _ from 'underscore';
 import HierarchyWidget from '@girder/core/views/widgets/HierarchyWidget';
 import RootSelectorWidget from '@girder/core/views/widgets/RootSelectorWidget';
 import View from '@girder/core/views/View';
+import CollectionModel from '@girder/core/models/CollectionModel';
+import FolderModel from '@girder/core/models/FolderModel';
+import UserModel from '@girder/core/models/UserModel';
 
 import BrowserWidgetTemplate from '@girder/core/templates/widgets/browserWidget.pug';
 
@@ -37,6 +40,9 @@ var BrowserWidget = View.extend({
      * @param {object} [rootSelectorSettings] Settings passed to the root selector widget
      * @param {boolean} [showMetadata=false] Show the metadata editor inside the hierarchy widget
      * @param {Model} [root] The default root model to pass to the hierarchy widget
+     * @param {Model} [defaultSelectedResource] default resource item to be selected.  It will start
+     *  the browser with this item selected.  Will override the root to the parent of
+     *  the defaultSelectedResource
      * @param {boolean} [selectItem=false] Adjust behavior to enable selecting items rather
      *   than folders. This will add a handler to the hierarchy widget responding to
      *   clicks on items to select a target rather than inferring it from the browsed
@@ -51,6 +57,7 @@ var BrowserWidget = View.extend({
         promise should resolve if the selection is acceptable and reject with a string value (as an
         error message) if the selection is unacceptable.
      * @param {string} [input.placeholder] A placeholder string for the input element.
+     * @param {boolean} [highlightItem=false] highlights the selected item in the hierarchy and scrolls to it.
      */
     initialize: function (settings) {
         // store options
@@ -62,11 +69,22 @@ var BrowserWidget = View.extend({
         this.showPreview = _.isUndefined(settings.showPreview) ? true : !!settings.showPreview;
         this.submitText = settings.submitText || 'Save';
         this.root = settings.root;
+        this.defaultSelectedResource = settings.defaultSelectedResource;
         this.input = settings.input;
         this.selectItem = !!settings.selectItem;
         this.showMetadata = !!settings.showMetadata;
+        this.highlightItem = !!settings.highlightItem;
         this._selected = null;
 
+        // Sets RootSelectorWidget to open properly to the root if not already set in the settings
+        if (this.defaultSelectedResource) {
+            if (!settings.rootSelectorSettings) {
+                settings.rootSelectorSettings = {};
+            }
+            if (!settings.rootSelectorSettings.selectByResource) {
+                settings.rootSelectorSettings.selectByResource = this.defaultSelectedResource;
+            }
+        }
         // generate the root selection view and listen to it's events
         this._rootSelectionView = new RootSelectorWidget(_.extend({
             parentView: this
@@ -75,9 +93,13 @@ var BrowserWidget = View.extend({
             this.root = evt.root;
             this._renderHierarchyView();
         });
+        if (this.defaultSelectedResource && !this.root) {
+            this._calculateDefaultSelectedRoot();
+        }
     },
 
     render: function () {
+        const defaultResourcename = (this.defaultSelectedResource && this.defaultSelectedResource.get('name'));
         this.$el.html(
             BrowserWidgetTemplate({
                 title: this.titleText,
@@ -85,7 +107,8 @@ var BrowserWidget = View.extend({
                 preview: this.showPreview,
                 submit: this.submitText,
                 input: this.input,
-                selectItem: this.selectItem
+                selectItem: this.selectItem,
+                defaultSelectedResource: defaultResourcename
             })
         ).girderModal(this);
         this._renderRootSelection();
@@ -123,6 +146,8 @@ var BrowserWidget = View.extend({
             showActions: false,
             showItems: this.showItems,
             onItemClick: _.bind(this._selectItem, this),
+            defaultSelectedResource: this.defaultSelectedResource,
+            highlightItem: this.highlightItem,
             showMetadata: this.showMetadata
         });
         this.listenTo(this._hierarchyView, 'g:setCurrentModel', this._selectModel);
@@ -137,6 +162,11 @@ var BrowserWidget = View.extend({
         this.$('#g-selected-model').val('');
         if (this._selected) {
             this.$('#g-selected-model').val(this._selected.get('name'));
+            if (this.highlightItem && this.selectItem) {
+                this._hierarchyView.selectItem(this._selected);
+            } else {
+                this._hierarchyView.selectFolder(this._selected);
+            }
         }
     },
 
@@ -238,6 +268,46 @@ var BrowserWidget = View.extend({
                         _.escape(invalidInputElement) + '<br>' + _.escape(invalidSelectedModel));
                 }
             });
+    },
+
+    /**
+     * If we have a defaultSelectedResource we need the root item for the hiearachyWidget
+     * This will calculate what the root item should be if one hasn't been supplied
+     */
+    _calculateDefaultSelectedRoot: function () {
+        // If we are are only using folders, the root is the defaultselectedResource then
+        if (!this.selectItem) {
+            this.root = this.defaultSelectedResource;
+            return;
+        }
+        // We need to calculate the parent model of the default.selectedResoure when selectItem is true
+        const modelTypes = {
+            folder: FolderModel,
+            collection: CollectionModel,
+            user: UserModel
+        };
+        let modelType = 'folder'; // folder type by default, other types if necessary
+        let modelId = null;
+        // If it is an item it will have a folderId associated with it as a parent item
+        if (this.defaultSelectedResource.get('folderId')) {
+            modelId = this.defaultSelectedResource.get('folderId');
+        } else if (this.defaultSelectedResource.get('parentCollection')) {
+            // Case for providing a folder as the defaultSelectedResource but want the user to select an item
+            // folder parent is either 'user' | 'folder' | 'collection', most likely folder though
+            modelType = this.defaultSelectedResource.get('parentCollection');
+            modelId = this.defaultSelectedResource.get('parentId');
+        }
+        if (modelTypes[modelType] && modelId) {
+            const parentModel = new modelTypes[modelType]();
+            parentModel.set({
+                _id: modelId
+            }).on('g:fetched', function () {
+                this.root = parentModel;
+                this.render();
+            }, this).on('g:error', function () {
+                this.render();
+            }, this).fetch();
+        }
     }
 });
 

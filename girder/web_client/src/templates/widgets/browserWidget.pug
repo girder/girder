@@ -21,7 +21,7 @@
       if preview
         .g-selected-model.g-wait-for-root.form-group.hidden
           label.control-label(for='g-selected-model') Selected #{selectItem ? 'item' : 'folder'}
-          input#g-selected-model.form-control(type='text', readonly)
+          input#g-selected-model.form-control(type='text', readonly, value=defaultSelectedResource)
 
       .g-validation-failed-message.hidden
 
