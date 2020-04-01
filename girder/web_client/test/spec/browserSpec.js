@@ -839,7 +839,7 @@ describe('browser hierarchy selection', function () {
 
     it('test browserwidget defaultSelectedResource [file]', function () {
         runs(function () {
-            $('.g-hierarchy-widget').remove();
+            $('.g-hierarchy-widget-container').remove();
             testEl.remove();
             widget = new girder.views.widgets.BrowserWidget({
                 parentView: null,
@@ -863,7 +863,7 @@ describe('browser hierarchy selection', function () {
 
     it('test browserwidget defaultSelectedResource [file] - highlighted', function () {
         runs(function () {
-            $('.g-hierarchy-widget').remove();
+            $('.g-hierarchy-widget-container').remove();
             testEl.remove();
             widget = new girder.views.widgets.BrowserWidget({
                 parentView: null,
@@ -893,12 +893,19 @@ describe('browser hierarchy selection', function () {
             expect(link).toBe(item.get('_id'));
         }, 'Make sure proper item is selected');
 
+        waitsFor(function () {
+            // Double check to make sure the removal process happened correctly
+            if ($('.g-hierarchy-widget-container').length > 1) {
+                $('.g-hierarchy-widget-container').get(0).remove();
+            }
+            return $._data($('.g-hierarchy-widget-container')[0], 'events');          
+        }, 'waiting for the scroll events to be bound')
+
         runs(function () {
             var widgetcontainer = $('.g-hierarchy-widget-container');
             // force a centerSelected scroll event
-            widget._hierarchyView.itemListView.centerSelected();
             var scrollnamespace = null;
-            if (((($._data(widgetcontainer[0], 'events') || {}).scroll[0]) || {}).namespace) {
+            if ($._data(widgetcontainer[0], 'events').scroll[0].namespace) {
                 scrollnamespace = $._data(widgetcontainer[0], 'events').scroll[0].namespace;
                 expect(scrollnamespace).toBe('observerscroll');
             }

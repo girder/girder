@@ -243,7 +243,7 @@ var ItemListWidget = View.extend({
             widgetcontainer.bind('scroll.observerscroll', (evt) => {
                 if (this.tempScrollPos !== undefined && this.tempScrollPos !== widgetcontainer[0].scrollTop) {
                     this.tempScrollPos = widgetcontainer[0].scrollTop;
-                    // If the event detail is not 'selected_item_scroll' the scroll is should be a user initiated scroll
+                    // If the event detail is not 'selected_item_scroll' the scroll should be a user initiated scroll
                     if (evt.detail !== 'selected_item_scroll') {
                         unbindDisconnect();
                     }
