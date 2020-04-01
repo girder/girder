@@ -666,7 +666,7 @@ class PythonClientTestCase(base.TestCase):
 
         def _patchJson(url, request):
             body = request.body
-            if isinstance(body, six.binary_type):
+            if isinstance(body, bytes):
                 body = body.decode('utf8')
             patchRequest['valid'] = json.loads(body) == jsonBody
 
@@ -814,7 +814,7 @@ class PythonClientTestCase(base.TestCase):
 
     def testNonJsonResponse(self):
         resp = self.client.get('user', jsonResp=False)
-        self.assertIsInstance(resp.content, six.binary_type)
+        self.assertIsInstance(resp.content, bytes)
 
     def testCreateItemWithMeta(self):
         testMeta = {

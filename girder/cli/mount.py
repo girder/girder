@@ -151,7 +151,7 @@ class ServerFuse(fuse.Operations):
         :returns: the resource name as a text string.
         """
         name = path_util.getResourceName(model, doc)
-        if isinstance(name, six.binary_type):
+        if isinstance(name, bytes):
             name = name.decode('utf8')
         return name
 

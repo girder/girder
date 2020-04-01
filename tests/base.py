@@ -527,9 +527,9 @@ class TestCase(unittest.TestCase):
         data = '' if text else b''
 
         for chunk in response.body:
-            if text and isinstance(chunk, six.binary_type):
+            if text and isinstance(chunk, bytes):
                 chunk = chunk.decode('utf8')
-            elif not text and not isinstance(chunk, six.binary_type):
+            elif not text and not isinstance(chunk, bytes):
                 chunk = chunk.encode('utf8')
             data += chunk
 

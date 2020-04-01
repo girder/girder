@@ -104,7 +104,7 @@ class StreamToLogger(object):
                     and (callable(getattr(stream, key, None))
                          or isinstance(
                              getattr(stream, key, None),
-                             (six.binary_type, str, six.integer_types, bool)))):
+                             (bytes, str, six.integer_types, bool)))):
                 setattr(self, key, getattr(stream, key))
 
     def write(self, buf):

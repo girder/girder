@@ -79,7 +79,7 @@ class MockSmtpReceiver(object):
         msg = self.smtp.mailQueue.get(block=False)
 
         if parse:
-            if isinstance(msg, six.binary_type):
+            if isinstance(msg, bytes):
                 return email.message_from_bytes(msg)
             else:
                 return email.message_from_string(msg)
@@ -119,9 +119,9 @@ def getResponseBody(response, text=True):
     data = '' if text else b''
 
     for chunk in response.body:
-        if text and isinstance(chunk, six.binary_type):
+        if text and isinstance(chunk, bytes):
             chunk = chunk.decode('utf8')
-        elif not text and not isinstance(chunk, six.binary_type):
+        elif not text and not isinstance(chunk, bytes):
             chunk = chunk.encode('utf8')
         data += chunk
 

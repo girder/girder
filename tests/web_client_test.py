@@ -176,7 +176,7 @@ class WebClientTestCase(base.TestCase):
             )
             jasmineFinished = False
             for line in iter(task.stdout.readline, b''):
-                if isinstance(line, six.binary_type):
+                if isinstance(line, bytes):
                     line = line.decode('utf8')
                 if ('PHANTOM_TIMEOUT' in line or 'error loading source script' in line):
                     task.kill()

@@ -239,7 +239,7 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
             'Error: Content-Disposition (%r) is not a recognized value.' % disposition)
     if not filename:
         raise RestException('Error: Content-Disposition filename is empty.')
-    if not isinstance(disposition, six.binary_type):
+    if not isinstance(disposition, bytes):
         disposition = disposition.encode('iso8859-1', 'ignore')
     if not isinstance(filename, str):
         filename = filename.decode('utf8', 'ignore')
@@ -251,7 +251,7 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
         b'\\', b'\\\\').replace(b'"', b'\\"') + b'"'
     if safeFilename != utf8Filename:
         quotedFilename = six.moves.urllib.parse.quote(utf8Filename)
-        if not isinstance(quotedFilename, six.binary_type):
+        if not isinstance(quotedFilename, bytes):
             quotedFilename = quotedFilename.encode('iso8859-1', 'ignore')
         value += b"; filename*=UTF-8''" + quotedFilename
     value = value.decode('utf8')

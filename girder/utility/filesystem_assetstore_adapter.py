@@ -143,7 +143,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if isinstance(chunk, str):
             chunk = chunk.encode('utf8')
 
-        if isinstance(chunk, six.binary_type):
+        if isinstance(chunk, bytes):
             chunk = BytesIO(chunk)
 
         # Restore the internal state of the streaming SHA-512 checksum

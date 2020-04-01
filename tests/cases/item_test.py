@@ -140,7 +140,7 @@ class ItemTestCase(base.TestCase):
         self.assertHasKeys(zipFile.namelist(), expectedZip)
         for name in zipFile.namelist():
             expected = expectedZip[name]
-            if not isinstance(expected, six.binary_type):
+            if not isinstance(expected, bytes):
                 expected = expected.encode('utf8')
             self.assertEqual(expected, zipFile.read(name))
 
