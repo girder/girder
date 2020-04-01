@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import cherrypy
 import click
-import six
 
 from girder import _attachFileLogHandlers
 from girder.utility import server

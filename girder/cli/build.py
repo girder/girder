@@ -7,7 +7,6 @@ import shutil
 import sys
 
 import click
-import six
 
 import girder
 from girder.constants import STATIC_ROOT_DIR, ServerMode
