@@ -10,7 +10,7 @@ endif()
 include(CTest)
 include(CMakeParseArguments)
 
-set(PYTHON_VERSION "2.7" CACHE STRING "Python version used for testing")
+set(PYTHON_VERSION "3.6" CACHE STRING "Python version used for testing")
 
 find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
 

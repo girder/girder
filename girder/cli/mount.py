@@ -369,9 +369,6 @@ def unmountServer(path, lazy=False, quiet=False):
     # We only import these for the unmount command
     import shutil
     import subprocess
-    # patch shutil.which for python < 3
-    if not six.PY3:
-        import shutilwhich  # noqa
 
     if shutil.which('fusermount'):
         cmd = ['fusermount', '-u']

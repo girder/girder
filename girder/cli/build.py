@@ -14,9 +14,6 @@ from girder.constants import STATIC_ROOT_DIR, ServerMode
 from girder.plugin import allPlugins, getPlugin
 from girder.utility import server
 
-# monkey patch shutil for python < 3
-if not six.PY3:
-    import shutilwhich  # noqa
 
 _GIRDER_BUILD_ASSETS_PATH = os.path.realpath(resource_filename('girder', 'web_client'))
 
