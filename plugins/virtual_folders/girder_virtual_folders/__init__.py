@@ -1,9 +1,10 @@
+import cherrypy
 import json
 from bson import json_util
 from girder import events
 from girder.api import access, rest
 from girder.api.v1.folder import Folder as FolderResource
-from girder.constants import AccessType
+from girder.constants import AccessType, TokenScope
 from girder.exceptions import ValidationException
 from girder.models.folder import Folder
 from girder.models.item import Item
@@ -78,7 +79,7 @@ def _folderUpdate(self, event):
             event.preventDefault().addResponse(folder)
 
 
-@access.public
+@access.public(scope=TokenScope.DATA_READ)
 @rest.boundHandler
 def _virtualChildItems(self, event):
     params = event.info['params']
@@ -94,6 +95,12 @@ def _virtualChildItems(self, event):
 
     limit, offset, sort = self.getPagingParameters(params, defaultSortField='name')
     q = json_util.loads(folder['virtualItemsQuery'])
+    # Add other parameter options with $and to ensure they don't clobber the
+    # virtual items query.
+    if params.get('text'):
+        q = {'$and': [q, {'$text': {'$search': params['text']}}]}
+    if params.get('name'):
+        q = {'$and': [q, {'name': params['name']}]}
 
     if 'virtualItemsSort' in folder:
         sort = json.loads(folder['virtualItemsSort'])
@@ -103,9 +110,11 @@ def _virtualChildItems(self, event):
     # find with permissions
     items = item.findWithPermissions(
         q, sort=sort, user=user, level=AccessType.READ, limit=limit, offset=offset)
-    # We don't perform this filter on the standard item/find endpoint, so don't
-    # do it here.  Otherwise, we could return
-    # [item.filter(i, user) for i in items]
+    # We have to add this here, as we can't use filtermodel since we return the
+    # results in addResponse.
+    if callable(getattr(items, 'count', None)):
+        cherrypy.response.headers['Girder-Total-Count'] = items.count()
+    items = [item.filter(i, user) for i in items]
     event.preventDefault().addResponse(items)
 
 
