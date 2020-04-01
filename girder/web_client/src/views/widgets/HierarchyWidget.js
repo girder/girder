@@ -591,6 +591,7 @@ var HierarchyWidget = View.extend({
                     viewLinks: this._viewLinks,
                     itemFilter: this._itemFilter,
                     showSizes: this._showSizes,
+                    paginated: this._paginated,
                     public: this.parentModel.get('public'),
                     accessLevel: this.parentModel.getAccessLevel()
                 });
