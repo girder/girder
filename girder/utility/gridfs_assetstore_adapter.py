@@ -2,7 +2,6 @@
 import bson
 from hashlib import sha512
 import pymongo
-import six
 from six import BytesIO
 import time
 import uuid

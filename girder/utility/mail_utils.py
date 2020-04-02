@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import re
-import six
 import smtplib
 
 from email.mime.text import MIMEText

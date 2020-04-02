@@ -16,7 +16,6 @@ Example of creating and consuming a streaming zip:
 
 import binascii
 import os
-import six
 import struct
 import sys
 import time

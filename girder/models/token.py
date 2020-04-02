@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import datetime
-import six
 
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import AccessException

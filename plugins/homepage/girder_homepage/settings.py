@@ -1,5 +1,3 @@
-import six
-
 from girder.constants import AccessType
 from girder.exceptions import AccessException, ValidationException
 from girder.models.file import File

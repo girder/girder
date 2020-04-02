@@ -6,7 +6,6 @@ import email
 import errno
 import json
 import os
-import six
 import smtpd
 import socket
 import threading

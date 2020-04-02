@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import cherrypy
 import errno
-import six
 
 from ..describe import Description, autoDescribeRoute, describeRoute
 from ..rest import Resource, filtermodel

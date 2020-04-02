@@ -5,7 +5,6 @@ import cherrypy
 import json
 import re
 import requests
-import six
 import uuid
 from six.moves import urllib
 

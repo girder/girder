@@ -4,7 +4,6 @@ import datetime
 import errno
 import girder
 import json
-import six
 import os
 import logging
 

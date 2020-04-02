@@ -4,7 +4,6 @@ from hashlib import sha512
 import os
 import psutil
 import shutil
-import six
 from six import BytesIO
 import stat
 import tempfile

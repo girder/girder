@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import six
-
 _validators = {}
 _defaultFunctions = {}
 

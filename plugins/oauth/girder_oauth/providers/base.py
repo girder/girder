@@ -2,7 +2,6 @@
 import json
 import re
 import requests
-import six
 
 from girder.exceptions import RestException, ValidationException
 from girder.models.setting import Setting

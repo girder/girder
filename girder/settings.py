@@ -4,7 +4,6 @@ from collections import OrderedDict
 import cherrypy
 from bson import ObjectId
 import re
-import six
 
 from girder.constants import GIRDER_ROUTE_ID
 from girder.exceptions import ValidationException

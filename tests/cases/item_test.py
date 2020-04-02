@@ -3,7 +3,6 @@ import os
 import io
 import json
 import shutil
-import six
 from six.moves import zip_longest
 import zipfile
 

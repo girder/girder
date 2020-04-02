@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import six
-
 from girder import events
 from girder.constants import AccessType
 from girder.exceptions import ValidationException

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import collections
 import functools
-import six
 from girder import logprint
 
 models = collections.defaultdict(dict)

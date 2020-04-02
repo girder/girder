@@ -4,7 +4,6 @@ import click
 import errno
 import fuse
 import os
-import six
 import stat
 import sys
 import threading

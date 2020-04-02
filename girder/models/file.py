@@ -2,7 +2,6 @@
 import cherrypy
 import datetime
 import os
-import six
 
 from .model_base import Model, AccessControlledModel
 import girder

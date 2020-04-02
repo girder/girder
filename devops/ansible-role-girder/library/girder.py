@@ -4,7 +4,6 @@ import os
 from ansible.module_utils.basic import AnsibleModule
 from inspect import getmembers, ismethod, isfunction, getargspec
 import requests
-import six
 
 try:
     from girder_client import GirderClient, AuthenticationError

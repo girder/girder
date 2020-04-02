@@ -4,7 +4,6 @@ import os
 import re
 from passlib.context import CryptContext
 from passlib.totp import TOTP, TokenError
-import six
 
 from .model_base import AccessControlledModel
 from .setting import Setting

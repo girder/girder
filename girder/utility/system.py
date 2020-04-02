@@ -2,7 +2,6 @@
 import cherrypy
 import os
 import psutil
-import six
 import socket
 import threading
 import time
