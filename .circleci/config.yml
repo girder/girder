@@ -19,10 +19,8 @@ executors:
       image: ubuntu-1604:201903-01
     working_directory: /home/circleci/project
 
-
-
 jobs:
-  py3_serverInstall:
+  server-install:
     executor: py3
     steps:
       - checkout:
@@ -43,7 +41,13 @@ jobs:
           command: pip install --upgrade pip setuptools
       - run:
           name: Install Girder
-          command: pip install --upgrade --upgrade-strategy eager --editable .[sftp,mount] --editable clients/python --requirement requirements-dev.txt
+          command: >-
+            pip install
+            --upgrade
+            --upgrade-strategy eager
+            --editable .[sftp,mount]
+            --editable clients/python
+            --requirement requirements-dev.txt
           working_directory: girder
       - run:
           name: Reduce workspace size
@@ -59,7 +63,7 @@ jobs:
             - girder
             - girder_env
 
-  py3_serverTest:
+  server-test:
     executor: py3-mongo
     steps:
       - attach_workspace:
@@ -72,7 +76,11 @@ jobs:
           command: mkdir girder_build
       - run:
           name: Run CTest
-          command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake" --exclude-regex '^server_pytest_core$'
+          command: >-
+            ctest
+            --extra-verbose
+            --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
+            --exclude-regex '^server_pytest_core$'
           environment:
             TEST_GROUP: python
             PYTHON_VERSION: 3.6
@@ -83,8 +91,11 @@ jobs:
           command: tox -e lint,circleci-py36,docs
           working_directory: girder
       - run:
-          name: make coverage file distinct
-          command: cp girder/build/test/coverage/python_temp/.coverage girder/build/test/coverage/python_temp/.coverage.py3Coverage
+          name: Make coverage file distinct
+          command: >-
+            cp
+            girder/build/test/coverage/python_temp/.coverage
+            girder/build/test/coverage/python_temp/.coverage.py3Coverage
       - store_test_results:
           path: girder/build/test/results
       - persist_to_workspace:
@@ -92,7 +103,7 @@ jobs:
           paths:
             - girder
 
-  py3_webBuild_webTest:
+  web-test:
     executor: py3-mongo
     steps:
       - attach_workspace:
@@ -125,7 +136,10 @@ jobs:
           command: mkdir girder_build
       - run:
           name: Run CTest
-          command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
+          command: >-
+            ctest
+            --extra-verbose
+            --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: browser
             PYTHON_VERSION: 3.6
@@ -154,7 +168,7 @@ jobs:
             - girder_build
             - girder_env
 
-  py3_integrationTests:
+  integration-test:
     executor: machine
     steps:
       - checkout:
@@ -177,7 +191,11 @@ jobs:
           command: sudo chmod a+r /etc/fuse.conf
       - run:
           name: Get rid of existing versions of MongoDB
-          command: sudo rm --force /etc/apt/sources.list.d/*mongo* && sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos || true
+          command: >-
+            sudo rm --force /etc/apt/sources.list.d/*mongo*
+            &&
+            sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos
+            || true
       - run:
           name: Install MongoDB
           command: |
@@ -228,7 +246,11 @@ jobs:
             girder build --dev | cat
       - run:
           name: CMake
-          command: cmake ../girder -DPYTHON_VERSION=3.6 -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python
+          command: >-
+            cmake
+            ../girder
+            -DPYTHON_VERSION=3.6
+            -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python
           working_directory: girder_build
       - run:
           name: make
@@ -236,7 +258,11 @@ jobs:
           working_directory: girder_build
       - run:
           name: CTest
-          command: ctest --parallel 3 --extra-verbose --label-regex girder_integration
+          command: >-
+            ctest
+            --parallel 3
+            --extra-verbose
+            --label-regex girder_integration
           working_directory: girder_build
           environment:
             JASMINE_TIMEOUT: 15000
@@ -248,7 +274,7 @@ jobs:
           paths:
             - girder/build/test/coverage
 
-  py3_coverage:
+  coverage:
     executor: py3
     steps:
       - attach_workspace:
@@ -258,7 +284,10 @@ jobs:
           command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
       - run:
           name: Run CTest
-          command: ctest --extra-verbose --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
+          command: >-
+            ctest
+            --extra-verbose
+            --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
           environment:
             TEST_GROUP: coverage
             PYTHON_VERSION: 3.6
@@ -271,7 +300,10 @@ jobs:
           # Ideally, this would be output natively to the correct location (outside of the
           # "artifacts" directory for human-readable files), but nyc does not yet support
           # per-reporter configuration of output paths.
-          command: mv girder/build/test/artifacts/web_coverage/cobertura-coverage.xml girder/build/test/coverage
+          command: >-
+            mv
+            girder/build/test/artifacts/web_coverage/cobertura-coverage.xml
+            girder/build/test/coverage
       - store_artifacts:
           # Human-readable coverage reports
           path: girder/build/test/artifacts
@@ -280,9 +312,13 @@ jobs:
           command: pip install codecov
       - run:
           name: Upload coverage
-          command: codecov --disable search pycov gcov --root girder --file girder/build/test/coverage/py_coverage.xml girder/build/test/coverage/cobertura-coverage.xml
+          command: >-
+            codecov
+            --disable search pycov gcov
+            --root girder
+            --file girder/build/test/coverage/py_coverage.xml girder/build/test/coverage/cobertura-coverage.xml
 
-  public_symbols:
+  public-symbol-test:
     executor: py3
     steps:
       - checkout:
@@ -292,7 +328,7 @@ jobs:
           command: tox -e public_names
           working_directory: girder
 
-  ansible:
+  ansible-test:
     executor: py3
     steps:
       - checkout:
@@ -318,7 +354,7 @@ jobs:
           command: tox -e release_ansible
           working_directory: girder
 
-  publish_release:
+  publish-release:
     executor: py3
     steps:
       - checkout:
@@ -332,55 +368,55 @@ workflows:
   version: 2
   test_all:
     jobs:
-      - py3_serverInstall:
+      - server-install:
           filters:
             tags:
               only: /^v[0-9]+.*/
-      - py3_serverTest:
+      - server-test:
           requires:
-            - py3_serverInstall
+            - server-install
           filters:
             tags:
               only: /^v[0-9]+.*/
-      - py3_webBuild_webTest:
+      - web-test:
           requires:
-            - py3_serverInstall
+            - server-install
           filters:
             tags:
               only: /^v[0-9]+.*/
-      - py3_integrationTests:
+      - integration-test:
           filters:
             tags:
               only: /^v[0-9]+.*/
-      - py3_coverage:
+      - coverage:
           requires:
-            - py3_serverTest
-            - py3_webBuild_webTest
-            - py3_integrationTests
+            - server-test
+            - web-test
+            - integration-test
           filters:
             tags:
               only: /^v[0-9]+.*/
-      - public_symbols:
+      - public-symbol-test:
           filters:
             tags:
               only: /^v[0-9]+.*/
-      - ansible:
+      - ansible-test:
           filters:
             tags:
               only: /^v[0-9]+.*/
       - publish:
           requires:
-            - public_symbols
-            - py3_coverage
+            - public-symbol-test
+            - coverage
           filters:
             tags:
               only: /^v[0-9]+.*/
             branches:
               only: master
-      - publish_release:
+      - publish-release:
           requires:
-            - public_symbols
-            - py3_coverage
+            - public-symbol-test
+            - coverage
           filters:
             tags:
               only: /^v[0-9]+.*/
