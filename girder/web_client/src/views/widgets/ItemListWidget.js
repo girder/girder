@@ -5,7 +5,7 @@ import ItemCollection from '@girder/core/collections/ItemCollection';
 import LoadingAnimation from '@girder/core/views/widgets/LoadingAnimation';
 import View from '@girder/core/views/View';
 import { formatSize } from '@girder/core/misc';
-import { restRequest } from '@girder/core/rest';
+import { restRequest, cancelRestRequests } from '@girder/core/rest';
 
 import ItemListTemplate from '@girder/core/templates/widgets/itemList.pug';
 
@@ -61,20 +61,21 @@ var ItemListWidget = View.extend({
         }).render();
 
         this.collection = new ItemCollection();
-        this.collection.append = true; // Append, don't replace pages
+        this.collection.append = true; // Append, don't replace pages by default
         this.collection.filterFunc = settings.itemFilter;
         this.currentPage = 1; // By default we want to be on the first page
 
         if (this._paginated) {
+            // Override the default to prevent appending new pages
             this.collection.append = false;
         }
 
         this.collection.fetch({ folderId: settings.folderId }).done(() => {
-            this.totalPages = Math.ceil(this.collection.getTotalCount() / this.collection.pageLimit);
+            this._totalPages = Math.ceil(this.collection.getTotalCount() / this.collection.pageLimit);
             if (this._paginated && this.collection.hasNextPage && this._selectedItem) {
                 // Tells the parent container that the item is paginated so it can render the page selector
                 this.trigger('g:paginated');
-                // We need to get the position in the list
+                // We need to get the position in the list for the selected item
                 restRequest({
                     url: `item/position/${this._selectedItem.get('_id')}`,
                     method: 'GET',
@@ -113,6 +114,7 @@ var ItemListWidget = View.extend({
 
     render: function () {
         this.checked = [];
+        // If we set a selected item in the beginning we will center the selection while loading
         if (this._selectedItem && this._highlightItem) {
             this.scrollPositionObserver();
         }
@@ -132,16 +134,28 @@ var ItemListWidget = View.extend({
 
         }));
 
-        // If we set a selected item in the beginning we will center the selection while loading
         return this;
     },
 
+    /**
+     * Returns the number of pages in the itemList for use in a paginated view
+     */
+    getNumPages() {
+        return this._totalPages || 1;
+    },
+    /**
+     * Returns the current page for paginated lists, defaults to 1 if none is provided
+     */
+    getCurrentPage(){
+        return this.currentPage || 1;
+    },
     /**
      * Externally facing function to allow hierarchyWidget and others to set the current page if the item is paginated
      * @param {Number} page - 1 index integer specifying the page to fetch
      */
     setPage(page) {
         if (this._paginated && this.collection && this.collection.fetchPage) {
+            cancelRestRequests('fetch'); // maintains repsonsiveness when loading long lists
             this.collection.fetchPage(page);
         }
     },

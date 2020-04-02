@@ -79,8 +79,8 @@ var HierarchyPaginatedView = View.extend({
     },
     render: function () {
         this.$el.html(HierarchyPaginatedTemplate({
-            totalPages: this.itemListWidget && this.itemListWidget.totalPages,
-            currentPage: this.itemListWidget && this.itemListWidget.currentPage
+            totalPages: this.itemListWidget && this.itemListWidget.getNumPages(),
+            currentPage: this.itemListWidget && this.itemListWidget.getCurrentPage()
         }));
 
         return this;
@@ -134,7 +134,7 @@ var HierarchyWidget = View.extend({
      *                  event as its second.
      *   [defaultSelectedResource] : default selected Resource item , will open up to this resource
      *   [highlightItem=false] : sets the item to be styled as selected and will scroll to it in the list
-     *   [paginated=false] : sets the itemlist view to be paginated, will nset appendPages to false
+     *   [paginated=false] : sets the itemlist view to be paginated, will set appendPages to false
      */
     initialize: function (settings) {
         this.parentModel = settings.parentModel;
@@ -254,14 +254,14 @@ var HierarchyWidget = View.extend({
             this.listenTo(this.itemListView, 'g:changed', () => {
                 this.itemCount = this.itemListView.collection.length;
                 this._childCountCheck();
-                if (this._paginated && this.hierarchyPaginated && this.itemListView.totalPages > 1) {
+                if (this._paginated && this.hierarchyPaginated && this.itemListView.getNumPages() > 1) {
                     this.render();
-                    $('.g-hierarchy-breadcrumb-bar').addClass('g-hierarchy-sticky');
-                    $('.g-hierarachy-paginated-bar').addClass('g-hierarchy-sticky');
-                    $('.g-hierarchy-breadcrumb-bar').css({ top: 0 });
-                    $('.g-hierarachy-paginated-bar').css({ bottom: 0 });
+                    this.$('.g-hierarchy-breadcrumb-bar').addClass('g-hierarchy-sticky');
+                    this.$('.g-hierarachy-paginated-bar').addClass('g-hierarchy-sticky');
+                    this.$('.g-hierarchy-breadcrumb-bar').css({ top: 0 });
+                    this.$('.g-hierarachy-paginated-bar').css({ bottom: 0 });
                 } else {
-                    $('.g-hierarachy-paginated-bar').remove();
+                    this.$('.g-hierarachy-paginated-bar').remove();
                 }
             });
             // Only emitted when there is more than one page of data
