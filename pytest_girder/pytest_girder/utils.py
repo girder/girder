@@ -22,16 +22,6 @@ _maxTries = 100
 class MockSmtpServer(smtpd.SMTPServer):
     mailQueue = queue.Queue()
 
-    def __init__(self, localaddr, remoteaddr, decode_data=False):
-        kwargs = {}
-        if six.PY3:
-            # Python 3.5+ prints a warning if 'decode_data' isn't explicitly
-            # specified, but earlier versions don't accept the argument at all
-            kwargs['decode_data'] = decode_data
-        # smtpd.SMTPServer is an old-style class in Python2,
-        # so super() can't be used
-        smtpd.SMTPServer.__init__(self, localaddr, remoteaddr, **kwargs)
-
     def process_message(self, peer, mailfrom, rcpttos, data, **kwargs):
         self.mailQueue.put(data)
 
@@ -55,7 +45,7 @@ class MockSmtpReceiver(object):
                 self.address = ('localhost', port)
                 self.smtp = MockSmtpServer(self.address, None)
                 break
-            except (OSError if six.PY3 else socket.error) as e:
+            except OSError as e:
                 if e.errno != errno.EADDRINUSE:
                     raise
         else:
@@ -89,7 +79,7 @@ class MockSmtpReceiver(object):
         msg = self.smtp.mailQueue.get(block=False)
 
         if parse:
-            if six.PY3 and isinstance(msg, six.binary_type):
+            if isinstance(msg, six.binary_type):
                 return email.message_from_bytes(msg)
             else:
                 return email.message_from_string(msg)
