@@ -1181,13 +1181,12 @@ describe('browser hierarchy paginated selection', function () {
         }, 'Returning to the folder should bring us to the first page');
 
         runs(function () {
-            $('#g-page-selection-input').val(2); 
+            $('#g-page-selection-input').val(2);
             $('#g-page-selection-input').trigger('change');
         }, 'Change the page by using the input field');
 
-        waitsFor(function(){
+        waitsFor(function () {
             return $('#g-page-selection-input').val() === '2';
-
         });
 
         runs(function () {
@@ -1195,6 +1194,5 @@ describe('browser hierarchy paginated selection', function () {
             expect($('#g-page-selection-input').val()).toBe('2');
             expect($('.g-hierarchy-breadcrumb-bar').hasClass('g-hierarchy-sticky')).toBe(true);
         }, 'Should be on a second page now');
-
     });
 });

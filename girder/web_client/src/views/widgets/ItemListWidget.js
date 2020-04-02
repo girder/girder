@@ -146,7 +146,7 @@ var ItemListWidget = View.extend({
     /**
      * Returns the current page for paginated lists, defaults to 1 if none is provided
      */
-    getCurrentPage(){
+    getCurrentPage() {
         return this.currentPage || 1;
     },
     /**
