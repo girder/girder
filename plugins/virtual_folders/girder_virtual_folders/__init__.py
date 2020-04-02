@@ -118,6 +118,26 @@ def _virtualChildItems(self, event):
     event.preventDefault().addResponse(items)
 
 
+@access.public(scope=TokenScope.DATA_READ)
+@rest.boundHandler
+def _virtualFolderDetails(self, event):
+    folderId = event.info['id']
+    user = self.getCurrentUser()
+    folder = Folder().load(folderId, user=user, level=AccessType.READ)
+
+    if not folder or not folder.get('isVirtual') or 'virtualItemsQuery' not in folder:
+        return  # Parent is not a virtual folder, proceed as normal
+
+    q = json_util.loads(folder['virtualItemsQuery'])
+    item = Item()
+    # Virtual folders can't contain subfolders
+    result = {
+        'nFolders': 0,
+        'nItems': item.findWithPermissions(q, user=user, level=AccessType.READ).count()
+    }
+    event.preventDefault().addResponse(result)
+
+
 class VirtualFoldersPlugin(GirderPlugin):
     DISPLAY_NAME = 'Virtual Folders'
 
@@ -128,6 +148,7 @@ class VirtualFoldersPlugin(GirderPlugin):
         events.bind('rest.get.item.before', name, _virtualChildItems)
         events.bind('rest.post.folder.after', name, _folderUpdate)
         events.bind('rest.put.folder/:id.after', name, _folderUpdate)
+        events.bind('rest.get.folder/:id/details.before', name, _virtualFolderDetails)
 
         Folder().exposeFields(level=AccessType.READ, fields={'isVirtual'})
         Folder().exposeFields(level=AccessType.SITE_ADMIN, fields={
