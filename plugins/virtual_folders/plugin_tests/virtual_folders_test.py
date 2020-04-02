@@ -54,15 +54,24 @@ class VirtualFoldersTestCase(base.TestCase):
             self.assertStatusOk(resp)
             return resp.json
 
+        def getDetails():
+            resp = self.request('/folder/%s/details' % self.virtual['_id'], user=self.user)
+            self.assertStatusOk(resp)
+            details = resp.json
+            self.assertEqual(details['nFolders'], 0)
+            return details['nItems']
+
         self.assertEqual(listItems(), [])
 
         # Grant permission on the first folder
         Folder().setUserAccess(self.f1, self.user, AccessType.READ, save=True)
         self.assertEqual([i['name'] for i in listItems()], ['6', '8'])
+        self.assertEqual(getDetails(), 2)
 
         # Grant permission on the second folder
         Folder().setUserAccess(self.f2, self.user, AccessType.READ, save=True)
         self.assertEqual([i['name'] for i in listItems()], ['6', '7', '8', '9'])
+        self.assertEqual(getDetails(), 4)
 
         # Add a custom sort
         self.virtual['virtualItemsSort'] = json.dumps([('meta.someVal', SortDir.DESCENDING)])
