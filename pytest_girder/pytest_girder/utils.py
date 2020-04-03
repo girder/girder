@@ -6,7 +6,6 @@ import email
 import errno
 import json
 import os
-import six
 import smtpd
 import socket
 import threading
@@ -79,7 +78,7 @@ class MockSmtpReceiver(object):
         msg = self.smtp.mailQueue.get(block=False)
 
         if parse:
-            if isinstance(msg, six.binary_type):
+            if isinstance(msg, bytes):
                 return email.message_from_bytes(msg)
             else:
                 return email.message_from_string(msg)
@@ -119,9 +118,9 @@ def getResponseBody(response, text=True):
     data = '' if text else b''
 
     for chunk in response.body:
-        if text and isinstance(chunk, six.binary_type):
+        if text and isinstance(chunk, bytes):
             chunk = chunk.decode('utf8')
-        elif not text and not isinstance(chunk, six.binary_type):
+        elif not text and not isinstance(chunk, bytes):
             chunk = chunk.encode('utf8')
         data += chunk
 
@@ -169,13 +168,13 @@ def request(path='/', method='GET', params=None, user=None,
     if additionalHeaders:
         headers.extend(additionalHeaders)
 
-    if isinstance(body, six.text_type):
+    if isinstance(body, str):
         body = body.encode('utf8')
 
     if params:
         # Python2 can't urlencode unicode and this does no harm in Python3
         qs = urllib.parse.urlencode({
-            k: v.encode('utf8') if isinstance(v, six.text_type) else v
+            k: v.encode('utf8') if isinstance(v, str) else v
             for k, v in params.items()})
 
     if params and body:

@@ -46,7 +46,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         """
         if value is None:
             value = ''
-        if not isinstance(value, six.string_types):
+        if not isinstance(value, str):
             value = str(value)
         return value.strip()
 

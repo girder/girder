@@ -53,7 +53,7 @@ class AccessControlMixin(object):
             else:
                 loadType = doc.get('attachedToType')
                 loadId = doc.get('attachedToId')
-            if isinstance(loadType, six.string_types):
+            if isinstance(loadType, str):
                 ModelImporter.model(loadType).load(loadId, level=level, user=user, exc=exc)
             elif isinstance(loadType, list) and len(loadType) == 2:
                 ModelImporter.model(*loadType).load(loadId, level=level, user=user, exc=exc)

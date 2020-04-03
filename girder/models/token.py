@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import datetime
-import six
 
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import AccessException
@@ -49,7 +48,7 @@ class Token(AccessControlledModel):
 
         if scope is None:
             scope = (TokenScope.USER_AUTH,)
-        elif isinstance(scope, six.string_types):
+        elif isinstance(scope, str):
             scope = (scope,)
 
         token = {
@@ -114,7 +113,7 @@ class Token(AccessControlledModel):
         if scope is None:
             return True
 
-        if isinstance(scope, six.string_types):
+        if isinstance(scope, str):
             scope = (scope,)
         return set(scope).issubset(set(self.getAllowedScopes(token)))
 

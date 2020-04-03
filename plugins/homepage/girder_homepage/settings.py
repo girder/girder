@@ -1,5 +1,3 @@
-import six
-
 from girder.constants import AccessType
 from girder.exceptions import AccessException, ValidationException
 from girder.models.file import File
@@ -49,7 +47,7 @@ def _defaultLogo():
     PluginSettings.WELCOME_TEXT
 })
 def _validateStrings(doc):
-    if not isinstance(doc['value'], six.string_types):
+    if not isinstance(doc['value'], str):
         raise ValidationException('The setting is not a string', 'value')
 
 
