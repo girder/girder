@@ -5,7 +5,7 @@ import ItemCollection from '@girder/core/collections/ItemCollection';
 import LoadingAnimation from '@girder/core/views/widgets/LoadingAnimation';
 import View from '@girder/core/views/View';
 import { formatSize } from '@girder/core/misc';
-import { restRequest, cancelRestRequests } from '@girder/core/rest';
+import { restRequest } from '@girder/core/rest';
 
 import ItemListTemplate from '@girder/core/templates/widgets/itemList.pug';
 
