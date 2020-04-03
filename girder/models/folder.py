@@ -765,7 +765,7 @@ class Folder(AccessControlledModel):
             name = srcFolder['name']
         if description is None:
             description = srcFolder['description']
-        if public is not None and isinstance(public, six.string_types):
+        if public is not None and isinstance(public, str):
             if public == 'original':
                 public = srcFolder.get('public', None)
             else:

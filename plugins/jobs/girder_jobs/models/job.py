@@ -294,9 +294,9 @@ class Job(AccessControlledModel):
         kwargs['fields'] = self._computeFields(kwargs)
         job = super(Job, self).load(*args, **kwargs)
 
-        if job and isinstance(job.get('kwargs'), six.string_types):
+        if job and isinstance(job.get('kwargs'), str):
             job['kwargs'] = json_util.loads(job['kwargs'])
-        if job and isinstance(job.get('log'), six.string_types):
+        if job and isinstance(job.get('log'), str):
             # Legacy support: log used to be just a string, but we want to
             # consistently return a list of strings now.
             job['log'] = [job['log']]
@@ -534,7 +534,7 @@ class Job(AccessControlledModel):
         """
         doc = super(Job, self).filter(doc, user, additionalKeys=additionalKeys)
 
-        if 'kwargs' in doc and isinstance(doc['kwargs'], six.string_types):
+        if 'kwargs' in doc and isinstance(doc['kwargs'], str):
             doc['kwargs'] = json_util.loads(doc['kwargs'])
 
         return doc

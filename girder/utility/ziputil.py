@@ -16,7 +16,6 @@ Example of creating and consuming a streaming zip:
 
 import binascii
 import os
-import six
 import struct
 import sys
 import time
@@ -56,7 +55,7 @@ class ZipInfo(object):
         # names are used as tricks by viruses in archives.
         if os.sep != '/' and os.sep in filename:
             filename = filename.replace(os.sep, '/')
-        if isinstance(filename, six.text_type):
+        if isinstance(filename, str):
             filename = filename.encode('utf8')
         # Escaping or locale conversion should go here
         nullByte = filename.find(b'\x00')
@@ -153,7 +152,7 @@ class ZipGenerator(object):
         for buf in generator():
             if not buf:
                 break
-            if isinstance(buf, six.text_type):
+            if isinstance(buf, str):
                 buf = buf.encode('utf8')
             fileSize += len(buf)
             if self.useCRC:

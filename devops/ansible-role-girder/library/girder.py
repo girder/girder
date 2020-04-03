@@ -4,7 +4,6 @@ import os
 from ansible.module_utils.basic import AnsibleModule
 from inspect import getmembers, ismethod, isfunction, getargspec
 import requests
-import six
 
 try:
     from girder_client import GirderClient, AuthenticationError
@@ -825,7 +824,7 @@ def unjsonify(a):
     limit, or until at some other run-time limit.
     """
     # if string, try to loads() it
-    if isinstance(a, six.string_types):
+    if isinstance(a, str):
         try:
             a = json.loads(a)
             # pass-through to below

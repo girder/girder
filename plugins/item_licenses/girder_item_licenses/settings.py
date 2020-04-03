@@ -1,5 +1,3 @@
-import six
-
 from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 
@@ -112,7 +110,7 @@ def _validateLicenses(doc):
         raise ValidationException('Licenses setting must be a list.', 'value')
     for item in val:
         category = item.get('category', None)
-        if not category or not isinstance(category, six.string_types):
+        if not category or not isinstance(category, str):
             raise ValidationException(
                 'License category is required and must be a non-empty string.', 'category')
         licenses = item.get('licenses', None)
@@ -122,6 +120,6 @@ def _validateLicenses(doc):
             if not isinstance(license, dict):
                 raise ValidationException('License must be a dict.', 'license')
             name = license.get('name', None)
-            if not name or not isinstance(name, six.string_types):
+            if not name or not isinstance(name, str):
                 raise ValidationException(
                     'License name is required and must be a non-empty string.', 'name')

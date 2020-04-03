@@ -4,7 +4,6 @@ from collections import OrderedDict
 import cherrypy
 from bson import ObjectId
 import re
-import six
 
 from girder.constants import GIRDER_ROUTE_ID
 from girder.exceptions import ValidationException
@@ -186,7 +185,7 @@ class SettingValidator(object):
     @staticmethod
     @setting_utilities.validator(SettingKey.CORS_ALLOW_HEADERS)
     def _validateCorsAllowHeaders(doc):
-        if isinstance(doc['value'], six.string_types):
+        if isinstance(doc['value'], str):
             headers = doc['value'].replace(',', ' ').strip().split()
             # remove duplicates
             headers = list(OrderedDict.fromkeys(headers))
@@ -198,7 +197,7 @@ class SettingValidator(object):
     @staticmethod
     @setting_utilities.validator(SettingKey.CORS_ALLOW_METHODS)
     def _validateCorsAllowMethods(doc):
-        if isinstance(doc['value'], six.string_types):
+        if isinstance(doc['value'], str):
             methods = doc['value'].replace(',', ' ').strip().upper().split()
             # remove duplicates
             methods = list(OrderedDict.fromkeys(methods))
@@ -210,7 +209,7 @@ class SettingValidator(object):
     @staticmethod
     @setting_utilities.validator(SettingKey.CORS_ALLOW_ORIGIN)
     def _validateCorsAllowOrigin(doc):
-        if isinstance(doc['value'], six.string_types):
+        if isinstance(doc['value'], str):
             origins = doc['value'].replace(',', ' ').strip().split()
             origins = [origin.rstrip('/') for origin in origins]
             # remove duplicates
@@ -224,7 +223,7 @@ class SettingValidator(object):
     @staticmethod
     @setting_utilities.validator(SettingKey.CORS_EXPOSE_HEADERS)
     def _validateCorsExposeHeaders(doc):
-        if not isinstance(doc['value'], six.string_types):
+        if not isinstance(doc['value'], str):
             raise ValidationException('CORS exposed headers must be a string', 'value')
 
     @staticmethod
@@ -238,7 +237,7 @@ class SettingValidator(object):
     @staticmethod
     @setting_utilities.validator(SettingKey.EMAIL_HOST)
     def _validateEmailHost(doc):
-        if isinstance(doc['value'], six.string_types):
+        if isinstance(doc['value'], str):
             doc['value'] = doc['value'].strip()
             return
         raise ValidationException('Email host must be a string.', 'value')
@@ -322,7 +321,7 @@ class SettingValidator(object):
     @staticmethod
     @setting_utilities.validator(SettingKey.SMTP_PASSWORD)
     def _validateSmtpPassword(doc):
-        if not isinstance(doc['value'], six.string_types):
+        if not isinstance(doc['value'], str):
             raise ValidationException('SMTP password must be a string', 'value')
 
     @staticmethod
@@ -339,7 +338,7 @@ class SettingValidator(object):
     @staticmethod
     @setting_utilities.validator(SettingKey.SMTP_USERNAME)
     def _validateSmtpUsername(doc):
-        if not isinstance(doc['value'], six.string_types):
+        if not isinstance(doc['value'], str):
             raise ValidationException('SMTP username must be a string', 'value')
 
     @staticmethod

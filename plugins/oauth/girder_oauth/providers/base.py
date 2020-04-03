@@ -2,7 +2,6 @@
 import json
 import re
 import requests
-import six
 
 from girder.exceptions import RestException, ValidationException
 from girder.models.setting import Setting
@@ -104,7 +103,7 @@ class ProviderBase(object):
         resp = requests.request(**kwargs)
         content = resp.content
 
-        if isinstance(content, six.binary_type):
+        if isinstance(content, bytes):
             content = content.decode('utf8')
 
         try:

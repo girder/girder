@@ -400,7 +400,7 @@ class Description(object):
 
         # Combine list of reasons into a single string.
         # swagger-ui renders the description using Markdown.
-        if not isinstance(reason, six.string_types):
+        if not isinstance(reason, str):
             reason = '\n\n'.join(reason)
 
         if code in self._responses:

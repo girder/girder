@@ -3,7 +3,6 @@ import datetime
 import io
 import json
 import os
-import six
 from six.moves import range, urllib
 import zipfile
 
@@ -198,7 +197,7 @@ class ResourceTestCase(base.TestCase):
                 self.assertEqual(json.loads(zip.read(name).decode('utf8')),
                                  json.loads(json.dumps(expected, default=str)))
             else:
-                if not isinstance(expected, six.binary_type):
+                if not isinstance(expected, bytes):
                     expected = expected.encode('utf8')
                 self.assertEqual(expected, zip.read(name))
         # Download the same resources again, this time triggering the large zip
