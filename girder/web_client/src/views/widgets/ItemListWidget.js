@@ -155,7 +155,6 @@ var ItemListWidget = View.extend({
      */
     setPage(page) {
         if (this._paginated && this.collection && this.collection.fetchPage) {
-            cancelRestRequests(); // maintains repsonsiveness when loading long lists
             this.collection.fetchPage(page);
         }
     },
