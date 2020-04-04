@@ -1,4 +1,5 @@
 import datetime
+import io
 import pytest
 import six
 from click.testing import CliRunner
@@ -92,7 +93,7 @@ def testDownloadLogging(server, admin, fsAssetstore, freshLog):
         'name': 'Public'
     })[0]
     file = Upload().uploadFromFile(
-        six.BytesIO(b'hello'), size=5, name='test', parentType='folder', parent=folder,
+        io.BytesIO(b'hello'), size=5, name='test', parentType='folder', parent=folder,
         user=admin, assetstore=fsAssetstore)
 
     Record().collection.remove({})  # Clear existing records

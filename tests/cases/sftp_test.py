@@ -96,7 +96,7 @@ class SftpTestCase(base.TestCase):
         self.assertIsNotNone(privateFolder)
 
         Upload().uploadFromFile(
-            six.BytesIO(b'hello world'), size=11, name='test.txt', parentType='folder',
+            io.BytesIO(b'hello world'), size=11, name='test.txt', parentType='folder',
             parent=privateFolder, user=user)
 
         for coll in collections:

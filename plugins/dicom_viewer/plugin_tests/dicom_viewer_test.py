@@ -1,3 +1,4 @@
+import io
 import os
 import json
 import six
@@ -158,7 +159,7 @@ class DicomViewerTest(base.TestCase):
         nonDicomContent = b'hello world\n'
 
         ndcmFile = Upload().uploadFromFile(
-            obj=six.BytesIO(nonDicomContent),
+            obj=io.BytesIO(nonDicomContent),
             size=len(nonDicomContent),
             name='nonDicom.txt',
             parentType='item',

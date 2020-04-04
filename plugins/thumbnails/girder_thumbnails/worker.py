@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from bson.objectid import ObjectId
 import functools
+import io
 import six
 import sys
 import traceback
@@ -92,7 +93,7 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
 
     image.thumbnail((width, height), Image.ANTIALIAS)
 
-    out = six.BytesIO()
+    out = io.BytesIO()
     image.convert('RGB').save(out, 'JPEG', quality=85)
     size = out.tell()
     out.seek(0)
@@ -153,11 +154,11 @@ def _getImage(mimeType, extension, data):
     """
     if (extension and extension[-1] == 'dcm') or mimeType == 'application/dicom':
         # Open the dicom image
-        dicomData = pydicom.dcmread(six.BytesIO(data))
+        dicomData = pydicom.dcmread(io.BytesIO(data))
         return scaleDicomLevels(dicomData)
     else:
         # Open other types of images
-        return Image.open(six.BytesIO(data))
+        return Image.open(io.BytesIO(data))
 
 
 def scaleDicomLevels(dicomData):

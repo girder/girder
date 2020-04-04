@@ -921,7 +921,7 @@ class AssetstoreTestCase(base.TestCase):
 
         # Test files big enough to be multi-chunk
         chunkSize = Upload()._getChunkSize()
-        data = six.BytesIO(b' ' * chunkSize * 2)
+        data = io.BytesIO(b' ' * chunkSize * 2)
         uploadedFiles.append(Upload().uploadFromFile(
             data, chunkSize * 2, 'sample', parentType='folder',
             parent=folder, assetstore=fs_assetstore))
@@ -934,7 +934,7 @@ class AssetstoreTestCase(base.TestCase):
 
         # Test progress
         size = chunkSize * 2
-        data = six.BytesIO(b' ' * size)
+        data = io.BytesIO(b' ' * size)
         upload = Upload().uploadFromFile(
             data, size, 'progress', parentType='folder',
             parent=folder, assetstore=fs_assetstore)
