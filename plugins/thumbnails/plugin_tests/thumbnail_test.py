@@ -2,7 +2,6 @@
 import io
 import json
 import os
-import six
 import time
 
 from tests import base

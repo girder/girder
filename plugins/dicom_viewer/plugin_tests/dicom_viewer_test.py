@@ -1,7 +1,6 @@
 import io
 import os
 import json
-import six
 
 from girder.models.collection import Collection
 from girder.models.folder import Folder

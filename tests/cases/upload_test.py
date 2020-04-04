@@ -5,7 +5,6 @@ import json
 import os
 import re
 import requests
-import six
 import threading
 from six.moves import range
 

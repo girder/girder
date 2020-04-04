@@ -5,7 +5,6 @@ from pkg_resources import iter_entry_points
 from tempfile import gettempdir
 
 import mock
-import six
 
 
 class _MockDistribution(object):

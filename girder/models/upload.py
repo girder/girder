@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
 import io
-import six
 from bson.objectid import ObjectId
 
 from girder import events, logger

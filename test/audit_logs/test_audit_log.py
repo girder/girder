@@ -1,7 +1,6 @@
 import datetime
 import io
 import pytest
-import six
 from click.testing import CliRunner
 from girder import auditLogger
 from girder.models.file import File

@@ -2,7 +2,6 @@
 from bson.objectid import ObjectId
 import functools
 import io
-import six
 import sys
 import traceback
 import pydicom

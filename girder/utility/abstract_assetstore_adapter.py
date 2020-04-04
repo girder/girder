@@ -2,7 +2,6 @@ import io
 import itertools
 import os
 import re
-import six
 
 import cherrypy
 from cherrypy._cpreqbody import Part

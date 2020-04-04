@@ -13,6 +13,7 @@ import diskcache
 import errno
 import getpass
 import glob
+import io
 import json
 import logging
 import mimetypes
