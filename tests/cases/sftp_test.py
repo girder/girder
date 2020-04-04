@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import paramiko
+import io
 import six
 import socket
 import stat
@@ -11,11 +12,10 @@ from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.upload import Upload
 from girder.models.user import User
-from six.moves import StringIO
 
 server = None
 TEST_PORT = 10551
-TEST_KEY = paramiko.RSAKey.from_private_key(StringIO("""-----BEGIN RSA PRIVATE KEY-----
+TEST_KEY = paramiko.RSAKey.from_private_key(io.StringIO("""-----BEGIN RSA PRIVATE KEY-----
 MIIEpAIBAAKCAQEAwdH5tlaZu52adYvW57DcAFknzOKX8+/axDmQdTcg1HwEOnT2
 TMSFGciwUQMmya+0i23ZOUtZQutj8fb66szrBZ7qpIvSG6TRyxGuM6PkfAUcBCHO
 TGFzaJPnnvUXC8dlxoUIdBaUCmSblvj2q2CTNy53ybAmiiSpahjvBO16pvjbNn+i

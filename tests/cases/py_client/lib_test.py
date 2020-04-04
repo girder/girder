@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import girder
 import girder_client
+import io
 import json
 import mock
 import os
 import requests
 import shutil
 import six
-from six import StringIO
 import hashlib
 import httmock
 
@@ -491,7 +491,7 @@ class PythonClientTestCase(base.TestCase):
 
         contents = "you've changed!"
         size = len(contents)
-        stream = StringIO(contents)
+        stream = io.StringIO(contents)
         self.client.uploadFileContents(file['_id'], stream, size)
 
         file = File().load(file['_id'], force=True)

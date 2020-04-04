@@ -1,5 +1,6 @@
 import distutils
 from contextlib import contextmanager
+import io
 from pkg_resources import iter_entry_points
 from tempfile import gettempdir
 
@@ -23,7 +24,7 @@ class _MockDistribution(object):
         meta.version = version
         meta.description = description
         meta.url = url
-        pkgInfo = six.StringIO()
+        pkgInfo = io.StringIO()
         meta.write_pkg_file(pkgInfo)
         return pkgInfo.getvalue()
 
