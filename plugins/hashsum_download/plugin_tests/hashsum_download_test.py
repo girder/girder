@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import hashlib
+import io
 import six
 import time
 
@@ -59,7 +60,7 @@ class HashsumDownloadTest(base.TestCase):
         self.userData = u'\u266a Il dolce suono mi ' \
                         u'colp\u00ec di sua voce! \u266a'.encode('utf8')
         self.privateFile = Upload().uploadFromFile(
-            obj=six.BytesIO(self.userData),
+            obj=io.BytesIO(self.userData),
             size=len(self.userData),
             name='Il dolce suono - PRIVATE',
             parentType='folder',
@@ -68,7 +69,7 @@ class HashsumDownloadTest(base.TestCase):
             mimeType='audio/mp4'
         )
         self.publicFile = Upload().uploadFromFile(
-            obj=six.BytesIO(self.userData),
+            obj=io.BytesIO(self.userData),
             size=len(self.userData),
             name='Il dolce suono - PUBLIC',
             parentType='folder',
@@ -77,7 +78,7 @@ class HashsumDownloadTest(base.TestCase):
             mimeType='audio/flac'
         )
         self.duplicatePublicFile = Upload().uploadFromFile(
-            obj=six.BytesIO(self.userData),
+            obj=io.BytesIO(self.userData),
             size=len(self.userData),
             name='Il dolce suono - PUBLIC DUPLICATE',
             parentType='folder',
@@ -89,7 +90,7 @@ class HashsumDownloadTest(base.TestCase):
         self.privateOnlyData =\
             u'\u2641 \u2600 \u2601 \u2614 \u2665'.encode('utf8')
         self.privateOnlyFile = Upload().uploadFromFile(
-            obj=six.BytesIO(self.privateOnlyData),
+            obj=io.BytesIO(self.privateOnlyData),
             size=len(self.privateOnlyData),
             name='Powers combined',
             parentType='folder',
@@ -260,7 +261,7 @@ class HashsumDownloadTest(base.TestCase):
         Setting().set(hashsum_download.PluginSettings.AUTO_COMPUTE, True)
 
         file = Upload().uploadFromFile(
-            obj=six.BytesIO(self.userData), size=len(self.userData), name='Another file',
+            obj=io.BytesIO(self.userData), size=len(self.userData), name='Another file',
             parentType='folder', parent=self.privateFolder, user=self.user)
 
         start = time.time()

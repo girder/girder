@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import base64
 import cherrypy
+import io
 import json
 import logging
 import os
@@ -11,7 +12,6 @@ import sys
 import unittest
 import warnings
 
-from six import BytesIO
 from six.moves import urllib
 from girder.utility._cache import cache, requestCache
 from girder.utility.server import setup as setupServer
@@ -475,7 +475,7 @@ class TestCase(unittest.TestCase):
 
         if params and body:
             # In this case, we are forced to send params in query string
-            fd = BytesIO(body)
+            fd = io.BytesIO(body)
             headers.append(('Content-Type', type))
             headers.append(('Content-Length', '%d' % len(body)))
         elif method in ['POST', 'PUT', 'PATCH'] or body:
@@ -486,7 +486,7 @@ class TestCase(unittest.TestCase):
 
             headers.append(('Content-Type', type or 'application/x-www-form-urlencoded'))
             headers.append(('Content-Length', '%d' % len(qs or b'')))
-            fd = BytesIO(qs or b'')
+            fd = io.BytesIO(qs or b'')
             qs = None
 
         app = cherrypy.tree.apps[appPrefix]

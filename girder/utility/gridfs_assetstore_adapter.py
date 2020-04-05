@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import bson
 from hashlib import sha512
+import io
 import pymongo
-from six import BytesIO
 import time
 import uuid
 
@@ -132,7 +132,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             chunk = chunk.encode('utf8')
 
         if isinstance(chunk, bytes):
-            chunk = BytesIO(chunk)
+            chunk = io.BytesIO(chunk)
 
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = _hash_state.restoreHex(upload['sha512state'], 'sha512')

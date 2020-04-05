@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import filelock
 from hashlib import sha512
+import io
 import os
 import psutil
 import shutil
-from six import BytesIO
 import stat
 import tempfile
 
@@ -143,7 +143,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             chunk = chunk.encode('utf8')
 
         if isinstance(chunk, bytes):
-            chunk = BytesIO(chunk)
+            chunk = io.BytesIO(chunk)
 
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = _hash_state.restoreHex(upload['sha512state'], 'sha512')

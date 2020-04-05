@@ -1,6 +1,6 @@
+import io
 import os
 import json
-import six
 
 from girder.models.collection import Collection
 from girder.models.folder import Folder
@@ -158,7 +158,7 @@ class DicomViewerTest(base.TestCase):
         nonDicomContent = b'hello world\n'
 
         ndcmFile = Upload().uploadFromFile(
-            obj=six.BytesIO(nonDicomContent),
+            obj=io.BytesIO(nonDicomContent),
             size=len(nonDicomContent),
             name='nonDicom.txt',
             parentType='item',

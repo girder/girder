@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import girder
 import girder_client
+import io
 import json
 import mock
 import os
 import requests
 import shutil
 import six
-from six import StringIO
 import hashlib
 import httmock
 
@@ -491,7 +491,7 @@ class PythonClientTestCase(base.TestCase):
 
         contents = "you've changed!"
         size = len(contents)
-        stream = StringIO(contents)
+        stream = io.StringIO(contents)
         self.client.uploadFileContents(file['_id'], stream, size)
 
         file = File().load(file['_id'], force=True)
@@ -531,7 +531,7 @@ class PythonClientTestCase(base.TestCase):
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         file = self.client.uploadFileToItem(item['_id'], path)
 
-        obj = six.BytesIO()
+        obj = io.BytesIO()
 
         # Download file to object stream
         self.client.downloadFile(file['_id'], obj)
@@ -549,7 +549,7 @@ class PythonClientTestCase(base.TestCase):
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         file = self.client.uploadFileToItem(item['_id'], path)
 
-        buf = six.BytesIO()
+        buf = io.BytesIO()
 
         # Download file to object stream
         for chunk in self.client.downloadFileAsIterator(file['_id'], chunkSize=10):
@@ -585,24 +585,24 @@ class PythonClientTestCase(base.TestCase):
 
         with httmock.HTTMock(mock):
             # download the file
-            obj = six.BytesIO()
+            obj = io.BytesIO()
             client.downloadFile(file['_id'], obj)
             self.assertTrue(obj.getvalue().endswith(expected))
             self.assertEqual(len(hits), 1)
             # this should hit the cache only
-            obj = six.BytesIO()
+            obj = io.BytesIO()
             client.downloadFile(file['_id'], obj)
             self.assertTrue(obj.getvalue().endswith(expected))
             self.assertEqual(len(hits), 1)
 
         expected = b'new file contents!'
         size = len(expected)
-        stream = six.BytesIO(expected)
+        stream = io.BytesIO(expected)
         self.client.uploadFileContents(file['_id'], stream, size)
 
         with httmock.HTTMock(mock):
             # file should download again
-            obj = six.BytesIO()
+            obj = io.BytesIO()
             client.downloadFile(file['_id'], obj)
             self.assertTrue(obj.getvalue().endswith(expected))
             self.assertEqual(len(hits), 2)
@@ -615,7 +615,7 @@ class PythonClientTestCase(base.TestCase):
         path = os.path.join(self.libTestDir, 'sub0', 'f')
         file = self.client.uploadFileToItem(item['_id'], path)
 
-        obj = six.BytesIO()
+        obj = io.BytesIO()
 
         @httmock.urlmatch(path=r'.*/file/.+/download$')
         def mock(url, request):

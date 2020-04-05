@@ -13,6 +13,7 @@ import diskcache
 import errno
 import getpass
 import glob
+import io
 import json
 import logging
 import mimetypes
@@ -101,13 +102,13 @@ class _NoopProgressReporter(object):
         pass
 
 
-class _ProgressBytesIO(six.BytesIO):
+class _ProgressBytesIO(io.BytesIO):
     def __init__(self, *args, **kwargs):
         self.reporter = kwargs.pop('reporter')
-        six.BytesIO.__init__(self, *args, **kwargs)
+        io.BytesIO.__init__(self, *args, **kwargs)
 
     def read(self, _size=-1):
-        _chunk = six.BytesIO.read(self, _size)
+        _chunk = io.BytesIO.read(self, _size)
         self.reporter.update(len(_chunk))
         return _chunk
 

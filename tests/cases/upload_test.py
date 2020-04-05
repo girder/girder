@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import boto3
+import io
 import json
 import os
 import re
 import requests
-import six
 import threading
 from six.moves import range
 
@@ -321,7 +321,7 @@ class UploadTestCase(base.TestCase):
         # Test that a delete during an upload still results in one file
         adapter = assetstore_utilities.getAssetstoreAdapter(self.assetstore)
         size = 101
-        data = six.BytesIO(b' ' * size)
+        data = io.BytesIO(b' ' * size)
         files = []
         files.append(Upload().uploadFromFile(
             data, size, 'progress', parentType='folder', parent=self.folder,
@@ -340,7 +340,7 @@ class UploadTestCase(base.TestCase):
 
         def uploadFileWithWait():
             size = 101
-            data = six.BytesIO(b' ' * size)
+            data = io.BytesIO(b' ' * size)
             files.append(Upload().uploadFromFile(
                 data, size, 'progress', parentType='folder', parent=self.folder,
                 assetstore=self.assetstore))

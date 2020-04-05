@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
-import six
+import io
 from bson.objectid import ObjectId
 
 from girder import events, logger
@@ -92,7 +92,7 @@ class Upload(Model):
             if not data:
                 break
 
-            upload = self.handleChunk(upload, RequestBodyStream(six.BytesIO(data), len(data)))
+            upload = self.handleChunk(upload, RequestBodyStream(io.BytesIO(data), len(data)))
 
         return upload
 
@@ -425,12 +425,12 @@ class Upload(Model):
             else:
                 chunk = data
             if len(chunk) >= chunkSize:
-                upload = self.handleChunk(upload, RequestBodyStream(six.BytesIO(chunk), len(chunk)))
+                upload = self.handleChunk(upload, RequestBodyStream(io.BytesIO(chunk), len(chunk)))
                 progress.update(increment=len(chunk))
                 chunk = None
 
         if chunk is not None:
-            upload = self.handleChunk(upload, RequestBodyStream(six.BytesIO(chunk), len(chunk)))
+            upload = self.handleChunk(upload, RequestBodyStream(io.BytesIO(chunk), len(chunk)))
             progress.update(increment=len(chunk))
 
         return upload
