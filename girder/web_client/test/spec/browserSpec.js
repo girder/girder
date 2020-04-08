@@ -1117,7 +1117,7 @@ describe('browser hierarchy paginated selection', function () {
             expect($('.g-hierarchy-breadcrumb-bar').hasClass('g-hierarchy-sticky')).toBe(true);
         }, 'Make sure paginated text is displayed with proper settings');
     });
-    it('test browserwidget defaultSelectedResource [second page in paginated', function () {
+    it('test browserwidget defaultSelectedResource [second page in paginated]', function () {
         runs(function () {
             $('.modal').remove();
             widget = new girder.views.widgets.BrowserWidget({
@@ -1188,6 +1188,46 @@ describe('browser hierarchy paginated selection', function () {
         waitsFor(function () {
             return $('#g-page-selection-input').val() === '2';
         });
+
+        runs(function () {
+            expect($('.g-hierarachy-paginated-bar').length).toBe(1);
+            expect($('#g-page-selection-input').val()).toBe('2');
+            expect($('.g-hierarchy-breadcrumb-bar').hasClass('g-hierarchy-sticky')).toBe(true);
+        }, 'Should be on a second page now');
+    });
+    it('test rejection of filterFunc while using paginated', function () {
+        runs(function () {
+            $('.modal').remove();
+            widget = new girder.views.widgets.BrowserWidget({
+                parentView: null,
+                el: testEl,
+                helpText: 'This is helpful',
+                titleText: 'This is a title',
+                defaultSelectedResource: itemlist[itemlist.length - 1],
+                selectItem: true,
+                paginated: true,
+                highlightItem: true,
+                showItems: true,
+                itemFilter: function (item) { return item; }
+            });
+        });
+
+        waitsFor(function () {
+            return $(widget.$el).is(':visible');
+        });
+
+        waitsFor(function () {
+            return $('.g-hierarchy-widget').length > 0 &&
+                               $('.g-item-list-link').length > 0;
+        }, 'the hierarchy widget to display');
+
+        waitsFor(function () {
+            return $('#g-page-selection-input').val() === '2';
+        }, 'waits for it to go to the second page');
+
+        runs(function () {
+            console.log(widget._hierarchyView.itemListView.collection.filterFunc);
+        }, 'Make sure paginated text is displayed with proper settings');
 
         runs(function () {
             expect($('.g-hierarachy-paginated-bar').length).toBe(1);

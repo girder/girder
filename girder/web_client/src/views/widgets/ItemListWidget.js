@@ -61,13 +61,16 @@ var ItemListWidget = View.extend({
         }).render();
 
         this.collection = new ItemCollection();
-        this.collection.append = true; // Append, don't replace pages by default
         this.collection.filterFunc = settings.itemFilter;
         this.currentPage = 1; // By default we want to be on the first page
 
         if (this._paginated) {
             // Override the default to prevent appending new pages
             this.collection.append = false;
+            if (this.collection.filterFunc) {
+                console.warn('Pagination cannot be used with a filterFunction');
+                this.collection.filterFunc = undefined;
+            }
         }
 
         this.collection.fetch({ folderId: settings.folderId }).done(() => {
