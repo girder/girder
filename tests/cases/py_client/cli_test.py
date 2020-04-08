@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import contextlib
 import girder_client.cli
+import io
 import logging
 import mock
 import os
@@ -18,7 +19,6 @@ from girder.models.user import User
 from girder_client.cli import GirderCli
 from tests import base
 from six.moves.http_client import HTTPConnection
-from six import StringIO
 
 os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')
 config.loadConfig()  # Must reload config to pickup correct port
@@ -28,7 +28,7 @@ config.loadConfig()  # Must reload config to pickup correct port
 def captureOutput():
     oldout, olderr = sys.stdout, sys.stderr
     try:
-        out = [StringIO(), StringIO()]
+        out = [io.StringIO(), io.StringIO()]
         sys.stdout, sys.stderr = out
         yield out
     finally:

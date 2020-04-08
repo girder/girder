@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
+import io
 import json
 import os
-import six
 import time
 
 from tests import base
@@ -117,7 +117,7 @@ class ThumbnailsTestCase(base.TestCase):
 
         resp = self.request('/file/%s/download' % str(thumbnailId), isJson=False)
         data = self.getBody(resp, text=False)
-        image = Image.open(six.BytesIO(data))
+        image = Image.open(io.BytesIO(data))
         self.assertEqual(image.size, (64, 64))
 
         # Delete the thumbnail, it should be removed from the user thumb list
@@ -146,7 +146,7 @@ class ThumbnailsTestCase(base.TestCase):
 
         resp = self.request('/file/%s/download' % thumbnailId, isJson=False)
         data = self.getBody(resp, text=False)
-        image = Image.open(six.BytesIO(data))
+        image = Image.open(io.BytesIO(data))
         self.assertEqual(image.size, (64, 32))
 
         # Deleting the public folder should delete the thumbnail as well
@@ -213,7 +213,7 @@ class ThumbnailsTestCase(base.TestCase):
 
         resp = self.request('/file/%s/download' % thumbnailId, isJson=False)
         data = self.getBody(resp, text=False)
-        image = Image.open(six.BytesIO(data))
+        image = Image.open(io.BytesIO(data))
         self.assertEqual(image.size, (64, 64))
 
         # Delete the thumbnail, it should be removed from the user thumb list
@@ -242,7 +242,7 @@ class ThumbnailsTestCase(base.TestCase):
 
         resp = self.request('/file/%s/download' % thumbnailId, isJson=False)
         data = self.getBody(resp, text=False)
-        image = Image.open(six.BytesIO(data))
+        image = Image.open(io.BytesIO(data))
         self.assertEqual(image.size, (64, 32))
 
         # Deleting the public folder should delete the thumbnail as well

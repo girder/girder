@@ -109,8 +109,8 @@ class Item(Resource):
             raise RestException('Invalid sort mode.')
         dir = '$lt' if sort[0][1] == SortDir.ASCENDING else '$gt'
         filters = {'$or': [
-            {sort[0][0]: {dir: item[sort[0][0]]}},
-            {sort[0][0]: item[sort[0][0]], '_id': {dir: item['_id']}}
+            {sort[0][0]: {dir: item.get(sort[0][0])}},
+            {sort[0][0]: item.get(sort[0][0]), '_id': {dir: item['_id']}}
         ]}
         # limit and offset are actually ignored
         cursor = self._find(folderId, text, name, limit, offset, sort, filters)

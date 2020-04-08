@@ -4,6 +4,7 @@ import cherrypy
 import contextlib
 import email
 import errno
+import io
 import json
 import os
 import smtpd
@@ -11,7 +12,6 @@ import socket
 import threading
 import time
 
-from six import BytesIO
 from six.moves import queue, range, urllib
 
 _startPort = 31000
@@ -172,14 +172,11 @@ def request(path='/', method='GET', params=None, user=None,
         body = body.encode('utf8')
 
     if params:
-        # Python2 can't urlencode unicode and this does no harm in Python3
-        qs = urllib.parse.urlencode({
-            k: v.encode('utf8') if isinstance(v, str) else v
-            for k, v in params.items()})
+        qs = urllib.parse.urlencode(params)
 
     if params and body:
         # In this case, we are forced to send params in query string
-        fd = BytesIO(body)
+        fd = io.BytesIO(body)
         headers.append(('Content-Type', type))
         headers.append(('Content-Length', '%d' % len(body)))
     elif method in ['POST', 'PUT', 'PATCH'] or body:
@@ -190,7 +187,7 @@ def request(path='/', method='GET', params=None, user=None,
 
         headers.append(('Content-Type', type or 'application/x-www-form-urlencoded'))
         headers.append(('Content-Length', '%d' % len(qs or b'')))
-        fd = BytesIO(qs or b'')
+        fd = io.BytesIO(qs or b'')
         qs = None
 
     app = cherrypy.tree.apps[appPrefix]
@@ -200,8 +197,7 @@ def request(path='/', method='GET', params=None, user=None,
 
     headers = buildHeaders(headers, cookie, user, token, basicAuth, authHeader)
 
-    # Python2 will not match Unicode URLs
-    url = str(prefix + path)
+    url = prefix + path
     try:
         response = request.run(method, url, qs, 'HTTP/1.1', headers, fd)
     finally:
