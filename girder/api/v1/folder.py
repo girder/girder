@@ -109,13 +109,13 @@ class Folder(Resource):
         .errorResponse('Read access was denied on the parent resource.', 403)
     )
     def findPosition(self, folder, parentType, parentId, text, name, limit, offset, sort):
-        filters = {}
         if len(sort) != 1 or sort[0][0] not in folder:
             raise RestException('Invalid sort mode.')
-        dir = '$lt' if sort[0][1] == SortDir.ASCENDING else '$gt'
+        sortField, sortDir = sort[0]
+        dir = '$lt' if sortDir == SortDir.ASCENDING else '$gt'
         filters = {'$or': [
-            {sort[0][0]: {dir: folder.get(sort[0][0])}},
-            {sort[0][0]: folder.get(sort[0][0]), '_id': {dir: folder['_id']}}
+            {sortField: {dir: folder.get(sortField)}},
+            {sortField: folder.get(sortField), '_id': {dir: folder['_id']}}
         ]}
         # limit and offset are actually ignored
         cursor = self._find(parentType, parentId, text, name, limit, offset, sort, filters)
