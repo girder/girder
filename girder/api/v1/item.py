@@ -19,6 +19,7 @@ class Item(Resource):
 
         self.route('DELETE', (':id',), self.deleteItem)
         self.route('GET', (), self.find)
+        self.route('GET', ('position', ':id'), self.findPosition)
         self.route('GET', (':id',), self.getItem)
         self.route('GET', (':id', 'files'), self.getFiles)
         self.route('GET', (':id', 'download'), self.download)
@@ -104,13 +105,13 @@ class Item(Resource):
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
     def findPosition(self, item, folderId, text, name, limit, offset, sort):
+        filters = {}
         if len(sort) != 1 or sort[0][0] not in item:
             raise RestException('Invalid sort mode.')
-        sortField, sortDir = sort[0]
-        dir = '$lt' if sortDir == SortDir.ASCENDING else '$gt'
+        dir = '$lt' if sort[0][1] == SortDir.ASCENDING else '$gt'
         filters = {'$or': [
-            {sortField: {dir: item.get(sortField)}},
-            {sortField: item.get(sortField), '_id': {dir: item['_id']}}
+            {sort[0][0]: {dir: item[sort[0][0]]}},
+            {sort[0][0]: item[sort[0][0]], '_id': {dir: item['_id']}}
         ]}
         # limit and offset are actually ignored
         cursor = self._find(folderId, text, name, limit, offset, sort, filters)
