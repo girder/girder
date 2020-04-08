@@ -104,21 +104,30 @@ class Folder(Resource):
         .param('text', 'Pass to perform a text search.', required=False)
         .param('name', 'Pass to lookup a folder by exact name match. Must '
                'pass parentType and parentId as well when using this.', required=False)
-        .pagingParams(defaultSort='lowerName')
+        .param('sort', 'Field to sort the result set by.', default='lowerName',
+               required=False, strip=True)
+        .param('sortdir', 'Sort order: 1 for ascending, -1 for descending.',
+               required=False, dataType='integer',
+               enum=[SortDir.ASCENDING, SortDir.DESCENDING],
+               default=SortDir.ASCENDING)
         .errorResponse()
         .errorResponse('Read access was denied on the parent resource.', 403)
     )
-    def findPosition(self, folder, parentType, parentId, text, name, limit, offset, sort):
+    def findPosition(self, folder, parentType, parentId, text, name, params):
+        limit, offset, sort = self.getPagingParameters(params, 'lowerName')
         if len(sort) != 1 or sort[0][0] not in folder:
             raise RestException('Invalid sort mode.')
         sortField, sortDir = sort[0]
         dir = '$lt' if sortDir == SortDir.ASCENDING else '$gt'
         filters = {'$or': [
             {sortField: {dir: folder.get(sortField)}},
+            # For folders that have the same sort value, sort by _id.
+            # Mongo may fall back to this as the final sort, but this isn't
+            # documented.
             {sortField: folder.get(sortField), '_id': {dir: folder['_id']}}
         ]}
-        # limit and offset are actually ignored
-        cursor = self._find(parentType, parentId, text, name, limit, offset, sort, filters)
+        # limit and offset don't affect the results.
+        cursor = self._find(parentType, parentId, text, name, 1, 0, sort, filters)
         return cursor.count()
 
     @access.public(scope=TokenScope.DATA_READ)
