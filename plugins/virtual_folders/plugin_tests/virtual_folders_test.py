@@ -75,7 +75,7 @@ class VirtualFoldersTestCase(base.TestCase):
 
         # item/position/:id should work
         items = listItems()
-        resp = self.request('/item/position/%s' % items[2]['_id'], user=self.user, params={
+        resp = self.request('/item/%s/position' % items[2]['_id'], user=self.user, params={
             'folderId': self.virtual['_id']})
         self.assertStatusOk(resp)
         self.assertEqual(resp.json, 2)

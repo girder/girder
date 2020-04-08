@@ -182,7 +182,7 @@ class VirtualFoldersPlugin(GirderPlugin):
         events.bind('model.folder.validate', name, _validateFolder)
         events.bind('model.item.validate', name, _validateItem)
         events.bind('rest.get.item.before', name, _virtualChildItems)
-        events.bind('rest.get.item/position/:id.before', name, _virtualItemPosition)
+        events.bind('rest.get.item/:id/position.before', name, _virtualItemPosition)
         events.bind('rest.post.folder.after', name, _folderUpdate)
         events.bind('rest.put.folder/:id.after', name, _folderUpdate)
         events.bind('rest.get.folder/:id/details.before', name, _virtualFolderDetails)

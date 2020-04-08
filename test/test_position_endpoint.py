@@ -33,7 +33,7 @@ def makeResources(admin):
 
 def testFolderPosition(server, makeResources, admin, user):
     resp = server.request(
-        '/folder/position/%s' % str(makeResources['folders'][10]['_id']),
+        '/folder/%s/position' % str(makeResources['folders'][10]['_id']),
         user=admin,
         params={
             'parentType': 'folder',
@@ -44,7 +44,7 @@ def testFolderPosition(server, makeResources, admin, user):
     assert resp.json == 2
 
     resp = server.request(
-        '/folder/position/%s' % str(makeResources['folders'][7]['_id']),
+        '/folder/%s/position' % str(makeResources['folders'][7]['_id']),
         user=admin,
         params={
             'parentType': 'folder',
@@ -54,7 +54,7 @@ def testFolderPosition(server, makeResources, admin, user):
     assert resp.json == 17
 
     resp = server.request(
-        '/folder/position/%s' % str(makeResources['folders'][7]['_id']),
+        '/folder/%s/position' % str(makeResources['folders'][7]['_id']),
         user=admin,
         params={
             'parentType': 'folder',
@@ -66,7 +66,7 @@ def testFolderPosition(server, makeResources, admin, user):
 
     # A user only sees public folders
     resp = server.request(
-        '/folder/position/%s' % str(makeResources['folders'][10]['_id']),
+        '/folder/%s/position' % str(makeResources['folders'][10]['_id']),
         user=user,
         params={
             'parentType': 'folder',
@@ -76,7 +76,7 @@ def testFolderPosition(server, makeResources, admin, user):
     assert resp.json == 1
 
     resp = server.request(
-        '/folder/position/%s' % str(makeResources['folders'][7]['_id']),
+        '/folder/%s/position' % str(makeResources['folders'][7]['_id']),
         user=user,
         params={
             'parentType': 'folder',
@@ -85,7 +85,7 @@ def testFolderPosition(server, makeResources, admin, user):
     assertStatus(resp, 403)
 
     resp = server.request(
-        '/folder/position/%s' % str(makeResources['folders'][16]['_id']),
+        '/folder/%s/position' % str(makeResources['folders'][16]['_id']),
         user=admin,
         params={
             'parentType': 'folder',
@@ -98,7 +98,7 @@ def testFolderPosition(server, makeResources, admin, user):
 
 def testItemPosition(server, makeResources, admin, user):
     resp = server.request(
-        '/item/position/%s' % str(makeResources['publicItems'][10]['_id']),
+        '/item/%s/position' % str(makeResources['publicItems'][10]['_id']),
         user=admin,
         params={
             'folderId': str(makeResources['folders'][0]['_id'])
@@ -107,7 +107,7 @@ def testItemPosition(server, makeResources, admin, user):
     assert resp.json == 2
 
     resp = server.request(
-        '/item/position/%s' % str(makeResources['privateItems'][7]['_id']),
+        '/item/%s/position' % str(makeResources['privateItems'][7]['_id']),
         user=admin,
         params={
             'folderId': str(makeResources['folders'][1]['_id'])
@@ -116,7 +116,7 @@ def testItemPosition(server, makeResources, admin, user):
     assert resp.json == 17
 
     resp = server.request(
-        '/item/position/%s' % str(makeResources['publicItems'][7]['_id']),
+        '/item/%s/position' % str(makeResources['publicItems'][7]['_id']),
         user=admin,
         params={
             'folderId': str(makeResources['folders'][0]['_id']),
@@ -127,7 +127,7 @@ def testItemPosition(server, makeResources, admin, user):
 
     # A user only sees public folders
     resp = server.request(
-        '/item/position/%s' % str(makeResources['publicItems'][10]['_id']),
+        '/item/%s/position' % str(makeResources['publicItems'][10]['_id']),
         user=user,
         params={
             'folderId': str(makeResources['folders'][0]['_id'])
@@ -136,7 +136,7 @@ def testItemPosition(server, makeResources, admin, user):
     assert resp.json == 2
 
     resp = server.request(
-        '/item/position/%s' % str(makeResources['privateItems'][7]['_id']),
+        '/item/%s/position' % str(makeResources['privateItems'][7]['_id']),
         user=user,
         params={
             'folderId': str(makeResources['folders'][1]['_id'])
@@ -144,7 +144,7 @@ def testItemPosition(server, makeResources, admin, user):
     assertStatus(resp, 403)
 
     resp = server.request(
-        '/item/position/%s' % str(makeResources['publicItems'][7]['_id']),
+        '/item/%s/position' % str(makeResources['publicItems'][7]['_id']),
         user=user,
         params={
             'folderId': str(makeResources['folders'][0]['_id']),
