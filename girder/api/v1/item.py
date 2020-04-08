@@ -19,11 +19,11 @@ class Item(Resource):
 
         self.route('DELETE', (':id',), self.deleteItem)
         self.route('GET', (), self.find)
-        self.route('GET', ('position', ':id'), self.findPosition)
         self.route('GET', (':id',), self.getItem)
         self.route('GET', (':id', 'files'), self.getFiles)
         self.route('GET', (':id', 'download'), self.download)
         self.route('GET', (':id', 'rootpath'), self.rootpath)
+        self.route('GET', (':id', 'position'), self.findPosition)
         self.route('POST', (), self.createItem)
         self.route('PUT', (':id',), self.updateItem)
         self.route('POST', (':id', 'copy'), self.copyItem)
