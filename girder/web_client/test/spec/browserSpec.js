@@ -1195,7 +1195,7 @@ describe('browser hierarchy paginated selection', function () {
             expect($('.g-hierarchy-breadcrumb-bar').hasClass('g-hierarchy-sticky')).toBe(true);
         }, 'Should be on a second page now');
     });
-    it('test rejection of filterFunc while using paginated', function () {
+    it('test rejection of filterFunc while using paginated in itemListWidget', function () {
         runs(function () {
             $('.modal').remove();
             widget = new girder.views.widgets.BrowserWidget({
@@ -1205,11 +1205,9 @@ describe('browser hierarchy paginated selection', function () {
                 titleText: 'This is a title',
                 defaultSelectedResource: itemlist[itemlist.length - 1],
                 selectItem: true,
-                paginated: true,
                 highlightItem: true,
-                showItems: true,
-                itemFilter: function (item) { return item; }
-            });
+                showItems: true
+            }).render();
         });
 
         waitsFor(function () {
@@ -1221,18 +1219,31 @@ describe('browser hierarchy paginated selection', function () {
                                $('.g-item-list-link').length > 0;
         }, 'the hierarchy widget to display');
 
-        waitsFor(function () {
-            return $('#g-page-selection-input').val() === '2';
-        }, 'waits for it to go to the second page');
+        runs(function () {
+            widget._hierarchyView.initialize({
+                itemFilter: function (item) { return item; },
+                parentView: widget,
+                parentModel: widget.root });
+            widget._hierarchyView.itemListView = null;
+            widget._hierarchyView._initFolderViewSubwidgets();
+        }, 'Creating a filterFunc to confirm it works');
 
         runs(function () {
-            console.log(widget._hierarchyView.itemListView.collection.filterFunc);
-        }, 'Make sure paginated text is displayed with proper settings');
+            expect(widget._hierarchyView.itemListView.collection.filterFunc).toBeDefined();
+        }, 'Filter Function should be set on the ItemListWidget');
 
         runs(function () {
-            expect($('.g-hierarachy-paginated-bar').length).toBe(1);
-            expect($('#g-page-selection-input').val()).toBe('2');
-            expect($('.g-hierarchy-breadcrumb-bar').hasClass('g-hierarchy-sticky')).toBe(true);
-        }, 'Should be on a second page now');
+            widget._hierarchyView.initialize({
+                itemFilter: function (item) { return item; },
+                parentView: widget,
+                paginated: true,
+                parentModel: widget.root });
+            widget._hierarchyView.itemListView = null;
+            widget._hierarchyView._initFolderViewSubwidgets();
+        }, 'Filter Function should be false when paginated is specified during initialization');
+
+        runs(function () {
+            expect(widget._hierarchyView.itemListView.collection.filterFunc).not.toBeDefined();
+        }, 'Filter Function should be set on the ItemListWidget');
     });
 });
