@@ -141,7 +141,7 @@ class Model(object):
         :param fields: A field or list of fields to expose for that level.
         :type fields: `str, list, set, or tuple`
         """
-        if isinstance(fields, six.string_types):
+        if isinstance(fields, str):
             fields = (fields, )
 
         self._filterKeys[level].update(fields)
@@ -158,7 +158,7 @@ class Model(object):
         :param fields: The field or fields to remove from the white list.
         :type fields: `str, list, set, or tuple`
         """
-        if isinstance(fields, six.string_types):
+        if isinstance(fields, str):
             fields = (fields, )
 
         self._filterKeys[level].difference_update(fields)
@@ -1414,7 +1414,7 @@ class AccessControlledModel(Model):
         :returns: The matching document, or None if no match exists.
         """
         # Warn of str type deprecation for `fields` param
-        if isinstance(fields, six.string_types):
+        if isinstance(fields, str):
             logger.warning('String data type for fields param is deprecated, '
                            'use a list or dict instead.')
             fields = [fields]

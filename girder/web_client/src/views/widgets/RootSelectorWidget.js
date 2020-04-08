@@ -51,6 +51,9 @@ var RootSelectorWidget = View.extend({
      * @param {Model} [settings.selected] The default/current selection
      * @param {string[]} [settings.display=['Home', 'Collections', 'Users'] Display order
      * @param {boolean} [settings.reset=true] Always fetch from offset 0
+     * @param {Model|string} [settings.selectByResource] use the baseParentId to
+     * set the default selected item, can use a model based like an object, or a specific string ParentId
+     *
      */
     initialize: function (settings) {
         settings = settings || {};
@@ -86,6 +89,7 @@ var RootSelectorWidget = View.extend({
         this.listenTo(events, 'g:login', this.fetch);
 
         this.selected = settings.selected;
+        this.selectByResource = settings.selectByResource;
         this.display = settings.display || ['Home', 'Collections', 'Users'];
 
         this.fetch();
@@ -93,7 +97,10 @@ var RootSelectorWidget = View.extend({
 
     render: function () {
         this._home = this.home || getCurrentUser();
-
+        // Set the selected item if it is already defined and get it by resource if not
+        if (this.selectByResource) {
+            this.setRootByBaseParent(this.selectByResource);
+        }
         this.$el.html(
             RootSelectorWidgetTemplate({
                 home: this._home,
@@ -105,6 +112,23 @@ var RootSelectorWidget = View.extend({
         );
 
         return this;
+    },
+
+    setRootByBaseParent: function (baseParentId) {
+        // Filter for an Id String from an object if given
+        if (_.isObject(baseParentId)) {
+            if ((baseParentId.attributes || {}).baseParentId !== undefined) {
+                baseParentId = baseParentId.attributes.baseParentId;
+            }
+        }
+
+        if (_.isString(baseParentId)) {
+            _.each(this.groups, (group) => {
+                if (group.get(baseParentId) !== undefined) {
+                    this.selected = group.get(baseParentId);
+                }
+            });
+        }
     },
 
     /**

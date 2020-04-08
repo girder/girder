@@ -110,14 +110,7 @@ will override the defaults.
 Server Development
 ------------------
 
-All commits to the core python code must work in both python 2.7 and 3.6.
-Python code in plugins should also work in both, but some plugins may depend
-on third party libraries that do not support python 3. If that is the case, those
-plugins should declare ``"python_requires<3.0`` in their **setup.py** file
-to indicate that they do not support being run in python 3. Automated testing of
-those plugins should also be disabled for python3 if those tests would fail in a
-python 3 environment. This can be achieved by passing an additional flag ``PY2_ONLY``
-to ``add_python_test`` in your **plugin.cmake** file.
+All commits to the core python code must work in Python 3.6 and above.
 
 Python Style
 ^^^^^^^^^^^^
@@ -272,7 +265,7 @@ When running client side tests, if you try to SIGINT (ctrl+c) the CTest process,
 won't pass that signal down to the test processes for them to handle.  This can result
 in orphaned python unittest processes and can prevent future runs of client tests.  If you
 run a client side test and see an error message similar to ``IOError: Port 30015 not free on '0.0.0.0'``,
-then look for an existing process similar to ``/usr/bin/python2.7 -m unittest -v tests.web_client_test``,
+then look for an existing process similar to ``/usr/bin/python3 -m unittest -v tests.web_client_test``,
 kill the process, and then try your tests again.
 
 Adding a New Client Side Test

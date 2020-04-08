@@ -37,10 +37,6 @@ _girder_imports |= {
     'requests_toolbelt',
     'yaml'
 }
-# The funcsigs package (only used in Python2) is necessary to ensure import-time logic in girder
-# executes correctly. For some reason (which doesn't apply to six), mocking it interferes with its
-# import, even if it's installed.
-_girder_imports.discard('funcsigs')
 
 # Set Sphinx variables
 master_doc = 'index'

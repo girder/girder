@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import datetime
-import six
+import io
 from bson.objectid import ObjectId
 
 from girder import events, logger
 from girder.api import rest
 from .model_base import Model
-from girder.exceptions import GirderException, ValidationException
+from girder.exceptions import GirderException, ValidationException, NoAssetstoreAdapter
 from girder.settings import SettingKey
 from girder.utility import RequestBodyStream
 from girder.utility.progress import noProgress
@@ -92,7 +92,7 @@ class Upload(Model):
             if not data:
                 break
 
-            upload = self.handleChunk(upload, RequestBodyStream(six.BytesIO(data), len(data)))
+            upload = self.handleChunk(upload, RequestBodyStream(io.BytesIO(data), len(data)))
 
         return upload
 
@@ -425,12 +425,12 @@ class Upload(Model):
             else:
                 chunk = data
             if len(chunk) >= chunkSize:
-                upload = self.handleChunk(upload, RequestBodyStream(six.BytesIO(chunk), len(chunk)))
+                upload = self.handleChunk(upload, RequestBodyStream(io.BytesIO(chunk), len(chunk)))
                 progress.update(increment=len(chunk))
                 chunk = None
 
         if chunk is not None:
-            upload = self.handleChunk(upload, RequestBodyStream(six.BytesIO(chunk), len(chunk)))
+            upload = self.handleChunk(upload, RequestBodyStream(io.BytesIO(chunk), len(chunk)))
             progress.update(increment=len(chunk))
 
         return upload
@@ -512,7 +512,10 @@ class Upload(Model):
         for assetstore in Assetstore().list():
             if assetstoreId and assetstoreId != assetstore['_id']:
                 continue
-            adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            try:
+                adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
+            except NoAssetstoreAdapter:
+                continue
             try:
                 results.extend(adapter.untrackedUploads(
                     knownUploads, delete=(action == 'delete')))

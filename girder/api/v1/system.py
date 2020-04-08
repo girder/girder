@@ -4,7 +4,6 @@ import datetime
 import errno
 import girder
 import json
-import six
 import os
 import logging
 
@@ -74,7 +73,7 @@ class System(Resource):
 
         for setting in list:
             key, value = setting['key'], setting['value']
-            if isinstance(value, six.string_types):
+            if isinstance(value, str):
                 try:
                     value = json.loads(value)
                 except ValueError:

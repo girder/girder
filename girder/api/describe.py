@@ -21,10 +21,7 @@ from girder.utility.resource import _apiRouteMap
 from . import docs, access
 from .rest import Resource, getApiUrl, getUrlParts
 
-if six.PY3:
-    from inspect import signature, Parameter
-else:
-    from funcsigs import signature, Parameter
+from inspect import signature, Parameter
 
 SWAGGER_VERSION = '2.0'
 
@@ -403,7 +400,7 @@ class Description(object):
 
         # Combine list of reasons into a single string.
         # swagger-ui renders the description using Markdown.
-        if not isinstance(reason, six.string_types):
+        if not isinstance(reason, str):
             reason = '\n\n'.join(reason)
 
         if code in self._responses:

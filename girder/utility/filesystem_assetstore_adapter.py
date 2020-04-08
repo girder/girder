@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import filelock
 from hashlib import sha512
+import io
 import os
 import psutil
 import shutil
-import six
-from six import BytesIO
 import stat
 import tempfile
 
@@ -140,11 +139,11 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # If we know the chunk size is too large or small, fail early.
         self.checkUploadSize(upload, self.getChunkSize(chunk))
 
-        if isinstance(chunk, six.text_type):
+        if isinstance(chunk, str):
             chunk = chunk.encode('utf8')
 
-        if isinstance(chunk, six.binary_type):
-            chunk = BytesIO(chunk)
+        if isinstance(chunk, bytes):
+            chunk = io.BytesIO(chunk)
 
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = _hash_state.restoreHex(upload['sha512state'], 'sha512')

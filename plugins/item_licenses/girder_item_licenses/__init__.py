@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import six
-
 from girder import events
 from girder.constants import AccessType
 from girder.exceptions import ValidationException
@@ -20,9 +18,9 @@ def validateString(value):
     :returns: the unicode string version of the value.
     """
     if value is None:
-        value = six.u('')
-    if not isinstance(value, six.text_type):
-        value = six.text_type(value)
+        value = ''
+    if not isinstance(value, str):
+        value = str(value)
     return value
 
 

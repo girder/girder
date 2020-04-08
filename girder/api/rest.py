@@ -44,8 +44,6 @@ def getUrlParts(url=None):
     :return: The URL's separate components.
     :rtype: `urllib.parse.ParseResult`_
 
-    .. note:: This is compatible with both Python 2 and 3.
-
     .. _urllib.parse.urlparse: https://docs.python.org/3/library/
        urllib.parse.html#urllib.parse.urlparse
 
@@ -241,9 +239,9 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
             'Error: Content-Disposition (%r) is not a recognized value.' % disposition)
     if not filename:
         raise RestException('Error: Content-Disposition filename is empty.')
-    if not isinstance(disposition, six.binary_type):
+    if not isinstance(disposition, bytes):
         disposition = disposition.encode('iso8859-1', 'ignore')
-    if not isinstance(filename, six.text_type):
+    if not isinstance(filename, str):
         filename = filename.decode('utf8', 'ignore')
     # Decompose the name before trying to encode it.  This will de-accent
     # characters rather than remove them in some instances.
@@ -253,7 +251,7 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
         b'\\', b'\\\\').replace(b'"', b'\\"') + b'"'
     if safeFilename != utf8Filename:
         quotedFilename = six.moves.urllib.parse.quote(utf8Filename)
-        if not isinstance(quotedFilename, six.binary_type):
+        if not isinstance(quotedFilename, bytes):
             quotedFilename = quotedFilename.encode('iso8859-1', 'ignore')
         value += b"; filename*=UTF-8''" + quotedFilename
     value = value.decode('utf8')
@@ -497,7 +495,7 @@ def _createResponse(val):
     thread, this will simply return the response raw.
     """
     if getattr(cherrypy.request, 'girderRawResponse', False) is True:
-        if isinstance(val, six.text_type):
+        if isinstance(val, str):
             # If we were given a non-encoded text response, we have
             # to encode it, so we use UTF-8.
             ctype = cherrypy.response.headers['Content-Type'].split(';', 1)
@@ -698,7 +696,7 @@ def ensureTokenScopes(token, scope):
 
     if not tokenModel.hasScope(token, scope):
         setCurrentUser(None)
-        if isinstance(scope, six.string_types):
+        if isinstance(scope, str):
             scope = (scope,)
         raise AccessException(
             'Invalid token scope.\n'
@@ -1013,7 +1011,7 @@ class Resource(object):
                 if val is None:
                     raise RestException('Parameter "%s" is required.' % name)
         else:
-            if isinstance(required, six.string_types):
+            if isinstance(required, str):
                 required = (required,)
 
             for param in required:
@@ -1084,7 +1082,7 @@ class Resource(object):
 
         if 'sort' in params:
             sort = [(params['sort'].strip(), sortdir)]
-        elif isinstance(defaultSortField, six.string_types):
+        elif isinstance(defaultSortField, str):
             sort = [(defaultSortField, sortdir)]
         else:
             sort = None

@@ -253,7 +253,7 @@ class QuotaPolicy(Resource):
                  type, either 'user' or 'collection'., and 'resource' is the
                  base resource document or the id of that document.
         """
-        if isinstance(resource, six.string_types + (ObjectId,)):
+        if isinstance(resource, (str, ObjectId)):
             try:
                 resource = ModelImporter.model(model).load(id=resource, force=True)
             except ImportError:
@@ -329,7 +329,7 @@ class QuotaPolicy(Resource):
                 key = None
             if key:
                 quota = Setting().get(key)
-        if not isinstance(quota, six.integer_types) or quota < 0:
+        if not isinstance(quota, int) or quota < 0:
             return None
         return quota
 

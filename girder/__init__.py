@@ -11,6 +11,7 @@ __license__ = 'Apache 2.0'
 
 import cherrypy
 import functools
+import io
 import logging
 import logging.handlers
 import os
@@ -104,7 +105,7 @@ class StreamToLogger(object):
                     and (callable(getattr(stream, key, None))
                          or isinstance(
                              getattr(stream, key, None),
-                             (six.binary_type, six.string_types, six.integer_types, bool)))):
+                             (bytes, str, int, bool)))):
                 setattr(self, key, getattr(stream, key))
 
     def write(self, buf):
@@ -229,7 +230,7 @@ def logprint(*args, **kwargs):
     :param exc_info: None to not print exception information.  True for the
         last exception, or a tuple of exception information.
     """
-    data = six.StringIO()
+    data = io.StringIO()
     kwargs = (kwargs or {}).copy()
     level = kwargs.pop('level', logging.DEBUG)
     color = kwargs.pop('color', None)

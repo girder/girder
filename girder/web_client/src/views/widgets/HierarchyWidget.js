@@ -112,6 +112,8 @@ var HierarchyWidget = View.extend({
      *   [onItemClick]: A function that will be called when an item is clicked,
      *                  passed the Item model as its first argument and the
      *                  event as its second.
+     *   [defaultSelectedResource] : default selected Resource item , will open up to this resource
+     *   [highlightItem=false] : sets the item to be styled as selected and will scroll to it in the list
      */
     initialize: function (settings) {
         this.parentModel = settings.parentModel;
@@ -132,6 +134,8 @@ var HierarchyWidget = View.extend({
         this._onItemClick = settings.onItemClick || function (item) {
             router.navigate('item/' + item.get('_id'), { trigger: true });
         };
+        this._defaultSelectedResource = settings.defaultSelectedResource;
+        this._highlightItem = _.has(settings, 'highlightItem') ? settings.highlightItem : false;
 
         this._onFolderSelect = settings.onFolderSelect;
 
@@ -218,6 +222,8 @@ var HierarchyWidget = View.extend({
                 downloadLinks: this._downloadLinks,
                 viewLinks: this._viewLinks,
                 showSizes: this._showSizes,
+                selectedItem: this._defaultSelectedResource,
+                highlightItem: this._highlightItem,
                 parentView: this
             });
             this.listenTo(this.itemListView, 'g:itemClicked', this._onItemClick);
@@ -344,7 +350,9 @@ var HierarchyWidget = View.extend({
      * Called when the "select this folder" link is clicked.
      */
     selectFolder: function () {
-        this._onFolderSelect(this.parentModel);
+        if (_.isFunction(this._onFolderSelect)) {
+            this._onFolderSelect(this.parentModel);
+        }
     },
 
     /**

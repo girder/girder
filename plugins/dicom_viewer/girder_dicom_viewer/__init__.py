@@ -135,7 +135,7 @@ def _removeUniqueMetadata(dicomMeta, additionalMeta):
 def _coerceValue(value):
     # For binary data, see if it can be coerced further into utf8 data.  If
     # not, mongo won't store it, so don't accept it here.
-    if isinstance(value, six.binary_type):
+    if isinstance(value, bytes):
         if b'\x00' in value:
             raise ValueError('Binary data with null')
         try:
@@ -147,8 +147,8 @@ def _coerceValue(value):
     for knownBaseType in {
         int,
         float,
-        six.binary_type,
-        six.text_type,
+        bytes,
+        str,
         datetime.datetime,
         datetime.date,
         datetime.time,
@@ -255,7 +255,7 @@ def dicomSubstringSearchHandler(query, types, user=None, level=None, limit=0, of
     """
     if types != ['item']:
         raise RestException('The dicom search is only able to search in Item.')
-    if not isinstance(query, six.string_types):
+    if not isinstance(query, str):
         raise RestException('The search query must be a string.')
 
     jsQuery = """

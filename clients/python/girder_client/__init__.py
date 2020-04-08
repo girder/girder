@@ -13,6 +13,7 @@ import diskcache
 import errno
 import getpass
 import glob
+import io
 import json
 import logging
 import mimetypes
@@ -101,13 +102,13 @@ class _NoopProgressReporter(object):
         pass
 
 
-class _ProgressBytesIO(six.BytesIO):
+class _ProgressBytesIO(io.BytesIO):
     def __init__(self, *args, **kwargs):
         self.reporter = kwargs.pop('reporter')
-        six.BytesIO.__init__(self, *args, **kwargs)
+        io.BytesIO.__init__(self, *args, **kwargs)
 
     def read(self, _size=-1):
-        _chunk = six.BytesIO.read(self, _size)
+        _chunk = io.BytesIO.read(self, _size)
         self.reporter.update(len(_chunk))
         return _chunk
 
@@ -614,7 +615,7 @@ class GirderClient(object):
             same name already exists.
         :param metadata: JSON metadata to set on item.
         """
-        if metadata is not None and not isinstance(metadata, six.string_types):
+        if metadata is not None and not isinstance(metadata, str):
             metadata = json.dumps(metadata)
 
         params = {
@@ -730,7 +731,7 @@ class GirderClient(object):
             the same name exists.
         :param metadata: JSON metadata to set on the folder.
         """
-        if metadata is not None and not isinstance(metadata, six.string_types):
+        if metadata is not None and not isinstance(metadata, str):
             metadata = json.dumps(metadata)
 
         params = {
@@ -792,7 +793,7 @@ class GirderClient(object):
         :param access: JSON document specifying access control.
         :param public: Boolean specificying the public value.
         """
-        if access is not None and not isinstance(access, six.string_types):
+        if access is not None and not isinstance(access, str):
             access = json.dumps(access)
 
         path = 'folder/' + folderId + '/access'
@@ -925,7 +926,7 @@ class GirderClient(object):
 
         if size <= self.MAX_CHUNK_SIZE and self.getServerVersion() >= ['2', '3']:
             chunk = stream.read(size)
-            if isinstance(chunk, six.text_type):
+            if isinstance(chunk, str):
                 chunk = chunk.encode('utf8')
             with self.progressReporterCls(label=filename, length=size) as reporter:
                 return self.post(
@@ -1002,7 +1003,7 @@ class GirderClient(object):
                 if not chunk:
                     break
 
-                if isinstance(chunk, six.text_type):
+                if isinstance(chunk, str):
                     chunk = chunk.encode('utf8')
 
                 uploadObj = self.post(
@@ -1157,7 +1158,7 @@ class GirderClient(object):
         Copy the `fp` file-like object to `path` which may be a filename string
         or another file-like object to write to.
         """
-        if isinstance(path, six.string_types):
+        if isinstance(path, str):
             _safeMakedirs(os.path.dirname(path))
             with open(path, 'wb') as dst:
                 shutil.copyfileobj(fp, dst)
@@ -1197,7 +1198,7 @@ class GirderClient(object):
 
         # download to a tempfile
         progressFileName = fileId
-        if isinstance(path, six.string_types):
+        if isinstance(path, str):
             progressFileName = os.path.basename(path)
 
         req = self._streamingFileDownload(fileId)
@@ -1219,7 +1220,7 @@ class GirderClient(object):
             with open(tmp.name, 'rb') as fp:
                 self.cache.set(cacheKey, fp, read=True)
 
-        if isinstance(path, six.string_types):
+        if isinstance(path, str):
             # we can just rename the tempfile
             _safeMakedirs(os.path.dirname(path))
             shutil.move(tmp.name, path)
@@ -1401,7 +1402,7 @@ class GirderClient(object):
         try:
             with open(os.path.join(dest, '.girder_metadata'), 'r') as fh:
                 self.localMetadata = json.loads(fh.read())
-        except (OSError if six.PY3 else (IOError, OSError)):
+        except OSError:
             print('Local metadata does not exists. Falling back to download.')
 
     def inheritAccessControlRecursive(self, ancestorFolderId, access=None, public=None):
@@ -1704,7 +1705,7 @@ class GirderClient(object):
             print('No matching files: ' + repr(filePattern))
 
     def _checkResourcePath(self, objId):
-        if isinstance(objId, six.string_types) and objId.startswith('/'):
+        if isinstance(objId, str) and objId.startswith('/'):
             try:
                 return self.resourceLookup(objId)['_id']
             except requests.HTTPError:

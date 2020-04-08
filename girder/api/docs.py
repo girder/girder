@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import collections
 import functools
-import six
 from girder import logprint
 
 models = collections.defaultdict(dict)
@@ -134,7 +133,7 @@ def addModel(name, model, resources=None, silent=False):
         versions/2.0.md#definitionsObject
     """
     if resources:
-        if isinstance(resources, six.string_types):
+        if isinstance(resources, str):
             resources = (resources,)
         for resource in resources:
             models[resource][name] = model

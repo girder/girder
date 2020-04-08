@@ -45,7 +45,6 @@ setup(
         'Environment :: Console',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 3'
     ],
     packages=find_packages(exclude=('tests.*', 'tests')),

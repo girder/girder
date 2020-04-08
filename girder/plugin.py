@@ -4,6 +4,7 @@ This module defines functions for registering, loading, and querying girder plug
 
 import distutils.dist
 from functools import wraps
+import io
 import json
 import os
 from pkg_resources import iter_entry_points, resource_filename
@@ -161,7 +162,7 @@ def _readPackageMetadata(distribution):
     """Get a metadata object associated with a python package."""
     metadata_string = distribution.get_metadata(distribution.PKG_INFO)
     metadata = distutils.dist.DistributionMetadata()
-    metadata.read_pkg_file(six.StringIO(metadata_string))
+    metadata.read_pkg_file(io.StringIO(metadata_string))
     return metadata
 
 

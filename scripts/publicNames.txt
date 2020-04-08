@@ -234,6 +234,7 @@ girder
                     deleteMetadata
                     downloadFolder
                     find
+                    findPosition
                     getFolder
                     getFolderAccess
                     getFolderDetails

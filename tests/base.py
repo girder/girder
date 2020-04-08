@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import base64
 import cherrypy
+import io
 import json
 import logging
 import os
@@ -11,7 +12,6 @@ import sys
 import unittest
 import warnings
 
-from six import BytesIO
 from six.moves import urllib
 from girder.utility._cache import cache, requestCache
 from girder.utility.server import setup as setupServer
@@ -464,18 +464,15 @@ class TestCase(unittest.TestCase):
         if additionalHeaders:
             headers.extend(additionalHeaders)
 
-        if isinstance(body, six.text_type):
+        if isinstance(body, str):
             body = body.encode('utf8')
 
         if params:
-            # Python2 can't urlencode unicode and this does no harm in Python3
-            qs = urllib.parse.urlencode({
-                k: v.encode('utf8') if isinstance(v, six.text_type) else v
-                for k, v in params.items()})
+            qs = urllib.parse.urlencode(params)
 
         if params and body:
             # In this case, we are forced to send params in query string
-            fd = BytesIO(body)
+            fd = io.BytesIO(body)
             headers.append(('Content-Type', type))
             headers.append(('Content-Length', '%d' % len(body)))
         elif method in ['POST', 'PUT', 'PATCH'] or body:
@@ -486,7 +483,7 @@ class TestCase(unittest.TestCase):
 
             headers.append(('Content-Type', type or 'application/x-www-form-urlencoded'))
             headers.append(('Content-Length', '%d' % len(qs or b'')))
-            fd = BytesIO(qs or b'')
+            fd = io.BytesIO(qs or b'')
             qs = None
 
         app = cherrypy.tree.apps[appPrefix]
@@ -496,8 +493,7 @@ class TestCase(unittest.TestCase):
 
         self._buildHeaders(headers, cookie, user, token, basicAuth, authHeader)
 
-        # Python2 will not match Unicode URLs
-        url = str(prefix + path)
+        url = prefix + path
         try:
             response = request.run(method, url, qs, 'HTTP/1.1', headers, fd)
         finally:
@@ -527,9 +523,9 @@ class TestCase(unittest.TestCase):
         data = '' if text else b''
 
         for chunk in response.body:
-            if text and isinstance(chunk, six.binary_type):
+            if text and isinstance(chunk, bytes):
                 chunk = chunk.decode('utf8')
-            elif not text and not isinstance(chunk, six.binary_type):
+            elif not text and not isinstance(chunk, bytes):
                 chunk = chunk.encode('utf8')
             data += chunk
 

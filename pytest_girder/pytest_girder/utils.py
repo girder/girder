@@ -4,15 +4,14 @@ import cherrypy
 import contextlib
 import email
 import errno
+import io
 import json
 import os
-import six
 import smtpd
 import socket
 import threading
 import time
 
-from six import BytesIO
 from six.moves import queue, range, urllib
 
 _startPort = 31000
@@ -21,16 +20,6 @@ _maxTries = 100
 
 class MockSmtpServer(smtpd.SMTPServer):
     mailQueue = queue.Queue()
-
-    def __init__(self, localaddr, remoteaddr, decode_data=False):
-        kwargs = {}
-        if six.PY3:
-            # Python 3.5+ prints a warning if 'decode_data' isn't explicitly
-            # specified, but earlier versions don't accept the argument at all
-            kwargs['decode_data'] = decode_data
-        # smtpd.SMTPServer is an old-style class in Python2,
-        # so super() can't be used
-        smtpd.SMTPServer.__init__(self, localaddr, remoteaddr, **kwargs)
 
     def process_message(self, peer, mailfrom, rcpttos, data, **kwargs):
         self.mailQueue.put(data)
@@ -55,7 +44,7 @@ class MockSmtpReceiver(object):
                 self.address = ('localhost', port)
                 self.smtp = MockSmtpServer(self.address, None)
                 break
-            except (OSError if six.PY3 else socket.error) as e:
+            except OSError as e:
                 if e.errno != errno.EADDRINUSE:
                     raise
         else:
@@ -89,7 +78,7 @@ class MockSmtpReceiver(object):
         msg = self.smtp.mailQueue.get(block=False)
 
         if parse:
-            if six.PY3 and isinstance(msg, six.binary_type):
+            if isinstance(msg, bytes):
                 return email.message_from_bytes(msg)
             else:
                 return email.message_from_string(msg)
@@ -129,9 +118,9 @@ def getResponseBody(response, text=True):
     data = '' if text else b''
 
     for chunk in response.body:
-        if text and isinstance(chunk, six.binary_type):
+        if text and isinstance(chunk, bytes):
             chunk = chunk.decode('utf8')
-        elif not text and not isinstance(chunk, six.binary_type):
+        elif not text and not isinstance(chunk, bytes):
             chunk = chunk.encode('utf8')
         data += chunk
 
@@ -179,18 +168,15 @@ def request(path='/', method='GET', params=None, user=None,
     if additionalHeaders:
         headers.extend(additionalHeaders)
 
-    if isinstance(body, six.text_type):
+    if isinstance(body, str):
         body = body.encode('utf8')
 
     if params:
-        # Python2 can't urlencode unicode and this does no harm in Python3
-        qs = urllib.parse.urlencode({
-            k: v.encode('utf8') if isinstance(v, six.text_type) else v
-            for k, v in params.items()})
+        qs = urllib.parse.urlencode(params)
 
     if params and body:
         # In this case, we are forced to send params in query string
-        fd = BytesIO(body)
+        fd = io.BytesIO(body)
         headers.append(('Content-Type', type))
         headers.append(('Content-Length', '%d' % len(body)))
     elif method in ['POST', 'PUT', 'PATCH'] or body:
@@ -201,7 +187,7 @@ def request(path='/', method='GET', params=None, user=None,
 
         headers.append(('Content-Type', type or 'application/x-www-form-urlencoded'))
         headers.append(('Content-Length', '%d' % len(qs or b'')))
-        fd = BytesIO(qs or b'')
+        fd = io.BytesIO(qs or b'')
         qs = None
 
     app = cherrypy.tree.apps[appPrefix]
@@ -211,8 +197,7 @@ def request(path='/', method='GET', params=None, user=None,
 
     headers = buildHeaders(headers, cookie, user, token, basicAuth, authHeader)
 
-    # Python2 will not match Unicode URLs
-    url = str(prefix + path)
+    url = prefix + path
     try:
         response = request.run(method, url, qs, 'HTTP/1.1', headers, fd)
     finally:

@@ -1,7 +1,7 @@
+import io
 import itertools
 import os
 import re
-import six
 
 import cherrypy
 from cherrypy._cpreqbody import Part
@@ -63,7 +63,7 @@ class FileHandle(object):
             size = self._file['size'] - self._pos
         if size > self._maximumReadSize:
             raise GirderException('Read exceeds maximum allowed size.')
-        data = six.BytesIO()
+        data = io.BytesIO()
         length = 0
         for chunk in itertools.chain(self._prev, self._stream):
             chunkLen = len(chunk)
@@ -304,11 +304,11 @@ class AbstractAssetstoreAdapter(object):
         :type chunk: a file-like object or a string
         :returns: the length of the chunk if known, or None.
         """
-        if isinstance(chunk, (six.BytesIO, RequestBodyStream, Part)):
+        if isinstance(chunk, (io.BytesIO, RequestBodyStream, Part)):
             return
         elif hasattr(chunk, 'fileno'):
             return os.fstat(chunk.fileno()).st_size
-        elif isinstance(chunk, six.text_type):
+        elif isinstance(chunk, str):
             return len(chunk.encode('utf8'))
         else:
             return len(chunk)

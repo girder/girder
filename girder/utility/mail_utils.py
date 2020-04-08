@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import re
-import six
 import smtplib
 
 from email.mime.text import MIMEText
@@ -88,9 +87,9 @@ def _createMessage(subject, text, to, bcc):
     from girder.models.setting import Setting
 
     # Coerce and validate arguments
-    if isinstance(to, six.string_types):
+    if isinstance(to, str):
         to = [to]
-    if isinstance(bcc, six.string_types):
+    if isinstance(bcc, str):
         bcc = [bcc]
     elif bcc is None:
         bcc = []
@@ -100,7 +99,7 @@ def _createMessage(subject, text, to, bcc):
     if not subject:
         subject = '[no subject]'
 
-    if isinstance(text, six.text_type):
+    if isinstance(text, str):
         # TODO: needed?
         text = text.encode('utf8')
 

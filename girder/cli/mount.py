@@ -4,7 +4,6 @@ import click
 import errno
 import fuse
 import os
-import six
 import stat
 import sys
 import threading
@@ -151,7 +150,7 @@ class ServerFuse(fuse.Operations):
         :returns: the resource name as a text string.
         """
         name = path_util.getResourceName(model, doc)
-        if isinstance(name, six.binary_type):
+        if isinstance(name, bytes):
             name = name.decode('utf8')
         return name
 
@@ -369,9 +368,6 @@ def unmountServer(path, lazy=False, quiet=False):
     # We only import these for the unmount command
     import shutil
     import subprocess
-    # patch shutil.which for python < 3
-    if not six.PY3:
-        import shutilwhich  # noqa
 
     if shutil.which('fusermount'):
         cmd = ['fusermount', '-u']
