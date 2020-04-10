@@ -132,13 +132,13 @@ var Collection = Backbone.Collection.extend({
     },
 
     /**
-     * Sets a specific pagenumber for loading by caluclating the offset
+     * Sets a specific pageNumber for loading by caluclating the offset
      * If we have append on I think we don't want to execute this.
      * @param {Number} pageNumber - the page that should be loaded based on the pageLimit size
      * @param {Object} params - additional parameters to pass to the fetch call
      */
     fetchPage: function (pageNumber, params) {
-        // Make sure the page Number is within range, pageNumber is indexed at 0
+        // Make sure the page Number is within range, and set it to be indexed at 0
         pageNumber = pageNumber - 1;
         if (!this.append && pageNumber * this.pageLimit < this._totalCount && pageNumber >= 0) {
             this.offset = pageNumber * this.pageLimit;
@@ -193,10 +193,11 @@ var Collection = Backbone.Collection.extend({
 
             var result = xhr.then((list) => {
                 if (this.pageLimit > 0 && list.length > this.pageLimit) {
+                    // If there is a paginated view we want the total count to know how many total pages
+                    this._totalCount = xhr.getResponseHeader('girder-total-count');
                     // This means we have more pages to display still. Pop off
                     // the extra that we fetched.
                     list.pop();
-                    this._totalCount = xhr.getResponseHeader('girder-total-count');
                     this._hasMorePages = true;
                 } else {
                     this._hasMorePages = false;

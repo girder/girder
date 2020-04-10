@@ -5,13 +5,13 @@
     .g-hierarchy-actions-header
       if checkboxes
         input.g-select-all(type="checkbox", title="Select / Unselect all")
-
         .btn-group
           button.g-checked-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
             data-toggle="dropdown", disabled="disabled", title="Checked actions")
             i.icon-check
             i.icon-down-dir
           ul.g-checked-actions-menu.dropdown-menu(role="menu")
+
       .g-folder-header-buttons
         if (type === 'folder')
           button.g-folder-info-button.btn.btn-sm.btn-info(title="Show folder info")
