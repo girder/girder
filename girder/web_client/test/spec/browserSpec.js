@@ -1243,7 +1243,9 @@ describe('browser hierarchy paginated selection', function () {
         }, 'Filter Function should be false when paginated is specified during initialization');
 
         runs(function () {
-            expect(widget._hierarchyView.itemListView.collection.filterFunc).not.toBeDefined();
+            expect(widget._hierarchyView.itemListView._paginated).toBe(false);
+            expect(widget._hierarchyView.itemListView.collection.append).toBe(true);
+            expect(widget._hierarchyView.itemListView.collection.filterFunc).toBeDefined();
         }, 'Filter Function should be set on the ItemListWidget');
     });
 });

@@ -66,11 +66,12 @@ var ItemListWidget = View.extend({
         this.currentPage = 1; // By default we want to be on the first page
 
         if (this._paginated) {
-            // Override the default to prevent appending new pages
-            this.collection.append = false;
             if (this.collection.filterFunc) {
                 console.warn('Pagination cannot be used with a filter function');
                 this._paginated = false;
+            } else {
+                // Override the default to prevent appending new pages
+                this.collection.append = false;
             }
         }
 
@@ -99,10 +100,17 @@ var ItemListWidget = View.extend({
         });
     },
 
+    /**
+     * Binds the change function to the collection and calls it initially to update the render
+     */
     bindOnChanged: function () {
         this.collection.on('g:changed', this.changedFunc, this);
         this.changedFunc();
     },
+    /**
+     * Function that causes a render each time the collection is changed
+     * Will also update the current page in a paginated system
+     */
     changedFunc: function () {
         if (this.accessLevel !== undefined) {
             this.collection.each((model) => {
