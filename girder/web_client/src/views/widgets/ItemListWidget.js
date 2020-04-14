@@ -61,6 +61,7 @@ var ItemListWidget = View.extend({
         }).render();
 
         this.collection = new ItemCollection();
+        this.collection.append = true; // Append, don't replace pages
         this.collection.filterFunc = settings.itemFilter;
         this.currentPage = 1; // By default we want to be on the first page
 
@@ -68,8 +69,8 @@ var ItemListWidget = View.extend({
             // Override the default to prevent appending new pages
             this.collection.append = false;
             if (this.collection.filterFunc) {
-                console.warn('Pagination cannot be used with a filterFunction');
-                this.collection.filterFunc = undefined;
+                console.warn('Pagination cannot be used with a filter function');
+                this._paginated = false;
             }
         }
 
@@ -141,13 +142,13 @@ var ItemListWidget = View.extend({
     },
 
     /**
-     * Returns the number of pages in the itemList for use in a paginated view
+     * @returns {number} the number of pages in the itemList for use in a paginated view
      */
     getNumPages() {
         return this._totalPages || 1;
     },
     /**
-     * Returns the current page for paginated lists, defaults to 1 if none is provided
+     * @returns {number} the current page for paginated lists, defaults to 1 if none is provided
      */
     getCurrentPage() {
         return this.currentPage || 1;

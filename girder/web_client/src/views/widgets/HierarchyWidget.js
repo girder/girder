@@ -261,6 +261,7 @@ var HierarchyWidget = View.extend({
                     this.$('.g-hierarchy-breadcrumb-bar').css({ top: 0 });
                     this.$('.g-hierarachy-paginated-bar').css({ bottom: 0 });
                 } else {
+                    // We remove the bar if the current folder doesn't have more than one page, keep the sticky breadcrumb though
                     this.$('.g-hierarachy-paginated-bar').remove();
                 }
             });
@@ -319,7 +320,6 @@ var HierarchyWidget = View.extend({
             checkboxes: this._checkboxes,
             capitalize: capitalize,
             itemFilter: this._itemFilter
-
         }));
 
         if (this.$('.g-folder-actions-menu>li>a').length === 0) {

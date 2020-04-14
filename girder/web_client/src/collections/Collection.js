@@ -77,7 +77,8 @@ var Collection = Backbone.Collection.extend({
     /**
      *  This value is populated whenever the list length exceeds the pageLimit.
      *  It is used to determine how many pages are needed based on the page limit
-     *  it is retrieved from the resposne header 'girder-total-count'
+     *  it is retrieved from the response header 'girder-total-count'
+     *  @returns {number} total number of items retrieved
      */
     getTotalCount: function () {
         return this._totalCount || 0;
@@ -115,7 +116,7 @@ var Collection = Backbone.Collection.extend({
     },
 
     /**
-     * Return the 0-indexed page number of the current page. Add 1 to this
+     * @returns {number} the 0-indexed page number of the current page. Add 1 to this
      * result when displaying it to the user.
      *
      * If this collection hasn't been fully initialized (i.e.: before any pages
@@ -133,9 +134,9 @@ var Collection = Backbone.Collection.extend({
 
     /**
      * Sets a specific pagenumber for loading by caluclating the offset
-     * If we have append on I think we don't want to execute this.
      * @param {Number} pageNumber - the page that should be loaded based on the pageLimit size
      * @param {Object} params - additional parameters to pass to the fetch call
+     * @returns {Promise} a fetch promise to retrieve more data
      */
     fetchPage: function (pageNumber, params) {
         // Make sure the page Number is within range, pageNumber is indexed at 0
