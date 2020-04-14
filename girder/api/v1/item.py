@@ -2,7 +2,7 @@
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.utility import ziputil
-from girder.constants import AccessType, TokenScope
+from girder.constants import AccessType, TokenScope, SortDir
 from girder.exceptions import RestException
 from girder.api import access
 from girder.models.file import File
@@ -23,6 +23,7 @@ class Item(Resource):
         self.route('GET', (':id', 'files'), self.getFiles)
         self.route('GET', (':id', 'download'), self.download)
         self.route('GET', (':id', 'rootpath'), self.rootpath)
+        self.route('GET', (':id', 'position'), self.findPosition)
         self.route('POST', (), self.createItem)
         self.route('PUT', (':id',), self.updateItem)
         self.route('POST', (':id', 'copy'), self.copyItem)
@@ -33,7 +34,7 @@ class Item(Resource):
     @filtermodel(model=ItemModel)
     @autoDescribeRoute(
         Description('List or search for items.')
-        .notes('You must pass either a "itemId" or "text" field '
+        .notes('You must pass either a "folderId" or "text" field '
                'to specify how you are searching for items.  '
                'If you omit one of these parameters the request will fail and respond : '
                '"Invalid search mode."')
@@ -60,12 +61,15 @@ class Item(Resource):
         2. Searching with full text search across all items in the system.
            Simply pass a "text" parameter for this mode.
         """
+        return self._find(folderId, text, name, limit, offset, sort)
+
+    def _find(self, folderId, text, name, limit, offset, sort, filters=None):
         user = self.getCurrentUser()
 
+        filters = (filters.copy() if filters else {})
         if folderId:
             folder = Folder().load(
                 id=folderId, user=user, level=AccessType.READ, exc=True)
-            filters = {}
             if text:
                 filters['$text'] = {
                     '$search': text
@@ -77,9 +81,49 @@ class Item(Resource):
                 folder=folder, limit=limit, offset=offset, sort=sort, filters=filters)
         elif text is not None:
             return self._model.textSearch(
-                text, user=user, limit=limit, offset=offset, sort=sort)
+                text, user=user, limit=limit, offset=offset, sort=sort, filters=filters)
         else:
             raise RestException('Invalid search mode.')
+
+    @access.public(scope=TokenScope.DATA_READ)
+    @autoDescribeRoute(
+        Description('Report the offset of an item in a list or search.')
+        .notes('You must pass either a "folderId" or "text" field '
+               'to specify how you are searching for items.  '
+               'If you omit one of these parameters the request will fail and respond : '
+               '"Invalid search mode."')
+        .modelParam('id', model=ItemModel, level=AccessType.READ)
+        .param('folderId', 'Pass this to list all items in a folder.',
+               required=False)
+        .param('text', 'Pass this to perform a full text search for items.',
+               required=False)
+        .param('name', 'Pass to lookup an item by exact name match. Must '
+               'pass folderId as well when using this.', required=False)
+        .param('sort', 'Field to sort the result set by.', default='lowerName',
+               required=False, strip=True)
+        .param('sortdir', 'Sort order: 1 for ascending, -1 for descending.',
+               required=False, dataType='integer',
+               enum=[SortDir.ASCENDING, SortDir.DESCENDING],
+               default=SortDir.ASCENDING)
+        .errorResponse()
+        .errorResponse('Read access was denied on the parent folder.', 403)
+    )
+    def findPosition(self, item, folderId, text, name, params):
+        limit, offset, sort = self.getPagingParameters(params, 'lowerName')
+        if len(sort) != 1 or sort[0][0] not in item:
+            raise RestException('Invalid sort mode.')
+        sortField, sortDir = sort[0]
+        dir = '$lt' if sortDir == SortDir.ASCENDING else '$gt'
+        filters = {'$or': [
+            {sortField: {dir: item.get(sortField)}},
+            # For items that have the same sort value, sort by _id.
+            # Mongo may fall back to this as the final sort, but this isn't
+            # documented.
+            {sortField: item.get(sortField), '_id': {dir: item['_id']}}
+        ]}
+        # limit and offset don't affect the results.
+        cursor = self._find(folderId, text, name, 1, 0, sort, filters)
+        return cursor.count()
 
     @access.public(scope=TokenScope.DATA_READ)
     @filtermodel(model=ItemModel)
