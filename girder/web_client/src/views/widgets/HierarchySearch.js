@@ -1,13 +1,17 @@
 import $ from 'jquery';
 import _ from 'underscore';
 import View from '@girder/core/views/View';
+import HierarchySearchTemplate from '@girder/core/templates/widgets/hierarchySearch.pug';
 import SearchResultsTemplate from '@girder/core/templates/widgets/searchResults.pug';
+
 import { restRequest } from '@girder/core/rest';
 
-
-var HierarchySearchView = View.extend({
+var HierarchySearchWidget = View.extend({
     events: {
-        'input .g-hierarchy-search-field': 'search'
+        'input .g-hierarchy-search-field': 'search',
+        'click .g-search-result>a': function (e) {
+            this._resultClicked($(e.currentTarget));
+        }
     },
     initialize: function (settings) {
         this.itemListWidget = settings.itemListWidget;
@@ -15,19 +19,17 @@ var HierarchySearchView = View.extend({
         this._defaultFolderModel = settings.folderModel;
     },
     render: function () {
-        this.$el.html(HierarchyPaginatedTemplate({
-            totalPages: this.itemListWidget && this.itemListWidget.getNumPages(),
-            currentPage: this.itemListWidget && this.itemListWidget.getCurrentPage()
+        this.$el.html(HierarchySearchTemplate({
         }));
 
         return this;
     },
     search: function () {
-        var q = this.$('.g-search-field').val();
+        var q = this.$('.g-hierarchy-search-field').val();
 
-        //If the results are emtpy we reset to the default folder
+        // If the results are emtpy we reset to the default folder
         if (!q) {
-            this.resetItemList();
+            this.resetState();
             return this;
         }
         if (this.ajaxLock) {
@@ -48,6 +50,10 @@ var HierarchySearchView = View.extend({
         this.$('.dropdown').removeClass('open');
         return this;
     },
+    clearText: function () {
+        this.$('.g-hierarchy-search-field').val('');
+        return this;
+    },
     _animatePending: function () {
         const isPending = this.ajaxLock;
         this.$('.g-hierarchy-search-state')
@@ -55,32 +61,32 @@ var HierarchySearchView = View.extend({
             .toggleClass('icon-spin4 animate-spin', isPending);
     },
     _resultClicked: function (link) {
-        if (link.data('resourceType') === 'resultPage') {
-            this._goToResultPage(this.$('.g-search-field').val(), this.currentMode);
-        } else {
-            this.trigger('g:resultClicked', {
-                type: link.data('resourceType'),
-                id: link.data('resourceId'),
-                text: link.text().trim(),
-                icon: link.data('resourceIcon')
-            });
-        }
+        this.trigger('g:resultClicked', {
+            type: link.data('resourceType'),
+            id: link.data('resourceId'),
+            text: link.text().trim(),
+            icon: link.data('resourceIcon')
+        });
+        this.resetState();
     },
     _doSearch: function (q) {
         this.ajaxLock = true;
         this.pending = null;
         this._animatePending();
 
-        const formatQuery = { '$oid': this.folderId, "name":{"$regex":`.*${q}.*`}};
+        const formatQuery = { folderId: { $oid: this._defaultFolderModel.get('_id') }, name: { $regex: `.*${q}.*` } };
+        console.log(formatQuery);
         restRequest({
             url: 'item/query',
             data: {
-                query: q,
+                query: JSON.stringify(formatQuery)
             }
         }).done((results) => {
             this.ajaxLock = false;
             this._animatePending();
 
+            console.log('RESULTS');
+            console.log(results);
             if (this.pending) {
                 this._doSearch(this.pending);
             } else {
@@ -92,20 +98,19 @@ var HierarchySearchView = View.extend({
                 }
 
                 var resources = [];
-                _.each(this.types, function (type) {
-                    _.each(results[type] || [], function (result) {
-                        var text, icon;
-                         if (type === 'item') {
-                            text = result.name;
-                            icon = 'doc-text-inv';
-                        } 
-                        resources.push({
-                            type: type,
-                            id: result._id,
-                            text: text,
-                            icon: icon
-                        });
-                    }, this);
+
+                _.each(results, function (result) {
+                    var text, icon;
+                    if (result._modelType === 'item') {
+                        text = result.name;
+                        icon = 'doc-text-inv';
+                    }
+                    resources.push({
+                        type: result._modelType,
+                        id: result._id,
+                        text: text,
+                        icon: icon
+                    });
                 }, this);
                 this.$('.g-hierarchy-search-results>ul').html(SearchResultsTemplate({
                     results: resources.slice(0, 6)
@@ -115,3 +120,5 @@ var HierarchySearchView = View.extend({
         });
     }
 });
+
+export default HierarchySearchWidget;

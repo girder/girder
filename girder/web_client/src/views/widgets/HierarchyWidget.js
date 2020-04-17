@@ -26,6 +26,8 @@ import HierarchyBreadcrumbTemplate from '@girder/core/templates/widgets/hierarch
 import HierarchyPaginatedTemplate from '@girder/core/templates/widgets/hierarchyPaginated.pug';
 import HierarchyWidgetTemplate from '@girder/core/templates/widgets/hierarchyWidget.pug';
 
+import HierarchySearchWidget from './HierarchySearch';
+
 import '@girder/core/stylesheets/widgets/hierarchyWidget.styl';
 
 import 'bootstrap/js/dropdown';
@@ -159,6 +161,7 @@ var HierarchyWidget = View.extend({
         this._highlightItem = _.has(settings, 'highlightItem') ? settings.highlightItem : false;
         this._paginated = _.has(settings, 'paginated') ? settings.paginated : false;
         this._onFolderSelect = settings.onFolderSelect;
+        this._searchEnabled = _.has(settings, 'searchEnabled') ? settings.paginated : true; // FOR TESTING
 
         this.folderAccess = settings.folderAccess;
         this.folderCreate = settings.folderCreate;
@@ -176,6 +179,18 @@ var HierarchyWidget = View.extend({
             this.setCurrentModel(this.breadcrumbs[idx]);
             this._setRoute();
         }, this);
+
+        if (this._searchEnabled) {
+            this.hierarchySearch = new HierarchySearchWidget({
+                parentView: this,
+                itemListView: this.itemListView,
+                hierarchyWidget: this,
+                folderModel: this.parentModel });
+            this.hierarchySearch.on('g:resultClicked', function (result) {
+                // Need to set the default selected resource by the id in result;
+                this.itemListView.selectItemById(result.id);
+            }, this);
+        }
 
         this.checkedMenuWidget = new CheckedMenuWidget({
             pickedCount: this.getPickedCount(),
@@ -333,6 +348,9 @@ var HierarchyWidget = View.extend({
         this.folderListView.setElement(this.$('.g-folder-list-container')).render();
         if (this.hierarchyPaginated && this.parentModel.resourceName !== 'collection') {
             this.hierarchyPaginated.setElement(this.$('.g-hierarachy-paginated-bar')).render();
+        }
+        if (this.hierarchySearch) {
+            this.hierarchySearch.setElement(this.$('.g-hierarchy-search-container')).render();
         }
         if (this.parentModel.resourceName === 'folder' && this._showItems) {
             this._initFolderViewSubwidgets();

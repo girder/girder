@@ -9,6 +9,8 @@ import { restRequest } from '@girder/core/rest';
 
 import ItemListTemplate from '@girder/core/templates/widgets/itemList.pug';
 
+import { ItemModel } from '../../models';
+
 /**
  * This widget shows a list of items under a given folder.
  */
@@ -89,7 +91,7 @@ var ItemListWidget = View.extend({
                     if (val >= this.collection.pageLimit) {
                         const pageLimit = this.collection.pageLimit;
                         const calculatedPage = 1 + Math.ceil((val - (val % pageLimit)) / pageLimit);
-                        this.collection.fetchPage(calculatedPage);
+                        return this.collection.fetchPage(calculatedPage);
                     }
                 }).done(() => this.bindOnChanged());
             } else {
@@ -140,6 +142,33 @@ var ItemListWidget = View.extend({
         return this;
     },
 
+    selectItemById(id, folderId = this._selectedItem.get('folderId')) {
+        this._selectedItem = new ItemModel({
+            _id: id,
+            folderId: folderId
+        });
+        // Now we either set the selected item to the current item by ID, or go to another page if the item isn't on this page
+        this._highlightItem = this._oldHiglightItem;
+
+        if (this._paginated && this.collection.hasNextPage && this._selectedItem) {
+            restRequest({
+                url: `item/position/${this._selectedItem.get('_id')}`,
+                method: 'GET',
+                data: { folderId: this._selectedItem.get('folderId') }
+            }).done((val) => {
+                // Now we fetch the correct page for the position
+                val = Number(val);
+                if (val >= this.collection.pageLimit) {
+                    const pageLimit = this.collection.pageLimit;
+                    const calculatedPage = 1 + Math.ceil((val - (val % pageLimit)) / pageLimit);
+                    return this.collection.fetchPage(calculatedPage);
+                }
+            }).done(() => {
+                this.trigger('g:itemClicked', this.collection.get(id));
+                this.trigger('g:changed');
+            });
+        }
+    },
     /**
      * Returns the number of pages in the itemList for use in a paginated view
      */
@@ -301,6 +330,7 @@ var ItemListWidget = View.extend({
                     this.observer = null;
                     this.tempScrollPos = undefined;
                     // Prevents scrolling when user clicks 'show more...'
+                    this._oldHiglightItem = true;
                     this._highlightItem = false;
                 }
             };
