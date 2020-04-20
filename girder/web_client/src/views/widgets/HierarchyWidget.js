@@ -72,6 +72,12 @@ var HierarchyPaginatedView = View.extend({
     events: {
         'change #g-page-selection-input': function (event) {
             this.itemListWidget.setPage(Number(event.target.value));
+        },
+        'click a#g-next-paginated': function () {
+            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val())+1);
+        },
+        'click a#g-previous-paginated': function () {
+            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val())-1);
         }
     },
     initialize: function (settings) {

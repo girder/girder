@@ -1,5 +1,13 @@
 .g-hierarchy-pages-header
   .g-hierarchycenter
+    if (currentPage >1)
+      a.g-prevnext-paginated#g-previous-paginated Prev
+    else
+      span.g-prevnext-paginated#g-previous-paginated(class="disabled") Prev
     span Page:
     input#g-page-selection-input(type='number', min=1, max=totalPages, value=currentPage)
     span of #{totalPages}
+    if (currentPage+1<=totalPages)
+      a.g-prevnext-paginated#g-next-paginated(class="disabled") Next
+    else
+      span.g-prevnext-paginated#g-next-paginated(class="disabled") Next

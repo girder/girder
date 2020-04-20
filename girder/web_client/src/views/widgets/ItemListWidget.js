@@ -91,7 +91,7 @@ var ItemListWidget = View.extend({
                     if (val >= this.collection.pageLimit) {
                         const pageLimit = this.collection.pageLimit;
                         const calculatedPage = 1 + Math.ceil((val - (val % pageLimit)) / pageLimit);
-                        this.collection.fetchPage(calculatedPage);
+                        return this.collection.fetchPage(calculatedPage);
                     }
                 }).done(() => this.bindOnChanged());
             } else {
