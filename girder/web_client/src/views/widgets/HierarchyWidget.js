@@ -74,10 +74,10 @@ var HierarchyPaginatedView = View.extend({
             this.itemListWidget.setPage(Number(event.target.value));
         },
         'click a#g-next-paginated': function () {
-            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val())+1);
+            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val()) + 1);
         },
         'click a#g-previous-paginated': function () {
-            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val())-1);
+            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val()) - 1);
         }
     },
     initialize: function (settings) {
