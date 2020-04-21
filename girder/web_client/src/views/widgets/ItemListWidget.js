@@ -162,11 +162,11 @@ var ItemListWidget = View.extend({
                 const pageLimit = this.collection.pageLimit;
                 const calculatedPage = 1 + Math.ceil((val - (val % pageLimit)) / pageLimit);
                 if (calculatedPage !== this.currentPage) {
-                    return this.collection.fetchPage(calculatedPage);
+                    return this.collection.fetchPage(calculatedPage).done(() => {
+                        this.trigger('g:itemClicked', this.collection.get(id));
+                        this.render();
+                    });
                 }
-            }).done(() => {
-                this.trigger('g:itemClicked', this._selectedItem);
-                this.trigger('g:changed');
             });
         }
     },
