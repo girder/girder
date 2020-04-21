@@ -188,7 +188,7 @@ var HierarchyWidget = View.extend({
                 folderModel: this.parentModel });
             this.hierarchySearch.on('g:resultClicked', function (result) {
                 // Need to set the default selected resource by the id in result;
-                this.itemListView.selectItemById(result.id);
+                this.itemListView.selectItemById(result.id, this.parentModel.get('_id'));
             }, this);
         }
 

@@ -156,15 +156,16 @@ var ItemListWidget = View.extend({
                 method: 'GET',
                 data: { folderId: this._selectedItem.get('folderId') }
             }).done((val) => {
-                // Now we fetch the correct page for the position
+                // Now we fetch the correct page for the position but we need to see if it is on a earlier or later page
                 val = Number(val);
-                if (val >= this.collection.pageLimit) {
-                    const pageLimit = this.collection.pageLimit;
-                    const calculatedPage = 1 + Math.ceil((val - (val % pageLimit)) / pageLimit);
+
+                const pageLimit = this.collection.pageLimit;
+                const calculatedPage = 1 + Math.ceil((val - (val % pageLimit)) / pageLimit);
+                if (calculatedPage !== this.currentPage) {
                     return this.collection.fetchPage(calculatedPage);
                 }
             }).done(() => {
-                this.trigger('g:itemClicked', this.collection.get(id));
+                this.trigger('g:itemClicked', this._selectedItem);
                 this.trigger('g:changed');
             });
         }
