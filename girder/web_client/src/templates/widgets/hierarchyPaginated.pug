@@ -1,13 +1,19 @@
 .g-hierarchy-pages-header
   .g-hierarchycenter
-    if (currentPage >1)
-      a#g-previous-paginated.g-prevnext-paginated Prev
-    else
-      span#g-previous-paginated.g-prevnext-paginated.disabled Prev
-    span Page:
-    input#g-page-selection-input(type='number', min=1, max=totalPages, value=currentPage)
-    span of #{totalPages}
-    if (currentPage+1<=totalPages)
-      a#g-next-paginated.g-prevnext-paginated Next
-    else
-      span#g-next-paginated.g-prevnext-paginated.disabled Next
+    ul.pagination.pagination-sm
+      if (currentPage >1)
+        li.g-page-prev
+          a#g-previous-paginated « Prev
+      else
+        li.g-page-prev.disabled
+          a#g-previous-paginated « Prev
+      li
+        span Page:
+          input#g-page-selection-input(type='number', min=1, max=totalPages, value=currentPage)
+          span of #{totalPages}
+      if (currentPage+1<=totalPages)
+        li.g-page-next
+          a#g-next-paginated Next »
+      else
+        li.g-page-next.disabled
+          a#g-next-paginated Next »

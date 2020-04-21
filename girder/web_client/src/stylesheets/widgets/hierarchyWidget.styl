@@ -33,17 +33,22 @@
     padding-right 5px
     overflow hidden
     white-space nowrap
-    .g-hierarchy-pages-header, .g-hierarchycenter
-      margin auto
-      text-align center
-      .g-prevnext-paginated
-        margin 5px
-      .disabled
-        cursor default
-        font-weight normal
-      a.g-prevnext-paginated
-        margin 5px
-        font-weight bold
+    .g-hierarchy-pages-header
+      .g-hierarchycenter
+        margin auto
+        text-align center
+        .pagination
+          display inline-block
+          vertical-align middle
+          margin 0
+          padding 0
+          border-radius 4px
+        .g-page-next, .g-page-prev
+          a
+            padding 8px 12px
+        #g-page-selection-input
+          margin-left 3px
+          margin-right 3px
       
 
   .g-hierarchy-breadcrumb-bar
