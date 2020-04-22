@@ -186,6 +186,7 @@ var HierarchyWidget = View.extend({
             this._setRoute();
         }, this);
 
+        console.log(this._searchEnabled);
         if (this._searchEnabled) {
             this.hierarchySearch = new HierarchySearchWidget({
                 parentView: this,
@@ -355,6 +356,9 @@ var HierarchyWidget = View.extend({
         this.folderListView.setElement(this.$('.g-folder-list-container')).render();
         if (this.hierarchyPaginated && this.parentModel.resourceName !== 'collection') {
             this.hierarchyPaginated.setElement(this.$('.g-hierarachy-paginated-bar')).render();
+        }
+        if (this.hierarchySearch) {
+            this.hierarchySearch.setElement(this.$('.g-hierarchy-search-container')).render();
         }
         if (this.parentModel.resourceName === 'folder' && this._showItems) {
             this._initFolderViewSubwidgets();

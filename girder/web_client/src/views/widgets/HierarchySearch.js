@@ -75,7 +75,6 @@ var HierarchySearchWidget = View.extend({
         this._animatePending();
 
         const formatQuery = { folderId: { $oid: this._defaultFolderModel.get('_id') }, name: { $regex: `.*${q}.*` } };
-        console.log(formatQuery);
         restRequest({
             url: 'item/query',
             data: {
@@ -84,9 +83,6 @@ var HierarchySearchWidget = View.extend({
         }).done((results) => {
             this.ajaxLock = false;
             this._animatePending();
-
-            console.log('RESULTS');
-            console.log(results);
             if (this.pending) {
                 this._doSearch(this.pending);
             } else {

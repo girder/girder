@@ -174,6 +174,9 @@ var ItemListWidget = View.extend({
                         this.trigger('g:itemClicked', this.collection.get(id));
                         this.render();
                     });
+                } else {
+                    this.trigger('g:itemClicked', this.collection.get(id));
+                    this.render();
                 }
             });
         }
