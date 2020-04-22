@@ -31,12 +31,25 @@
     border-radius 0
     padding-left 5px
     padding-right 5px
-    text-overflow ellipsis
     overflow hidden
     white-space nowrap
-    .g-hierarchy-pages-header, .g-hierarchycenter
-      margin auto
-      width 50%
+    .g-hierarchy-pages-header
+      .g-hierarchycenter
+        margin auto
+        text-align center
+        .pagination
+          display inline-block
+          vertical-align middle
+          margin 0
+          padding 0
+          border-radius 4px
+        .g-page-next, .g-page-prev
+          a
+            padding 8px 12px
+        #g-page-selection-input
+          margin-left 3px
+          margin-right 3px
+      
 
   .g-hierarchy-breadcrumb-bar
     ol.breadcrumb

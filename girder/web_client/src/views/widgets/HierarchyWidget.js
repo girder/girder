@@ -74,6 +74,12 @@ var HierarchyPaginatedView = View.extend({
     events: {
         'change #g-page-selection-input': function (event) {
             this.itemListWidget.setPage(Number(event.target.value));
+        },
+        'click a#g-next-paginated': function () {
+            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val()) + 1);
+        },
+        'click a#g-previous-paginated': function () {
+            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val()) - 1);
         }
     },
     initialize: function (settings) {
@@ -276,6 +282,7 @@ var HierarchyWidget = View.extend({
                     this.$('.g-hierarchy-breadcrumb-bar').css({ top: 0 });
                     this.$('.g-hierarachy-paginated-bar').css({ bottom: 0 });
                 } else {
+                    // We remove the bar if the current folder doesn't have more than one page, keep the sticky breadcrumb though
                     this.$('.g-hierarachy-paginated-bar').remove();
                 }
             });
@@ -348,9 +355,6 @@ var HierarchyWidget = View.extend({
         this.folderListView.setElement(this.$('.g-folder-list-container')).render();
         if (this.hierarchyPaginated && this.parentModel.resourceName !== 'collection') {
             this.hierarchyPaginated.setElement(this.$('.g-hierarachy-paginated-bar')).render();
-        }
-        if (this.hierarchySearch) {
-            this.hierarchySearch.setElement(this.$('.g-hierarchy-search-container')).render();
         }
         if (this.parentModel.resourceName === 'folder' && this._showItems) {
             this._initFolderViewSubwidgets();

@@ -67,11 +67,12 @@ var ItemListWidget = View.extend({
         this.currentPage = 1; // By default we want to be on the first page
 
         if (this._paginated) {
-            // Override the default to prevent appending new pages
-            this.collection.append = false;
             if (this.collection.filterFunc) {
-                console.warn('Pagination cannot be used with a filterFunction');
-                this.collection.filterFunc = undefined;
+                console.warn('Pagination cannot be used with a filter function');
+                this._paginated = false;
+            } else {
+                // Override the default to prevent appending new pages
+                this.collection.append = false;
             }
         }
 
@@ -82,7 +83,7 @@ var ItemListWidget = View.extend({
                 this.trigger('g:paginated');
                 // We need to get the position in the list for the selected item
                 restRequest({
-                    url: `item/position/${this._selectedItem.get('_id')}`,
+                    url: `item/${this._selectedItem.get('_id')}/position`,
                     method: 'GET',
                     data: { folderId: this._selectedItem.get('folderId') }
                 }).done((val) => {
@@ -100,10 +101,17 @@ var ItemListWidget = View.extend({
         });
     },
 
+    /**
+     * Binds the change function to the collection and calls it initially to update the render
+     */
     bindOnChanged: function () {
         this.collection.on('g:changed', this.changedFunc, this);
         this.changedFunc();
     },
+    /**
+     * Function that causes a render each time the collection is changed
+     * Will also update the current page in a paginated system
+     */
     changedFunc: function () {
         if (this.accessLevel !== undefined) {
             this.collection.each((model) => {
@@ -178,6 +186,27 @@ var ItemListWidget = View.extend({
     },
     /**
      * Returns the current page for paginated lists, defaults to 1 if none is provided
+     */
+    getCurrentPage() {
+        return this.currentPage || 1;
+    },
+    /**
+     * Externally facing function to allow hierarchyWidget and others to set the current page if the item is paginated
+     * @param {Number} page - 1 index integer specifying the page to fetch
+     */
+    setPage(page) {
+        if (this._paginated && this.collection && this.collection.fetchPage) {
+            this.collection.fetchPage(page);
+        }
+    },
+    /**
+     * @returns {number} the number of pages in the itemList for use in a paginated view
+     */
+    getNumPages() {
+        return this._totalPages || 1;
+    },
+    /**
+     * @returns {number} the current page for paginated lists, defaults to 1 if none is provided
      */
     getCurrentPage() {
         return this.currentPage || 1;

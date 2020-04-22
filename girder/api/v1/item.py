@@ -24,6 +24,7 @@ class Item(Resource):
         self.route('GET', (':id', 'files'), self.getFiles)
         self.route('GET', (':id', 'download'), self.download)
         self.route('GET', (':id', 'rootpath'), self.rootpath)
+        self.route('GET', (':id', 'position'), self.findPosition)
         self.route('POST', (), self.createItem)
         self.route('PUT', (':id',), self.updateItem)
         self.route('POST', (':id', 'copy'), self.copyItem)
@@ -99,21 +100,30 @@ class Item(Resource):
                required=False)
         .param('name', 'Pass to lookup an item by exact name match. Must '
                'pass folderId as well when using this.', required=False)
-        .pagingParams(defaultSort='lowerName')
+        .param('sort', 'Field to sort the result set by.', default='lowerName',
+               required=False, strip=True)
+        .param('sortdir', 'Sort order: 1 for ascending, -1 for descending.',
+               required=False, dataType='integer',
+               enum=[SortDir.ASCENDING, SortDir.DESCENDING],
+               default=SortDir.ASCENDING)
         .errorResponse()
         .errorResponse('Read access was denied on the parent folder.', 403)
     )
-    def findPosition(self, item, folderId, text, name, limit, offset, sort):
-        filters = {}
+    def findPosition(self, item, folderId, text, name, params):
+        limit, offset, sort = self.getPagingParameters(params, 'lowerName')
         if len(sort) != 1 or sort[0][0] not in item:
             raise RestException('Invalid sort mode.')
-        dir = '$lt' if sort[0][1] == SortDir.ASCENDING else '$gt'
+        sortField, sortDir = sort[0]
+        dir = '$lt' if sortDir == SortDir.ASCENDING else '$gt'
         filters = {'$or': [
-            {sort[0][0]: {dir: item.get(sort[0][0])}},
-            {sort[0][0]: item.get(sort[0][0]), '_id': {dir: item['_id']}}
+            {sortField: {dir: item.get(sortField)}},
+            # For items that have the same sort value, sort by _id.
+            # Mongo may fall back to this as the final sort, but this isn't
+            # documented.
+            {sortField: item.get(sortField), '_id': {dir: item['_id']}}
         ]}
-        # limit and offset are actually ignored
-        cursor = self._find(folderId, text, name, limit, offset, sort, filters)
+        # limit and offset don't affect the results.
+        cursor = self._find(folderId, text, name, 1, 0, sort, filters)
         return cursor.count()
 
     @access.public(scope=TokenScope.DATA_READ)
