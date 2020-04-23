@@ -281,7 +281,7 @@ var HierarchyWidget = View.extend({
                     this.$('.g-hierarachy-paginated-bar').addClass('g-hierarchy-sticky');
                     // Lets adjust the top based on being in a browser widget or main page
                     let top = 0;
-                    if (this.$('.g-hierarchy-widget').parents('.g-collection-hierarchy-container').length > 0) {
+                    if (this.$('.g-hierarchy-widget').parents('.modal-dialog').length === 0) {
                         top = $('#g-app-header-container').height();
                     }
                     this.$('.g-hierarchy-breadcrumb-bar').css({ top: `${top}px` });
