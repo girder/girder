@@ -279,7 +279,12 @@ var HierarchyWidget = View.extend({
                     this.render();
                     this.$('.g-hierarchy-breadcrumb-bar').addClass('g-hierarchy-sticky');
                     this.$('.g-hierarachy-paginated-bar').addClass('g-hierarchy-sticky');
-                    this.$('.g-hierarchy-breadcrumb-bar').css({ top: 0 });
+                    // Lets adjust the top based on being in a browser widget or main page
+                    let top = 0;
+                    if (this.$('.g-hierarchy-widget').parents('.g-collection-hierarchy-container').length > 0) {
+                        top = $('#g-app-header-container').height();
+                    }
+                    this.$('.g-hierarchy-breadcrumb-bar').css({ top: `${top}px` });
                     this.$('.g-hierarachy-paginated-bar').css({ bottom: 0 });
                 } else {
                     // We remove the bar if the current folder doesn't have more than one page, keep the sticky breadcrumb though

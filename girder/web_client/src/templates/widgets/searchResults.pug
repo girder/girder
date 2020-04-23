@@ -8,7 +8,7 @@ if results.length === 0
     a(tabindex="-1")
       i.icon-block
         | No results found
-else
+else if !disableResultsPage
   li.g-search-result
     a.g-search-result-page-link(data-resource-type="resultPage")
       | ...

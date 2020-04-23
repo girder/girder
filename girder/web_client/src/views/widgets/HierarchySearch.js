@@ -109,6 +109,7 @@ var HierarchySearchWidget = View.extend({
                     });
                 }, this);
                 this.$('.g-hierarchy-search-results>ul').html(SearchResultsTemplate({
+                    disableResultsPage: true,
                     results: resources.slice(0, 6)
                 }));
                 this.$('.dropdown').addClass('open');
