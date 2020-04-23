@@ -78,23 +78,28 @@ var ItemListWidget = View.extend({
 
         this.collection.fetch({ folderId: settings.folderId }).done(() => {
             this._totalPages = Math.ceil(this.collection.getTotalCount() / this.collection.pageLimit);
-            if (this._paginated && this.collection.hasNextPage && this._selectedItem) {
+
+            if (this._paginated && this.collection.hasNextPage) {
                 // Tells the parent container that the item is paginated so it can render the page selector
                 this.trigger('g:paginated');
                 // We need to get the position in the list for the selected item
-                restRequest({
-                    url: `item/${this._selectedItem.get('_id')}/position`,
-                    method: 'GET',
-                    data: { folderId: this._selectedItem.get('folderId') }
-                }).done((val) => {
-                    // Now we fetch the correct page for the position
-                    val = Number(val);
-                    if (val >= this.collection.pageLimit) {
-                        const pageLimit = this.collection.pageLimit;
-                        const calculatedPage = 1 + Math.ceil((val - (val % pageLimit)) / pageLimit);
-                        return this.collection.fetchPage(calculatedPage);
-                    }
-                }).done(() => this.bindOnChanged());
+                if (this._selectedItem) {
+                    restRequest({
+                        url: `item/${this._selectedItem.get('_id')}/position`,
+                        method: 'GET',
+                        data: { folderId: this._selectedItem.get('folderId') }
+                    }).done((val) => {
+                        // Now we fetch the correct page for the position
+                        val = Number(val);
+                        if (val >= this.collection.pageLimit) {
+                            const pageLimit = this.collection.pageLimit;
+                            const calculatedPage = 1 + Math.ceil((val - (val % pageLimit)) / pageLimit);
+                            return this.collection.fetchPage(calculatedPage);
+                        }
+                    }).done(() => this.bindOnChanged());
+                } else {
+                    this.bindOnChanged();
+                }
             } else {
                 this.bindOnChanged();
             }
@@ -189,27 +194,6 @@ var ItemListWidget = View.extend({
     },
     /**
      * Returns the current page for paginated lists, defaults to 1 if none is provided
-     */
-    getCurrentPage() {
-        return this.currentPage || 1;
-    },
-    /**
-     * Externally facing function to allow hierarchyWidget and others to set the current page if the item is paginated
-     * @param {Number} page - 1 index integer specifying the page to fetch
-     */
-    setPage(page) {
-        if (this._paginated && this.collection && this.collection.fetchPage) {
-            this.collection.fetchPage(page);
-        }
-    },
-    /**
-     * @returns {number} the number of pages in the itemList for use in a paginated view
-     */
-    getNumPages() {
-        return this._totalPages || 1;
-    },
-    /**
-     * @returns {number} the current page for paginated lists, defaults to 1 if none is provided
      */
     getCurrentPage() {
         return this.currentPage || 1;

@@ -165,9 +165,9 @@ var HierarchyWidget = View.extend({
         };
         this._defaultSelectedResource = settings.defaultSelectedResource;
         this._highlightItem = _.has(settings, 'highlightItem') ? settings.highlightItem : false;
-        this._paginated = _.has(settings, 'paginated') ? settings.paginated : false;
+        this._paginated = _.has(settings, 'paginated') ? settings.paginated : true;
         this._onFolderSelect = settings.onFolderSelect;
-        this._searchEnabled = _.has(settings, 'searchEnabled') ? settings.paginated : true; // FOR TESTING
+        this._searchEnabled = _.has(settings, 'searchEnabled') ? settings.searchEnabled : true; // FOR TESTING
 
         this.folderAccess = settings.folderAccess;
         this.folderCreate = settings.folderCreate;
@@ -186,7 +186,6 @@ var HierarchyWidget = View.extend({
             this._setRoute();
         }, this);
 
-        console.log(this._searchEnabled);
         if (this._searchEnabled) {
             this.hierarchySearch = new HierarchySearchWidget({
                 parentView: this,
@@ -598,6 +597,10 @@ var HierarchyWidget = View.extend({
         this.parentModel = parent;
 
         this.breadcrumbView.objects = this.breadcrumbs;
+
+        if (this.hierarchySearch) {
+            this.hierarchySearch._defaultFolderModel = this.parentModel;
+        }
 
         this.folderListView.initialize({
             parentType: parent.resourceName,
