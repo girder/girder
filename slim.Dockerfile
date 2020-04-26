@@ -3,7 +3,8 @@ FROM python:3.7-alpine as builder
 WORKDIR /girder
 RUN apk add --no-cache git gcc musl-dev libffi-dev openssl-dev
 COPY . ./
-RUN pip install --no-cache-dir .
+# Both PYTHONDONTWRITEBYTECODE and --no-compile are necessary to avoid creating .pyc files
+RUN PYTHONDONTWRITEBYTECODE=1 pip install --no-cache-dir --no-compile .
 
 FROM python:3.7-alpine as runtime
 LABEL maintainer="Kitware, Inc. <kitware@kitware.com>"
