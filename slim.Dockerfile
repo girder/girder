@@ -19,5 +19,7 @@ RUN apk add --no-cache tini
 COPY --from=builder /usr/local/bin/girder /usr/local/bin/girder
 COPY --from=builder /usr/local/lib/python3.7/site-packages/ /usr/local/lib/python3.7/site-packages/
 COPY --from=girder/girder:latest /usr/share/girder/static/ /usr/local/share/girder/static/
+# Add a config file, to bind the server to all network interfaces inside the container
+RUN echo '[global]\nserver.socket_host = "0.0.0.0"\n' > /etc/girder.cfg
 
 ENTRYPOINT ["/sbin/tini", "-v", "--", "girder", "serve"]
