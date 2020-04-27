@@ -13,7 +13,10 @@ EXPOSE 8080
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
+RUN apk add --no-cache tini
+
+COPY --from=builder /usr/local/bin/girder /usr/local/bin/girder
 COPY --from=builder /usr/local/lib/python3.7/site-packages/ /usr/local/lib/python3.7/site-packages/
 COPY --from=girder/girder:latest /usr/share/girder/static/ /usr/local/share/girder/static/
 
-ENTRYPOINT ["python", "-c", "from girder import cli; cli.main()", "serve"]
+ENTRYPOINT ["/sbin/tini", "-v", "--", "girder", "serve"]
