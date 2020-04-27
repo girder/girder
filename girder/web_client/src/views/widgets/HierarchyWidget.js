@@ -189,12 +189,19 @@ var HierarchyWidget = View.extend({
         if (this._searchEnabled) {
             this.hierarchySearch = new HierarchySearchWidget({
                 parentView: this,
-                itemListView: this.itemListView,
                 hierarchyWidget: this,
                 folderModel: this.parentModel });
             this.hierarchySearch.on('g:resultClicked', function (result) {
                 // Need to set the default selected resource by the id in result;
-                this.itemListView.selectItemById(result.id, this.parentModel.get('_id'));
+                if (this.itemListView) {
+                    this.itemListView.resetItemList();
+                    this.itemListView.selectItemById(result.id, this.parentModel.get('_id'));
+                }
+            }, this);
+            this.hierarchySearch.on('g:displaySearchResults', function (results) {
+                if (this.itemListView) {
+                    this.itemListView.setItemList(results);
+                }
             }, this);
         }
 

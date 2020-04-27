@@ -11,22 +11,40 @@ var HierarchySearchWidget = View.extend({
         'input .g-hierarchy-search-field': 'search',
         'click .g-search-result>a': function (e) {
             this._resultClicked($(e.currentTarget));
-        }
+        },
+        'keydown .g-hierarchy-search-field': 'trueSearch'
     },
     initialize: function (settings) {
-        this.itemListWidget = settings.itemListWidget;
         this.hierarchyWidget = settings.hierarchyWidget;
         this._defaultFolderModel = settings.folderModel;
     },
     render: function () {
         this.$el.html(HierarchySearchTemplate({
+            placeholder: this.currentInput
         }));
 
         return this;
     },
+    /**
+     * Function that is called when user clicks search or hits enter to complete search
+     * It will edit the current view to have the filtered results instead
+     */
+    trueSearch: function (e) {
+        if (e.keyCode === 13) {
+            var q = this.$('.g-hierarchy-search-field').val();
+            if (q.length === 0) {
+                this.currentInput = '';
+            }
+            // We can now take the results holder and set the itemWidget to have it as the current view
+            const formatQuery = { folderId: { $oid: this._defaultFolderModel.get('_id') }, name: { $regex: `.*${q}.*` } };
+            const data = { resourceName: 'item/query', params: { query: JSON.stringify(formatQuery) } };
+            this.hideResults();
+            this.trigger('g:displaySearchResults', data);
+        }
+    },
     search: function () {
         var q = this.$('.g-hierarchy-search-field').val();
-
+        this.currentInput = q;
         // If the results are emtpy we reset to the default folder
         if (!q) {
             this.resetState();
@@ -61,13 +79,17 @@ var HierarchySearchWidget = View.extend({
             .toggleClass('icon-spin4 animate-spin', isPending);
     },
     _resultClicked: function (link) {
-        this.trigger('g:resultClicked', {
-            type: link.data('resourceType'),
-            id: link.data('resourceId'),
-            text: link.text().trim(),
-            icon: link.data('resourceIcon')
-        });
-        this.resetState();
+        if (link.data('resourceType') === 'resultPage') {
+            this.trueSearch({ keyCode: 13 });
+        } else {
+            this.trigger('g:resultClicked', {
+                type: link.data('resourceType'),
+                id: link.data('resourceId'),
+                text: link.text().trim(),
+                icon: link.data('resourceIcon')
+            });
+            this.resetState();
+        }
     },
     _doSearch: function (q) {
         this.ajaxLock = true;
@@ -94,6 +116,7 @@ var HierarchySearchWidget = View.extend({
                 }
 
                 var resources = [];
+                this.resultsHolder = results;
 
                 _.each(results, function (result) {
                     var text, icon;
@@ -109,7 +132,6 @@ var HierarchySearchWidget = View.extend({
                     });
                 }, this);
                 this.$('.g-hierarchy-search-results>ul').html(SearchResultsTemplate({
-                    disableResultsPage: true,
                     results: resources.slice(0, 6)
                 }));
                 this.$('.dropdown').addClass('open');

@@ -77,6 +77,9 @@ var ItemListWidget = View.extend({
             }
         }
 
+        this.itemFetch({ folderId: settings.folderId });
+
+        /*
         this.collection.fetch({ folderId: settings.folderId }).done(() => {
             this._totalPages = Math.ceil(this.collection.getTotalCount() / this.collection.pageLimit);
 
@@ -105,8 +108,38 @@ var ItemListWidget = View.extend({
                 this.bindOnChanged();
             }
         });
+        */
     },
+    itemFetch: function (params) {
+        this.collection.fetch(params).done(() => {
+            this._totalPages = Math.ceil(this.collection.getTotalCount() / this.collection.pageLimit);
 
+            if (this._paginated && this.collection.hasNextPage) {
+                // Tells the parent container that the item is paginated so it can render the page selector
+                this.trigger('g:paginated');
+                // We need to get the position in the list for the selected item
+                if (this._selectedItem) {
+                    restRequest({
+                        url: `item/${this._selectedItem.get('_id')}/position`,
+                        method: 'GET',
+                        data: { folderId: this._selectedItem.get('folderId') }
+                    }).done((val) => {
+                        // Now we fetch the correct page for the position
+                        val = Number(val);
+                        if (val >= this.collection.pageLimit) {
+                            const pageLimit = this.collection.pageLimit;
+                            const calculatedPage = 1 + Math.ceil((val - (val % pageLimit)) / pageLimit);
+                            return this.collection.fetchPage(calculatedPage);
+                        }
+                    }).done(() => this.bindOnChanged());
+                } else {
+                    this.bindOnChanged();
+                }
+            } else {
+                this.bindOnChanged();
+            }
+        });
+    },
     /**
      * Binds the change function to the collection and calls it initially to update the render
      */
@@ -185,6 +218,23 @@ var ItemListWidget = View.extend({
                     this.render();
                 }
             });
+        }
+    },
+    setItemList(itemList) {
+        if (!this.backupcollection) {
+            this.backupcollection = this.collection;
+        }
+        this.collection = new ItemCollection();
+        this.currentPage = 1; // By default we want to be on the first page
+        if (itemList.resourceName) {
+            this.collection.resourceName = itemList.resourceName;
+        }
+
+        this.itemFetch(itemList.params);
+    },
+    resetItemList() {
+        if (this.backupcollection) {
+            this.collection = this.backupcollection;
         }
     },
     /**
