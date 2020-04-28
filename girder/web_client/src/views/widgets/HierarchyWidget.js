@@ -71,22 +71,39 @@ var HierarchyBreadcrumbView = View.extend({
 var HierarchyPaginatedView = View.extend({
     events: {
         'change #g-page-selection-input': function (event) {
-            this.itemListWidget.setPage(Number(event.target.value));
+            this.disabled = true;
+            this.itemListWidget.setPage(Number(event.target.value)).done(() => {
+                this.disabled = false;
+                this.render();
+            });
+            this.render();
         },
-        'click a#g-next-paginated': function () {
-            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val()) + 1);
+        'click li.g-page-next:not(.disabled) a#g-next-paginated': function () {
+            this.disabled = true;
+            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val()) + 1).done(() => {
+                this.disabled = false;
+                this.render();
+            });
+            this.render();
         },
-        'click a#g-previous-paginated': function () {
-            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val()) - 1);
+        'click li.g-page-prev:not(.disabled) a#g-previous-paginated': function () {
+            this.disabled = true;
+            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val()) - 1).done(() => {
+                this.disabled = false;
+                this.render();
+            });
+            this.render();
         }
     },
     initialize: function (settings) {
         this.itemListWidget = settings.itemListWidget;
+        this.disabled = false;
     },
     render: function () {
         this.$el.html(HierarchyPaginatedTemplate({
             totalPages: this.itemListWidget && this.itemListWidget.getNumPages(),
-            currentPage: this.itemListWidget && this.itemListWidget.getCurrentPage()
+            currentPage: this.itemListWidget && this.itemListWidget.getCurrentPage(),
+            disabled: this.disabled
         }));
 
         return this;

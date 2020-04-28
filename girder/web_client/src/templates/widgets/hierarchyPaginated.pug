@@ -1,7 +1,7 @@
 .g-hierarchy-pages-header
   .g-hierarchycenter
     ul.pagination.pagination-sm
-      if (currentPage >1)
+      if (currentPage >1 && !disabled)
         li.g-page-prev
           a#g-previous-paginated « Prev
       else
@@ -9,9 +9,9 @@
           a#g-previous-paginated « Prev
       li
         span Page:
-          input#g-page-selection-input(type='number', min=1, max=totalPages, value=currentPage)
+          input#g-page-selection-input(disabled=disabled, type='number', min=1, max=totalPages, value=currentPage)
           span of #{totalPages}
-      if (currentPage+1<=totalPages)
+      if (currentPage+1<=totalPages && !disabled)
         li.g-page-next
           a#g-next-paginated Next »
       else

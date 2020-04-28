@@ -171,7 +171,9 @@ var ItemListWidget = View.extend({
      */
     setPage(page) {
         if (this._paginated && this.collection && this.collection.fetchPage) {
-            this.collection.fetchPage(page);
+            this.currentPage = page;
+            this.$el.parents('.g-hierarchy-widget-container').scrollTop(0);
+            return this.collection.fetchPage(page);
         }
     },
     /**
