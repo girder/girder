@@ -34,5 +34,6 @@ def main(dev, mode, database, host, port):
     _attachFileLogHandlers()
     server.setup(mode)
 
+    cherrypy.engine.signal_handler.subscribe()
     cherrypy.engine.start()
     cherrypy.engine.block()
