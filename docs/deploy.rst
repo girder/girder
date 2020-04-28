@@ -121,9 +121,10 @@ container does not run a database, you'll need to run a command in the form: ::
 
    $ docker run -p 8080:8080 girder/girder --database mongodb://db-server-external-ip:27017/girder --host 0.0.0.0
 
-The ``girder/girder:latest`` image is quite large and intended for use as a base image for plugin developers.
-If you just need to run Girder, a slim image based on alpine linux is provided without
-many of the build tools needed to compile wheels or run girder client builds: ::
+The ``girder/girder:latest`` image is quite large and intended for use as a
+base image for plugin developers. If you just need to run Girder, a slim image
+based on alpine linux is provided without many of the build tools needed to
+compile wheels or run girder client builds: ::
 
    $ docker run -p 8080:8080 girder/girder:slim --database mongodb://db-server-external-ip:27017/girder
 
