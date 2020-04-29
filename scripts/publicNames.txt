@@ -1222,6 +1222,15 @@ plugins
                     LINKEDIN_CLIENT_ID
                     LINKEDIN_CLIENT_SECRET
                     PROVIDERS_ENABLED
+    readme
+        girder_readme
+            ReadmePlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            rest
+                FolderReadme
+                    getFolderReadme
     sentry
         girder_sentry
             SentryPlugin
