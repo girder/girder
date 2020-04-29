@@ -49,6 +49,11 @@ var Collection = Backbone.Collection.extend({
     pageOffsetStack: null,
 
     /**
+     * Number of items in the collection returned by 'girder-total-count' header
+     */
+    _totalCount: 0,
+
+    /**
      * Returns a boolean of whether or not this collection has previous pages,
      * i.e. if the offset of the current page start is > 0
      */
@@ -69,7 +74,15 @@ var Collection = Backbone.Collection.extend({
     hasNextPage: function () {
         return this._hasMorePages;
     },
-
+    /**
+     *  This value is populated whenever the list length exceeds the pageLimit.
+     *  It is used to determine how many pages are needed based on the page limit
+     *  it is retrieved from the response header 'girder-total-count'
+     *  @returns {number} total number of items retrieved
+     */
+    getTotalCount: function () {
+        return this._totalCount || 0;
+    },
     /**
      * Fetch the previous page of this collection, emitting g:changed when done.
      */
@@ -103,7 +116,7 @@ var Collection = Backbone.Collection.extend({
     },
 
     /**
-     * Return the 0-indexed page number of the current page. Add 1 to this
+     * @returns {number} the 0-indexed page number of the current page. Add 1 to this
      * result when displaying it to the user.
      *
      * If this collection hasn't been fully initialized (i.e.: before any pages
@@ -117,6 +130,20 @@ var Collection = Backbone.Collection.extend({
             return this.pageOffsetStack.length - 1;
         }
         return Math.ceil((this.offset - this.length) / this.pageLimit);
+    },
+
+    /**
+     * Sets a specific pagenumber for loading by caluclating the offset
+     * @param {Number} pageNumber The 0 indexed page that should be loaded based on the pageLimit size
+     * @param {Object} params Additional parameters to pass to the fetch call
+     * @returns {Promise} a fetch promise to retrieve more data
+     */
+    fetchPage: function (pageNumber, params) {
+        // Make sure the page Number is within range, pageNumber is indexed at 0
+        if (!this.append && pageNumber * this.pageLimit < this._totalCount && pageNumber >= 0) {
+            this.offset = pageNumber * this.pageLimit;
+            return this.fetch(_.extend({}, this.params, params || {}));
+        }
     },
 
     /**
@@ -169,6 +196,7 @@ var Collection = Backbone.Collection.extend({
                     // This means we have more pages to display still. Pop off
                     // the extra that we fetched.
                     list.pop();
+                    this._totalCount = xhr.getResponseHeader('girder-total-count');
                     this._hasMorePages = true;
                 } else {
                     this._hasMorePages = false;

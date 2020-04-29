@@ -1,6 +1,10 @@
 .g-hierarchy-widget
   border 1px solid #eaeaea
 
+  .g-hierarchy-sticky
+    position sticky
+    z-index 10
+  
   .g-hierarchy-actions-header
     background linear-gradient(to bottom, #e6e6e6 0, #f7f7f7 8px)
     padding 4px 5px 3px
@@ -20,6 +24,26 @@
 
   .g-folder-header-buttons
     float right
+
+  .g-hierarachy-paginated-bar
+    background-color #eaebea
+    .g-hierarchy-pages-header
+      .g-hierarchycenter
+        margin auto
+        text-align center
+        .pagination
+          display inline-block
+          vertical-align middle
+          margin 0
+          padding 0
+          border-radius 4px
+        .g-page-next, .g-page-prev
+          a
+            padding 8px 12px
+        #g-page-selection-input
+          margin-left 3px
+          margin-right 3px
+      
 
   .g-hierarchy-breadcrumb-bar
     ol.breadcrumb

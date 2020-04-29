@@ -23,6 +23,7 @@ import { getModelClassByName, renderMarkdown, formatCount, capitalize, formatSiz
 import { restRequest, getApiRoot } from '@girder/core/rest';
 
 import HierarchyBreadcrumbTemplate from '@girder/core/templates/widgets/hierarchyBreadcrumb.pug';
+import HierarchyPaginatedTemplate from '@girder/core/templates/widgets/hierarchyPaginated.pug';
 import HierarchyWidgetTemplate from '@girder/core/templates/widgets/hierarchyWidget.pug';
 
 import '@girder/core/stylesheets/widgets/hierarchyWidget.styl';
@@ -61,6 +62,48 @@ var HierarchyBreadcrumbView = View.extend({
             links: objects,
             current: active,
             descriptionText: descriptionText
+        }));
+
+        return this;
+    }
+});
+
+var HierarchyPaginatedView = View.extend({
+    events: {
+        'change #g-page-selection-input': function (event) {
+            this.disabled = true;
+            this.itemListWidget.setPage(Number(event.target.value)).done(() => {
+                this.disabled = false;
+                this.render();
+            });
+            this.render();
+        },
+        'click li.g-page-next:not(.disabled) a#g-next-paginated': function () {
+            this.disabled = true;
+            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val()) + 1).done(() => {
+                this.disabled = false;
+                this.render();
+            });
+            this.render();
+        },
+        'click li.g-page-prev:not(.disabled) a#g-previous-paginated': function () {
+            this.disabled = true;
+            this.itemListWidget.setPage(Number(this.$('#g-page-selection-input').val()) - 1).done(() => {
+                this.disabled = false;
+                this.render();
+            });
+            this.render();
+        }
+    },
+    initialize: function (settings) {
+        this.itemListWidget = settings.itemListWidget;
+        this.disabled = false;
+    },
+    render: function () {
+        this.$el.html(HierarchyPaginatedTemplate({
+            totalPages: this.itemListWidget && this.itemListWidget.getNumPages(),
+            currentPage: this.itemListWidget && this.itemListWidget.getCurrentPage(),
+            disabled: this.disabled
         }));
 
         return this;
@@ -114,6 +157,7 @@ var HierarchyWidget = View.extend({
      *                  event as its second.
      *   [defaultSelectedResource] : default selected Resource item , will open up to this resource
      *   [highlightItem=false] : sets the item to be styled as selected and will scroll to it in the list
+     *   [paginated=false] : sets the itemlist view to be paginated, will set appendPages to false
      */
     initialize: function (settings) {
         this.parentModel = settings.parentModel;
@@ -136,7 +180,7 @@ var HierarchyWidget = View.extend({
         };
         this._defaultSelectedResource = settings.defaultSelectedResource;
         this._highlightItem = _.has(settings, 'highlightItem') ? settings.highlightItem : false;
-
+        this._paginated = _.has(settings, 'paginated') ? settings.paginated : false;
         this._onFolderSelect = settings.onFolderSelect;
 
         this.folderAccess = settings.folderAccess;
@@ -224,13 +268,34 @@ var HierarchyWidget = View.extend({
                 showSizes: this._showSizes,
                 selectedItem: this._defaultSelectedResource,
                 highlightItem: this._highlightItem,
+                paginated: this._paginated,
                 parentView: this
             });
             this.listenTo(this.itemListView, 'g:itemClicked', this._onItemClick);
             this.listenTo(this.itemListView, 'g:checkboxesChanged', this.updateChecked);
+
             this.listenTo(this.itemListView, 'g:changed', () => {
                 this.itemCount = this.itemListView.collection.length;
                 this._childCountCheck();
+                if (this._paginated && this.hierarchyPaginated && this.itemListView.getNumPages() > 1) {
+                    this.render();
+                    this.$('.g-hierarchy-breadcrumb-bar').addClass('g-hierarchy-sticky');
+                    this.$('.g-hierarachy-paginated-bar').addClass('g-hierarchy-sticky');
+                    this.$('.g-hierarchy-breadcrumb-bar').css({ top: 0 });
+                    this.$('.g-hierarachy-paginated-bar').css({ bottom: 0 });
+                } else {
+                    // We remove the bar if the current folder doesn't have more than one page, keep the sticky breadcrumb though
+                    this.$('.g-hierarachy-paginated-bar').remove();
+                }
+            });
+            // Only emitted when there is more than one page of data
+            this.listenTo(this.itemListView, 'g:paginated', () => {
+                if (this._paginated && !this.hierarchyPaginated) {
+                    this.hierarchyPaginated = new HierarchyPaginatedView({
+                        parentView: this,
+                        itemListWidget: this.itemListView
+                    });
+                }
             });
         }
 
@@ -289,7 +354,9 @@ var HierarchyWidget = View.extend({
         this.checkedMenuWidget.dropdownToggle = this.$('.g-checked-actions-button');
         this.checkedMenuWidget.setElement(this.$('.g-checked-actions-menu')).render();
         this.folderListView.setElement(this.$('.g-folder-list-container')).render();
-
+        if (this.hierarchyPaginated && this.parentModel.resourceName !== 'collection') {
+            this.hierarchyPaginated.setElement(this.$('.g-hierarachy-paginated-bar')).render();
+        }
         if (this.parentModel.resourceName === 'folder' && this._showItems) {
             this._initFolderViewSubwidgets();
             this.itemListView.setElement(this.$('.g-item-list-container')).render();
@@ -547,6 +614,7 @@ var HierarchyWidget = View.extend({
                     viewLinks: this._viewLinks,
                     itemFilter: this._itemFilter,
                     showSizes: this._showSizes,
+                    paginated: this._paginated,
                     public: this.parentModel.get('public'),
                     accessLevel: this.parentModel.getAccessLevel()
                 });

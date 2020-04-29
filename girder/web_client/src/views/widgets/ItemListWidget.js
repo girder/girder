@@ -5,6 +5,7 @@ import ItemCollection from '@girder/core/collections/ItemCollection';
 import LoadingAnimation from '@girder/core/views/widgets/LoadingAnimation';
 import View from '@girder/core/views/View';
 import { formatSize } from '@girder/core/misc';
+import { restRequest } from '@girder/core/rest';
 
 import ItemListTemplate from '@girder/core/templates/widgets/itemList.pug';
 
@@ -47,6 +48,8 @@ var ItemListWidget = View.extend({
             _.has(settings, 'showSizes') ? settings.showSizes : true);
         this._highlightItem = (
             _.has(settings, 'highlightItem') ? settings.highlightItem : false);
+        this._paginated = (
+            _.has(settings, 'paginated') ? settings.paginated : false);
 
         this.accessLevel = settings.accessLevel;
         this.public = settings.public;
@@ -60,20 +63,74 @@ var ItemListWidget = View.extend({
         this.collection = new ItemCollection();
         this.collection.append = true; // Append, don't replace pages
         this.collection.filterFunc = settings.itemFilter;
+        this.currentPage = 1; // By default we want to be on the first page
 
-        this.collection.on('g:changed', function () {
-            if (this.accessLevel !== undefined) {
-                this.collection.each((model) => {
-                    model.set('_accessLevel', this.accessLevel);
-                });
+        if (this._paginated) {
+            if (this.collection.filterFunc) {
+                console.warn('Pagination cannot be used with a filter function');
+                this._paginated = false;
+            } else {
+                // Override the default to prevent appending new pages
+                this.collection.append = false;
             }
-            this.render();
-            this.trigger('g:changed');
-        }, this).fetch({ folderId: settings.folderId });
+        }
+
+        this.collection.fetch({ folderId: settings.folderId }).done(() => {
+            this._totalPages = Math.ceil(this.collection.getTotalCount() / this.collection.pageLimit);
+            if (this._paginated && this.collection.hasNextPage) {
+                // Tells the parent container that the item is paginated so it can render the page selector
+                this.trigger('g:paginated');
+                // We need to get the position in the list for the selected item
+                if (this._selectedItem) {
+                    restRequest({
+                        url: `item/${this._selectedItem.get('_id')}/position`,
+                        method: 'GET',
+                        data: { folderId: this._selectedItem.get('folderId') }
+                    }).done((val) => {
+                        // Now we fetch the correct page for the position
+                        val = Number(val);
+                        if (val >= this.collection.pageLimit) {
+                            const pageLimit = this.collection.pageLimit;
+                            const calculatedPage = 1 + Math.ceil((val - (val % pageLimit)) / pageLimit);
+                            return this.collection.fetchPage(calculatedPage - 1);
+                        }
+                    }).done(() => this.bindOnChanged());
+                } else {
+                    this.bindOnChanged();
+                }
+            } else {
+                this.bindOnChanged();
+            }
+        });
+    },
+
+    /**
+     * Binds the change function to the collection and calls it initially to update the render
+     */
+    bindOnChanged: function () {
+        this.collection.on('g:changed', this.changedFunc, this);
+        this.changedFunc();
+    },
+    /**
+     * Function that causes a render each time the collection is changed
+     * Will also update the current page in a paginated system
+     */
+    changedFunc: function () {
+        if (this.accessLevel !== undefined) {
+            this.collection.each((model) => {
+                model.set('_accessLevel', this.accessLevel);
+            });
+        }
+        if (this._paginated) {
+            this.currentPage = this.collection.pageNum() + 1;
+        }
+        this.render();
+        this.trigger('g:changed');
     },
 
     render: function () {
         this.checked = [];
+        // If we set a selected item in the beginning we will center the selection while loading
         if (this._selectedItem && this._highlightItem) {
             this.scrollPositionObserver();
         }
@@ -88,13 +145,37 @@ var ItemListWidget = View.extend({
             viewLinks: this._viewLinks,
             showSizes: this._showSizes,
             highlightItem: this._highlightItem,
-            selectedItemId: (this._selectedItem || {}).id
+            selectedItemId: (this._selectedItem || {}).id,
+            paginated: this._paginated
+
         }));
 
-        // If we set a selected item in the beginning we will center the selection while loading
         return this;
     },
 
+    /**
+     * @returns {number} the number of pages in the itemList for use in a paginated view
+     */
+    getNumPages() {
+        return this._totalPages || 1;
+    },
+    /**
+     * @returns {number} the current page for paginated lists, defaults to 1 if none is provided
+     */
+    getCurrentPage() {
+        return this.currentPage || 1;
+    },
+    /**
+     * Externally facing function to allow hierarchyWidget and others to set the current page if the item is paginated
+     * @param {Number} page 1 index integer specifying the page to fetch
+     */
+    setPage(page) {
+        if (this._paginated && this.collection && this.collection.fetchPage) {
+            this.currentPage = page;
+            return this.collection.fetchPage(page - 1).then(() =>
+                this.$el.parents('.g-hierarchy-widget-container').scrollTop(0));
+        }
+    },
     /**
      * Insert an item into the collection and re-render it.
      */
@@ -234,7 +315,7 @@ var ItemListWidget = View.extend({
                     this.observer.disconnect();
                     this.observer = null;
                     this.tempScrollPos = undefined;
-                    // Prevents scrolling once clicking has more
+                    // Prevents scrolling when user clicks 'show more...'
                     this._highlightItem = false;
                 }
             };
