@@ -134,13 +134,12 @@ var Collection = Backbone.Collection.extend({
 
     /**
      * Sets a specific pagenumber for loading by caluclating the offset
-     * @param {Number} pageNumber - the page that should be loaded based on the pageLimit size
-     * @param {Object} params - additional parameters to pass to the fetch call
+     * @param {Number} pageNumber The 0 indexed page that should be loaded based on the pageLimit size
+     * @param {Object} params Additional parameters to pass to the fetch call
      * @returns {Promise} a fetch promise to retrieve more data
      */
     fetchPage: function (pageNumber, params) {
         // Make sure the page Number is within range, pageNumber is indexed at 0
-        pageNumber = pageNumber - 1;
         if (!this.append && pageNumber * this.pageLimit < this._totalCount && pageNumber >= 0) {
             this.offset = pageNumber * this.pageLimit;
             return this.fetch(_.extend({}, this.params, params || {}));

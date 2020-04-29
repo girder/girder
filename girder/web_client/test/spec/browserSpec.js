@@ -1176,6 +1176,9 @@ describe('browser hierarchy paginated selection', function () {
 
         runs(function () {
             expect($('.g-hierarachy-paginated-bar').length).toBe(1);
+            expect($('.g-page-prev.disabled').length).toBe(1);
+            expect($('.g-page-next.disabled').length).toBe(0);
+            expect($('.g-page-next').length).toBe(1);
             expect($('#g-page-selection-input').val()).toBe('1');
             expect($('.g-hierarchy-breadcrumb-bar').hasClass('g-hierarchy-sticky')).toBe(true);
         }, 'Returning to the folder should bring us to the first page');
@@ -1186,12 +1189,47 @@ describe('browser hierarchy paginated selection', function () {
         }, 'Change the page by using the input field');
 
         waitsFor(function () {
-            return $('#g-page-selection-input').val() === '2';
+            return $('#g-page-selection-input:not(:disabled)').val() === '2';
         });
 
         runs(function () {
             expect($('.g-hierarachy-paginated-bar').length).toBe(1);
             expect($('#g-page-selection-input').val()).toBe('2');
+            expect($('.g-page-prev.disabled').length).toBe(0);
+            expect($('.g-page-next.disabled').length).toBe(1);
+            expect($('.g-hierarchy-breadcrumb-bar').hasClass('g-hierarchy-sticky')).toBe(true);
+        }, 'Should be on a second page now');
+
+        runs(function () {
+            $('#g-previous-paginated').click();
+        }, 'Change the page by using the previous button');
+
+        waitsFor(function () {
+            return $('#g-page-selection-input:not(:disabled)').val() === '1';
+        }, 'waits for it to go to the first page after clicking previous');
+
+        runs(function () {
+            expect($('.g-hierarachy-paginated-bar').length).toBe(1);
+            expect($('.g-page-prev.disabled').length).toBe(1);
+            expect($('.g-page-next.disabled').length).toBe(0);
+            expect($('.g-page-next').length).toBe(1);
+            expect($('#g-page-selection-input').val()).toBe('1');
+            expect($('.g-hierarchy-breadcrumb-bar').hasClass('g-hierarchy-sticky')).toBe(true);
+        }, 'Previous button brings us back to first page');
+
+        runs(function () {
+            $('#g-next-paginated').click();
+        }, 'Change the page by using the next button');
+
+        waitsFor(function () {
+            return $('#g-page-selection-input:not(:disabled)').val() === '2';
+        }, 'waits for it to go to the first page after clicking next');
+
+        runs(function () {
+            expect($('.g-hierarachy-paginated-bar').length).toBe(1);
+            expect($('#g-page-selection-input').val()).toBe('2');
+            expect($('.g-page-prev.disabled').length).toBe(0);
+            expect($('.g-page-next.disabled').length).toBe(1);
             expect($('.g-hierarchy-breadcrumb-bar').hasClass('g-hierarchy-sticky')).toBe(true);
         }, 'Should be on a second page now');
     });

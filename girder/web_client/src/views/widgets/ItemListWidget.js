@@ -92,7 +92,7 @@ var ItemListWidget = View.extend({
                         if (val >= this.collection.pageLimit) {
                             const pageLimit = this.collection.pageLimit;
                             const calculatedPage = 1 + Math.ceil((val - (val % pageLimit)) / pageLimit);
-                            return this.collection.fetchPage(calculatedPage);
+                            return this.collection.fetchPage(calculatedPage - 1);
                         }
                     }).done(() => this.bindOnChanged());
                 } else {
@@ -167,13 +167,13 @@ var ItemListWidget = View.extend({
     },
     /**
      * Externally facing function to allow hierarchyWidget and others to set the current page if the item is paginated
-     * @param {Number} page - 1 index integer specifying the page to fetch
+     * @param {Number} page 1 index integer specifying the page to fetch
      */
     setPage(page) {
         if (this._paginated && this.collection && this.collection.fetchPage) {
             this.currentPage = page;
             this.$el.parents('.g-hierarchy-widget-container').scrollTop(0);
-            return this.collection.fetchPage(page);
+            return this.collection.fetchPage(page - 1);
         }
     },
     /**
