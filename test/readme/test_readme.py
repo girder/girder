@@ -1,7 +1,6 @@
 import os
 import pytest
 from pytest_girder.assertions import assertStatus, assertStatusOk
-from girder.constants import ROOT_DIR
 from girder.models.folder import Folder
 
 
@@ -17,7 +16,7 @@ def privateFolder(admin, fsAssetstore):
 
 def readmeContents(readmeName):
     path = os.path.join(
-        ROOT_DIR, 'test', 'data', 'readme', readmeName,
+        os.path.dirname(__file__), 'data', readmeName,
     )
     with open(path, 'rb') as file:
         return file.read()
