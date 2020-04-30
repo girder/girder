@@ -42,12 +42,6 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=[
-        'girder>=3',
-        'girder-jobs>=3',
-        'Pillow',
-        'pydicom>=1.0.2',
-        'numpy',
-    ],
+    install_requires=['girder>=3'],
     entry_points={'girder.plugin': ['readme = girder_readme:ReadmePlugin']},
 )
