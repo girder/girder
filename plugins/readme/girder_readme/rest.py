@@ -19,7 +19,7 @@ from girder.models.item import Item as ItemModel
 def _getFolderReadme(folder):
     query = {
         'folderId': folder['_id'],
-        'lowerName': {'$regex': re.compile('^readme')},
+        'name': {'$regex': re.compile(r'^README(\..+)?$')},
     }
     item = ItemModel().findOne(query)
     if item:
