@@ -14,7 +14,6 @@ wrap(HierarchyWidget, 'render', function (render) {
     render.call(this);
 
     if (this.parentModel.resourceName === 'folder') {
-        // const id = this.collection.params.folderId;
         const id = this.parentModel.get('_id');
 
         restRequest({ url: `folder/${id}/readme`, method: 'GET' })

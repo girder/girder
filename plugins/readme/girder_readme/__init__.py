@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from girder.plugin import GirderPlugin
-from . import rest
+from .rest import _getFolderReadme
 
 
 class ReadmePlugin(GirderPlugin):
@@ -8,4 +8,4 @@ class ReadmePlugin(GirderPlugin):
     CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
-        info['apiRoot'].folder = rest.FolderReadme()
+        info['apiRoot'].folder.route('GET', (':id', 'readme'), _getFolderReadme)
