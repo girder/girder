@@ -1229,8 +1229,6 @@ plugins
                 DISPLAY_NAME
                 load
             rest
-                FolderReadme
-                    getFolderReadme
     sentry
         girder_sentry
             SentryPlugin
