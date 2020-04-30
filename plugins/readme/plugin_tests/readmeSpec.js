@@ -41,10 +41,6 @@ describe('Test the readme UI', function () {
     });
 
     it('renders the README', function () {
-        runs(function () {
-            console.log(window.location);
-        });
-
         waitsFor(function () {
             return $('.g-widget-readme').length === 1;
         });
