@@ -1,0 +1,20 @@
+{
+    "name": "@girder/readme",
+    "version": "0.0.0",
+    "description": "Render READMEs from the folder view",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "peerDependencies": {
+        "@girder/core": "*"
+    },
+    "girderPlugin": {
+        "name": "readme",
+        "main": "./main.js"
+    }
+}

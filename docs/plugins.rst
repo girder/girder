@@ -394,6 +394,13 @@ if this is the first time logging in with these OAuth credentials).
   cookie.
 
 
+README
+------
+`PyPI package <https://pypi.org/project/girder-readme/>`__: ``girder-readme``
+
+This plugin will render a README item found in a folder on the folder hierarchy view.
+
+
 Sentry
 ------
 `PyPI package <https://pypi.org/project/girder-sentry/>`__: ``girder-sentry``
