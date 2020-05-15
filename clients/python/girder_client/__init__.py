@@ -41,11 +41,12 @@ def _safeMakedirs(path):
 
     :param path: The directory to create.
     """
-    try:
-        os.makedirs(path)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            raise
+    if path != '':
+        try:
+            os.makedirs(path)
+        except OSError as exception:
+            if exception.errno != errno.EEXIST:
+                raise
 
 
 class AuthenticationError(RuntimeError):
