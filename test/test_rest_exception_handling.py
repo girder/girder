@@ -48,3 +48,15 @@ def testExceptionHandlingBasedOnServerMode(exceptionServer, uuidMock, mode, msg,
     assert resp.json['uid'] == uuidMock
     assert ('trace' in resp.json) is hasTrace
     assert resp.headers['Girder-Request-Uid'] == uuidMock
+
+
+@pytest.mark.parametrize('method', ['GET', 'PUT'], ids=['qs', 'body'])
+def testDuplicateParameters(server, method):
+    # In addition to a dict, the urllib.parse.urlencode used by server.request can accept a list
+    # of tuples
+    params = [('foo', 'bar'), ('foo', 'baz')]
+    # Use /system/setting because it has both GET and PUT endpoints
+    path = '/system/version'
+    resp = server.request(path=path, method=method, params=params)
+    assertStatus(resp, 400)
+    assert resp.json['message'] == 'Parameter "foo" must not be specified multiple times.'

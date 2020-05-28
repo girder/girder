@@ -575,6 +575,20 @@ def disableAuditLog(fun):
     return wrapped
 
 
+def _preventRepeatedParams(params):
+    """
+    Ensure that route parameters are not repeated.
+    """
+    # Repeated parameters are passed by CherryPy as a list:
+    # https://github.com/cherrypy/cherrypy/blob/b57bdc5cb91471fc6af0be4ab72ea873d23cffde/cherrypy/lib/httputil.py#L362
+    # However, endpoints nearly always expect to receive single values (each as str) for
+    # parameters, so Girder does not support repeated parameters.
+    for paramName, paramValue in params.items():
+        if isinstance(paramValue, list):
+            raise RestException(
+                f'Parameter "{paramName}" must not be specified multiple times.')
+
+
 def _logRestRequest(resource, path, params):
     if not hasattr(cherrypy.request, 'girderNoAuditLog'):
         auditLogger.info('rest.request', extra={
@@ -624,6 +638,8 @@ def endpoint(fun):
         setResponseHeader('Girder-Request-Uid', cherrypy.request.girderRequestUid)
 
         try:
+            _preventRepeatedParams(params)
+
             val = fun(self, path, params)
 
             # If this is a partial response, we set the status appropriately
