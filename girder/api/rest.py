@@ -975,7 +975,7 @@ class Resource(object):
 
         for route, handler in self._routes[method][len(path)]:
             wildcards = {}
-            for routeComponent, pathComponent in six.moves.zip(route, path):
+            for routeComponent, pathComponent in zip(route, path):
                 if routeComponent[0] == ':':  # Wildcard token
                     wildcards[routeComponent[1:]] = pathComponent
                 elif routeComponent != pathComponent:  # Exact match token
