@@ -309,7 +309,7 @@ class GirderClient(object):
         else:
             if interactive:
                 if username is None:
-                    username = six.moves.input('Login or email: ')
+                    username = input('Login or email: ')
                 password = getpass.getpass('Password for %s: ' % username)
 
             if username is None or password is None:

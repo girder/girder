@@ -149,7 +149,7 @@ class PythonClientTestCase(base.TestCase):
         self.assertTrue(flag)
 
         # Interactive login (successfully)
-        with mock.patch('six.moves.input', return_value=self.user['login']),\
+        with mock.patch('input', return_value=self.user['login']),\
                 mock.patch('getpass.getpass', return_value='password'):
             self.client.authenticate(interactive=True)
 
