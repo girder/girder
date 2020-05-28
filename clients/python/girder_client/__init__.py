@@ -1485,7 +1485,7 @@ class GirderClient(object):
         children = self.listFolder(parentId, parentType, name=folderName)
 
         try:
-            return six.next(children)
+            return next(children)
         except StopIteration:
             return self.createFolder(parentId, folderName, parentType=parentType,
                                      metadata=metadata)
@@ -1511,7 +1511,7 @@ class GirderClient(object):
         if reuseExisting:
             children = self.listItem(parentFolderId, name=name)
             try:
-                item = six.next(children)
+                item = next(children)
             except StopIteration:
                 pass
 

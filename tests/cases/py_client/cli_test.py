@@ -93,7 +93,7 @@ class PythonCliTestCase(base.TestCase):
         self.user = User().createUser(
             firstName='First', lastName='Last', login='mylogin',
             password='password', email='email@girder.test')
-        self.publicFolder = six.next(Folder().childFolders(
+        self.publicFolder = next(Folder().childFolders(
             parentType='user', parent=self.user, user=None, limit=1))
         self.apiKey = ApiKey().createApiKey(self.user, name='')
 
@@ -232,7 +232,7 @@ class PythonCliTestCase(base.TestCase):
             self, ret['stdout'], 'Creating Folder from .*tests/cases/py_client/testdata')
         self.assertIn('Uploading Item from hello.txt', ret['stdout'])
 
-        subfolder = six.next(Folder().childFolders(
+        subfolder = next(Folder().childFolders(
             parent=self.publicFolder, parentType='folder', limit=1))
         self.assertEqual(subfolder['name'], 'testdata')
 

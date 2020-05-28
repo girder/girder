@@ -231,7 +231,7 @@ class AccessControlMixin(object):
                     return self
 
                 def __next__(self):
-                    return six.next(origResult)
+                    return next(origResult)
 
                 next = __next__
 

@@ -717,7 +717,7 @@ class UserTestCase(base.TestCase):
 
         self.assertEqual(pvt['public'], False)
 
-        folder = six.next(Folder().childFolders(parentType='user', parent=pvt))
+        folder = next(Folder().childFolders(parentType='user', parent=pvt))
 
         # Private users should be able to upload files
         resp = self.request(path='/item', method='POST', user=pvt, params={

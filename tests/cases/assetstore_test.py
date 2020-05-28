@@ -145,7 +145,7 @@ class AssetstoreTestCase(base.TestCase):
         Assetstore().save(assetstore, validate=False)
 
     def testFilesystemAssetstoreImport(self):
-        folder = six.next(Folder().childFolders(
+        folder = next(Folder().childFolders(
             self.admin, parentType='user', force=True, filters={
                 'name': 'Public'
             }))
@@ -247,7 +247,7 @@ class AssetstoreTestCase(base.TestCase):
             resp.json['message'], 'Files cannot be imported directly underneath a user.')
 
     def testFilesystemAssetstoreImportLeafFoldersAsItems(self):
-        folder = six.next(Folder().childFolders(
+        folder = next(Folder().childFolders(
             self.admin, parentType='user', force=True, filters={
                 'name': 'Public'
             }))
@@ -290,7 +290,7 @@ class AssetstoreTestCase(base.TestCase):
     def testFilesystemAssetstoreFindInvalidFiles(self):
         # Create several files in the assetstore, some of which point to real
         # files on disk and some that don't
-        folder = six.next(Folder().childFolders(
+        folder = next(Folder().childFolders(
             parent=self.admin, parentType='user', force=True, limit=1))
         item = Item().createItem('test', self.admin, folder)
 
@@ -357,7 +357,7 @@ class AssetstoreTestCase(base.TestCase):
 
         # Simulate the existence of a file within the assetstore
         folders = Folder().childFolders(self.admin, 'user', user=self.admin)
-        item = Item().createItem(name='x.txt', creator=self.admin, folder=six.next(folders))
+        item = Item().createItem(name='x.txt', creator=self.admin, folder=next(folders))
         file = File().createFile(
             creator=self.admin, item=item, name='x.txt',
             size=1, assetstore=assetstore, mimeType='text/plain')
@@ -394,7 +394,7 @@ class AssetstoreTestCase(base.TestCase):
         # Simulate the existence of a file within the assetstore
         folders = Folder().childFolders(
             self.admin, 'user', user=self.admin)
-        item = Item().createItem(name='x.txt', creator=self.admin, folder=six.next(folders))
+        item = Item().createItem(name='x.txt', creator=self.admin, folder=next(folders))
         file = File().createFile(
             creator=self.admin, item=item, name='x.txt',
             size=1, assetstore=assetstore, mimeType='text/plain')
@@ -539,7 +539,7 @@ class AssetstoreTestCase(base.TestCase):
 
         # Test init for a single-chunk upload
         folders = Folder().childFolders(self.admin, 'user')
-        parentFolder = six.next(folders)
+        parentFolder = next(folders)
         params = {
             'parentType': 'folder',
             'parentId': parentFolder['_id'],
@@ -790,7 +790,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatusOk(resp)
 
     def testMoveBetweenAssetstores(self):
-        folder = six.next(Folder().childFolders(
+        folder = next(Folder().childFolders(
             self.admin, parentType='user', force=True, filters={
                 'name': 'Public'
             }))

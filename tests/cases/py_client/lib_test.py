@@ -240,7 +240,7 @@ class PythonClientTestCase(base.TestCase):
         callbackUser = User().createUser(
             firstName='Callback', lastName='Last', login='callback',
             password='password', email='Callback@girder.test')
-        callbackPublicFolder = six.next(Folder().childFolders(
+        callbackPublicFolder = next(Folder().childFolders(
             parentType='user', parent=callbackUser, user=None, limit=1))
         callbackCounts = {'folder': 0, 'item': 0}
         folders = {}
@@ -465,10 +465,10 @@ class PythonClientTestCase(base.TestCase):
         self.client.uploadFileToFolder(str(self.publicFolder['_id']), filepath,
                                        filename=disk_filename)
 
-        stream_item = six.next(self.client.listItem(str(self.publicFolder['_id']),
-                                                    name=stream_filename))
-        disk_item = six.next(self.client.listItem(str(self.publicFolder['_id']),
-                                                  name=disk_filename))
+        stream_item = next(self.client.listItem(str(self.publicFolder['_id']),
+                                                name=stream_filename))
+        disk_item = next(self.client.listItem(str(self.publicFolder['_id']),
+                                              name=disk_filename))
 
         # assert names and sizes are correct
         self.assertEqual(stream_filename, stream_item['name'])
@@ -747,11 +747,11 @@ class PythonClientTestCase(base.TestCase):
         testUser = User().createUser(
             firstName='Jeffrey', lastName='Abrams', login='jjabrams',
             password='password', email='jjabrams@girder.test')
-        publicFolder = six.next(Folder().childFolders(
+        publicFolder = next(Folder().childFolders(
             parentType='user', parent=testUser, user=None, limit=1))
         self.client.upload(self.libTestDir, '/user/jjabrams/Public')
 
-        parent = six.next(Folder().childFolders(
+        parent = next(Folder().childFolders(
             parentType='folder', parent=publicFolder,
             user=testUser, limit=0))
         self.assertEqual([f['name'] for f in Folder().childFolders(
