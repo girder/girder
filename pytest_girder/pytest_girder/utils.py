@@ -7,12 +7,13 @@ import errno
 import io
 import json
 import os
+import queue
 import smtpd
 import socket
 import threading
 import time
 
-from six.moves import queue, urllib
+from six.moves import urllib
 
 _startPort = 31000
 _maxTries = 100
