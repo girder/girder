@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
 import json
-import six
 
 from .. import base
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import six
 import subprocess
 import tempfile
 import time

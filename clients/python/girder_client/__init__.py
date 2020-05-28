@@ -21,7 +21,6 @@ import os
 import re
 import requests
 import shutil
-import six
 import tempfile
 
 from contextlib import contextmanager

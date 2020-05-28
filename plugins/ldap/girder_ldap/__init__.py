@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import ldap
-import six
 
 from girder import events, logger
 from girder.api import access
