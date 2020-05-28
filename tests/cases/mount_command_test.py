@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import six
 import subprocess
 import tempfile
 import time
@@ -35,7 +34,7 @@ class MountCommandTestCase(base.TestCase):
             'admin': True
         }
         self.admin = User().createUser(**info)
-        self.publicFolder = six.next(Folder().childFolders(
+        self.publicFolder = next(Folder().childFolders(
             self.admin, parentType='user', force=True, filters={'name': 'Public'}))
         self.item = Item().createItem('test', self.admin, self.publicFolder)
         path = os.path.join(

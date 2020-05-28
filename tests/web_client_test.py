@@ -15,7 +15,6 @@ from girder.models.folder import Folder
 from girder.models.upload import Upload
 from girder.utility.progress import ProgressContext
 from . import base
-from six.moves import range
 
 os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_PORT', '30001')
 config.loadConfig()  # Reload config to pick up correct port

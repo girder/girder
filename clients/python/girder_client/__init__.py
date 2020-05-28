@@ -21,7 +21,6 @@ import os
 import re
 import requests
 import shutil
-import six
 import tempfile
 
 from contextlib import contextmanager
@@ -309,7 +308,7 @@ class GirderClient(object):
         else:
             if interactive:
                 if username is None:
-                    username = six.moves.input('Login or email: ')
+                    username = input('Login or email: ')
                 password = getpass.getpass('Password for %s: ' % username)
 
             if username is None or password is None:
@@ -1485,7 +1484,7 @@ class GirderClient(object):
         children = self.listFolder(parentId, parentType, name=folderName)
 
         try:
-            return six.next(children)
+            return next(children)
         except StopIteration:
             return self.createFolder(parentId, folderName, parentType=parentType,
                                      metadata=metadata)
@@ -1511,7 +1510,7 @@ class GirderClient(object):
         if reuseExisting:
             children = self.listItem(parentFolderId, name=name)
             try:
-                item = six.next(children)
+                item = next(children)
             except StopIteration:
                 pass
 

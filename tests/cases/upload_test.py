@@ -6,7 +6,6 @@ import os
 import re
 import requests
 import threading
-from six.moves import range
 
 from girder import events
 from girder.models.assetstore import Assetstore

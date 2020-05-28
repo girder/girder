@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import click
+from http.client import HTTPConnection
 import logging
 import requests
 from requests.adapters import HTTPAdapter
-from six.moves.http_client import HTTPConnection
 import sys
 import types
 from girder_client import GirderClient, __version__

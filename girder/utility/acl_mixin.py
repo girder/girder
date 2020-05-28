@@ -152,7 +152,7 @@ class AccessControlMixin(object):
             return val
 
         endIndex = offset + limit if limit else None
-        filteredCursor = six.moves.filter(hasAccess, cursor)
+        filteredCursor = filter(hasAccess, cursor)
         for result in itertools.islice(filteredCursor, offset, endIndex):
             for key in removeKeys:
                 if key in result:
@@ -231,7 +231,7 @@ class AccessControlMixin(object):
                     return self
 
                 def __next__(self):
-                    return six.next(origResult)
+                    return next(origResult)
 
                 next = __next__
 

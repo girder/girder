@@ -12,7 +12,6 @@ import time
 import moto.server
 import moto.s3
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
-from six.moves import range
 
 _startPort = 31100
 _maxTries = 100

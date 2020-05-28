@@ -6,7 +6,6 @@ from girder.models.group import Group
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.settings import SettingKey
-from six.moves import range
 
 
 def setUpModule():

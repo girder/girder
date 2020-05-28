@@ -3,7 +3,7 @@ import datetime
 import io
 import json
 import os
-from six.moves import range, urllib
+from six.moves import urllib
 import zipfile
 
 from .. import base

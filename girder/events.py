@@ -25,12 +25,12 @@ receive the Event object as its only argument.
 
 import contextlib
 import girder
+import queue
 import six
 import threading
 
 from collections import OrderedDict
 from girder.utility import config
-from six.moves import queue
 
 
 class Event(object):

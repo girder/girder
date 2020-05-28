@@ -27,7 +27,7 @@ from girder.settings import SettingKey
 from girder.utility import toBool, config, JsonEncoder, optionalArgumentDecorator
 from girder.utility._cache import requestCache
 from girder.utility.model_importer import ModelImporter
-from six.moves import range, urllib
+from six.moves import urllib
 
 # Arbitrary buffer length for stream-reading request bodies
 READ_BUFFER_LEN = 65536
@@ -991,7 +991,7 @@ class Resource(object):
 
         for route, handler in self._routes[method][len(path)]:
             wildcards = {}
-            for routeComponent, pathComponent in six.moves.zip(route, path):
+            for routeComponent, pathComponent in zip(route, path):
                 if routeComponent[0] == ':':  # Wildcard token
                     wildcards[routeComponent[1:]] = pathComponent
                 elif routeComponent != pathComponent:  # Exact match token
