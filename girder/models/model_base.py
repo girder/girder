@@ -1501,7 +1501,7 @@ class AccessControlledModel(Model):
             hasAccess = functools.partial(self.hasAccess, user=user, level=level)
 
         endIndex = offset + limit if limit else None
-        filteredCursor = six.moves.filter(hasAccess, cursor)
+        filteredCursor = filter(hasAccess, cursor)
         for result in itertools.islice(filteredCursor, offset, endIndex):
             for key in removeKeys:
                 if key in result:
