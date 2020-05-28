@@ -12,7 +12,7 @@ import socket
 import threading
 import time
 
-from six.moves import queue, range, urllib
+from six.moves import queue, urllib
 
 _startPort = 31000
 _maxTries = 100

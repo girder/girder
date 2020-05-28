@@ -45,7 +45,7 @@ def _registerLdapUser(attrs, email, server):
             raise
 
     # Fall back to deriving login from user's name
-    for i in six.moves.range(_MAX_NAME_ATTEMPTS):
+    for i in range(_MAX_NAME_ATTEMPTS):
         login = ''.join((first, last, str(i) if i else ''))
         try:
             return User().createUser(
