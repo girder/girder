@@ -1,0 +1,17 @@
+if accessLevel >= AccessType.WRITE
+  if editing
+    button.btn.btn-sm.btn-danger.g-widget-item-tags-delete-button(title="Delete")
+      i.icon-trash
+    .g-widget-item-tags-autocomplete-menu.dropdown
+      ul.dropdown-menu(role="menu")
+    input.input-sm.form-control.g-widget-item-tags-tag-input(type="text", value=tag, placeholder="Tag")
+    button.btn.btn-sm.btn-warning.g-widget-item-tags-cancel-button(title="Cancel")
+      i.icon-cancel
+    button.btn.btn-sm.btn-primary.g-widget-item-tags-save-button(title="Accept")
+      i.icon-ok
+  else
+    div.g-widget-item-tags-tag #{tag}
+    button.btn.btn-sm.btn-default.g-widget-item-tags-edit-button(title="Edit")
+      i.icon-pencil
+else
+  div.g-widget-item-tags-tag #{tag}

@@ -1,0 +1,8 @@
+include LICENSE
+include README.rst
+include setup.py
+
+graft girder_item_tags
+graft docs
+prune test
+global-exclude *.py[co] *.cmake __pycache__ node_modules

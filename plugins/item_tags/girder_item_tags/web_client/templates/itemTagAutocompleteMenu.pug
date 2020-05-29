@@ -1,0 +1,13 @@
+each opt, index in autocompleteOptions
+  li(role="presentation")
+    if index !== highlightIndex
+      a.g-widget-item-tags-autocomplete-option(role="menuitem", data-tag=opt)
+        | #{opt}
+    else
+      a.g-widget-item-tags-autocomplete-option.selected(role="menuitem", data-tag=opt)
+        | #{opt}
+if autocompleteOptions.length === 0
+  li.g-widget-item-tags-autocomplete-no-options.disabled
+    a(tabindex="-1")
+      i.icon-block
+        | No results found
