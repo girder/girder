@@ -1080,6 +1080,23 @@ plugins
             updateItemLicense
             validateItem
             validateString
+    item_tags
+        girder_item_tags
+            GirderPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            ITEM_TAG_LIST
+            getItemTags
+            search_handler
+        tests
+            test_item_tag_search
+                adminFolder
+                createItem
+                test_search_case_insensitive
+                test_search_multiple_results
+                test_search_multiple_search_tags
+                userFolder
     jobs
         girder_jobs
             JobsPlugin

@@ -10,8 +10,8 @@ if accessLevel >= AccessType.WRITE
     button.btn.btn-sm.btn-primary.g-widget-item-tags-save-button(title="Accept")
       i.icon-ok
   else
-    div.g-widget-item-tags-tag #{tag}
+    .g-widget-item-tags-tag #{tag}
     button.btn.btn-sm.btn-default.g-widget-item-tags-edit-button(title="Edit")
       i.icon-pencil
 else
-  div.g-widget-item-tags-tag #{tag}
+  .g-widget-item-tags-tag #{tag}
