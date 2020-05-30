@@ -251,9 +251,9 @@ class ServerFuseTestCase(base.TestCase):
     def testSettingValidation(self):
         # Mounting and unmounting test valid use, so this just tests invalid
         # values.
-        with six.assertRaisesRegex(self, ValidationException, 'must be a dict'):
+        with self.assertRaisesRegex(ValidationException, 'must be a dict'):
             Setting().set(SettingKey.GIRDER_MOUNT_INFORMATION, 'not a dict')
-        with six.assertRaisesRegex(self, ValidationException, 'with the "path" key'):
+        with self.assertRaisesRegex(ValidationException, 'with the "path" key'):
             Setting().set(SettingKey.GIRDER_MOUNT_INFORMATION, {'no path': 'key'})
 
     # Although other tests excerise the individual functions in the FUSE,
