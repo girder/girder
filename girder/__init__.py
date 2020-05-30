@@ -236,7 +236,7 @@ def logprint(*args, **kwargs):
     color = kwargs.pop('color', None)
     exc_info = kwargs.pop('exc_info', None)
     kwargs['file'] = data
-    six.print_(*args, **kwargs)
+    print(*args, **kwargs)
     data = data.getvalue().rstrip()
     if exc_info and not isinstance(exc_info, tuple):
         exc_info = sys.exc_info()

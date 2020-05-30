@@ -107,7 +107,7 @@ def testCaptureStdoutAndStderr(tempLog):
     errorSize2 = os.path.getsize(tempLog['error_log_file'])
     assert infoSize2 > infoSize1
     assert errorSize2 == errorSize1
-    six.print_(ERROR_MSG, file=sys.stderr)
+    print(ERROR_MSG, file=sys.stderr)
     infoSize3 = os.path.getsize(tempLog['info_log_file'])
     errorSize3 = os.path.getsize(tempLog['error_log_file'])
     assert infoSize3 == infoSize2
