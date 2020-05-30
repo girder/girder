@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from functools import wraps
 import paramiko
 import six
 import socketserver
@@ -18,7 +19,7 @@ MAX_BUF_LEN = 10 * 1024 * 1024
 
 
 def _handleErrors(fun):
-    @six.wraps(fun)
+    @wraps(fun)
     def wrapped(*args, **kwargs):
         try:
             return fun(*args, **kwargs)
