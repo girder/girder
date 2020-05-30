@@ -27,7 +27,7 @@ from girder.settings import SettingKey
 from girder.utility import toBool, config, JsonEncoder, optionalArgumentDecorator
 from girder.utility._cache import requestCache
 from girder.utility.model_importer import ModelImporter
-from six.moves import range, urllib
+from six.moves import urllib
 
 # Arbitrary buffer length for stream-reading request bodies
 READ_BUFFER_LEN = 65536
@@ -575,6 +575,20 @@ def disableAuditLog(fun):
     return wrapped
 
 
+def _preventRepeatedParams(params):
+    """
+    Ensure that route parameters are not repeated.
+    """
+    # Repeated parameters are passed by CherryPy as a list:
+    # https://github.com/cherrypy/cherrypy/blob/b57bdc5cb91471fc6af0be4ab72ea873d23cffde/cherrypy/lib/httputil.py#L362
+    # However, endpoints nearly always expect to receive single values (each as str) for
+    # parameters, so Girder does not support repeated parameters.
+    for paramName, paramValue in params.items():
+        if isinstance(paramValue, list):
+            raise RestException(
+                f'Parameter "{paramName}" must not be specified multiple times.')
+
+
 def _logRestRequest(resource, path, params):
     if not hasattr(cherrypy.request, 'girderNoAuditLog'):
         auditLogger.info('rest.request', extra={
@@ -624,6 +638,8 @@ def endpoint(fun):
         setResponseHeader('Girder-Request-Uid', cherrypy.request.girderRequestUid)
 
         try:
+            _preventRepeatedParams(params)
+
             val = fun(self, path, params)
 
             # If this is a partial response, we set the status appropriately
@@ -975,7 +991,7 @@ class Resource(object):
 
         for route, handler in self._routes[method][len(path)]:
             wildcards = {}
-            for routeComponent, pathComponent in six.moves.zip(route, path):
+            for routeComponent, pathComponent in zip(route, path):
                 if routeComponent[0] == ':':  # Wildcard token
                     wildcards[routeComponent[1:]] = pathComponent
                 elif routeComponent != pathComponent:  # Exact match token

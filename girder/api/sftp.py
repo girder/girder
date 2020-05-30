@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import paramiko
 import six
+import socketserver
 import stat
 import time
 
@@ -12,7 +13,6 @@ from girder.models.item import Item
 from girder.models.user import User
 from girder.utility.path import lookUpPath
 from girder.utility.model_importer import ModelImporter
-from six.moves import socketserver
 
 MAX_BUF_LEN = 10 * 1024 * 1024
 

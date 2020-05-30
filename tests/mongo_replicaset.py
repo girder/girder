@@ -10,8 +10,6 @@ import signal
 import subprocess
 import time
 
-from six.moves import range
-
 
 def getMongoClient(config, uri=0, init=False, timeout=30):
     """

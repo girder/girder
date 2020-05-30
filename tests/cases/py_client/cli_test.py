@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import contextlib
 import girder_client.cli
+from http.client import HTTPConnection
 import io
 import logging
 import mock
@@ -18,7 +19,6 @@ from girder.models.item import Item
 from girder.models.user import User
 from girder_client.cli import GirderCli
 from tests import base
-from six.moves.http_client import HTTPConnection
 
 os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')
 config.loadConfig()  # Must reload config to pickup correct port
@@ -93,7 +93,7 @@ class PythonCliTestCase(base.TestCase):
         self.user = User().createUser(
             firstName='First', lastName='Last', login='mylogin',
             password='password', email='email@girder.test')
-        self.publicFolder = six.next(Folder().childFolders(
+        self.publicFolder = next(Folder().childFolders(
             parentType='user', parent=self.user, user=None, limit=1))
         self.apiKey = ApiKey().createApiKey(self.user, name='')
 
@@ -232,7 +232,7 @@ class PythonCliTestCase(base.TestCase):
             self, ret['stdout'], 'Creating Folder from .*tests/cases/py_client/testdata')
         self.assertIn('Uploading Item from hello.txt', ret['stdout'])
 
-        subfolder = six.next(Folder().childFolders(
+        subfolder = next(Folder().childFolders(
             parent=self.publicFolder, parentType='folder', limit=1))
         self.assertEqual(subfolder['name'], 'testdata')
 

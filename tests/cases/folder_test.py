@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
 import json
-import six
 
 from .. import base
 
@@ -444,7 +443,7 @@ class FolderTestCase(base.TestCase):
             folders = Folder().childFolders(
                 parent=self.admin, parentType='user', user=self.admin, limit=1,
                 sort=[('name', SortDir.DESCENDING)])
-            folderResp = six.next(folders)
+            folderResp = next(folders)
 
             # Add a subfolder and an item to that folder
             subfolder = Folder().createFolder(
@@ -490,7 +489,7 @@ class FolderTestCase(base.TestCase):
             self.assertEqual(cbInfo['doc']['_id'], folderResp['_id'])
 
     def testCleanFolder(self):
-        folder = six.next(Folder().childFolders(
+        folder = next(Folder().childFolders(
             parent=self.admin, parentType='user', user=self.admin, limit=1,
             sort=[('name', SortDir.DESCENDING)]))
 

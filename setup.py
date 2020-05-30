@@ -25,8 +25,6 @@ with open('README.rst') as f:
 installReqs = [
     'boto3',
     'botocore',
-    # CherryPy version is restricted due to a bug in versions >=11.1
-    # https://github.com/cherrypy/cherrypy/issues/1662
     'CherryPy',
     'click',
     'click-plugins',

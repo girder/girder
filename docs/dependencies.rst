@@ -54,12 +54,6 @@ Installation of Girder's server has the following system dependencies:
 
   * At a minimum, the environment must include GCC and the Python development headers.
 
-.. note:: In the past, the `cryptography <https://cryptography.io/>`_ Python package (an indirect requirement of Girder)
-          required OpenSSL development headers, but ``cryptography`` is now published as a Python wheel.
-
-          In the past, the `CFFI <https://cffi.readthedocs.io/>`_ Python package (an indirect requirement of Girder)
-          required ``libffi`` development headers, but ``CFFI`` is now published as a Python wheel.
-
 Server Plugins Install
 ----------------------
 Some of Girder's plugins require additional system dependencies, if they are installed:
@@ -73,10 +67,6 @@ Some of Girder's plugins require additional system dependencies, if they are ins
 
   * This is an optional dependency for installing the `python-ldap <https://www.python-ldap.org/>`_ Python package (a
     requirement of the ``ldap`` plugin).
-
-.. note:: In the past, the `Pillow <https://pillow.readthedocs.io/>`_ Python package (a requirement of the
-          ``thumbnails`` plugin ) required ``libjpeg`` and ``zlib`` development headers, but Pillow is now published as
-          a Python wheel.
 
 Server Runtime
 --------------
