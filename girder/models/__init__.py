@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import pymongo
 import six
-from six.moves import urllib
+import urllib.parse
 
 from girder import logprint
 from girder.utility import config

@@ -2,7 +2,7 @@
 import datetime
 import json
 import re
-from six.moves import urllib
+import urllib.parse
 
 import httmock
 import jwt

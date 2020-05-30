@@ -6,6 +6,7 @@ import json
 import moto
 import os
 import shutil
+import urllib.parse
 import zipfile
 
 from hashlib import sha512
@@ -24,7 +25,6 @@ from girder.settings import SettingKey
 from girder.utility import gridfs_assetstore_adapter
 from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
-from six.moves import urllib
 
 # The latest moto/boto/botocore requires dummy credentials to function.  It is unclear if
 # this is a bug or intended behavior.

@@ -12,8 +12,7 @@ import smtpd
 import socket
 import threading
 import time
-
-from six.moves import urllib
+import urllib.parse
 
 _startPort = 31000
 _maxTries = 100

@@ -1,9 +1,9 @@
 import os
+import urllib.parse
 import pytest
 
 from pytest_girder.assertions import assertStatus, assertStatusOk
 from pytest_girder.utils import getResponseBody
-from six.moves.urllib.parse import urlparse
 
 from girder.api import access
 from girder.api.describe import Description, describeRoute
@@ -121,7 +121,7 @@ def testServerInfoInErrorPage(server):
 def testApiRedirect(server):
     resp = server.request('/api', prefix='', isJson=False)
     assertStatus(resp, 303)
-    assert urlparse(resp.headers['Location']).path == '/api/v1'
+    assert urllib.parse.urlparse(resp.headers['Location']).path == '/api/v1'
 
 
 @pytest.mark.plugin('test_plugin', CustomRoot)

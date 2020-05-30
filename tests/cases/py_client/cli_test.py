@@ -10,6 +10,7 @@ import requests
 import shutil
 import sys
 import six
+import urllib.parse
 import httmock
 
 from girder import config
@@ -267,7 +268,7 @@ class PythonCliTestCase(base.TestCase):
         @httmock.urlmatch(netloc='localhost', path='/api/v1/file$', method='POST')
         def checkParams(url, request):
             # Add query for every file upload request
-            queryList.append(six.moves.urllib.parse.parse_qs(url[3]))
+            queryList.append(urllib.parse.parse_qs(url[3]))
 
         with httmock.HTTMock(checkParams):
             ret = invokeCli(

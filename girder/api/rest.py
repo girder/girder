@@ -12,6 +12,7 @@ import sys
 import traceback
 import types
 import unicodedata
+import urllib.parse
 import uuid
 
 from dogpile.cache.util import kwarg_function_key_generator
@@ -27,7 +28,6 @@ from girder.settings import SettingKey
 from girder.utility import toBool, config, JsonEncoder, optionalArgumentDecorator
 from girder.utility._cache import requestCache
 from girder.utility.model_importer import ModelImporter
-from six.moves import urllib
 
 # Arbitrary buffer length for stream-reading request bodies
 READ_BUFFER_LEN = 65536
@@ -250,7 +250,7 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
     value = disposition + b'; filename="' + safeFilename.replace(
         b'\\', b'\\\\').replace(b'"', b'\\"') + b'"'
     if safeFilename != utf8Filename:
-        quotedFilename = six.moves.urllib.parse.quote(utf8Filename)
+        quotedFilename = urllib.parse.quote(utf8Filename)
         if not isinstance(quotedFilename, bytes):
             quotedFilename = quotedFilename.encode('iso8859-1', 'ignore')
         value += b"; filename*=UTF-8''" + quotedFilename

@@ -6,7 +6,7 @@ import json
 import re
 import requests
 import uuid
-from six.moves import urllib
+import urllib.parse
 
 from girder import logger, events
 from girder.api.rest import setContentDisposition
