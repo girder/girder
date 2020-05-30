@@ -511,22 +511,22 @@ class ApiDescribeTestCase(base.TestCase):
             'userId': user['_id']
         })
         self.assertStatus(resp, 401)
-        six.assertRegex(self, resp.json['message'], '^Access denied for user')
+        self.assertRegex(resp.json['message'], '^Access denied for user')
 
         resp = self.request('/auto_describe/json_schema', params={
             'obj': json.dumps([])
         })
         self.assertStatus(resp, 400)
-        six.assertRegex(
-            self, resp.json['message'],
+        self.assertRegex(
+            resp.json['message'],
             r"^Invalid JSON object for parameter obj: \[\] is not of type 'object'")
 
         resp = self.request('/auto_describe/json_schema', params={
             'obj': json.dumps({})
         })
         self.assertStatus(resp, 400)
-        six.assertRegex(
-            self, resp.json['message'],
+        self.assertRegex(
+            resp.json['message'],
             r"^Invalid JSON object for parameter obj: 'foo' is a required property")
 
         obj = {

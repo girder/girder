@@ -229,8 +229,8 @@ class PythonCliTestCase(base.TestCase):
         # Actually upload the test data
         ret = invokeCli(args, username='mylogin', password='password', useApiUrl=True)
         self.assertEqual(ret['exitVal'], 0)
-        six.assertRegex(
-            self, ret['stdout'], 'Creating Folder from .*tests/cases/py_client/testdata')
+        self.assertRegex(
+            ret['stdout'], 'Creating Folder from .*tests/cases/py_client/testdata')
         self.assertIn('Uploading Item from hello.txt', ret['stdout'])
 
         subfolder = next(Folder().childFolders(
@@ -360,8 +360,8 @@ class PythonCliTestCase(base.TestCase):
 
         def _check_upload(ret):
             self.assertEqual(ret['exitVal'], 0)
-            six.assertRegex(
-                self, ret['stdout'],
+            self.assertRegex(
+                ret['stdout'],
                 'Creating Folder from .*tests/cases/py_client/testdata')
             self.assertIn('Uploading Item from hello.txt', ret['stdout'])
 
@@ -409,8 +409,8 @@ class PythonCliTestCase(base.TestCase):
 
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
-        six.assertRegex(
-            self, ret['stdout'], 'Creating Item from folder .*tests/cases/py_client/testdata')
+        self.assertRegex(
+            ret['stdout'], 'Creating Item from folder .*tests/cases/py_client/testdata')
         self.assertIn('Adding file world.txt', ret['stdout'])
 
         # Test re-use existing case

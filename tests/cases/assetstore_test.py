@@ -558,7 +558,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(s3Info['chunked'], False)
         self.assertIsInstance(s3Info['chunkLength'], int)
         self.assertEqual(s3Info['request']['method'], 'PUT')
-        six.assertRegex(self, s3Info['request']['url'], s3Regex)
+        self.assertRegex(s3Info['request']['url'], s3Regex)
         self.assertEqual(s3Info['request']['headers']['x-amz-acl'], 'private')
 
         # Test resume of a single-chunk upload
@@ -567,7 +567,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['method'], 'PUT')
         self.assertTrue('headers' in resp.json)
-        six.assertRegex(self, resp.json['url'], s3Regex)
+        self.assertRegex(resp.json['url'], s3Regex)
 
         # Test finalize for a single-chunk upload
         resp = self.request(
@@ -581,7 +581,7 @@ class AssetstoreTestCase(base.TestCase):
 
         file = File().load(resp.json['_id'], force=True)
         self.assertTrue('s3Key' in file)
-        six.assertRegex(self, file['relpath'], '^/bucketname/foo/bar/')
+        self.assertRegex(file['relpath'], '^/bucketname/foo/bar/')
 
         # Test init for a multi-chunk upload
         params['size'] = 1024 * 1024 * 1024 * 5
@@ -593,7 +593,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(s3Info['chunked'], True)
         self.assertIsInstance(s3Info['chunkLength'], int)
         self.assertEqual(s3Info['request']['method'], 'POST')
-        six.assertRegex(self, s3Info['request']['url'], s3Regex)
+        self.assertRegex(s3Info['request']['url'], s3Regex)
 
         # Test uploading a chunk
         resp = self.request(path='/file/chunk', method='POST',
@@ -606,7 +606,7 @@ class AssetstoreTestCase(base.TestCase):
                                 })
                             })
         self.assertStatusOk(resp)
-        six.assertRegex(self, resp.json['s3']['request']['url'], s3Regex)
+        self.assertRegex(resp.json['s3']['request']['url'], s3Regex)
         self.assertEqual(resp.json['s3']['request']['method'], 'PUT')
 
         # We should not be able to call file/offset with multi-chunk upload
@@ -625,7 +625,7 @@ class AssetstoreTestCase(base.TestCase):
             params={'uploadId': multiChunkUpload['_id']})
         largeFile = resp.json
         self.assertStatusOk(resp)
-        six.assertRegex(self, resp.json['s3FinalizeRequest']['url'], s3Regex)
+        self.assertRegex(resp.json['s3FinalizeRequest']['url'], s3Regex)
         self.assertEqual(resp.json['s3FinalizeRequest']['method'], 'POST')
 
         # Test init for an empty file (should be no-op)
@@ -649,7 +649,7 @@ class AssetstoreTestCase(base.TestCase):
         resp = self.request(path='/file/%s/download' % largeFile['_id'],
                             user=self.admin, method='GET', isJson=False)
         self.assertStatus(resp, 303)
-        six.assertRegex(self, resp.headers['Location'], s3Regex)
+        self.assertRegex(resp.headers['Location'], s3Regex)
 
         # Test download of a non-empty file, with Content-Disposition=inline.
         # Expect the special S3 header response-content-disposition.
@@ -659,8 +659,8 @@ class AssetstoreTestCase(base.TestCase):
             path='/file/%s/download' % largeFile['_id'], user=self.admin, method='GET',
             isJson=False, params=params)
         self.assertStatus(resp, 303)
-        six.assertRegex(self, resp.headers['Location'], s3Regex)
-        six.assertRegex(self, resp.headers['Location'], inlineRegex)
+        self.assertRegex(resp.headers['Location'], s3Regex)
+        self.assertRegex(resp.headers['Location'], inlineRegex)
 
         # Test download as part of a streaming zip
         @httmock.all_requests
