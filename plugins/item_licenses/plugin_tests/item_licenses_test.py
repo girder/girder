@@ -274,8 +274,8 @@ class ItemLicensesTestCase(base.TestCase):
         # Get current settings after changing licenses
         resp = self.request(path='/item/licenses', user=self.user)
         self.assertStatusOk(resp)
-        six.assertCountEqual(
-            self, resp.json,
+        self.assertCountEqual(
+            resp.json,
             [{'category': 'A', 'licenses': [{'name': '1'}]},
              {'category': 'B', 'licenses': [{'name': '2'}, {'name': '3'}]}])
 
