@@ -15,7 +15,6 @@ import io
 import logging
 import logging.handlers
 import os
-import six
 import sys
 import traceback
 

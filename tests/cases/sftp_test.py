@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import paramiko
 import io
-import six
 import socket
 import stat
 import threading

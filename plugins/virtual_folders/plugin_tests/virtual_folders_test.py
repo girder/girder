@@ -1,5 +1,4 @@
 import json
-import six
 
 from tests import base
 from girder.constants import AccessType, SortDir

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from functools import wraps
 import paramiko
-import six
 import socketserver
 import stat
 import time

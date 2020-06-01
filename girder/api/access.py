@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from functools import wraps
-import six
 
 from girder.api import rest
 from girder.exceptions import AccessException

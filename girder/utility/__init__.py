@@ -9,7 +9,6 @@ import os
 import pytz
 import re
 import string
-import six
 
 import girder
 import girder.events

@@ -7,7 +7,6 @@ import json
 import mock
 import moto
 import os
-import six
 import time
 import zipfile
 

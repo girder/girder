@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import hashlib
 import io
-import six
 import time
 
 from girder.exceptions import ValidationException

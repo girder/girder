@@ -9,7 +9,6 @@ import os
 import requests
 import shutil
 import sys
-import six
 import urllib.parse
 import httmock
 
