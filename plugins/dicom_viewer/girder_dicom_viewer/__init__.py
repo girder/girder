@@ -156,8 +156,8 @@ def _coerceValue(value):
         if isinstance(value, knownBaseType):
             return knownBaseType(value)
 
-    # In Python3, pydicom does not treat the PersonName type as a subclass of a text type
-    if isinstance(value, pydicom.valuerep.PersonName3):
+    # pydicom does not treat the PersonName type as a subclass of a text type
+    if isinstance(value, pydicom.valuerep.PersonName):
         return value.encode('utf-8')
 
     # Handle lists (MultiValue) recursively
