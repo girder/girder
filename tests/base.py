@@ -10,9 +10,9 @@ import signal
 import six
 import sys
 import unittest
+import urllib.parse
 import warnings
 
-from six.moves import urllib
 from girder.utility._cache import cache, requestCache
 from girder.utility.server import setup as setupServer
 from girder.constants import AccessType, ROOT_DIR, ServerMode

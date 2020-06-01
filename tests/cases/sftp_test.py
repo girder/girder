@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import paramiko
 import io
-import six
 import socket
 import stat
 import threading
@@ -132,10 +131,10 @@ class SftpTestCase(base.TestCase):
         self.assertEqual(sftpClient.listdir('/user/regularuser/Private'), ['test.txt'])
         self.assertEqual(sftpClient.listdir('/user/regularuser/Private/test.txt'), ['test.txt'])
 
-        with six.assertRaisesRegex(self, IOError, 'No such file'):
+        with self.assertRaisesRegex(IOError, 'No such file'):
             sftpClient.listdir('/user/nonexistent')
 
-        with six.assertRaisesRegex(self, IOError, 'No such file'):
+        with self.assertRaisesRegex(IOError, 'No such file'):
             sftpClient.file('/user/regularuser/Private')
 
         # Read a file using small enough buf size to require multiple chunks internally.
@@ -214,10 +213,10 @@ class SftpTestCase(base.TestCase):
 
         # Make sure the client cannot distinguish between a resource that does not exist
         # vs. one they simply don't have read access to.
-        with six.assertRaisesRegex(self, IOError, 'No such file'):
+        with self.assertRaisesRegex(IOError, 'No such file'):
             sftpClient.listdir('/user/regularuser/Private')
 
-        with six.assertRaisesRegex(self, IOError, 'No such file'):
+        with self.assertRaisesRegex(IOError, 'No such file'):
             sftpClient.file('/user/regularuser/Private/test.txt/test.txt', 'r')
 
         sftpClient.close()
@@ -241,10 +240,10 @@ class SftpTestCase(base.TestCase):
 
         # Make sure the client cannot distinguish between a resource that does not exist
         # vs. one they simply don't have read access to.
-        with six.assertRaisesRegex(self, IOError, 'No such file'):
+        with self.assertRaisesRegex(IOError, 'No such file'):
             sftpClient.listdir('/user/regularuser/Private')
 
-        with six.assertRaisesRegex(self, IOError, 'No such file'):
+        with self.assertRaisesRegex(IOError, 'No such file'):
             sftpClient.file('/user/regularuser/Private/test.txt/test.txt', 'r')
 
         sftpClient.close()

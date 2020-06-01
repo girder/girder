@@ -1,5 +1,4 @@
 import json
-import six
 
 from tests import base
 from girder.constants import AccessType, SortDir
@@ -93,45 +92,45 @@ class VirtualFoldersTestCase(base.TestCase):
         subfolder = Folder().createFolder(self.f1, 'sub', creator=self.admin)
         self.f1['isVirtual'] = True
 
-        with six.assertRaisesRegex(
-                self, ValidationException, 'Virtual folders may not contain child folders.'):
+        with self.assertRaisesRegex(
+                ValidationException, 'Virtual folders may not contain child folders.'):
             Folder().save(self.f1)
 
         Folder().remove(subfolder)
         item = Item().createItem('i', creator=self.admin, folder=self.f1)
 
-        with six.assertRaisesRegex(
-                self, ValidationException, 'Virtual folders may not contain child items.'):
+        with self.assertRaisesRegex(
+                ValidationException, 'Virtual folders may not contain child items.'):
             Folder().save(self.f1)
 
         Item().remove(item)
         Folder().save(self.f1)
 
         # Can't make subfolders or items under a virtual folder
-        with six.assertRaisesRegex(
-                self, ValidationException, 'You may not place items under a virtual folder.'):
+        with self.assertRaisesRegex(
+                ValidationException, 'You may not place items under a virtual folder.'):
             Item().createItem('i', creator=self.admin, folder=self.f1)
 
-        with six.assertRaisesRegex(
-                self, ValidationException, 'You may not place folders under a virtual folder.'):
+        with self.assertRaisesRegex(
+                ValidationException, 'You may not place folders under a virtual folder.'):
             Folder().createFolder(self.f1, 'f', creator=self.admin)
 
         # Can't move an item under a virtual folder
         item = Item().createItem('i', creator=self.admin, folder=self.f2)
-        with six.assertRaisesRegex(
-                self, ValidationException, 'You may not place items under a virtual folder.'):
+        with self.assertRaisesRegex(
+                ValidationException, 'You may not place items under a virtual folder.'):
             Item().move(item, self.f1)
 
         # Ensure JSON for query
         self.f1['virtualItemsQuery'] = 'not JSON'
-        with six.assertRaisesRegex(
-                self, ValidationException, 'The virtual items query must be valid JSON.'):
+        with self.assertRaisesRegex(
+                ValidationException, 'The virtual items query must be valid JSON.'):
             Folder().save(self.f1)
 
         del self.f1['virtualItemsQuery']
         self.f1['virtualItemsSort'] = 'not JSON'
-        with six.assertRaisesRegex(
-                self, ValidationException, 'The virtual items sort must be valid JSON.'):
+        with self.assertRaisesRegex(
+                ValidationException, 'The virtual items sort must be valid JSON.'):
             Folder().save(self.f1)
 
     def testRestEndpoint(self):

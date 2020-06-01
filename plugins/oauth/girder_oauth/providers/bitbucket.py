@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from six.moves import urllib
+import urllib.parse
 
 from girder.api.rest import getApiUrl
 from girder.exceptions import RestException

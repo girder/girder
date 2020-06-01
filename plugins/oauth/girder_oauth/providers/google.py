@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from six.moves import urllib
+import urllib.parse
 
 import jwt
 

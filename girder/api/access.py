@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import six
+from functools import wraps
 
 from girder.api import rest
 from girder.exceptions import AccessException
@@ -23,7 +23,7 @@ def admin(fun, scope=None, cookie=False):
         Cross-Site Request Forgery (CSRF) attacks.
     :type cookie: bool
     """
-    @six.wraps(fun)
+    @wraps(fun)
     def wrapped(*args, **kwargs):
         rest.requireAdmin(rest.getCurrentUser())
         return fun(*args, **kwargs)
@@ -50,7 +50,7 @@ def user(fun, scope=None, cookie=False):
         Cross-Site Request Forgery (CSRF) attacks.
     :type cookie: bool
     """
-    @six.wraps(fun)
+    @wraps(fun)
     def wrapped(*args, **kwargs):
         if not rest.getCurrentUser():
             raise AccessException('You must be logged in.')
@@ -80,7 +80,7 @@ def token(fun, scope=None, required=False, cookie=False):
         Cross-Site Request Forgery (CSRF) attacks.
     :type cookie: bool
     """
-    @six.wraps(fun)
+    @wraps(fun)
     def wrapped(*args, **kwargs):
         if not rest.getCurrentToken():
             raise AccessException('You must be logged in or have a valid auth token.')

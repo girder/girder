@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import six
 from .. import base
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting
@@ -61,21 +60,21 @@ class SettingTestCase(base.TestCase):
         def key1v1(doc):
             raise ValidationException('key1v1')
 
-        with six.assertRaisesRegex(self, ValidationException, '^key1v1$'):
+        with self.assertRaisesRegex(ValidationException, '^key1v1$'):
             settingModel.set('test.key1', '')
 
         @setting_utilities.validator('test.key1')
         def key1v2(doc):
             raise ValidationException('key1v2')
 
-        with six.assertRaisesRegex(self, ValidationException, '^key1v2$'):
+        with self.assertRaisesRegex(ValidationException, '^key1v2$'):
             settingModel.set('test.key1', '')
 
         @setting_utilities.validator('test.key2')
         def key2v1(doc):
             raise ValidationException('key2v1')
 
-        with six.assertRaisesRegex(self, ValidationException, '^key2v1$'):
+        with self.assertRaisesRegex(ValidationException, '^key2v1$'):
             settingModel.set('test.key2', '')
 
         @setting_utilities.validator('test.key2', replace=True)

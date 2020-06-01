@@ -9,7 +9,7 @@ import os
 import requests
 import shutil
 import sys
-import six
+import urllib.parse
 import httmock
 
 from girder import config
@@ -228,8 +228,8 @@ class PythonCliTestCase(base.TestCase):
         # Actually upload the test data
         ret = invokeCli(args, username='mylogin', password='password', useApiUrl=True)
         self.assertEqual(ret['exitVal'], 0)
-        six.assertRegex(
-            self, ret['stdout'], 'Creating Folder from .*tests/cases/py_client/testdata')
+        self.assertRegex(
+            ret['stdout'], 'Creating Folder from .*tests/cases/py_client/testdata')
         self.assertIn('Uploading Item from hello.txt', ret['stdout'])
 
         subfolder = next(Folder().childFolders(
@@ -267,7 +267,7 @@ class PythonCliTestCase(base.TestCase):
         @httmock.urlmatch(netloc='localhost', path='/api/v1/file$', method='POST')
         def checkParams(url, request):
             # Add query for every file upload request
-            queryList.append(six.moves.urllib.parse.parse_qs(url[3]))
+            queryList.append(urllib.parse.parse_qs(url[3]))
 
         with httmock.HTTMock(checkParams):
             ret = invokeCli(
@@ -359,8 +359,8 @@ class PythonCliTestCase(base.TestCase):
 
         def _check_upload(ret):
             self.assertEqual(ret['exitVal'], 0)
-            six.assertRegex(
-                self, ret['stdout'],
+            self.assertRegex(
+                ret['stdout'],
                 'Creating Folder from .*tests/cases/py_client/testdata')
             self.assertIn('Uploading Item from hello.txt', ret['stdout'])
 
@@ -408,8 +408,8 @@ class PythonCliTestCase(base.TestCase):
 
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)
-        six.assertRegex(
-            self, ret['stdout'], 'Creating Item from folder .*tests/cases/py_client/testdata')
+        self.assertRegex(
+            ret['stdout'], 'Creating Item from folder .*tests/cases/py_client/testdata')
         self.assertIn('Adding file world.txt', ret['stdout'])
 
         # Test re-use existing case

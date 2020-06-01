@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import bson.json_util
 import dateutil.parser
+from functools import wraps
 import inspect
 import jsonschema
 import os
@@ -616,7 +617,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
     def __call__(self, fun):
         self._inspectFunSignature(fun)
 
-        @six.wraps(fun)
+        @wraps(fun)
         def wrapped(*args, **kwargs):
             """
             Transform any passed params according to the spec, or

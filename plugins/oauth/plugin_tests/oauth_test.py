@@ -2,7 +2,7 @@
 import datetime
 import json
 import re
-from six.moves import urllib
+import urllib.parse
 
 import httmock
 import jwt
@@ -242,7 +242,7 @@ class OauthTest(base.TestCase):
         self.assertIsInstance(resp.json, dict)
         self.assertEqual(len(resp.json), 1)
         self.assertIn(providerInfo['name'], resp.json)
-        six.assertRegex(self, resp.json[providerInfo['name']], providerInfo['url_re'])
+        self.assertRegex(resp.json[providerInfo['name']], providerInfo['url_re'])
 
         # This will need to be called several times, to get fresh tokens
         def getProviderResp():
@@ -257,7 +257,7 @@ class OauthTest(base.TestCase):
             self.assertSetEqual(set(six.viewkeys(providerResp)), {'id', 'name', 'url'})
             self.assertEqual(providerResp['id'], providerInfo['id'])
             self.assertEqual(providerResp['name'], providerInfo['name'])
-            six.assertRegex(self, providerResp['url'], providerInfo['url_re'])
+            self.assertRegex(providerResp['url'], providerInfo['url_re'])
             redirectParams = urllib.parse.parse_qs(
                 urllib.parse.urlparse(providerResp['url']).query)
             csrfTokenParts = redirectParams['state'][0].partition('.')
@@ -502,8 +502,8 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                six.assertRegex(
-                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
+                self.assertRegex(
+                    params['redirect_uri'][0], providerInfo['allowed_callback_re'])
                 state = params['state'][0]
                 # Nothing to test for state, since provider doesn't care
             except (KeyError, AssertionError) as e:
@@ -540,8 +540,8 @@ class OauthTest(base.TestCase):
             try:
                 self.assertEqual(params['grant_type'], ['authorization_code'])
                 self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
-                six.assertRegex(
-                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
+                self.assertRegex(
+                    params['redirect_uri'][0], providerInfo['allowed_callback_re'])
                 for account in six.viewvalues(providerInfo['accounts']):
                     if account['auth_code'] == params['code'][0]:
                         break
@@ -664,7 +664,7 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                six.assertRegex(self, redirectUri, providerInfo['allowed_callback_re'])
+                self.assertRegex(redirectUri, providerInfo['allowed_callback_re'])
                 state = params['state'][0]
                 # Nothing to test for state, since provider doesn't care
                 self.assertEqual(params['scope'], ['user:email'])
@@ -705,8 +705,8 @@ class OauthTest(base.TestCase):
                 else:
                     self.fail()
                 self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
-                six.assertRegex(
-                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
+                self.assertRegex(
+                    params['redirect_uri'][0], providerInfo['allowed_callback_re'])
             except (KeyError, AssertionError) as e:
                 returnBody = json.dumps({
                     'error': repr(e),
@@ -900,8 +900,8 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                six.assertRegex(
-                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
+                self.assertRegex(
+                    params['redirect_uri'][0], providerInfo['allowed_callback_re'])
                 state = params['state'][0]
                 # Nothing to test for state, since provider doesn't care
             except (KeyError, AssertionError) as e:
@@ -968,8 +968,8 @@ class OauthTest(base.TestCase):
                 else:
                     self.fail()
                 self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
-                six.assertRegex(
-                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
+                self.assertRegex(
+                    params['redirect_uri'][0], providerInfo['allowed_callback_re'])
             except (KeyError, AssertionError) as e:
                 returnBody = json.dumps({
                     'error': repr(e),
@@ -1061,8 +1061,8 @@ class OauthTest(base.TestCase):
             try:
                 params = urllib.parse.parse_qs(url.query)
                 self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
-                six.assertRegex(
-                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
+                self.assertRegex(
+                    params['redirect_uri'][0], providerInfo['allowed_callback_re'])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 200,
@@ -1107,8 +1107,8 @@ class OauthTest(base.TestCase):
                         break
                 else:
                     self.fail()
-                six.assertRegex(
-                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
+                self.assertRegex(
+                    params['redirect_uri'][0], providerInfo['allowed_callback_re'])
             except (KeyError, AssertionError) as e:
                 return {
                     'status_code': 400,
@@ -1249,7 +1249,7 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                six.assertRegex(self, redirectUri, providerInfo['allowed_callback_re'])
+                self.assertRegex(redirectUri, providerInfo['allowed_callback_re'])
                 state = params['state'][0]
                 # Nothing to test for state, since provider doesn't care
                 self.assertEqual(params['scope'], ['account'])
@@ -1292,8 +1292,8 @@ class OauthTest(base.TestCase):
                 else:
                     self.fail()
                 self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
-                six.assertRegex(
-                    self, params['redirect_uri'][0], providerInfo['allowed_callback_re'])
+                self.assertRegex(
+                    params['redirect_uri'][0], providerInfo['allowed_callback_re'])
             except (KeyError, AssertionError) as e:
                 returnBody = json.dumps({
                     'error': repr(e),
@@ -1445,7 +1445,7 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                six.assertRegex(self, redirectUri, providerInfo['allowed_callback_re'])
+                self.assertRegex(redirectUri, providerInfo['allowed_callback_re'])
                 state = params['state'][0]
                 # Nothing to test for state, since provider doesn't care
             except (KeyError, AssertionError) as e:

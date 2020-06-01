@@ -3,12 +3,12 @@ import cherrypy
 import datetime
 import dateutil.parser
 import errno
+from functools import wraps
 import json
 import os
 import pytz
 import re
 import string
-import six
 
 import girder
 import girder.events
@@ -209,7 +209,7 @@ def optionalArgumentDecorator(baseDecorator):
     :param baseDecorator: The target decorator.
     :type baseDecorator: callable
     """
-    @six.wraps(baseDecorator)
+    @wraps(baseDecorator)
     def normalizedArgumentDecorator(*args, **kwargs):
         if len(args) == 1 and callable(args[0]):  # Applied as a raw decorator
             decoratedFunction = args[0]

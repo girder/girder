@@ -45,6 +45,6 @@ def main(plugins, script, args):
     else:
         globals_ = {k: v for k, v in six.viewitems(globals()) if k not in {'__file__', '__name__'}}
         sys.argv = [script] + list(args)
-        six.exec_(open(script, 'rb').read(), dict(
+        exec(open(script, 'rb').read(), dict(
             webroot=webroot, appconf=appconf, __name__='__main__',
             __file__=script, **globals_))

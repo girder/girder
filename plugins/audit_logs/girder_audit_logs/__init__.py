@@ -2,7 +2,7 @@ import cherrypy
 import datetime
 import logging
 import six
-from six.moves import urllib
+import urllib.parse
 from girder import auditLogger
 from girder.constants import SortDir
 from girder.models.model_base import Model

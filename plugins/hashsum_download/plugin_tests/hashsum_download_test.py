@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import hashlib
 import io
-import six
 import time
 
 from girder.exceptions import ValidationException
@@ -237,7 +236,7 @@ class HashsumDownloadTest(base.TestCase):
         # Test with bad algo
         resp = self.request(template % (self.publicFile['_id'], 'foo'))
         self.assertStatus(resp, 400)
-        six.assertRegex(self, resp.json['message'], '^Invalid value for algo: "foo"')
+        self.assertRegex(resp.json['message'], '^Invalid value for algo: "foo"')
 
         # Should work with public file
         resp = self.request(template % (self.publicFile['_id'], 'sha512'),
@@ -250,7 +249,7 @@ class HashsumDownloadTest(base.TestCase):
         # Should not work with private file
         resp = self.request(template % (self.privateFile['_id'], 'sha512'))
         self.assertStatus(resp, 401)
-        six.assertRegex(self, resp.json['message'], '^Read access denied')
+        self.assertRegex(resp.json['message'], '^Read access denied')
 
     def testAutoComputeHashes(self):
         with self.assertRaises(ValidationException):

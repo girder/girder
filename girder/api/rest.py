@@ -3,6 +3,7 @@ import cgi
 import cherrypy
 import collections
 import datetime
+from functools import wraps
 import inspect
 import json
 import posixpath
@@ -12,6 +13,7 @@ import sys
 import traceback
 import types
 import unicodedata
+import urllib.parse
 import uuid
 
 from dogpile.cache.util import kwarg_function_key_generator
@@ -27,7 +29,6 @@ from girder.settings import SettingKey
 from girder.utility import toBool, config, JsonEncoder, optionalArgumentDecorator
 from girder.utility._cache import requestCache
 from girder.utility.model_importer import ModelImporter
-from six.moves import urllib
 
 # Arbitrary buffer length for stream-reading request bodies
 READ_BUFFER_LEN = 65536
@@ -250,7 +251,7 @@ def setContentDisposition(filename, disposition='attachment', setHeader=True):
     value = disposition + b'; filename="' + safeFilename.replace(
         b'\\', b'\\\\').replace(b'"', b'\\"') + b'"'
     if safeFilename != utf8Filename:
-        quotedFilename = six.moves.urllib.parse.quote(utf8Filename)
+        quotedFilename = urllib.parse.quote(utf8Filename)
         if not isinstance(quotedFilename, bytes):
             quotedFilename = quotedFilename.encode('iso8859-1', 'ignore')
         value += b"; filename*=UTF-8''" + quotedFilename
@@ -370,7 +371,7 @@ class loadmodel(object):  # noqa: class name
             raise RestException('No ID parameter passed: ' + idParam)
 
     def __call__(self, fun):
-        @six.wraps(fun)
+        @wraps(fun)
         def wrapped(*args, **kwargs):
             model = ModelImporter.model(self.model, self.plugin)
 
@@ -423,7 +424,7 @@ class filtermodel(object):  # noqa: class name
         self._isModelClass = inspect.isclass(model)
 
     def __call__(self, fun):
-        @six.wraps(fun)
+        @wraps(fun)
         def wrapped(*args, **kwargs):
             val = fun(*args, **kwargs)
             if val is None:
@@ -480,7 +481,7 @@ def rawResponse(fun):
     This is a decorator that can be placed on REST route handlers, and is
     equivalent to calling ``setRawResponse()`` in the handler body.
     """
-    @six.wraps(fun)
+    @wraps(fun)
     def wrapped(*args, **kwargs):
         setRawResponse()
         return fun(*args, **kwargs)
@@ -568,7 +569,7 @@ def disableAuditLog(fun):
     """
     If calls to a REST route should not be logged in the audit log, decorate it with this function.
     """
-    @six.wraps(fun)
+    @wraps(fun)
     def wrapped(*args, **kwargs):
         cherrypy.request.girderNoAuditLog = True
         return fun(*args, **kwargs)
@@ -630,7 +631,7 @@ def endpoint(fun):
     If you want a streamed response, simply return a generator function
     from the inner method.
     """
-    @six.wraps(fun)
+    @wraps(fun)
     def endpointDecorator(self, *path, **params):
         _setCommonCORSHeaders()
         cherrypy.lib.caching.expires(0)
@@ -1268,7 +1269,7 @@ def boundHandler(fun, ctx=None):
     elif not isinstance(ctx, Resource):
         raise Exception('ctx in boundhandler must be an instance of Resource.')
 
-    @six.wraps(fun)
+    @wraps(fun)
     def wrapped(*args, **kwargs):
         return fun(ctx, *args, **kwargs)
 
