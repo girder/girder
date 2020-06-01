@@ -46,7 +46,7 @@ setup(
         'girder>=3',
         'girder-jobs>=3',
         'Pillow',
-        'pydicom>=1.0.2',
+        'pydicom>=2.0.0',
         'numpy'
     ],
     entry_points={
