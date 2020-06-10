@@ -71,11 +71,14 @@ var HierarchyBreadcrumbView = View.extend({
 var HierarchyPaginatedView = View.extend({
     events: {
         'change #g-page-selection-input': function (event) {
-            this.disabled = true;
-            this.itemListWidget.setPage(Number(event.target.value)).done(() => {
-                this.disabled = false;
-                this.render();
-            });
+            const num = Number(event.target.value);
+            if (this.itemListWidget && num <= this.itemListWidget.getNumPages() && num > 0) {
+                this.disabled = true;
+                this.itemListWidget.setPage(num).done(() => {
+                    this.disabled = false;
+                    this.render();
+                });
+            }
             this.render();
         },
         'click li.g-page-next:not(.disabled) a#g-next-paginated': function () {
