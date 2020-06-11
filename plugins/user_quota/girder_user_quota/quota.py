@@ -157,7 +157,7 @@ class QuotaPolicy(Resource):
         :returns: a validate policy dictionary.
         """
         validKeys = [k[10:] for k in dir(self) if k.startswith('_validate_')]
-        policy = {k: v for k, v in six.iteritems(policy) if not k.startswith('_')}
+        policy = {k: v for k, v in policy.items() if not k.startswith('_')}
 
         for key in policy:
             if key not in validKeys:

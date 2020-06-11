@@ -323,11 +323,11 @@ class AccessControlMixin(object):
                     fields = dict.fromkeys(fields, 1)
                 if any(not isinstance(v, abc.Mapping) for v in fields.values()):
                     fullPipeline.append({'$project': {
-                        k: v for k, v in six.iteritems(fields)
+                        k: v for k, v in fields.items()
                         if not isinstance(v, abc.Mapping)}})
                 if any(isinstance(v, abc.Mapping) for v in fields.values()):
                     fullPipeline.append({'$addFields': {
-                        k: v for k, v in six.iteritems(fields)
+                        k: v for k, v in fields.items()
                         if isinstance(v, abc.Mapping)}})
             options = {
                 # By allowing disk use, large sorted queries will work.  If
