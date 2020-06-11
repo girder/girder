@@ -83,7 +83,7 @@ class Resource(BaseResource):
             invalid = set(resources.keys()) - set(allowedModels)
             if invalid:
                 raise RestException('Invalid resource types requested: ' + ', '.join(invalid))
-        count = sum([len(v) for v in six.viewvalues(resources)])
+        count = sum([len(v) for v in resources.values()])
         if not count:
             raise RestException('No resources specified.')
 

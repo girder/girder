@@ -180,7 +180,7 @@ def _computeHash(file, progress=noProgress):
             chunk = fh.read(_CHUNK_LEN)
             if not chunk:
                 break
-            for digest in six.viewvalues(toCompute):
+            for digest in toCompute.values():
                 digest.update(chunk)
             progress.update(increment=len(chunk))
 

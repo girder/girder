@@ -594,7 +594,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
     def _inspectFunSignature(self, fun):
         self._funNamedArgs = set()
         self._funHasKwargs = False
-        for funParam in six.viewvalues(signature(fun).parameters):
+        for funParam in signature(fun).parameters.values():
             if funParam.kind in {Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY}:
                 # POSITIONAL_OR_KEYWORD are basic positional parameters
                 # KEYWORD_ONLY are named parameters that appear after a * in Python 3

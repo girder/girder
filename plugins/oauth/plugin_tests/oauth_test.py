@@ -542,7 +542,7 @@ class OauthTest(base.TestCase):
                 self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
                 self.assertRegex(
                     params['redirect_uri'][0], providerInfo['allowed_callback_re'])
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if account['auth_code'] == params['code'][0]:
                         break
                 else:
@@ -574,7 +574,7 @@ class OauthTest(base.TestCase):
         @httmock.urlmatch(scheme='https', netloc=r'^openidconnect\.googleapis\.com$',
                           path=r'^/v1/userinfo$', method='GET')
         def mockGoogleApi(url, request):
-            for account in six.viewvalues(providerInfo['accounts']):
+            for account in providerInfo['accounts'].values():
                 if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
                     break
             else:
@@ -699,7 +699,7 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if account['auth_code'] == params['code'][0]:
                         break
                 else:
@@ -729,7 +729,7 @@ class OauthTest(base.TestCase):
         @httmock.urlmatch(scheme='https', netloc='^api.github.com$', path='^/user$', method='GET')
         def mockGithubApiUser(url, request):
             try:
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if 'token %s' % account['access_token'] == request.headers['Authorization']:
                         break
                 else:
@@ -751,7 +751,7 @@ class OauthTest(base.TestCase):
                           path='^/user/emails$', method='GET')
         def mockGithubApiEmail(url, request):
             try:
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if 'token %s' % account['access_token'] == request.headers['Authorization']:
                         break
                 else:
@@ -788,7 +788,7 @@ class OauthTest(base.TestCase):
         @httmock.urlmatch(scheme='https', netloc='^api.github.com$', path='^/user$', method='GET')
         def mockGithubUserWithoutName(url, request):
             try:
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if 'token %s' % account['access_token'] == request.headers['Authorization']:
                         break
                 else:
@@ -926,7 +926,7 @@ class OauthTest(base.TestCase):
                           path='^/v2/oauth2/userinfo$', method='GET')
         def mockGlobusUserInfo(url, request):
             try:
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if 'Bearer %s' % account['access_token'] == \
                             request.headers['Authorization']:
                         break
@@ -962,7 +962,7 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if account['auth_code'] == params['code'][0]:
                         break
                 else:
@@ -1102,7 +1102,7 @@ class OauthTest(base.TestCase):
                 params = urllib.parse.parse_qs(request.body)
                 self.assertEqual(params['grant_type'], ['authorization_code'])
                 self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if account['auth_code'] == params['code'][0]:
                         break
                 else:
@@ -1136,7 +1136,7 @@ class OauthTest(base.TestCase):
                           path=r'^/v1/people/~(?::\(.+\)?)$', method='GET')
         def mockLinkedinApi(url, request):
             try:
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
                         break
                 else:
@@ -1286,7 +1286,7 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if account['auth_code'] == params['code'][0]:
                         break
                 else:
@@ -1317,7 +1317,7 @@ class OauthTest(base.TestCase):
                           path='^/2.0/user$', method='GET')
         def mockBitbucketApiUser(url, request):
             try:
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
                         break
                 else:
@@ -1344,7 +1344,7 @@ class OauthTest(base.TestCase):
                           path='^/2.0/user/emails$', method='GET')
         def mockBitbucketApiEmail(url, request):
             try:
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
                         break
                 else:
@@ -1479,7 +1479,7 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if account['auth_code'] == params['code'][0]:
                         break
                 else:
@@ -1508,7 +1508,7 @@ class OauthTest(base.TestCase):
                           path='^/2.0/users/me$', method='GET')
         def mockBoxApiUser(url, request):
             try:
-                for account in six.viewvalues(providerInfo['accounts']):
+                for account in providerInfo['accounts'].values():
                     if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
                         break
                 else:

@@ -274,8 +274,8 @@ class PythonClientTestCase(base.TestCase):
         # and that all folders and files have callbacks called on them
         self.assertEqual(folderCount, callbackCounts['folder'])
         self.assertEqual(item_count, callbackCounts['item'])
-        self.assertTrue(all(six.viewvalues(items)))
-        self.assertTrue(all(six.viewvalues(folders)))
+        self.assertTrue(all(items.values()))
+        self.assertTrue(all(folders.values()))
 
         # Upload again with reuseExisting on
         existingList = list(Folder().childFolders(
