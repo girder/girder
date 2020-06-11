@@ -268,7 +268,8 @@ def _CommonParameters(path_exists=False, path_writable=True,
             click.argument(
                 'local_folder',
                 type=click.Path(exists=path_exists, dir_okay=True,
-                                writable=path_writable, readable=True),
+                                writable=path_writable, readable=True,
+                                resolve_path=True),
                 default=path_default,
                 nargs=1 if not multiple_local else -1,
                 required=multiple_local
