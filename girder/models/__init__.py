@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import pymongo
-import six
 import urllib.parse
 
 from girder import logprint
@@ -59,7 +58,7 @@ def getDbConnection(uri=None, replicaSet=None, quiet=False, **kwargs):
 
     # All other options in the [database] section will be passed directly as
     # options to the mongo client
-    for opt, val in six.viewitems(dict(dbConf)):
+    for opt, val in dict(dbConf).items():
         if opt not in {'uri', 'replica_set'}:
             clientOptions[opt] = val
 

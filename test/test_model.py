@@ -37,7 +37,7 @@ def exclusionProjDict():
     }
 
 
-class TestProjectionUtilsSupplementFields(object):
+class TestProjectionUtilsSupplementFields:
 
     def testInclusionProjectDictOverride(self, inclusionProjDict, overrideFields):
         copy = dict(inclusionProjDict)
@@ -92,7 +92,7 @@ class TestProjectionUtilsSupplementFields(object):
         assert retval == overwrittenFields
 
 
-class TestProjectionUtilsRemoveSupplementalFields(object):
+class TestProjectionUtilsRemoveSupplementalFields:
     def testExclusionProjDict(self, doc, exclusionProjDict):
         Model._removeSupplementalFields(doc, exclusionProjDict)
         assert doc == {
@@ -148,7 +148,7 @@ class TestProjectionUtilsRemoveSupplementalFields(object):
             'lastName': 'lname'}
 
 
-class TestProjectionIsInclusionProjection(object):
+class TestProjectionIsInclusionProjection:
 
     def testNone(self):
         assert Model._isInclusionProjection(None) is False
@@ -240,7 +240,7 @@ def FakeAcMixModel(FakeAcModel):
     return FakeAcMixModelClass
 
 
-class TestModelFiltering(object):
+class TestModelFiltering:
     def testFilterOnACLModel(self, admin, user, fields, FakeAcModel):
         # Test filter behavior on access controlled model
         fakeAc = FakeAcModel().save(fields)
@@ -314,7 +314,7 @@ def documentWithGroup(group, admin, user, FakeAcModel):
     yield doc1
 
 
-class TestAccessControlCleanup(object):
+class TestAccessControlCleanup:
     def testAccessControlPreDelete(self, admin, documentWithGroup, FakeAcModel):
         docId = documentWithGroup['_id']
         doc1 = FakeAcModel().load(docId, force=True, exc=True)
@@ -370,7 +370,7 @@ def makeDocumentWithPermissions(
     return doc
 
 
-class TestFindWithPermissions(object):
+class TestFindWithPermissions:
     def generalTest(self, _model, admin, user):
         query, fields = _model._textSearchFilters('names')
         # Test with permissions

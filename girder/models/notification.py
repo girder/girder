@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 import datetime
-import six
 import time
 
 from .model_base import Model
 
 
-class ProgressState(object):
+class ProgressState:
     """
     Enum of possible progress states for progress records.
     """
@@ -155,7 +154,7 @@ class Notification(Model):
         if 'increment' in kwargs:
             record['data']['current'] += kwargs['increment']
 
-        for field, value in six.viewitems(kwargs):
+        for field, value in kwargs.items():
             if field in ('total', 'current', 'state', 'message'):
                 record['data'][field] = value
 

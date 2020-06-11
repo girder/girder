@@ -3,7 +3,6 @@ import cherrypy
 import collections
 import datetime
 import re
-import six
 
 from .. import base
 
@@ -66,7 +65,7 @@ class UserTestCase(base.TestCase):
         }
         # First test all of the required parameters.
         self.ensureRequiredParams(
-            path='/user', method='POST', required=six.viewkeys(params))
+            path='/user', method='POST', required=params.keys())
 
         # Now test parameter validation
         resp = self.request(path='/user', method='POST', params=params)

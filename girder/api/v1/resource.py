@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import six
-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource as BaseResource, setResponseHeader, setContentDisposition
 from girder.constants import AccessType, TokenScope
@@ -83,7 +81,7 @@ class Resource(BaseResource):
             invalid = set(resources.keys()) - set(allowedModels)
             if invalid:
                 raise RestException('Invalid resource types requested: ' + ', '.join(invalid))
-        count = sum([len(v) for v in six.viewvalues(resources)])
+        count = sum([len(v) for v in resources.values()])
         if not count:
             raise RestException('No resources specified.')
 

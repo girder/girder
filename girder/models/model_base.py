@@ -4,7 +4,6 @@ import functools
 import itertools
 import pymongo
 import re
-import six
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
@@ -77,8 +76,7 @@ class _ModelSingleton(type):
         return cls._instance
 
 
-@six.add_metaclass(_ModelSingleton)
-class Model(object):
+class Model(metaclass=_ModelSingleton):
     """
     Model base class. Models are responsible for abstracting away the
     persistence layer. Each collection in the database should have its own
@@ -118,7 +116,7 @@ class Model(object):
             self._createIndex(index)
 
         if isinstance(self._textIndex, dict):
-            textIdx = [(k, 'text') for k in six.viewkeys(self._textIndex)]
+            textIdx = [(k, 'text') for k in self._textIndex.keys()]
             try:
                 self.collection.create_index(
                     textIdx, weights=self._textIndex,
@@ -677,7 +675,7 @@ class Model(object):
             # If this is a list/tuple/set, that means inclusion
             return True
 
-        for k, v in six.viewitems(fields):
+        for k, v in fields.items():
             if k != '_id':
                 # We are only allowed either inclusion or exclusion keys in a dict, there can be no
                 # mixing of these, with the only exception being that the `_id` key can be set as
@@ -735,17 +733,17 @@ class Model(object):
 
         whitelist = []
         if isinstance(fields, dict):
-            for k, v in six.viewitems(fields):
+            for k, v in fields.items():
                 if not v:
                     doc.pop(k, None)
                 else:
                     whitelist.append(k)
             if whitelist:
-                for k in list(six.viewkeys(doc)):
+                for k in list(doc.keys()):
                     if k not in whitelist and k != '_id':
                         del doc[k]
         else:
-            for k in list(six.viewkeys(doc)):
+            for k in list(doc.keys()):
                 if k not in fields and k != '_id':
                     del doc[k]
 
@@ -956,7 +954,7 @@ class AccessControlledModel(Model):
                 if propKey != 'access':
                     update['$set'][propKey] = doc[propKey]
         else:
-            update['$set'] = {k: v for k, v in six.viewitems(doc)
+            update['$set'] = {k: v for k, v in doc.items()
                               if k != 'access'}
 
         event = events.trigger('model.%s.save' % self.name, doc)

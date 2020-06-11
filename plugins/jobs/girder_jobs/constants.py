@@ -10,7 +10,7 @@ REST_CREATE_JOB_TOKEN_SCOPE = 'jobs.rest.create_job'
 
 
 # integer enum describing job states. Note, no order is implied.
-class JobStatus(object):
+class JobStatus:
     INACTIVE = 0
     QUEUED = 1
     RUNNING = 2

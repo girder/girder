@@ -129,7 +129,7 @@ class JsonEncoder(json.JSONEncoder):
         return str(obj)
 
 
-class RequestBodyStream(object):
+class RequestBodyStream:
     """
     Wraps a cherrypy request body into a more abstract file-like object.
     """

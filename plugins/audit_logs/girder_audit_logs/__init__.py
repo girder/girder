@@ -1,7 +1,6 @@
 import cherrypy
 import datetime
 import logging
-import six
 import urllib.parse
 from girder import auditLogger
 from girder.constants import SortDir
@@ -37,7 +36,7 @@ class _AuditLogDatabaseHandler(logging.Handler):
             record.details['params'] = {
                 # 'urllib.parse.quote' alone doesn't replace '.'
                 urllib.parse.quote(paramKey, safe='').replace('.', '%2E'): paramValue
-                for paramKey, paramValue in six.viewitems(record.details['params'])
+                for paramKey, paramValue in record.details['params'].items()
             }
         Record().save({
             'type': record.msg,

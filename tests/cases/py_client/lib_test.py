@@ -7,7 +7,6 @@ import mock
 import os
 import requests
 import shutil
-import six
 import hashlib
 import httmock
 
@@ -257,12 +256,12 @@ class PythonClientTestCase(base.TestCase):
                 folderCount += 1
 
         def folderCallback(folder, filepath):
-            self.assertIn(filepath, six.viewkeys(folders))
+            self.assertIn(filepath, folders.keys())
             folders[filepath] = True
             callbackCounts['folder'] += 1
 
         def itemCallback(item, filepath):
-            self.assertIn(filepath, six.viewkeys(items))
+            self.assertIn(filepath, items.keys())
             items[filepath] = True
             callbackCounts['item'] += 1
 
@@ -274,8 +273,8 @@ class PythonClientTestCase(base.TestCase):
         # and that all folders and files have callbacks called on them
         self.assertEqual(folderCount, callbackCounts['folder'])
         self.assertEqual(item_count, callbackCounts['item'])
-        self.assertTrue(all(six.viewvalues(items)))
-        self.assertTrue(all(six.viewvalues(folders)))
+        self.assertTrue(all(items.values()))
+        self.assertTrue(all(folders.values()))
 
         # Upload again with reuseExisting on
         existingList = list(Folder().childFolders(
@@ -478,8 +477,8 @@ class PythonClientTestCase(base.TestCase):
 
         # assert every other field (besides unique ones) are identical
         unique_attrs = ('_id', 'name', 'created', 'updated')
-        self.assertEqual({k: v for (k, v) in six.viewitems(stream_item) if k not in unique_attrs},
-                         {k: v for (k, v) in six.viewitems(disk_item) if k not in unique_attrs})
+        self.assertEqual({k: v for (k, v) in stream_item.items() if k not in unique_attrs},
+                         {k: v for (k, v) in disk_item.items() if k not in unique_attrs})
 
     def testUploadContent(self):
         path = os.path.join(self.libTestDir, 'sub0', 'f')

@@ -32,7 +32,7 @@ logger.setLevel(logging.DEBUG)  # Pass everything; let filters handle level-base
 config.loadConfig()  # Populate the config info at import time
 
 
-class LogLevelFilter(object):
+class LogLevelFilter:
     """
     Filter log records based on whether they are between a min and max level.
     """
@@ -72,7 +72,7 @@ class LogFormatter(logging.Formatter):
         return super(LogFormatter, self).format(record, *args, **kwargs)
 
 
-class StreamToLogger(object):
+class StreamToLogger:
     """
     Redirect a file-like stream to a logger.
     """

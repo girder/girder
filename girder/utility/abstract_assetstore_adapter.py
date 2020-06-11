@@ -13,7 +13,7 @@ from girder.settings import SettingKey
 from girder.utility import progress, RequestBodyStream
 
 
-class FileHandle(object):
+class FileHandle:
     """
     This is the base class that is returned for the file-like API into
     Girder file objects. The ``open`` method of assetstore implementations
@@ -109,7 +109,7 @@ class FileHandle(object):
         pass
 
 
-class AbstractAssetstoreAdapter(object):
+class AbstractAssetstoreAdapter:
     """
     This defines the interface to be used by all assetstore adapters.
     """

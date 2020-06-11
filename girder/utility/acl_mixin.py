@@ -2,7 +2,6 @@
 from bson.py3compat import abc
 import collections
 import itertools
-import six
 
 from ..models.model_base import Model, AccessControlledModel, _permissionClauses
 from ..exceptions import AccessException
@@ -10,7 +9,7 @@ from ..constants import AccessType, TEXT_SCORE_SORT_MAX
 from ..utility.model_importer import ModelImporter
 
 
-class AccessControlMixin(object):
+class AccessControlMixin:
     """
     This mixin is intended to be used for resources which aren't access
     controlled by default, but resolve their access controls through other
@@ -218,7 +217,7 @@ class AccessControlMixin(object):
         if not hasattr(result, 'count'):
             origResult, origSelf = result, self
 
-            class ResultWithCount(object):
+            class ResultWithCount:
                 def count(self):
                     cursor = origSelf.find(
                         query, timeout=timeout, fields=fields, sort=sort, **kwargs)
@@ -323,11 +322,11 @@ class AccessControlMixin(object):
                     fields = dict.fromkeys(fields, 1)
                 if any(not isinstance(v, abc.Mapping) for v in fields.values()):
                     fullPipeline.append({'$project': {
-                        k: v for k, v in six.iteritems(fields)
+                        k: v for k, v in fields.items()
                         if not isinstance(v, abc.Mapping)}})
                 if any(isinstance(v, abc.Mapping) for v in fields.values()):
                     fullPipeline.append({'$addFields': {
-                        k: v for k, v in six.iteritems(fields)
+                        k: v for k, v in fields.items()
                         if isinstance(v, abc.Mapping)}})
             options = {
                 # By allowing disk use, large sorted queries will work.  If

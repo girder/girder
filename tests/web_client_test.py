@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import six
 import subprocess
 import sys
 import time
@@ -118,7 +117,7 @@ class WebClientTestEndpoints(Resource):
         used to test the access flags UI since the core does not expose any flags.
         """
         flags = self.getBodyJson()
-        for key, info in six.viewitems(flags):
+        for key, info in flags.items():
             registerAccessFlag(key, info['name'], info['description'], info['admin'])
 
 

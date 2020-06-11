@@ -2,7 +2,7 @@ from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 
 
-class PluginSettings(object):
+class PluginSettings:
     DEFAULT_COLLECTION_QUOTA = 'user_quota.default_collection_quota'
     DEFAULT_USER_QUOTA = 'user_quota.default_user_quota'
 

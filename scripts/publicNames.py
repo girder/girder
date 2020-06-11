@@ -1,6 +1,5 @@
 import collections
 import os
-import six
 import subprocess
 import re
 
@@ -88,7 +87,7 @@ def addDirSymbols(dirPath, symbolTree):
 
 
 def printTree(symbolTree, level=0):
-    for symbol, subTree in sorted(six.viewitems(symbolTree)):
+    for symbol, subTree in sorted(symbolTree.items()):
         if symbol.startswith('_') and symbol != '__init__.py':
             continue
         print(' ' * (level * 4) + symbol)

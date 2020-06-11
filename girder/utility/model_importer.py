@@ -28,7 +28,7 @@ def _registerCoreModels():
     _coreModelsRegistered = True
 
 
-class ModelImporter(object):
+class ModelImporter:
     """
     Any class that wants to have convenient model importing semantics
     should extend/mixin this class.

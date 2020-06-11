@@ -84,7 +84,7 @@ class IncompleteResponseError(requests.RequestException):
         ), response=response)
 
 
-class _NoopProgressReporter(object):
+class _NoopProgressReporter:
     reportProgress = False
 
     def __init__(self, label='', length=0):
@@ -112,7 +112,7 @@ class _ProgressBytesIO(io.BytesIO):
         return _chunk
 
 
-class GirderClient(object):
+class GirderClient:
     """
     A class for interacting with the Girder RESTful API.
     Some simple examples of how to use this class follow:

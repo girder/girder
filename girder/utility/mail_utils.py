@@ -118,7 +118,7 @@ def _createMessage(subject, text, to, bcc):
     return msg, recipients
 
 
-class _SMTPConnection(object):
+class _SMTPConnection:
     def __init__(self, host, port=None, encryption=None,
                  username=None, password=None):
         self.host = host

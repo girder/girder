@@ -1,12 +1,11 @@
 import cherrypy
-import six
 
 from girder.api.rest import Resource
 
 
 def _walkTree(node, path=()):
     routeMap = {}
-    for k, v in six.iteritems(vars(node)):
+    for k, v in vars(node).items():
         if isinstance(v, Resource):
             full_path = list(path)
             full_path.append(k)

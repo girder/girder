@@ -54,13 +54,13 @@ def registerAccessFlag(key, name, description=None, admin=False):
     }
 
 
-class ServerMode(object):
+class ServerMode:
     PRODUCTION = 'production'
     DEVELOPMENT = 'development'
     TESTING = 'testing'
 
 
-class TerminalColor(object):
+class TerminalColor:
     """
     Provides a set of values that can be used to color text in the terminal.
     """
@@ -92,7 +92,7 @@ class TerminalColor(object):
         return TerminalColor._color(TerminalColor.INFO, text)
 
 
-class AssetstoreType(object):
+class AssetstoreType:
     """
     All possible assetstore implementation types.
     """
@@ -102,7 +102,7 @@ class AssetstoreType(object):
     S3 = 2
 
 
-class AccessType(object):
+class AccessType:
     """
     Represents the level of access granted to a user or group on an
     AccessControlledModel. Having a higher access level on a resource also
@@ -132,12 +132,12 @@ class AccessType(object):
             raise ValueError('Invalid AccessType: %d.' % level)
 
 
-class SortDir(object):
+class SortDir:
     ASCENDING = 1
     DESCENDING = -1
 
 
-class TokenScope(object):
+class TokenScope:
     """
     Constants for core token scope strings. Token scopes must not contain
     spaces, since many services accept scope lists as a space-separated list
@@ -237,7 +237,7 @@ TokenScope.describeScope(
     'Allows clients to remove unfinished uploads.', admin=True)
 
 
-class CoreEventHandler(object):
+class CoreEventHandler:
     """
     This enum represents handler identifier strings for core event handlers.
     If you wish to unbind a core event handler, use one of these as the

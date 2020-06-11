@@ -25,7 +25,7 @@ class MockSmtpServer(smtpd.SMTPServer):
         self.mailQueue.put(data)
 
 
-class MockSmtpReceiver(object):
+class MockSmtpReceiver:
     def __init__(self):
         self.address = None
         self.smtp = None

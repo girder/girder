@@ -3,7 +3,6 @@ import copy
 import datetime
 import json
 import os
-import six
 
 from bson.objectid import ObjectId
 from .model_base import AccessControlledModel
@@ -189,11 +188,11 @@ class Folder(AccessControlledModel):
             folder['meta'] = {}
 
         # Add new metadata to existing metadata
-        folder['meta'].update(six.viewitems(metadata))
+        folder['meta'].update(metadata.items())
 
         # Remove metadata fields that were set to null (use items in py3)
         if not allowNull:
-            toDelete = [k for k, v in six.viewitems(metadata) if v is None]
+            toDelete = [k for k, v in metadata.items() if v is None]
             for key in toDelete:
                 del folder['meta'][key]
 

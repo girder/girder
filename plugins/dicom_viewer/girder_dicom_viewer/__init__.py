@@ -6,7 +6,6 @@ import pydicom
 import pydicom.valuerep
 import pydicom.multival
 import pydicom.sequence
-import six
 
 from girder import events
 from girder.api import access
@@ -120,14 +119,14 @@ def _removeUniqueMetadata(dicomMeta, additionalMeta):
                 k,
                 tuple(v) if isinstance(v, list) else v
             )
-            for k, v in six.viewitems(dicomMeta)
+            for k, v in dicomMeta.items()
         )
         & set(
             (
                 k,
                 tuple(v) if isinstance(v, list) else v
             )
-            for k, v in six.viewitems(additionalMeta)
+            for k, v in additionalMeta.items()
         )
     )
 

@@ -4,7 +4,7 @@ from girder.models.file import File
 from girder.utility import setting_utilities
 
 
-class PluginSettings(object):
+class PluginSettings:
     MARKDOWN = 'homepage.markdown'
 
     HEADER = 'homepage.header'

@@ -4,7 +4,7 @@ import threading
 from girder import events
 
 
-class _EventHelper(object):
+class _EventHelper:
     """
     Helper class to wait for plugin's data.process event handler to complete.
     Usage:

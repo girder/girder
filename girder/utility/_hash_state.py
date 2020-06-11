@@ -73,7 +73,7 @@ def _getHashStateDataPointer(hashObject):
 _HASH_INFOS = dict()
 
 
-class _HashInfo(object):
+class _HashInfo:
     def __init__(self, type, stateSize, initVectorFirstWord):
         self.type = type
         self.stateSize = stateSize

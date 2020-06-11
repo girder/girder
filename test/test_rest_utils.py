@@ -11,7 +11,7 @@ import girder.events
 date = datetime.datetime.now()
 
 
-class TestResource(object):
+class TestResource:
     @rest.endpoint
     def returnsSet(self, *args, **kwargs):
         return {'key': {1, 2, 3}}

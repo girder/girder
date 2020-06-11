@@ -5,7 +5,6 @@ from functools import wraps
 import inspect
 import jsonschema
 import os
-import six
 import cherrypy
 from collections import OrderedDict
 
@@ -27,7 +26,7 @@ from inspect import signature, Parameter
 SWAGGER_VERSION = '2.0'
 
 
-class Description(object):
+class Description:
     """
     This class provides convenient chainable semantics to allow api route
     handlers to describe themselves to the documentation. A route handler
@@ -465,10 +464,10 @@ class Describe(Resource):
 
         routeMap = _apiRouteMap()
 
-        for resource in sorted(six.viewkeys(docs.routes), key=str):
+        for resource in sorted(docs.routes.keys(), key=str):
             # Update Definitions Object
             if resource in docs.models:
-                for name, model in six.viewitems(docs.models[resource]):
+                for name, model in docs.models[resource].items():
                     definitions[name] = model
 
             prefixPath = None
@@ -484,10 +483,10 @@ class Describe(Resource):
                 'name': tag
             })
 
-            for route, methods in six.viewitems(docs.routes[resource]):
+            for route, methods in docs.routes[resource].items():
                 # Path Item Object
                 pathItem = {}
-                for method, operation in six.viewitems(methods):
+                for method, operation in methods.items():
                     # Operation Object
                     pathItem[method.lower()] = operation
                     if prefixPath:
@@ -517,7 +516,7 @@ class Describe(Resource):
         }
 
 
-class describeRoute(object):  # noqa: class name
+class describeRoute:  # noqa: class name
     def __init__(self, description):
         """
         This returns a decorator to set the API documentation on a route
@@ -594,7 +593,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
     def _inspectFunSignature(self, fun):
         self._funNamedArgs = set()
         self._funHasKwargs = False
-        for funParam in six.viewvalues(signature(fun).parameters):
+        for funParam in signature(fun).parameters.values():
             if funParam.kind in {Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY}:
                 # POSITIONAL_OR_KEYWORD are basic positional parameters
                 # KEYWORD_ONLY are named parameters that appear after a * in Python 3
@@ -624,7 +623,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             fill in default values for any params not passed.
             """
             # Combine path params with form/query params into a single lookup table
-            params = {k: v for k, v in six.viewitems(kwargs) if k != 'params'}
+            params = {k: v for k, v in kwargs.items() if k != 'params'}
             params.update(kwargs.get('params', {}))
 
             kwargs['params'] = kwargs.get('params', {})

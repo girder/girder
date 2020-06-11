@@ -8,7 +8,6 @@ import inspect
 import json
 import posixpath
 import pymongo
-import six
 import sys
 import traceback
 import types
@@ -320,7 +319,7 @@ def getParamJson(name, params, default=None):
         raise RestException('The %s parameter must be valid JSON.' % name)
 
 
-class loadmodel(object):  # noqa: class name
+class loadmodel:  # noqa: class name
     """
     This is a decorator that can be used to load a model based on an ID param.
     For access controlled models, it will check authorization for the current
@@ -375,7 +374,7 @@ class loadmodel(object):  # noqa: class name
         def wrapped(*args, **kwargs):
             model = ModelImporter.model(self.model, self.plugin)
 
-            for raw, converted in six.viewitems(self.map):
+            for raw, converted in self.map.items():
                 id = self._getIdValue(kwargs, raw)
 
                 if self.force:
@@ -400,7 +399,7 @@ class loadmodel(object):  # noqa: class name
         return wrapped
 
 
-class filtermodel(object):  # noqa: class name
+class filtermodel:  # noqa: class name
     def __init__(self, model, plugin='_core', addFields=None):
         """
         This creates a decorator that will filter a model or list of models
@@ -750,7 +749,7 @@ def _setCommonCORSHeaders():
             setResponseHeader('Access-Control-Allow-Origin', '*')
 
 
-class Resource(object):
+class Resource:
     """
     All REST resources should inherit from this class, which provides utilities
     for adding resources/routes to the REST API.
@@ -1024,7 +1023,7 @@ class Resource(object):
         :type provided: dict
         """
         if provided is None and isinstance(required, dict):
-            for name, val in six.viewitems(required):
+            for name, val in required.items():
                 if val is None:
                     raise RestException('Parameter "%s" is required.' % name)
         else:
@@ -1276,7 +1275,7 @@ def boundHandler(fun, ctx=None):
     return wrapped
 
 
-class Prefix(object):
+class Prefix:
     """
     Utility class used to provide api prefixes.
     """

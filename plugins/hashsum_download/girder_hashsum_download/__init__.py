@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import hashlib
-import six
 
 import girder
 from girder import events
@@ -180,11 +179,11 @@ def _computeHash(file, progress=noProgress):
             chunk = fh.read(_CHUNK_LEN)
             if not chunk:
                 break
-            for digest in six.viewvalues(toCompute):
+            for digest in toCompute.values():
                 digest.update(chunk)
             progress.update(increment=len(chunk))
 
-    digests = {alg: digest.hexdigest() for alg, digest in six.viewitems(toCompute)}
+    digests = {alg: digest.hexdigest() for alg, digest in toCompute.items()}
     fileModel.update({'_id': file['_id']}, update={
         '$set': digests
     }, multi=False)

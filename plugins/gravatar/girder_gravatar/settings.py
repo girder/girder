@@ -1,7 +1,7 @@
 from girder.utility import setting_utilities
 
 
-class PluginSettings(object):
+class PluginSettings:
     DEFAULT_IMAGE = 'gravatar.default_image'
 
 

@@ -7,7 +7,6 @@ import logging
 import os
 import shutil
 import signal
-import six
 import sys
 import unittest
 import urllib.parse
@@ -252,7 +251,7 @@ class TestCase(unittest.TestCase):
         :param msg: An optional message to include with test failures
         """
         self.assertIsInstance(actual, dict, msg + ' does not exist')
-        for k, v in six.iteritems(expected):
+        for k, v in expected.items():
             if k not in actual:
                 self.fail('%s expected key "%s"' % (msg, k))
             self.assertEqual(v, actual[k])
