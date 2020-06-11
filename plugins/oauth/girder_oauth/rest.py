@@ -69,7 +69,7 @@ class OAuth(Resource):
 
         enabledProviders = [
             provider
-            for providerName, provider in six.viewitems(providers.idMap)
+            for providerName, provider in providers.idMap.items()
             if providerName in enabledNames
         ]
         if enabledProviders:

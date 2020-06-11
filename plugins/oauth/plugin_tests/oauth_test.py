@@ -133,7 +133,7 @@ class OauthTest(base.TestCase):
             callbackLoc = urllib.parse.urlparse(resp.headers['location'])
             callbackLocQuery = urllib.parse.parse_qs(callbackLoc.query)
             callbackParams = {
-                key: val[0] for key, val in six.viewitems(callbackLocQuery)
+                key: val[0] for key, val in callbackLocQuery.items()
             }
             return callbackParams
 
@@ -206,7 +206,7 @@ class OauthTest(base.TestCase):
             callbackLocQuery = urllib.parse.parse_qs(callbackLoc.query)
             self.assertNotHasKeys(callbackLocQuery, ('error',))
             callbackParams = {
-                key: val[0] for key, val in six.viewitems(callbackLocQuery)
+                key: val[0] for key, val in callbackLocQuery.items()
             }
             return callbackParams
 
@@ -299,7 +299,7 @@ class OauthTest(base.TestCase):
             callbackLocQuery = urllib.parse.parse_qs(callbackLoc.query)
             self.assertNotHasKeys(callbackLocQuery, ('error',))
             callbackParams = {
-                key: val[0] for key, val in six.viewitems(callbackLocQuery)
+                key: val[0] for key, val in callbackLocQuery.items()
             }
             return callbackParams
 

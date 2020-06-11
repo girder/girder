@@ -184,7 +184,7 @@ def _computeHash(file, progress=noProgress):
                 digest.update(chunk)
             progress.update(increment=len(chunk))
 
-    digests = {alg: digest.hexdigest() for alg, digest in six.viewitems(toCompute)}
+    digests = {alg: digest.hexdigest() for alg, digest in toCompute.items()}
     fileModel.update({'_id': file['_id']}, update={
         '$set': digests
     }, multi=False)

@@ -155,7 +155,7 @@ class Notification(Model):
         if 'increment' in kwargs:
             record['data']['current'] += kwargs['increment']
 
-        for field, value in six.viewitems(kwargs):
+        for field, value in kwargs.items():
             if field in ('total', 'current', 'state', 'message'):
                 record['data'][field] = value
 

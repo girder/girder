@@ -375,7 +375,7 @@ class loadmodel:  # noqa: class name
         def wrapped(*args, **kwargs):
             model = ModelImporter.model(self.model, self.plugin)
 
-            for raw, converted in six.viewitems(self.map):
+            for raw, converted in self.map.items():
                 id = self._getIdValue(kwargs, raw)
 
                 if self.force:
@@ -1024,7 +1024,7 @@ class Resource:
         :type provided: dict
         """
         if provided is None and isinstance(required, dict):
-            for name, val in six.viewitems(required):
+            for name, val in required.items():
                 if val is None:
                     raise RestException('Parameter "%s" is required.' % name)
         else:

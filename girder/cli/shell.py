@@ -43,7 +43,7 @@ def main(plugins, script, args):
             'appconf': appconf
         })
     else:
-        globals_ = {k: v for k, v in six.viewitems(globals()) if k not in {'__file__', '__name__'}}
+        globals_ = {k: v for k, v in globals().items() if k not in {'__file__', '__name__'}}
         sys.argv = [script] + list(args)
         exec(open(script, 'rb').read(), dict(
             webroot=webroot, appconf=appconf, __name__='__main__',

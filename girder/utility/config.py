@@ -16,7 +16,7 @@ def _mergeConfig(filename):
     # When in Sphinx, cherrypy may be mocked and returning None
     global_config = cherrypy.config.pop('global', {}) or {}
 
-    for option, value in six.viewitems(global_config):
+    for option, value in global_config.items():
         cherrypy.config[option] = value
 
 

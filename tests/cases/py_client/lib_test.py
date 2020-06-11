@@ -478,8 +478,8 @@ class PythonClientTestCase(base.TestCase):
 
         # assert every other field (besides unique ones) are identical
         unique_attrs = ('_id', 'name', 'created', 'updated')
-        self.assertEqual({k: v for (k, v) in six.viewitems(stream_item) if k not in unique_attrs},
-                         {k: v for (k, v) in six.viewitems(disk_item) if k not in unique_attrs})
+        self.assertEqual({k: v for (k, v) in stream_item.items() if k not in unique_attrs},
+                         {k: v for (k, v) in disk_item.items() if k not in unique_attrs})
 
     def testUploadContent(self):
         path = os.path.join(self.libTestDir, 'sub0', 'f')

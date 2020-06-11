@@ -388,7 +388,7 @@ class Job(AccessControlledModel):
             self._updateProgress(
                 job, progressTotal, progressCurrent, progressMessage, notify, user, updates)
 
-        for k, v in six.viewitems(otherFields):
+        for k, v in otherFields.items():
             job[k] = v
             updates['$set'][k] = v
 

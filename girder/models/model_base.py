@@ -676,7 +676,7 @@ class Model(metaclass=_ModelSingleton):
             # If this is a list/tuple/set, that means inclusion
             return True
 
-        for k, v in six.viewitems(fields):
+        for k, v in fields.items():
             if k != '_id':
                 # We are only allowed either inclusion or exclusion keys in a dict, there can be no
                 # mixing of these, with the only exception being that the `_id` key can be set as
@@ -734,7 +734,7 @@ class Model(metaclass=_ModelSingleton):
 
         whitelist = []
         if isinstance(fields, dict):
-            for k, v in six.viewitems(fields):
+            for k, v in fields.items():
                 if not v:
                     doc.pop(k, None)
                 else:
@@ -955,7 +955,7 @@ class AccessControlledModel(Model):
                 if propKey != 'access':
                     update['$set'][propKey] = doc[propKey]
         else:
-            update['$set'] = {k: v for k, v in six.viewitems(doc)
+            update['$set'] = {k: v for k, v in doc.items()
                               if k != 'access'}
 
         event = events.trigger('model.%s.save' % self.name, doc)

@@ -468,7 +468,7 @@ class Describe(Resource):
         for resource in sorted(docs.routes.keys(), key=str):
             # Update Definitions Object
             if resource in docs.models:
-                for name, model in six.viewitems(docs.models[resource]):
+                for name, model in docs.models[resource].items():
                     definitions[name] = model
 
             prefixPath = None
@@ -484,10 +484,10 @@ class Describe(Resource):
                 'name': tag
             })
 
-            for route, methods in six.viewitems(docs.routes[resource]):
+            for route, methods in docs.routes[resource].items():
                 # Path Item Object
                 pathItem = {}
-                for method, operation in six.viewitems(methods):
+                for method, operation in methods.items():
                     # Operation Object
                     pathItem[method.lower()] = operation
                     if prefixPath:
@@ -624,7 +624,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
             fill in default values for any params not passed.
             """
             # Combine path params with form/query params into a single lookup table
-            params = {k: v for k, v in six.viewitems(kwargs) if k != 'params'}
+            params = {k: v for k, v in kwargs.items() if k != 'params'}
             params.update(kwargs.get('params', {}))
 
             kwargs['params'] = kwargs.get('params', {})

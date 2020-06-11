@@ -133,7 +133,7 @@ def loadRouteTable(reconcileRoutes=False):
     if reconcileRoutes:
         routeTable = reconcileRouteTable(routeTable)
 
-    return {name: route for (name, route) in six.viewitems(routeTable) if route}
+    return {name: route for (name, route) in routeTable.items() if route}
 
 
 def setup(mode=None, plugins=None, curConfig=None):
@@ -172,7 +172,7 @@ def setup(mode=None, plugins=None, curConfig=None):
     cherrypy.tree.mount(girderWebroot.api, '/api', appconf)
 
     # Mount everything else in the routeTable
-    for name, route in six.viewitems(routeTable):
+    for name, route in routeTable.items():
         if name != constants.GIRDER_ROUTE_ID and name in pluginWebroots:
             cherrypy.tree.mount(pluginWebroots[name], route, appconf)
 

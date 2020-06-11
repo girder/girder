@@ -282,7 +282,7 @@ def trigger(eventName, info=None, pre=None, asynchronous=False, daemon=False):
     :type daemon: bool
     """
     e = Event(eventName, info, asynchronous=asynchronous)
-    for name, handler in six.viewitems(_mapping.get(eventName, {})):
+    for name, handler in _mapping.get(eventName, {}).items():
         if daemon and not asynchronous:
             girder.logprint.warning(
                 'WARNING: Handler "%s" for event "%s" was triggered on the daemon, but is '

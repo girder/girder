@@ -104,7 +104,7 @@ def _webClientResource():
             used to test the access flags UI since the core does not expose any flags.
             """
             flags = self.getBodyJson()
-            for key, info in six.viewitems(flags):
+            for key, info in flags.items():
                 registerAccessFlag(key, info['name'], info['description'], info['admin'])
 
     return _WebClientTestEndpoints()
