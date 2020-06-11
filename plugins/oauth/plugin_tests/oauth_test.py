@@ -254,7 +254,7 @@ class OauthTest(base.TestCase):
             self.assertIsInstance(resp.json, list)
             self.assertEqual(len(resp.json), 1)
             providerResp = resp.json[0]
-            self.assertSetEqual(set(six.viewkeys(providerResp)), {'id', 'name', 'url'})
+            self.assertSetEqual(set(providerResp.keys()), {'id', 'name', 'url'})
             self.assertEqual(providerResp['id'], providerInfo['id'])
             self.assertEqual(providerResp['name'], providerInfo['name'])
             self.assertRegex(providerResp['url'], providerInfo['url_re'])

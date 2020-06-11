@@ -170,7 +170,7 @@ class SystemTestCase(base.TestCase):
             SettingKey.CORS_ALLOW_HEADERS: {},
             SettingKey.CORS_EXPOSE_HEADERS: {},
         }
-        allKeys = dict.fromkeys(six.viewkeys(SettingDefault.defaults))
+        allKeys = dict.fromkeys(SettingDefault.defaults.keys())
         allKeys.update(badValues)
         for key in allKeys:
             resp = self.request(path='/system/setting', method='PUT', params={

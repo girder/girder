@@ -465,7 +465,7 @@ class Describe(Resource):
 
         routeMap = _apiRouteMap()
 
-        for resource in sorted(six.viewkeys(docs.routes), key=str):
+        for resource in sorted(docs.routes.keys(), key=str):
             # Update Definitions Object
             if resource in docs.models:
                 for name, model in six.viewitems(docs.models[resource]):

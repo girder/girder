@@ -257,12 +257,12 @@ class PythonClientTestCase(base.TestCase):
                 folderCount += 1
 
         def folderCallback(folder, filepath):
-            self.assertIn(filepath, six.viewkeys(folders))
+            self.assertIn(filepath, folders.keys())
             folders[filepath] = True
             callbackCounts['folder'] += 1
 
         def itemCallback(item, filepath):
-            self.assertIn(filepath, six.viewkeys(items))
+            self.assertIn(filepath, items.keys())
             items[filepath] = True
             callbackCounts['item'] += 1
 

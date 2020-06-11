@@ -118,7 +118,7 @@ class Model(object):
             self._createIndex(index)
 
         if isinstance(self._textIndex, dict):
-            textIdx = [(k, 'text') for k in six.viewkeys(self._textIndex)]
+            textIdx = [(k, 'text') for k in self._textIndex.keys()]
             try:
                 self.collection.create_index(
                     textIdx, weights=self._textIndex,
@@ -741,11 +741,11 @@ class Model(object):
                 else:
                     whitelist.append(k)
             if whitelist:
-                for k in list(six.viewkeys(doc)):
+                for k in list(doc.keys()):
                     if k not in whitelist and k != '_id':
                         del doc[k]
         else:
-            for k in list(six.viewkeys(doc)):
+            for k in list(doc.keys()):
                 if k not in fields and k != '_id':
                     del doc[k]
 
