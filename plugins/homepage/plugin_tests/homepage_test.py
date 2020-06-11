@@ -20,7 +20,7 @@ class HomepageTest(base.TestCase):
         # test without set
         resp = self.request('/homepage')
         self.assertStatusOk(resp)
-        self.assertEquals(resp.json[key], '')
+        self.assertEqual(resp.json[key], '')
 
         # set markdown
         Setting().set(key, 'foo')
@@ -28,4 +28,4 @@ class HomepageTest(base.TestCase):
         # verify we can get the markdown without being authenticated
         resp = self.request('/homepage')
         self.assertStatusOk(resp)
-        self.assertEquals(resp.json[key], 'foo')
+        self.assertEqual(resp.json[key], 'foo')

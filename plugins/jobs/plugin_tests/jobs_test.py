@@ -465,7 +465,7 @@ class JobsTestCase(base.TestCase):
     def testDefaultParentId(self):
         job = self.jobModel.createJob(title='Job', type='Job', user=self.users[0])
         # If not specified parentId should be None
-        self.assertEquals(job['parentId'], None)
+        self.assertEqual(job['parentId'], None)
 
     def testIsParentIdCorrect(self):
         parentJob = self.jobModel.createJob(
@@ -518,9 +518,9 @@ class JobsTestCase(base.TestCase):
             title='Another Child Job', type='Child Job', user=self.users[0], parentJob=parentJob)
 
         # Should return a list with 2 jobs
-        self.assertEquals(len(list(self.jobModel.listChildJobs(parentJob))), 2)
+        self.assertEqual(len(list(self.jobModel.listChildJobs(parentJob))), 2)
         # Should return an empty list
-        self.assertEquals(len(list(self.jobModel.listChildJobs(childJob))), 0)
+        self.assertEqual(len(list(self.jobModel.listChildJobs(childJob))), 0)
 
     def testListChildJobsRest(self):
         parentJob = self.jobModel.createJob(
@@ -541,9 +541,9 @@ class JobsTestCase(base.TestCase):
         self.assertStatusOk(resp2)
 
         # Should return a list with 2 jobs
-        self.assertEquals(len(resp.json), 2)
+        self.assertEqual(len(resp.json), 2)
         # Should return an empty list
-        self.assertEquals(len(resp2.json), 0)
+        self.assertEqual(len(resp2.json), 0)
 
     def testCreateJobRest(self):
         resp = self.request('/job', method='POST',
