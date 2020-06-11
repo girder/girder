@@ -1,5 +1,4 @@
 # See tox.ini for documentation on this file.
-six
 Sphinx
 sphinx_rtd_theme
 sphinx-tabs

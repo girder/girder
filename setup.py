@@ -40,7 +40,6 @@ installReqs = [
     'python-dateutil',
     'pytz',
     'requests',
-    'six>=1.9',
 ]
 
 extrasReqs = {
