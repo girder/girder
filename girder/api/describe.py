@@ -27,7 +27,7 @@ from inspect import signature, Parameter
 SWAGGER_VERSION = '2.0'
 
 
-class Description(object):
+class Description:
     """
     This class provides convenient chainable semantics to allow api route
     handlers to describe themselves to the documentation. A route handler
@@ -517,7 +517,7 @@ class Describe(Resource):
         }
 
 
-class describeRoute(object):  # noqa: class name
+class describeRoute:  # noqa: class name
     def __init__(self, description):
         """
         This returns a decorator to set the API documentation on a route

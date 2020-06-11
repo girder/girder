@@ -6,7 +6,7 @@ import time
 from girder import events
 
 
-class EventsHelper(object):
+class EventsHelper:
     def __init__(self):
         self.ctr = 0
         self.responses = None

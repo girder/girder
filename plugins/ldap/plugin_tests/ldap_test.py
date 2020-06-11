@@ -19,7 +19,7 @@ def tearDownModule():
     base.stopServer()
 
 
-class MockLdap(object):
+class MockLdap:
     def __init__(self, bindFail=False, searchFail=False, record=None):
         self.bindFail = bindFail
         self.searchFail = searchFail

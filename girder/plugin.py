@@ -69,7 +69,7 @@ class _PluginMeta(type):
 
 
 @six.add_metaclass(_PluginMeta)
-class GirderPlugin(object):
+class GirderPlugin:
     """
     This is a base class for describing a girder plugin.  A plugin is registered by adding
     an entrypoint under the namespace ``girder.plugin``.  This entrypoint should return a

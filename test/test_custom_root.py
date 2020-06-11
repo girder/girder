@@ -29,7 +29,7 @@ def unboundHandlerDefault(self, params):
     return not self.boolParam('val', params)
 
 
-class CustomAppRoot(object):
+class CustomAppRoot:
     """
     The webroot endpoint simply serves the main index HTML file.
     """

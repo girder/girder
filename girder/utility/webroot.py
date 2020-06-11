@@ -12,7 +12,7 @@ from girder.settings import SettingKey
 from girder.utility import config
 
 
-class WebrootBase(object):
+class WebrootBase:
     """
     Serves a template file in response to GET requests.
 

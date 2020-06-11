@@ -34,7 +34,7 @@ STORE = 0
 DEFLATE = 8
 
 
-class ZipInfo(object):
+class ZipInfo:
 
     __slots__ = (
         'filename',
@@ -94,7 +94,7 @@ class ZipInfo(object):
         return header + self.filename
 
 
-class ZipGenerator(object):
+class ZipGenerator:
     """
     This class can be used to create a streaming zip file that consumes from
     one generator and writes to another.

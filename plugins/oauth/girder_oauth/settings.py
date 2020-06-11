@@ -2,7 +2,7 @@ from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 
 
-class PluginSettings(object):
+class PluginSettings:
     PROVIDERS_ENABLED = 'oauth.providers_enabled'
     IGNORE_REGISTRATION_POLICY = 'oauth.ignore_registration_policy'
 

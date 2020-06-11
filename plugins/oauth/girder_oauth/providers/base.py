@@ -11,7 +11,7 @@ from girder.settings import SettingKey
 from ..settings import PluginSettings
 
 
-class ProviderBase(object):
+class ProviderBase:
     _AUTH_SCOPES = []
 
     def __init__(self, redirectUri, clientId=None, clientSecret=None):

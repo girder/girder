@@ -2,7 +2,7 @@ from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 
 
-class PluginSettings(object):
+class PluginSettings:
     AUTO_COMPUTE = 'hashsum_download.auto_compute'
 
 

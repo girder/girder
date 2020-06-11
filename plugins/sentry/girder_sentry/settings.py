@@ -2,7 +2,7 @@ from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 
 
-class PluginSettings(object):
+class PluginSettings:
     FRONTEND_DSN = 'sentry.frontend_dsn'
     BACKEND_DSN = 'sentry.backend_dsn'
 

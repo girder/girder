@@ -2,7 +2,7 @@ from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 
 
-class PluginSettings(object):
+class PluginSettings:
     TRACKING_ID = 'google_analytics.tracking_id'
 
 

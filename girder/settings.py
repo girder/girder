@@ -10,7 +10,7 @@ from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 
 
-class SettingKey(object):
+class SettingKey:
     """
     Core settings should be enumerated here by a set of constants corresponding
     to sensible strings.
@@ -46,7 +46,7 @@ class SettingKey(object):
     USER_DEFAULT_FOLDERS = 'core.user_default_folders'
 
 
-class SettingDefault(object):
+class SettingDefault:
     """
     Core settings that have a default should be enumerated here with the
     SettingKey.
@@ -111,7 +111,7 @@ class SettingDefault(object):
         }
 
 
-class SettingValidator(object):
+class SettingValidator:
     @staticmethod
     @setting_utilities.validator(SettingKey.ADD_TO_GROUP_POLICY)
     def _validateAddToGroupPolicy(doc):

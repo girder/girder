@@ -139,7 +139,7 @@ class OauthTest(base.TestCase):
 
         redirect = 'http://localhost/#foo/bar?token={girderToken}'
 
-        class EventHandler(object):
+        class EventHandler:
             def __init__(self):
                 self.state = ''
 

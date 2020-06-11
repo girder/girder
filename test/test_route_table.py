@@ -10,7 +10,7 @@ from girder.plugin import GirderPlugin, registerPluginWebroot
 from girder.settings import SettingKey
 
 
-class SomeWebroot(object):
+class SomeWebroot:
     exposed = True
 
     def GET(self):

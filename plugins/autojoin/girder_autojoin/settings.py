@@ -4,7 +4,7 @@ from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 
 
-class PluginSettings(object):
+class PluginSettings:
     AUTOJOIN = 'autojoin'
 
 

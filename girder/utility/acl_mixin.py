@@ -10,7 +10,7 @@ from ..constants import AccessType, TEXT_SCORE_SORT_MAX
 from ..utility.model_importer import ModelImporter
 
 
-class AccessControlMixin(object):
+class AccessControlMixin:
     """
     This mixin is intended to be used for resources which aren't access
     controlled by default, but resolve their access controls through other
@@ -218,7 +218,7 @@ class AccessControlMixin(object):
         if not hasattr(result, 'count'):
             origResult, origSelf = result, self
 
-            class ResultWithCount(object):
+            class ResultWithCount:
                 def count(self):
                     cursor = origSelf.find(
                         query, timeout=timeout, fields=fields, sort=sort, **kwargs)

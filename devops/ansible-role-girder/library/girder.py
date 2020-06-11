@@ -863,7 +863,7 @@ def class_spec(cls, include=None):
                         'type': kind})
 
 
-class Resource(object):
+class Resource:
     known_resources = ['collection', 'folder', 'item', 'group']
 
     def __init__(self, client, resource_type):
@@ -953,7 +953,7 @@ class Resource(object):
             return {}
 
 
-class AccessMixin(object):
+class AccessMixin:
 
     def get_access(self, _id):
         return self.client.get('{}/{}/access'

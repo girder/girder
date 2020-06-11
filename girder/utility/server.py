@@ -179,7 +179,7 @@ def setup(mode=None, plugins=None, curConfig=None):
     return application
 
 
-class _StaticFileRoute(object):
+class _StaticFileRoute:
     exposed = True
 
     def __init__(self, path, contentType=None):

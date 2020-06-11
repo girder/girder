@@ -53,7 +53,7 @@ def getDefaultFunction(key):
     return _defaultFunctions.get(key)
 
 
-class validator(object):  # noqa: class name
+class validator:  # noqa: class name
     """
     Create a decorator indicating that the wrapped function is responsible for
     validating the given key or set of keys. For example,
@@ -83,7 +83,7 @@ class validator(object):  # noqa: class name
         return fn
 
 
-class default(object):  # noqa: class name
+class default:  # noqa: class name
     """
     Create a decorator indicating that the wrapped function is responsible for
     providing the default value for the given key or set of keys.

@@ -7,7 +7,7 @@ from girder.models.notification import Notification, ProgressState
 from girder.exceptions import ValidationException, RestException
 
 
-class ProgressContext(object):
+class ProgressContext:
     """
     This class is a context manager that can be used to update progress in a way
     that rate-limits writes to the database and guarantees a flush when the

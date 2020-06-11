@@ -6,7 +6,7 @@ import time
 from .model_base import Model
 
 
-class ProgressState(object):
+class ProgressState:
     """
     Enum of possible progress states for progress records.
     """

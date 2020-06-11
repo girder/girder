@@ -78,7 +78,7 @@ class _ModelSingleton(type):
 
 
 @six.add_metaclass(_ModelSingleton)
-class Model(object):
+class Model:
     """
     Model base class. Models are responsible for abstracting away the
     persistence layer. Each collection in the database should have its own

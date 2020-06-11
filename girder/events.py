@@ -33,7 +33,7 @@ from collections import OrderedDict
 from girder.utility import config
 
 
-class Event(object):
+class Event:
     """
     An Event object is created when an event is triggered. It is passed to
     each of the listeners of the event, which have a chance to add information
@@ -93,7 +93,7 @@ class Event(object):
         return self
 
 
-class ForegroundEventsDaemon(object):
+class ForegroundEventsDaemon:
     """
     This is the implementation used for ``girder.events.daemon`` if the
     config file chooses to disable using the background thread for the daemon.

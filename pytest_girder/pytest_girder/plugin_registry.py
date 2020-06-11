@@ -7,7 +7,7 @@ from tempfile import gettempdir
 import mock
 
 
-class _MockDistribution(object):
+class _MockDistribution:
     def __init__(self, name, version, description='', url='', location=None):
         self.PKG_INFO = 'PKG_INFO'
         self.version = version
@@ -28,7 +28,7 @@ class _MockDistribution(object):
         return pkgInfo.getvalue()
 
 
-class _MockEntryPoint(object):
+class _MockEntryPoint:
     def __init__(self, name, version, description, url, package, pluginClass, location):
         self.name = name
         self.description = description
@@ -38,7 +38,7 @@ class _MockEntryPoint(object):
         self.pluginClass = pluginClass
 
 
-class PluginRegistry(object):
+class PluginRegistry:
 
     def __init__(self, include_installed_plugins=True):
         self._include_installed_plugins = include_installed_plugins
