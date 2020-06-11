@@ -1,6 +1,6 @@
 FROM python:3.7-alpine as builder
 
-WORKDIR /girder
+WORKDIR /opt/girder
 RUN apk add --no-cache git gcc musl-dev libffi-dev openssl-dev
 COPY . ./
 # Both PYTHONDONTWRITEBYTECODE and --no-compile are necessary to avoid creating .pyc files
@@ -22,4 +22,4 @@ COPY --from=girder/girder:latest /usr/share/girder/static/ /usr/local/share/gird
 # Add a config file, to bind the server to all network interfaces inside the container
 RUN echo '[global]\nserver.socket_host = "0.0.0.0"\n' > /etc/girder.cfg
 
-ENTRYPOINT ["/sbin/tini", "-v", "--", "girder", "serve"]
+ENTRYPOINT ["/sbin/tini", "--", "girder", "serve"]
