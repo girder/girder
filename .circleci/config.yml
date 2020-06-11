@@ -406,8 +406,9 @@ workflows:
               only: /^v[0-9]+.*/
       - publish:
           requires:
-            - public-symbol-test
             - coverage
+            - public-symbol-test
+            - ansible-test
           filters:
             tags:
               only: /^v[0-9]+.*/
@@ -415,8 +416,9 @@ workflows:
               only: master
       - publish-release:
           requires:
-            - public-symbol-test
             - coverage
+            - public-symbol-test
+            - ansible-test
           filters:
             tags:
               only: /^v[0-9]+.*/
