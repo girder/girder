@@ -10,7 +10,6 @@ except DistributionNotFound:
 __license__ = 'Apache 2.0'
 
 import diskcache
-import errno
 import getpass
 import glob
 import io
@@ -31,20 +30,6 @@ REQ_BUFFER_SIZE = 65536  # Chunk size when iterating a download body
 _safeNameRegex = re.compile(r'^[/\\]+')
 
 _logger = logging.getLogger('girder_client.lib')
-
-
-def _safeMakedirs(path):
-    """
-    Wraps os.makedirs in such a way that it will not raise exceptions if the
-    directory already exists.
-
-    :param path: The directory to create.
-    """
-    try:
-        os.makedirs(path)
-    except OSError as exception:
-        if exception.errno != errno.EEXIST:
-            raise
 
 
 class AuthenticationError(RuntimeError):
@@ -1158,7 +1143,7 @@ class GirderClient(object):
         or another file-like object to write to.
         """
         if isinstance(path, str):
-            _safeMakedirs(os.path.dirname(path))
+            os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, 'wb') as dst:
                 shutil.copyfileobj(fp, dst)
         else:
@@ -1221,7 +1206,7 @@ class GirderClient(object):
 
         if isinstance(path, str):
             # we can just rename the tempfile
-            _safeMakedirs(os.path.dirname(path))
+            os.makedirs(os.path.dirname(path), exist_ok=True)
             shutil.move(tmp.name, path)
         else:
             # write to file-like object
@@ -1277,7 +1262,7 @@ class GirderClient(object):
                     break
                 else:
                     dest = os.path.join(dest, self.transformFilename(name))
-                    _safeMakedirs(dest)
+                    os.makedirs(dest, exist_ok=True)
 
             for file in files:
                 self.downloadFile(
@@ -1314,7 +1299,7 @@ class GirderClient(object):
 
             for folder in folders:
                 local = os.path.join(dest, self.transformFilename(folder['name']))
-                _safeMakedirs(local)
+                os.makedirs(local, exist_ok=True)
 
                 self.downloadFolderRecursive(folder['_id'], local, sync=sync)
 
@@ -1373,7 +1358,7 @@ class GirderClient(object):
 
                 for folder in folders:
                     local = os.path.join(dest, self.transformFilename(folder['name']))
-                    _safeMakedirs(local)
+                    os.makedirs(local, exist_ok=True)
 
                     self.downloadFolderRecursive(folder['_id'], local, sync=sync)
 
