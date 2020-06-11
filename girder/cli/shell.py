@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import click
 import girder
-import six
 import sys
 
 from girder.utility.server import configureServer

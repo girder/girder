@@ -26,7 +26,6 @@ receive the Event object as its only argument.
 import contextlib
 import girder
 import queue
-import six
 import threading
 
 from collections import OrderedDict

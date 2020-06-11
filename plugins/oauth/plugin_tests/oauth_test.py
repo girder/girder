@@ -7,7 +7,6 @@ import urllib.parse
 import httmock
 import jwt
 import requests
-import six
 
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting

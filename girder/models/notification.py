@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import datetime
-import six
 import time
 
 from .model_base import Model

@@ -3,7 +3,6 @@ import cherrypy
 import collections
 import datetime
 import re
-import six
 
 from .. import base
 

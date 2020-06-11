@@ -1,5 +1,4 @@
 import cherrypy
-import six
 
 from girder.api.rest import Resource
 

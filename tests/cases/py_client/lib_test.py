@@ -7,7 +7,6 @@ import mock
 import os
 import requests
 import shutil
-import six
 import hashlib
 import httmock
 

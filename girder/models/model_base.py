@@ -4,7 +4,6 @@ import functools
 import itertools
 import pymongo
 import re
-import six
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId

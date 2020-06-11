@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import six
-
 from bson.objectid import ObjectId, InvalidId
 from girder import logger
 from girder.api import access

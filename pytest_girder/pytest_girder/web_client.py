@@ -1,6 +1,5 @@
 import inspect
 import os
-import six
 import subprocess
 import time
 

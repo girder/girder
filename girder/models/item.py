@@ -3,7 +3,6 @@ import copy
 import datetime
 import json
 import os
-import six
 
 from bson.objectid import ObjectId
 from .model_base import Model

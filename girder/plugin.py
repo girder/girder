@@ -9,8 +9,6 @@ import json
 import os
 from pkg_resources import iter_entry_points, resource_filename
 
-import six
-
 from girder import logprint
 from girder.exceptions import GirderException
 

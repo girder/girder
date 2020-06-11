@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
 import os
-import six
 
 from .model_base import AccessControlledModel
 from girder.constants import AccessType

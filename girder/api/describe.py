@@ -5,7 +5,6 @@ from functools import wraps
 import inspect
 import jsonschema
 import os
-import six
 import cherrypy
 from collections import OrderedDict
 

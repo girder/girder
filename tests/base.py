@@ -7,7 +7,6 @@ import logging
 import os
 import shutil
 import signal
-import six
 import sys
 import unittest
 import urllib.parse

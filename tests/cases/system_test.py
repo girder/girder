@@ -3,7 +3,6 @@ import json
 import mock
 import os
 import time
-import six
 
 from .. import base
 from girder.api import access

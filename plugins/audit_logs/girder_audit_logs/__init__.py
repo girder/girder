@@ -1,7 +1,6 @@
 import cherrypy
 import datetime
 import logging
-import six
 import urllib.parse
 from girder import auditLogger
 from girder.constants import SortDir

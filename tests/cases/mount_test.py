@@ -3,7 +3,6 @@ import datetime
 import fuse
 import mock
 import os
-import six
 import stat
 import tempfile
 import threading

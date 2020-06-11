@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import datetime
-import six
 from bson import json_util
 
 from girder import events

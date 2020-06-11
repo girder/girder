@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import pymongo
-import six
 import urllib.parse
 
 from girder import logprint

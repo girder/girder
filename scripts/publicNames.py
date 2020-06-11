@@ -1,6 +1,5 @@
 import collections
 import os
-import six
 import subprocess
 import re
 

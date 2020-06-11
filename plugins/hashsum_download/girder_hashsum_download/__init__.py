@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import hashlib
-import six
 
 import girder
 from girder import events

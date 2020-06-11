@@ -8,7 +8,6 @@ import inspect
 import json
 import posixpath
 import pymongo
-import six
 import sys
 import traceback
 import types

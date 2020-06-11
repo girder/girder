@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import cherrypy
 import os
-import six
 
 import girder
 from girder.constants import PACKAGE_DIR

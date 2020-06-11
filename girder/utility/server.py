@@ -3,7 +3,6 @@ import cherrypy
 import mako
 import mimetypes
 import os
-import six
 
 import girder.events
 from girder import constants, logprint, __version__, logStdoutStderr, _setupCache

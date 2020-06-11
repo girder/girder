@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import cherrypy
 import datetime
-import six
 
 from girder import events
 from girder.constants import AccessType

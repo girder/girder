@@ -6,7 +6,6 @@ import pydicom
 import pydicom.valuerep
 import pydicom.multival
 import pydicom.sequence
-import six
 
 from girder import events
 from girder.api import access

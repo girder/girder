@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import six
-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource as BaseResource, setResponseHeader, setContentDisposition
 from girder.constants import AccessType, TokenScope
