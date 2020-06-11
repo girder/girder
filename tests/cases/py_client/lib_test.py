@@ -825,13 +825,13 @@ class PythonClientTestCase(base.TestCase):
         item = self.client.createItem(self.publicFolder['_id'],
                                       'meta', metadata=json.dumps(testMeta))
 
-        self.assertEquals(self.client.getItem(item['_id'])['meta'], testMeta)
+        self.assertEqual(self.client.getItem(item['_id'])['meta'], testMeta)
 
         # Try dict form
         item = self.client.createItem(self.publicFolder['_id'],
                                       'meta-dict', metadata=testMeta)
 
-        self.assertEquals(self.client.getItem(item['_id'])['meta'], testMeta)
+        self.assertEqual(self.client.getItem(item['_id'])['meta'], testMeta)
 
     def testCreateFolderWithMeta(self):
         testMeta = {
@@ -843,10 +843,10 @@ class PythonClientTestCase(base.TestCase):
         folder = self.client.createFolder(self.publicFolder['_id'],
                                           'meta', metadata=json.dumps(testMeta))
 
-        self.assertEquals(self.client.getFolder(folder['_id'])['meta'], testMeta)
+        self.assertEqual(self.client.getFolder(folder['_id'])['meta'], testMeta)
 
         # Try dict form
         folder = self.client.createFolder(self.publicFolder['_id'],
                                           'meta-dict', metadata=testMeta)
 
-        self.assertEquals(self.client.getFolder(folder['_id'])['meta'], testMeta)
+        self.assertEqual(self.client.getFolder(folder['_id'])['meta'], testMeta)

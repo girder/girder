@@ -28,4 +28,4 @@ class GoogleAnalyticsTest(base.TestCase):
         # verify we can get the tracking id without being authenticated.
         resp = self.request('/google_analytics/id')
         self.assertStatusOk(resp)
-        self.assertEquals(resp.json['google_analytics_id'], 'testing-tracking-id')
+        self.assertEqual(resp.json['google_analytics_id'], 'testing-tracking-id')
