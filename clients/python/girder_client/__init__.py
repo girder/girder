@@ -1143,7 +1143,8 @@ class GirderClient:
         or another file-like object to write to.
         """
         if isinstance(path, str):
-            os.makedirs(os.path.dirname(path), exist_ok=True)
+            # Use "abspath" to cleanly get the parent of ".", without following symlinks otherwise
+            os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
             with open(path, 'wb') as dst:
                 shutil.copyfileobj(fp, dst)
         else:
@@ -1206,7 +1207,8 @@ class GirderClient:
 
         if isinstance(path, str):
             # we can just rename the tempfile
-            os.makedirs(os.path.dirname(path), exist_ok=True)
+            # Use "abspath" to cleanly get the parent of ".", without following symlinks otherwise
+            os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
             shutil.move(tmp.name, path)
         else:
             # write to file-like object
