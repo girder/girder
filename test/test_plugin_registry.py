@@ -33,52 +33,60 @@ class InvalidPlugin(GirderPlugin):
     pass
 
 
-class NoDeps(GirderPlugin):
+class TestLoadMixin:
     def __init__(self, *args, **kwargs):
-        super(NoDeps, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._testLoadMock = mock.Mock()
+
+
+class NoDeps(TestLoadMixin, GirderPlugin):
+    def load(self, info):
+        self._testLoadMock(info)
+
+
+class PluginWithNPM(TestLoadMixin, GirderPlugin):
+    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         self._testLoadMock(info)
 
 
-class PluginWithNPM(NoDeps):
-    CLIENT_SOURCE_PATH = 'web_client'
-
-
-class ReturnsFive(NoDeps):
+class ReturnsFive(TestLoadMixin, GirderPlugin):
     def load(self, info):
-        super(ReturnsFive, self).load(info)
+        self._testLoadMock(info)
         return 5
 
 
-class DependsOnPlugin1(NoDeps):
+class DependsOnPlugin1(TestLoadMixin, GirderPlugin):
     def load(self, info):
         plugin.getPlugin('plugin1').load(info)
-        super(DependsOnPlugin1, self).load(info)
+        self._testLoadMock(info)
 
 
-class DependsOnPlugin2(NoDeps):
+class DependsOnPlugin2(TestLoadMixin, GirderPlugin):
     def load(self, info):
         plugin.getPlugin('plugin2').load(info)
-        super(DependsOnPlugin2, self).load(info)
+        self._testLoadMock(info)
 
 
-class DependsOnPlugin1and2(NoDeps):
+class DependsOnPlugin1and2(TestLoadMixin, GirderPlugin):
     def load(self, info):
         plugin.getPlugin('plugin1').load(info)
         plugin.getPlugin('plugin2').load(info)
-        super(DependsOnPlugin1and2, self).load(info)
+        self._testLoadMock(info)
 
 
-class ThrowsOnLoad(NoDeps):
+class ThrowsOnLoad(TestLoadMixin, GirderPlugin):
     def load(self, info):
-        super(DependsOnPlugin1and2, self).load(info)
+        self._testLoadMock(info)
         raise Exception()
 
 
-class HasDisplayName(NoDeps):
+class HasDisplayName(TestLoadMixin, GirderPlugin):
     DISPLAY_NAME = 'A plugin with a display name'
+
+    def load(self, info):
+        self._testLoadMock(info)
 
 
 @pytest.mark.plugin('invalid', InvalidPlugin)
