@@ -88,7 +88,7 @@ jobs:
           working_directory: girder_build
       - run:
           name: Run tox
-          command: tox -e lint,circleci-py36,docs
+          command: tox -e lint,pytest_circleci,docs
           working_directory: girder
       - run:
           name: Make coverage file distinct
