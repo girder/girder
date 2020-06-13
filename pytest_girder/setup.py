@@ -32,7 +32,6 @@ setup(
     packages=find_packages(),
     install_requires=[
         'girder>=3',
-        'mock',
         'mongomock',
         'pytest>=3.6',
         'pytest-cov',

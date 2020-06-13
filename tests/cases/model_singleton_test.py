@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-import mock
 import unittest
+import unittest.mock
 
 from girder.models.item import Item
 
 
 class ModelSingletonTest(unittest.TestCase):
-    @mock.patch.object(Item, '__init__', return_value=None)
+    @unittest.mock.patch.object(Item, '__init__', return_value=None)
     def testModelSingletonBehavior(self, initMock):
         self.assertEqual(len(initMock.mock_calls), 0)
         Item()
@@ -17,7 +17,7 @@ class ModelSingletonTest(unittest.TestCase):
         class Subclass(Item):
             pass
 
-        with mock.patch.object(Subclass, '__init__', return_value=None) as patch:
+        with unittest.mock.patch.object(Subclass, '__init__', return_value=None) as patch:
             self.assertEqual(len(patch.mock_calls), 0)
             Subclass()
             Subclass()

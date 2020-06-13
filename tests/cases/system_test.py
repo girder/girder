@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
-import mock
 import os
 import time
+import unittest.mock
 
 from .. import base
 from girder.api import access
@@ -347,10 +347,10 @@ class SystemTestCase(base.TestCase):
         _attachFileLogHandlers()
         for handler in logger.handlers:
             if handler._girderLogHandler == 'info':
-                handler.emit = mock.MagicMock()
+                handler.emit = unittest.mock.MagicMock()
                 infoEmit = handler.emit
             elif handler._girderLogHandler == 'error':
-                handler.emit = mock.MagicMock()
+                handler.emit = unittest.mock.MagicMock()
                 errorEmit = handler.emit
         # We should be an info level
         resp = self.request(path='/system/log/level', user=self.users[0])

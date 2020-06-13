@@ -3,8 +3,7 @@ from contextlib import contextmanager
 import io
 from pkg_resources import iter_entry_points
 from tempfile import gettempdir
-
-import mock
+import unittest.mock
 
 
 class _MockDistribution:
@@ -34,7 +33,7 @@ class _MockEntryPoint:
         self.description = description
         self.url = url
         self.dist = _MockDistribution(package, version, description, url, location)
-        self.load = mock.Mock(return_value=pluginClass)
+        self.load = unittest.mock.Mock(return_value=pluginClass)
         self.pluginClass = pluginClass
 
 
@@ -71,7 +70,7 @@ class PluginRegistry:
         from girder import plugin
 
         try:
-            with mock.patch.object(
+            with unittest.mock.patch.object(
                     plugin, 'iter_entry_points', side_effect=self._iter_entry_points) as mock_:
                 yield mock_
         finally:

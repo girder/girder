@@ -4,10 +4,10 @@ import httmock
 import inspect
 import io
 import json
-import mock
 import moto
 import os
 import time
+import unittest.mock
 import zipfile
 
 from .. import base, mock_s3
@@ -752,7 +752,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertTrue(client.get_object(Bucket='bucketname', Key='foo/bar/test') is not None)
 
         # Deleting an imported file should not delete it from S3
-        with mock.patch('girder.events.daemon.trigger') as daemon:
+        with unittest.mock.patch('girder.events.daemon.trigger') as daemon:
             resp = self.request('/item/%s' % str(item['_id']), method='DELETE', user=self.admin)
             self.assertStatusOk(resp)
             self.assertEqual(len(daemon.mock_calls), 0)

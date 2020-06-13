@@ -28,7 +28,6 @@ configparser==3.5.0
 coverage
 girder-worker
 httmock
-mock
 mongomock
 moto[server]>=1.3.7
 pytest>=3.6

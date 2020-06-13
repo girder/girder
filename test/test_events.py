@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-import mock
 import pytest
 import time
+import unittest.mock
 
 from girder import events
 
@@ -79,7 +79,7 @@ def testSynchronousEvents(eventsHelper):
         events.trigger(failname)
 
 
-@mock.patch.object(events, 'daemon', new=events.AsyncEventsThread())
+@unittest.mock.patch.object(events, 'daemon', new=events.AsyncEventsThread())
 def testAsyncEvents(eventsHelper):
     name, failname = '_test.event', '_test.failure'
     handlerName = '_test.handler'
@@ -122,7 +122,7 @@ def testAsyncEvents(eventsHelper):
         events.daemon.stop()
 
 
-@mock.patch.object(events, 'daemon', new=events.ForegroundEventsDaemon())
+@unittest.mock.patch.object(events, 'daemon', new=events.ForegroundEventsDaemon())
 def testForegroundDaemon(eventsHelper):
     assert isinstance(events.daemon, events.ForegroundEventsDaemon)
 

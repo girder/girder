@@ -1,6 +1,6 @@
 import tempfile
+import unittest.mock
 
-import mock
 import pytest
 from pytest_girder.plugin_registry import PluginRegistry
 
@@ -11,7 +11,7 @@ from girder.plugin import GirderPlugin
 
 @pytest.fixture
 def logprint():
-    with mock.patch.object(plugin, 'logprint') as logprintMock:
+    with unittest.mock.patch.object(plugin, 'logprint') as logprintMock:
         yield logprintMock
 
 
@@ -36,7 +36,7 @@ class InvalidPlugin(GirderPlugin):
 class TestLoadMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._testLoadMock = mock.Mock()
+        self._testLoadMock = unittest.mock.Mock()
 
 
 class NoDeps(TestLoadMixin, GirderPlugin):
@@ -125,7 +125,7 @@ def testPluginWithNPMPackage(registry):
         packageJson.write(b'{"name": "@girder/test_plugin"}')
         packageJson.flush()
         pluginDef = plugin.getPlugin('client_plugin')
-        with mock.patch.object(plugin, 'resource_filename', return_value=packageJson.name):
+        with unittest.mock.patch.object(plugin, 'resource_filename', return_value=packageJson.name):
             assert '@girder/test_plugin' in pluginDef.npmPackages()
 
 
@@ -216,8 +216,8 @@ def testLoadPluginsWithDeps(registry, logprint):
 
     # Since plugin1 is the dependant, it must be loaded first
     logprint.success.assert_has_calls([
-        mock.call('Loaded plugin "plugin1"'),
-        mock.call('Loaded plugin "plugin2"')
+        unittest.mock.call('Loaded plugin "plugin1"'),
+        unittest.mock.call('Loaded plugin "plugin2"')
     ], any_order=False)
 
 

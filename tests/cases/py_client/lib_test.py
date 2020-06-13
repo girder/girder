@@ -3,12 +3,12 @@ import girder
 import girder_client
 import io
 import json
-import mock
 import os
 import requests
 import shutil
 import hashlib
 import httmock
+import unittest.mock
 
 from girder import config, events
 from girder.models.file import File
@@ -148,8 +148,8 @@ class PythonClientTestCase(base.TestCase):
         self.assertTrue(flag)
 
         # Interactive login (successfully)
-        with mock.patch('builtins.input', return_value=self.user['login']),\
-                mock.patch('getpass.getpass', return_value='password'):
+        with unittest.mock.patch('builtins.input', return_value=self.user['login']),\
+                unittest.mock.patch('getpass.getpass', return_value='password'):
             self.client.authenticate(interactive=True)
 
         # /user/me should now return our user info
@@ -382,7 +382,7 @@ class PythonClientTestCase(base.TestCase):
                 hits.append(1)
             return original_post(*args, **kwargs)
 
-        with mock.patch.object(self.client, 'post', new=mock_post):
+        with unittest.mock.patch.object(self.client, 'post', new=mock_post):
             with open(path) as fh:
                 self.client.uploadFile(
                     self.publicFolder['_id'], fh, name='test1', size=size, parentType='folder')

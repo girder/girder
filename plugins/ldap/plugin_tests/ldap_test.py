@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+import unittest.mock
+
 import ldap
-import mock
 
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting
@@ -67,7 +68,7 @@ class LdapTestCase(base.TestCase):
             'uri': 'foo.bar.org:389'
         }])
 
-        with mock.patch('ldap.initialize', return_value=MockLdap()) as ldapInit:
+        with unittest.mock.patch('ldap.initialize', return_value=MockLdap()) as ldapInit:
             resp = self.request('/user/authentication', basicAuth='hello:world')
             self.assertEqual(len(ldapInit.mock_calls), 1)
             self.assertStatusOk(resp)
@@ -84,11 +85,11 @@ class LdapTestCase(base.TestCase):
             self.assertStatusOk(resp)
             self.assertEqual(resp.json['user']['_id'], user['_id'])
 
-        with mock.patch('ldap.initialize', return_value=MockLdap(bindFail=True)):
+        with unittest.mock.patch('ldap.initialize', return_value=MockLdap(bindFail=True)):
             resp = self.request('/user/authentication', basicAuth='hello:world')
             self.assertStatus(resp, 401)
 
-        with mock.patch('ldap.initialize', return_value=MockLdap(searchFail=True)):
+        with unittest.mock.patch('ldap.initialize', return_value=MockLdap(searchFail=True)):
             resp = self.request('/user/authentication', basicAuth='hello:world')
             self.assertStatus(resp, 401)
 
@@ -96,7 +97,7 @@ class LdapTestCase(base.TestCase):
         normalUser = User().createUser(
             login='normal', firstName='Normal', lastName='User', email='normal@girder.test',
             password='normaluser')
-        with mock.patch('ldap.initialize', return_value=MockLdap(searchFail=True)):
+        with unittest.mock.patch('ldap.initialize', return_value=MockLdap(searchFail=True)):
             resp = self.request('/user/authentication', basicAuth='normal:normaluser')
             self.assertStatusOk(resp)
             self.assertEqual(str(normalUser['_id']), resp.json['user']['_id'])
@@ -107,7 +108,7 @@ class LdapTestCase(base.TestCase):
             'mail': [b'fizz@buzz.com'],
             'distinguishedName': [b'shouldbeignored']
         }
-        with mock.patch('ldap.initialize', return_value=MockLdap(record=record)):
+        with unittest.mock.patch('ldap.initialize', return_value=MockLdap(record=record)):
             resp = self.request('/user/authentication', basicAuth='fizzbuzz:foo')
             self.assertStatusOk(resp)
             self.assertEqual(resp.json['user']['login'], 'fizz')
@@ -120,7 +121,7 @@ class LdapTestCase(base.TestCase):
             'mail': [b'fizz@buzz2.com'],
             'distinguishedName': [b'shouldbeignored']
         }
-        with mock.patch('ldap.initialize', return_value=MockLdap(record=record)):
+        with unittest.mock.patch('ldap.initialize', return_value=MockLdap(record=record)):
             resp = self.request('/user/authentication', basicAuth='fizzbuzz:foo')
             self.assertStatusOk(resp)
             self.assertEqual(resp.json['user']['login'], 'fizzbuzz')
@@ -138,13 +139,13 @@ class LdapTestCase(base.TestCase):
             'uri': 'ldap://foo.bar.org:389'
         }
 
-        with mock.patch('ldap.initialize', return_value=MockLdap(bindFail=True)):
+        with unittest.mock.patch('ldap.initialize', return_value=MockLdap(bindFail=True)):
             resp = self.request('/system/ldap_server/status', user=admin, params=params)
             self.assertStatusOk(resp)
             self.assertFalse(resp.json['connected'])
             self.assertEqual(resp.json['error'], 'LDAP connection error: failed to connect')
 
-        with mock.patch('ldap.initialize', return_value=MockLdap(bindFail=False)):
+        with unittest.mock.patch('ldap.initialize', return_value=MockLdap(bindFail=False)):
             resp = self.request('/system/ldap_server/status', user=admin, params=params)
             self.assertStatusOk(resp)
             self.assertTrue(resp.json['connected'])
