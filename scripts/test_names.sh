@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
-
 set +e
+
 DIFF=$(diff scripts/publicNames.txt <(python scripts/publicNames.py))
 if [ "$DIFF" != "" ]; then
-
-diff scripts/publicNames.txt <(python scripts/publicNames.py)
-
-cat << EOF
+  echo -e "$DIFF"
+  cat << EOF
 
 **********************************************************
 
@@ -21,5 +19,5 @@ changes to scripts/publicNames.txt
 **********************************************************
 
 EOF
-exit 1;
+  exit 1;
 fi
