@@ -95,7 +95,7 @@ def testDownloadLogging(server, admin, fsAssetstore, freshLog):
         io.BytesIO(b'hello'), size=5, name='test', parentType='folder', parent=folder,
         user=admin, assetstore=fsAssetstore)
 
-    Record().collection.remove({})  # Clear existing records
+    Record().collection.delete_many({})  # Clear existing records
 
     File().download(file, headers=False, offset=2, endByte=4)
 
