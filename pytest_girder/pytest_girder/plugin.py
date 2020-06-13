@@ -10,7 +10,9 @@ def _makeCoverageDirs(config):
     """
     covPlugin = config.pluginmanager.get_plugin('_cov')
 
-    if covPlugin is not None:
+    # In cases where the "--no-cov" option is passed, "covPlugin" is defined, but
+    # "covPlugin.cov_controller" does not exist.
+    if covPlugin is not None and covPlugin.cov_controller is not None:
         covPluginConfig = covPlugin.cov_controller.cov.config
         covDataFileDir = os.path.dirname(covPluginConfig.data_file)
 
