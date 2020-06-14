@@ -37,6 +37,7 @@
     "scripts": {
         "lint": "eslint --cache . && pug-lint . && stylint",
         "docs": "esdoc",
+        "coverage": "nyc report && mv build/test/artifacts/web_coverage/cobertura-coverage.xml build/test/coverage/",
         "publish-all": "./.circleci/publish_npm.sh"
     },
     "esdoc": {
@@ -93,7 +94,7 @@
             "text-summary"
         ],
         "report-dir": "build/test/artifacts/web_coverage",
-        "temp-directory": "build/test/coverage/web_temp"
+        "temp-dir": "build/test/coverage/web_temp"
     },
     "pugLintConfig": {
         "extends": "@girder/pug-lint-config",

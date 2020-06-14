@@ -18,35 +18,7 @@ function(python_tests_init)
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" erase
   )
-  add_test(
-    NAME py_coverage_combine
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" combine
-  )
-  add_test(
-    NAME py_coverage
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" report
-  )
-  add_test(
-    NAME py_coverage_html
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" html
-  )
-  add_test(
-    NAME py_coverage_xml
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND "${PYTHON_COVERAGE_EXECUTABLE}" xml
-  )
-  set_property(TEST py_coverage PROPERTY DEPENDS py_coverage_combine)
-  set_property(TEST py_coverage_html PROPERTY DEPENDS py_coverage)
-  set_property(TEST py_coverage_xml PROPERTY DEPENDS py_coverage)
-
-  set_property(TEST py_coverage PROPERTY LABELS girder_coverage)
   set_property(TEST py_coverage_reset PROPERTY LABELS girder_python girder_integration)
-  set_property(TEST py_coverage_combine PROPERTY LABELS girder_coverage)
-  set_property(TEST py_coverage_html PROPERTY LABELS girder_coverage)
-  set_property(TEST py_coverage_xml PROPERTY LABELS girder_coverage)
 endfunction()
 
 function(add_python_test case)
@@ -132,7 +104,6 @@ function(add_python_test case)
   endif()
 
   set_property(TEST ${name} APPEND PROPERTY DEPENDS py_coverage_reset)
-  set_property(TEST py_coverage_combine APPEND PROPERTY DEPENDS ${name})
 
   if(fn_EXTERNAL_DATA)
     set(_data_files "")

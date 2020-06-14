@@ -4,7 +4,6 @@ if("${MONGOD_EXECUTABLE}" STREQUAL "MONGOD_EXECUTABLE-NOTFOUND")
   set(MONGOD_EXECUTABLE "local mongod required")
 endif()
 
-python_tests_init()
 javascript_tests_init()
 
 if(RUN_CORE_TESTS)
