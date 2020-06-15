@@ -1,0 +1,7 @@
+---
+- src: girder.mongodb
+  version: master
+- src: girder.girder
+  version: master
+- src: girder.nginx
+  version: master

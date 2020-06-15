@@ -1,0 +1,30 @@
+---
+- name: Deploy Girder
+  hosts: all
+  vars:
+    ansible_python_interpreter: auto
+  roles:
+    - role: girder.mongodb
+    - role: girder.girder
+    - role: girder.nginx
+      vars:
+        # Modify below to reference the public DNS hostname of the server
+        nginx_hostname: "data.girder.test"
+
+        # Modify below to provide the email address of the system administrator
+        nginx_registration_email: "admin@girder.test"
+
+  tasks:
+    - name: Install Girder plugins
+      notify:
+        - Build Girder web client
+        - Restart Girder
+      pip:
+        virtualenv: "{{ girder_virtualenv }}"
+        state: latest
+        name:
+          # Modify the list below to add any number of desired Girder plugins
+          - girder-user-quota
+          # Unpublished plugins may be specified as Git repositories, as below
+          - git+https://github.com/girder/girder-table-view.git
+          # If no plugins are desired, remove these entries and set "name: []" above
