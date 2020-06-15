@@ -4,13 +4,13 @@ import girder_client.cli
 from http.client import HTTPConnection
 import io
 import logging
-import mock
 import os
 import requests
 import shutil
 import sys
 import urllib.parse
 import httmock
+import unittest.mock
 
 from girder import config
 from girder.models.api_key import ApiKey
@@ -59,8 +59,8 @@ def invokeCli(argv, username='', password='', useApiUrl=False):
     argsList += list(argv)
 
     exitVal = 0
-    with mock.patch.object(sys, 'argv', argsList),\
-            mock.patch('sys.exit', side_effect=SysExitException) as exit,\
+    with unittest.mock.patch.object(sys, 'argv', argsList),\
+            unittest.mock.patch('sys.exit', side_effect=SysExitException) as exit,\
             captureOutput() as output:
         try:
             girder_client.cli.main()
@@ -455,8 +455,8 @@ class PythonCliTestCase(base.TestCase):
             adapter = session.adapters[gc.urlBase]
             self.assertEqual(adapter.max_retries.total, 5)
 
-        with mock.patch('girder_client.cli.GirderClient.sendRestRequest',
-                        side_effect=checkRetryHandler) as m:
+        with unittest.mock.patch('girder_client.cli.GirderClient.sendRestRequest',
+                                 side_effect=checkRetryHandler) as m:
             gc.sendRestRequest('')
 
         self.assertTrue(m.called)

@@ -1,7 +1,8 @@
 import cherrypy
 import contextlib
-import mock
 import pytest
+import unittest.mock
+
 from girder import config
 from girder.api import access
 from pytest_girder.assertions import assertStatus
@@ -30,7 +31,7 @@ def exceptionServer(server):
 @pytest.fixture
 def uuidMock():
     val = '1234'
-    with mock.patch('uuid.uuid4', return_value=val):
+    with unittest.mock.patch('uuid.uuid4', return_value=val):
         yield val
 
 

@@ -1,9 +1,9 @@
 import hashlib
-import mock
 import mongomock
 import os
 import pytest
 import shutil
+import unittest.mock
 
 from .plugin_registry import PluginRegistry
 from .utils import MockSmtpReceiver, serverContext
@@ -24,7 +24,7 @@ def _disableRealDatabaseConnectivity():
         def get(self, *args, **kwargs):
             raise Exception('You must use the "db" fixture in tests that connect to the database.')
 
-    with mock.patch.dict(getConfig(), {'database': MockDict()}):
+    with unittest.mock.patch.dict(getConfig(), {'database': MockDict()}):
         yield
 
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import mock
+import unittest.mock
 import pytest
 
 from girder import _setupCache
@@ -46,7 +46,7 @@ def testSettingsCache(db, enabledCache):
     setting.set(SettingKey.BRAND_NAME, 'bar')
 
     # verify retrieving gives us the new value
-    with mock.patch.object(setting, 'findOne') as findOneMock:
+    with unittest.mock.patch.object(setting, 'findOne') as findOneMock:
         assert setting.get(SettingKey.BRAND_NAME) == 'bar'
 
         # findOne shouldn't be called since the cache is returning the setting
@@ -56,7 +56,7 @@ def testSettingsCache(db, enabledCache):
     setting.unset(SettingKey.BRAND_NAME)
 
     # verify the database needs to be accessed to retrieve the setting now
-    with mock.patch.object(setting, 'findOne') as findOneMock:
+    with unittest.mock.patch.object(setting, 'findOne') as findOneMock:
         setting.get(SettingKey.BRAND_NAME)
 
         findOneMock.assert_called_once()
