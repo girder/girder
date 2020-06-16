@@ -32,7 +32,6 @@ mongomock
 moto[server]>=1.3.7
 pytest>=3.6
 pytest-cov>=2.6
-pytest-xdist
 python-dateutil
 tox
 virtualenv
