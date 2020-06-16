@@ -5,6 +5,8 @@ import socketserver
 import stat
 import time
 
+from functools import partial
+
 from girder import logger
 from girder.exceptions import AccessException, ValidationException, ResourcePathNotFound
 from girder.models.file import File
@@ -98,6 +100,9 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface):
         self.server = server
         paramiko.SFTPServerInterface.__init__(self, server, *args, **kwargs)
 
+    def _processPath(self, path):
+        return path.rstrip('/')
+
     def _list(self, model, document):
         entries = []
         if model in ('collection', 'user', 'folder'):
@@ -116,7 +121,7 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface):
 
     @_handleErrors
     def list_folder(self, path):
-        path = path.rstrip('/')
+        path = self._processPath(path)
         entries = []
 
         if path == '':
@@ -138,6 +143,7 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface):
 
     @_handleErrors
     def open(self, path, flags, attr):
+        path = self._processPath(path)
         obj = lookUpPath(path, filter=False, user=self.server.girderUser)
 
         if obj['model'] != 'file':
@@ -147,7 +153,7 @@ class _SftpServerAdapter(paramiko.SFTPServerInterface):
 
     @_handleErrors
     def stat(self, path):
-        path = path.rstrip('/')
+        path = self._processPath(path)
         if path == '':
             info = paramiko.SFTPAttributes()
             info.st_size = 0
@@ -172,6 +178,11 @@ class _SftpRequestHandler(socketserver.BaseRequestHandler):
     timeout = 60
     auth_timeout = 60
 
+    def __init__(self, *args, **kwargs):
+        self.sftpServerAdapter = kwargs.pop(
+            'sftpServerAdapter', _SftpServerAdapter)
+        socketserver.BaseRequestHandler.__init__(self, *args, **kwargs)
+
     def setup(self):
         self.transport = paramiko.Transport(self.request)
 
@@ -180,7 +191,8 @@ class _SftpRequestHandler(socketserver.BaseRequestHandler):
         securityOptions.compression = ('zlib@openssh.com', 'none')
 
         self.transport.add_server_key(self.server.hostKey)
-        self.transport.set_subsystem_handler('sftp', paramiko.SFTPServer, _SftpServerAdapter)
+        self.transport.set_subsystem_handler(
+            'sftp', paramiko.SFTPServer, self.sftpServerAdapter)
 
     def handle(self):
         self.transport.start_server(server=_ServerAdapter())
@@ -220,7 +232,7 @@ class SftpServer(socketserver.ThreadingTCPServer):
 
     allow_reuse_address = True
 
-    def __init__(self, address, hostKey):
+    def __init__(self, address, hostKey, sftpServerAdapter=None):
         """
         Creates but does not start a Girder SFTP server.
 
@@ -232,7 +244,10 @@ class SftpServer(socketserver.ThreadingTCPServer):
         self.hostKey = hostKey
         paramiko.Transport.load_server_moduli()
 
-        socketserver.TCPServer.__init__(self, address, _SftpRequestHandler)
+        if sftpServerAdapter is None:
+            sftpServerAdapter = _SftpServerAdapter
+        socketserver.TCPServer.__init__(
+            self, address, partial(_SftpRequestHandler, sftpServerAdapter=sftpServerAdapter))
 
     def shutdown_request(self, request):
         pass
