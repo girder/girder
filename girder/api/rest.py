@@ -770,7 +770,7 @@ class Resource:
         superclass constructor.
         """
         if not hasattr(self, '_routes'):
-            Resource.__init__(self)
+            super().__init__()
             logprint.warning(
                 'WARNING: Resource subclass "%s" did not call '
                 '"Resource__init__()" from its constructor.' %

@@ -88,10 +88,10 @@ class _NoopProgressReporter:
 class _ProgressBytesIO(io.BytesIO):
     def __init__(self, *args, **kwargs):
         self.reporter = kwargs.pop('reporter')
-        io.BytesIO.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def read(self, _size=-1):
-        _chunk = io.BytesIO.read(self, _size)
+        _chunk = super().read(_size)
         self.reporter.update(len(_chunk))
         return _chunk
 

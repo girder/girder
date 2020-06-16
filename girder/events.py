@@ -125,7 +125,7 @@ class AsyncEventsThread(threading.Thread):
     """
 
     def __init__(self):
-        threading.Thread.__init__(self)
+        super().__init__()
 
         self.daemon = True
         self.terminate = False
