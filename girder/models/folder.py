@@ -384,7 +384,7 @@ class Folder(AccessControlledModel):
         uploads.close()
 
         # Delete this folder
-        AccessControlledModel.remove(self, folder, progress=progress, **kwargs)
+        super().remove(folder, progress=progress, **kwargs)
         if progress:
             progress.update(increment=1, message='Deleted folder %s' %
                             folder['name'])

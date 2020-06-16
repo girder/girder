@@ -250,7 +250,7 @@ class User(AccessControlledModel):
             folderModel.remove(folder, progress=progress, **kwargs)
 
         # Finally, delete the user document itself
-        AccessControlledModel.remove(self, user)
+        super().remove(user)
         if progress:
             progress.update(increment=1, message='Deleted user ' + user['login'])
 

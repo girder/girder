@@ -98,7 +98,7 @@ class Group(AccessControlledModel):
         })
 
         # Finally, delete the document itself
-        AccessControlledModel.remove(self, group)
+        super().remove(group)
 
     def getMembers(self, group, offset=0, limit=0, sort=None):
         """

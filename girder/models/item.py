@@ -237,7 +237,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
             uploadModel.remove(upload, **kwargs)
 
         # Delete the item itself
-        Model.remove(self, item)
+        super().remove(item)
 
     def createItem(self, name, creator, folder, description='',
                    reuseExisting=False):

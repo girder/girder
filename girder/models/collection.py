@@ -79,7 +79,7 @@ class Collection(AccessControlledModel):
             folderModel.remove(folder, progress=progress, **kwargs)
 
         # Delete this collection
-        AccessControlledModel.remove(self, collection)
+        super().remove(collection)
         if progress:
             progress.update(increment=1, message='Deleted collection ' + collection['name'])
 

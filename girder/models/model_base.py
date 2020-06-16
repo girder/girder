@@ -1423,7 +1423,7 @@ class AccessControlledModel(Model):
             extraFields = {'access', 'public'}
             loadFields = self._supplementFields(fields, extraFields)
 
-        doc = Model.load(self, id=id, objectId=objectId, fields=loadFields, exc=exc)
+        doc = super().load(id=id, objectId=objectId, fields=loadFields, exc=exc)
 
         if not force and doc is not None:
             self.requireAccess(doc, user, level)

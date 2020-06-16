@@ -268,7 +268,7 @@ class Job(AccessControlledModel):
         keys.
         """
         job['kwargs'] = json_util.dumps(job['kwargs'])
-        job = AccessControlledModel.save(self, job, *args, **kwargs)
+        job = super().save(job, *args, **kwargs)
         job['kwargs'] = json_util.loads(job['kwargs'])
         return job
 
