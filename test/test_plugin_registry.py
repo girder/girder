@@ -33,56 +33,56 @@ class InvalidPlugin(GirderPlugin):
     pass
 
 
-class TestLoadMixin:
+class LoadMockMixin:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._testLoadMock = unittest.mock.Mock()
 
 
-class NoDeps(TestLoadMixin, GirderPlugin):
+class NoDeps(LoadMockMixin, GirderPlugin):
     def load(self, info):
         self._testLoadMock(info)
 
 
-class PluginWithNPM(TestLoadMixin, GirderPlugin):
+class PluginWithNPM(LoadMockMixin, GirderPlugin):
     CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         self._testLoadMock(info)
 
 
-class ReturnsFive(TestLoadMixin, GirderPlugin):
+class ReturnsFive(LoadMockMixin, GirderPlugin):
     def load(self, info):
         self._testLoadMock(info)
         return 5
 
 
-class DependsOnPlugin1(TestLoadMixin, GirderPlugin):
+class DependsOnPlugin1(LoadMockMixin, GirderPlugin):
     def load(self, info):
         plugin.getPlugin('plugin1').load(info)
         self._testLoadMock(info)
 
 
-class DependsOnPlugin2(TestLoadMixin, GirderPlugin):
+class DependsOnPlugin2(LoadMockMixin, GirderPlugin):
     def load(self, info):
         plugin.getPlugin('plugin2').load(info)
         self._testLoadMock(info)
 
 
-class DependsOnPlugin1and2(TestLoadMixin, GirderPlugin):
+class DependsOnPlugin1and2(LoadMockMixin, GirderPlugin):
     def load(self, info):
         plugin.getPlugin('plugin1').load(info)
         plugin.getPlugin('plugin2').load(info)
         self._testLoadMock(info)
 
 
-class ThrowsOnLoad(TestLoadMixin, GirderPlugin):
+class ThrowsOnLoad(LoadMockMixin, GirderPlugin):
     def load(self, info):
         self._testLoadMock(info)
         raise Exception()
 
 
-class HasDisplayName(TestLoadMixin, GirderPlugin):
+class HasDisplayName(LoadMockMixin, GirderPlugin):
     DISPLAY_NAME = 'A plugin with a display name'
 
     def load(self, info):
