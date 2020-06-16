@@ -18,7 +18,7 @@ class Assetstore(Resource):
     """
 
     def __init__(self):
-        super(Assetstore, self).__init__()
+        super().__init__()
         self.resourceName = 'assetstore'
         self._model = AssetstoreModel()
 

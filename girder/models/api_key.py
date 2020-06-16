@@ -57,7 +57,7 @@ class ApiKey(AccessControlledModel):
         # Clear tokens corresponding to this API key.
         from .token import Token
         Token().clearForApiKey(doc)
-        super(ApiKey, self).remove(doc)
+        super().remove(doc)
 
     def list(self, user, limit=0, offset=0, sort=None):
         """

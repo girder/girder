@@ -30,7 +30,7 @@ Routes = [
 
 class DummyResource(Resource):
     def __init__(self):
-        super(DummyResource, self).__init__()
+        super().__init__()
         self.resourceName = 'foo'
         for method, pathElements, _testPath in Routes:
             self.route(method, pathElements, self.handler)
@@ -66,7 +66,7 @@ docs.addModel('Global', globalModel)
 
 class ModelResource(Resource):
     def __init__(self):
-        super(ModelResource, self).__init__()
+        super().__init__()
         self.resourceName = 'model'
         self.route('POST', (), self.hasModel)
 
@@ -234,7 +234,7 @@ class ApiDescribeTestCase(base.TestCase):
 
         class AutoDescribe(Resource):
             def __init__(self):
-                super(AutoDescribe, self).__init__()
+                super().__init__()
                 self.resourceName = 'auto_describe'
                 self.route('GET', ('test',), self.test)
                 self.route('POST', ('body',), self.body)
@@ -551,7 +551,7 @@ class ApiDescribeTestCase(base.TestCase):
         """
         class OldResource(Resource):
             def __init__(self):
-                super(OldResource, self).__init__()
+                super().__init__()
                 self.resourceName = 'old_resource'
                 self.route('GET', (), self.handler)
                 self.route('GET', ('deprecated',), self.deprecatedHandler)
@@ -591,7 +591,7 @@ class ApiDescribeTestCase(base.TestCase):
         """
         class ProducesResource(Resource):
             def __init__(self):
-                super(ProducesResource, self).__init__()
+                super().__init__()
                 self.resourceName = 'produces_resource'
                 self.route('GET', (), self.handler)
                 self.route('GET', ('produces1',), self.producesHandler)

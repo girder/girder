@@ -24,7 +24,7 @@ def tearDownModule():
 
 class StreamTestResource(Resource):
     def __init__(self):
-        super(StreamTestResource, self).__init__()
+        super().__init__()
         self.resourceName = 'stream_test'
         self.route('POST', ('input_stream',), self.inputStream)
 

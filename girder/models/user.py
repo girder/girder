@@ -131,7 +131,7 @@ class User(AccessControlledModel):
                 'letters, numbers, dashes, and dots.', 'login')
 
     def filter(self, doc, user, additionalKeys=None):
-        filteredDoc = super(User, self).filter(doc, user, additionalKeys)
+        filteredDoc = super().filter(doc, user, additionalKeys)
 
         level = self.getAccessLevel(doc, user)
         if level >= AccessType.ADMIN:

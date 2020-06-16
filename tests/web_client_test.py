@@ -39,7 +39,7 @@ def tearDownModule():
 
 class WebClientTestEndpoints(Resource):
     def __init__(self):
-        super(WebClientTestEndpoints, self).__init__()
+        super().__init__()
         self.route('GET', ('progress', ), self.testProgress)
         self.route('PUT', ('progress', 'stop'), self.testProgressStop)
         self.route('POST', ('file', ), self.uploadFile)

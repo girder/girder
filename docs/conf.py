@@ -81,7 +81,7 @@ class PatchedPythonDomain(PythonDomain):
         if target == 'list':
             # References to built-in symbols natively return None
             return None
-        return super(PatchedPythonDomain, self).resolve_xref(
+        return super().resolve_xref(
             env, fromdocname, builder, typ, target, node, contnode)
 
 

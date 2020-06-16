@@ -17,7 +17,7 @@ from .settings import PluginSettings
 
 class OAuth(Resource):
     def __init__(self):
-        super(OAuth, self).__init__()
+        super().__init__()
         self.resourceName = 'oauth'
 
         self.route('GET', ('provider',), self.listProviders)

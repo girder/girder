@@ -978,17 +978,17 @@ class AccessMixin:
 
 class CollectionResource(AccessMixin, Resource):
     def __init__(self, client):
-        super(CollectionResource, self).__init__(client, 'collection')
+        super().__init__(client, 'collection')
 
 
 class GroupResource(Resource):
     def __init__(self, client):
-        super(GroupResource, self).__init__(client, 'group')
+        super().__init__(client, 'group')
 
 
 class FolderResource(AccessMixin, Resource):
     def __init__(self, client, parentType, parentId):
-        super(FolderResource, self).__init__(client, 'folder')
+        super().__init__(client, 'folder')
         self.parentType = parentType
         self.parentId = parentId
 
@@ -1012,7 +1012,7 @@ class FolderResource(AccessMixin, Resource):
 
 class ItemResource(Resource):
     def __init__(self, client, folderId):
-        super(ItemResource, self).__init__(client, 'item')
+        super().__init__(client, 'item')
         self.folderId = folderId
 
     @property
@@ -1059,7 +1059,7 @@ class GirderClientModule(GirderClient):
     def __call__(self, module):
         self.module = module
 
-        super(GirderClientModule, self).__init__(
+        super().__init__(
             **{p: self.module.params[p] for p in
                ['host', 'port', 'apiRoot', 'apiUrl',
                 'scheme', 'dryrun', 'blacklist']
@@ -1577,8 +1577,7 @@ class GirderClientModule(GirderClient):
     # it on to requests See:
     # http://docs.python-requests.org/en/master/user/quickstart/#more-complicated-post-requests
     def patch(self, path, parameters=None, data=None):
-        super(GirderClientModule, self).patch(path, parameters=parameters,
-                                              data=json.dumps(data))
+        super().patch(path, parameters=parameters, data=json.dumps(data))
 
     assetstore_types = {
         'filesystem': 0,

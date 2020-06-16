@@ -89,7 +89,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return doc
 
     def __init__(self, assetstore):
-        super(S3AssetstoreAdapter, self).__init__(assetstore)
+        super().__init__(assetstore)
         if all(k in self.assetstore for k in ('accessKeyId', 'secret', 'service')):
             self.connectParams = makeBotoConnectParams(
                 self.assetstore['accessKeyId'], self.assetstore['secret'],

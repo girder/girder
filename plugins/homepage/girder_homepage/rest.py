@@ -12,7 +12,7 @@ from .settings import PluginSettings
 
 class Homepage(Resource):
     def __init__(self):
-        super(Homepage, self).__init__()
+        super().__init__()
         self.resourceName = 'homepage'
         self.route('GET', (), self.getSettings)
         self.route('GET', ('assets',), self.getAssets)

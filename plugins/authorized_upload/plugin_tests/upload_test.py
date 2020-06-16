@@ -21,7 +21,7 @@ def tearDownModule():
 
 class AuthorizedUploadTest(base.TestCase):
     def setUp(self):
-        super(AuthorizedUploadTest, self).setUp()
+        super().setUp()
 
         self.admin = User().createUser(
             login='admin',

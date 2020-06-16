@@ -9,7 +9,7 @@ from girder.plugin import GirderPlugin
 
 class Resourceful(Resource):
     def __init__(self):
-        super(Resourceful, self).__init__()
+        super().__init__()
 
         self.route('GET', (), self.getResource, resource=self)
 

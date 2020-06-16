@@ -47,7 +47,7 @@ class ServerFuseTestCase(base.TestCase):
         return mountThread
 
     def setUp(self):
-        super(ServerFuseTestCase, self).setUp()
+        super().setUp()
         self._mountThreads = []
         self.admin = User().findOne({'login': 'admin'})
         self.user = User().findOne({'login': 'user'})
@@ -73,7 +73,7 @@ class ServerFuseTestCase(base.TestCase):
         self.privateFileName = 'user/user/Private/Item 4/File 4'
 
     def tearDown(self):
-        super(ServerFuseTestCase, self).tearDown()
+        super().tearDown()
         mount.unmountServer(self.mountPath, quiet=True)
         mount.unmountServer(self.extraMountPath, quiet=True)
         os.rmdir(self.mountPath)

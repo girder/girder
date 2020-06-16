@@ -52,7 +52,7 @@ def loadModelWithMap(user, params):
 
 class AccessTestResource(Resource):
     def __init__(self):
-        super(AccessTestResource, self).__init__()
+        super().__init__()
         self.resourceName = 'accesstest'
         self.route('GET', ('default_access', ), self.defaultHandler)
         self.route('GET', ('admin_access', ), self.adminHandler)

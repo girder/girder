@@ -358,7 +358,7 @@ class Group(AccessControlledModel):
                                        user['_id'], level)
 
     def permissionClauses(self, user=None, level=None, prefix=''):
-        permission = super(Group, self).permissionClauses(user, level, prefix)
+        permission = super().permissionClauses(user, level, prefix)
         if user and level == AccessType.READ:
             permission['$or'].extend([
                 {prefix + '_id': {'$in': user.get('groups', [])}},

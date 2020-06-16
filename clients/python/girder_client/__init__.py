@@ -38,7 +38,7 @@ class AuthenticationError(RuntimeError):
 
 class IncorrectUploadLengthError(RuntimeError):
     def __init__(self, message, upload=None):
-        super(IncorrectUploadLengthError, self).__init__(message)
+        super().__init__(message)
         self.upload = upload
 
 
@@ -51,20 +51,19 @@ class HttpError(requests.HTTPError):
     """
 
     def __init__(self, status, text, url, method, response=None):
-        super(HttpError, self).__init__('HTTP error %s: %s %s' % (status, method, url),
-                                        response=response)
+        super().__init__('HTTP error %s: %s %s' % (status, method, url), response=response)
         self.status = status
         self.responseText = text
         self.url = url
         self.method = method
 
     def __str__(self):
-        return super(HttpError, self).__str__() + '\nResponse text: ' + self.responseText
+        return super().__str__() + '\nResponse text: ' + self.responseText
 
 
 class IncompleteResponseError(requests.RequestException):
     def __init__(self, message, expected, received, response=None):
-        super(IncompleteResponseError, self).__init__('%s (%d of %d bytes received)' % (
+        super().__init__('%s (%d of %d bytes received)' % (
             message, received, expected
         ), response=response)
 

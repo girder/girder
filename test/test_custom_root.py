@@ -42,7 +42,7 @@ class CustomAppRoot:
 
 class Other(Resource):
     def __init__(self):
-        super(Other, self).__init__()
+        super().__init__()
         self.resourceName = 'other'
 
         self.route('GET', (), self.getResource)

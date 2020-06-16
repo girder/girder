@@ -109,7 +109,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
                        'name', 'lowerName'}
         loadFields = self._supplementFields(fields, extraFields)
 
-        doc = super(Item, self).load(
+        doc = super().load(
             id=id, level=level, user=user, objectId=objectId, force=force, fields=loadFields,
             exc=exc)
 
@@ -309,7 +309,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         Overrides the parent ``filter`` method to add an empty meta field
         (if it doesn't exist) to the returned folder.
         """
-        filteredDoc = super(Item, self).filter(doc, user, additionalKeys=additionalKeys)
+        filteredDoc = super().filter(doc, user, additionalKeys=additionalKeys)
         if 'meta' not in filteredDoc:
             filteredDoc['meta'] = {}
 

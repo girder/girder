@@ -70,7 +70,7 @@ class _FileHandle(paramiko.SFTPHandle):
         :param file: The file object being opened.
         :type file: dict
         """
-        super(_FileHandle, self).__init__()
+        super().__init__()
 
         self.file = file
         self._handle = File().open(file)

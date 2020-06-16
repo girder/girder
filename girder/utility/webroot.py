@@ -98,7 +98,7 @@ class Webroot(WebrootBase):
     def __init__(self, templatePath=None):
         if not templatePath:
             templatePath = os.path.join(constants.PACKAGE_DIR, 'utility', 'webroot.mako')
-        super(Webroot, self).__init__(templatePath)
+        super().__init__(templatePath)
 
         self.vars = {}
 
@@ -124,4 +124,4 @@ class Webroot(WebrootBase):
         self.vars['registrationPolicy'] = Setting().get(SettingKey.REGISTRATION_POLICY)
         self.vars['enablePasswordLogin'] = Setting().get(SettingKey.ENABLE_PASSWORD_LOGIN)
 
-        return super(Webroot, self)._renderHTML()
+        return super()._renderHTML()

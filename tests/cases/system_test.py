@@ -23,7 +23,7 @@ from girder.utility import config
 
 class TestEndpoints(Resource):
     def __init__(self):
-        super(TestEndpoints, self).__init__()
+        super().__init__()
         self.resourceName = 'test_endpoints'
 
         self.route('GET', ('loadmodel_with_flags', ':id'), self.loadModelFlags)

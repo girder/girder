@@ -74,7 +74,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         :param assetstore: The assetstore to act on.
         """
-        super(GridFsAssetstoreAdapter, self).__init__(assetstore)
+        super().__init__(assetstore)
         recent = False
         try:
             # Guard in case the connectionArgs is unhashable

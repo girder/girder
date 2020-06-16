@@ -14,7 +14,7 @@ from .constants import TOKEN_SCOPE_AUTHORIZED_UPLOAD
 
 class AuthorizedUpload(Resource):
     def __init__(self):
-        super(AuthorizedUpload, self).__init__()
+        super().__init__()
         self.resourceName = 'authorized_upload'
 
         self.route('POST', (), self.createAuthorizedUpload)

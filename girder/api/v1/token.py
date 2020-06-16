@@ -10,7 +10,7 @@ class Token(Resource):
     """API Endpoint for non-user tokens in the system."""
 
     def __init__(self):
-        super(Token, self).__init__()
+        super().__init__()
         self.resourceName = 'token'
         self._model = TokenModel()
 

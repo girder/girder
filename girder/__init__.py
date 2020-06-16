@@ -69,7 +69,7 @@ class LogFormatter(logging.Formatter):
             if (record.name.startswith('cherrypy.access')
                     or record.name.startswith('cherrypy.error')):
                 return record.message
-        return super(LogFormatter, self).format(record, *args, **kwargs)
+        return super().format(record, *args, **kwargs)
 
 
 class StreamToLogger:

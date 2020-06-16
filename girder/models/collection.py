@@ -149,7 +149,7 @@ class Collection(AccessControlledModel):
         Takes the same parameters as
         :py:func:`girder.models.model_base.AccessControlMixin.load`.
         """
-        doc = super(Collection, self).load(
+        doc = super().load(
             id=id, level=level, user=user, objectId=objectId, force=force, fields=fields,
             exc=exc)
 
@@ -167,7 +167,7 @@ class Collection(AccessControlledModel):
         Overrides the parent ``filter`` method to add an empty meta field
         (if it doesn't exist) to the returned collection.
         """
-        filteredDoc = super(Collection, self).filter(doc, user, additionalKeys=additionalKeys)
+        filteredDoc = super().filter(doc, user, additionalKeys=additionalKeys)
         if 'meta' not in filteredDoc:
             filteredDoc['meta'] = {}
 

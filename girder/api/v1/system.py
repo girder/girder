@@ -35,7 +35,7 @@ class System(Resource):
     """
 
     def __init__(self):
-        super(System, self).__init__()
+        super().__init__()
         self.resourceName = 'system'
         self.route('DELETE', ('setting',), self.unsetSetting)
         self.route('GET', ('version',), self.getVersion)
