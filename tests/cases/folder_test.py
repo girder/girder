@@ -22,7 +22,7 @@ def tearDownModule():
 
 class FolderTestCase(base.TestCase):
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         users = ({
             'email': 'good@girder.test',

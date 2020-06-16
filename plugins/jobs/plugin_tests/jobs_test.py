@@ -25,7 +25,7 @@ def tearDownModule():
 
 class JobsTestCase(base.TestCase):
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         self.users = [User().createUser(
             'usr' + str(n), 'passwd', 'tst', 'usr', 'u%d@girder.test' % n)

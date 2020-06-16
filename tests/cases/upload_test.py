@@ -40,7 +40,7 @@ def _send_s3_request(req, data=None):
 
 class UploadTestCase(base.TestCase):
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
         admin = {
             'email': 'admin@girder.test',
             'login': 'admin',

@@ -37,7 +37,7 @@ def tearDownModule():
 class PythonClientTestCase(base.TestCase):
 
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         def writeFile(dirName):
             filename = os.path.join(dirName, 'f')

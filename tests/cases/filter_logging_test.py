@@ -34,7 +34,7 @@ class FilterLoggingTestCase(base.TestCase):
     """
 
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         user = {
             'email': 'good@girder.test',

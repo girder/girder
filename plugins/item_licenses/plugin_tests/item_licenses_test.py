@@ -20,7 +20,7 @@ def tearDownModule():
 class ItemLicensesTestCase(base.TestCase):
 
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         # Create a user
         user = {

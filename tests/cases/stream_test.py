@@ -39,7 +39,7 @@ class StreamTestResource(Resource):
 
 class StreamTestCase(base.TestCase):
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         global _chunks
         _chunks = []

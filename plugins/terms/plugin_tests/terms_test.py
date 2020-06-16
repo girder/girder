@@ -17,7 +17,7 @@ def tearDownModule():
 
 class TermsTest(base.TestCase):
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         self.siteAdminUser = User().createUser(
             email='rocky@phila.pa.us',

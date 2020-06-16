@@ -33,7 +33,7 @@ def tearDownModule():
 class OauthTest(base.TestCase):
 
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         self.adminUser = User().createUser(
             email='rocky@phila.pa.us',

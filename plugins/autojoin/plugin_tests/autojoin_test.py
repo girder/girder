@@ -17,7 +17,7 @@ def tearDownModule():
 class AutoJoinTest(base.TestCase):
 
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         self.users = [User().createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@girder4.test' % num)

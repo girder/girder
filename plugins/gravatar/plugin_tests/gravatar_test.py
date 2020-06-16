@@ -21,7 +21,7 @@ class GravatarTest(base.TestCase):
 
     def setUp(self):
         # Since our plugin updates the model singleton, don't drop models
-        base.TestCase.setUp(self, dropModels=False)
+        super().setUp(dropModels=False)
 
         self.admin = User().createUser(
             email='not.a.real.email@girder.test',
