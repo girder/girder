@@ -122,7 +122,7 @@ class Job(AccessControlledModel):
                 query['status'] = {'$in': statuses}
             if parentJob:
                 query['parentId'] = parentJob['_id']
-        return super(Job, self).findWithPermissions(
+        return super().findWithPermissions(
             query, offset=offset, limit=limit, timeout=timeout, fields=fields,
             sort=sort, user=user, level=level, **kwargs)
 
@@ -268,7 +268,7 @@ class Job(AccessControlledModel):
         keys.
         """
         job['kwargs'] = json_util.dumps(job['kwargs'])
-        job = AccessControlledModel.save(self, job, *args, **kwargs)
+        job = super().save(job, *args, **kwargs)
         job['kwargs'] = json_util.loads(job['kwargs'])
         return job
 
@@ -280,7 +280,7 @@ class Job(AccessControlledModel):
         :type includeLog: bool
         """
         kwargs['fields'] = self._computeFields(kwargs)
-        return super(Job, self).find(*args, **kwargs)
+        return super().find(*args, **kwargs)
 
     def load(self, *args, **kwargs):
         """
@@ -291,7 +291,7 @@ class Job(AccessControlledModel):
         :type includeLog: bool
         """
         kwargs['fields'] = self._computeFields(kwargs)
-        job = super(Job, self).load(*args, **kwargs)
+        job = super().load(*args, **kwargs)
 
         if job and isinstance(job.get('kwargs'), str):
             job['kwargs'] = json_util.loads(job['kwargs'])
@@ -531,7 +531,7 @@ class Job(AccessControlledModel):
         field if it is still in serialized form. This is handled in ``load``, but
         required here also for fetching lists of jobs.
         """
-        doc = super(Job, self).filter(doc, user, additionalKeys=additionalKeys)
+        doc = super().filter(doc, user, additionalKeys=additionalKeys)
 
         if 'kwargs' in doc and isinstance(doc['kwargs'], str):
             doc['kwargs'] = json_util.loads(doc['kwargs'])

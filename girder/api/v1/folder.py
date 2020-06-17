@@ -14,7 +14,7 @@ class Folder(Resource):
     """API Endpoint for folders."""
 
     def __init__(self):
-        super(Folder, self).__init__()
+        super().__init__()
         self.resourceName = 'folder'
         self._model = FolderModel()
         self.route('DELETE', (':id',), self.deleteFolder)

@@ -27,7 +27,7 @@ def tearDownModule():
 
 class DummyResource(Resource):
     def __init__(self):
-        super(DummyResource, self).__init__()
+        super().__init__()
         self.route('GET', (':wc1', 'literal1'), self.handler)
         self.route('GET', (':wc1', 'literal2'), self.handler)
         self.route('GET', (':wc1', ':wc2'), self.handler)

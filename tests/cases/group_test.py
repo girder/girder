@@ -18,7 +18,7 @@ def tearDownModule():
 
 class GroupTestCase(base.TestCase):
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         # Create a set of users so we can work with these groups.  User 0 is
         # an admin

@@ -29,7 +29,7 @@ def tearDownModule():
 
 class QuotaTestCase(base.TestCase):
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
         admin = {
             'email': 'admin@girder.test',
             'login': 'adminlogin',

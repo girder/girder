@@ -73,7 +73,7 @@ def startMockS3Server():
 
 class MockS3Server(threading.Thread):
     def __init__(self, port=_startPort):
-        threading.Thread.__init__(self)
+        super().__init__()
         self.port = port
         self.daemon = True
         self.service = 'http://127.0.0.1:%d' % port

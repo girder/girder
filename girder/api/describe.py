@@ -433,7 +433,7 @@ class ApiDocs(WebrootBase):
         if not templatePath:
             templatePath = os.path.join(constants.PACKAGE_DIR,
                                         'api', 'api_docs.mako')
-        super(ApiDocs, self).__init__(templatePath)
+        super().__init__(templatePath)
 
         curConfig = config.getConfig()
         self.vars['mode'] = curConfig['server'].get('mode', '')
@@ -443,12 +443,12 @@ class ApiDocs(WebrootBase):
         self.vars['apiRoot'] = server.getApiRoot()
         self.vars['staticPublicPath'] = server.getStaticPublicPath()
         self.vars['brandName'] = Setting().get(SettingKey.BRAND_NAME)
-        return super(ApiDocs, self)._renderHTML()
+        return super()._renderHTML()
 
 
 class Describe(Resource):
     def __init__(self):
-        super(Describe, self).__init__()
+        super().__init__()
         self.route('GET', (), self.listResources, nodoc=True)
 
     @access.public
@@ -553,7 +553,7 @@ class autoDescribeRoute(describeRoute):  # noqa: class name
         :param hide: Set to True if this route should not appear in the swagger listing.
         :type hide: bool
         """
-        super(autoDescribeRoute, self).__init__(description=description)
+        super().__init__(description=description)
         self.hide = hide
 
     def _passArg(self, fun, kwargs, name, val):

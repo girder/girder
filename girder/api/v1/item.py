@@ -13,7 +13,7 @@ from girder.models.item import Item as ItemModel
 class Item(Resource):
 
     def __init__(self):
-        super(Item, self).__init__()
+        super().__init__()
         self.resourceName = 'item'
         self._model = ItemModel()
 

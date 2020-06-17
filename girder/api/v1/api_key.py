@@ -12,7 +12,7 @@ from girder.settings import SettingKey
 
 class ApiKey(Resource):
     def __init__(self):
-        super(ApiKey, self).__init__()
+        super().__init__()
         self.resourceName = 'api_key'
         self.route('GET', (), self.listKeys)
         self.route('POST', (), self.createKey)

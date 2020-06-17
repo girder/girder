@@ -29,7 +29,7 @@ class Setting(Model):
         unique index on key does not exist, make one, first discarding any
         extant index on key and removing duplicate keys if necessary.
         """
-        super(Setting, self).reconnect()
+        super().reconnect()
         try:
             indices = self.collection.index_information()
         except pymongo.errors.OperationFailure:

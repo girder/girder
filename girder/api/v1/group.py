@@ -15,7 +15,7 @@ class Group(Resource):
     """API Endpoint for groups."""
 
     def __init__(self):
-        super(Group, self).__init__()
+        super().__init__()
         self.resourceName = 'group'
         self._model = GroupModel()
 

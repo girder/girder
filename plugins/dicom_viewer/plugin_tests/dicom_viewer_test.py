@@ -28,7 +28,7 @@ def tearDownModule():
 class DicomViewerTest(base.TestCase):
 
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
         self.dataDir = os.path.join(
             os.environ['GIRDER_TEST_DATA_PREFIX'], 'plugins', 'dicom_viewer')
 

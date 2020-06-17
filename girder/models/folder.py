@@ -122,7 +122,7 @@ class Folder(AccessControlledModel):
                        'name', 'lowerName'}
         loadFields = self._supplementFields(fields, extraFields)
 
-        doc = super(Folder, self).load(
+        doc = super().load(
             id=id, level=level, user=user, objectId=objectId, force=force, fields=loadFields,
             exc=exc)
 
@@ -384,7 +384,7 @@ class Folder(AccessControlledModel):
         uploads.close()
 
         # Delete this folder
-        AccessControlledModel.remove(self, folder, progress=progress, **kwargs)
+        super().remove(folder, progress=progress, **kwargs)
         if progress:
             progress.update(increment=1, message='Deleted folder %s' %
                             folder['name'])
@@ -554,7 +554,7 @@ class Folder(AccessControlledModel):
         Overrides the parent ``filter`` method to add an empty meta field
         (if it doesn't exist) to the returned folder.
         """
-        filteredDoc = super(Folder, self).filter(doc, user, additionalKeys=additionalKeys)
+        filteredDoc = super().filter(doc, user, additionalKeys=additionalKeys)
         if 'meta' not in filteredDoc:
             filteredDoc['meta'] = {}
 

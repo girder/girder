@@ -27,7 +27,7 @@ def tearDownModule():
 
 class ThumbnailsTestCase(base.TestCase):
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         # Create some test documents with an item
         admin = {

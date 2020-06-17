@@ -27,7 +27,7 @@ def tearDownModule():
 class ItemTestCase(base.TestCase):
 
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         # Create a set of users so we can have some folders.
         self.users = [User().createUser(

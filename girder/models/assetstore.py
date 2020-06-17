@@ -69,7 +69,7 @@ class Assetstore(Model):
             # this assetstore is currently unreachable, so skip this step
             pass
         # now remove the assetstore
-        Model.remove(self, assetstore)
+        super().remove(assetstore)
         # If after removal there is no current assetstore, then pick a
         # different assetstore to be the current one.
         current = self.findOne({'current': True})

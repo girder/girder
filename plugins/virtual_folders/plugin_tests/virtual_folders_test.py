@@ -19,7 +19,7 @@ def tearDownModule():
 
 class VirtualFoldersTestCase(base.TestCase):
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         self.admin = User().createUser(
             email='admin@admin.com', login='admin', lastName='admin', firstName='admin',

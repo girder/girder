@@ -23,7 +23,7 @@ from girder.utility import config
 
 class TestEndpoints(Resource):
     def __init__(self):
-        super(TestEndpoints, self).__init__()
+        super().__init__()
         self.resourceName = 'test_endpoints'
 
         self.route('GET', ('loadmodel_with_flags', ':id'), self.loadModelFlags)
@@ -50,7 +50,7 @@ class SystemTestCase(base.TestCase):
     """
 
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         self.users = [User().createUser(
             'usr%s' % num, 'passwd', 'tst', 'usr', 'u%s@girder.test' % num)

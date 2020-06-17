@@ -70,7 +70,7 @@ class _FileHandle(paramiko.SFTPHandle):
         :param file: The file object being opened.
         :type file: dict
         """
-        super(_FileHandle, self).__init__()
+        super().__init__()
 
         self.file = file
         self._handle = File().open(file)
@@ -96,7 +96,7 @@ class _FileHandle(paramiko.SFTPHandle):
 class _SftpServerAdapter(paramiko.SFTPServerInterface):
     def __init__(self, server, *args, **kwargs):
         self.server = server
-        paramiko.SFTPServerInterface.__init__(self, server, *args, **kwargs)
+        super().__init__(server, *args, **kwargs)
 
     def _list(self, model, document):
         entries = []
@@ -188,7 +188,7 @@ class _SftpRequestHandler(socketserver.BaseRequestHandler):
 
 class _ServerAdapter(paramiko.ServerInterface):
     def __init__(self, *args, **kwargs):
-        paramiko.ServerInterface.__init__(self, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.girderUser = None
 
     def check_channel_request(self, kind, chanid):
@@ -232,7 +232,7 @@ class SftpServer(socketserver.ThreadingTCPServer):
         self.hostKey = hostKey
         paramiko.Transport.load_server_moduli()
 
-        socketserver.TCPServer.__init__(self, address, _SftpRequestHandler)
+        super().__init__(address, _SftpRequestHandler)
 
     def shutdown_request(self, request):
         pass

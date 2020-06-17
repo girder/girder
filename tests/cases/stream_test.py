@@ -24,7 +24,7 @@ def tearDownModule():
 
 class StreamTestResource(Resource):
     def __init__(self):
-        super(StreamTestResource, self).__init__()
+        super().__init__()
         self.resourceName = 'stream_test'
         self.route('POST', ('input_stream',), self.inputStream)
 
@@ -39,7 +39,7 @@ class StreamTestResource(Resource):
 
 class StreamTestCase(base.TestCase):
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         global _chunks
         _chunks = []

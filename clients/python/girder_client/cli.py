@@ -64,7 +64,7 @@ class GirderCli(GirderClient):
 
         _progressBar.reportProgress = sys.stdout.isatty()
 
-        super(GirderCli, self).__init__(
+        super().__init__(
             host=host, port=port, apiRoot=apiRoot, scheme=scheme, apiUrl=apiUrl,
             progressReporterCls=_progressBar)
         interactive = password is None
@@ -85,7 +85,7 @@ class GirderCli(GirderClient):
             session.verify = self.sslVerify
             if self.retries:
                 session.mount(self.urlBase, HTTPAdapter(max_retries=self.retries))
-            return super(GirderCli, self).sendRestRequest(*args, **kwargs)
+            return super().sendRestRequest(*args, **kwargs)
 
 
 class _HiddenOption(click.Option):

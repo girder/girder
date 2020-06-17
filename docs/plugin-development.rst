@@ -288,7 +288,7 @@ classes, and we can add it to the API in the ``load()`` method.
 
     class Cat(Resource):
         def __init__(self):
-            super(Cat, self).__init__()
+            super().__init__()
             self.resourceName = 'cat'
 
             self.route('GET', (), self.findCat)
@@ -327,7 +327,7 @@ from the mount location.
 
     class Cat(Resource):
         def __init__(self):
-            super(Cat, self).__init__()
+            super().__init__()
 
             self.route('GET', (), self.findCat)
             self.route('GET', (':id',), self.getCat)

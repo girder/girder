@@ -37,7 +37,7 @@ def tearDownModule():
 class AssetstoreTestCase(base.TestCase):
 
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         info = {
             'email': 'admin@girder.test',

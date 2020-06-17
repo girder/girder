@@ -22,7 +22,7 @@ def tearDownModule():
 
 class NotificationTestCase(base.TestCase):
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         self.admin = User().createUser(
             email='admin@girder.test', login='admin', firstName='first',

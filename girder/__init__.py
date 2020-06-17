@@ -62,14 +62,14 @@ class LogFormatter(logging.Formatter):
         ))
         return ('%s\n'
                 'Additional info:\n'
-                '%s' % (logging.Formatter.formatException(self, exc), info))
+                '%s' % (super().formatException(exc), info))
 
     def format(self, record, *args, **kwargs):
         if hasattr(record, 'name') and hasattr(record, 'message'):
             if (record.name.startswith('cherrypy.access')
                     or record.name.startswith('cherrypy.error')):
                 return record.message
-        return super(LogFormatter, self).format(record, *args, **kwargs)
+        return super().format(record, *args, **kwargs)
 
 
 class StreamToLogger:

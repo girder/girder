@@ -25,7 +25,7 @@ def tearDownModule():
 
 class HashsumDownloadTest(base.TestCase):
     def setUp(self):
-        base.TestCase.setUp(self, assetstoreType='filesystem')
+        super().setUp(assetstoreType='filesystem')
 
         # Two users are created (user and otherUser).
         # A hierarchy is created as is:

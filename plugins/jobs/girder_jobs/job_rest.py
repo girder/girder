@@ -11,7 +11,7 @@ from . import constants
 class Job(Resource):
 
     def __init__(self):
-        super(Job, self).__init__()
+        super().__init__()
         self.resourceName = 'job'
         self._model = JobModel()
 

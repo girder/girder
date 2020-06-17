@@ -24,7 +24,7 @@ def tearDownModule():
 
 class MountCommandTestCase(base.TestCase):
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
         info = {
             'email': 'admin@girder.test',
             'login': 'admin',

@@ -9,7 +9,7 @@ from .settings import PluginSettings
 
 class Sentry(Resource):
     def __init__(self):
-        super(Sentry, self).__init__()
+        super().__init__()
         self.resourceName = 'sentry'
         self.route('GET', ('dsn',), self._getDsn)
 

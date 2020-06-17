@@ -131,7 +131,7 @@ class User(AccessControlledModel):
                 'letters, numbers, dashes, and dots.', 'login')
 
     def filter(self, doc, user, additionalKeys=None):
-        filteredDoc = super(User, self).filter(doc, user, additionalKeys)
+        filteredDoc = super().filter(doc, user, additionalKeys)
 
         level = self.getAccessLevel(doc, user)
         if level >= AccessType.ADMIN:
@@ -250,7 +250,7 @@ class User(AccessControlledModel):
             folderModel.remove(folder, progress=progress, **kwargs)
 
         # Finally, delete the user document itself
-        AccessControlledModel.remove(self, user)
+        super().remove(user)
         if progress:
             progress.update(increment=1, message='Deleted user ' + user['login'])
 

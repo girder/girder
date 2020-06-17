@@ -12,7 +12,7 @@ from . import utils
 
 class Thumbnail(Resource):
     def __init__(self):
-        super(Thumbnail, self).__init__()
+        super().__init__()
         self.resourceName = 'thumbnail'
         self.route('POST', (), self.createThumbnail)
 

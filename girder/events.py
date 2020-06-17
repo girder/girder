@@ -125,7 +125,7 @@ class AsyncEventsThread(threading.Thread):
     """
 
     def __init__(self):
-        threading.Thread.__init__(self)
+        super().__init__()
 
         self.daemon = True
         self.terminate = False
@@ -190,7 +190,7 @@ class AsyncEventsThread(threading.Thread):
         self.stop()
         # We had been calling the super class's __del__, but it doesn't have
         # such a method, so doing so would raise an AttributeError.
-        # super(AsyncEventsThread, self).__del__()
+        # super().__del__()
 
 
 def bind(eventName, handlerName, handler):

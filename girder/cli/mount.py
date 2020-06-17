@@ -45,7 +45,7 @@ class ServerFuse(fuse.Operations):
             taken from this.  If None, this defaults to the user of the Girder
             process's home directory,
         """
-        super(ServerFuse, self).__init__()
+        super().__init__()
         if not stat:
             stat = os.stat(os.path.expanduser('~'))
         # we always set st_mode, st_size, st_ino, st_nlink, so we don't need
@@ -198,7 +198,7 @@ class ServerFuse(fuse.Operations):
             not.
         """
         if path.rstrip('/') in ('', '/user', '/collection'):
-            return super(ServerFuse, self).access(path, mode)
+            return super().access(path, mode)
         # mode is either F_OK or a bitfield of R_OK, W_OK, X_OK
         return 0
 
@@ -292,7 +292,7 @@ class ServerFuse(fuse.Operations):
         """
         resource = self._getPath(path)
         if resource['model'] != 'file':
-            return super(ServerFuse, self).open(path, flags)
+            return super().open(path, flags)
         if flags & (os.O_APPEND | os.O_ASYNC | os.O_CREAT | os.O_DIRECTORY
                     | os.O_EXCL | os.O_RDWR | os.O_TRUNC | os.O_WRONLY):
             raise fuse.FuseOSError(errno.EROFS)
@@ -323,7 +323,7 @@ class ServerFuse(fuse.Operations):
                         del self.openFiles[fh]['handle']
                     del self.openFiles[fh]
             else:
-                return super(ServerFuse, self).release(path, fh)
+                return super().release(path, fh)
         return 0
 
     def destroy(self, path):
@@ -334,7 +334,7 @@ class ServerFuse(fuse.Operations):
         """
         Setting().unset(SettingKey.GIRDER_MOUNT_INFORMATION)
         events.trigger('server_fuse.destroy')
-        return super(ServerFuse, self).destroy(path)
+        return super().destroy(path)
 
 
 class FUSELogError(fuse.FUSE):
@@ -345,7 +345,7 @@ class FUSELogError(fuse.FUSE):
         """
         try:
             logger.debug('Mounting %s\n' % mountpoint)
-            super(FUSELogError, self).__init__(operations, mountpoint, *args, **kwargs)
+            super().__init__(operations, mountpoint, *args, **kwargs)
             logger.debug('Mounted %s\n' % mountpoint)
         except RuntimeError:
             logprint.error(

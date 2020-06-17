@@ -13,7 +13,7 @@ class Collection(Resource):
     """API Endpoint for collections."""
 
     def __init__(self):
-        super(Collection, self).__init__()
+        super().__init__()
         self.resourceName = 'collection'
         self._model = CollectionModel()
 

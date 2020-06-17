@@ -62,12 +62,12 @@ def _permissionClauses(user=None, level=None, prefix=''):
 
 class _ModelSingleton(type):
     def __init__(cls, name, bases, dict):
-        super(_ModelSingleton, cls).__init__(name, bases, dict)
+        super().__init__(name, bases, dict)
         cls._instance = None
 
     def __call__(cls, *args, **kwargs):
         if cls._instance is None:
-            cls._instance = super(_ModelSingleton, cls).__call__(*args, **kwargs)
+            cls._instance = super().__call__(*args, **kwargs)
             _modelSingletons.append(cls._instance)
             # It is not safe to ever set cls._instance back to None in an attempt to force singleton
             # recreation, since some models have event bindings that will not be destroyed (so the
@@ -766,7 +766,7 @@ class AccessControlledModel(Model):
         events.bind('model.group.remove',
                     '.'.join((CoreEventHandler.ACCESS_CONTROL_CLEANUP, self.__class__.__name__)),
                     self._cleanupDeletedEntity)
-        super(AccessControlledModel, self).__init__()
+        super().__init__()
 
     def _cleanupDeletedEntity(self, event):
         """
@@ -1423,7 +1423,7 @@ class AccessControlledModel(Model):
             extraFields = {'access', 'public'}
             loadFields = self._supplementFields(fields, extraFields)
 
-        doc = Model.load(self, id=id, objectId=objectId, fields=loadFields, exc=exc)
+        doc = super().load(id=id, objectId=objectId, fields=loadFields, exc=exc)
 
         if not force and doc is not None:
             self.requireAccess(doc, user, level)

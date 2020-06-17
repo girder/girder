@@ -66,7 +66,7 @@ class File(acl_mixin.AccessControlMixin, Model):
                 girder.logger.warning('Broken reference in file %s: no item %s exists' %
                                       (file['_id'], file['itemId']))
 
-        Model.remove(self, file)
+        super().remove(file)
 
     def download(self, file, offset=0, headers=True, endByte=None,
                  contentDisposition=None, extraParameters=None):

@@ -39,7 +39,7 @@ def tearDownModule():
 
 class WebClientTestEndpoints(Resource):
     def __init__(self):
-        super(WebClientTestEndpoints, self).__init__()
+        super().__init__()
         self.route('GET', ('progress', ), self.testProgress)
         self.route('PUT', ('progress', 'stop'), self.testProgressStop)
         self.route('POST', ('file', ), self.uploadFile)
@@ -128,7 +128,7 @@ class WebClientTestCase(base.TestCase):
         self.webSecurity = os.environ.get('WEB_SECURITY', 'true')
         if self.webSecurity != 'false':
             self.webSecurity = 'true'
-        base.TestCase.setUp(self, self.assetstoreType)
+        super().setUp(self.assetstoreType)
         # One of the web client tests uses this db, so make sure it is cleared
         # ahead of time.  This still allows tests to be run in parallel, since
         # nothing should be stored in this db

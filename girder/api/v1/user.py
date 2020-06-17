@@ -19,7 +19,7 @@ class User(Resource):
     """API Endpoint for users in the system."""
 
     def __init__(self):
-        super(User, self).__init__()
+        super().__init__()
         self.resourceName = 'user'
         self._model = UserModel()
 

@@ -15,7 +15,7 @@ class AccessException(GirderBaseException):
         self.message = message
         self.extra = extra
 
-        super(AccessException, self).__init__(message)
+        super().__init__(message)
 
 
 class GirderException(GirderBaseException):
@@ -33,7 +33,7 @@ class GirderException(GirderBaseException):
         self.identifier = identifier
         self.message = message
 
-        super(GirderException, self).__init__(message)
+        super().__init__(message)
 
 
 class NoAssetstoreAdapter(GirderException):
@@ -44,7 +44,7 @@ class NoAssetstoreAdapter(GirderException):
     identifier = 'girder.utility.assetstore.no-adapter'
 
     def __init__(self, message='No assetstore adapter'):
-        super(NoAssetstoreAdapter, self).__init__(message, self.identifier)
+        super().__init__(message, self.identifier)
 
 
 class ValidationException(GirderBaseException):
@@ -58,7 +58,7 @@ class ValidationException(GirderBaseException):
         self.field = field
         self.message = message
 
-        super(ValidationException, self).__init__(message)
+        super().__init__(message)
 
 
 class ResourcePathNotFound(ValidationException):
@@ -83,7 +83,7 @@ class RestException(GirderBaseException):
         self.extra = extra
         self.message = message
 
-        super(RestException, self).__init__(message)
+        super().__init__(message)
 
 
 class FilePathException(GirderException):
@@ -94,4 +94,4 @@ class FilePathException(GirderException):
     identifier = 'girder.utility.assetstore.file-path-not-available'
 
     def __init__(self, message='No assetstore adapter', identifier=None):
-        super(FilePathException, self).__init__(message, identifier or self.identifier)
+        super().__init__(message, identifier or self.identifier)

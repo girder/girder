@@ -23,7 +23,7 @@ def tearDownModule():
 class DownloadStatisticsTestCase(base.TestCase):
 
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         # Create admin user
         admin = {'email': 'admin@girder.test',

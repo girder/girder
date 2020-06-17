@@ -9,7 +9,7 @@ from .settings import PluginSettings
 
 class GoogleAnalytics(Resource):
     def __init__(self):
-        super(GoogleAnalytics, self).__init__()
+        super().__init__()
         self.resourceName = 'google_analytics'
         self.route('GET', ('id',), self.getId)
 

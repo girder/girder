@@ -88,7 +88,7 @@ def tearDownModule():
 class PythonCliTestCase(base.TestCase):
 
     def setUp(self):
-        base.TestCase.setUp(self)
+        super().setUp()
 
         self.user = User().createUser(
             firstName='First', lastName='Last', login='mylogin',

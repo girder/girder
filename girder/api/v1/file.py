@@ -23,7 +23,7 @@ class File(Resource):
     """
 
     def __init__(self):
-        super(File, self).__init__()
+        super().__init__()
         self._model = FileModel()
 
         self.resourceName = 'file'

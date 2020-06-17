@@ -85,7 +85,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         return ['sha512', 'imported']
 
     def __init__(self, assetstore):
-        super(FilesystemAssetstoreAdapter, self).__init__(assetstore)
+        super().__init__(assetstore)
         # If we can't create the temp directory, the assetstore still needs to
         # be initialized so that it can be deleted or modified.  The validation
         # prevents invalid new assetstores from being created, so this only
@@ -480,4 +480,4 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # If an imported file has moved, don't report the path
         if path and os.path.exists(path):
             return path
-        return super(FilesystemAssetstoreAdapter, self).getLocalFilePath(file)
+        return super().getLocalFilePath(file)

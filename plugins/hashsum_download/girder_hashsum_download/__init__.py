@@ -31,7 +31,7 @@ class HashedFile(File):
         return SUPPORTED_ALGORITHMS
 
     def __init__(self, node):
-        super(HashedFile, self).__init__()
+        super().__init__()
 
         node.route('GET', ('hashsum', ':algo', ':hash'), self.getByHash)
         node.route('GET', ('hashsum', ':algo', ':hash', 'download'), self.downloadWithHash)
