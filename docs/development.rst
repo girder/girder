@@ -107,23 +107,6 @@ will override the defaults.
 
 .. _client_development_js:
 
-Server Development
-------------------
-
-All commits to the core python code must work in Python 3.6 and above.
-
-Python Style
-^^^^^^^^^^^^
-
-We use ``flake8`` to test for Python style on the server side.
-
-Use ``%`` instead of ``format``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Use ``%`` or some other string formatting operation that coerces to unicode,
-and avoid ``format``, since it does not coerce to unicode and has caused bugs.
-
-
 Client Development
 ------------------
 
@@ -164,88 +147,97 @@ its views, you should pass ``parentView: null`` and make sure to call
 
 Server Side Testing
 -------------------
+Most of Girder's server tests are run via `tox <https://tox.readthedocs.io/en/latest/>`_, which
+provides virtual environment isolation and automatic dependency installation for test environments.
+The ``tox`` Python package must be installed:
 
-Running the Tests with CTest
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: bash
 
-.. note:: Girder is currently transitioning its Python testing to use `pytest <https://pytest.org>`_, until
-          the transition is complete both ``ctest`` and ``pytest`` must be run to cover
-          all tests. See the section below for running tests with ``pytest``.
+   pip install tox
 
-First, you will need to configure the project with
-`CMake <http://www.cmake.org>`_. ::
+To run the basic test suite, ensure that a MongoDB instance is ready on ``localhost:27017``,
+then run:
 
-    mkdir ../girder-build
-    cd ../girder-build
-    cmake ../girder
+.. code-block:: bash
 
-You only need to do this once. From then on, whenever you want to run the
-tests, just: ::
+   tox
 
-    cd girder-build
-    ctest
+To destroy and recreate all virtual environments used for testing, pass the ``-r`` flag to ``tox``.
 
-There are many ways to filter tests when running CTest or run the tests in
-parallel. For example, this command will run tests with name matches regex **server_user** with verbose output.
-More information about CTest can be found
-`here <http://www.cmake.org/cmake/help/v3.0/manual/ctest.1.html>`_. ::
+Static Analysis Tests
+^^^^^^^^^^^^^^^^^^^^^
+Girder's static analysis (linting) tests are fast to execute, run on all code, and don't require
+a running MongoDB. It's recommended to run them locally before any Python code changes are
+committed. To execute them, run:
 
-    ctest -V -R server_user
+.. code-block:: bash
 
+   tox -e lint
 
-If you run into errors on any of the packaging tests, two possible fixes are
+pytest Tests
+^^^^^^^^^^^^
+Girder's modern automated tests are written with `pytest <https://docs.pytest.org/en/stable/>`_.
+To execute them, ensure MongoDB is ready, then run:
 
-1) run ``make`` inside your ``girder-build`` directory, which will create a special
-virtualenv needed to build the packages.
+.. code-block:: bash
 
+   tox -e pytest
 
-Running the Tests with pytest
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Specific arguments can be passed through ``tox`` to ``pytest`` by adding them after a ``--``.
 
-From the Girder directory, run ``pytest``. To run specific tests with long tracebacks, run ::
+For example, ``pytest`` uses ``-k`` to filter tests; to run only the ``testLoadModelDecorator``
+test, run:
 
-  pytest --tb=long -k testTokenSessionDeletion
+.. code-block:: bash
 
+   tox -e pytest -- -k testLoadModelDecorator
 
-Running the Tests with tox
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Legacy unittest Tests
+^^^^^^^^^^^^^^^^^^^^^
+Girder's legacy automated tests are written with Python's
+`unittest framework <https://docs.python.org/3/library/unittest.html>`_ and executed with
+`CMake <http://www.cmake.org>`_. All new tests should be written with pytest, but many important
+test cases are still covered only by unitest.
 
-Girder uses `tox <https://tox.readthedocs.io/en/latest/>`_ for running the tests inside of virtual
-environments. By default, running ``tox`` will create a virtual environment, install test
-dependencies, install Girder, and run ``pytest`` for each version of Python that Girder supports.
+.. note:: Unless debugging code that is already coverered by a legacy test case, it may be more
+          convenient to allow these tests to be run by Girder's CI envionment, instead of
+          configuring them locally.
 
-Sometimes it might be desirable to only run ``tox`` against a single Python environment, such as
-Python 3.6. To do this run ``tox -e py36``. Note that a list of valid environments can be found by
-running ``tox -a``.
+To initialize the legacy tests, from the root ``girder`` repo, run:
 
-Specific arguments can be passed through to ``pytest`` by adding them after the ``tox``
-parameters. For instance, running only the ``testLoadModelDecorator`` test against all supported
-versions of Python can be achieved with the following command ::
+.. code-block:: bash
 
-  tox -- -k testLoadModelDecorator
+   mkdir ../girder-build
+   cd ../girder-build
+   cmake ../girder
+   make
 
-.. note:: Sometimes it might be desirable to have ``tox`` destroy and recreate all virtual
-          environments used for testing, this can be accomplished by passing the ``--recreate`` flag
-          to ``tox``.
+You only need to do this once. From then on, whenever you want to run the tests, run:
 
+.. code-block:: bash
 
-Running the Tests with Coverage Tracing
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   cd girder-build
+   ctest
 
-To run Python coverage on your tests, configure with CMake and run CTest.
-The coverage data will be automatically generated. After the tests are run,
-you can find the HTML output from the coverage tool in the source directory
-under **build/test/artifacts/**.
+There are many ways
+`to filter tests when running CTest <http://www.cmake.org/cmake/help/v3.0/manual/ctest.1.html>`_
+or run the tests in parallel. For example, this command will run tests with name matches regex
+**server_user** with verbose output:
+
+.. code-block:: bash
+
+   ctest -V -R server_user
 
 Client Side Testing
 -------------------
-
-Running the Tests with npm
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Static Analysis Tests
+^^^^^^^^^^^^^^^^^^^^^
 To run static analysis tests on client side code, run from the top-level Girder directory:
 
-    npm i
-    npm run lint
+.. code-block:: bash
+
+   npm i
+   npm run lint
 
 Running the Tests with CTest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -296,6 +288,12 @@ Here ``ENABLEDPLUGINS`` ensures that my_plugin *and* the jobs plugin are loaded,
 You will find many useful methods for client side testing in the ``girderTest`` object
 defined at ``/girder/web_client/test/testUtils.js``.
 
+
+Test Coverage Reporting
+-----------------------
+When Girder's full test suite is run in the CI environment, a test coverage report for both
+server and client code is generated and uploaded to Codecov. This may be
+`viewed online at any time <https://codecov.io/gh/girder/girder>`_.
 
 Initializing the Database for a Test
 ------------------------------------
