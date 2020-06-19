@@ -120,7 +120,7 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Install @girder/lint for javascript linting
+          name: Install Javascript utilities
           command: npm ci
           working_directory: girder
       - run:
@@ -260,42 +260,25 @@ jobs:
           path: girder
       - attach_workspace:
           at: /home/circleci/project
-      - install-girder
       - run:
-          name: Run CTest
-          command: >-
-            ctest
-            --extra-verbose
-            --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
-          environment:
-            TEST_GROUP: coverage
-            PYTHON_VERSION: 3.6
-            PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
-            JASMINE_TIMEOUT: 15000
-            BUILD_JAVASCRIPT_TESTS: "ON"
-          working_directory: girder_build
+          name: Generate Python coverage report
+          command: tox -e coverage
+          working_directory: girder
       - run:
-          name: Move machine-readable web coverage file to coverage directory
-          # Ideally, this would be output natively to the correct location (outside of the
-          # "artifacts" directory for human-readable files), but nyc does not yet support
-          # per-reporter configuration of output paths.
-          command: >-
-            mv
-            girder/build/test/artifacts/web_coverage/cobertura-coverage.xml
-            girder/build/test/coverage
+          name: Install Javascript utilities
+          command: npm ci
+          working_directory: girder
+      - run:
+          name: Generate web coverage report
+          command: npm run coverage
+          working_directory: girder
       - store_artifacts:
           # Human-readable coverage reports
           path: girder/build/test/artifacts
       - run:
-          name: Install Codecov client
-          command: python3 -m pip install codecov
-      - run:
           name: Upload coverage
-          command: >-
-            codecov
-            --disable search pycov gcov
-            --root girder
-            --file girder/build/test/coverage/py_coverage.xml girder/build/test/coverage/cobertura-coverage.xml
+          command: tox -e codecov_upload
+          working_directory: girder
 
   ansible-test:
     executor: py3

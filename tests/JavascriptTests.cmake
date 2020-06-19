@@ -9,13 +9,7 @@ function(javascript_tests_init)
     NAME js_coverage_reset
     COMMAND ${CMAKE_COMMAND} -E remove_directory "${PROJECT_SOURCE_DIR}/build/test/coverage/web_temp"
   )
-  add_test(
-    NAME js_coverage_combine_report
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    COMMAND npx nyc report --temp-dir "${PROJECT_SOURCE_DIR}/build/test/coverage/web_temp"
-  )
   set_property(TEST js_coverage_reset PROPERTY LABELS girder_browser girder_integration)
-  set_property(TEST js_coverage_combine_report PROPERTY LABELS girder_coverage)
 endfunction()
 
 function(add_web_client_test case specFile)
@@ -170,7 +164,6 @@ function(add_web_client_test case specFile)
 
   if (NOT fn_NOCOVERAGE)
     set_property(TEST ${testname} APPEND PROPERTY DEPENDS js_coverage_reset)
-    set_property(TEST js_coverage_combine_report APPEND PROPERTY DEPENDS ${testname})
   endif()
 
   set_property(TEST ${testname} PROPERTY LABELS girder_browser)
