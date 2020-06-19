@@ -19,12 +19,10 @@ executors:
       image: ubuntu-1604:201903-01
     working_directory: /home/circleci/project
 
-jobs:
-  server-install:
-    executor: py3
+commands:
+  install-girder:
+    description: "Install Girder in a virtualenv and configure CTest"
     steps:
-      - checkout:
-          path: girder
       - run:
           name: Generate python environment checksum file
           command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
@@ -38,39 +36,64 @@ jobs:
           command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
       - run:
           name: Upgrade Python toolchain
-          command: pip install --upgrade pip setuptools
+          command: python3 -m pip install --upgrade pip setuptools
       - run:
           name: Install Girder
+          # Since the virtual env is cached, attempt to upgrade everything
           command: >-
-            pip install
+            python3 -m pip install
             --upgrade
             --upgrade-strategy eager
             --editable .[sftp,mount]
             --editable clients/python
             --requirement requirements-dev.txt
           working_directory: girder
-      - run:
-          name: Reduce workspace size
-          command: |
-            pyclean girder
-            pyclean girder_env
       - save_cache:
-          paths: girder_env
+          paths:
+            - girder_env
           key: venv-py3.6-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
+
+jobs:
+  server-lint-test:
+    executor: py3
+    steps:
+      - checkout:
+          path: girder
+      - run:
+          name: Run server linting tests
+          command: tox -e lint
+          working_directory: girder
+      - run:
+          name: Test public symbols
+          command: tox -e public_names
+          working_directory: girder
+      - run:
+          name: Test building docs
+          command: tox -e docs
+          working_directory: girder
+
+  server-pytest-test:
+    executor: py3-mongo
+    steps:
+      - checkout:
+          path: girder
+      - run:
+          name: Run pytest tests
+          command: tox -e pytest_circleci
+          working_directory: girder
+      - store_test_results:
+          path: girder/build/test/results
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder
-            - girder_env
+            - girder/build/test/coverage
 
-  server-test:
+  server-legacy-test:
     executor: py3-mongo
     steps:
-      - attach_workspace:
-          at: /home/circleci/project
-      - run:
-          name: Activate virtual environment
-          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+      - checkout:
+          path: girder
+      - install-girder
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
@@ -86,51 +109,34 @@ jobs:
             PYTHON_VERSION: 3.6
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
           working_directory: girder_build
-      - run:
-          name: Run tox
-          command: tox -e lint,pytest_circleci,docs
-          working_directory: girder
-      - run:
-          name: Make coverage file distinct
-          command: >-
-            cp
-            girder/build/test/coverage/python_temp/.coverage
-            girder/build/test/coverage/python_temp/.coverage.py3Coverage
-      - store_test_results:
-          path: girder/build/test/results
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder
+            - girder/build/test/coverage
 
-  web-test:
-    executor: py3-mongo
+  web-lint-test:
+    executor: py3
     steps:
-      - attach_workspace:
-          at: /home/circleci/project
-      - run:
-          name: Activate virtual environment
-          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
-      - restore_cache:
-          key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
+      - checkout:
+          path: girder
       - run:
           name: Install @girder/lint for javascript linting
           command: npm ci
-          environment:
-            - npm_config_cache: /home/circleci/project/npm_cache
           working_directory: girder
-      - run:
-          name: Build Girder web client
-          command: girder build --dev | cat
-          environment:
-            - npm_config_cache: /home/circleci/project/npm_cache
-      - save_cache:
-          paths: npm_cache
-          key: npm-{{ arch }}-{{ checksum "girder/package-lock.json" }}
       - run:
           name: Run Javascript linting
           command: npm run lint
           working_directory: girder
+
+  web-test:
+    executor: py3-mongo
+    steps:
+      - checkout:
+          path: girder
+      - install-girder
+      - run:
+          name: Build Girder web client
+          command: girder build --dev | cat
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
@@ -149,24 +155,10 @@ jobs:
       - store_artifacts:
           # Failure screenshots from web tests
           path: girder/build/test/artifacts
-      - run:
-          name: Reduce workspace size
-          command: |
-            find . | grep --extended-regexp "(__pycache__|\.pyc|\.pyo$)" | xargs rm --recursive --force
-            pyclean girder
-            pyclean girder_build
-            pyclean girder_env
-            # We don't need the packaging environment
-            rm --recursive --force girder_build/env
-            # Remove node_module caches
-            rm --recursive --force girder/node_modules/.cache
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
-            - girder/node_modules
             - girder/build/test/coverage
-            - girder_build
-            - girder_env
 
   integration-test:
     executor: machine
@@ -220,37 +212,24 @@ jobs:
              pyenv install 3.6.3 || true
              pyenv global 3.6.3
       - run:
-          name: Create and activate virtual environment
-          command: |
-            python3 -m venv /home/circleci/.virtualenvs/girder
-            echo '. /home/circleci/.virtualenvs/girder/bin/activate' >> $BASH_ENV
-      - run:
-          name: Install Girder plugin system dependencies
+          name: Install system dependencies for Girder plugins
           command: sudo apt-get install -y libldap2-dev libsasl2-dev
-      - run:
-          name: Install Girder with extras
-          command: >-
-            pip install
-            --upgrade --upgrade-strategy eager
-            --editable .[sftp,mount]
-            --editable clients/python
-            --requirement requirements-dev.txt
-          working_directory: girder
-      - run:
-          name: Create Girder build directory
-          command: mkdir girder_build
+      - install-girder
       - run:
           name: Build Girder web client
           command: |
             source $NVM_DIR/nvm.sh
             girder build --dev | cat
       - run:
+          name: Create Girder build directory
+          command: mkdir girder_build
+      - run:
           name: CMake
           command: >-
             cmake
             ../girder
             -DPYTHON_VERSION=3.6
-            -DPYTHON_EXECUTABLE=/home/circleci/.virtualenvs/girder/bin/python
+            -DPYTHON_EXECUTABLE=$CIRCLE_WORKING_DIRECTORY/girder_env/bin/python
           working_directory: girder_build
       - run:
           name: make
@@ -277,11 +256,11 @@ jobs:
   coverage:
     executor: py3
     steps:
+      - checkout:
+          path: girder
       - attach_workspace:
           at: /home/circleci/project
-      - run:
-          name: Activate virtual environment
-          command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
+      - install-girder
       - run:
           name: Run CTest
           command: >-
@@ -309,7 +288,7 @@ jobs:
           path: girder/build/test/artifacts
       - run:
           name: Install Codecov client
-          command: pip install codecov
+          command: python3 -m pip install codecov
       - run:
           name: Upload coverage
           command: >-
@@ -317,16 +296,6 @@ jobs:
             --disable search pycov gcov
             --root girder
             --file girder/build/test/coverage/py_coverage.xml girder/build/test/coverage/cobertura-coverage.xml
-
-  public-symbol-test:
-    executor: py3
-    steps:
-      - checkout:
-          path: girder
-      - run:
-          name: Test public symbols
-          command: tox -e public_names
-          working_directory: girder
 
   ansible-test:
     executor: py3
@@ -366,21 +335,25 @@ jobs:
 
 workflows:
   version: 2
-  test_all:
+  test-all:
     jobs:
-      - server-install:
+      - server-lint-test:
           filters:
             tags:
               only: /^v[0-9]+.*/
-      - server-test:
-          requires:
-            - server-install
+      - server-pytest-test:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - server-legacy-test:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - web-lint-test:
           filters:
             tags:
               only: /^v[0-9]+.*/
       - web-test:
-          requires:
-            - server-install
           filters:
             tags:
               only: /^v[0-9]+.*/
@@ -390,13 +363,10 @@ workflows:
               only: /^v[0-9]+.*/
       - coverage:
           requires:
-            - server-test
+            - server-pytest-test
+            - server-legacy-test
             - web-test
             - integration-test
-          filters:
-            tags:
-              only: /^v[0-9]+.*/
-      - public-symbol-test:
           filters:
             tags:
               only: /^v[0-9]+.*/
@@ -406,8 +376,9 @@ workflows:
               only: /^v[0-9]+.*/
       - publish:
           requires:
+            - server-lint-test
+            - web-lint-test
             - coverage
-            - public-symbol-test
             - ansible-test
           filters:
             tags:
@@ -416,8 +387,9 @@ workflows:
               only: master
       - publish-release:
           requires:
+            - server-lint-test
+            - web-lint-test
             - coverage
-            - public-symbol-test
             - ansible-test
           filters:
             tags:
