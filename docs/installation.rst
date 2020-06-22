@@ -29,8 +29,8 @@ Before running this, you must provide:
 
 * An email address for the administrator of the system.
 
-Install Girder With Ansible
----------------------------
+Install with Ansible
+--------------------
 Download Template Files
 +++++++++++++++++++++++
 Download the following files to a fresh directory on the controller machine:
@@ -46,13 +46,13 @@ Make ``provision.sh`` executable:
 
    chmod +x ./provision.sh
 
-Configure Inventory
-+++++++++++++++++++
+Setup Inventory
++++++++++++++++
 Edit ``hosts.yml``, in accordance with the inline comments.
 This will configure Ansible to find and login to the server.
 
-Configure The Playbook
-++++++++++++++++++++++
+Setup the Playbook
+++++++++++++++++++
 Edit ``playbook.yml``, in accordance with the inline comments.
 This will configure necessary details of the provisioning process.
 
@@ -70,7 +70,7 @@ This will configure necessary details of the provisioning process.
    Unpublished plugin packages may be specified in accordance with
    `pip's VCS support <https://pip.pypa.io/en/stable/reference/pip_install/#vcs-support>`_.
 
-Run The Playbook
+Run the Playbook
 ++++++++++++++++
 Run the ``provision.sh`` script, which will download external role files and run the playbook:
 
@@ -84,17 +84,35 @@ Enter the password of the server user at this point.
 When the script completes, Girder should be fully installed! There is no need for additional setup
 via SSH.
 
-Initial Setup
--------------
-Admin Console
-+++++++++++++
+Configure the Server
+--------------------
+Create a Site Admin User
+++++++++++++++++++++++++
+Visit the URL of the new Girder server in a web browser, click the Register link, and create a
+new user.
 
-The first user to be created in the system is automatically given admin permission
-over the instance, so the first thing you should do after starting your instance for
-the first time is to register a user. After that succeeds, you should see a link
-appear in the navigation bar that says ``Admin console``.
+The first user to be created on a Girder instance is automatically given site admin permissions.
+As a site admin, you should see an ``Admin console`` link in the left-side navigation bar.
+If you do not see this link while logged in, then another user has already have created an account
+first.
 
-TODO: SMTP
+Create an Assetstore
+++++++++++++++++++++
+While logged in as a site admin, visit ``Admin console`` -> ``Assetstores``. Here, create at least
+one new assetstore. See the :ref:`Assetstores <assetstores>` section for further details on
+assetstore types.
+
+No users can upload files until an assetstore is created, since all files in Girder must reside
+within an assetstore.
+
+Configure Email Sending
++++++++++++++++++++++++
+While logged in as a site admin, visit ``Admin console`` -> ``Server Configuration``, then scroll
+down to the ``Email Delivery`` section. Here, enter the credentials for an outgoing SMTP server,
+then click ``Save`` at the bottom of the page.
+
+Outgoing email support is essential to allowing reset of forgotten passwords and, if enabled,
+email address validation for new users.
 
 Plugins
 +++++++
@@ -103,11 +121,3 @@ To change settings for plugins, click the ``Admin console`` navigation link, the
 settings, click on the associated gear icon to modify them.
 
 For information about specific plugins, see the :ref:`Plugins <plugins>` section.
-
-Create Assetstore
-+++++++++++++++++
-After you have enabled any desired plugins and restarted the server, the next
-recommended action is to create an ``Assetstore`` for your system. No users
-can upload data to the system until an assetstore is created, since all files
-in Girder must reside within an assetstore. See the :ref:`Assetstores <assetstores>` section
-for a brief overview of ``Assetstores``.
