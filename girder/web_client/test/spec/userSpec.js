@@ -184,7 +184,8 @@ describe('Create an admin and non-admin user', function () {
         waitsFor(function () {
             var msg = window.callPhantom({
                 action: 'fetchEmail',
-                suffix: girderTest.getCallbackSuffix() });
+                suffix: girderTest.getCallbackSuffix()
+            });
             if (!msg || msg.indexOf('<a href="') < 0) {
                 return false;
             }
@@ -226,8 +227,10 @@ describe('Create an admin and non-admin user', function () {
             return $('#g-password-new').val() === '';
         }, 'new password to be accepted');
         runs(function () {
-            window.callPhantom({ action: 'uploadCleanup',
-                suffix: girderTest._uploadSuffix });
+            window.callPhantom({
+                action: 'uploadCleanup',
+                suffix: girderTest._uploadSuffix
+            });
         });
     });
 });
