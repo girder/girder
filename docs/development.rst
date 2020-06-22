@@ -39,11 +39,6 @@ to use `Vagrant <https://www.vagrantup.com>`_ to setup the environment on a
 `VirtualBox <https://www.virtualbox.org>`_ virtual machine. For more
 documentation on how to set this up, see `Developer Installation <dev-installation.html>`__
 
-.. seealso::
-
-   For more information on provisioning Girder, see :doc:`provisioning`.
-
-
 During Development
 ------------------
 

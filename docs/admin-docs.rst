@@ -7,6 +7,5 @@ Administrator Documentation
    installation
    deploy
    configuration
-   provisioning
    mount
    sftp
