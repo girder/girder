@@ -1261,7 +1261,8 @@ describe('browser hierarchy paginated selection', function () {
             widget._hierarchyView.initialize({
                 itemFilter: function (item) { return item; },
                 parentView: widget,
-                parentModel: widget.root });
+                parentModel: widget.root
+            });
             widget._hierarchyView.itemListView = null;
             widget._hierarchyView._initFolderViewSubwidgets();
         }, 'Creating a filterFunc to confirm it works');
@@ -1275,7 +1276,8 @@ describe('browser hierarchy paginated selection', function () {
                 itemFilter: function (item) { return item; },
                 parentView: widget,
                 paginated: true,
-                parentModel: widget.root });
+                parentModel: widget.root
+            });
             widget._hierarchyView.itemListView = null;
             widget._hierarchyView._initFolderViewSubwidgets();
         }, 'Filter Function should be false when paginated is specified during initialization');

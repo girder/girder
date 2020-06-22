@@ -187,7 +187,7 @@ var SystemConfigurationView = View.extend({
             });
         } else {
             settingValue = this.settings['core.collection_create_policy'];
-            settingValue['open'] = false;
+            settingValue.open = false;
         }
         return settingValue;
     }

@@ -1,7 +1,9 @@
 import _ from 'underscore';
 import $ from 'jquery';
-import { parse,
-    View as VegaView } from 'vega-lib/build/vega';
+import {
+    parse,
+    View as VegaView
+} from 'vega-lib/build/vega';
 import moment from 'moment';
 
 import View from '@girder/core/views/View';
@@ -140,8 +142,8 @@ const JobGraphWidget = View.extend({
             view.addEventListener('click', openDetailView(view));
 
             const positiveTimings = _.clone(this.timingFilter);
-            delete positiveTimings['Inactive'];
-            delete positiveTimings['Queued'];
+            delete positiveTimings.Inactive;
+            delete positiveTimings.Queued;
             this.timingFilterWidget.setItems(positiveTimings);
         }
     },

@@ -16,7 +16,7 @@ var UserCollection = Collection.extend({
             method: 'GET'
         })
             .then((resp) => {
-                return resp['nUsers'];
+                return resp.nUsers;
             });
     }
 });

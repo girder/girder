@@ -45,20 +45,22 @@ var ConfigView = View.extend({
             this.settings['user_quota.default_user_quota']);
         var collectionSizeInfo = sizeToValueAndUnits(
             this.settings['user_quota.default_collection_quota']);
-        this.$el.html(ConfigViewTemplate({ resources: {
-            user: {
-                model: 'user',
-                name: 'User',
-                sizeValue: userSizeInfo.sizeValue,
-                sizeUnits: userSizeInfo.sizeUnits
-            },
-            collection: {
-                model: 'collection',
-                name: 'Collection',
-                sizeValue: collectionSizeInfo.sizeValue,
-                sizeUnits: collectionSizeInfo.sizeUnits
+        this.$el.html(ConfigViewTemplate({
+            resources: {
+                user: {
+                    model: 'user',
+                    name: 'User',
+                    sizeValue: userSizeInfo.sizeValue,
+                    sizeUnits: userSizeInfo.sizeUnits
+                },
+                collection: {
+                    model: 'collection',
+                    name: 'Collection',
+                    sizeValue: collectionSizeInfo.sizeValue,
+                    sizeUnits: collectionSizeInfo.sizeUnits
+                }
             }
-        } }));
+        }));
         if (!this.breadcrumb) {
             this.breadcrumb = new PluginConfigBreadcrumbWidget({
                 pluginName: 'User and collection quotas and policies',

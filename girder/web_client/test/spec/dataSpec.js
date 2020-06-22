@@ -558,8 +558,10 @@ describe('Create a data hierarchy', function () {
             return $('.g-list-checkbox').length === 0;
         }, 'items to be deleted');
         runs(function () {
-            window.callPhantom({ action: 'uploadCleanup',
-                suffix: girderTest._uploadSuffix });
+            window.callPhantom({
+                action: 'uploadCleanup',
+                suffix: girderTest._uploadSuffix
+            });
         });
     });
 
@@ -797,11 +799,14 @@ describe('Create a data hierarchy', function () {
         }, 'the drop bullseye to appear');
 
         runs(function () {
-            $(selector).trigger($.Event('drop', { originalEvent: $.Event('drop', {
-                dataTransfer: {
-                    files: files,
-                    items: items
-                } }) }));
+            $(selector).trigger($.Event('drop', {
+                originalEvent: $.Event('drop', {
+                    dataTransfer: {
+                        files: files,
+                        items: items
+                    }
+                })
+            }));
         });
 
         waitsFor(function () {

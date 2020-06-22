@@ -37,7 +37,7 @@ wrap(EditItemWidget, 'render', function (render) {
  */
 wrap(EditItemWidget, 'updateItem', function (updateItem) {
     var fields = arguments[1];
-    fields['license'] = this.$('#g-license').val();
+    fields.license = this.$('#g-license').val();
     updateItem.call(this, fields);
     return this;
 });
@@ -47,7 +47,7 @@ wrap(EditItemWidget, 'updateItem', function (updateItem) {
  */
 wrap(EditItemWidget, 'createItem', function (createItem) {
     var fields = arguments[1];
-    fields['license'] = this.$('#g-license').val();
+    fields.license = this.$('#g-license').val();
     createItem.call(this, fields);
     return this;
 });

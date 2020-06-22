@@ -958,8 +958,10 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
 
     runs(function () {
         window.callPhantom(
-            { action: 'uploadCleanup',
-                suffix: girderTest._uploadSuffix });
+            {
+                action: 'uploadCleanup',
+                suffix: girderTest._uploadSuffix
+            });
     });
 };
 
@@ -1018,8 +1020,10 @@ girderTest.testUploadDrop = function (itemSize, multiple) {
 
     runs(function () {
         window.callPhantom(
-            { action: 'uploadCleanup',
-                suffix: girderTest._uploadSuffix });
+            {
+                action: 'uploadCleanup',
+                suffix: girderTest._uploadSuffix
+            });
     });
 };
 

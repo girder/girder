@@ -64,7 +64,7 @@ var ConfigView = View.extend({
                 list: JSON.stringify(['autojoin'])
             }
         }).done((resp) => {
-            this.rules = resp['autojoin'] || [];
+            this.rules = resp.autojoin || [];
             this.render();
         });
     },
