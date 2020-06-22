@@ -60,6 +60,7 @@ A typical playbook using this role may look like:
           - girder-hashsum-download
           - girder-oauth
         virtualenv: "{{ girder_virtualenv }}"
+        state: latest
       notify:
         - Build Girder web client
         - Restart Girder

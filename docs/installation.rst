@@ -1,119 +1,123 @@
 Installation
 ============
 
-Before you install, see the :doc:`installation quickstart <installation-quickstart>` guide to make sure you have all
-required system dependencies installed.
+This tutorial will install a production-ready Girder on Ubuntu 18.04.
 
-Activate the virtual environment
---------------------------------
+Prerequisites
+-------------
+Before running this, you must provide:
 
-If you're :ref:`using a virtual environment <virtualenv-install>` for Girder (which is recommended), remember to
-activate it with:
+* A "server": an (ideally fresh) Ubuntu 18.04 system, with:
+
+  * A ``sudo``-capable user.
+  * Inbound access from the internet on TCP port 80 and 443.
+  * Outbound access to the internet on UDP port 53. Many firewalls (e.g. the
+    `AWS EC2 default security group <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html#default-security-group>`_)
+    do not allow this by default.
+  * A DNS entry, so its public IP address is resolvable from the internet.
+
+* A "controller": a machine with
+  `Ansible installed <https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html>`_
+  and SSH access to the server.
+
+* An "assetstore" for storing uploaded files on Girder. This may be either:
+
+  * A location on the server's filesystem (which may be mounted external storage).
+  * An AWS S3 bucket.
+
+* Credentials for an outbound SMTP server, ideally with STARTTLS or TLS.
+
+* An email address for the administrator of the system.
+
+Install with Ansible
+--------------------
+Download Template Files
++++++++++++++++++++++++
+Download the following files to a fresh directory on the controller machine:
+
+* `requirements.yml <https://raw.githubusercontent.com/girder/girder/master/devops/production-template/requirements.yml>`_
+* `hosts.yml <https://raw.githubusercontent.com/girder/girder/master/devops/production-template/hosts.yml>`_
+* `playbook.yml <https://raw.githubusercontent.com/girder/girder/master/devops/production-template/playbook.yml>`_
+* `provision.sh <https://raw.githubusercontent.com/girder/girder/master/devops/production-template/provision.sh>`_
+
+Make ``provision.sh`` executable:
 
 .. code-block:: bash
 
-   source girder_env/bin/activate
+   chmod +x ./provision.sh
 
-Replace ``girder_env`` with the path to your virtual environment, as appropriate.
+Setup Inventory
++++++++++++++++
+Edit ``hosts.yml``, in accordance with the inline comments.
+This will configure Ansible to find and login to the server.
 
-Sources
--------
+Setup the Playbook
+++++++++++++++++++
+Edit ``playbook.yml``, in accordance with the inline comments.
+This will configure necessary details of the provisioning process.
 
-Girder can be installed either from the `Python Package Index (pypi) <https://pypi.python.org/pypi>`_
-or via a `Git <https://git-scm.com/>`_ repository.
-Installing from pypi gives you the latest distributed version. Installing from git would be
-more suitable for development or to have a specific commit, or to use the latest Girder
-features before they are released in official packages.
+.. note::
+   Spoof ``nginx_registration_email`` at your own risk.
+   The email address is only provided to Let's Encrypt,
+   `to provide warnings in case HTTPS auto-renewal is failing <https://letsencrypt.org/docs/expiration-emails/>`_.
+   Under normal circumstances, no emails should ever be sent.
 
-Install from PyPI
-+++++++++++++++++
+.. note::
+   When specifying Girder plugins, PyPI package names of published Girder plugin packages should be
+   used whenever possible. See :ref:`Plugins <plugins>` for a list of official Girder plugins and associated
+   PyPI package names.
 
-To install the Girder distribution from the Python package index, simply run ::
+   Unpublished plugin packages may be specified in accordance with
+   `pip's VCS support <https://pip.pypa.io/en/stable/reference/pip_install/#vcs-support>`_.
 
-    pip install girder
+Run the Playbook
+++++++++++++++++
+Run the ``provision.sh`` script, which will download external role files and run the playbook:
 
-This will install the core Girder server as a site package in your system
-or virtual environment. At this point, you might want to check the
-:doc:`configuration <configuration>` to change your plugin and logging
-paths.  In order to use the web interface, you must also install the web client
-libraries. Girder installs a Python script that will automatically build and
-install these libraries for you. Just run the following command: ::
+.. code-block:: bash
 
-   girder build
+   ./provision.sh
 
-.. note:: Installing the web client code requires Node.js. See the :ref:`Node.js installation guide <nodejs-install>`
-          for installation instructions.
+If the server user requires a password to use sudo, you may be prompted for a "become" password.
+Enter the password of the server user at this point.
 
-.. note:: If you installed Girder into your system ``site-packages``, you may
-   need to run the above commands as root.
+When the script completes, Girder should be fully installed! There is no need for additional setup
+via SSH.
 
-Once this is done, you are ready to start using Girder as described in this
-section: :ref:`run-girder`.
+Configure the Server
+--------------------
+Create a Site Admin User
+++++++++++++++++++++++++
+Visit the URL of the new Girder server in a web browser, click the Register link, and create a
+new user.
 
-Install from Git repository
-+++++++++++++++++++++++++++
+The first user to be created on a Girder instance is automatically given site admin permissions.
+As a site admin, you should see an ``Admin console`` link in the left-side navigation bar.
+If you do not see this link while logged in, then another user has already have created an account
+first.
 
-If you wish to develop Girder itself, or need to switch to an unreleased branch, you can install Girder via git.
-Obtain the Girder source code by cloning the Git repository on
+Create an Assetstore
+++++++++++++++++++++
+While logged in as a site admin, visit ``Admin console`` -> ``Assetstores``. Here, create at least
+one new assetstore. See the :ref:`Assetstores <assetstores>` section for further details on
+assetstore types.
 
-`GitHub <https://github.com>`_: ::
+No users can upload files until an assetstore is created, since all files in Girder must reside
+within an assetstore.
 
-    git clone https://github.com/girder/girder.git
-    pip install -e ./girder
+Configure Email Sending
++++++++++++++++++++++++
+While logged in as a site admin, visit ``Admin console`` -> ``Server Configuration``, then scroll
+down to the ``Email Delivery`` section. Here, enter the credentials for an outgoing SMTP server,
+then click ``Save`` at the bottom of the page.
 
-Plugins must be installed as separate packages. Once all plugins are installed,
-you can build the web client code by running: ::
-
-    girder build
-
-
-.. _run-girder:
-
-Run
----
-
-To run Girder, just use the following command: ::
-
-    girder serve
-
-Then, open http://localhost:8080/ in your web browser, and you should see the application.
-
-Initial Setup
--------------
-
-Admin Console
-+++++++++++++
-
-The first user to be created in the system is automatically given admin permission
-over the instance, so the first thing you should do after starting your instance for
-the first time is to register a user. After that succeeds, you should see a link
-appear in the navigation bar that says ``Admin console``.
+Outgoing email support is essential to allowing reset of forgotten passwords and, if enabled,
+email address validation for new users.
 
 Plugins
 +++++++
-
-Plugins are added to the system by installing them via pip.  Once installed,
-you may need to rerun ``girder build`` and ``girder serve``.  To change
-settings for plugins, click the ``Admin console`` navigation link, then click
+To change settings for plugins, click the ``Admin console`` navigation link, then click
 ``Plugins``. Here, you will see a list of installed plugins. If the plugin has
 settings, click on the associated gear icon to modify them.
 
 For information about specific plugins, see the :ref:`Plugins <plugins>` section.
-
-Create Assetstore
-+++++++++++++++++
-
-After you have enabled any desired plugins and restarted the server, the next
-recommended action is to create an ``Assetstore`` for your system. No users
-can upload data to the system until an assetstore is created, since all files
-in Girder must reside within an assetstore. See the :ref:`Assetstores <assetstores>` section
-for a brief overview of ``Assetstores``.
-
-Installing third-party plugins
-------------------------------
-
-Third party plugins are packaged as standalone python packages.  To install one,
-install the package and rebuild the web client. ::
-
-   pip install <plugin name>
-   girder build
