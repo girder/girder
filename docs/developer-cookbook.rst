@@ -67,7 +67,7 @@ bind to several events of that model, as in the example below.
 
     import FileModel from '@girder/core/models/FileModel';
 
-    var fileModel = new FileModel();
+    const fileModel = new FileModel();
     fileModel.on('g:upload.complete', function () {
         // Called when the upload finishes
     }).on('g:upload.chunkSent', function (info) {

@@ -818,7 +818,7 @@ route to your plugin.
     import CollectionView from '@girder/core/views/body/CollectionView';
 
     router.route('collection/:id/frontPage', 'collectionFrontPage', function (collectionId, params) {
-        var collection = new CollectionModel();
+        const collection = new CollectionModel();
         collection.set({
             _id: collectionId
         }).on('g:fetched', function () {

@@ -64,7 +64,7 @@ application bootstrapping
     // set the path where girder's API is mounted
     setApiRoot('/girder/api/v1');
 
-    var MyApp = App.extend({
+    const MyApp = App.extend({
         start: function () {
             // disable girder's router
             router.enabled(false);
@@ -92,7 +92,7 @@ application bootstrapping
     });
 
     // initialize the application without starting it
-    var app = new MyApp({start: false});
+    const app = new MyApp({start: false});
 
     // start your application after the page loads
     $(function () {
@@ -143,14 +143,14 @@ In your JavaScript, perform callbacks such as the following:
     import RegisterView from '@girder/core/views/layout/RegisterView';
 
     $('#login').on('click', function () {
-        var loginView = new LoginView({
+        const loginView = new LoginView({
             el: $('#dialog-container')
         });
         loginView.render();
     });
 
     $('#register').on('click', function () {
-        var registerView = new RegisterView({
+        const registerView = new RegisterView({
             el: $('#dialog-container')
         });
         registerView.render();
@@ -168,7 +168,7 @@ In your JavaScript, perform callbacks such as the following:
 
     events.on('g:login', function () {
         console.log('g:login');
-        var currentUser = getCurrentUser();
+        const currentUser = getCurrentUser();
         if (currentUser) {
             $('#login').addClass('hidden');
             $('#register').addClass('hidden');
