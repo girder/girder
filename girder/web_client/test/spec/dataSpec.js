@@ -837,7 +837,7 @@ describe('Test FileModel static upload functions', function () {
 
     it('test prep - create top level folder', function () {
         runs(function () {
-            var _folder = new girder.models.FolderModel({
+            const _folder = new girder.models.FolderModel({
                 parentType: 'user',
                 parentId: girder.auth.getCurrentUser().get('_id'),
                 name: 'top level folder'
@@ -855,7 +855,7 @@ describe('Test FileModel static upload functions', function () {
 
     it('test prep - create item', function () {
         runs(function () {
-            var _item = new girder.models.ItemModel({
+            const _item = new girder.models.ItemModel({
                 folderId: folder.get('_id'),
                 name: 'an item'
             }).on('g:saved', function () {
@@ -912,7 +912,7 @@ describe('Test FileModel static upload functions', function () {
             file = file && file.responseJSON && file.responseJSON[0];
 
             if (file) {
-                var resp = girder.rest.restRequest({
+                const resp = girder.rest.restRequest({
                     url: '/file/' + file._id + '/download',
                     method: 'GET',
                     dataType: 'text'
@@ -961,7 +961,7 @@ describe('Test FileModel static upload functions', function () {
             file = file && file.responseJSON && file.responseJSON[0];
 
             if (file) {
-                var resp = girder.rest.restRequest({
+                const resp = girder.rest.restRequest({
                     url: '/file/' + file._id + '/download',
                     method: 'GET',
                     dataType: 'text'

@@ -739,7 +739,7 @@ describe('browser hierarchy selection', function () {
     });
     it('register a user', function () {
         runs(function () {
-            var _user = new girder.models.UserModel({
+            const _user = new girder.models.UserModel({
                 login: 'mylogin',
                 password: 'mypassword',
                 email: 'email@girder.test',
@@ -759,7 +759,7 @@ describe('browser hierarchy selection', function () {
 
     it('create top level folder', function () {
         runs(function () {
-            var _folder = new girder.models.FolderModel({
+            const _folder = new girder.models.FolderModel({
                 parentType: 'user',
                 parentId: user.get('_id'),
                 name: 'top level folder'
@@ -777,7 +777,7 @@ describe('browser hierarchy selection', function () {
 
     it('create subfolder', function () {
         runs(function () {
-            var _subfolder = new girder.models.FolderModel({
+            const _subfolder = new girder.models.FolderModel({
                 parentType: 'folder',
                 parentId: folder.get('_id'),
                 name: 'subfolder'
@@ -795,7 +795,7 @@ describe('browser hierarchy selection', function () {
 
     it('create item', function () {
         runs(function () {
-            var _item = new girder.models.ItemModel({
+            const _item = new girder.models.ItemModel({
                 folderId: folder.get('_id'),
                 name: 'an item'
             }).on('g:saved', function () {
@@ -997,7 +997,7 @@ describe('browser hierarchy paginated selection', function () {
     });
     it('register a user', function () {
         runs(function () {
-            var _user = new girder.models.UserModel({
+            const _user = new girder.models.UserModel({
                 login: 'mylogin2',
                 password: 'mypassword',
                 email: 'email2@girder.test',
@@ -1017,7 +1017,7 @@ describe('browser hierarchy paginated selection', function () {
 
     it('create top level folder', function () {
         runs(function () {
-            var _folder = new girder.models.FolderModel({
+            const _folder = new girder.models.FolderModel({
                 parentType: 'user',
                 parentId: user.get('_id'),
                 name: 'top level folder'
@@ -1035,7 +1035,7 @@ describe('browser hierarchy paginated selection', function () {
 
     it('create subfolder', function () {
         runs(function () {
-            var _subfolder = new girder.models.FolderModel({
+            const _subfolder = new girder.models.FolderModel({
                 parentType: 'folder',
                 parentId: folder.get('_id'),
                 name: 'subfolder'
@@ -1053,7 +1053,7 @@ describe('browser hierarchy paginated selection', function () {
 
     it('create item', function () {
         runs(function () {
-            var _item = new girder.models.ItemModel({
+            const _item = new girder.models.ItemModel({
                 folderId: folder.get('_id'),
                 name: 'an item'
             }).on('g:saved', function () {
@@ -1072,7 +1072,7 @@ describe('browser hierarchy paginated selection', function () {
         runs(function () {
             itemlist = [];
             for (let i = 0; i < 100; i++) {
-                var _item = new girder.models.ItemModel({
+                const _item = new girder.models.ItemModel({
                     folderId: folder.get('_id'),
                     name: ('item#: ' + i)
                 }).on('g:saved', function () {

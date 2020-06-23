@@ -293,7 +293,7 @@ const MetadatumEditWidget = View.extend({
     }
 });
 
-var JsonMetadatumEditWidget = MetadatumEditWidget.extend({
+const JsonMetadatumEditWidget = MetadatumEditWidget.extend({
     editTemplate: JsonMetadatumEditWidgetTemplate,
 
     getCurrentValue: function () {

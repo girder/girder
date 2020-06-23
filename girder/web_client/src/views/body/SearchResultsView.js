@@ -90,7 +90,7 @@ const SearchResultsView = View.extend({
  * It also contain a pagination widget that provide a consistent widget
  * for iterating amongst pages of a list of search results.
  */
-var SearchResultsTypeView = View.extend({
+const SearchResultsTypeView = View.extend({
     className: 'g-search-results-type-container',
 
     initialize: function (settings) {

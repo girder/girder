@@ -27,7 +27,7 @@ import 'bootstrap/js/tab';
 /**
  * This view shows a single group's page.
  */
-var GroupView = View.extend({
+const GroupView = View.extend({
     events: {
         'click .g-edit-group': 'editGroup',
         'click .g-group-join': 'joinGroup',

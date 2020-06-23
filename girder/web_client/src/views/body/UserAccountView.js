@@ -20,7 +20,7 @@ import 'bootstrap/js/tab';
 /**
  * This is the view for the user account (profile) page.
  */
-var UserAccountView = View.extend({
+const UserAccountView = View.extend({
     events: {
         'submit #g-user-info-form': function (event) {
             event.preventDefault();

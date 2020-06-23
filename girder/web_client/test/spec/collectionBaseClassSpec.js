@@ -2,7 +2,7 @@ girderTest.startApp();
 
 function canary() {
     let isDone = false;
-    var result = function done() {
+    const result = function done() {
         if (this === result) { /* done.check() */
             return isDone;
         }

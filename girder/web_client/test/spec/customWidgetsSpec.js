@@ -26,7 +26,7 @@ describe('Test upload widget non-standard options', function () {
 describe('Test hierarchy widget non-standard options', function () {
     it('register a user', function () {
         runs(function () {
-            var _user = new girder.models.UserModel({
+            const _user = new girder.models.UserModel({
                 login: 'mylogin',
                 password: 'mypassword',
                 email: 'email@girder.test',
@@ -46,7 +46,7 @@ describe('Test hierarchy widget non-standard options', function () {
 
     it('create top level folder', function () {
         runs(function () {
-            var _folder = new girder.models.FolderModel({
+            const _folder = new girder.models.FolderModel({
                 parentType: 'user',
                 parentId: user.get('_id'),
                 name: 'top level folder'
@@ -64,7 +64,7 @@ describe('Test hierarchy widget non-standard options', function () {
 
     it('create subfolder', function () {
         runs(function () {
-            var _subfolder = new girder.models.FolderModel({
+            const _subfolder = new girder.models.FolderModel({
                 parentType: 'folder',
                 parentId: folder.get('_id'),
                 name: 'subfolder'
@@ -82,7 +82,7 @@ describe('Test hierarchy widget non-standard options', function () {
 
     it('create item', function () {
         runs(function () {
-            var _item = new girder.models.ItemModel({
+            const _item = new girder.models.ItemModel({
                 folderId: folder.get('_id'),
                 name: 'an item'
             }).on('g:saved', function () {

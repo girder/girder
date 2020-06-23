@@ -20,7 +20,7 @@ import 'bootstrap/js/dropdown';
 /**
  * This view shows a single user's page.
  */
-var UserView = View.extend({
+const UserView = View.extend({
     events: {
         'click a.g-edit-user': function () {
             const editUrl = 'useraccount/' + this.model.get('_id') + '/info';

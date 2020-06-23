@@ -8,7 +8,7 @@ import JobDetailsWidget from './views/JobDetailsWidget';
 import JobListWidget from './views/JobListWidget';
 
 router.route('job/:id', 'jobView', function (id) {
-    var job = new JobModel({ _id: id }).once('g:fetched', function () {
+    const job = new JobModel({ _id: id }).once('g:fetched', function () {
         events.trigger('g:navigateTo', JobDetailsWidget, {
             job: job,
             renderImmediate: true

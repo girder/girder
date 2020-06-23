@@ -6,7 +6,7 @@ import Model from '@girder/core/models/Model';
 import { restRequest } from '@girder/core/rest';
 import eventStream from '@girder/core/utilities/EventStream';
 
-var UserModel = Model.extend({
+const UserModel = Model.extend({
     resourceName: 'user',
 
     /**

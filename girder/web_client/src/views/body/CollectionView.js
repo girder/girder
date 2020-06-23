@@ -23,7 +23,7 @@ import 'bootstrap/js/dropdown';
 /**
  * This view shows a single collection's page.
  */
-var CollectionView = View.extend({
+const CollectionView = View.extend({
     events: {
         'click .g-edit-collection': 'editCollection',
         'click .g-collection-access-control': 'editAccess',

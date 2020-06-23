@@ -34,7 +34,7 @@ function extendView(View, Template, modelType) {
     });
 
     View.prototype.editPolicies = function () {
-        var widget = new QuotaPoliciesWidget({
+        const widget = new QuotaPoliciesWidget({
             el: $('#g-dialog-container'),
             model: this.model,
             modelType: modelType,

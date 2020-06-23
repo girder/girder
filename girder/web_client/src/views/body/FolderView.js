@@ -9,7 +9,7 @@ import events from '@girder/core/events';
 /**
  * This view shows a single folder as a hierarchy widget.
  */
-var FolderView = View.extend({
+const FolderView = View.extend({
     initialize: function (settings) {
         cancelRestRequests('fetch');
         this.folder = settings.folder;

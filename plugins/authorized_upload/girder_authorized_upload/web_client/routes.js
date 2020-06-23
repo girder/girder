@@ -9,7 +9,7 @@ import AuthorizeUploadView from './views/AuthorizeUploadView';
 import AuthorizedUploadView from './views/AuthorizedUploadView';
 
 router.route('authorize_upload/:folderId', 'authorizeUpload', (folderId) => {
-    var folder = new FolderModel({ _id: folderId }).once('g:fetched', () => {
+    const folder = new FolderModel({ _id: folderId }).once('g:fetched', () => {
         events.trigger('g:navigateTo', AuthorizeUploadView, {
             folder: folder
         });

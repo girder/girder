@@ -19,7 +19,7 @@ import '@girder/core/stylesheets/widgets/searchFieldWidget.styl';
  * and show matching results as the user types. Results can be clicked,
  * triggering a callback.
  */
-var SearchFieldWidget = View.extend({
+const SearchFieldWidget = View.extend({
     events: {
         'input .g-search-field': 'search',
 

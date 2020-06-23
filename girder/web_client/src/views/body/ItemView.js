@@ -24,7 +24,7 @@ import 'bootstrap/js/dropdown';
 /**
  * This view shows a single item's page.
  */
-var ItemView = View.extend({
+const ItemView = View.extend({
     events: {
         'click .g-edit-item': 'editItem',
         'click .g-delete-item': 'deleteItem',
