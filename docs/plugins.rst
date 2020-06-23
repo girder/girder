@@ -1,5 +1,3 @@
-.. _plugins:
-
 Plugins
 =======
 
@@ -307,8 +305,8 @@ any of the available LDAP servers, they will fall back to normal core
 authentication. Documentation of the LDAP standard in general can be found
 `here <https://en.wikipedia.org/wiki/Lightweight_Directory_Access_Protocol>`_.
 
-Installation of this plugin requires LDAP and SASL shared libraries to be installed and 
-available to the Girder process. These may be installed system-wide via package managers 
+Installation of this plugin requires LDAP and SASL shared libraries to be installed and
+available to the Girder process. These may be installed system-wide via package managers
 in the following way:
 
 * On Ubnutu 18.04, install the ``libldap2-dev`` and ``libsasl2-dev`` APT packages.
