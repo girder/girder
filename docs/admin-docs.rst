@@ -4,8 +4,8 @@ Administrator Documentation
 .. toctree::
    :maxdepth: 2
 
-   installation
-   deploy
+   deployment
    configuration
    mount
    sftp
+   deployment-alternatives

@@ -1,7 +1,7 @@
-Installation
-============
+Deployment
+==========
 
-This tutorial will install a production-ready Girder on Ubuntu 18.04,
+This tutorial will deploy a production-ready Girder on Ubuntu 18.04,
 using the popular IT automation tool
 `Ansible <https://docs.ansible.com/ansible/latest/index.html>`_.
 
@@ -37,10 +37,10 @@ Download Template Files
 +++++++++++++++++++++++
 Download the following files to a fresh directory on the controller machine:
 
-* `requirements.yml <https://raw.githubusercontent.com/girder/girder/master/devops/production-template/requirements.yml>`_
-* `hosts.yml <https://raw.githubusercontent.com/girder/girder/master/devops/production-template/hosts.yml>`_
-* `playbook.yml <https://raw.githubusercontent.com/girder/girder/master/devops/production-template/playbook.yml>`_
-* `provision.sh <https://raw.githubusercontent.com/girder/girder/master/devops/production-template/provision.sh>`_
+* `requirements.yml <https://raw.githubusercontent.com/girder/girder/master/devops/deployment-template/requirements.yml>`_
+* `hosts.yml <https://raw.githubusercontent.com/girder/girder/master/devops/deployment-template/hosts.yml>`_
+* `playbook.yml <https://raw.githubusercontent.com/girder/girder/master/devops/deployment-template/playbook.yml>`_
+* `provision.sh <https://raw.githubusercontent.com/girder/girder/master/devops/deployment-template/provision.sh>`_
 
 Make ``provision.sh`` executable:
 
