@@ -99,13 +99,14 @@ page.onCallback = function (data) {
     }
     uploadTemp += '.tmp';
     switch (data.action) {
-        case 'fetchEmail':
+        case 'fetchEmail': {
             if (fs.exists(uploadTemp)) {
                 return fs.read(uploadTemp);
             }
             break;
-        case 'uploadFile':
-            var path = data.path;
+        }
+        case 'uploadFile': {
+            let path = data.path;
             if (!path && data.size !== undefined) {
                 path = uploadTemp;
                 fs.write(path, new Array(data.size + 1).join('-'), 'wb');
@@ -114,18 +115,21 @@ page.onCallback = function (data) {
             return fs.read(path, {
                 mode: 'rb'
             });
-        case 'uploadCleanup':
+        }
+        case 'uploadCleanup': {
             if (fs.exists(uploadTemp)) {
                 fs.remove(uploadTemp);
             }
             break;
-        case 'exit':
+        }
+        case 'exit': {
             // The "Testing Finished" string is magical and causes web_client_test.py not to retry
             if (data.errorMessage) {
                 console.error(data.errorMessage);
             }
             console.log('Testing Finished with status=' + data.code);
             phantom.exit(data.code);
+        }
     }
 };
 
