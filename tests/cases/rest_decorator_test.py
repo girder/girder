@@ -84,7 +84,7 @@ class TestEndpointDecoratorException(base.TestCase):
         self.assertEqual(self.getBody(resp), 'this is also a raw response')
 
         # We must make an actual request in order to test response encoding
-        # at the WSGI server layer.
+        # at the HTTP server layer.
         resp = requests.get(
             'http://127.0.0.1:%s/api/v1/other/rawReturningText' % os.environ['GIRDER_TEST_PORT'])
 

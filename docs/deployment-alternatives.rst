@@ -90,22 +90,6 @@ Ansible roles:
 These roles are also independently usable and may be composed as part of larger, custom Ansible
 playbooks.
 
-WSGI
-----
-
-Girder also comes with a callable WSGI application that can be run with WSGI servers
-like `uWSGI`.
-
-A simple example of running Girder with ``uwsgi`` instead of CherryPy's built in HTTP server
-would be::
-
-  uwsgi --lazy --http :8080 --module girder.wsgi --check-static `python -c "import sys; print(sys.prefix)"`/share/girder
-
-.. seealso::
-
-   `CherryPy documentation describing how to deploy under WSGI <http://docs.cherrypy.org/en/latest/deploy.html#wsgi-servers>`_
-
-
 Docker Container
 ----------------
 
