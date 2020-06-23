@@ -43,21 +43,6 @@ example, we have the following:
 
 Note that after changing these parameters, it is necessary to rebuild the web client.
 
-Apache
-++++++
-
-When using Apache, configure Apache's `mod_proxy
-<http://httpd.apache.org/docs/current/mod/mod_proxy.html>`_ to route traffic to
-these services using a reverse proxy.  Add the following section to your Apache
-config:
-
-.. code-block:: apacheconf
-
-    <VirtualHost *:80>
-        ProxyPass /girder http://localhost:9000
-        ProxyPassReverse /girder http://localhost:9000
-    </VirtualHost>
-
 Nginx
 +++++
 
