@@ -952,8 +952,6 @@ girder
                 dataDescriptor
                 fileHeader
             zlib
-    wsgi
-        application
 plugins
     audit_logs
         girder_audit_logs
