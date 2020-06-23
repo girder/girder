@@ -15,7 +15,7 @@ import '@girder/core/utilities/jquery/girderModal';
 /**
  * This view shows a login modal dialog.
  */
-var LoginView = View.extend({
+const LoginView = View.extend({
     events: {
         'submit #g-login-form': function (e) {
             e.preventDefault();
@@ -42,7 +42,7 @@ var LoginView = View.extend({
                     this.$('.g-validation-failed-message').text(err.responseJSON.message);
 
                     if (err.responseJSON.extra === 'emailVerification') {
-                        var html = err.responseJSON.message +
+                        const html = err.responseJSON.message +
                             ' <a class="g-send-verification-email">Click here to send verification email.</a>';
                         $('.g-validation-failed-message').html(html);
                     }

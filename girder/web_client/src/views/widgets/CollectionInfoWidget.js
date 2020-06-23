@@ -8,7 +8,7 @@ import '@girder/core/utilities/jquery/girderModal';
 /**
  * This view shows a dialog containing detailed collection information.
  */
-var CollectionInfoWidget = View.extend({
+const CollectionInfoWidget = View.extend({
     initialize: function () {
         this.needToFetch = !this.model.has('nFolders');
         if (this.needToFetch || this.timestamp !== this.model.get('updated')) {

@@ -12,7 +12,7 @@ import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css
  * This widget provides a text input field to specify a date/time. The user
  * chooses the date/time using a popup picker.
  */
-var DateTimeWidget = View.extend({
+const DateTimeWidget = View.extend({
 
     /**
      * @param [settings.defaultDate=false] The default date/time when not set
@@ -60,11 +60,11 @@ var DateTimeWidget = View.extend({
      * @param date Date/time to display.
      */
     setDate: function (date) {
-        var picker = this._picker();
+        const picker = this._picker();
         if (_.isEmpty(date)) {
             picker.clear();
         } else if (_.isString(date)) {
-            var localDate = moment.utc(date).local();
+            const localDate = moment.utc(date).local();
             picker.date(localDate);
         } else {
             picker.date(date);
@@ -76,8 +76,8 @@ var DateTimeWidget = View.extend({
      * set.
      */
     date: function () {
-        var picker = this._picker();
-        var date = picker.date();
+        const picker = this._picker();
+        let date = picker.date();
         if (date !== null) {
             date = moment(date);
             date.utc();
@@ -90,7 +90,7 @@ var DateTimeWidget = View.extend({
      * the empty string if no date is set.
      */
     dateString: function () {
-        var date = this.date();
+        const date = this.date();
         if (date === null) {
             return '';
         }
@@ -101,7 +101,7 @@ var DateTimeWidget = View.extend({
      * Convenience function to access the datetimepicker on an element.
      */
     _picker: function () {
-        var picker = this.$('.g-datetime-widget').data('DateTimePicker');
+        const picker = this.$('.g-datetime-widget').data('DateTimePicker');
         return picker;
     }
 });

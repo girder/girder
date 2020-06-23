@@ -6,7 +6,7 @@ import { setCurrentToken } from '@girder/core/auth';
 import template from '../templates/authorizedUpload.pug';
 import '../stylesheets/authorizedUpload.styl';
 
-var AuthorizedUploadView = View.extend({
+const AuthorizedUploadView = View.extend({
     initialize: function (settings) {
         // Fake a parent folder model (we might not have read access to fetch it)
         this.folder = new FolderModel({

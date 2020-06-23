@@ -10,11 +10,11 @@ import FlowViewTemplate from '../templates/flowView.pug';
 
 import '../stylesheets/flowView.styl';
 
-var FlowView = View.extend({
+const FlowView = View.extend({
     events: {
         'click .g-thumbnail-delete': function (e) {
-            var container = $(e.currentTarget).parents('.g-thumbnail-container');
-            var file = new FileModel({ _id: container.attr('g-file-id') });
+            const container = $(e.currentTarget).parents('.g-thumbnail-container');
+            const file = new FileModel({ _id: container.attr('g-file-id') });
 
             confirm({
                 text: 'Are you sure you want to delete this thumbnail?',

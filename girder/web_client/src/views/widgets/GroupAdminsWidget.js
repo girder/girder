@@ -15,18 +15,18 @@ import 'bootstrap/js/dropdown';
 /**
  * This view shows a list of administrators of a group.
  */
-var GroupAdminsWidget = View.extend({
+const GroupAdminsWidget = View.extend({
     events: {
         'click .g-demote-moderator': function (e) {
-            var li = $(e.currentTarget).parents('.g-group-admins>li');
-            var userid = li.attr('userid');
+            const li = $(e.currentTarget).parents('.g-group-admins>li');
+            const userid = li.attr('userid');
 
             confirm({
                 text: 'Are you sure you want to demote <b>' +
                     _.escape(li.attr('username')) + '</b> to a moderator?',
                 escapedHtml: true,
                 confirmCallback: () => {
-                    var user = new UserModel({ _id: userid });
+                    const user = new UserModel({ _id: userid });
                     this.model.off('g:promoted').on('g:promoted', () => {
                         this.trigger('g:moderatorAdded');
                     }, this).promoteUser(user, AccessType.WRITE);
@@ -35,7 +35,7 @@ var GroupAdminsWidget = View.extend({
         },
 
         'click .g-demote-member': function (e) {
-            var li = $(e.currentTarget).parents('.g-group-admins>li');
+            const li = $(e.currentTarget).parents('.g-group-admins>li');
 
             confirm({
                 text: 'Are you sure you want to remove admin privileges ' +
@@ -48,7 +48,7 @@ var GroupAdminsWidget = View.extend({
         },
 
         'click a.g-group-admin-remove': function (e) {
-            var li = $(e.currentTarget).parents('li');
+            const li = $(e.currentTarget).parents('li');
 
             confirm({
                 text: 'Are you sure you want to remove <b> ' +

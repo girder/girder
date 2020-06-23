@@ -12,7 +12,7 @@ import 'bootstrap/js/dropdown';
  * This view shows the user menu, or register/sign in links if the user is
  * not logged in.
  */
-var LayoutHeaderUserView = View.extend({
+const LayoutHeaderUserView = View.extend({
     events: {
         'click a.g-login': function () {
             events.trigger('g:loginUi');

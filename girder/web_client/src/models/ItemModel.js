@@ -7,7 +7,7 @@ import MetadataMixin from '@girder/core/models/MetadataMixin';
 import Model from '@girder/core/models/Model';
 import { restRequest } from '@girder/core/rest';
 
-var ItemModel = Model.extend({
+const ItemModel = Model.extend({
     resourceName: 'item',
 
     /**
@@ -27,7 +27,7 @@ var ItemModel = Model.extend({
             callback(this.get('_accessLevel'));
             return this.get('_accessLevel');
         } else {
-            var parent = new FolderModel();
+            const parent = new FolderModel();
             parent.set({
                 _id: this.get('folderId')
             }).once('g:fetched', function () {

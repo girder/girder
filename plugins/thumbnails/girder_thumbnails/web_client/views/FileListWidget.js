@@ -23,7 +23,7 @@ wrap(FileListWidget, 'render', function (render) {
 
 // Bind the thumbnail creation button
 FileListWidget.prototype.events['click a.g-create-thumbnail'] = function (e) {
-    var cid = $(e.currentTarget).parent().attr('file-cid');
+    const cid = $(e.currentTarget).parent().attr('file-cid');
 
     new CreateThumbnailView({
         el: $('#g-dialog-container'),

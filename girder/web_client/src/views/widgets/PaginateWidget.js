@@ -6,7 +6,7 @@ import PaginateWidgetTemplate from '@girder/core/templates/widgets/paginateWidge
  * This widget is used to provide a consistent widget for iterating amongst
  * pages of a Collection.
  */
-var PaginateWidget = View.extend({
+const PaginateWidget = View.extend({
     events: {
         'click .g-page-next:not(.disabled)': function (e) {
             this.collection.fetchNextPage();

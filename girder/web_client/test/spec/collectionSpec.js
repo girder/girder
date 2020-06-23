@@ -1,7 +1,7 @@
 girderTest.startApp();
 
 describe('Test collection actions', function () {
-    var privateCollectionFragment, privateFolderFragment;
+    let privateCollectionFragment, privateFolderFragment;
 
     it('register a user (first is admin)',
         girderTest.createUser('admin',
@@ -37,10 +37,10 @@ describe('Test collection actions', function () {
         }, 'collection info dialog to appear');
 
         runs(function () {
-            for (var i = 0; i < 4; i++) {
+            for (let i = 0; i < 4; i++) {
                 if ($('.g-collection-info-line').eq(i).attr('property') === 'id') {
-                    var id = $('.g-bold-part').eq(i).text();
-                    var n = $('.g-bold-part').eq(i - 1).text();
+                    const id = $('.g-bold-part').eq(i).text();
+                    const n = $('.g-bold-part').eq(i - 1).text();
                     console.log('ID ', id, ' - nFolder ', n);
                 }
             }

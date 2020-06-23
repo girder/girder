@@ -20,7 +20,7 @@ import 'jsoneditor/dist/jsoneditor.css';
 
 import 'bootstrap/js/dropdown';
 
-var MetadatumWidget = View.extend({
+const MetadatumWidget = View.extend({
     className: 'g-widget-metadata-row',
 
     events: {
@@ -44,13 +44,13 @@ var MetadatumWidget = View.extend({
     },
 
     _validate: function (from, to, value) {
-        var newMode = this.parentView.modes[to];
+        const newMode = this.parentView.modes[to];
 
         if (_.has(newMode, 'validation') &&
             _.has(newMode.validation, 'from') &&
             _.has(newMode.validation.from, from)) {
-            var validate = newMode.validation.from[from][0];
-            var msg = newMode.validation.from[from][1];
+            const validate = newMode.validation.from[from][0];
+            const msg = newMode.validation.from[from][1];
 
             if (!validate(value)) {
                 events.trigger('g:alert', {
@@ -66,17 +66,17 @@ var MetadatumWidget = View.extend({
 
     // @todo too much duplication with editMetadata
     toggleEditor: function (event, newEditorMode, existingEditor, overrides) {
-        var fromEditorMode = (existingEditor instanceof JsonMetadatumEditWidget) ? 'json' : 'simple';
-        var newValue = (overrides || {}).value || existingEditor.$el.attr('g-value');
+        const fromEditorMode = (existingEditor instanceof JsonMetadatumEditWidget) ? 'json' : 'simple';
+        const newValue = (overrides || {}).value || existingEditor.$el.attr('g-value');
         if (!this._validate(fromEditorMode, newEditorMode, newValue)) {
             return;
         }
 
-        var row = existingEditor.$el;
+        const row = existingEditor.$el;
         existingEditor.destroy();
         row.addClass('editing').empty();
 
-        var opts = _.extend({
+        const opts = _.extend({
             el: row,
             item: this.parentView.item,
             key: row.attr('g-key'),
@@ -97,7 +97,7 @@ var MetadatumWidget = View.extend({
         this.$el.addClass('editing');
         this.$el.empty();
 
-        var opts = {
+        const opts = {
             item: this.parentView.item,
             key: this.$el.attr('g-key'),
             value: this.$el.attr('g-value'),
@@ -113,7 +113,7 @@ var MetadatumWidget = View.extend({
         // If they're trying to open false, null, 6, etc which are not stored as strings
         if (this.mode === 'json') {
             try {
-                var jsonValue = JSON.parse(this.$el.attr('g-value'));
+                const jsonValue = JSON.parse(this.$el.attr('g-value'));
 
                 if (jsonValue !== undefined && !_.isObject(jsonValue)) {
                     opts.value = jsonValue;
@@ -143,13 +143,13 @@ var MetadatumWidget = View.extend({
     }
 });
 
-var MetadatumEditWidget = View.extend({
+const MetadatumEditWidget = View.extend({
     events: {
         'click .g-widget-metadata-cancel-button': 'cancelEdit',
         'click .g-widget-metadata-save-button': 'save',
         'click .g-widget-metadata-delete-button': 'deleteMetadatum',
         'click .g-widget-metadata-toggle-button': function (event) {
-            var editorType;
+            let editorType;
             // @todo modal
             // in the future this event will have the new editorType (assuming a dropdown)
             if (this instanceof JsonMetadatumEditWidget) {
@@ -188,8 +188,8 @@ var MetadatumEditWidget = View.extend({
     deleteMetadatum: function (event) {
         event.stopImmediatePropagation();
         const target = $(event.currentTarget);
-        var metadataList = target.parent().parent();
-        var params = {
+        const metadataList = target.parent().parent();
+        const params = {
             text: 'Are you sure you want to delete the metadatum <b>' +
                 _.escape(this.key) + '</b>?',
             escapedHtml: true,
@@ -209,7 +209,7 @@ var MetadatumEditWidget = View.extend({
     cancelEdit: function (event) {
         event.stopImmediatePropagation();
         const target = $(event.currentTarget);
-        var curRow = target.parent().parent();
+        const curRow = target.parent().parent();
         if (this.newDatum) {
             curRow.remove();
         } else {
@@ -220,7 +220,7 @@ var MetadatumEditWidget = View.extend({
     save: function (event, value) {
         event.stopImmediatePropagation();
         const target = $(event.currentTarget);
-        var curRow = target.parent(),
+        const curRow = target.parent(),
             tempKey = curRow.find('.g-widget-metadata-key-input').val(),
             tempValue = (value !== undefined) ? value : curRow.find('.g-widget-metadata-value-input').val();
 
@@ -232,7 +232,7 @@ var MetadatumEditWidget = View.extend({
             return;
         }
 
-        var saveCallback = () => {
+        const saveCallback = () => {
             this.key = tempKey;
             this.value = tempValue;
 
@@ -250,7 +250,7 @@ var MetadatumEditWidget = View.extend({
             this.newDatum = false;
         };
 
-        var errorCallback = function (out) {
+        const errorCallback = function (out) {
             events.trigger('g:alert', {
                 text: out.message,
                 type: 'danger'
@@ -339,7 +339,7 @@ var JsonMetadatumEditWidget = MetadatumEditWidget.extend({
 /**
  * This widget shows a list of metadata in a given item.
  */
-var MetadataWidget = View.extend({
+const MetadataWidget = View.extend({
     events: {
         'click .g-add-json-metadata': function (event) {
             this.addMetadata(event, 'json');
@@ -435,10 +435,10 @@ var MetadataWidget = View.extend({
     },
 
     addMetadata: function (event, mode) {
-        var EditWidget = this.modes[mode].editor;
-        var value = (mode === 'json') ? '{}' : '';
+        const EditWidget = this.modes[mode].editor;
+        const value = (mode === 'json') ? '{}' : '';
 
-        var widget = new MetadatumWidget({
+        const widget = new MetadatumWidget({
             className: 'g-widget-metadata-row editing',
             mode: mode,
             key: '',
@@ -470,8 +470,8 @@ var MetadataWidget = View.extend({
     },
 
     render: function () {
-        var metaDict = this.item.get(this.fieldName) || {};
-        var metaKeys = Object.keys(metaDict);
+        const metaDict = this.item.get(this.fieldName) || {};
+        const metaKeys = Object.keys(metaDict);
         metaKeys.sort(localeSort);
 
         // Metadata header

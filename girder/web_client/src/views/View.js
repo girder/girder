@@ -4,7 +4,7 @@ import Backbone from 'backbone';
 import events from '@girder/core/events';
 import eventStream from '@girder/core/utilities/EventStream';
 
-var View = Backbone.View.extend({
+const View = Backbone.View.extend({
     constructor: function (opts) { // eslint-disable-line backbone/no-constructor
         if (opts && _.has(opts, 'parentView')) {
             if (opts.parentView) {
@@ -40,7 +40,7 @@ var View = Backbone.View.extend({
 
         // Modal views need special cleanup.
         if (this.$el.is('.modal')) {
-            var el = this.$el;
+            const el = this.$el;
             if (el.data('bs.modal') && el.data('bs.modal').isShown) {
                 el.on('hidden.bs.modal', function () {
                     el.empty().off().removeData();

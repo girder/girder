@@ -14,11 +14,11 @@ import '@girder/core/utilities/jquery/girderModal';
 /**
  * This widget is used to create a new folder or edit an existing one.
  */
-var EditFolderWidget = View.extend({
+const EditFolderWidget = View.extend({
     events: {
         'submit #g-folder-edit-form': function (e) {
             e.preventDefault();
-            var fields = {
+            const fields = {
                 name: this.$('#g-name').val(),
                 description: this.descriptionEditor.val()
             };
@@ -52,7 +52,7 @@ var EditFolderWidget = View.extend({
     },
 
     render: function () {
-        var modal = this.$el.html(EditFolderWidgetTemplate({
+        const modal = this.$el.html(EditFolderWidgetTemplate({
             folder: this.folder
         })).girderModal(this).on('shown.bs.modal', () => {
             this.$('#g-name').trigger('focus');
@@ -85,7 +85,7 @@ var EditFolderWidget = View.extend({
     },
 
     createFolder: function (fields) {
-        var folder = new FolderModel();
+        const folder = new FolderModel();
         folder.set(_.extend(fields, {
             parentType: this.parentModel.resourceName,
             parentId: this.parentModel.get('_id')

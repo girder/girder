@@ -1,6 +1,6 @@
 girderTest.startApp();
 
-var registeredUsers = [];
+const registeredUsers = [];
 
 describe('Sort user list', function () {
     it('register a user (first is admin)',
@@ -33,7 +33,7 @@ describe('Sort user list', function () {
         girderTest.goToUsersPage()();
         runs(function () {
             expect($('.g-user-list-entry').length).toBe(3);
-            var defaultOrder = /.*AFirstName.*ALastName.*BFirstName.*BLastName.*CFirstName.*CLastName.*/;
+            const defaultOrder = /.*AFirstName.*ALastName.*BFirstName.*BLastName.*CFirstName.*CLastName.*/;
             expect($('a.g-user-link').text()).toMatch(defaultOrder);
             $('a.g-sort-order-button:not(.hide)').trigger('click');
         });
@@ -43,7 +43,7 @@ describe('Sort user list', function () {
         }, 'switching sort order via icon');
 
         runs(function () {
-            var reversedDefaultOrder = /.*CFirstName.*CLastName.*BFirstName.*BLastName.*AFirstName.*ALastName.*/;
+            const reversedDefaultOrder = /.*CFirstName.*CLastName.*BFirstName.*BLastName.*AFirstName.*ALastName.*/;
             expect($('a.g-user-link').text()).toMatch(reversedDefaultOrder);
         });
 
@@ -63,12 +63,12 @@ describe('Sort user list', function () {
         waitsFor(function () {
             // FIXME: the condition here should be: wait for re-render of collection,
             //   but I don't know how to express that...
-            var sortedByCreationDate = /.*AFirstName.*ALastName.*CFirstName.*CLastName.*BFirstName.*BLastName.*/;
+            const sortedByCreationDate = /.*AFirstName.*ALastName.*CFirstName.*CLastName.*BFirstName.*BLastName.*/;
             return sortedByCreationDate.test($('.g-user-link').text());
         }, 'refetching and rendering user list');
 
         runs(function () {
-            var sortedByCreationDate = /.*AFirstName.*ALastName.*CFirstName.*CLastName.*BFirstName.*BLastName.*/;
+            const sortedByCreationDate = /.*AFirstName.*ALastName.*CFirstName.*CLastName.*BFirstName.*BLastName.*/;
             expect($('a.g-user-link').text()).toMatch(sortedByCreationDate);
         });
     });

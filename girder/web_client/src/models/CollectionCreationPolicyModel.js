@@ -1,7 +1,7 @@
 import AccessControlledModel from '@girder/core/models/AccessControlledModel';
 import { restRequest } from '@girder/core/rest';
 
-var CollectionCreationPolicyModel = AccessControlledModel.extend({
+const CollectionCreationPolicyModel = AccessControlledModel.extend({
     resourceName: 'system/setting/collection_creation_policy',
     fetchAccess: function () {
         return restRequest({

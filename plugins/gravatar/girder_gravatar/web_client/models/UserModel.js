@@ -3,7 +3,7 @@ import { getApiRoot } from '@girder/core/rest';
 
 UserModel.prototype.getGravatarUrl = function (size) {
     size = size || 64;
-    var baseUrl = this.get('gravatar_baseUrl');
+    const baseUrl = this.get('gravatar_baseUrl');
     if (baseUrl) {
         return baseUrl;
     } else {

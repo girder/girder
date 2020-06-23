@@ -1,9 +1,9 @@
 girderTest.startApp();
 
-var registeredUsers = [];
+const registeredUsers = [];
 
 describe('Create an admin and non-admin user', function () {
-    var link;
+    let link;
 
     it('register a user (first is admin)',
         girderTest.createUser('admin',
@@ -182,7 +182,7 @@ describe('Create an admin and non-admin user', function () {
             console.log('__FETCHEMAIL__');
         });
         waitsFor(function () {
-            var msg = window.callPhantom({
+            const msg = window.callPhantom({
                 action: 'fetchEmail',
                 suffix: girderTest.getCallbackSuffix()
             });
@@ -280,7 +280,7 @@ describe('test the API key management tab', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            var row = $('tr.g-api-key-container');
+            const row = $('tr.g-api-key-container');
             expect(row.length).toBe(1);
             expect(row.find('td[col="name"]').text()).toBe('test key');
             expect(row.find('td[col="active"]').text()).toBe('Yes');
@@ -307,7 +307,7 @@ describe('test the API key management tab', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            var row = $('tr.g-api-key-container');
+            const row = $('tr.g-api-key-container');
             expect(row.length).toBe(1);
             expect(row.find('td[col="name"]').text()).toBe('new name');
             expect(row.find('td[col="active"]').text()).toBe('Yes');
@@ -329,7 +329,7 @@ describe('test the API key management tab', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            var row = $('tr.g-api-key-container');
+            const row = $('tr.g-api-key-container');
             expect(row.length).toBe(1);
             expect(row.find('td[col="name"]').text()).toBe('new name');
             expect(row.find('td[col="active"]').text()).toBe('No');

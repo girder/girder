@@ -1,10 +1,10 @@
 girderTest.startApp();
 
 function _getFirstId(Collection, ids, key, fetchParamsFunc) {
-    var coll;
+    let coll;
     runs(function () {
         coll = new Collection();
-        var params;
+        let params;
         if (fetchParamsFunc) {
             params = fetchParamsFunc(coll);
         }
@@ -19,7 +19,7 @@ function _getFirstId(Collection, ids, key, fetchParamsFunc) {
 }
 
 describe('Test routing paths', function () {
-    var ids = {};
+    const ids = {};
 
     it('login', girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     it('go to groups page', girderTest.goToGroupsPage());
@@ -115,7 +115,7 @@ describe('Test routing paths', function () {
                    'Enter collection name';
         });
 
-        var collPath = 'collection/' + ids.collection;
+        const collPath = 'collection/' + ids.collection;
         girderTest.testRoute(collPath, false, function () {
             return $('.g-collection-actions-menu').length === 1;
         });
@@ -132,7 +132,7 @@ describe('Test routing paths', function () {
                 return $('.modal-title').text() === 'Create folder';
             });
 
-        var collFolderPath = collPath + '/folder/' + ids.userFolder;
+        const collFolderPath = collPath + '/folder/' + ids.userFolder;
         girderTest.testRoute(collFolderPath, false, function () {
             return $('.g-collection-actions-menu').length === 1 &&
                    $('.g-folder-access-button').length === 1;
@@ -173,7 +173,7 @@ describe('Test routing paths', function () {
             return $('.g-user-link').first().text() === 'Admin Admin';
         });
 
-        var userPath = 'user/' + ids.admin;
+        const userPath = 'user/' + ids.admin;
         girderTest.testRoute(userPath, false, function () {
             return $('.g-user-actions-button').length === 1;
         });
@@ -182,7 +182,7 @@ describe('Test routing paths', function () {
                 return $('.modal-title').text() === 'Create folder';
             });
 
-        var userFolderPath = userPath + '/folder/' + ids.userFolder;
+        const userFolderPath = userPath + '/folder/' + ids.userFolder;
         girderTest.testRoute(userFolderPath, false, function () {
             return $('.g-user-actions-button').length === 1 &&
                    $('.g-folder-access-button').length === 1;
@@ -209,7 +209,7 @@ describe('Test routing paths', function () {
                 return $('.modal-title').text() === 'Upload files';
             });
 
-        var folderPath = 'folder/' + ids.userFolder;
+        const folderPath = 'folder/' + ids.userFolder;
         girderTest.testRoute(folderPath, false, function () {
             return $('.g-user-actions-button').length === 0 &&
                    $('.g-folder-access-button').length === 1;
@@ -246,7 +246,7 @@ describe('Test routing paths', function () {
                    'Enter group name';
         });
 
-        var groupPath = 'group/' + ids.group;
+        const groupPath = 'group/' + ids.group;
         girderTest.testRoute(groupPath + '/roles', false, function () {
             return $('.g-member-name:visible').length === 1 &&
                    $('#g-group-tab-roles .g-member-list-empty:visible')
@@ -265,7 +265,7 @@ describe('Test routing paths', function () {
     });
 
     it('test item routes', function () {
-        var itemPath = 'item/' + ids.item;
+        const itemPath = 'item/' + ids.item;
         girderTest.testRoute(itemPath, false, function () {
             return $('.g-item-header .g-item-name').text() === 'Link File';
         });
@@ -310,12 +310,12 @@ describe('Test routing paths', function () {
 describe('Test internal javascript functions', function () {
     it('check parseQueryString', function () {
         runs(function () {
-            var testVals = [
+            const testVals = [
                 { plain: 'strings' },
                 { altchar: 'a~`!@#$%^&*()_+{}|[]\\:";\'<>?,./' }
             ];
-            for (var i = 0; i < testVals.length; i += 1) {
-                var encode = $.param(testVals[i]);
+            for (let i = 0; i < testVals.length; i += 1) {
+                const encode = $.param(testVals[i]);
                 expect($.param(girder.misc.parseQueryString(encode))).toBe(encode);
             }
         });
@@ -323,7 +323,7 @@ describe('Test internal javascript functions', function () {
 });
 
 describe('Test disabling the router at runtime', function () {
-    var router = Backbone.Router.prototype;
+    const router = Backbone.Router.prototype;
 
     beforeEach(function () {
         spyOn(router, 'navigate');

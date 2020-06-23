@@ -8,7 +8,7 @@ import { restRequest, getApiRoot } from '@girder/core/rest';
  * All models should descend from this base model, which provides a number
  * of utilities for synchronization.
  */
-var Model = Backbone.Model.extend({
+const Model = Backbone.Model.extend({
     resourceName: null,
     altUrl: null,
     idAttribute: '_id',
@@ -45,7 +45,7 @@ var Model = Backbone.Model.extend({
             throw new Error('An altUrl or resourceName must be set on the Model.');
         }
 
-        var path, type;
+        let path, type;
         if (this.has('_id')) {
             path = (this.altUrl || this.resourceName) + '/' + this.get('_id');
             type = 'PUT';
@@ -56,9 +56,9 @@ var Model = Backbone.Model.extend({
         /* Don't save attributes which are objects using this call.  For
          * instance, if the metadata of an item has keys that contain non-ascii
          * values, they won't get handled by the rest call. */
-        var data = {};
+        const data = {};
         _.each(this.keys(), function (key) {
-            var value = this.get(key);
+            const value = this.get(key);
             if (!_.isObject(value)) {
                 data[key] = value;
             }
@@ -92,7 +92,7 @@ var Model = Backbone.Model.extend({
         }
 
         opts = opts || {};
-        var restOpts = {
+        const restOpts = {
             url: `${this.altUrl || this.resourceName}/${this.id}`
         };
         if (opts.extraPath) {
@@ -151,7 +151,7 @@ var Model = Backbone.Model.extend({
             throw new Error('An altUrl or resourceName must be set on the Model.');
         }
 
-        var args = {
+        const args = {
             url: `${this.altUrl || this.resourceName}/${this.id}`,
             method: 'DELETE'
         };

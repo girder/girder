@@ -8,17 +8,17 @@ import { splitRoute } from '@girder/core/misc';
 import OAuthLoginViewTemplate from '../templates/oauthLoginView.pug';
 import '../stylesheets/oauthLoginView.styl';
 
-var OAuthLoginView = View.extend({
+const OAuthLoginView = View.extend({
     events: {
         'click .g-oauth-button': function (event) {
-            var providerId = $(event.currentTarget).attr('g-provider');
-            var provider = _.findWhere(this.providers, { id: providerId });
+            const providerId = $(event.currentTarget).attr('g-provider');
+            const provider = _.findWhere(this.providers, { id: providerId });
             window.location = provider.url;
         }
     },
 
     initialize: function (settings) {
-        var redirect = settings.redirect || splitRoute(window.location.href).base;
+        const redirect = settings.redirect || splitRoute(window.location.href).base;
         this.modeText = settings.modeText || 'log in';
         this.providers = null;
         this.enablePasswordLogin = _.has(settings, 'enablePasswordLogin') ? settings.enablePasswordLogin : true;
@@ -40,9 +40,9 @@ var OAuthLoginView = View.extend({
             return this;
         }
 
-        var buttons = [];
+        const buttons = [];
         _.each(this.providers, function (provider) {
-            var btn = this._buttons[provider.id];
+            const btn = this._buttons[provider.id];
 
             if (btn) {
                 btn.providerId = provider.id;

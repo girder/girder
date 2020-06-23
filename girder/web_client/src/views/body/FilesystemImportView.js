@@ -7,12 +7,12 @@ import { restRequest } from '@girder/core/rest';
 
 import FilesystemImportTemplate from '@girder/core/templates/body/filesystemImport.pug';
 
-var FilesystemImportView = View.extend({
+const FilesystemImportView = View.extend({
     events: {
         'submit .g-filesystem-import-form': function (e) {
             e.preventDefault();
 
-            var destId = this.$('#g-filesystem-import-dest-id').val().trim().split(/\s/)[0],
+            const destId = this.$('#g-filesystem-import-dest-id').val().trim().split(/\s/)[0],
                 destType = this.$('#g-filesystem-import-dest-type').val(),
                 foldersAsItems = this.$('#g-filesystem-import-leaf-items').val();
 

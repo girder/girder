@@ -9,7 +9,7 @@ import { restRequest } from '@girder/core/rest';
  * from this object. It provides utilities for managing and storing the
  * access control list on
  */
-var AccessControlledModel = Model.extend({
+const AccessControlledModel = Model.extend({
     /**
      * Saves the access control list on this model to the server. Saves the
      * state of whatever this model's "access" parameter is set to, which

@@ -5,7 +5,7 @@ import View from '@girder/core/views/View';
 import JobCheckBoxMenuTemplate from '../templates/jobCheckBoxMenu.pug';
 import JobCheckBoxContentTemplate from '../templates/jobCheckBoxContent.pug';
 
-var CheckBoxMenu = View.extend({
+const CheckBoxMenu = View.extend({
     events: {
         'click input.g-job-filter-checkbox': function (e) {
             e.stopPropagation();
@@ -24,7 +24,7 @@ var CheckBoxMenu = View.extend({
         'click .g-job-checkall input': function (e) {
             e.stopPropagation();
             // If any are unchecked, set all to checked; if all are checked, set all to unchecked
-            var newCheckedState = !this._allItemsChecked();
+            const newCheckedState = !this._allItemsChecked();
             _.keys(this.items).forEach((key) => {
                 this.items[key] = newCheckedState;
             });

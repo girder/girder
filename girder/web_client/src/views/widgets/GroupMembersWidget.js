@@ -18,7 +18,7 @@ import 'bootstrap/js/transition';
 
 import '@girder/core/utilities/jquery/girderModal';
 
-var InviteUserDialog = View.extend({
+const InviteUserDialog = View.extend({
     events: {
         'click .g-invite-as-member': function () {
             this._sendInvitation(AccessType.READ);
@@ -76,17 +76,17 @@ var InviteUserDialog = View.extend({
 /**
  * This view shows a list of members of a group.
  */
-var GroupMembersWidget = View.extend({
+const GroupMembersWidget = View.extend({
     events: {
         'click a.g-member-name': function (e) {
-            var model = this.membersColl.get(
+            const model = this.membersColl.get(
                 $(e.currentTarget).parents('li').attr('cid')
             );
             router.navigate('user/' + model.get('_id'), { trigger: true });
         },
 
         'click a.g-group-member-remove': function (e) {
-            var user = this.membersColl.get(
+            const user = this.membersColl.get(
                 $(e.currentTarget).parents('li').attr('cid')
             );
 
@@ -101,18 +101,18 @@ var GroupMembersWidget = View.extend({
         },
 
         'click .g-promote-moderator': function (e) {
-            var cid = $(e.currentTarget).parents('.g-group-members>li')
+            const cid = $(e.currentTarget).parents('.g-group-members>li')
                 .attr('cid');
-            var user = this.membersColl.get(cid);
+            const user = this.membersColl.get(cid);
             this.model.off('g:promoted').on('g:promoted', function () {
                 this.trigger('g:moderatorAdded');
             }, this).promoteUser(user, AccessType.WRITE);
         },
 
         'click .g-promote-admin': function (e) {
-            var cid = $(e.currentTarget).parents('.g-group-members>li')
+            const cid = $(e.currentTarget).parents('.g-group-members>li')
                 .attr('cid');
-            var user = this.membersColl.get(cid);
+            const user = this.membersColl.get(cid);
             this.model.off('g:promoted').on('g:promoted', function () {
                 this.trigger('g:adminAdded');
             }, this).promoteUser(user, AccessType.ADMIN);
@@ -134,9 +134,9 @@ var GroupMembersWidget = View.extend({
     },
 
     render: function () {
-        var members = [];
-        for (var i = 0; i < this.membersColl.models.length; i += 1) {
-            var member = this.membersColl.models[i];
+        const members = [];
+        for (let i = 0; i < this.membersColl.models.length; i += 1) {
+            const member = this.membersColl.models[i];
             if ($.inArray(member.id, this.modsAndAdmins) < 0) {
                 members.push(member);
             }

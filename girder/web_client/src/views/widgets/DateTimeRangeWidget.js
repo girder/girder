@@ -13,7 +13,7 @@ import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css
  * That is, the first field specifies "from" and the second field specifies
  * "to." The user chooses each date/time using a popup picker.
  */
-var DateTimeRangeWidget = View.extend({
+const DateTimeRangeWidget = View.extend({
 
     /**
      * @param [settings.defaultFromDate=false] The default "from" date/time when
@@ -46,7 +46,7 @@ var DateTimeRangeWidget = View.extend({
         // Link datetimepickers to disallow choosing range where "from" date is
         // after "to" date
 
-        var options = {
+        const options = {
             showClear: true,
             showTodayButton: true,
             icons: {
@@ -70,11 +70,11 @@ var DateTimeRangeWidget = View.extend({
         this.$('.g-datetime-widget-to').datetimepicker(options);
 
         this.$('.g-datetime-widget-from').on('dp.change', (e) => {
-            var picker = this._picker('.g-datetime-widget-to');
+            const picker = this._picker('.g-datetime-widget-to');
             picker.minDate(e.date);
         });
         this.$('.g-datetime-widget-to').on('dp.change', (e) => {
-            var picker = this._picker('.g-datetime-widget-from');
+            const picker = this._picker('.g-datetime-widget-from');
             picker.maxDate(e.date);
         });
 
@@ -109,11 +109,11 @@ var DateTimeRangeWidget = View.extend({
      * @param [id] Element ID on which to access the datetimepicker.
      */
     _setDate: function (id, date) {
-        var picker = this._picker(id);
+        const picker = this._picker(id);
         if (_.isEmpty(date)) {
             picker.clear();
         } else if (_.isString(date)) {
-            var localDate = moment.utc(date).local();
+            const localDate = moment.utc(date).local();
             picker.date(localDate);
         } else {
             picker.date(date);
@@ -153,13 +153,13 @@ var DateTimeRangeWidget = View.extend({
     },
 
     _picker: function (id) {
-        var picker = this.$(id).data('DateTimePicker');
+        const picker = this.$(id).data('DateTimePicker');
         return picker;
     },
 
     _date: function (id) {
-        var picker = this._picker(id);
-        var date = picker.date();
+        const picker = this._picker(id);
+        let date = picker.date();
         if (date !== null) {
             date = moment(date);
             date.utc();
@@ -168,7 +168,7 @@ var DateTimeRangeWidget = View.extend({
     },
 
     _dateString: function (id) {
-        var date = this._date(id);
+        const date = this._date(id);
         if (date === null) {
             return '';
         }

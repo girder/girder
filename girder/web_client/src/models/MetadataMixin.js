@@ -2,7 +2,7 @@ import _ from 'underscore';
 
 import { restRequest } from '@girder/core/rest';
 
-var MetadataMixin = {
+const MetadataMixin = {
     _sendMetadata: function (metadata, successCallback, errorCallback, opts) {
         opts = opts || {};
         restRequest({
@@ -27,9 +27,9 @@ var MetadataMixin = {
 
     addMetadata: function (key, value, successCallback, errorCallback, opts) {
         opts = opts || {};
-        var datum = {};
+        const datum = {};
         datum[key] = value;
-        var meta = this.get(opts.field || 'meta');
+        const meta = this.get(opts.field || 'meta');
         if (meta && _.has(meta, key)) {
             if (_.isFunction(errorCallback)) {
                 errorCallback({ message: key + ' is already a metadata key' });
@@ -67,7 +67,7 @@ var MetadataMixin = {
         opts = opts || {};
 
         if (newKey === oldKey) {
-            var datum = {};
+            const datum = {};
             datum[newKey] = value;
             this._sendMetadata(datum, successCallback, errorCallback, opts);
         } else {
@@ -76,7 +76,7 @@ var MetadataMixin = {
                     errorCallback({ message: newKey + ' is already a metadata key' });
                 }
             } else {
-                var metas = {};
+                const metas = {};
                 metas[oldKey] = null;
                 metas[newKey] = value;
                 this._sendMetadata(metas, successCallback, errorCallback, opts);

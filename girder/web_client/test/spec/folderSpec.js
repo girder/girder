@@ -6,7 +6,7 @@ girderTest.startApp();
  * :param testValidation: if true, try to clear the name and select submit.
  */
 function _editFolder(button, buttonText, testValidation) {
-    var oldval;
+    let oldval;
 
     waitsFor(function () {
         return $('.g-folder-actions-button:visible').length === 1;
@@ -147,7 +147,7 @@ describe('Test folder creation, editing, and deletion', function () {
         girderTest.waitForLoad();
 
         runs(function () {
-            var privateFolderFragment = Backbone.history.fragment;
+            const privateFolderFragment = Backbone.history.fragment;
             girderTest.anonymousLoadPage(true, privateFolderFragment, true, girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
         });
 

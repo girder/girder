@@ -33,7 +33,7 @@ import '@girder/core/routes';
 import '@girder/core/stylesheets/layout/global.styl';
 import '@girder/core/stylesheets/layout/layout.styl';
 
-var App = View.extend({
+const App = View.extend({
     /**
      * @param {object} [settings]
      * @param {bool} [settings.start=true] Run start after initialization
@@ -63,7 +63,7 @@ var App = View.extend({
      */
     start: function (settings) {
         // start is a noop if the app is already running
-        var promise = new $.Deferred().resolve(null).promise();
+        let promise = new $.Deferred().resolve(null).promise();
         if (this._started) {
             return promise;
         }
@@ -76,7 +76,7 @@ var App = View.extend({
         });
 
         // define a function to be run after fetching the user model
-        var afterFetch = (user) => {
+        const afterFetch = (user) => {
             this._createLayout();
 
             if (user) {
@@ -318,7 +318,7 @@ var App = View.extend({
      *                Default is 6000ms. Set to <= 0 to have no timeout.
      */
     alert: function (options) {
-        var el = $(AlertTemplate({
+        const el = $(AlertTemplate({
             text: options.text,
             type: options.type || 'info',
             icon: options.icon
@@ -343,7 +343,7 @@ var App = View.extend({
      * logout, we redirect to the front page.
      */
     login: function () {
-        var route = splitRoute(Backbone.history.fragment).base;
+        const route = splitRoute(Backbone.history.fragment).base;
         Backbone.history.fragment = null;
         eventStream.close();
 

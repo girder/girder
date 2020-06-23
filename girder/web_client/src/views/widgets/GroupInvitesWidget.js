@@ -11,17 +11,17 @@ import GroupInviteListTemplate from '@girder/core/templates/widgets/groupInviteL
 /**
  * This view shows a list of pending invitations to the group.
  */
-var GroupInvitesWidget = View.extend({
+const GroupInvitesWidget = View.extend({
     events: {
         'click .g-group-uninvite': function (e) {
-            var li = $(e.currentTarget).parents('li');
+            const li = $(e.currentTarget).parents('li');
 
             confirm({
                 text: 'Are you sure you want to remove the invitation ' +
                     'for <b>' + _.escape(li.attr('username')) + '</b>?',
                 escapedHtml: true,
                 confirmCallback: () => {
-                    var user = this.collection.get(li.attr('cid'));
+                    const user = this.collection.get(li.attr('cid'));
                     this.group.off('g:removed').on('g:removed', () => {
                         this.collection.remove(user);
                         this.render();
@@ -32,7 +32,7 @@ var GroupInvitesWidget = View.extend({
         },
 
         'click a.g-member-name': function (e) {
-            var user = this.collection.get($(e.currentTarget).parents('li').attr('cid'));
+            const user = this.collection.get($(e.currentTarget).parents('li').attr('cid'));
             router.navigate('user/' + user.get('_id'), { trigger: true });
         }
     },

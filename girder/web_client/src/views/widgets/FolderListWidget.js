@@ -12,11 +12,11 @@ import FolderListTemplate from '@girder/core/templates/widgets/folderList.pug';
  * Initialize this with a "parentType" and "parentId" value, which will
  * be passed to the folder GET endpoint.
  */
-var FolderListWidget = View.extend({
+const FolderListWidget = View.extend({
     events: {
         'click a.g-folder-list-link': function (event) {
             event.preventDefault();
-            var cid = $(event.currentTarget).attr('g-folder-cid');
+            const cid = $(event.currentTarget).attr('g-folder-cid');
             this.trigger('g:folderClicked', this.collection.get(cid));
         },
         'click a.g-show-more-folders': function () {

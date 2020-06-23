@@ -7,12 +7,12 @@ import { restRequest } from '@girder/core/rest';
 
 import S3ImportTemplate from '@girder/core/templates/body/s3Import.pug';
 
-var S3ImportView = View.extend({
+const S3ImportView = View.extend({
     events: {
         'submit .g-s3-import-form': function (e) {
             e.preventDefault();
 
-            var destId = this.$('#g-s3-import-dest-id').val().trim().split(/\s/)[0],
+            const destId = this.$('#g-s3-import-dest-id').val().trim().split(/\s/)[0],
                 destType = this.$('#g-s3-import-dest-type').val();
 
             this.$('.g-validation-failed-message').empty();

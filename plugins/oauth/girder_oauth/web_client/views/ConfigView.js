@@ -9,11 +9,11 @@ import events from '@girder/core/events';
 import ConfigViewTemplate from '../templates/configView.pug';
 import '../stylesheets/configView.styl';
 
-var ConfigView = View.extend({
+const ConfigView = View.extend({
     events: {
         'submit .g-oauth-provider-form': function (event) {
             event.preventDefault();
-            var providerId = $(event.target).attr('provider-id');
+            const providerId = $(event.target).attr('provider-id');
             this.$('#g-oauth-provider-' + providerId + '-error-message').empty();
 
             this._saveSettings(providerId, [{
@@ -98,7 +98,7 @@ var ConfigView = View.extend({
         }];
         this.providerIds = _.pluck(this.providers, 'id');
 
-        var settingKeys = ['oauth.ignore_registration_policy'];
+        const settingKeys = ['oauth.ignore_registration_policy'];
         _.each(this.providerIds, function (id) {
             settingKeys.push('oauth.' + id + '_client_id');
             settingKeys.push('oauth.' + id + '_client_secret');
@@ -117,7 +117,7 @@ var ConfigView = View.extend({
     },
 
     render: function () {
-        var origin = window.location.protocol + '//' + window.location.host,
+        let origin = window.location.protocol + '//' + window.location.host,
             _apiRoot = getApiRoot();
 
         if (_apiRoot.substring(0, 1) !== '/') {
@@ -146,7 +146,7 @@ var ConfigView = View.extend({
                     this.settingVals['oauth.' + id + '_client_secret']);
             }, this);
 
-            var checked = this.settingVals['oauth.ignore_registration_policy'];
+            const checked = this.settingVals['oauth.ignore_registration_policy'];
             this.$('.g-ignore-registration-policy').attr('checked', checked ? 'checked' : null);
         }
 

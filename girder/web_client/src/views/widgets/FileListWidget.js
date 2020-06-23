@@ -15,14 +15,14 @@ import FileListTemplate from '@girder/core/templates/widgets/fileList.pug';
 /**
  * This widget shows a list of files in a given item.
  */
-var FileListWidget = View.extend({
+const FileListWidget = View.extend({
     events: {
         'click a.g-show-more-files': function () {
             this.collection.fetchNextPage();
         },
 
         'click a.g-show-info': function (e) {
-            var cid = $(e.currentTarget).attr('file-cid');
+            const cid = $(e.currentTarget).attr('file-cid');
             new FileInfoWidget({
                 el: $('#g-dialog-container'),
                 model: this.collection.get(cid),
@@ -32,18 +32,18 @@ var FileListWidget = View.extend({
         },
 
         'click a.g-update-contents': function (e) {
-            var cid = $(e.currentTarget).parent().attr('file-cid');
+            const cid = $(e.currentTarget).parent().attr('file-cid');
             this.uploadDialog(cid);
         },
 
         'click a.g-update-info': function (e) {
-            var cid = $(e.currentTarget).parent().attr('file-cid');
+            const cid = $(e.currentTarget).parent().attr('file-cid');
             this.editFileDialog(cid);
         },
 
         'click a.g-delete-file': function (e) {
-            var cid = $(e.currentTarget).parent().attr('file-cid');
-            var file = this.collection.get(cid);
+            const cid = $(e.currentTarget).parent().attr('file-cid');
+            const file = this.collection.get(cid);
 
             confirm({
                 text: 'Are you sure you want to delete the file <b>' +

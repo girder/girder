@@ -11,7 +11,7 @@ describe('Test setApiRoot() function', function () {
             expect(girder.rest.getApiRoot().slice(
                 girder.rest.getApiRoot().indexOf('/', 7))).toBe('/api/v1');
 
-            var apiRootVal = '/foo/bar/v2';
+            const apiRootVal = '/foo/bar/v2';
             girder.rest.setApiRoot(apiRootVal);
             expect(girder.rest.getApiRoot()).toBe(apiRootVal);
         });

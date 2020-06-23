@@ -10,8 +10,8 @@ const _ = require('underscore');
  * returns a topologically sorted array of tasks.
  */
 function sortTasks(obj) {
-    var nodes = _.keys(obj);
-    var edges = _(obj).chain()
+    const nodes = _.keys(obj);
+    const edges = _(obj).chain()
         .pairs()
         .map(function (o) {
             return _.map(o[1].dependencies || [], function (d) {
@@ -20,12 +20,12 @@ function sortTasks(obj) {
         })
         .flatten(true)
         .value();
-    var sorted = toposort.array(nodes, edges);
+    const sorted = toposort.array(nodes, edges);
     return sorted;
 }
 
 module.exports = function (grunt) {
-    var environment = grunt.option('env') || 'dev';
+    const environment = grunt.option('env') || 'dev';
 
     if (['dev', 'prod'].indexOf(environment) === -1) {
         grunt.fatal('The "env" argument must be either "dev" or "prod".');

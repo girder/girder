@@ -16,7 +16,7 @@ import 'bootstrap/js/tab';
 /**
  * A simple widget for editing markdown text with a preview tab.
  */
-var MarkdownWidget = View.extend({
+const MarkdownWidget = View.extend({
     events: {
         'show.bs.tab .g-preview-link': function () {
             renderMarkdown(this.val().trim() || 'Nothing to show',
@@ -32,7 +32,7 @@ var MarkdownWidget = View.extend({
         },
 
         'change .g-file-input': function (e) {
-            var files = e.target.files;
+            const files = e.target.files;
 
             if (files.length) {
                 this.files = files;
@@ -105,11 +105,11 @@ var MarkdownWidget = View.extend({
             return;
         }
 
-        var file = this.files[0];
-        var fileModel = new FileModel();
+        const file = this.files[0];
+        const fileModel = new FileModel();
 
         fileModel.on('g:upload.complete', function () {
-            var val = this.$('.g-markdown-text').val();
+            let val = this.$('.g-markdown-text').val();
             val += '![' + file.name + '](' + fileModel.downloadUrl() + ')\n';
 
             this.$('.g-upload-overlay').addClass('hide');
@@ -120,7 +120,7 @@ var MarkdownWidget = View.extend({
                 model: fileModel
             });
         }, this).on('g:upload.progress', function (info) {
-            var currentProgress = info.startByte + info.loaded;
+            const currentProgress = info.startByte + info.loaded;
             this.$('.g-markdown-upload-progress>.progress-bar').css('width',
                 Math.ceil(100 * currentProgress / info.total) + '%');
             this.$('.g-markdown-upload-progress-message').text(
@@ -163,7 +163,7 @@ var MarkdownWidget = View.extend({
             throw new Error('Please add only one file at a time.');
         }
 
-        var file = files[0],
+        const file = files[0],
             ext = file.name.split('.').pop().toLowerCase();
 
         if (this.maxUploadSize && file.size > this.maxUploadSize) {

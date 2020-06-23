@@ -21,8 +21,8 @@ $.fn.girderModal = function (view) {
          * remove the old dialog, the removal is synchronous and we are
          * sure it is gone before we add the new dialog. */
         if ($(this).data('bs.modal') && $(this).data('bs.modal').isShown) {
-            var elem = $($(this).data('bs.modal').$element);
-            var hasFade = elem.hasClass('fade');
+            const elem = $($(this).data('bs.modal').$element);
+            const hasFade = elem.hasClass('fade');
             elem.removeClass('fade');
             $(this).modal('hide');
             elem.toggleClass('fade', hasFade);

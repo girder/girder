@@ -11,7 +11,7 @@ import '@girder/core/stylesheets/layout/progressArea.styl';
  * Container showing list of active tasks that are reporting progress
  * via a EventStream object.
  */
-var ProgressListView = View.extend({
+const ProgressListView = View.extend({
 
     initialize: function (settings) {
         this.eventStream = settings.eventStream;

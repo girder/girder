@@ -40,7 +40,7 @@ var UserModel = Model.extend({
      * When this user is added to a group, call this on the user model.
      */
     addToGroup: function (groupId) {
-        var groups = this.get('groups') || [];
+        const groups = this.get('groups') || [];
         groups.push(groupId);
         this.set('groups', groups);
     },
@@ -49,8 +49,8 @@ var UserModel = Model.extend({
      * When this user is removed from a group, call this on the user model.
      */
     removeFromGroup: function (groupId) {
-        var groups = this.get('groups') || [];
-        var index = groups.indexOf(groupId);
+        const groups = this.get('groups') || [];
+        let index = groups.indexOf(groupId);
 
         while (index >= 0) {
             groups.splice(index, 1);
@@ -64,7 +64,7 @@ var UserModel = Model.extend({
      * When this user is invited to a group, call this on the user model.
      */
     addInvitation: function (groupId, level) {
-        var invites = this.get('groupInvites') || [];
+        const invites = this.get('groupInvites') || [];
         invites.push({
             groupId: groupId,
             level: level
@@ -79,8 +79,8 @@ var UserModel = Model.extend({
      * model.
      */
     removeInvitation: function (groupId) {
-        var invites = this.get('groupInvites') || [];
-        var filtered = _.reject(invites, _.matcher({ groupId: groupId }));
+        const invites = this.get('groupInvites') || [];
+        const filtered = _.reject(invites, _.matcher({ groupId: groupId }));
 
         this.set('groupInvites', filtered);
     },

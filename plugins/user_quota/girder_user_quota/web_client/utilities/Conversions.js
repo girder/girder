@@ -5,7 +5,7 @@
  * @return .sizeValue: the new size value.  This may be an empty string.
  * @return .sizeUnits: the size units (0-based powers of 1024). */
 function sizeToValueAndUnits(sizeValue) {
-    var sizeUnits = 0;
+    let sizeUnits = 0;
     if (sizeValue) {
         for (sizeUnits = 0; sizeUnits < 4 && parseInt(sizeValue / 1024, 10) *
                 1024 === sizeValue; sizeUnits += 1) {
@@ -26,8 +26,8 @@ function sizeToValueAndUnits(sizeValue) {
  * @return sizeBytes: the number of bytes specified, or the empty string
  *                    for none. */
 function valueAndUnitsToSize(sizeValue, sizeUnits) {
-    var sizeBytes = sizeValue;
-    var match, i, suffixes = 'bkMGT';
+    let sizeBytes = sizeValue;
+    let match, i, suffixes = 'bkMGT';
     if (parseFloat(sizeValue) > 0) {
         sizeBytes = parseFloat(sizeValue);
         /* parse suffix */

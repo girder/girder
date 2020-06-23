@@ -1,7 +1,7 @@
 girderTest.startApp();
 
 function canary() {
-    var isDone = false;
+    let isDone = false;
     var result = function done() {
         if (this === result) { /* done.check() */
             return isDone;
@@ -14,9 +14,9 @@ function canary() {
     return result;
 }
 
-var failIfError = function (error) { expect(error).toBeUndefined(); };
+const failIfError = function (error) { expect(error).toBeUndefined(); };
 
-var reFiltered = /filterTest(\d+)/;
+const reFiltered = /filterTest(\d+)/;
 
 describe('Pre-test setup', function () {
     it('register a user (first is admin)',
@@ -30,9 +30,9 @@ describe('Pre-test setup', function () {
 
 describe('Test normal collection operation', function () {
     it('create several dummy api keys', function () {
-        var done = canary();
+        const done = canary();
 
-        var createPromise = $.when(
+        const createPromise = $.when(
             new girder.models.ApiKeyModel({ name: 'test0' }).save(),
             new girder.models.ApiKeyModel({ name: 'test1' }).save(),
             new girder.models.ApiKeyModel({ name: 'test2' }).save(),
@@ -45,9 +45,9 @@ describe('Test normal collection operation', function () {
             new girder.models.ApiKeyModel({ name: 'test9' }).save()
         );
 
-        var collection;
+        let collection;
 
-        var fetchPromise = createPromise.then(function () {
+        const fetchPromise = createPromise.then(function () {
             collection = new girder.collections.ApiKeyCollection();
 
             /* pageLimit shouldn't matter; we should only get ten entries */
@@ -63,9 +63,9 @@ describe('Test normal collection operation', function () {
     });
 
     it('ensure collection fetch fires backbone "reset" event with expected options', function () {
-        var done = canary();
-        var collection = new girder.collections.ApiKeyCollection();
-        var previousModels = null;
+        const done = canary();
+        const collection = new girder.collections.ApiKeyCollection();
+        let previousModels = null;
 
         // Within a "reset" event, Backbone provides the list of previous models
         // as options.previousModels.
@@ -87,8 +87,8 @@ describe('Test normal collection operation', function () {
     });
 
     it('ensure collections can go backwards and forwards', function () {
-        var done = canary();
-        var collection = new girder.collections.ApiKeyCollection();
+        const done = canary();
+        const collection = new girder.collections.ApiKeyCollection();
 
         collection.pageLimit = 2;
         collection.append = false;
@@ -189,9 +189,9 @@ describe('Test normal collection operation', function () {
 
 describe('Test collection filtering', function () {
     it('create several dummy api keys', function () {
-        var done = canary();
+        const done = canary();
 
-        var createPromise = $.when(
+        const createPromise = $.when(
             new girder.models.ApiKeyModel({ name: 'filterTest0' }).save(),
             new girder.models.ApiKeyModel({ name: 'filterTest1' }).save(),
             new girder.models.ApiKeyModel({ name: 'filterTest2' }).save(),
@@ -204,9 +204,9 @@ describe('Test collection filtering', function () {
             new girder.models.ApiKeyModel({ name: 'filterTest9' }).save()
         );
 
-        var filteredCollection;
+        let filteredCollection;
 
-        var fetchPromise = createPromise.then(function () {
+        const fetchPromise = createPromise.then(function () {
             filteredCollection = new girder.collections.ApiKeyCollection();
 
             filteredCollection.filterFunc = function (apiKey) {
@@ -226,10 +226,10 @@ describe('Test collection filtering', function () {
     });
 
     it('select only dummy api keys with even index', function () {
-        var done = canary();
-        var collection = new girder.collections.ApiKeyCollection();
+        const done = canary();
+        const collection = new girder.collections.ApiKeyCollection();
         collection.filterFunc = function (apiKey) {
-            var match = apiKey.name.match(reFiltered);
+            let match = apiKey.name.match(reFiltered);
             if (match) {
                 match = parseInt(match[1]) % 2 === 0;
             }
@@ -244,11 +244,11 @@ describe('Test collection filtering', function () {
     });
 
     it('select only dummy api keys outside a given range', function () {
-        var done = canary();
-        var collection = new girder.collections.ApiKeyCollection();
+        const done = canary();
+        const collection = new girder.collections.ApiKeyCollection();
         collection.filterFunc = function (apiKey) {
-            var match = apiKey.name.match(reFiltered);
-            var index;
+            let match = apiKey.name.match(reFiltered);
+            let index;
             if (match) {
                 index = parseInt(match[1]);
                 match = index < 3 || index > 6;
@@ -284,12 +284,12 @@ describe('Test collection filtering', function () {
     });
 
     it('ensure filtered collections can go backwards and forwards', function () {
-        var done = canary();
-        var collection = new girder.collections.ApiKeyCollection();
+        const done = canary();
+        const collection = new girder.collections.ApiKeyCollection();
         collection.filterFunc = function (apiKey) {
-            var match = apiKey.name.match(reFiltered);
+            let match = apiKey.name.match(reFiltered);
             if (match) {
-                var index = parseInt(match[1]);
+                const index = parseInt(match[1]);
                 match = index < 3 || index > 6;
             }
             return match;

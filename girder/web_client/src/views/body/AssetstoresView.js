@@ -27,14 +27,14 @@ import 'as-jqplot/dist/plugins/jqplot.pieRenderer.js';
  */
 import FilesystemImportView from '@girder/core/views/body/FilesystemImportView';
 import S3ImportView from '@girder/core/views/body/S3ImportView';
-var assetstoreImportViewMap = {};
+const assetstoreImportViewMap = {};
 assetstoreImportViewMap[AssetstoreType.FILESYSTEM] = FilesystemImportView;
 assetstoreImportViewMap[AssetstoreType.S3] = S3ImportView;
 
 /**
  * This view shows the admin console, which links to all available admin pages.
  */
-var AssetstoresView = View.extend({
+const AssetstoresView = View.extend({
     events: {
         'click .g-set-current': 'setCurrentAssetstore',
         'click .g-delete-assetstore': 'deleteAssetstore',
@@ -109,14 +109,14 @@ var AssetstoresView = View.extend({
      * @param el The canvas element to render in.
      */
     capacityChart: function (el) {
-        var assetstore = this.collection.get($(el).attr('cid'));
-        var capacity = assetstore.get('capacity');
-        var used = capacity.total - capacity.free;
-        var data = [
+        const assetstore = this.collection.get($(el).attr('cid'));
+        const capacity = assetstore.get('capacity');
+        const used = capacity.total - capacity.free;
+        const data = [
             ['Used (' + formatSize(used) + ')', used],
             ['Free (' + formatSize(capacity.free) + ')', capacity.free]
         ];
-        var plot = $(el).jqplot([data], {
+        const plot = $(el).jqplot([data], {
             seriesDefaults: {
                 renderer: $.jqplot.PieRenderer,
                 rendererOptions: {
@@ -146,8 +146,8 @@ var AssetstoresView = View.extend({
     },
 
     setCurrentAssetstore: function (evt) {
-        var el = $(evt.currentTarget);
-        var assetstore = this.collection.get(el.attr('cid'));
+        const el = $(evt.currentTarget);
+        const assetstore = this.collection.get(el.attr('cid'));
         assetstore.set({ current: true });
         assetstore.off('g:saved').on('g:saved', function () {
             events.trigger('g:alert', {
@@ -167,8 +167,8 @@ var AssetstoresView = View.extend({
     },
 
     deleteAssetstore: function (evt) {
-        var el = $(evt.currentTarget);
-        var assetstore = this.collection.get(el.attr('cid'));
+        const el = $(evt.currentTarget);
+        const assetstore = this.collection.get(el.attr('cid'));
 
         confirm({
             text: 'Are you sure you want to delete the assetstore <b>' +
@@ -198,15 +198,15 @@ var AssetstoresView = View.extend({
     },
 
     editAssetstore: function (evt) {
-        var cid = $(evt.currentTarget).attr('cid');
+        const cid = $(evt.currentTarget).attr('cid');
         this.editAssetstoreDialog(cid);
     },
 
     editAssetstoreDialog: function (cid) {
-        var assetstore = this.collection.get(cid);
-        var container = $('#g-dialog-container');
+        const assetstore = this.collection.get(cid);
+        const container = $('#g-dialog-container');
 
-        var editAssetstoreWidget = new EditAssetstoreWidget({
+        const editAssetstoreWidget = new EditAssetstoreWidget({
             el: container,
             model: assetstore,
             parentView: this
@@ -217,9 +217,9 @@ var AssetstoresView = View.extend({
     }
 }, {
     import: function (assetstoreId) {
-        var assetstore = new AssetstoreModel({ _id: assetstoreId });
+        const assetstore = new AssetstoreModel({ _id: assetstoreId });
         assetstore.once('g:fetched', function () {
-            var View = assetstoreImportViewMap[assetstore.get('type')];
+            const View = assetstoreImportViewMap[assetstore.get('type')];
             if (View) {
                 events.trigger('g:navigateTo', View, {
                     assetstore: assetstore

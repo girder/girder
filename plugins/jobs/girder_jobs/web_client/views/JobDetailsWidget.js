@@ -12,7 +12,7 @@ import JobStatus from '../JobStatus';
 
 import '../stylesheets/jobDetailsWidget.styl';
 
-var JobDetailsWidget = View.extend({
+const JobDetailsWidget = View.extend({
     events: {
         'click .g-job-cancel': function (event) {
             this._cancelJob();
@@ -22,7 +22,7 @@ var JobDetailsWidget = View.extend({
         this.job = settings.job;
 
         this.listenTo(eventStream, 'g:event.job_status', function (event) {
-            var info = event.data;
+            const info = event.data;
             if (info._id === this.job.id) {
                 this.job.set(info);
                 this.render();
@@ -30,9 +30,9 @@ var JobDetailsWidget = View.extend({
         });
 
         this.listenTo(eventStream, 'g:event.job_log', function (event) {
-            var info = event.data;
+            const info = event.data;
             if (info._id === this.job.id) {
-                var container = this.$('.g-job-log-container');
+                const container = this.$('.g-job-log-container');
                 if (info.overwrite) {
                     this.job.set({ log: [info.text] });
                     container.text(info.text);
@@ -56,7 +56,7 @@ var JobDetailsWidget = View.extend({
     },
 
     render: function () {
-        var status = this.job.get('status');
+        const status = this.job.get('status');
         this.$el.html(JobDetailsWidgetTemplate({
             job: this.job,
             statusText: JobStatus.text(status),
@@ -74,14 +74,14 @@ var JobDetailsWidget = View.extend({
     },
 
     _renderTimelineWidget: function () {
-        var timestamps = this.job.get('timestamps');
+        const timestamps = this.job.get('timestamps');
 
         if (!timestamps || !timestamps.length) {
             return;
         }
 
-        var startTime = this.job.get('created');
-        var segments = [{
+        const startTime = this.job.get('created');
+        let segments = [{
             start: startTime,
             end: timestamps[0].time,
             color: JobStatus.color(JobStatus.INACTIVE),
@@ -89,7 +89,7 @@ var JobDetailsWidget = View.extend({
         }];
 
         segments = segments.concat(_.map(timestamps.slice(0, -1), function (stamp, i) {
-            var statusText = JobStatus.text(stamp.status);
+            const statusText = JobStatus.text(stamp.status);
             return {
                 start: stamp.time,
                 end: timestamps[i + 1].time,
@@ -98,14 +98,14 @@ var JobDetailsWidget = View.extend({
             };
         }, this));
 
-        var points = [{
+        let points = [{
             time: startTime,
             color: JobStatus.color(JobStatus.INACTIVE),
             tooltip: 'Created at ' + new Date(startTime).toISOString()
         }];
 
         points = points.concat(_.map(timestamps, function (stamp) {
-            var statusText = JobStatus.text(stamp.status);
+            const statusText = JobStatus.text(stamp.status);
             return {
                 time: stamp.time,
                 tooltip: 'Moved to ' + statusText + ' at ' +
@@ -114,8 +114,8 @@ var JobDetailsWidget = View.extend({
             };
         }, this));
 
-        var endTime = timestamps[timestamps.length - 1].time;
-        var elapsed = (new Date(endTime) - new Date(startTime)) / 1000;
+        const endTime = timestamps[timestamps.length - 1].time;
+        const elapsed = (new Date(endTime) - new Date(startTime)) / 1000;
 
         new TimelineWidget({
             el: this.$('.g-job-timeline-container'),

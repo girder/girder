@@ -10,10 +10,10 @@ import { linkify } from 'remarkable/linkify';
 /**
  * This file contains utility functions for general use in the application
  */
-var DATE_MONTH = 0;
-var DATE_DAY = 1;
-var DATE_MINUTE = 2;
-var DATE_SECOND = 3;
+const DATE_MONTH = 0;
+const DATE_DAY = 1;
+const DATE_MINUTE = 2;
+const DATE_SECOND = 3;
 
 /**
  * Format a date string to the given resolution.
@@ -22,8 +22,8 @@ var DATE_SECOND = 3;
  */
 function formatDate(datestr, resolution) {
     datestr = datestr.replace(' ', 'T'); // Cross-browser accepted date format
-    var date = new Date(datestr);
-    var output = MONTHS[date.getMonth()];
+    const date = new Date(datestr);
+    let output = MONTHS[date.getMonth()];
 
     resolution = resolution || DATE_MONTH;
 
@@ -52,7 +52,7 @@ function formatSize(sizeBytes) {
     if (sizeBytes < 1024) {
         return sizeBytes + ' B';
     }
-    var i, sizeVal = sizeBytes, precision = 1;
+    let i, sizeVal = sizeBytes, precision = 1;
     for (i = 0; sizeVal >= 1024; i += 1) {
         sizeVal /= 1024;
     }
@@ -81,7 +81,7 @@ function formatCount(n, opts) {
     n = n || 0;
     opts = opts || {};
 
-    var i = 0,
+    let i = 0,
         base = opts.base || 1000,
         sep = opts.sep || '',
         maxLen = opts.maxLen || 3,
@@ -108,11 +108,11 @@ function formatCount(n, opts) {
  * sorting.  The locale specifies how upper and lower case are compared.
  */
 function localeComparator(model1, model2) {
-    var a1 = model1.get(this.sortField),
+    let a1 = model1.get(this.sortField),
         a2 = model2.get(this.sortField);
 
     if (a1 !== undefined && a1.localeCompare) {
-        var result = a1.localeCompare(a2) * this.sortDir;
+        const result = a1.localeCompare(a2) * this.sortDir;
         if (result || !this.secondarySortField) {
             return result;
         }
@@ -139,15 +139,15 @@ function localeSort(a1, a2) {
  * @param name Collection name, e.g. 'user'
  */
 function getModelClassByName(name) {
-    var className = name.charAt(0).toUpperCase();
+    const className = name.charAt(0).toUpperCase();
     return className + name.substr(1) + 'Model';
 }
 
 function parseQueryString(queryString) {
-    var params = {};
+    const params = {};
     if (queryString) {
         _.each(queryString.replace(/\+/g, ' ').split(/&/g), function (el) {
-            var aux = el.split('='), val;
+            let aux = el.split('='), val;
             if (aux.length > 1) {
                 val = decodeURIComponent(el.substr(aux[0].length + 1));
             }
@@ -167,7 +167,7 @@ function parseQueryString(queryString) {
  * @return {Object} An object mapping the names of options to values.
  */
 function defineFlags(options, allOption) {
-    var i = 0,
+    let i = 0,
         obj = {};
 
     if (allOption) {
@@ -194,8 +194,8 @@ function defineFlags(options, allOption) {
  * @param el The element to render the output HTML into, or falsy to simply
  *        return the HTML value.
  */
-var renderMarkdown = (function () {
-    var md = new Remarkable().use(linkify);
+const renderMarkdown = (function () {
+    const md = new Remarkable().use(linkify);
     return function (val, el) {
         if (el) {
             $(el).html(md.render(val));
@@ -216,7 +216,7 @@ function splitRoute(route) {
     if (!route) {
         return { base: '', name: '' };
     }
-    var firstIndex = route.indexOf('?'),
+    let firstIndex = route.indexOf('?'),
         lastIndex = route.lastIndexOf('?'),
         dialogName,
         baseRoute;

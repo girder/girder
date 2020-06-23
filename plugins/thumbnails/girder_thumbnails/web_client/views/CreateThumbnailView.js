@@ -14,7 +14,7 @@ import '../stylesheets/createThumbnailView.styl';
 /**
  * A dialog for creating thumbnails from a specific file.
  */
-var CreateThumbnailView = View.extend({
+const CreateThumbnailView = View.extend({
     events: {
         'change .g-thumbnail-attach-container input[type="radio"]': function () {
             this.$('.g-target-result-container').empty();

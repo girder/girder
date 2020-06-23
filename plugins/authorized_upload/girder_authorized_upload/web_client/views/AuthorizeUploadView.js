@@ -4,7 +4,7 @@ import { restRequest } from '@girder/core/rest';
 import template from '../templates/authorizeUpload.pug';
 import '../stylesheets/authorizeUpload.styl';
 
-var AuthorizeUploadView = View.extend({
+const AuthorizeUploadView = View.extend({
     events: {
         'click .g-create-authorized-upload': function () {
             restRequest({

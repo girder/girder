@@ -13,14 +13,14 @@ function handleClose(name, options, nameId) {
     if (!router.enabled()) {
         return;
     }
-    var curRoute = Backbone.history.fragment,
+    const curRoute = Backbone.history.fragment,
         routeParts = splitRoute(curRoute),
         queryString = parseQueryString(routeParts.name),
         dialogName = queryString.dialog,
         dialogId = queryString.dialogid;
     delete queryString.dialog;
     delete queryString.dialogid;
-    var unparsedQueryString = $.param(queryString);
+    let unparsedQueryString = $.param(queryString);
     if (unparsedQueryString.length > 0) {
         unparsedQueryString = '?' + unparsedQueryString;
     }
@@ -33,7 +33,7 @@ function handleOpen(name, options, nameId) {
     if (!router.enabled()) {
         return;
     }
-    var curRoute = Backbone.history.fragment,
+    const curRoute = Backbone.history.fragment,
         routeParts = splitRoute(curRoute),
         queryString = parseQueryString(routeParts.name),
         dialogName = queryString.dialog,
@@ -44,7 +44,7 @@ function handleOpen(name, options, nameId) {
         if (nameId) {
             queryString.dialogid = nameId;
         }
-        var unparsedQueryString = $.param(queryString);
+        let unparsedQueryString = $.param(queryString);
         if (unparsedQueryString.length > 0) {
             unparsedQueryString = '?' + unparsedQueryString;
         }

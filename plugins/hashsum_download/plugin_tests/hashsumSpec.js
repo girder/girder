@@ -1,13 +1,13 @@
 girderTest.importPlugin('hashsum_download');
-var app;
+let app;
 girderTest.startApp()
     .done(function (startedApp) {
         app = startedApp;
     });
 
 describe('Unit test the file view augmentation', function () {
-    var file;
-    var sha512 = 'd9f804f8f7caceec12a1207c16c6b70cb1dbfd8ea8f48a36168c98898c' +
+    let file;
+    const sha512 = 'd9f804f8f7caceec12a1207c16c6b70cb1dbfd8ea8f48a36168c98898c' +
         '1f138a11e9d1b40769d3c112afb099c6be5d57fc1ee8cf353df91ca0d3cf5524ddb047';
 
     it('Create a file and its info dialog', function () {
@@ -35,7 +35,7 @@ describe('Unit test the file view augmentation', function () {
         girderTest.waitForDialog();
 
         runs(function () {
-            var container = $('.g-file-info-line[property="sha512"]');
+            const container = $('.g-file-info-line[property="sha512"]');
             expect(container.length).toBe(1);
             expect($('input.g-hash-textbox', container).val()).toBe(sha512);
             expect($('a.g-keyfile-download', container).attr('href')).toBe(

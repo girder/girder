@@ -21,7 +21,7 @@ import RootSelectorWidgetTemplate from '@girder/core/templates/widgets/rootSelec
  * @type {object}
  * @property {Collection} collection
  */
-var RootSelectorWidget = View.extend({
+const RootSelectorWidget = View.extend({
     events: {
         'change #g-root-selector': '_selectRoot'
     },
@@ -136,9 +136,9 @@ var RootSelectorWidget = View.extend({
      * model object from the DOM and triggers the g:selected event.
      */
     _selectRoot: function (evt) {
-        var sel = this.$(':selected');
-        var id = sel.val();
-        var group = sel.data('group') || null;
+        const sel = this.$(':selected');
+        const id = sel.val();
+        const group = sel.data('group') || null;
         this.selected = null;
         if (_.has(this.groups, group)) {
             this.selected = this.groups[group].get(id);
@@ -165,7 +165,7 @@ var RootSelectorWidget = View.extend({
      * Return a string to display for the given model.
      */
     _formatName: function (model) {
-        var name = model.id;
+        let name = model.id;
         switch (model.get('_modelType')) {
             case 'user':
                 name = model.get('login');
@@ -182,7 +182,7 @@ var RootSelectorWidget = View.extend({
      * Fetch all collections from the server.
      */
     fetch: function () {
-        var reset = this.reset;
+        const reset = this.reset;
         _.each(this.groups, function (collection) {
             collection.fetch(null, reset);
         });

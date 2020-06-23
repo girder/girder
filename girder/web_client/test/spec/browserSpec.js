@@ -1,7 +1,7 @@
 describe('Test the hierarchy browser modal', function () {
-    var testEl;
-    var returnVal;
-    var transition;
+    let testEl;
+    let returnVal;
+    let transition;
 
     beforeEach(function () {
         testEl = $('<div/>').appendTo('body');
@@ -23,7 +23,7 @@ describe('Test the hierarchy browser modal', function () {
         it('defaults', function () {
             returnVal = [];
 
-            var view;
+            let view;
             runs(function () {
                 view = new girder.views.widgets.RootSelectorWidget({
                     el: testEl,
@@ -45,7 +45,7 @@ describe('Test the hierarchy browser modal', function () {
             });
 
             runs(function () {
-                var select = view.$('select#g-root-selector');
+                const select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
                 expect(select.find('option').first().text()).toBe('Select a root...');
                 expect(select.find('optgroup[label="Collections"]').length).toBe(1);
@@ -56,7 +56,7 @@ describe('Test the hierarchy browser modal', function () {
         it('display order', function () {
             returnVal = [];
 
-            var view;
+            let view;
             runs(function () {
                 view = new girder.views.widgets.RootSelectorWidget({
                     el: testEl,
@@ -71,7 +71,7 @@ describe('Test the hierarchy browser modal', function () {
             });
 
             runs(function () {
-                var select = view.$('select#g-root-selector');
+                const select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
                 expect(select.find('option').first().text()).toBe('Select a root...');
                 expect(select.find('optgroup[label="Collections"]').length).toBe(0);
@@ -88,7 +88,7 @@ describe('Test the hierarchy browser modal', function () {
             }));
             returnVal = [];
 
-            var view;
+            let view;
             runs(function () {
                 view = new girder.views.widgets.RootSelectorWidget({
                     el: testEl,
@@ -102,7 +102,7 @@ describe('Test the hierarchy browser modal', function () {
             });
 
             runs(function () {
-                var select = view.$('select#g-root-selector');
+                const select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
                 expect(select.find('option').first().text()).toBe('Select a root...');
                 expect(select.find('option[value="0"]').text()).toBe('Home');
@@ -111,7 +111,7 @@ describe('Test the hierarchy browser modal', function () {
 
         it('rerender on login', function () {
             returnVal = [];
-            var user = {
+            const user = {
                 user: {
                     _id: '0',
                     login: 'johndoe',
@@ -133,7 +133,7 @@ describe('Test the hierarchy browser modal', function () {
                 return $.Deferred().resolve([]).promise();
             });
 
-            var view;
+            let view;
             runs(function () {
                 view = new girder.views.widgets.RootSelectorWidget({
                     el: testEl,
@@ -156,7 +156,7 @@ describe('Test the hierarchy browser modal', function () {
             });
 
             runs(function () {
-                var select = view.$('select#g-root-selector');
+                const select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
                 expect(select.find('option').first().text()).toBe('Select a root...');
                 expect(select.find('option[value="0"]').text()).toBe('Home');
@@ -164,8 +164,8 @@ describe('Test the hierarchy browser modal', function () {
         });
 
         it('custom optgroup', function () {
-            var col;
-            var view;
+            let col;
+            let view;
 
             runs(function () {
                 returnVal = [];
@@ -187,7 +187,7 @@ describe('Test the hierarchy browser modal', function () {
             });
 
             runs(function () {
-                var select = view.$('select#g-root-selector');
+                const select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
                 expect(select.find('option').first().text()).toBe('Select a root...');
                 expect(select.find('optgroup').first().prop('label')).toBe('Collections');
@@ -207,8 +207,8 @@ describe('Test the hierarchy browser modal', function () {
             });
 
             runs(function () {
-                var select = view.$('select#g-root-selector');
-                var opt = select.find('optgroup[label="Custom"] > option[value="abc"]');
+                const select = view.$('select#g-root-selector');
+                let opt = select.find('optgroup[label="Custom"] > option[value="abc"]');
                 expect(opt.data('group')).toBe('Custom');
                 expect(opt.text()).toBe('custom 1');
 
@@ -223,8 +223,8 @@ describe('Test the hierarchy browser modal', function () {
         });
 
         it('respond to user selection', function () {
-            var col;
-            var view;
+            let col;
+            let view;
 
             runs(function () {
                 returnVal = [
@@ -259,7 +259,7 @@ describe('Test the hierarchy browser modal', function () {
             });
 
             runs(function () {
-                var called = 0;
+                let called = 0;
                 view.on('g:selected', function (evt) {
                     expect(evt.root.attributes).toEqual({
                         _id: '123',
@@ -276,8 +276,8 @@ describe('Test the hierarchy browser modal', function () {
         });
 
         it('respond to Home selection', function () {
-            var col;
-            var view;
+            let col;
+            let view;
             girder.auth.setCurrentUser(new girder.models.UserModel({
                 _id: '0',
                 login: 'johndoe',
@@ -318,7 +318,7 @@ describe('Test the hierarchy browser modal', function () {
             });
 
             runs(function () {
-                var called = 0;
+                let called = 0;
                 view.on('g:selected', function (evt) {
                     expect(evt.root.attributes).toEqual({
                         _id: '0',
@@ -336,8 +336,8 @@ describe('Test the hierarchy browser modal', function () {
         });
 
         it('preselected option', function () {
-            var col;
-            var view;
+            let col;
+            let view;
             returnVal = [
                 { _id: 'abc', name: 'custom 1', _modelType: 'collection' },
                 { _id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin' },
@@ -372,15 +372,15 @@ describe('Test the hierarchy browser modal', function () {
             });
 
             runs(function () {
-                var select = view.$('select#g-root-selector');
+                const select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
                 expect(select.val()).toBe('123');
             });
         });
 
         it('preselected by Resource Option (object or Model)', function () {
-            var col;
-            var view;
+            let col;
+            let view;
             returnVal = [
                 { _id: 'abc', name: 'custom 1', _modelType: 'collection' },
                 { _id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin' },
@@ -415,15 +415,15 @@ describe('Test the hierarchy browser modal', function () {
             });
 
             runs(function () {
-                var select = view.$('select#g-root-selector');
+                const select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
                 expect(select.val()).toBe('def');
             });
         });
 
         it('preselected by Resource Option (String Id)', function () {
-            var col;
-            var view;
+            let col;
+            let view;
             returnVal = [
                 { _id: 'abc', name: 'custom 1', _modelType: 'collection' },
                 { _id: 'def', name: 'custom 2', _modelType: 'user', login: 'thelogin' },
@@ -458,7 +458,7 @@ describe('Test the hierarchy browser modal', function () {
             });
 
             runs(function () {
-                var select = view.$('select#g-root-selector');
+                const select = view.$('select#g-root-selector');
                 expect(select.length).toBe(1);
                 expect(select.val()).toBe('123');
             });
@@ -466,9 +466,9 @@ describe('Test the hierarchy browser modal', function () {
     });
 
     describe('browser modal', function () {
-        var view;
+        let view;
 
-        var hwSettings;
+        let hwSettings;
         function fakeInitialize(settings) {
             hwSettings = settings;
             this.parentModel = settings.parentModel;
@@ -560,7 +560,7 @@ describe('Test the hierarchy browser modal', function () {
                 lastName: 'Doe'
             }));
 
-            var folderModel = new girder.models.FolderModel({
+            const folderModel = new girder.models.FolderModel({
                 _id: '1',
                 name: 'my folder'
             });
@@ -588,7 +588,7 @@ describe('Test the hierarchy browser modal', function () {
             view._hierarchyView.trigger('g:setCurrentModel');
             expect(view.$('#g-selected-model').val()).toBe(folderModel.get('name'));
 
-            var ncalls = 0;
+            let ncalls = 0;
             view.on('g:saved', function (model) {
                 ncalls += 1;
                 expect(model.id).toBe(folderModel.id);
@@ -630,7 +630,7 @@ describe('Test the hierarchy browser modal', function () {
                 }
             }).render();
 
-            var itemModel = new girder.models.ItemModel({
+            const itemModel = new girder.models.ItemModel({
                 _id: '1',
                 name: 'my item'
             });
@@ -648,7 +648,7 @@ describe('Test the hierarchy browser modal', function () {
         });
 
         it('input element', function () {
-            var validateCalledWith, validateReturn, submitCalled = false;
+            let validateCalledWith, validateReturn, submitCalled = false;
 
             girder.auth.setCurrentUser(new girder.models.UserModel({
                 _id: '0',
@@ -669,7 +669,7 @@ describe('Test the hierarchy browser modal', function () {
                     default: 'default',
                     placeholder: 'placeholder',
                     validate: function (val) {
-                        var isValid = $.Deferred();
+                        const isValid = $.Deferred();
                         validateCalledWith = val;
                         if (validateReturn) {
                             isValid.reject(validateReturn);
@@ -722,9 +722,9 @@ describe('Test the hierarchy browser modal', function () {
 });
 
 describe('browser hierarchy selection', function () {
-    var user, folder, subfolder, item, widget;
-    var testEl;
-    var transition;
+    let user, folder, subfolder, item, widget;
+    let testEl;
+    let transition;
 
     beforeEach(function () {
         testEl = $('<div/>').appendTo('body');
@@ -833,7 +833,7 @@ describe('browser hierarchy selection', function () {
         }, 'the hierarchy widget to display');
 
         runs(function () {
-            var link = $('.g-item-list-entry.g-selected a.g-item-list-link').attr('href').replace('#item/', '');
+            const link = $('.g-item-list-entry.g-selected a.g-item-list-link').attr('href').replace('#item/', '');
             expect(link).toBe(item.get('_id'));
         });
     });
@@ -890,7 +890,7 @@ describe('browser hierarchy selection', function () {
 
         runs(function () {
             expect(widget.$('#g-selected-model').val()).toBe('an item');
-            var link = $('.g-item-list-entry.g-selected a.g-item-list-link').attr('href').replace('#item/', '');
+            const link = $('.g-item-list-entry.g-selected a.g-item-list-link').attr('href').replace('#item/', '');
             expect(link).toBe(item.get('_id'));
         }, 'Make sure proper item is selected');
 
@@ -903,9 +903,9 @@ describe('browser hierarchy selection', function () {
         }, 'waiting for the scroll events to be bound');
 
         runs(function () {
-            var widgetcontainer = $('.g-hierarchy-widget-container');
+            const widgetcontainer = $('.g-hierarchy-widget-container');
             // There seems to be some inconsistencies with how the scroll event is bound, a double check is done
-            var scrollnamespace = null;
+            let scrollnamespace = null;
             if ($._data(widgetcontainer[0], 'events') &&
                 $._data(widgetcontainer[0], 'events').scroll &&
                 $._data(widgetcontainer[0], 'events').scroll[0].namespace) {
@@ -979,9 +979,9 @@ describe('browser hierarchy selection', function () {
 });
 
 describe('browser hierarchy paginated selection', function () {
-    var user, folder, subfolder, item, widget, itemlist;
-    var testEl;
-    var transition;
+    let user, folder, subfolder, item, widget, itemlist;
+    let testEl;
+    let transition;
 
     beforeEach(function () {
         testEl = $('<div/>').appendTo('body');
@@ -1071,7 +1071,7 @@ describe('browser hierarchy paginated selection', function () {
     it('create lots of items', function () {
         runs(function () {
             itemlist = [];
-            for (var i = 0; i < 100; i++) {
+            for (let i = 0; i < 100; i++) {
                 var _item = new girder.models.ItemModel({
                     folderId: folder.get('_id'),
                     name: ('item#: ' + i)

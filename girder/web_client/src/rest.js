@@ -6,8 +6,8 @@ import events from '@girder/core/events';
 import { getCurrentToken, cookie } from '@girder/core/auth';
 
 let apiRoot;
-var uploadHandlers = {};
-var uploadChunkSize = 1024 * 1024 * 64; // 64MB
+const uploadHandlers = {};
+let uploadChunkSize = 1024 * 1024 * 64; // 64MB
 
 /**
  * Get the root path to the API.
@@ -145,15 +145,15 @@ Backbone.ajax = restRequest;
 
 /* Pending rest requests are listed in this pool so that they can be aborted or
 * checked if still processing. */
-var restXhrPool = {};
-var restXhrCount = 0;
+const restXhrPool = {};
+let restXhrCount = 0;
 $(document).ajaxSend(function (event, xhr) {
     restXhrCount += 1;
     xhr.girderXhrNumber = restXhrCount;
     restXhrPool[restXhrCount] = xhr;
 });
 $(document).ajaxComplete(function (event, xhr) {
-    var num = xhr.girderXhrNumber;
+    const num = xhr.girderXhrNumber;
     if (num && restXhrPool[num]) {
         delete restXhrPool[num];
     }

@@ -1,10 +1,10 @@
 girderTest.startApp();
 
 describe('Test EventStream', function () {
-    var onEventStreamStart;
-    var onEventStreamStop;
-    var onEventStreamClose;
-    var onVisibilityStateChangeSpy;
+    let onEventStreamStart;
+    let onEventStreamStop;
+    let onEventStreamClose;
+    let onVisibilityStateChangeSpy;
 
     it('test EventStream creation', function () {
         runs(function () {

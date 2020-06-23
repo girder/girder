@@ -13,7 +13,7 @@ import '@girder/core/stylesheets/body/frontPage.styl';
 /**
  * This is the view for the front page of the app.
  */
-var FrontPageView = View.extend({
+const FrontPageView = View.extend({
     events: {
         'click .g-register-link': function () {
             events.trigger('g:registerUi');

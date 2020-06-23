@@ -14,12 +14,12 @@ import '@girder/core/stylesheets/layout/globalNav.styl';
  * This view shows a list of global navigation links that should be
  * displayed at all times.
  */
-var LayoutGlobalNavView = View.extend({
+const LayoutGlobalNavView = View.extend({
     events: {
         'click .g-nav-link': function (event) {
             event.preventDefault(); // so we can keep the href
 
-            var link = $(event.currentTarget);
+            const link = $(event.currentTarget);
 
             router.navigate(link.attr('g-target'), { trigger: true });
 
@@ -52,7 +52,7 @@ var LayoutGlobalNavView = View.extend({
     },
 
     render: function () {
-        var navItems;
+        let navItems;
         if (this.navItems) {
             navItems = this.navItems;
         } else {

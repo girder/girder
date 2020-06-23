@@ -9,10 +9,10 @@ import '@girder/core/utilities/jquery/girderModal';
 /**
  * This widget is used to edit file information.
  */
-var EditFileWidget = View.extend({
+const EditFileWidget = View.extend({
     events: {
         'submit #g-file-edit-form': function () {
-            var fields = {
+            const fields = {
                 name: this.$('#g-name').val(),
                 mimeType: this.$('#g-mimetype').val()
             };

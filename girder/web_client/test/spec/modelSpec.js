@@ -1,7 +1,7 @@
 girderTest.startApp();
 
 describe('Test the model class', function () {
-    var triggerRestError = false;
+    let triggerRestError = false;
 
     beforeEach(function () {
         // Intercept window.location.assign calls so we can test the behavior of e.g. download
@@ -9,7 +9,7 @@ describe('Test the model class', function () {
         spyOn(window.location, 'assign');
 
         spyOn(girder.rest, 'restRequest').andCallFake(function (opts) {
-            var resp = $.Deferred();
+            const resp = $.Deferred();
             if (triggerRestError) {
                 resp.reject('err');
             } else {
@@ -20,12 +20,12 @@ describe('Test the model class', function () {
     });
 
     it('test the base model', function () {
-        var SampleModel = girder.models.Model.extend({
+        const SampleModel = girder.models.Model.extend({
             resourceName: 'sampleResource'
         });
-        var id = '012345678901234567890123';
+        const id = '012345678901234567890123';
 
-        var model = new SampleModel({});
+        const model = new SampleModel({});
         // test name
         model.set('name', 'sample');
         expect(model.name()).toBe('sample');

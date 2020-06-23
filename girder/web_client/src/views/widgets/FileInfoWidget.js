@@ -8,7 +8,7 @@ import '@girder/core/utilities/jquery/girderModal';
 /**
  * This widget shows information about a single file in a modal dialog.
  */
-var FileInfoWidget = View.extend({
+const FileInfoWidget = View.extend({
     initialize: function (settings) {
         this.parentItem = settings.parentItem;
     },

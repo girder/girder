@@ -13,12 +13,12 @@ import '@girder/core/utilities/jquery/girderModal';
 /**
  * This widget is used to edit an existing assetstore.
  */
-var EditAssetstoreWidget = View.extend({
+const EditAssetstoreWidget = View.extend({
     events: {
         'submit #g-assetstore-edit-form': function (e) {
             e.preventDefault();
 
-            var fields = this.fieldsMap[this.model.get('type')].get.call(this);
+            const fields = this.fieldsMap[this.model.get('type')].get.call(this);
             fields.name = this.$('#g-edit-name').val();
 
             this.updateAssetstore(fields);
@@ -50,7 +50,7 @@ var EditAssetstoreWidget = View.extend({
     fieldsMap: {},
 
     render: function () {
-        var modal = this.$el.html(EditAssetstoreWidgetTemplate({
+        const modal = this.$el.html(EditAssetstoreWidgetTemplate({
             assetstore: this.model,
             types: AssetstoreType
         })).girderModal(this).on('shown.bs.modal', () => {
@@ -66,8 +66,8 @@ var EditAssetstoreWidget = View.extend({
     },
 
     updateAssetstore: function (fields) {
-        var oldfields = {};
-        var model = this.model;
+        const oldfields = {};
+        const model = this.model;
         _.each(fields, function (value, key) {
             oldfields[key] = model.get(key);
         });
@@ -84,7 +84,7 @@ var EditAssetstoreWidget = View.extend({
     }
 });
 
-var fieldsMap = EditAssetstoreWidget.prototype.fieldsMap;
+const fieldsMap = EditAssetstoreWidget.prototype.fieldsMap;
 
 fieldsMap[AssetstoreType.FILESYSTEM] = {
     get: function () {
@@ -94,7 +94,7 @@ fieldsMap[AssetstoreType.FILESYSTEM] = {
         };
     },
     set: function () {
-        var permStr = this.model.get('perms') ? this.model.get('perms').toString(8) : '600';
+        const permStr = this.model.get('perms') ? this.model.get('perms').toString(8) : '600';
         this.$('#g-edit-fs-perms').val(permStr);
         this.$('#g-edit-fs-root').val(this.model.get('root'));
     }

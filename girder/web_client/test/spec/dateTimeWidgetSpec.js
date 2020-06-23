@@ -1,5 +1,5 @@
 describe('Test DateTimeWidget', function () {
-    var widget;
+    let widget;
 
     describe('default construction', function () {
         beforeEach(function () {
@@ -14,7 +14,7 @@ describe('Test DateTimeWidget', function () {
         });
 
         it('create multiple widgets', function () {
-            var widget2 = new girder.views.widgets.DateTimeWidget({
+            const widget2 = new girder.views.widgets.DateTimeWidget({
                 parentView: null
             });
             widget2.render();
@@ -63,7 +63,7 @@ describe('Test DateTimeWidget', function () {
         });
 
         it('without icon', function () {
-            var parent = $('body').append('<div></div>');
+            const parent = $('body').append('<div></div>');
             widget = new girder.views.widgets.DateTimeWidget({
                 parentView: null,
                 el: parent,
@@ -79,7 +79,7 @@ describe('Test DateTimeWidget', function () {
         });
 
         it('with icon', function () {
-            var parent = $('body').append('<div></div>');
+            const parent = $('body').append('<div></div>');
             widget = new girder.views.widgets.DateTimeWidget({
                 parentView: null,
                 el: parent,
@@ -165,7 +165,7 @@ describe('Test DateTimeWidget', function () {
 });
 
 describe('Test DateTimeRangeWidget', function () {
-    var widget;
+    let widget;
 
     describe('default construction', function () {
         beforeEach(function () {
@@ -181,7 +181,7 @@ describe('Test DateTimeRangeWidget', function () {
         });
 
         it('create multiple widgets', function () {
-            var widget2 = new girder.views.widgets.DateTimeRangeWidget({
+            const widget2 = new girder.views.widgets.DateTimeRangeWidget({
                 parentView: null
             });
             widget2.render();
@@ -242,7 +242,7 @@ describe('Test DateTimeRangeWidget', function () {
         });
 
         it('without icon', function () {
-            var parent = $('body').append('<div></div>');
+            const parent = $('body').append('<div></div>');
             widget = new girder.views.widgets.DateTimeRangeWidget({
                 parentView: null,
                 el: parent,
@@ -265,7 +265,7 @@ describe('Test DateTimeRangeWidget', function () {
         });
 
         it('with icon', function () {
-            var parent = $('body').append('<div></div>');
+            const parent = $('body').append('<div></div>');
             widget = new girder.views.widgets.DateTimeRangeWidget({
                 parentView: null,
                 el: parent,

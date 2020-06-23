@@ -1,7 +1,7 @@
 girderTest.importPlugin('authorized_upload');
 girderTest.startApp();
 
-var secureUrl = null;
+let secureUrl = null;
 describe('Create an authorized upload.', function () {
     it('register a user', girderTest.createUser(
         'admin', 'admin@girder.test', 'Admin', 'Admin', 'passwd'));
@@ -63,7 +63,7 @@ describe('Create an authorized upload.', function () {
 
 describe('Perform authorized upload', function () {
     it('go to the authorized upload URL', function () {
-        var hash = secureUrl.substring(secureUrl.indexOf('#'));
+        const hash = secureUrl.substring(secureUrl.indexOf('#'));
         window.location.assign(hash);
 
         waitsFor(function () {

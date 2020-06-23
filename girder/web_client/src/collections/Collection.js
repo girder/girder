@@ -10,7 +10,7 @@ import { SORT_ASC } from '@girder/core/constants';
  * All collections should descend from this collection base class, which
  * provides nice utilities for pagination and sorting.
  */
-var Collection = Backbone.Collection.extend({
+const Collection = Backbone.Collection.extend({
     model: Model,
     resourceName: null,
 
@@ -176,12 +176,12 @@ var Collection = Backbone.Collection.extend({
             this.pageOffsetStack.push(this.offset);
         }
 
-        var limit = this.pageLimit > 0 ? this.pageLimit + 1 : 0;
+        const limit = this.pageLimit > 0 ? this.pageLimit + 1 : 0;
 
-        var finalList = []; /* will be built up in pieces */
+        let finalList = []; /* will be built up in pieces */
 
         function fetchListFragment() {
-            var xhr = restRequest({
+            const xhr = restRequest({
                 url: this.altUrl || this.resourceName,
                 data: _.extend({
                     limit: limit,
@@ -191,7 +191,7 @@ var Collection = Backbone.Collection.extend({
                 }, this.params)
             });
 
-            var result = xhr.then((list) => {
+            const result = xhr.then((list) => {
                 if (this.pageLimit > 0 && list.length > this.pageLimit) {
                     // This means we have more pages to display still. Pop off
                     // the extra that we fetched.
@@ -202,14 +202,14 @@ var Collection = Backbone.Collection.extend({
                     this._hasMorePages = false;
                 }
 
-                var offsetDelta = list.length;
+                let offsetDelta = list.length;
 
                 /*
                  * If filtering, decorate the list with their pre-filtered
                  * indexes.  The index will be needed when adjusting the offset.
                  */
                 if (this.filterFunc) {
-                    var filter = this.filterFunc;
+                    const filter = this.filterFunc;
                     list = (
                         list
                             .map(function (x, index) { return [index, x]; })
@@ -219,8 +219,8 @@ var Collection = Backbone.Collection.extend({
                     );
                 }
 
-                var numUsed = list.length;
-                var wantMorePages = (
+                let numUsed = list.length;
+                const wantMorePages = (
                     (this.pageLimit === 0) ||
                     (finalList.length + numUsed < this.pageLimit)
                 );
@@ -231,7 +231,7 @@ var Collection = Backbone.Collection.extend({
                      * If we fetched more data than we needed to complete the
                      * page, then newNumUsed will be < numUsed ...
                      */
-                    var newNumUsed = this.pageLimit - finalList.length;
+                    const newNumUsed = this.pageLimit - finalList.length;
                     if (numUsed > newNumUsed) {
                         /*
                          * ...therefore, entries are being left out at the end,

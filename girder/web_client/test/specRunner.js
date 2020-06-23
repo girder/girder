@@ -8,12 +8,12 @@
 /* eslint-disable node/no-deprecated-api */
 /* globals phantom, WebPage, jasmine, girderTest */
 
-var fs = require('fs');
+const fs = require('fs');
 
-var system = require('system');
+const system = require('system');
 require('event-source/global');
 
-var args = phantom.args ? phantom.args : system.args.slice(1);
+const args = phantom.args ? phantom.args : system.args.slice(1);
 
 if (args && args.length < 2) {
     console.error('Usage: phantomjs phantom_jasmine_runner.js <page> <spec> [<covg_output> [<default jasmine timeout>]');
@@ -24,29 +24,29 @@ if (args && args.length < 2) {
     phantom.exit(2);
 }
 
-var pageUrl = args[0];
-var spec = args[1];
-var page = new WebPage();
+const pageUrl = args[0];
+const spec = args[1];
+const page = new WebPage();
 
 // Determine the test name to be used for output files
-var specPathComponents = spec.split('/');
-var pluginName =
+const specPathComponents = spec.split('/');
+const pluginName =
     specPathComponents[specPathComponents.length - 2] === 'plugin_tests'
         ? specPathComponents[specPathComponents.length - 3]
         : 'core';
-var specName = specPathComponents[specPathComponents.length - 1].replace(/\.js$/, '');
-var specOptions = args[3];
-var testName = pluginName + '_' + specName + (specOptions ? '_' + specOptions : '');
+const specName = specPathComponents[specPathComponents.length - 1].replace(/\.js$/, '');
+const specOptions = args[3];
+const testName = pluginName + '_' + specName + (specOptions ? '_' + specOptions : '');
 
-var coverageDir = 'build/test/coverage/web_temp';
+const coverageDir = 'build/test/coverage/web_temp';
 fs.makeTree(coverageDir);
-var coverageFile = coverageDir + '/coverage_' + testName + '.json';
+const coverageFile = coverageDir + '/coverage_' + testName + '.json';
 if (fs.exists(coverageFile)) {
     fs.remove(coverageFile);
 }
 // write coverage results to a file
 function reportCoverage() {
-    var cov = page.evaluate(function () {
+    let cov = page.evaluate(function () {
         return window.__coverage__;
     });
     cov = cov || {};
@@ -59,18 +59,18 @@ page.viewportSize = {
     height: 769
 };
 
-var artifactDir = 'build/test/artifacts';
+const artifactDir = 'build/test/artifacts';
 fs.makeTree(artifactDir);
 page.onConsoleMessage = function (msg) {
     if (msg.indexOf('__SCREENSHOT__') === 0) {
-        var screenshotTime = msg.substring('__SCREENSHOT__'.length);
-        var screenshotFile = artifactDir + '/screenshot_' + testName + '_' + screenshotTime + '.png';
+        const screenshotTime = msg.substring('__SCREENSHOT__'.length);
+        const screenshotFile = artifactDir + '/screenshot_' + testName + '_' + screenshotTime + '.png';
         page.render(screenshotFile);
         console.log('Created screenshot: ' + screenshotFile);
 
         return;
     } else if (msg === 'ConsoleReporter finished') {
-        var success = this.page.evaluate(function () {
+        const success = this.page.evaluate(function () {
             return window.jasmine_phantom_reporter.status === 'success';
         });
         if (success) {
@@ -93,7 +93,7 @@ page.onCallback = function (data) {
      * :param data: an object with an 'action', as listed above.
      * :returns: depends on the action.
      */
-    var uploadTemp = fs.workingDirectory + fs.separator + 'phantom_temp';
+    let uploadTemp = fs.workingDirectory + fs.separator + 'phantom_temp';
     if (data.suffix) {
         uploadTemp += '_' + data.suffix;
     }
@@ -130,7 +130,7 @@ page.onCallback = function (data) {
 };
 
 page.onError = function (msg, trace) {
-    var msgStack = ['ERROR: ' + msg];
+    const msgStack = ['ERROR: ' + msg];
     if (trace && trace.length) {
         msgStack.push('TRACE:');
         trace.forEach(function (t) {
@@ -140,7 +140,7 @@ page.onError = function (msg, trace) {
     }
     console.error(msgStack.join('\n'));
 
-    var screenshotFile = artifactDir + '/screenshot_' + testName + '_error.png';
+    const screenshotFile = artifactDir + '/screenshot_' + testName + '_error.png';
     page.render(screenshotFile);
     console.log('Created error screenshot: ' + screenshotFile);
     phantom.exit(1);

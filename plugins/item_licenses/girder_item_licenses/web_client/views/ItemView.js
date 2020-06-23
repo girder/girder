@@ -13,7 +13,7 @@ wrap(ItemView, 'render', function (render) {
     // ItemView is a special case in which rendering is done asynchronously,
     // so we must listen for a render event.
     this.once('g:rendered', function () {
-        var itemLicenseItemWidget = new ItemLicenseWidget({
+        const itemLicenseItemWidget = new ItemLicenseWidget({
             item: this.model,
             parentView: this
         }).render();

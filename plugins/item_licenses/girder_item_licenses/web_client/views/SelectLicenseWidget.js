@@ -5,7 +5,7 @@ import SelectLicenseWidgetTemplate from '../templates/selectLicenseWidget.pug';
 /**
  * Widget that allows user to select a license.
  */
-var SelectLicenseWidget = View.extend({
+const SelectLicenseWidget = View.extend({
     initialize: function (settings) {
         this.licenses = settings.licenses;
         this.currentLicense = settings.currentLicense;

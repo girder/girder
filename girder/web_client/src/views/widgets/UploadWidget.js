@@ -21,7 +21,7 @@ import '@girder/core/utilities/jquery/girderModal';
  *   itemComplete: Triggered each time an individual item is finished uploading.
  *   finished: Triggered when the entire set of items is uploaded.
  */
-var UploadWidget = View.extend({
+const UploadWidget = View.extend({
     events: {
         'submit #g-upload-form': function (e) {
             e.preventDefault();
@@ -36,7 +36,7 @@ var UploadWidget = View.extend({
             this.uploadNextFile();
         },
         'change #g-files': function () {
-            var files = this.$('#g-files')[0].files;
+            const files = this.$('#g-files')[0].files;
 
             if (files.length) {
                 this.files = files;
@@ -62,12 +62,12 @@ var UploadWidget = View.extend({
                 .html('<i class="icon-docs"/> Browse or drop files');
         },
         'dragover .g-drop-zone': function (e) {
-            var dataTransfer = e.originalEvent.dataTransfer;
+            const dataTransfer = e.originalEvent.dataTransfer;
             if (!dataTransfer) {
                 return;
             }
             // The following two lines enable drag and drop from the chrome download bar
-            var allowed = dataTransfer.effectAllowed;
+            const allowed = dataTransfer.effectAllowed;
             dataTransfer.dropEffect = (allowed === 'move' || allowed === 'linkMove') ? 'move' : 'copy';
 
             e.preventDefault();
@@ -134,7 +134,7 @@ var UploadWidget = View.extend({
     },
 
     render: function () {
-        var templateParams = {
+        const templateParams = {
             parent: this.parent,
             parentType: this.parentType,
             title: this.title,
@@ -146,7 +146,7 @@ var UploadWidget = View.extend({
         if (this.modal) {
             this.$el.html(UploadWidgetTemplate(templateParams));
 
-            var dialogid;
+            let dialogid;
             if (this.parentType === 'file') {
                 dialogid = this.parent.get('_id');
             }
@@ -176,7 +176,7 @@ var UploadWidget = View.extend({
             .removeClass('g-dropzone-show')
             .html(`<i class="icon-docs"/> ${this._browseText}`);
 
-        var dataTransfer = e.originalEvent.dataTransfer;
+        const dataTransfer = e.originalEvent.dataTransfer;
 
         // Require all dropped items to be files
         if (!_.every(dataTransfer.items, (item) => this._isFile(item))) {
@@ -204,7 +204,7 @@ var UploadWidget = View.extend({
                 this.totalSize += file.size;
             }, this);
 
-            var msg;
+            let msg;
 
             if (this.files.length > 1) {
                 msg = 'Selected ' + this.files.length + ' files';
@@ -278,7 +278,7 @@ var UploadWidget = View.extend({
         }, this).on('g:upload.chunkSent', function (info) {
             this.overallProgress += info.bytes;
         }, this).on('g:upload.progress', function (info) {
-            var currentProgress = info.startByte + info.loaded;
+            const currentProgress = info.startByte + info.loaded;
 
             this.$('.g-progress-current>.progress-bar').css('width',
                 Math.ceil(100 * currentProgress / info.total) + '%');
@@ -295,11 +295,11 @@ var UploadWidget = View.extend({
                 formatSize(this.overallProgress + info.loaded) + ' / ' +
                 formatSize(this.totalSize));
         }, this).on('g:upload.error', function (info) {
-            var html = info.message + ' <a class="g-resume-upload">' +
+            const html = info.message + ' <a class="g-resume-upload">' +
                 'Click to resume upload</a>';
             $('.g-upload-error-message').html(html);
         }, this).on('g:upload.errorStarting', function (info) {
-            var html = info.message + ' <a class="g-restart-upload">' +
+            const html = info.message + ' <a class="g-restart-upload">' +
                 'Click to restart upload</a>';
             $('.g-upload-error-message').html(html);
         }, this);
@@ -307,7 +307,7 @@ var UploadWidget = View.extend({
         if (this.parentType === 'file') {
             this.currentFile.updateContents(this.files[this.currentIndex]);
         } else {
-            var otherParams = this.otherParams;
+            let otherParams = this.otherParams;
             if (_.isFunction(this.otherParams)) {
                 otherParams = this.otherParams(this);
             }
@@ -323,7 +323,7 @@ var UploadWidget = View.extend({
      * @returns {boolean} True if item represents a file.
      */
     _isFile: function (item) {
-        var getAsEntry = item.getAsEntry;
+        let getAsEntry = item.getAsEntry;
         if (!_.isFunction(getAsEntry)) {
             getAsEntry = item.webkitGetAsEntry;
         }
@@ -332,7 +332,7 @@ var UploadWidget = View.extend({
             return true;
         }
 
-        var entry = getAsEntry.call(item);
+        const entry = getAsEntry.call(item);
         return entry && entry.isFile;
     }
 });

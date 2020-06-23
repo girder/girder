@@ -186,11 +186,11 @@ describe('Test the settings page', function () {
 });
 
 describe('Test the assetstore page', function () {
-    var name, service;
+    let name, service;
 
-    var _getAssetstoreContainer = function (name) {
-        var containers = $('.g-assetstore-container');
-        for (var i = 0; i < containers.length; i++) {
+    const _getAssetstoreContainer = function (name) {
+        const containers = $('.g-assetstore-container');
+        for (let i = 0; i < containers.length; i++) {
             if ($('span.g-assetstore-name', containers.eq(i)).text().trim() === name) {
                 return containers.eq(i);
             }
@@ -198,8 +198,8 @@ describe('Test the assetstore page', function () {
         return null;
     };
 
-    var _testAssetstore = function (assetstore, tab, params, callback, waitCondition, waitMessage, shouldFail) {
-        var storeName = 'Test ' + assetstore + ' Assetstore';
+    const _testAssetstore = function (assetstore, tab, params, callback, waitCondition, waitMessage, shouldFail) {
+        const storeName = 'Test ' + assetstore + ' Assetstore';
 
         it('Create, switch to, and delete a ' + assetstore + ' assetstore', function () {
             /* create the assetstore */
@@ -217,8 +217,8 @@ describe('Test the assetstore page', function () {
             }, 'failure message to appear');
             runs(function () {
                 name = storeName;
-                for (var key in params) {
-                    var value = params[key];
+                for (const key in params) {
+                    let value = params[key];
                     if (value === 'name') {
                         value = name;
                     }
@@ -251,7 +251,7 @@ describe('Test the assetstore page', function () {
                 $('.g-set-current', _getAssetstoreContainer(name)).trigger('click');
             });
             waitsFor(function () {
-                var container = _getAssetstoreContainer(name);
+                const container = _getAssetstoreContainer(name);
                 return $('.g-set-current', container).length === 0;
             }, 'assetstore to be current');
             waitsFor(function () {
@@ -339,19 +339,19 @@ describe('Test the assetstore page', function () {
             runs(function () {
                 /* The original assetstore should be back to being the current
                  * assetstore */
-                var container = _getAssetstoreContainer('Test');
+                const container = _getAssetstoreContainer('Test');
                 expect($('.g-set-current', container).length).toBe(0);
             });
             girderTest.waitForLoad();
         });
     };
 
-    var _testFilesystemImport = function (params) {
-        var privateFolder = null;
+    const _testFilesystemImport = function (params) {
+        let privateFolder = null;
 
         runs(function () {
-            var container = _getAssetstoreContainer(params.name);
-            var el = $('a.g-import-button', container);
+            const container = _getAssetstoreContainer(params.name);
+            const el = $('a.g-import-button', container);
             window.location = el[0].href;
         });
 
@@ -360,7 +360,7 @@ describe('Test the assetstore page', function () {
         }, 'import page to load');
 
         runs(function () {
-            var coll = new girder.collections.FolderCollection();
+            const coll = new girder.collections.FolderCollection();
             coll.on('g:changed', function () {
                 privateFolder = coll.models[0];
             }).fetch({
@@ -436,12 +436,12 @@ describe('Test the assetstore page', function () {
         }, 'assetstore page to load');
     };
 
-    var _testS3Import = function (params) {
-        var privateFolder = null;
+    const _testS3Import = function (params) {
+        let privateFolder = null;
 
         runs(function () {
-            var container = _getAssetstoreContainer(params.name);
-            var el = $('a.g-import-button', container);
+            const container = _getAssetstoreContainer(params.name);
+            const el = $('a.g-import-button', container);
             window.location = el[0].href;
         });
 
@@ -450,7 +450,7 @@ describe('Test the assetstore page', function () {
         }, 'import page to load');
 
         runs(function () {
-            var coll = new girder.collections.FolderCollection();
+            const coll = new girder.collections.FolderCollection();
             coll.on('g:changed', function () {
                 privateFolder = coll.models[0];
             }).fetch({

@@ -1,25 +1,25 @@
-var SORT_ASC = 1;
-var SORT_DESC = -1;
+const SORT_ASC = 1;
+const SORT_DESC = -1;
 
-var MONTHS = [
+const MONTHS = [
     'January', 'February', 'March', 'April', 'May', 'June', 'July',
     'August', 'September', 'October', 'November', 'December'
 ];
 
-var AccessType = {
+const AccessType = {
     NONE: -1,
     READ: 0,
     WRITE: 1,
     ADMIN: 2
 };
 
-var AssetstoreType = {
+const AssetstoreType = {
     FILESYSTEM: 0,
     GRIDFS: 1,
     S3: 2
 };
 
-var Layout = {
+const Layout = {
     DEFAULT: 'default',
     EMPTY: 'empty'
 };

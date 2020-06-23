@@ -10,7 +10,7 @@ import HeaderUserViewMenuTemplate from '../templates/headerUserViewMenu.pug';
 wrap(HeaderUserView, 'render', function (render) {
     render.call(this);
 
-    var currentUser = getCurrentUser();
+    const currentUser = getCurrentUser();
     if (currentUser) {
         this.$('#g-user-action-menu>ul').prepend(HeaderUserViewMenuTemplate({
             href: '#jobs/user/' + currentUser.id

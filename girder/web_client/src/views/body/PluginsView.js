@@ -13,10 +13,10 @@ import '@girder/core/stylesheets/body/plugins.styl';
 /**
  * This is the plugin management page for administrators.
  */
-var PluginsView = View.extend({
+const PluginsView = View.extend({
     events: {
         'click a.g-plugin-config-link': function (evt) {
-            var route = $(evt.currentTarget).attr('g-route');
+            const route = $(evt.currentTarget).attr('g-route');
             router.navigate(route, { trigger: true });
         }
     },
@@ -60,7 +60,7 @@ var PluginsView = View.extend({
          * @param plugins: a dictionary to sort.  Each entry has a .name
          *                 attribute used for sorting.
          * @returns sortedPlugins: the sorted list. */
-        var sortedPlugins = _.map(plugins, function (value, key) {
+        const sortedPlugins = _.map(plugins, function (value, key) {
             return { key: key, value: value };
         });
         sortedPlugins.sort(function (a, b) {

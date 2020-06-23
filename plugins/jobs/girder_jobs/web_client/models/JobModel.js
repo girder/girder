@@ -4,7 +4,7 @@ import AccessControlledModel from '@girder/core/models/AccessControlledModel';
 
 import JobStatus from '../JobStatus';
 
-var JobModel = AccessControlledModel.extend({
+const JobModel = AccessControlledModel.extend({
     resourceName: 'job',
 
     /**
@@ -13,7 +13,7 @@ var JobModel = AccessControlledModel.extend({
     * equals n+1.time - n.time
     */
     calculateSegmentation: function () {
-        var segments = [];
+        let segments = [];
 
         const timestamps = this.get('timestamps');
 

@@ -10,25 +10,25 @@ import { restRequest } from '@girder/core/rest';
 import ConfigViewTemplate from '../templates/configView.pug';
 import '../stylesheets/configView.styl';
 
-var ConfigView = View.extend({
+const ConfigView = View.extend({
     events: {
         'click .g-autojoin-remove': function (event) {
             this.$('#g-autojoin-error-message').text('');
-            var index = parseInt($(event.currentTarget).attr('data-index'), 10);
+            const index = parseInt($(event.currentTarget).attr('data-index'), 10);
             this.rules.splice(index, 1);
             this.render();
         },
         'click #g-autojoin-add': function (event) {
             this.$('#g-autojoin-error-message').text('');
-            var pattern = $('#g-autojoin-pattern').val();
-            var group = $('#g-autojoin-group').val();
-            var level = $('#g-autojoin-level').val();
+            const pattern = $('#g-autojoin-pattern').val();
+            const group = $('#g-autojoin-group').val();
+            const level = $('#g-autojoin-level').val();
             if (pattern === '' || group === '' || level === '') {
                 this.$('#g-autojoin-error-message').text(
                     'All fields are required.');
                 return;
             }
-            var rule = {
+            const rule = {
                 pattern: pattern,
                 groupId: group,
                 level: parseInt(level, 10)
@@ -70,14 +70,14 @@ var ConfigView = View.extend({
     },
 
     render: function () {
-        var groups = this.collection.toArray();
+        const groups = this.collection.toArray();
 
-        var groupsById = {};
+        const groupsById = {};
         groups.forEach(function (group) {
             groupsById[group.get('_id')] = group;
         });
 
-        var levelNames = {
+        const levelNames = {
             0: 'Member',
             1: 'Moderator',
             2: 'Admin'

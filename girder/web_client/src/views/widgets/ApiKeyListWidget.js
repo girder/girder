@@ -13,11 +13,11 @@ import events from '@girder/core/events';
 
 import ApiKeyListTemplate from '@girder/core/templates/widgets/apiKeyList.pug';
 
-var ApiKeyListWidget = View.extend({
+const ApiKeyListWidget = View.extend({
     events: {
         'click .g-api-key-toggle-active': function (e) {
-            var apiKey = this._getModelFromEvent(e);
-            var toggleActive = () => {
+            const apiKey = this._getModelFromEvent(e);
+            const toggleActive = () => {
                 apiKey.once('g:setActive', function () {
                     this.render();
                 }, this).setActive(!apiKey.get('active'));
@@ -43,12 +43,12 @@ var ApiKeyListWidget = View.extend({
         },
 
         'click .g-api-key-edit': function (e) {
-            var apiKey = this._getModelFromEvent(e);
+            const apiKey = this._getModelFromEvent(e);
             this._renderEditWidget(apiKey);
         },
 
         'click .g-api-key-delete': function (e) {
-            var apiKey = this._getModelFromEvent(e);
+            const apiKey = this._getModelFromEvent(e);
 
             confirm({
                 text: 'Are you sure you want to delete the API key <b>' +
@@ -116,7 +116,7 @@ var ApiKeyListWidget = View.extend({
     },
 
     _getModelFromEvent: function (e) {
-        var cid = $(e.currentTarget).parents('.g-api-key-container').attr('cid');
+        const cid = $(e.currentTarget).parents('.g-api-key-container').attr('cid');
         return this.collection.get(cid);
     },
 

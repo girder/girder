@@ -13,7 +13,7 @@ import '@girder/core/stylesheets/body/searchResultsList.styl';
  * This view display all the search results by instantiating a subview
  * per each type found.
  */
-var SearchResultsView = View.extend({
+const SearchResultsView = View.extend({
     initialize: function (settings) {
         this._query = settings.query || '';
         this._mode = settings.mode || 'text';

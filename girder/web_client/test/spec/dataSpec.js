@@ -8,7 +8,7 @@ girderTest.startApp();
  */
 
 /* used for adjusting minimum upload size */
-var minUploadSize;
+let minUploadSize;
 
 /* Set the minimum chunk size in the server settings, the upload handler, and
  *  the S3 asset store handler.
@@ -16,10 +16,10 @@ var minUploadSize;
  *                 minimums.
  */
 function _setMinimumChunkSize(minSize) {
-    var uploadChunkSize, settingSize;
+    let uploadChunkSize, settingSize;
     if (!minUploadSize) {
         minUploadSize = { UPLOAD_CHUNK_SIZE: girder.rest.getUploadChunkSize() };
-        var resp = girder.rest.restRequest({
+        const resp = girder.rest.restRequest({
             url: 'system/setting',
             method: 'GET',
             data: { key: 'core.upload_minimum_chunk_size' },
@@ -218,7 +218,7 @@ describe('Create a data hierarchy', function () {
         }, 'search to return');
 
         runs(function () {
-            var results = $('.g-quick-search-container li.g-search-result');
+            const results = $('.g-quick-search-container li.g-search-result');
             expect(results.length).toBe(3);
             expect(results.find('a[data-resource-type="folder"]').length).toBe(1);
             expect(results.find('a[data-resource-type="user"]').length).toBe(1);
@@ -232,12 +232,12 @@ describe('Create a data hierarchy', function () {
 
     it('keyboard control of quick search box', function () {
         function sendKeyDown(code, selector) {
-            var e = $.Event('keydown');
+            const e = $.Event('keydown');
             e.which = code;
             $(selector).trigger(e);
         }
         runs(function () {
-            for (var i = 1; i <= 4; i += 1) {
+            for (let i = 1; i <= 4; i += 1) {
                 $('.g-quick-search-container input.g-search-field')
                     .val('john'.substr(0, i)).trigger('input');
             }
@@ -328,7 +328,7 @@ describe('Create a data hierarchy', function () {
     });
 
     it('download checked items', function () {
-        var redirect = { method: null, url: null, data: { resources: null } }, widget;
+        let redirect = { method: null, url: null, data: { resources: null } }, widget;
         /* select a folder and the first item */
         runs(function () {
             $('.g-list-checkbox').slice(0, 2).trigger('click');
@@ -588,7 +588,7 @@ describe('Create a data hierarchy', function () {
         }, 'search to return');
 
         runs(function () {
-            var results = $('.g-quick-search-container li.g-search-result');
+            const results = $('.g-quick-search-container li.g-search-result');
             expect(results.length).toBe(3);
 
             expect(results.find('a[data-resource-type="folder"]').length).toBe(1);
@@ -597,7 +597,7 @@ describe('Create a data hierarchy', function () {
             results.find('a[data-resource-type="user"]').trigger('click');
         });
 
-        var oldPicked;
+        let oldPicked;
         waitsFor(function () {
             return $('.g-list-checkbox').length === 1;
         }, 'User folders to be shown');
@@ -753,7 +753,7 @@ describe('Create a data hierarchy', function () {
                 $('.modal-dialog:visible').length > 0;
         }, 'the upload dialog to appear');
 
-        var files = [
+        const files = [
             {
                 name: 'file1',
                 size: 1024
@@ -768,7 +768,7 @@ describe('Create a data hierarchy', function () {
             }
         ];
 
-        var items = [
+        const items = [
             // Mock DataTransferItem that doesn't support the webkitGetAsEntry
             // method
             {
@@ -787,8 +787,8 @@ describe('Create a data hierarchy', function () {
             }
         ];
 
-        var selector = '.g-drop-zone';
-        var dropActiveSelector = '.g-dropzone-show:visible';
+        const selector = '.g-drop-zone';
+        const dropActiveSelector = '.g-dropzone-show:visible';
 
         runs(function () {
             $(selector).trigger($.Event('dragenter', { originalEvent: $.Event('dragenter', { dataTransfer: {} }) }));
@@ -827,7 +827,7 @@ describe('Create a data hierarchy', function () {
 });
 
 describe('Test FileModel static upload functions', function () {
-    var folder, item;
+    let folder, item;
 
     it('test prep - register a user', girderTest.createUser('dbowman',
         'dbowman@nasa.gov',
@@ -871,7 +871,7 @@ describe('Test FileModel static upload functions', function () {
     });
 
     it('test FileModel.uploadToFolder()', function () {
-        var text = null, filename, speech, fileModel, file;
+        let text = null, filename, speech, fileModel, file;
 
         filename = 'hal.txt';
 
@@ -889,7 +889,7 @@ describe('Test FileModel static upload functions', function () {
         }, 'file model to become valid');
 
         runs(function () {
-            var item;
+            let item;
 
             item = girder.rest.restRequest({
                 url: '/item',
@@ -934,7 +934,7 @@ describe('Test FileModel static upload functions', function () {
     });
 
     it('test FileModel.uploadToItem()', function () {
-        var text = null, filename, speech, file, fileModel;
+        let text = null, filename, speech, file, fileModel;
 
         filename = 'dave.txt';
 

@@ -13,18 +13,18 @@ import GroupModListTemplate from '@girder/core/templates/widgets/groupModList.pu
 /**
  * This view shows a list of moderators of a group.
  */
-var GroupModsWidget = View.extend({
+const GroupModsWidget = View.extend({
     events: {
         'click .g-group-mod-promote': function (e) {
-            var userid = $(e.currentTarget).parents('li').attr('userid');
-            var user = new UserModel({ _id: userid });
+            const userid = $(e.currentTarget).parents('li').attr('userid');
+            const user = new UserModel({ _id: userid });
             this.model.off('g:promoted').on('g:promoted', function () {
                 this.trigger('g:adminAdded');
             }, this).promoteUser(user, AccessType.ADMIN);
         },
 
         'click .g-group-mod-demote': function (e) {
-            var li = $(e.currentTarget).parents('li');
+            const li = $(e.currentTarget).parents('li');
 
             confirm({
                 text: 'Are you sure you want to remove moderator privileges ' +
@@ -37,7 +37,7 @@ var GroupModsWidget = View.extend({
         },
 
         'click a.g-group-mod-remove': function (e) {
-            var li = $(e.currentTarget).parents('li');
+            const li = $(e.currentTarget).parents('li');
 
             confirm({
                 text: 'Are you sure you want to remove <b> ' +

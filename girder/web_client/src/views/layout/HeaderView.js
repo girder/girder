@@ -12,7 +12,7 @@ import '@girder/core/stylesheets/layout/header.styl';
 /**
  * This view shows the header in the layout.
  */
-var LayoutHeaderView = View.extend({
+const LayoutHeaderView = View.extend({
     events: {
         'click .g-app-title': function () {
             router.navigate('', { trigger: true });
@@ -44,7 +44,7 @@ var LayoutHeaderView = View.extend({
     },
 
     render: function () {
-        var textColor = this._getTextColor(this.bannerColor);
+        const textColor = this._getTextColor(this.bannerColor);
         this.$el.html(LayoutHeaderTemplate({
             brandName: this.brandName,
             bannerColor: this.bannerColor,

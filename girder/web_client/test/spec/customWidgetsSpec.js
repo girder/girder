@@ -1,4 +1,4 @@
-var user, folder, subfolder, item, widget;
+let user, folder, subfolder, item, widget;
 
 describe('Test upload widget non-standard options', function () {
     it('create the widget', function () {
@@ -131,7 +131,7 @@ describe('Test hierarchy widget non-standard options', function () {
         });
 
         waitsFor(function () {
-            var selected = widget.getSelectedItem();
+            const selected = widget.getSelectedItem();
             return selected && selected.get('_id') === item.get('_id');
         }, 'item to be selected');
 
@@ -300,7 +300,7 @@ describe('Test hierarchy widget non-standard options', function () {
             expect($('.g-item-size').length).toBe(0);
         });
 
-        var folderSelected = false;
+        let folderSelected = false;
         runs(function () {
             $('body').empty().off();
 
@@ -370,7 +370,7 @@ describe('Test hierarchy widget non-standard options', function () {
 });
 
 describe('Test access widget with non-standard options', function () {
-    var widget;
+    let widget;
     it('test non-modal rendering', function () {
         runs(function () {
             widget = new girder.views.widgets.AccessWidget({
@@ -426,7 +426,7 @@ describe('Test access widget with non-standard options', function () {
     });
 
     it('test custom access flags UI', function () {
-        var xhr, saved = false;
+        let xhr, saved = false;
         runs(function () {
             // Register a couple access flags in the system
             xhr = girder.rest.restRequest({
@@ -486,14 +486,14 @@ describe('Test access widget with non-standard options', function () {
         }, 'public flag popover to display');
 
         runs(function () {
-            var countSel = '.g-action-manage-public-flags .g-flag-count-indicator';
+            const countSel = '.g-action-manage-public-flags .g-flag-count-indicator';
             // Make sure the public flags popover rendered properly
             expect($('.popover input.g-public-flag-checkbox').length).toBe(2);
             expect($(countSel).text()).toBe('0');
             expect($(countSel).is(':visible')).toBe(false);
 
-            var adminCheckbox = $('.popover input.g-public-flag-checkbox[flag="adminFlag"]');
-            var openCheckbox = $('.popover .g-public-flag-checkbox[flag="openFlag"]');
+            const adminCheckbox = $('.popover input.g-public-flag-checkbox[flag="adminFlag"]');
+            const openCheckbox = $('.popover .g-public-flag-checkbox[flag="openFlag"]');
             expect(adminCheckbox.parent().text()).toBe('Admin-only flag');
             expect(openCheckbox.parent().text()).toBe('Open flag');
             expect(adminCheckbox.is(':checked')).toBe(false);
@@ -522,14 +522,14 @@ describe('Test access widget with non-standard options', function () {
         }, 'individual user flag popover to display');
 
         runs(function () {
-            var countSel = '.g-action-manage-flags .g-flag-count-indicator';
+            const countSel = '.g-action-manage-flags .g-flag-count-indicator';
             // Make sure the per-user flag checkbox rendered properly
             expect($('.popover input.g-flag-checkbox').length).toBe(2);
             expect($(countSel).text()).toBe('0');
             expect($(countSel).is(':visible')).toBe(false);
 
-            var adminCheckbox = $('.popover input.g-flag-checkbox[flag="adminFlag"]');
-            var openCheckbox = $('.popover .g-flag-checkbox[flag="openFlag"]');
+            const adminCheckbox = $('.popover input.g-flag-checkbox[flag="adminFlag"]');
+            const openCheckbox = $('.popover .g-flag-checkbox[flag="openFlag"]');
             expect(adminCheckbox.parent().text()).toBe('Admin-only flag');
             expect(openCheckbox.parent().text()).toBe('Open flag');
             expect(adminCheckbox.is(':checked')).toBe(false);
@@ -569,7 +569,7 @@ describe('Test access widget with non-standard options', function () {
         }, 'access fetch to be complete');
 
         runs(function () {
-            var access = folder.get('access');
+            const access = folder.get('access');
             expect(access.users.length).toBe(1);
             expect(access.users[0].level).toBe(girder.constants.AccessType.ADMIN);
             expect(access.users[0].flags).toEqual(['openFlag']);
@@ -605,8 +605,8 @@ describe('Test access widget with non-standard options', function () {
             // Make sure enabled flags render properly
             expect($('.popover input.g-flag-checkbox').length).toBe(2);
 
-            var adminCheckbox = $('.popover input.g-flag-checkbox[flag="adminFlag"]');
-            var openCheckbox = $('.popover .g-flag-checkbox[flag="openFlag"]');
+            const adminCheckbox = $('.popover input.g-flag-checkbox[flag="adminFlag"]');
+            const openCheckbox = $('.popover .g-flag-checkbox[flag="openFlag"]');
             expect(adminCheckbox.parent().text()).toBe('Admin-only flag');
             expect(openCheckbox.parent().text()).toBe('Open flag');
             expect(adminCheckbox.is(':checked')).toBe(false);
@@ -649,7 +649,7 @@ describe('Test access widget with non-standard options', function () {
         });
         runs(function () {
             // this should do nothing
-            var e = $.Event('keydown');
+            const e = $.Event('keydown');
             e.which = 13;
             widget.$('.g-search-field').trigger(e);
             // this should add the user to the access list
@@ -690,7 +690,7 @@ describe('Test search widget with non-standard options', function () {
         }, 'prefix folder search to return');
 
         runs(function () {
-            var results = $('li.g-search-result');
+            const results = $('li.g-search-result');
             expect(results.length).toBe(2);
             expect(results.find('a[data-resource-type="folder"]').text()).toContain('top level folder');
         });
@@ -747,20 +747,20 @@ describe('Test search widget with non-standard options', function () {
 
 describe('Test metadata widget with non-standard options', function () {
     it('test editing custom field with custom callbacks', function () {
-        var widget;
-        var model = new girder.models.FolderModel({
+        let widget;
+        const model = new girder.models.FolderModel({
             customMeta: {}
         });
-        var addCbCalled = false;
-        var editCbCalled = false;
+        let addCbCalled = false;
+        let editCbCalled = false;
 
-        var addCb = function (key, value, success, err) {
+        const addCb = function (key, value, success, err) {
             model.get('customMeta')[key] = value;
             addCbCalled = true;
             success();
         };
-        var editCb = function (newKey, oldKey, value, success, err) {
-            var meta = model.get('customMeta');
+        const editCb = function (newKey, oldKey, value, success, err) {
+            const meta = model.get('customMeta');
             delete meta[oldKey];
             meta[newKey] = value;
             editCbCalled = true;

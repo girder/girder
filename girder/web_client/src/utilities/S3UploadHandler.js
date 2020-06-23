@@ -22,7 +22,7 @@ uploadHandlers.s3 = function (params) {
     return _.extend(this, Backbone.Events);
 };
 
-var prototype = uploadHandlers.s3.prototype;
+const prototype = uploadHandlers.s3.prototype;
 
 prototype._xhrProgress = function (event) {
     if (!event.lengthComputable) {
@@ -32,7 +32,7 @@ prototype._xhrProgress = function (event) {
     // We only want to count bytes of the actual file, not the bytes of
     // the request body corresponding to the other form parameters model
     // we are also sending.
-    var loaded = this.payloadLength + event.loaded - event.total;
+    const loaded = this.payloadLength + event.loaded - event.total;
 
     if (loaded >= 0) {
         this.trigger('g:upload.progress', {
@@ -45,9 +45,9 @@ prototype._xhrProgress = function (event) {
 };
 
 prototype.execute = function () {
-    var s3Info = this.params.upload.s3;
+    const s3Info = this.params.upload.s3;
 
-    var xhr = new XMLHttpRequest();
+    const xhr = new XMLHttpRequest();
     xhr.open(s3Info.request.method, s3Info.request.url);
     _.each(s3Info.request.headers, (v, k) => {
         xhr.setRequestHeader(k, v);
@@ -73,7 +73,7 @@ prototype.execute = function () {
                 }).done((resp) => {
                     this.trigger('g:upload.complete', resp);
                 }).fail((resp) => {
-                    var msg;
+                    let msg;
 
                     if (resp.status === 0) {
                         msg = 'Could not connect to the server.';
@@ -124,7 +124,7 @@ prototype.resume = function () {
         this.params.upload.s3.request = resp;
         this.execute();
     }).fail((resp) => {
-        var msg;
+        let msg;
 
         if (resp.status === 0) {
             msg = 'Could not connect to the Girder server.';
@@ -174,8 +174,8 @@ prototype._multiChunkUpload = function (xhr) {
  * authorized request to send the chunk to S3.
  */
 prototype._sendNextChunk = function () {
-    var sliceFn = this.params.file.webkitSlice ? 'webkitSlice' : 'slice';
-    var data = this.params.file[sliceFn](this.startByte,
+    const sliceFn = this.params.file.webkitSlice ? 'webkitSlice' : 'slice';
+    const data = this.params.file[sliceFn](this.startByte,
         this.startByte + this.params.upload.s3.chunkLength);
     this.payloadLength = data.size;
 
@@ -195,7 +195,7 @@ prototype._sendNextChunk = function () {
         error: null
     }).done((resp) => {
         // Send the chunk to S3
-        var xhr = new XMLHttpRequest();
+        const xhr = new XMLHttpRequest();
         xhr.open(resp.s3.request.method, resp.s3.request.url);
 
         xhr.onload = () => {
@@ -252,13 +252,13 @@ prototype._finalizeMultiChunkUpload = function () {
         error: null
     }).done((resp) => {
         // Create the XML document that will be the request body to S3
-        var doc = document.implementation.createDocument(null, null, null);
-        var root = doc.createElement('CompleteMultipartUpload');
+        const doc = document.implementation.createDocument(null, null, null);
+        const root = doc.createElement('CompleteMultipartUpload');
 
         _.each(this.eTagList, (etag, partNumber) => {
-            var partEl = doc.createElement('Part');
-            var partNumberEl = doc.createElement('PartNumber');
-            var etagEl = doc.createElement('ETag');
+            const partEl = doc.createElement('Part');
+            const partNumberEl = doc.createElement('PartNumber');
+            const etagEl = doc.createElement('ETag');
 
             partNumberEl.appendChild(doc.createTextNode(partNumber));
             etagEl.appendChild(doc.createTextNode(etag));
@@ -267,8 +267,8 @@ prototype._finalizeMultiChunkUpload = function () {
             root.appendChild(partEl);
         });
 
-        var req = resp.s3FinalizeRequest;
-        var xhr = new XMLHttpRequest();
+        const req = resp.s3FinalizeRequest;
+        const xhr = new XMLHttpRequest();
 
         xhr.open(req.method, req.url);
 
@@ -289,7 +289,7 @@ prototype._finalizeMultiChunkUpload = function () {
 
         xhr.send(new window.XMLSerializer().serializeToString(root));
     }).fail((resp) => {
-        var msg;
+        let msg;
 
         if (resp.status === 0) {
             msg = 'Could not connect to the server.';

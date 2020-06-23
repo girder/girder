@@ -19,7 +19,7 @@ import 'bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.css';
 /**
  * The system config page for administrators.
  */
-var SystemConfigurationView = View.extend({
+const SystemConfigurationView = View.extend({
     events: {
         'submit .g-settings-form': function (event) {
             event.preventDefault();
@@ -27,7 +27,7 @@ var SystemConfigurationView = View.extend({
             this.$('#g-settings-error-message').empty();
 
             this.$('#g-core-collection-create-policy').val(JSON.stringify(this._covertCollectionCreationPolicy()));
-            var settings = _.map(this.settingsKeys, (key) => {
+            const settings = _.map(this.settingsKeys, (key) => {
                 const element = this.$('#g-' + key.replace(/[_.]/g, '-'));
 
                 if (key === 'core.route_table') {
@@ -85,7 +85,7 @@ var SystemConfigurationView = View.extend({
     initialize: function () {
         cancelRestRequests('fetch');
 
-        var keys = [
+        const keys = [
             'core.api_keys',
             'core.contact_email_address',
             'core.brand_name',
@@ -137,7 +137,7 @@ var SystemConfigurationView = View.extend({
             JSON: window.JSON
         }));
 
-        var enableCollectionCreationPolicy = this.settings['core.collection_create_policy'] ? this.settings['core.collection_create_policy'].open : false;
+        const enableCollectionCreationPolicy = this.settings['core.collection_create_policy'] ? this.settings['core.collection_create_policy'].open : false;
 
         this.$('.g-setting-switch')
             .bootstrapSwitch()
@@ -160,7 +160,7 @@ var SystemConfigurationView = View.extend({
     },
 
     _renderCollectionCreationPolicyAccessWidget: function () {
-        var collectionCreationPolicyModel = new CollectionCreationPolicyModel();
+        const collectionCreationPolicyModel = new CollectionCreationPolicyModel();
 
         this.accessWidget = new AccessWidget({
             el: this.$('.g-collection-create-policy-container .access-widget-container'),
@@ -178,10 +178,10 @@ var SystemConfigurationView = View.extend({
 
     _covertCollectionCreationPolicy: function () {
         // get collection creation policy from AccessWidget and format the result properly
-        var settingValue = null;
+        let settingValue = null;
         if (this.$('.g-setting-switch').bootstrapSwitch('state')) {
             settingValue = { open: this.$('.g-setting-switch').bootstrapSwitch('state') };
-            var accessList = this.accessWidget.getAccessList();
+            const accessList = this.accessWidget.getAccessList();
             _.each(_.keys(accessList), (key) => {
                 settingValue[key] = _.pluck(accessList[key], 'id');
             });

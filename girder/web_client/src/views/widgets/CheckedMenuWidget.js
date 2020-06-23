@@ -10,7 +10,7 @@ import '@girder/core/utilities/jquery/girderEnable';
  * This widget presents a list of available batch actions
  * on a set of selected resources.
  */
-var CheckedMenuWidget = View.extend({
+const CheckedMenuWidget = View.extend({
 
     initialize: function (params) {
         this._fetchAndInit(params);

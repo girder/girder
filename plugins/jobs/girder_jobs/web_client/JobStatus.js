@@ -1,11 +1,11 @@
 import _ from 'underscore';
 
 // The same job status enum as the server.
-var JobStatus = {
+const JobStatus = {
     _map: {},
 
     text: function (status) {
-        var text = status;
+        let text = status;
         if (status in this._map) {
             text = this._map[status].text;
         }
@@ -14,7 +14,7 @@ var JobStatus = {
     },
 
     icon: function (status) {
-        var icon;
+        let icon;
         if (status in this._map) {
             icon = this._map[status].icon;
         }

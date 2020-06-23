@@ -11,10 +11,10 @@ import 'bootstrap/js/dropdown';
  * This widget is used to provide a consistent widget for sorting
  * pages of a Collection by a choosen field.
  */
-var SortCollectionWidget = View.extend({
+const SortCollectionWidget = View.extend({
     events: {
         'click a.g-collection-sort-link': function (event) {
-            var sortField = $(event.currentTarget).attr('g-sort');
+            const sortField = $(event.currentTarget).attr('g-sort');
             this.collection.sortField = sortField;
             this.collection.fetch({}, true);
         },

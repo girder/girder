@@ -6,7 +6,7 @@ import { restRequest } from '@girder/core/rest';
 import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 import ConfigViewTemplate from '../templates/configView.pug';
 
-var ConfigView = View.extend({
+const ConfigView = View.extend({
     events: {
         'submit #g-user-quota-form': function (event) {
             event.preventDefault();
@@ -41,9 +41,9 @@ var ConfigView = View.extend({
     },
 
     render: function () {
-        var userSizeInfo = sizeToValueAndUnits(
+        const userSizeInfo = sizeToValueAndUnits(
             this.settings['user_quota.default_user_quota']);
-        var collectionSizeInfo = sizeToValueAndUnits(
+        const collectionSizeInfo = sizeToValueAndUnits(
             this.settings['user_quota.default_collection_quota']);
         this.$el.html(ConfigViewTemplate({
             resources: {

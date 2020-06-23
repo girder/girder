@@ -68,7 +68,7 @@ var ItemView = View.extend({
     },
 
     editItem: function () {
-        var container = $('#g-dialog-container');
+        const container = $('#g-dialog-container');
 
         if (!this.editItemWidget) {
             this.editItemWidget = new EditItemWidget({
@@ -83,8 +83,8 @@ var ItemView = View.extend({
     },
 
     deleteItem: function () {
-        var folderId = this.model.get('folderId');
-        var parentRoute = this.model.get('baseParentType') + '/' +
+        const folderId = this.model.get('folderId');
+        const parentRoute = this.model.get('baseParentType') + '/' +
             this.model.get('baseParentId') + '/folder/' + folderId;
         confirm({
             text: 'Are you sure you want to delete <b>' + this.model.escape('name') + '</b>?',
@@ -165,7 +165,7 @@ var ItemView = View.extend({
      * an arbitrary set of extra parameters.
      */
     fetchAndInit: function (itemId, params) {
-        var item = new ItemModel();
+        const item = new ItemModel();
         item.set({ _id: itemId }).on('g:fetched', function () {
             events.trigger('g:navigateTo', ItemView, _.extend({
                 item: item

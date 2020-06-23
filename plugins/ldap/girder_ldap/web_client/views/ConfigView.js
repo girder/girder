@@ -14,7 +14,7 @@ import '@girder/core/utilities/jquery/girderEnable';
 
 const FIELDS = ['uri', 'bindName', 'baseDn', 'password', 'searchField'];
 
-var ConfigView = View.extend({
+const ConfigView = View.extend({
     events: {
         'submit .g-ldap-server-form': function (event) {
             event.preventDefault();

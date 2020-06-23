@@ -5,7 +5,7 @@ import { restRequest } from '@girder/core/rest';
 
 import template from '../templates/config.pug';
 
-var ConfigView = View.extend({
+const ConfigView = View.extend({
     events: {
         'submit #g-hashsum-download-config-form': function (event) {
             event.preventDefault();

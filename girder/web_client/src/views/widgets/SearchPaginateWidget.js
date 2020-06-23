@@ -11,7 +11,7 @@ import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
  * and a limit).
  */
 
-var SearchPaginateWidget = View.extend({
+const SearchPaginateWidget = View.extend({
     events: {
         'click .g-page-next:not(.disabled)': function (e) {
             this._updateHasNextPage(true);
@@ -85,14 +85,14 @@ var SearchPaginateWidget = View.extend({
     },
 
     _fetchPreviousPage: function (update = false) {
-        var offset = this._limit * (this._currentPage - 1);
+        const offset = this._limit * (this._currentPage - 1);
         if (offset < 0) {
             this._hasPreviousPage = false;
             this.render();
         } else {
             return this._fetch(offset)
                 .done((results) => {
-                    var result = results[this._type];
+                    const result = results[this._type];
                     if (result.length) {
                         this._hasPreviousPage = true;
                         if (update) {
@@ -110,10 +110,10 @@ var SearchPaginateWidget = View.extend({
     },
 
     _fetchNextPage: function (update = false) {
-        var offset = this._limit * (this._currentPage + 1);
+        const offset = this._limit * (this._currentPage + 1);
         return this._fetch(offset)
             .done((results) => {
-                var result = results[this._type];
+                const result = results[this._type];
                 if (result.length) {
                     this._hasNextPage = true;
                     if (update) {

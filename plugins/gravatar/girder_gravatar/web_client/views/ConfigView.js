@@ -5,7 +5,7 @@ import { restRequest } from '@girder/core/rest';
 
 import ConfigViewTemplate from '../templates/configView.pug';
 
-var ConfigView = View.extend({
+const ConfigView = View.extend({
     events: {
         'submit #g-gravatar-settings-form': function (event) {
             event.preventDefault();

@@ -6,7 +6,7 @@ import { restRequest } from '@girder/core/rest';
 import ConfigViewTemplate from '../templates/configView.pug';
 import '../stylesheets/configView.styl';
 
-var ConfigView = View.extend({
+const ConfigView = View.extend({
     events: {
         'submit #g-item-licenses-settings-form': function (event) {
             event.preventDefault();

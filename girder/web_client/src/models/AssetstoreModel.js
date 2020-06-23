@@ -4,16 +4,16 @@ import { formatSize } from '@girder/core/misc';
 import Model from '@girder/core/models/Model';
 import { restRequest } from '@girder/core/rest';
 
-var AssetstoreModel = Model.extend({
+const AssetstoreModel = Model.extend({
     resourceName: 'assetstore',
 
     capacityKnown: function () {
-        var cap = this.get('capacity');
+        const cap = this.get('capacity');
         return cap && cap.free !== null && cap.total !== null;
     },
 
     capacityString: function () {
-        var cap = this.get('capacity');
+        const cap = this.get('capacity');
         return formatSize(cap.free) + ' free of ' +
             formatSize(cap.total) + ' total';
     },

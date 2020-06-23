@@ -18,10 +18,10 @@ import '@girder/core/stylesheets/body/groupList.styl';
 /**
  * This view lists groups.
  */
-var GroupsView = View.extend({
+const GroupsView = View.extend({
     events: {
         'click a.g-group-link': function (event) {
-            var cid = $(event.currentTarget).attr('g-group-cid');
+            const cid = $(event.currentTarget).attr('g-group-cid');
             router.navigate('group/' + this.collection.get(cid).id, { trigger: true });
         },
         'submit .g-group-search-form': function (event) {
@@ -82,7 +82,7 @@ var GroupsView = View.extend({
         }).off('g:saved').on('g:saved', function (group) {
             // Since the user has now joined this group, we can append its ID
             // to their groups list
-            var userGroups = getCurrentUser().get('groups') || [];
+            const userGroups = getCurrentUser().get('groups') || [];
             userGroups.push(group.get('_id'));
             getCurrentUser().set('groups', userGroups);
 
@@ -95,7 +95,7 @@ var GroupsView = View.extend({
      * will navigate them to the view for that group.
      */
     _gotoGroup: function (result) {
-        var group = new GroupModel();
+        const group = new GroupModel();
         group.set('_id', result.id).on('g:fetched', function () {
             router.navigate('group/' + group.get('_id'), { trigger: true });
         }, this).fetch();

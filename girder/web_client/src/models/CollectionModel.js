@@ -3,7 +3,7 @@ import _ from 'underscore';
 import AccessControlledModel from '@girder/core/models/AccessControlledModel';
 import MetadataMixin from '@girder/core/models/MetadataMixin';
 
-var CollectionModel = AccessControlledModel.extend({
+const CollectionModel = AccessControlledModel.extend({
     resourceName: 'collection'
 });
 

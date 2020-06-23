@@ -12,12 +12,12 @@ import '@girder/core/utilities/jquery/girderModal';
 /**
  * This widget is used to create a new group or edit an existing one.
  */
-var EditGroupWidget = View.extend({
+const EditGroupWidget = View.extend({
     events: {
         'submit #g-group-edit-form': function (e) {
             e.preventDefault();
 
-            var fields = {
+            const fields = {
                 name: this.$('#g-name').val(),
                 description: this.$('#g-description').val(),
                 public: this.$('#g-access-public').is(':checked')
@@ -44,9 +44,9 @@ var EditGroupWidget = View.extend({
     },
 
     render: function () {
-        var pub = this.model ? this.model.get('public') : false;
-        var groupAddAllowed;
-        var addToGroupPolicy = this.model ? this.model.get('_addToGroupPolicy') : null;
+        const pub = this.model ? this.model.get('public') : false;
+        let groupAddAllowed;
+        const addToGroupPolicy = this.model ? this.model.get('_addToGroupPolicy') : null;
         if (getCurrentUser().get('admin')) {
             if (addToGroupPolicy === 'nomod' || addToGroupPolicy === 'yesmod') {
                 groupAddAllowed = 'mod';
@@ -54,7 +54,7 @@ var EditGroupWidget = View.extend({
                 groupAddAllowed = 'admin';
             }
         }
-        var modal = this.$el.html(EditGroupWidgetTemplate({
+        const modal = this.$el.html(EditGroupWidgetTemplate({
             group: this.model,
             publicFlag: pub,
             addToGroupPolicy: addToGroupPolicy,
@@ -91,7 +91,7 @@ var EditGroupWidget = View.extend({
     },
 
     createGroup: function (fields) {
-        var group = new GroupModel();
+        const group = new GroupModel();
         group.set(fields);
         group.on('g:saved', function () {
             this.$el.modal('hide');
@@ -117,7 +117,7 @@ var EditGroupWidget = View.extend({
 
     privacyChanged: function () {
         this.$('.g-public-container .radio').removeClass('g-selected');
-        var selected = this.$('.g-public-container .radio input:checked');
+        const selected = this.$('.g-public-container .radio input:checked');
         selected.parents('.radio').addClass('g-selected');
     }
 });

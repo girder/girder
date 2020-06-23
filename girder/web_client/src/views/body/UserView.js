@@ -23,7 +23,7 @@ import 'bootstrap/js/dropdown';
 var UserView = View.extend({
     events: {
         'click a.g-edit-user': function () {
-            var editUrl = 'useraccount/' + this.model.get('_id') + '/info';
+            const editUrl = 'useraccount/' + this.model.get('_id') + '/info';
             router.navigate(editUrl, { trigger: true });
         },
 
@@ -149,7 +149,7 @@ var UserView = View.extend({
      * an arbitrary set of extra parameters.
      */
     fetchAndInit: function (userId, params) {
-        var user = new UserModel();
+        const user = new UserModel();
         user.set({
             _id: userId
         }).on('g:fetched', function () {

@@ -12,11 +12,11 @@ import ItemListTemplate from '@girder/core/templates/widgets/itemList.pug';
 /**
  * This widget shows a list of items under a given folder.
  */
-var ItemListWidget = View.extend({
+const ItemListWidget = View.extend({
     events: {
         'click a.g-item-list-link': function (event) {
             event.preventDefault();
-            var cid = $(event.currentTarget).attr('g-item-cid');
+            const cid = $(event.currentTarget).attr('g-item-cid');
             this.trigger('g:itemClicked', this.collection.get(cid), event);
         },
         'click a.g-show-more-items': function () {
@@ -220,11 +220,11 @@ var ItemListWidget = View.extend({
      * Return the currently selected item, or null if there is no selected item.
      */
     getSelectedItem: function () {
-        var el = this.$('li.g-item-list-entry.g-selected');
+        const el = this.$('li.g-item-list-entry.g-selected');
         if (!el.length) {
             return null;
         }
-        var cid = $('.g-item-list-link', $(el[0])).attr('g-item-cid');
+        const cid = $('.g-item-list-link', $(el[0])).attr('g-item-cid');
         return this.collection.get(cid);
     },
 

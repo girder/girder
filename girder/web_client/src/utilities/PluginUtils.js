@@ -14,7 +14,7 @@ function wrap(obj, funcName, wrapper) {
     obj.prototype[funcName] = _.wrap(obj.prototype[funcName], wrapper);
 }
 
-var _pluginConfigRoutes = {};
+const _pluginConfigRoutes = {};
 
 /**
  * Expose a plugin configuration page via the admin plugins page.

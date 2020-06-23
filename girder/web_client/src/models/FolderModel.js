@@ -4,7 +4,7 @@ import AccessControlledModel from '@girder/core/models/AccessControlledModel';
 import MetadataMixin from '@girder/core/models/MetadataMixin';
 import { restRequest } from '@girder/core/rest';
 
-var FolderModel = AccessControlledModel.extend({
+const FolderModel = AccessControlledModel.extend({
     resourceName: 'folder',
 
     getRootPath: function () {

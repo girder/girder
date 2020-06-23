@@ -30,15 +30,15 @@ import '@girder/core/stylesheets/widgets/hierarchyWidget.styl';
 
 import 'bootstrap/js/dropdown';
 
-var pickedResources = null;
+let pickedResources = null;
 
 /**
  * Renders the breadcrumb list in the hierarchy widget.
  */
-var HierarchyBreadcrumbView = View.extend({
+const HierarchyBreadcrumbView = View.extend({
     events: {
         'click a.g-breadcrumb-link': function (event) {
-            var link = $(event.currentTarget);
+            const link = $(event.currentTarget);
             this.trigger('g:breadcrumbClicked', parseInt(link.attr('g-index'), 10));
         }
     },
@@ -49,13 +49,13 @@ var HierarchyBreadcrumbView = View.extend({
 
     render: function () {
         // Clone the array so we don't alter the instance's copy
-        var objects = this.objects.slice(0);
+        const objects = this.objects.slice(0);
 
         // Pop off the last object, it refers to the currently viewed
         // object and should be the "active" class, and not a link.
-        var active = objects.pop();
+        const active = objects.pop();
 
-        var descriptionText = $(renderMarkdown(
+        const descriptionText = $(renderMarkdown(
             active.get('description') || '')).text();
 
         this.$el.html(HierarchyBreadcrumbTemplate({
@@ -68,7 +68,7 @@ var HierarchyBreadcrumbView = View.extend({
     }
 });
 
-var HierarchyPaginatedView = View.extend({
+const HierarchyPaginatedView = View.extend({
     events: {
         'change #g-page-selection-input': function (event) {
             const num = Number(event.target.value);
@@ -116,7 +116,7 @@ var HierarchyPaginatedView = View.extend({
 /**
  * This widget is used to navigate the data hierarchy of folders and items.
  */
-var HierarchyWidget = View.extend({
+const HierarchyWidget = View.extend({
     events: {
         'click a.g-create-subfolder': 'createFolderDialog',
         'click a.g-edit-folder': 'editFolderDialog',
@@ -248,7 +248,7 @@ var HierarchyWidget = View.extend({
      * show the "empty container" message.
      */
     _childCountCheck: function () {
-        var container = this.$('.g-empty-parent-message').addClass('hide');
+        const container = this.$('.g-empty-parent-message').addClass('hide');
         if (this.folderCount === 0 && this.itemCount === 0) {
             container.removeClass('hide');
         }
@@ -313,7 +313,7 @@ var HierarchyWidget = View.extend({
 
     _setRoute: function () {
         if (this._routing) {
-            var route = this.breadcrumbs[0].resourceName + '/' +
+            let route = this.breadcrumbs[0].resourceName + '/' +
                 this.breadcrumbs[0].get('_id');
             if (this.parentModel.resourceName === 'folder') {
                 route += '/folder/' + this.parentModel.get('_id');
@@ -478,7 +478,7 @@ var HierarchyWidget = View.extend({
                 });
                 this.breadcrumbView.render();
             }, this).on('g:fileUploaded', function (args) {
-                var item = new ItemModel({
+                const item = new ItemModel({
                     _id: args.model.get('itemId')
                 });
 
@@ -506,8 +506,8 @@ var HierarchyWidget = View.extend({
      * Prompt the user to delete the currently viewed folder or collection.
      */
     deleteFolderDialog: function () {
-        var type = this.parentModel.resourceName;
-        var params = {
+        const type = this.parentModel.resourceName;
+        let params = {
             text: 'Are you sure you want to delete the ' + type + ' <b>' +
                   this.parentModel.escape('name') + '</b>?',
             escapedHtml: true,
@@ -541,7 +541,7 @@ var HierarchyWidget = View.extend({
     },
 
     showInfoDialog: function () {
-        var opts = {
+        const opts = {
             el: $('#g-dialog-container'),
             model: this.parentModel,
             parentView: this
@@ -557,7 +557,7 @@ var HierarchyWidget = View.extend({
     fetchAndShowChildCount: function () {
         this.$('.g-child-count-container').addClass('hide');
 
-        var showCounts = () => {
+        const showCounts = () => {
             const folderCount = formatCount(this.parentModel.get('nFolders'));
             this.$('.g-child-count-container').removeClass('hide');
             this.$('.g-subfolder-count').text(folderCount);
@@ -641,11 +641,11 @@ var HierarchyWidget = View.extend({
     _describeResources: function (resources) {
         /* If the resources aren't English words or don't have simple plurals,
          * this will need to be refactored. */
-        var kinds = ['folder', 'item'];
+        const kinds = ['folder', 'item'];
 
-        var desc = [];
-        for (var i = 0; i < kinds.length; i += 1) {
-            var kind = kinds[i];
+        const desc = [];
+        for (let i = 0; i < kinds.length; i += 1) {
+            const kind = kinds[i];
             if (resources[kind] && resources[kind].length) {
                 desc.push(resources[kind].length + ' ' + kind +
                           (resources[kind].length !== 1 ? 's' : ''));
@@ -670,20 +670,20 @@ var HierarchyWidget = View.extend({
      * Prompt the user to delete the currently checked items.
      */
     deleteCheckedDialog: function () {
-        var folders = this.folderListView.checked;
-        var items;
+        const folders = this.folderListView.checked;
+        let items;
         if (this.itemListView && this.itemListView.checked.length) {
             items = this.itemListView.checked;
         }
-        var desc = this._describeResources({ folder: folders, item: items });
+        const desc = this._describeResources({ folder: folders, item: items });
 
-        var params = {
+        const params = {
             text: 'Are you sure you want to delete the checked resources (' +
                   desc + ')?',
 
             yesText: 'Delete',
             confirmCallback: () => {
-                var resources = this._getCheckedResourceParam();
+                const resources = this._getCheckedResourceParam();
                 /* Content on DELETE requests is somewhat oddly supported (I
                  * can't get it to work under jasmine/phantom), so override the
                  * method. */
@@ -711,7 +711,7 @@ var HierarchyWidget = View.extend({
      * Show and handle the upload dialog
      */
     uploadDialog: function () {
-        var container = $('#g-dialog-container');
+        const container = $('#g-dialog-container');
 
         new UploadWidget({
             el: container,
@@ -736,19 +736,19 @@ var HierarchyWidget = View.extend({
      * the checked menu state.
      */
     updateChecked: function () {
-        var folders = this.folderListView.checked,
+        let folders = this.folderListView.checked,
             items = [];
 
         // Only show actions corresponding to the minimum access level over
         // the whole set of checked resources.
-        var minFolderLevel = AccessType.ADMIN;
+        let minFolderLevel = AccessType.ADMIN;
         _.every(folders, function (cid) {
-            var folder = this.folderListView.collection.get(cid);
+            const folder = this.folderListView.collection.get(cid);
             minFolderLevel = Math.min(minFolderLevel, folder.getAccessLevel());
             return minFolderLevel > AccessType.READ; // acts as 'break'
         }, this);
 
-        var minItemLevel = AccessType.ADMIN;
+        let minItemLevel = AccessType.ADMIN;
         if (this.itemListView) {
             items = this.itemListView.checked;
             if (items.length) {
@@ -773,7 +773,7 @@ var HierarchyWidget = View.extend({
     },
 
     getPickedCount: function () {
-        var pickedCount = 0;
+        let pickedCount = 0;
         if (pickedResources && pickedResources.resources) {
             _.each(pickedResources.resources, function (list) {
                 pickedCount += list.length;
@@ -831,16 +831,16 @@ var HierarchyWidget = View.extend({
      * Get a parameter that can be added to a url for the checked resources.
      */
     _getCheckedResourceParam: function (asObject) {
-        var resources = { folder: [], item: [] };
-        var folders = this.folderListView.checked;
+        const resources = { folder: [], item: [] };
+        const folders = this.folderListView.checked;
         _.each(folders, function (cid) {
-            var folder = this.folderListView.collection.get(cid);
+            const folder = this.folderListView.collection.get(cid);
             resources.folder.push(folder.id);
         }, this);
         if (this.itemListView) {
-            var items = this.itemListView.checked;
+            const items = this.itemListView.checked;
             _.each(items, function (cid) {
-                var item = this.itemListView.collection.get(cid);
+                const item = this.itemListView.collection.get(cid);
                 resources.item.push(item.id);
             }, this);
         }
@@ -856,9 +856,9 @@ var HierarchyWidget = View.extend({
     },
 
     downloadChecked: function () {
-        var url = getApiRoot() + '/resource/download';
-        var resources = this._getCheckedResourceParam();
-        var data = { resources: resources };
+        const url = getApiRoot() + '/resource/download';
+        const resources = this._getCheckedResourceParam();
+        const data = { resources: resources };
 
         this.redirectViaForm('POST', url, data);
     },
@@ -873,9 +873,9 @@ var HierarchyWidget = View.extend({
         }
         /* Maintain our minimum permissions.  It is expensive to compute them
          * arbitrarily later. */
-        var folders = this.folderListView.checked;
+        const folders = this.folderListView.checked;
         _.every(folders, function (cid) {
-            var folder = this.folderListView.collection.get(cid);
+            const folder = this.folderListView.collection.get(cid);
             pickedResources.minFolderLevel = Math.min(
                 pickedResources.minFolderLevel,
                 folder.getAccessLevel());
@@ -883,17 +883,17 @@ var HierarchyWidget = View.extend({
                     AccessType.READ); // acts as 'break'
         }, this);
         if (this.itemListView) {
-            var items = this.itemListView.checked;
+            const items = this.itemListView.checked;
             if (items.length) {
                 pickedResources.minItemLevel = Math.min(
                     pickedResources.minItemLevel,
                     this.parentModel.getAccessLevel());
             }
         }
-        var resources = this._getCheckedResourceParam(true);
-        var pickDesc = this._describeResources(resources);
+        const resources = this._getCheckedResourceParam(true);
+        const pickDesc = this._describeResources(resources);
         /* Merge these resources with any that are already picked */
-        var existing = pickedResources.resources;
+        const existing = pickedResources.resources;
         _.each(existing, function (list, resource) {
             if (!resources[resource]) {
                 resources[resource] = list;
@@ -903,8 +903,8 @@ var HierarchyWidget = View.extend({
         });
         pickedResources.resources = resources;
         this.updateChecked();
-        var totalPickDesc = this.getPickedDescription();
-        var desc = totalPickDesc + ' picked.';
+        const totalPickDesc = this.getPickedDescription();
+        let desc = totalPickDesc + ' picked.';
         if (pickDesc !== totalPickDesc) {
             desc = pickDesc + ' added to picked resources.  Now ' + desc;
         }
@@ -929,9 +929,9 @@ var HierarchyWidget = View.extend({
         if (!this.getPickedMoveAllowed()) {
             return;
         }
-        var resources = JSON.stringify(pickedResources.resources);
-        var nFolders = (pickedResources.resources.folder || []).length;
-        var nItems = (pickedResources.resources.item || []).length;
+        const resources = JSON.stringify(pickedResources.resources);
+        const nFolders = (pickedResources.resources.folder || []).length;
+        const nItems = (pickedResources.resources.item || []).length;
         restRequest({
             url: 'resource/move',
             method: 'PUT',
@@ -952,9 +952,9 @@ var HierarchyWidget = View.extend({
         if (!this.getPickedCopyAllowed()) {
             return;
         }
-        var resources = JSON.stringify(pickedResources.resources);
-        var nFolders = (pickedResources.resources.folder || []).length;
-        var nItems = (pickedResources.resources.item || []).length;
+        const resources = JSON.stringify(pickedResources.resources);
+        const nFolders = (pickedResources.resources.folder || []).length;
+        const nItems = (pickedResources.resources.item || []).length;
         restRequest({
             url: 'resource/copy',
             method: 'POST',
@@ -985,7 +985,7 @@ var HierarchyWidget = View.extend({
     },
 
     redirectViaForm: function (method, url, data) {
-        var form = $('<form/>').attr({ action: url, method: method });
+        const form = $('<form/>').attr({ action: url, method: method });
         _.each(data, function (value, key) {
             form.append($('<input/>').attr({ type: 'text', name: key, value: value }));
         });
@@ -1035,13 +1035,13 @@ var HierarchyWidget = View.extend({
      * folders and items.
      */
     checkboxListener: function (e) {
-        var checkbox = $(e.currentTarget);
+        const checkbox = $(e.currentTarget);
 
         if (this._lastCheckbox) {
             if (e.shiftKey) {
-                var checkboxes = this.$el.find(':checkbox');
-                var from = checkboxes.index(this._lastCheckbox);
-                var to = checkboxes.index(checkbox);
+                const checkboxes = this.$el.find(':checkbox');
+                const from = checkboxes.index(this._lastCheckbox);
+                const to = checkboxes.index(checkbox);
 
                 checkboxes.slice(Math.min(from, to), Math.max(from, to) + 1)
                     .prop('checked', checkbox.prop('checked'));

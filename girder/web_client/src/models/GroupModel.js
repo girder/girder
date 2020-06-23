@@ -5,7 +5,7 @@ import { AccessType } from '@girder/core/constants';
 import { getCurrentUser } from '@girder/core/auth';
 import { restRequest } from '@girder/core/rest';
 
-var GroupModel = AccessControlledModel.extend({
+const GroupModel = AccessControlledModel.extend({
     resourceName: 'group',
 
     /**
@@ -87,7 +87,7 @@ var GroupModel = AccessControlledModel.extend({
      * @param level The AccessLevel (WRITE or ADMIN) to promote to
      */
     promoteUser: function (user, level) {
-        var role;
+        let role;
         if (level === AccessType.WRITE) {
             role = 'moderator';
         } else if (level === AccessType.ADMIN) {
@@ -115,7 +115,7 @@ var GroupModel = AccessControlledModel.extend({
      * @param level The current access level of the user.
      */
     demoteUser: function (userId, level) {
-        var role;
+        let role;
         if (level === AccessType.WRITE) {
             role = 'moderator';
         } else if (level === AccessType.ADMIN) {
@@ -165,8 +165,8 @@ var GroupModel = AccessControlledModel.extend({
         if (getCurrentUser().get('admin')) {
             return true;
         }
-        var groupAddAllowed;
-        var addToGroupPolicy = this.get('_addToGroupPolicy');
+        let groupAddAllowed;
+        const addToGroupPolicy = this.get('_addToGroupPolicy');
         if (addToGroupPolicy === 'nomod' || addToGroupPolicy === 'yesmod') {
             groupAddAllowed = 'mod';
         } else if (addToGroupPolicy === 'noadmin' || addToGroupPolicy === 'yesadmin') {
@@ -174,7 +174,7 @@ var GroupModel = AccessControlledModel.extend({
         } else {
             return false;
         }
-        var addAllowed = this.get('addAllowed') || '';
+        const addAllowed = this.get('addAllowed') || '';
         if (addAllowed === 'no' || (addToGroupPolicy.substr(0, 3) !== 'yes' &&
                 addAllowed.substr(0, 3) !== 'yes')) {
             return false;

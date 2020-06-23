@@ -9,14 +9,14 @@ import '@girder/core/stylesheets/widgets/taskProgress.styl';
 /**
  * This widget renders the state of a progress notification.
  */
-var TaskProgressWidget = View.extend({
+const TaskProgressWidget = View.extend({
 
     initialize: function (settings) {
         this.progress = settings.progress;
     },
 
     render: function () {
-        var width = '0', barClass = [], progressClass = [], percentText = '',
+        let width = '0', barClass = [], progressClass = [], percentText = '',
             timeLeftText = '';
 
         if (this.progress.data.state === 'active') {
@@ -30,11 +30,11 @@ var TaskProgressWidget = View.extend({
             } else if (this.progress.data.current >= this.progress.data.total) {
                 percentText = width = '100%';
             } else {
-                var percent = (100 * this.progress.data.current /
+                const percent = (100 * this.progress.data.current /
                     this.progress.data.total);
                 width = Math.round(percent) + '%';
                 percentText = percent.toFixed(1) + '%';
-                var timeLeft = parseInt(this.progress.estimatedTotalTime - (
+                const timeLeft = parseInt(this.progress.estimatedTotalTime - (
                     this.progress.updatedTime - this.progress.startTime), 10);
                 if (timeLeft >= 3600) {
                     timeLeftText = sprintf('%d:%02d:%02d left',

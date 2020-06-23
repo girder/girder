@@ -41,7 +41,7 @@ var FolderView = View.extend({
      * Helper function for fetching the folder by id, then render the view.
      */
     fetchAndInit: function (id, params) {
-        var folder = new FolderModel();
+        const folder = new FolderModel();
         folder.set({ _id: id }).on('g:fetched', function () {
             events.trigger('g:navigateTo', FolderView, _.extend({
                 folder: folder

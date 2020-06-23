@@ -5,7 +5,7 @@ import ItemLicenseWidgetTemplate from '../templates/itemLicenseWidget.pug';
 /**
  * Item widget extensions for licenses.
  */
-var ItemLicenseWidget = View.extend({
+const ItemLicenseWidget = View.extend({
     initialize: function (settings) {
         this.item = settings.item;
     },

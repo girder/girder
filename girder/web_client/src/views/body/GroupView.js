@@ -38,7 +38,7 @@ var GroupView = View.extend({
         'click .g-group-request-deny': 'denyMembershipRequest',
 
         'click #g-group-tab-pending a.g-member-name': function (e) {
-            var userId = $(e.currentTarget).parents('li').attr('userid');
+            const userId = $(e.currentTarget).parents('li').attr('userid');
             router.navigate('user/' + userId, { trigger: true });
         }
     },
@@ -67,7 +67,7 @@ var GroupView = View.extend({
     },
 
     editGroup: function () {
-        var container = $('#g-dialog-container');
+        const container = $('#g-dialog-container');
 
         if (!this.editGroupWidget) {
             this.editGroupWidget = new EditGroupWidget({
@@ -154,7 +154,7 @@ var GroupView = View.extend({
         if (this.invitees) {
             this._renderInvitesWidget();
         } else {
-            var container = this.$('.g-group-invites-body');
+            const container = this.$('.g-group-invites-body');
             new LoadingAnimation({
                 el: container,
                 parentView: this
@@ -182,7 +182,7 @@ var GroupView = View.extend({
         }
 
         _.each($('.g-group-tabs>li>a'), (el) => {
-            var tabLink = $(el);
+            const tabLink = $(el);
             tabLink.tab().on('shown.bs.tab', (e) => {
                 this.tab = $(e.currentTarget).attr('name');
                 router.navigate('group/' + this.model.get('_id') + '/' + this.tab);
@@ -207,7 +207,7 @@ var GroupView = View.extend({
     },
 
     updatePendingStatus: function () {
-        var count = this.invitees.length +
+        const count = this.invitees.length +
             this.model.get('requests').length;
         $('#g-group-tab-pending-status').text(' (' + count + ')');
     },
@@ -230,7 +230,7 @@ var GroupView = View.extend({
     },
 
     removeMember: function (user) {
-        var id = user;
+        let id = user;
         if ($.type(user) !== 'string') {
             id = user.get('_id');
         }
@@ -246,19 +246,19 @@ var GroupView = View.extend({
     },
 
     acceptMembershipRequest: function (e) {
-        var userId = $(e.currentTarget).parents('li').attr('userid');
+        const userId = $(e.currentTarget).parents('li').attr('userid');
         this.model.off('g:invited').on('g:invited', this.render, this)
             .sendInvitation(userId, AccessType.READ, true);
     },
 
     denyMembershipRequest: function (e) {
-        var userId = $(e.currentTarget).parents('li').attr('userid');
+        const userId = $(e.currentTarget).parents('li').attr('userid');
         this.model.off('g:removed').on('g:removed', this.render, this)
             .removeMember(userId);
     },
 
     _updateRolesLists: function () {
-        var mods = [],
+        const mods = [],
             admins = [];
 
         _.each(this.model.get('access').users, function (userAccess) {
@@ -300,7 +300,7 @@ var GroupView = View.extend({
             moderators: mods,
             parentView: this
         }).on('g:sendInvite', function (params) {
-            var opts = {
+            const opts = {
                 force: params.force || false
             };
             this.model.off('g:invited').on('g:invited', function () {
@@ -324,7 +324,7 @@ var GroupView = View.extend({
      * an arbitrary set of extra parameters.
      */
     fetchAndInit: function (groupId, params) {
-        var group = new GroupModel();
+        const group = new GroupModel();
         group.set({ _id: groupId }).once('g:fetched', function () {
             events.trigger('g:navigateTo', GroupView, _.extend({
                 group: group

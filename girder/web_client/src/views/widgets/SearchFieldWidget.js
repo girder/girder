@@ -37,8 +37,8 @@ var SearchFieldWidget = View.extend({
         },
 
         'keydown .g-search-field': function (e) {
-            var code = e.keyCode || e.which;
-            var list, pos;
+            const code = e.keyCode || e.which;
+            let list, pos;
             if (code === 13 && this.noResourceSelected) { /* enter without resource seleted */
                 e.preventDefault();
                 if (this.$('.g-search-field').val() !== '' && !this.noResultsPage) {
@@ -73,7 +73,7 @@ var SearchFieldWidget = View.extend({
             } else if (code === 13) { /* enter with resource selected */
                 e.preventDefault();
                 this.noResourceSelected = true;
-                var link = this.$('.g-search-result.g-search-selected>a');
+                const link = this.$('.g-search-result.g-search-selected>a');
                 if (link.length) {
                     this._resultClicked(link);
                 }
@@ -121,7 +121,7 @@ var SearchFieldWidget = View.extend({
     },
 
     search: function () {
-        var q = this.$('.g-search-field').val();
+        const q = this.$('.g-search-field').val();
 
         if (!q) {
             this.hideResults();
@@ -262,10 +262,10 @@ var SearchFieldWidget = View.extend({
                     return;
                 }
 
-                var resources = [];
+                const resources = [];
                 _.each(this.types, function (type) {
                     _.each(results[type] || [], function (result) {
-                        var text, icon;
+                        let text, icon;
                         if (type === 'user') {
                             text = result.firstName + ' ' + result.lastName +
                                 ' (' + result.login + ')';
@@ -284,7 +284,7 @@ var SearchFieldWidget = View.extend({
                             icon = 'doc-text-inv';
                         } else {
                             if (this.getInfoCallback) {
-                                var res = this.getInfoCallback(type, result);
+                                const res = this.getInfoCallback(type, result);
                                 if (res) {
                                     text = res.text;
                                     icon = res.icon;

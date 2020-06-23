@@ -11,10 +11,10 @@ import '@girder/core/utilities/jquery/girderModal';
 import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 import QuotaPoliciesWidgetTemplate from '../templates/quotaPoliciesWidget.pug';
 
-var QuotaPoliciesWidget = View.extend({
+const QuotaPoliciesWidget = View.extend({
     events: {
         'submit #g-policies-edit-form': function (e) {
-            var fields;
+            let fields;
             e.preventDefault();
             fields = {
                 fileSizeQuota: this.$('#g-fileSizeQuota').val(),
@@ -61,8 +61,8 @@ var QuotaPoliciesWidget = View.extend({
     },
 
     capacityChart: function (view, el) {
-        var used, free, data;
-        var quota = view.model.get('quotaPolicy').fileSizeQuota;
+        let used, free, data;
+        let quota = view.model.get('quotaPolicy').fileSizeQuota;
         if (view.model.get('quotaPolicy').useQuotaDefault !== false) {
             quota = view.model.get('defaultQuota');
             if (!quota) {
@@ -80,7 +80,7 @@ var QuotaPoliciesWidget = View.extend({
             ['Used (' + formatSize(used) + ')', used],
             ['Free (' + formatSize(free) + ')', free]
         ];
-        var plot = $(el).jqplot([data], {
+        const plot = $(el).jqplot([data], {
             seriesDefaults: {
                 renderer: $.jqplot.PieRenderer,
                 rendererOptions: {
@@ -110,8 +110,8 @@ var QuotaPoliciesWidget = View.extend({
     },
 
     capacityString: function () {
-        var used, free;
-        var quota = this.model.get('quotaPolicy').fileSizeQuota;
+        let used, free;
+        let quota = this.model.get('quotaPolicy').fileSizeQuota;
         if (this.model.get('quotaPolicy').useQuotaDefault !== false) {
             quota = this.model.get('defaultQuota');
             if (!quota) {
@@ -131,9 +131,9 @@ var QuotaPoliciesWidget = View.extend({
     },
 
     render: function () {
-        var sizeInfo, defaultQuota, defaultQuotaString, modal;
-        var name = this.model.name();
-        var currentUser = getCurrentUser();
+        let sizeInfo, defaultQuota, defaultQuotaString, modal;
+        const name = this.model.name();
+        const currentUser = getCurrentUser();
         sizeInfo = sizeToValueAndUnits(
             this.model.get('quotaPolicy').fileSizeQuota);
         defaultQuota = this.model.get('defaultQuota');

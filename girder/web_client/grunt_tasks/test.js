@@ -2,7 +2,7 @@
  * Define tasks specific to development. These tasks are excluded from the
  * build system for installed girder packages.
  */
-var path = require('path');
+const path = require('path');
 
 const babelPresets = require.resolve('babel-preset-env');
 
@@ -12,7 +12,7 @@ module.exports = function (grunt) {
     }
 
     function resolveBuiltPath() {
-        var built = grunt.config.get('builtPath');
+        const built = grunt.config.get('builtPath');
         return path.resolve(...[built, ...arguments]);
     }
 

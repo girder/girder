@@ -33,8 +33,8 @@ describe('Test the swagger pages', function () {
     });
 });
 
-var jasmineEnv = jasmine.getEnv();
-var consoleReporter = new jasmine.ConsoleReporter();
+const jasmineEnv = jasmine.getEnv();
+const consoleReporter = new jasmine.ConsoleReporter();
 window.jasmine_phantom_reporter = consoleReporter;
 jasmineEnv.addReporter(consoleReporter);
 jasmineEnv.execute();

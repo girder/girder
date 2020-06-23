@@ -11,7 +11,7 @@ import '@girder/core/utilities/jquery/girderModal';
 /**
  * This view shows a modal dialog for resetting a forgotten password.
  */
-var ResetPasswordView = View.extend({
+const ResetPasswordView = View.extend({
     events: {
         'submit #g-reset-password-form': function (e) {
             e.preventDefault();

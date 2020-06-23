@@ -12,7 +12,7 @@ import router from './router';
 import version from './version';
 
 // This will be modified dynamically when plugins are loaded.
-var plugins = {};
+const plugins = {};
 
 export {
     auth,

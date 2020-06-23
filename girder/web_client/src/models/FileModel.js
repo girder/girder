@@ -6,12 +6,12 @@ import Model from '@girder/core/models/Model';
 import { restRequest, uploadHandlers, getUploadChunkSize } from '@girder/core/rest';
 import '@girder/core/utilities/S3UploadHandler'; // imported for side effect
 
-var FileModel = Model.extend({
+const FileModel = Model.extend({
     resourceName: 'file',
     resumeInfo: null,
 
     _wrapData: function (data, type) {
-        var wrapped = data;
+        let wrapped = data;
 
         if (!(data instanceof Blob)) {
             if (!_.isArray(data)) {
@@ -113,7 +113,7 @@ var FileModel = Model.extend({
 
         // Authenticate and generate the upload token for this file
         restRequest(_restParams).done((upload) => {
-            var behavior = upload.behavior;
+            const behavior = upload.behavior;
             if (behavior && uploadHandlers[behavior]) {
                 this.uploadHandler = new uploadHandlers[behavior]({
                     upload: upload,
@@ -156,7 +156,7 @@ var FileModel = Model.extend({
                 this.trigger('g:upload.complete');
             }
         }).fail((resp) => {
-            var text = 'Error: ', identifier;
+            let text = 'Error: ', identifier;
 
             if (resp.status === 0) {
                 text += 'Connection to the server interrupted.';
@@ -193,7 +193,7 @@ var FileModel = Model.extend({
             this.startByte = resp.offset;
             this._uploadChunk(this.resumeInfo.file, this.resumeInfo.uploadId);
         }).fail((resp) => {
-            var msg;
+            let msg;
 
             if (resp.status === 0) {
                 msg = 'Could not connect to the server.';
@@ -223,11 +223,11 @@ var FileModel = Model.extend({
     },
 
     _uploadChunk: function (file, uploadId) {
-        var endByte = Math.min(this.startByte + getUploadChunkSize(), file.size);
+        const endByte = Math.min(this.startByte + getUploadChunkSize(), file.size);
 
         this.chunkLength = endByte - this.startByte;
-        var sliceFn = file.webkitSlice ? 'webkitSlice' : 'slice';
-        var blob = file[sliceFn](this.startByte, endByte);
+        const sliceFn = file.webkitSlice ? 'webkitSlice' : 'slice';
+        const blob = file[sliceFn](this.startByte, endByte);
 
         restRequest({
             url: `file/chunk?offset=${this.startByte}&uploadId=${uploadId}`,
@@ -251,7 +251,7 @@ var FileModel = Model.extend({
                 }
             },
             error: (resp) => {
-                var text = 'Error: ', identifier;
+                let text = 'Error: ', identifier;
 
                 if (resp.status === 0) {
                     text += 'Connection to the server interrupted.';
@@ -273,7 +273,7 @@ var FileModel = Model.extend({
             },
             xhr: () => {
                 // Custom XHR so we can register a progress handler
-                var xhr = new window.XMLHttpRequest();
+                const xhr = new window.XMLHttpRequest();
                 xhr.upload.addEventListener('progress', (e) => {
                     this._uploadProgress(file, e);
                 });
@@ -294,7 +294,7 @@ var FileModel = Model.extend({
         // We only want to count bytes of the actual file, not the bytes of
         // the request body corresponding to the other form parameters model
         // we are also sending.
-        var loaded = this.chunkLength + event.loaded - event.total;
+        const loaded = this.chunkLength + event.loaded - event.total;
 
         if (loaded >= 0) {
             this.trigger('g:upload.progress', {

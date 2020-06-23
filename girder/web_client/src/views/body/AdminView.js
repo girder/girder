@@ -9,7 +9,7 @@ import '@girder/core/stylesheets/body/adminConsole.styl';
 /**
  * This view shows the admin console, which links to all available admin pages.
  */
-var AdminView = View.extend({
+const AdminView = View.extend({
     initialize: function () {
         cancelRestRequests('fetch');
         this.render();

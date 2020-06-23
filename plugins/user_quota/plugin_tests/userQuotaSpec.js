@@ -154,7 +154,7 @@ function _testQuotaDialogAsUser(hasChart) {
 }
 
 describe('test the user quota plugin', function () {
-    var collectionDialogRoute, userDialogRoute, userRoute;
+    let collectionDialogRoute, userDialogRoute, userRoute;
     it('create resources', function () {
         girderTest.createUser(
             'admin', 'admin@girder.test', 'Quota', 'Admin', 'testpassword')();
@@ -215,7 +215,7 @@ describe('test the user quota plugin', function () {
             $('#g-user-quota-form input.btn-primary').trigger('click');
         });
         waitsFor(function () {
-            var resp = girder.rest.restRequest({
+            const resp = girder.rest.restRequest({
                 url: 'system/setting',
                 method: 'GET',
                 data: { key: 'user_quota.default_user_quota' },
@@ -374,7 +374,7 @@ describe('test the user quota plugin', function () {
             $('#g-user-quota-form input.btn-primary').trigger('click');
         });
         waitsFor(function () {
-            var resp = girder.rest.restRequest({
+            const resp = girder.rest.restRequest({
                 url: 'system/setting',
                 method: 'GET',
                 data: { key: 'user_quota.default_collection_quota' },

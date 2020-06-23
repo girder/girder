@@ -6,14 +6,14 @@ import { parseQueryString } from '@girder/core/misc';
 
 import '@girder/core/utilities/jquery/girderModal';
 
-var Router = Backbone.Router.extend({
+const Router = Backbone.Router.extend({
     initialize: function () {
         this._enabled = true;
     },
 
     execute: function (callback, args) {
         args.push(parseQueryString(args.pop()));
-        var queryString = args[args.length - 1];
+        const queryString = args[args.length - 1];
         if (callback) {
             callback.apply(this, args);
         }
@@ -46,7 +46,7 @@ var Router = Backbone.Router.extend({
     }
 });
 
-var router = new Router();
+const router = new Router();
 
 // When the back button is pressed, we want to close open modals.
 router.on('route', function (route, params) {

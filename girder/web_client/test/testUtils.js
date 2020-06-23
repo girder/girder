@@ -2,7 +2,7 @@
  * Contains utility functions used in the Girder Jasmine tests.
  */
 
-var girderTest = window.girderTest || {};
+const girderTest = window.girderTest || {};
 
 window.alert = function (msg) {
     // We want to have no alerts in the code-base; alerts block phantomjs and
@@ -334,7 +334,7 @@ girderTest.testMetadata = function () {
                 return;
             }
 
-            for (var arrKey in value) {
+            for (const arrKey in value) {
                 if (Object.prototype.hasOwnProperty.call(value, arrKey)) {
                     $('.jsoneditor button.jsoneditor-contextmenu', elem).trigger('click');
                     $('.jsoneditor-contextmenu button.jsoneditor-insert').trigger('click');
@@ -351,7 +351,7 @@ girderTest.testMetadata = function () {
 
     // Just switch a simple -> json or vice versa, and save. Assert the data is what it should be
     function _toggleMetadata(key, beforeType, action, errorMessage) {
-        var elem, beforeValue, afterElem;
+        let elem, beforeValue, afterElem;
         action = action || 'save';
 
         runs(function () {
@@ -422,7 +422,7 @@ girderTest.testMetadata = function () {
      *                      regex.
      */
     function _editMetadata(origKey, key, value, action, errorMessage, type) {
-        var expectedNum, elem;
+        let expectedNum, elem;
         type = type || 'simple';
 
         if (origKey === null) {
@@ -596,7 +596,7 @@ girderTest.waitForLoad = function (desc) {
      * as soon as possible, and thus not really be finished.  This waits a few
      * extra time slices before assuming that loading is finished, which works
      * around this. */
-    var clearCount = 0;
+    let clearCount = 0;
     waitsFor(function () {
         if (girder._inTransition ||
                 girder.rest.numberOutstandingRestRequests() ||
@@ -747,11 +747,11 @@ girderTest.folderAccessControl = function (current, action, recurse) {
  * @param path should be specified relative to the root of the repository.
  */
 girderTest.binaryUpload = function (path) {
-    var file;
-    var oldLen;
+    let file;
+    let oldLen;
 
     runs(function () {
-        var folderId = Backbone.history.fragment.split('/').pop();
+        const folderId = Backbone.history.fragment.split('/').pop();
         oldLen = $('.g-item-list-entry').length;
 
         girder.rest.restRequest({
@@ -775,7 +775,7 @@ girderTest.binaryUpload = function (path) {
 
     runs(function () {
         // Reload the current view
-        var old = Backbone.history.fragment;
+        const old = Backbone.history.fragment;
         Backbone.history.fragment = null;
         girder.router.navigate(old, { trigger: true });
     });
@@ -816,7 +816,7 @@ girderTest.testRoute = function (route, hasDialog, testFunc) {
  */
 girderTest.getCallbackSuffix = function () {
     girderTest._uploadSuffix = '';
-    var hostport = window.location.host.match(':([0-9]+)');
+    const hostport = window.location.host.match(':([0-9]+)');
     if (hostport && hostport.length === 2) {
         girderTest._uploadSuffix = hostport[1];
     }
@@ -827,7 +827,7 @@ girderTest.getCallbackSuffix = function () {
  * that this has been done (but only do it once).
  */
 girderTest._prepareTestUpload = (function () {
-    var alreadyPrepared = false;
+    let alreadyPrepared = false;
     return function () {
         if (alreadyPrepared) {
             return;
@@ -867,7 +867,7 @@ girderTest.sendFile = function (uploadItem, selector) {
     // Incantation that causes the phantom environment to send us a File.
     selector = selector || '#g-files';
     $(selector).parent().removeClass('hide');
-    var params = {
+    const params = {
         action: 'uploadFile',
         selector: selector,
         suffix: girderTest._uploadSuffix
@@ -890,7 +890,7 @@ girderTest.sendFile = function (uploadItem, selector) {
  *               upload to fail with an error that includes this string.
  */
 girderTest.testUpload = function (uploadItem, needResume, error) {
-    var origLen;
+    let origLen;
 
     girderTest._prepareTestUpload();
 
@@ -976,7 +976,7 @@ girderTest.testUpload = function (uploadItem, needResume, error) {
  *                  multiples.
  */
 girderTest.testUploadDrop = function (itemSize, multiple) {
-    var origLen;
+    let origLen;
 
     waitsFor(function () {
         return $('.g-upload-here-button').length > 0;
@@ -1039,7 +1039,7 @@ girderTest.testUploadDrop = function (itemSize, multiple) {
  *                            targeted correctly.  Default is .g-dropzone-show.
  */
 girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropActiveSelector) {
-    var files = [], i;
+    let files = [], i;
     multiple = multiple || 1;
     selector = selector || '.g-drop-zone';
     dropActiveSelector = (dropActiveSelector || '.g-dropzone-show') + ':visible';
@@ -1158,13 +1158,13 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
  * so we can print the log after a test failure.
  */
 (function () {
-    var MAX_AJAX_LOG_SIZE = 20;
-    var logIndex = 0;
-    var ajaxCalls = [];
-    var backboneAjax = Backbone.$.ajax;
+    const MAX_AJAX_LOG_SIZE = 20;
+    let logIndex = 0;
+    let ajaxCalls = [];
+    const backboneAjax = Backbone.$.ajax;
 
     Backbone.$.ajax = function () {
-        var opts = {}, record;
+        let opts = {}, record;
 
         if (arguments.length === 1) {
             opts = arguments[0];
@@ -1196,7 +1196,7 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
     };
 
     girderTest.ajaxLog = function (reset) {
-        var calls = ajaxCalls.slice(logIndex, ajaxCalls.length).concat(ajaxCalls.slice(0, logIndex));
+        const calls = ajaxCalls.slice(logIndex, ajaxCalls.length).concat(ajaxCalls.slice(0, logIndex));
         if (reset) {
             ajaxCalls = [];
             logIndex = 0;
@@ -1216,7 +1216,7 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
  * Note: the path to the spec file must be url encoded.
  */
 $(function () {
-    var specs = [];
+    const specs = [];
     document.location.search.substring(1).split('&').forEach(function (query) {
         query = query.split('=');
         if (query.length > 1 && query[0] === 'spec') {
@@ -1247,12 +1247,12 @@ girderTest.startApp = function () {
              * fail-safe. */
             $.fn.emulateTransitionEnd = function (duration) {
                 girder._inTransition = true;
-                var called = false;
-                var $el = this;
+                let called = false;
+                const $el = this;
                 $(this).one('bsTransitionEnd', function () {
                     called = true;
                 });
-                var callback = function () {
+                const callback = function () {
                     if (!called) {
                         $($el).trigger($.support.transition.end);
                     }
@@ -1274,7 +1274,7 @@ girderTest.startApp = function () {
             girder.app.events = girder.app.events || {};
             girder.app.events['click a'] = function (evt) {
                 if (!evt.isDefaultPrevented()) {
-                    var elem = $(evt.target),
+                    const elem = $(evt.target),
                         href = elem.attr('href');
                     if (elem.is('a') && href && href.substr(0, 1) === '#') {
                         girder.router.navigate(href.substr(1), { trigger: true });

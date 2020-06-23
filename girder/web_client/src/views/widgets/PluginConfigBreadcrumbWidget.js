@@ -7,7 +7,7 @@ import PluginConfigBreadcrumbTemplate from '@girder/core/templates/widgets/plugi
  * This widget provides a consistent breadcrumb to be displayed on the admin
  * configuration pages for plugins.
  */
-var PluginConfigBreadcrumbWidget = View.extend({
+const PluginConfigBreadcrumbWidget = View.extend({
     events: {
         'click a.g-admin-console-link': function () {
             router.navigate('admin', { trigger: true });

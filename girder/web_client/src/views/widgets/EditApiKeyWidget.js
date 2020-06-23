@@ -14,12 +14,12 @@ import '@girder/core/utilities/jquery/girderModal';
 /**
  * This widget is used to create a new API key or edit an existing one.
  */
-var EditApiKeyWidget = View.extend({
+const EditApiKeyWidget = View.extend({
     events: {
         'submit #g-api-key-edit-form': function (e) {
             e.preventDefault();
 
-            var fields = {
+            const fields = {
                 name: this.$('#g-api-key-name').val(),
                 tokenDuration: this.$('#g-api-key-token-duration').val(),
                 scope: null
@@ -38,7 +38,7 @@ var EditApiKeyWidget = View.extend({
         },
 
         'change .g-scope-selection-container .radio input': function () {
-            var mode = this._getSelectedScopeMode();
+            const mode = this._getSelectedScopeMode();
             if (mode === 'full') {
                 this.$('.g-custom-scope-checkbox').girderEnable(false)
                     .parent().parent().girderEnable(false);
@@ -76,7 +76,7 @@ var EditApiKeyWidget = View.extend({
             tokenScopes = tokenScopes.concat(this.scopeInfo.adminCustom);
         }
 
-        var modal = this.$el.html(EditApiKeyWidgetTemplate({
+        const modal = this.$el.html(EditApiKeyWidgetTemplate({
             apiKey: this.model,
             tokenScopes: tokenScopes
         })).girderModal(this).on('shown.bs.modal', () => {

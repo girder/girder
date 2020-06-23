@@ -1,5 +1,5 @@
 girderTest.importPlugin('jobs');
-var app;
+let app;
 girderTest.startApp()
     .done(function (startedApp) {
         app = startedApp;
@@ -11,7 +11,7 @@ describe('Unit test the job detail widget.', function () {
             return $('#g-app-body-container').length > 0;
         });
 
-        var jobInfo = {
+        const jobInfo = {
             _id: 'foo',
             title: 'My batch job',
             status: girder.plugins.jobs.JobStatus.INACTIVE,
@@ -61,7 +61,7 @@ describe('Unit test the job detail widget.', function () {
             expect($('.g-timeline-end-label').text()).toBe('12 s');
 
             function toHex(c) {
-                var hex = parseInt(c, 10).toString(16);
+                const hex = parseInt(c, 10).toString(16);
                 return hex.length === 1 ? '0' + hex : hex;
             }
 
@@ -70,9 +70,9 @@ describe('Unit test the job detail widget.', function () {
                 return '#' + toHex(rgb[1]) + toHex(rgb[2]) + toHex(rgb[3]);
             }
 
-            var backgroundColor = $('.g-timeline-point')[3].style.getPropertyValue('background-color');
+            let backgroundColor = $('.g-timeline-point')[3].style.getPropertyValue('background-color');
             backgroundColor = rgbToHex(backgroundColor);
-            var successColor = girder.plugins.jobs.JobStatus.color(girder.plugins.jobs.JobStatus.SUCCESS);
+            const successColor = girder.plugins.jobs.JobStatus.color(girder.plugins.jobs.JobStatus.SUCCESS);
             expect(backgroundColor).toBe(successColor);
 
             // Make sure view change happens when notification is sent for this job
@@ -138,7 +138,7 @@ describe('Unit test the job detail widget.', function () {
         girderTest.waitForLoad();
     });
     it('finished value', function () {
-        var jobs = _.map([
+        const jobs = _.map([
             girder.plugins.jobs.JobStatus.QUEUED,
             girder.plugins.jobs.JobStatus.RUNNING,
             girder.plugins.jobs.JobStatus.ERROR,
@@ -154,7 +154,7 @@ describe('Unit test the job detail widget.', function () {
                 when: '2015-01-12T12:00:0' + i
             });
         });
-        var JobStatus = girder.plugins.jobs.JobStatus;
+        const JobStatus = girder.plugins.jobs.JobStatus;
         expect(JobStatus.finished(jobs[0].get('status'))).toBe(false);
         expect(JobStatus.finished(jobs[1].get('status'))).toBe(false);
         expect(JobStatus.finished(jobs[2].get('status'))).toBe(true);
@@ -166,13 +166,13 @@ describe('Unit test the job detail widget.', function () {
 describe('Unit test the job list widget.', function () {
     // This spy must be attached to the prototype, since the instantiation of JobListWidget will
     // bind and make calls to '_renderData' immediately
-    var renderDataSpy;
+    let renderDataSpy;
     beforeEach(function () {
         renderDataSpy = spyOn(girder.plugins.jobs.views.JobListWidget.prototype, '_renderData').andCallThrough();
     });
 
     it('Show a job list widget.', function () {
-        var jobs, rows, widget;
+        let jobs, rows, widget;
 
         girderTest.createUser(
             'admin', 'admin@girder.test', 'Quota', 'Admin', 'testpassword')();
@@ -269,7 +269,7 @@ describe('Unit test the job list widget.', function () {
     });
 
     it('Job list widget filter by status & type.', function () {
-        var widget;
+        let widget;
         runs(function () {
             widget = new girder.plugins.jobs.views.JobListWidget({
                 el: $('#g-app-body-container'),
@@ -317,7 +317,7 @@ describe('Unit test the job list widget.', function () {
     });
 
     it('Trigger click event.', function () {
-        var jobs, widget;
+        let jobs, widget;
 
         runs(function () {
             widget = new girder.plugins.jobs.views.JobListWidget({
@@ -360,7 +360,7 @@ describe('Unit test the job list widget.', function () {
         }, 'job list to auto-reload when collection is updated');
 
         runs(function () {
-            var fired = false;
+            let fired = false;
             widget.on('g:jobClicked', function () {
                 fired = true;
             });
@@ -370,7 +370,7 @@ describe('Unit test the job list widget.', function () {
     });
 
     it('job list widget in all jobs mode', function () {
-        var widget;
+        let widget;
         runs(function () {
             widget = new girder.plugins.jobs.views.JobListWidget({
                 el: $('#g-app-body-container'),
@@ -392,7 +392,7 @@ describe('Unit test the job list widget.', function () {
     });
 
     it('job list cancellation', function () {
-        var jobs, widget;
+        let jobs, widget;
 
         runs(function () {
             widget = new girder.plugins.jobs.views.JobListWidget({
@@ -449,7 +449,7 @@ describe('Unit test the job list widget.', function () {
     });
 
     it('timing history and time chart', function () {
-        var jobs, widget;
+        let jobs, widget;
         runs(function () {
             widget = new girder.plugins.jobs.views.JobListWidget({
                 el: $('#g-app-body-container'),
@@ -518,7 +518,7 @@ describe('Unit test the job list widget.', function () {
     });
 
     it('Instantiate without graphs, filter, and page size selector.', function () {
-        var widget;
+        let widget;
 
         runs(function () {
             widget = new girder.plugins.jobs.views.JobListWidget({

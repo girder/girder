@@ -51,7 +51,7 @@ const JobGraphWidget = View.extend({
     },
 
     update: function () {
-        var openDetailView = (view) => {
+        const openDetailView = (view) => {
             return (event, item) => {
                 if (item && (item.itemName === 'bar' || item.itemName === 'circle')) {
                     window.open(`#/job/${item.datum.id}`, '_blank');
@@ -151,7 +151,7 @@ const JobGraphWidget = View.extend({
     _prepareDataForChart(numberOfJobs) {
         let allRecords = [];
 
-        for (var i = numberOfJobs - 1; i >= 0; i--) {
+        for (let i = numberOfJobs - 1; i >= 0; i--) {
             const job = this.collection.at(i);
             const id = job.get('_id');
             const title = job.get('title');

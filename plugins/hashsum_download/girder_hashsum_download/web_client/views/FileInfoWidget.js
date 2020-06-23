@@ -7,7 +7,7 @@ import template from '../templates/hashsumDownloadFileInfoWidget.pug';
 
 import '../stylesheets/hashsumDownloadFileInfoWidget.styl';
 
-var keyfileUrl = function (id, algo) {
+const keyfileUrl = function (id, algo) {
     return `${getApiRoot()}/file/${id}/hashsum_file/${algo}`;
 };
 

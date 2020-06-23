@@ -23,7 +23,7 @@ function _invite(name, level, action, check) {
         return $('.g-group-invite-container .g-search-results').hasClass('open');
     }, 'search to return (' + name + ')');
     runs(function () {
-        var results = $('.g-group-invite-container li.g-search-result');
+        const results = $('.g-group-invite-container li.g-search-result');
         expect(results.length).toBe(2); // 1 + '...' element
 
         expect(results.find('a[data-resource-type="user"]').length).toBe(1);
@@ -35,7 +35,7 @@ function _invite(name, level, action, check) {
         return $('.g-invite-as-member.btn').length === 1;
     }, 'invitation dialog to appear with invite button');
     runs(function () {
-        var sel = 'member';
+        let sel = 'member';
         switch (level) {
             case 'moderator': sel = 'moderator'; break;
             case 'admin': sel = 'administrator'; break;
@@ -166,7 +166,7 @@ describe('Test group actions', function () {
         girderTest.createGroup('privGroup', 'private group', false));
 
     it('Test that anonymous loading private group prompts login', function () {
-        var privateGroupFragment = Backbone.history.fragment;
+        const privateGroupFragment = Backbone.history.fragment;
         girderTest.anonymousLoadPage(true, privateGroupFragment, true, girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!'));
     });
 
@@ -415,7 +415,7 @@ describe('Test group actions', function () {
     });
 
     it('check ability to directly add users to groups', function () {
-        var policyTest = [
+        const policyTest = [
             { setting: 'never', user: 1, mayAdd: false },
             { setting: 'nomod', user: 1, mayAdd: false },
             { setting: 'yesadmin', user: 1, mayAdd: true },
@@ -427,7 +427,7 @@ describe('Test group actions', function () {
         ];
         /* Add a bunch of users to facilitate testing */
         runs(function () {
-            for (var i = 1; i <= 3; i += 1) {
+            for (let i = 1; i <= 3; i += 1) {
                 girderTest.logout()();
                 girderTest.createUser('user' + i, 'user' + i + '@girder.test',
                     'User' + i, 'User', 'password!')();
@@ -455,9 +455,9 @@ describe('Test group actions', function () {
             _invite('user2', 'moderator', 'add');
             _invite('user3', 'member', 'add');
         });
-        var curUser = 'admin', curSetting = 'never';
-        for (var i = 0; i < policyTest.length; i += 1) {
-            var policy = policyTest[i];
+        let curUser = 'admin', curSetting = 'never';
+        for (let i = 0; i < policyTest.length; i += 1) {
+            const policy = policyTest[i];
             _testDirectAdd(policy, curUser, curSetting);
             curUser = policy.user;
             curSetting = policy.setting;

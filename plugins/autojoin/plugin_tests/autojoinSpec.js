@@ -6,7 +6,7 @@ describe('test the autojoin ui', function () {
         'admin', 'admin@girder2.test', 'Joe', 'Admin', 'password'
     ));
 
-    var group1, group2, group3;
+    let group1, group2, group3;
 
     it('go to groups page', girderTest.goToGroupsPage());
     it('create a group', girderTest.createGroup('group1', '', false));

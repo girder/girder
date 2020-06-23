@@ -20,10 +20,10 @@ import JobListTemplate from '../templates/jobList.pug';
 import CheckBoxMenu from './CheckBoxMenu';
 import JobGraphWidget from './JobGraphWidget';
 
-var JobListWidget = View.extend({
+const JobListWidget = View.extend({
     events: {
         'click .g-job-trigger-link': function (e) {
-            var cid = $(e.currentTarget).attr('cid');
+            const cid = $(e.currentTarget).attr('cid');
             this.trigger('g:jobClicked', this.collection.get(cid));
         },
         'change select.g-page-size': function (e) {
@@ -31,7 +31,7 @@ var JobListWidget = View.extend({
             this.collection.fetch({}, true);
         },
         'change input.g-job-checkbox': function (e) {
-            var jobId = $(e.currentTarget).closest('tr').attr('g-job-id');
+            const jobId = $(e.currentTarget).closest('tr').attr('g-job-id');
             if ($(e.currentTarget).is(':checked')) {
                 this.jobCheckedStates[jobId] = true;
             } else {
@@ -59,7 +59,7 @@ var JobListWidget = View.extend({
     },
 
     initialize: function (settings) {
-        var currentUser = getCurrentUser();
+        const currentUser = getCurrentUser();
         this.showAllJobs = !!settings.allJobsMode;
         this.columns = settings.columns || this.columnEnum.COLUMN_ALL;
         this.userId = (settings.filter && !settings.allJobsMode) ? (settings.filter.userId ? settings.filter.userId : currentUser.id) : null;
@@ -150,13 +150,13 @@ var JobListWidget = View.extend({
             url: this.showAllJobs ? 'job/typeandstatus/all' : 'job/typeandstatus',
             method: 'GET'
         }).done((result) => {
-            var typesFilter = result.types.reduce((obj, type) => {
+            const typesFilter = result.types.reduce((obj, type) => {
                 obj[type] = true;
                 return obj;
             }, {});
             this.typeFilterWidget.setItems(typesFilter);
 
-            var statusFilter = result.statuses.map((status) => {
+            const statusFilter = result.statuses.map((status) => {
                 const statusText = JobStatus.text(status);
                 statusTextToStatusCode[statusText] = status;
                 return statusText;
@@ -295,7 +295,7 @@ var JobListWidget = View.extend({
     },
 
     _fetchWithFilter() {
-        var filter = {};
+        const filter = {};
         if (this.userId) {
             filter.userId = this.userId;
         }
@@ -314,7 +314,7 @@ var JobListWidget = View.extend({
         _whenAll(
             Object.keys(this.jobCheckedStates)
                 .filter((jobId) => {
-                    var jobModel = this.collection.find((job) => job.id === jobId);
+                    const jobModel = this.collection.find((job) => job.id === jobId);
                     return JobStatus.isCancelable(jobModel);
                 })
                 .map((jobId) => restRequest({

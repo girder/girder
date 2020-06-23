@@ -24,7 +24,7 @@ import '@girder/core/utilities/jquery/girderModal';
 /**
  * This view allows users to see and control access on a resource.
  */
-var AccessWidget = View.extend({
+const AccessWidget = View.extend({
     events: {
         'click button.g-save-access-list': function (e) {
             $(e.currentTarget).girderEnable(false);
@@ -74,7 +74,7 @@ var AccessWidget = View.extend({
             parentView: this
         }).on('g:resultClicked', this.addEntry, this);
 
-        var flagListPromise = null;
+        let flagListPromise = null;
         if (!this.noAccessFlag) {
             flagListPromise = restRequest({
                 url: 'system/access_flag'
@@ -102,7 +102,7 @@ var AccessWidget = View.extend({
             return;
         }
 
-        var closeFunction;
+        let closeFunction;
         if (this.modal && this.modelType === 'folder') {
             handleOpen('folderaccess');
             closeFunction = function () {
@@ -115,7 +115,7 @@ var AccessWidget = View.extend({
             };
         }
 
-        var template = this.modal ? accessEditorTemplate : accessEditorNonModalTemplate;
+        const template = this.modal ? accessEditorTemplate : accessEditorNonModalTemplate;
 
         this.$el.html(template({
             _,
@@ -234,7 +234,7 @@ var AccessWidget = View.extend({
     },
 
     _addUserEntry: function (entry) {
-        var exists = false;
+        let exists = false;
         _.every(this.$('.g-user-access-entry'), function (el) {
             if ($(el).attr('resourceid') === entry.id) {
                 exists = true;
@@ -243,7 +243,7 @@ var AccessWidget = View.extend({
         }, this);
 
         if (!exists) {
-            var model = new UserModel();
+            const model = new UserModel();
             model.set('_id', entry.id).on('g:fetched', function () {
                 this.$('#g-ac-list-users').append(accessEntryTemplate({
                     _,
@@ -266,7 +266,7 @@ var AccessWidget = View.extend({
     },
 
     _addGroupEntry: function (entry) {
-        var exists = false;
+        let exists = false;
         _.every(this.$('.g-group-access-entry'), function (el) {
             if ($(el).attr('resourceid') === entry.id) {
                 exists = true;
@@ -275,7 +275,7 @@ var AccessWidget = View.extend({
         }, this);
 
         if (!exists) {
-            var model = new GroupModel();
+            const model = new GroupModel();
             model.set('_id', entry.id).on('g:fetched', function () {
                 this.$('#g-ac-list-groups').append(accessEntryTemplate({
                     _,
@@ -299,9 +299,9 @@ var AccessWidget = View.extend({
     },
 
     saveAccessList: function () {
-        var acList = this.getAccessList();
+        const acList = this.getAccessList();
 
-        var publicFlags = _.map(this.$('.g-public-flag-checkbox:checked'), (checkbox) => {
+        const publicFlags = _.map(this.$('.g-public-flag-checkbox:checked'), (checkbox) => {
             return $(checkbox).attr('flag');
         });
 
@@ -311,7 +311,7 @@ var AccessWidget = View.extend({
             publicFlags: publicFlags
         });
 
-        var recurse = this.$('#g-apply-recursive').is(':checked');
+        const recurse = this.$('#g-apply-recursive').is(':checked');
 
         this.model.off('g:accessListSaved', null, this)
             .on('g:accessListSaved', function () {
@@ -330,13 +330,13 @@ var AccessWidget = View.extend({
 
     getAccessList: function () {
         // Rebuild the access list
-        var acList = {
+        const acList = {
             users: [],
             groups: []
         };
 
         _.each(this.$('.g-group-access-entry'), function (el) {
-            var $el = $(el);
+            const $el = $(el);
             acList.groups.push({
                 name: $el.find('.g-desc-title').html(),
                 id: $el.attr('resourceid'),
@@ -351,7 +351,7 @@ var AccessWidget = View.extend({
         }, this);
 
         _.each(this.$('.g-user-access-entry'), function (el) {
-            var $el = $(el);
+            const $el = $(el);
             acList.users.push({
                 login: $el.find('.g-desc-subtitle').html(),
                 name: $el.find('.g-desc-title').html(),
@@ -370,13 +370,13 @@ var AccessWidget = View.extend({
     },
 
     removeAccessEntry: function (event) {
-        var sel = '.g-user-access-entry,.g-group-access-entry';
+        const sel = '.g-user-access-entry,.g-group-access-entry';
         $(event.currentTarget).parents(sel).remove();
     },
 
     privacyChanged: function () {
         this.$('.g-public-container .radio').removeClass('g-selected');
-        var selected = this.$('.g-public-container .radio input:checked');
+        const selected = this.$('.g-public-container .radio input:checked');
         selected.parents('.radio').addClass('g-selected');
 
         if (this.$('#g-access-public').is(':checked')) {
@@ -387,7 +387,7 @@ var AccessWidget = View.extend({
     },
 
     _toggleAccessFlag: function (e) {
-        var el = $(e.currentTarget),
+        const el = $(e.currentTarget),
             type = el.attr('resourcetype'),
             id = el.attr('resourceid'),
             flag = el.attr('flag'),
@@ -401,7 +401,7 @@ var AccessWidget = View.extend({
     },
 
     _togglePublicAccessFlag: function (e) {
-        var el = $(e.currentTarget),
+        const el = $(e.currentTarget),
             flag = el.attr('flag'),
             container = this.$('.g-public-flags-popover-container');
 

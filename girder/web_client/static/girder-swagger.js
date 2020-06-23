@@ -1,7 +1,7 @@
 /* eslint-env jquery */
 /* global _ SwaggerUi SwaggerClient hljs */
 $(function () {
-    var apiRoot = $('#g-global-info-apiroot').text().replace(
+    let apiRoot = $('#g-global-info-apiroot').text().replace(
         '%HOST%', window.location.origin);
     if (!apiRoot) {
         apiRoot = window.location.origin + window.location.pathname;
@@ -33,18 +33,18 @@ $(function () {
         validatorUrl: null
     });
 
-    var methodOrder = ['get', 'put', 'post', 'patch', 'delete'];
+    const methodOrder = ['get', 'put', 'post', 'patch', 'delete'];
 
     // Comparator to sort operations by path and method.
     // Methods not in the pre-defined ordered list are placed at the end and
     // sorted alphabetically.
     function sortOperations(op1, op2) {
-        var pathCmp = op1.path.localeCompare(op2.path);
+        const pathCmp = op1.path.localeCompare(op2.path);
         if (pathCmp !== 0) {
             return pathCmp;
         }
-        var index1 = methodOrder.indexOf(op1.method);
-        var index2 = methodOrder.indexOf(op2.method);
+        const index1 = methodOrder.indexOf(op1.method);
+        const index2 = methodOrder.indexOf(op2.method);
         if (index1 > -1 && index2 > -1) {
             return index1 > index2 ? 1 : (index1 < index2 ? -1 : 0);
         }
@@ -58,14 +58,14 @@ $(function () {
     }
 
     function addApiKeyAuthorization() {
-        var cookieParams = document.cookie.split(';').map(function (m) {
+        const cookieParams = document.cookie.split(';').map(function (m) {
             return m.replace(/^\s+/, '').replace(/\s+$/, '');
         });
         _.each(cookieParams, function (val, i) {
-            var arr = val.split('=');
+            const arr = val.split('=');
             if (arr[0] === 'girderToken') {
                 // Make swagger send the Girder-Token header with each request.
-                var apiKeyAuth = new SwaggerClient.ApiKeyAuthorization(
+                const apiKeyAuth = new SwaggerClient.ApiKeyAuthorization(
                     'Girder-Token', arr[1], 'header');
                 window.swaggerUi.api.clientAuthorizations.add(
                     'Girder-Token', apiKeyAuth);

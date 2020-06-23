@@ -3,10 +3,10 @@
  * the DllPlugin for dynamic loading, each individual bundle has its own config options
  * that can extend these.
  */
-var path = require('path');
+const path = require('path');
 
-var webpack = require('webpack');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+const webpack = require('webpack');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const nodeModules = require('./webpack.paths').node_modules;
 
@@ -24,8 +24,8 @@ function fileLoader() {
     };
 }
 
-var loaderPaths = [path.dirname(require.resolve('@girder/core'))];
-var loaderPathsNodeModules = loaderPaths.concat([nodeModules]);
+const loaderPaths = [path.dirname(require.resolve('@girder/core'))];
+const loaderPathsNodeModules = loaderPaths.concat([nodeModules]);
 
 module.exports = {
     output: {

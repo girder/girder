@@ -41,7 +41,7 @@ function _editItem(button, buttonText) {
 }
 
 function _addItemToFolder(folder) {
-    var isPublic = 'false';
+    let isPublic = 'false';
 
     if (folder === 'Public') {
         isPublic = 'true';
@@ -186,10 +186,10 @@ describe('Test item creation, editing, and deletion', function () {
     });
 
     it('Edit files', function () {
-        var fileId1;
+        let fileId1;
 
         runs(function () {
-            var id = window.location.hash.split('/')[1].split('?')[0];
+            const id = window.location.hash.split('/')[1].split('?')[0];
             /* Create a link file */
             girder.rest.restRequest({
                 url: 'file',
@@ -294,7 +294,7 @@ describe('Test item creation, editing, and deletion', function () {
         girderTest.waitForLoad();
 
         // Delete the file
-        var fileListLength;
+        let fileListLength;
         runs(function () {
             fileListLength = $('.g-file-list-entry').length;
             $('.g-file-actions-container').first().find('.g-delete-file').trigger('click');

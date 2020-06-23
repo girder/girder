@@ -13,7 +13,7 @@ import '@girder/core/utilities/jquery/girderEnable';
  * This widget is for creating new assetstores. The parent view is responsible
  * for checking admin privileges before rendering this widget.
  */
-var NewAssetstoreWidget = View.extend({
+const NewAssetstoreWidget = View.extend({
     events: {
         'submit #g-new-fs-form': function (e) {
             this.createAssetstore(e, this.$('#g-new-fs-error'), {
@@ -66,7 +66,7 @@ var NewAssetstoreWidget = View.extend({
         this.$('.g-new-assetstore-submit').girderEnable(false);
         container.empty();
 
-        var assetstore = new AssetstoreModel();
+        const assetstore = new AssetstoreModel();
         assetstore.set(data);
         assetstore.on('g:saved', function () {
             this.$('.g-new-assetstore-submit').girderEnable(true);

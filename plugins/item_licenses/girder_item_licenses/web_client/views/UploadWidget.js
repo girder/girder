@@ -38,12 +38,12 @@ wrap(UploadWidget, 'uploadNextFile', function (uploadNextFile) {
     uploadNextFile.call(this);
 
     if (_.has(this, 'selectLicenseWidget')) {
-        var file = this.currentFile;
+        const file = this.currentFile;
         if (file) {
             file.on('g:upload.complete', function () {
-                var license = $('#g-license').val();
+                const license = $('#g-license').val();
                 if (!_.isEmpty(license)) {
-                    var item = new ItemModel({
+                    const item = new ItemModel({
                         _id: file.get('itemId'),
                         license: license
                     });

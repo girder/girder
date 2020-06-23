@@ -18,10 +18,10 @@ import '@girder/core/stylesheets/body/collectionList.styl';
 /**
  * This view lists the collections.
  */
-var CollectionsView = View.extend({
+const CollectionsView = View.extend({
     events: {
         'click a.g-collection-link': function (event) {
-            var cid = $(event.currentTarget).attr('g-collection-cid');
+            const cid = $(event.currentTarget).attr('g-collection-cid');
             router.navigate('collection/' + this.collection.get(cid).id, { trigger: true });
         },
         'click button.g-collection-create-button': 'createCollectionDialog',
@@ -56,7 +56,7 @@ var CollectionsView = View.extend({
      * Prompt the user to create a new collection
      */
     createCollectionDialog: function () {
-        var container = $('#g-dialog-container');
+        const container = $('#g-dialog-container');
 
         new EditCollectionWidget({
             el: container,
@@ -91,7 +91,7 @@ var CollectionsView = View.extend({
      * will navigate them to the view for that specific collection.
      */
     _gotoCollection: function (result) {
-        var collection = new CollectionModel();
+        const collection = new CollectionModel();
         collection.set('_id', result.id).on('g:fetched', function () {
             router.navigate('/collection/' + collection.get('_id'), { trigger: true });
         }, this).fetch();

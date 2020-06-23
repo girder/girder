@@ -69,7 +69,7 @@ var CollectionView = View.extend({
     },
 
     editCollection: function () {
-        var container = $('#g-dialog-container');
+        const container = $('#g-dialog-container');
 
         if (!this.editCollectionWidget) {
             this.editCollectionWidget = new EditCollectionWidget({
@@ -176,7 +176,7 @@ var CollectionView = View.extend({
      * an arbitrary set of extra parameters.
      */
     fetchAndInit: function (cid, params) {
-        var collection = new CollectionModel();
+        const collection = new CollectionModel();
         collection.set({ _id: cid }).on('g:fetched', function () {
             events.trigger('g:navigateTo', CollectionView, _.extend({
                 collection: collection

@@ -53,8 +53,8 @@ describe('Test widgets that are not covered elsewhere', function () {
             return $('.g-task-progress-message').last().text() === 'Error: Progress error test.';
         }, 'progress to report an error');
 
-        var onErrorEvent;
-        var onProgressEvent;
+        let onErrorEvent;
+        let onProgressEvent;
         runs(function () {
             onErrorEvent = jasmine.createSpy('onErrorEvent');
             girder.utilities.eventStream.on('g:error', onErrorEvent);
@@ -147,7 +147,7 @@ describe('Test widgets that are not covered elsewhere', function () {
 });
 
 describe('Test folder info widget async fetch', function () {
-    var folders = new girder.collections.FolderCollection();
+    const folders = new girder.collections.FolderCollection();
 
     it('fetch the current user\'s folders', function () {
         runs(function () {
@@ -166,7 +166,7 @@ describe('Test folder info widget async fetch', function () {
     it('show a folder info widget for one of the folders', function () {
         folders.models[0].set('description', 'hello world');
 
-        var widget = new girder.views.widgets.FolderInfoWidget({
+        const widget = new girder.views.widgets.FolderInfoWidget({
             el: $('#g-dialog-container'),
             model: folders.models[0],
             parentView: null

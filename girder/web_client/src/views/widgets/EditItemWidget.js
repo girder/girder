@@ -14,10 +14,10 @@ import '@girder/core/utilities/jquery/girderModal';
 /**
  * This widget is used to create a new item or edit an existing one.
  */
-var EditItemWidget = View.extend({
+const EditItemWidget = View.extend({
     events: {
         'submit #g-item-edit-form': function () {
-            var fields = {
+            const fields = {
                 name: this.$('#g-name').val(),
                 description: this.descriptionEditor.val()
             };
@@ -49,7 +49,7 @@ var EditItemWidget = View.extend({
     },
 
     render: function () {
-        var modal = this.$el.html(EditItemWidgetTemplate({
+        const modal = this.$el.html(EditItemWidgetTemplate({
             item: this.item
         })).girderModal(this).on('shown.bs.modal', () => {
             this.$('#g-name').trigger('focus');
@@ -80,7 +80,7 @@ var EditItemWidget = View.extend({
     },
 
     createItem: function (fields) {
-        var item = new ItemModel();
+        const item = new ItemModel();
         item.set(_.extend(fields, {
             folderId: this.parentModel.get('_id')
         }));

@@ -8,7 +8,7 @@ import '@girder/core/stylesheets/layout/footer.styl';
 /**
  * This view shows the footer in the layout.
  */
-var LayoutFooterView = View.extend({
+const LayoutFooterView = View.extend({
 
     initialize: function (settings) {
         const contactEmail = settings.contactEmail || null;

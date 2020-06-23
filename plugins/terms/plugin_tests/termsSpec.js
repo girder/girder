@@ -7,7 +7,7 @@ describe('Create and log in to a user for testing', function () {
     it('create an admin user', girderTest.createUser('rocky', 'rocky@phila.pa.us', 'Robert', 'Balboa', 'adrian'));
 
     it('allow all users to create collections', function () {
-        var settingSaved;
+        let settingSaved;
         runs(function () {
             settingSaved = false;
             girder.rest.restRequest({
@@ -60,7 +60,7 @@ describe('Navigate to a non-collection folder and item', function () {
 
     it('navigate to the Public folder', function () {
         runs(function () {
-            var folderLink = $('.g-folder-list-link:contains("Public")');
+            const folderLink = $('.g-folder-list-link:contains("Public")');
             expect(folderLink.length).toBe(1);
             folderLink.trigger('click');
         });
@@ -70,7 +70,7 @@ describe('Navigate to a non-collection folder and item', function () {
         girderTest.waitForLoad();
         runs(function () {
             expect($('.g-hierarchy-breadcrumb-bar>.breadcrumb>.active').text()).toBe('Public');
-            var folderId = window.location.hash.split('/')[3];
+            const folderId = window.location.hash.split('/')[3];
             expect(folderId).toMatch(/[0-9a-f]{24}/);
             window.location.assign('#folder/' + folderId);
         });
@@ -108,7 +108,7 @@ describe('Navigate to a non-collection folder and item', function () {
 
     it('navigate to the new item', function () {
         runs(function () {
-            var itemLink = $('.g-item-list-link:contains("User Item")');
+            const itemLink = $('.g-item-list-link:contains("User Item")');
             expect(itemLink.length).toBe(1);
             itemLink.trigger('click');
         });
@@ -123,7 +123,7 @@ describe('Navigate to a non-collection folder and item', function () {
     });
 });
 
-var termsCollectionId, termsFolderId, termsItemId;
+let termsCollectionId, termsFolderId, termsItemId;
 describe('Create a collection with terms', function () {
     it('go to collections page', function () {
         runs(function () {
@@ -214,7 +214,7 @@ describe('Create a collection with terms', function () {
 
     it('navigate to the new folder', function () {
         runs(function () {
-            var folderLink = $('.g-folder-list-link:contains("Terms Folder")');
+            const folderLink = $('.g-folder-list-link:contains("Terms Folder")');
             expect(folderLink.length).toBe(1);
             folderLink.trigger('click');
         });
@@ -248,7 +248,7 @@ describe('Create a collection with terms', function () {
 
     it('navigate to the new item', function () {
         runs(function () {
-            var itemLink = $('.g-item-list-link:contains("Terms Item")');
+            const itemLink = $('.g-item-list-link:contains("Terms Item")');
             expect(itemLink.length).toBe(1);
             itemLink.trigger('click');
         });

@@ -19,10 +19,10 @@ import '@girder/core/stylesheets/body/userList.styl';
 /**
  * This view lists users.
  */
-var UsersView = View.extend({
+const UsersView = View.extend({
     events: {
         'click a.g-user-link': function (event) {
-            var cid = $(event.currentTarget).attr('g-user-cid');
+            const cid = $(event.currentTarget).attr('g-user-cid');
             router.navigate('user/' + this.collection.get(cid).id, { trigger: true });
         },
         'click button.g-user-create-button': 'createUserDialog',
@@ -103,14 +103,14 @@ var UsersView = View.extend({
      * will navigate them to the view for that specific user.
      */
     _gotoUser: function (result) {
-        var user = new UserModel();
+        const user = new UserModel();
         user.set('_id', result.id).on('g:fetched', function () {
             router.navigate('user/' + user.get('_id'), { trigger: true });
         }, this).fetch();
     },
 
     createUserDialog: function () {
-        var container = $('#g-dialog-container');
+        const container = $('#g-dialog-container');
 
         new RegisterView({
             el: container,

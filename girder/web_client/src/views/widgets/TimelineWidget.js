@@ -21,7 +21,7 @@ import '@girder/core/stylesheets/widgets/timelineWidget.styl';
  * this widget, it is not possible to mix the numeric/relative values with datestamp
  * values.
  */
-var TimelineWidget = View.extend({
+const TimelineWidget = View.extend({
     /**
      * Initialize the timeline widget.
      *
@@ -85,13 +85,13 @@ var TimelineWidget = View.extend({
             return;
         }
 
-        var range = this.endTime - this.startTime;
+        const range = this.endTime - this.startTime;
 
         this._processedSegments = _.map(this.segments, function (segment) {
-            var start = this.numeric ? segment.start : new Date(segment.start);
-            var end = this.numeric ? segment.end : new Date(segment.end);
-            var classes = segment.class ? [segment.class] : [this.defaultSegmentClass];
-            var color = segment.color ? `background-color: ${segment.color}` : '';
+            const start = this.numeric ? segment.start : new Date(segment.start);
+            const end = this.numeric ? segment.end : new Date(segment.end);
+            const classes = segment.class ? [segment.class] : [this.defaultSegmentClass];
+            const color = segment.color ? `background-color: ${segment.color}` : '';
 
             return {
                 class: classes.join(' '),
@@ -105,9 +105,9 @@ var TimelineWidget = View.extend({
         }, this);
 
         this._processedPoints = _.map(this.points, function (point) {
-            var time = this.numeric ? point.time : new Date(point.time);
-            var classes = point.class ? [point.class] : [this.defaultPointClass];
-            var color = point.color ? `background-color: ${point.color}` : '';
+            const time = this.numeric ? point.time : new Date(point.time);
+            const classes = point.class ? [point.class] : [this.defaultPointClass];
+            const color = point.color ? `background-color: ${point.color}` : '';
 
             return {
                 class: classes.join(' '),

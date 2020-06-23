@@ -5,7 +5,7 @@ import './lib/backbone.analytics';
 import './routes';
 
 events.on('g:appload.after', function () {
-    var dnt = navigator.doNotTrack || window.doNotTrack;
+    const dnt = navigator.doNotTrack || window.doNotTrack;
     if (dnt !== '1' && dnt !== 'yes') {
         /* eslint-disable */
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -32,7 +32,7 @@ events.on('g:appload.after', function () {
  * triggering (calling navigate without {trigger: true}).
  */
 events.on('g:hierarchy.route', function (args) {
-    var curRoute = args.route;
+    let curRoute = args.route;
     if (!/^\//.test(curRoute)) {
         curRoute = '/' + curRoute;
     }

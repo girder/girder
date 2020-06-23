@@ -18,7 +18,7 @@ import '@girder/core/utilities/jquery/girderModal';
  * browser to pick a single user, collection, folder, or item from a
  * hierarchical view.
  */
-var BrowserWidget = View.extend({
+const BrowserWidget = View.extend({
     events: {
         'click .g-submit-button': function () {
             this._validate();

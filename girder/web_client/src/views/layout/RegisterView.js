@@ -12,7 +12,7 @@ import '@girder/core/utilities/jquery/girderModal';
 /**
  * This view shows a register modal dialog.
  */
-var RegisterView = View.extend({
+const RegisterView = View.extend({
     events: {
         'submit #g-register-form': function (e) {
             e.preventDefault();
@@ -26,7 +26,7 @@ var RegisterView = View.extend({
                 return;
             }
 
-            var user = new UserModel({
+            const user = new UserModel({
                 login: this.$('#g-login').val(),
                 password: this.$('#g-password').val(),
                 email: this.$('#g-email').val(),
@@ -39,7 +39,7 @@ var RegisterView = View.extend({
                         user: user
                     });
                 } else {
-                    var authToken = user.get('authToken') || {};
+                    const authToken = user.get('authToken') || {};
 
                     if (authToken.token) {
                         setCurrentUser(user);
@@ -64,7 +64,7 @@ var RegisterView = View.extend({
 
                 this.$el.modal('hide');
             }, this).on('g:error', function (err) {
-                var resp = err.responseJSON;
+                const resp = err.responseJSON;
                 this.$('.g-validation-failed-message').text(resp.message);
                 if (resp.field) {
                     this.$('#g-group-' + resp.field).addClass('has-error');
