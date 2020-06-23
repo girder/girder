@@ -1,7 +1,7 @@
 .. _deploy:
 
-Deploy
-======
+Deployment Alternatives
+=======================
 
 There are many ways to deploy Girder into production. Here is a set of guides on
 how to deploy Girder to several different platforms.

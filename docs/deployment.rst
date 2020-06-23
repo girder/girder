@@ -1,7 +1,7 @@
-Installation
-============
+Deployment
+==========
 
-This tutorial will install a production-ready Girder on Ubuntu 18.04,
+This tutorial will deploy a production-ready Girder on Ubuntu 18.04,
 using the popular IT automation tool
 `Ansible <https://docs.ansible.com/ansible/latest/index.html>`_.
 
