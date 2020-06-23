@@ -259,9 +259,9 @@ def dicomSubstringSearchHandler(query, types, user=None, level=None, limit=0, of
 
     jsQuery = """
         function() {
-            var queryKey = %(query)s.toLowerCase();
-            var queryValue = queryKey;
-            var dicomMeta = obj.dicom.meta;
+            const queryKey = %(query)s.toLowerCase();
+            const queryValue = queryKey;
+            const dicomMeta = obj.dicom.meta;
             return Object.keys(dicomMeta).some(
                 function(key) {
                     return (key.toLowerCase().indexOf(queryKey) !== -1)  ||
