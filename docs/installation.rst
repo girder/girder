@@ -66,7 +66,7 @@ This will configure necessary details of the provisioning process.
 
 .. note::
    When specifying Girder plugins, PyPI package names of published Girder plugin packages should be
-   used whenever possible. See :ref:`Plugins <plugins>` for a list of official Girder plugins and associated
+   used whenever possible. See :doc:`plugins` for a list of official Girder plugins and associated
    PyPI package names.
 
    Unpublished plugin packages may be specified in accordance with
@@ -121,5 +121,3 @@ Plugins
 To change settings for plugins, click the ``Admin console`` navigation link, then click
 ``Plugins``. Here, you will see a list of installed plugins. If the plugin has
 settings, click on the associated gear icon to modify them.
-
-For information about specific plugins, see the :ref:`Plugins <plugins>` section.
