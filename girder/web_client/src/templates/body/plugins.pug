@@ -1,7 +1,7 @@
 .g-body-title Plugins
 .g-plugin-list-container
   each plugin in allPlugins
-    - var experimental = plugin.value.version ? plugin.value.version.indexOf('0.') === 0 : true
+    - const experimental = plugin.value.version ? plugin.value.version.indexOf('0.') === 0 : true
     .g-plugin-list-item(data-name=plugin.key)
       .g-plugin-name()
         if plugin.value.url

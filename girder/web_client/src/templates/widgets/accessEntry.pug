@@ -1,6 +1,6 @@
 div(class=`g-${type}-access-entry`, resourceid=entry.id)
   .g-access-col-left
-    - var icon = type === 'group' ? 'users' : 'user';
+    - const icon = type === 'group' ? 'users' : 'user';
     .g-access-icon
       i(class=`icon-${icon}`)
     .g-access-desc
@@ -19,8 +19,8 @@ div(class=`g-${type}-access-entry`, resourceid=entry.id)
             .g-flag-count-indicator(class=(entry.flags && entry.flags.length ? null : "hide"))= (entry.flags || []).length
         .g-flags-popover-container.hide(resourcetype=type, resourceid=entry.id, title="Access flags")
           each flag, key in flagList
-            - var checked = _.contains(entry.flags, key) ? 'checked' : null;
-            - var disabled = (!isAdmin && flag.admin) ? 'disabled' : null;
+            - const checked = _.contains(entry.flags, key) ? 'checked' : null;
+            - const disabled = (!isAdmin && flag.admin) ? 'disabled' : null;
             .checkbox(class=disabled)
               label.g-flag-label(title=flag.description)
                 input.g-flag-checkbox(resourcetype=type, resourceid=entry.id, flag=key, type="checkbox",

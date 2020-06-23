@@ -16,13 +16,13 @@ mixin privacyEditor(typeName)
     if _.keys(flagList).length
       a.g-action-manage-public-flags.hide(title="Public access flags")
         i.g-flag-icon.icon-flag
-          - var flagLen = (publicFlags && publicFlags.length) || 0
+          - const flagLen = (publicFlags && publicFlags.length) || 0
           .g-flag-count-indicator(class=(flagLen ? null : "hide"))= flagLen
         |  Manage public access flags...
       .g-public-flags-popover-container.hide
         each flag, key in flagList
-          - var checked = _.contains(publicFlags, key) ? 'checked' : null;
-          - var disabled = (!isAdmin && flag.admin) ? 'disabled' : null;
+          - const checked = _.contains(publicFlags, key) ? 'checked' : null;
+          - const disabled = (!isAdmin && flag.admin) ? 'disabled' : null;
           .checkbox(class=disabled)
             label.g-flag-label(title=flag.description)
               input.g-public-flag-checkbox(flag=key, type="checkbox", checked=checked, disabled=disabled)

@@ -1,6 +1,6 @@
 input.input-sm.form-control.g-widget-metadata-key-input(type="text", value=key, placeholder="Key")
 
-- var rows = value.length <= 40 ? 1 : (value.length <= 100 ? 3 : 5)
+- const rows = value.length <= 40 ? 1 : (value.length <= 100 ? 3 : 5)
 textarea.input-sm.form-control.g-widget-metadata-value-input(placeholder="Value", rows=rows)
   = value
 

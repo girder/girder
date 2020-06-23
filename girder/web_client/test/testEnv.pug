@@ -14,7 +14,7 @@ html(lang='en')
 
     script(type='text/javascript').
       (function () {
-        var consoleReporter = new jasmine.ConsoleReporter();
+        const consoleReporter = new jasmine.ConsoleReporter();
 
         window.jasmine_phantom_reporter = consoleReporter;
         jasmine.getEnv().addReporter(consoleReporter);

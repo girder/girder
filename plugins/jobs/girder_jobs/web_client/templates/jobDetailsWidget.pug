@@ -35,7 +35,7 @@ if job.get('updated')
     .g-job-info-key.inline(property="updated") Last update:
     .g-job-info-value.inline(property="updated")= formatDate(job.get('updated'), DATE_SECOND)
 if job.get('log')
-  - var log = job.get('log').join('')
+  - const log = job.get('log').join('')
   .g-job-info-key(property="log") Log output:
   .g-job-log-container.g-monospace-viewer(property="log")= log
 if job.get('meta') && !_.isEmpty(job.get('meta'))
