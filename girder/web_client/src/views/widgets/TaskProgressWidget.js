@@ -16,8 +16,11 @@ const TaskProgressWidget = View.extend({
     },
 
     render: function () {
-        let width = '0', barClass = [], progressClass = [], percentText = '',
-            timeLeftText = '';
+        let width = '0';
+        const barClass = [];
+        const progressClass = [];
+        let percentText = '';
+        let timeLeftText = '';
 
         if (this.progress.data.state === 'active') {
             if (this.progress.data.total <= 0) {

@@ -871,9 +871,11 @@ describe('Test FileModel static upload functions', function () {
     });
 
     it('test FileModel.uploadToFolder()', function () {
-        let text = null, filename, speech, fileModel, file;
-
-        filename = 'hal.txt';
+        let text = null;
+        let speech;
+        let fileModel;
+        let file;
+        const filename = 'hal.txt';
 
         // TODO: replace this with the "correct" mechanism for handling text
         // with Jasmine (cc @manthey).
@@ -934,9 +936,11 @@ describe('Test FileModel static upload functions', function () {
     });
 
     it('test FileModel.uploadToItem()', function () {
-        let text = null, filename, speech, file, fileModel;
-
-        filename = 'dave.txt';
+        let text = null;
+        let speech;
+        let fileModel;
+        let file;
+        const filename = 'dave.txt';
 
         // TODO: replace this with the "correct" mechanism for handling text
         // with Jasmine (cc @manthey).

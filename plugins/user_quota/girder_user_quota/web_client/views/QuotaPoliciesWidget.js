@@ -14,9 +14,8 @@ import QuotaPoliciesWidgetTemplate from '../templates/quotaPoliciesWidget.pug';
 const QuotaPoliciesWidget = View.extend({
     events: {
         'submit #g-policies-edit-form': function (e) {
-            let fields;
             e.preventDefault();
-            fields = {
+            const fields = {
                 fileSizeQuota: this.$('#g-fileSizeQuota').val(),
                 useQuotaDefault: $('input:radio[name=defaultQuota]:checked')
                     .val() === 'True',
@@ -61,7 +60,6 @@ const QuotaPoliciesWidget = View.extend({
     },
 
     capacityChart: function (view, el) {
-        let used, free, data;
         let quota = view.model.get('quotaPolicy').fileSizeQuota;
         if (view.model.get('quotaPolicy').useQuotaDefault !== false) {
             quota = view.model.get('defaultQuota');
@@ -74,9 +72,9 @@ const QuotaPoliciesWidget = View.extend({
             return;
         }
         $(el).addClass('g-has-chart');
-        used = view.model.get('size');
-        free = Math.max(quota - used, 0);
-        data = [
+        const used = view.model.get('size');
+        const free = Math.max(quota - used, 0);
+        const data = [
             ['Used (' + formatSize(used) + ')', used],
             ['Free (' + formatSize(free) + ')', free]
         ];
@@ -110,7 +108,6 @@ const QuotaPoliciesWidget = View.extend({
     },
 
     capacityString: function () {
-        let used, free;
         let quota = this.model.get('quotaPolicy').fileSizeQuota;
         if (this.model.get('quotaPolicy').useQuotaDefault !== false) {
             quota = this.model.get('defaultQuota');
@@ -121,8 +118,8 @@ const QuotaPoliciesWidget = View.extend({
         if (!quota && quota !== 0) {
             return 'Unlimited';
         }
-        used = this.model.get('size');
-        free = quota - used;
+        const used = this.model.get('size');
+        const free = quota - used;
         if (free > 0) {
             return formatSize(free) + ' free of ' +
                 formatSize(quota);
@@ -131,19 +128,19 @@ const QuotaPoliciesWidget = View.extend({
     },
 
     render: function () {
-        let sizeInfo, defaultQuota, defaultQuotaString, modal;
         const name = this.model.name();
         const currentUser = getCurrentUser();
-        sizeInfo = sizeToValueAndUnits(
+        const sizeInfo = sizeToValueAndUnits(
             this.model.get('quotaPolicy').fileSizeQuota);
-        defaultQuota = this.model.get('defaultQuota');
+        const defaultQuota = this.model.get('defaultQuota');
+        let defaultQuotaString;
         if (!defaultQuota && defaultQuota !== 0) {
             defaultQuotaString = 'Unlimited';
         } else {
             defaultQuotaString = formatSize(defaultQuota);
         }
         this._destroyPlots();
-        modal = this.$el.html(QuotaPoliciesWidgetTemplate({
+        const modal = this.$el.html(QuotaPoliciesWidgetTemplate({
             currentUser: currentUser,
             model: this.model,
             modelType: this.modelType,

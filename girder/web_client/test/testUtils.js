@@ -1039,12 +1039,12 @@ girderTest.testUploadDrop = function (itemSize, multiple) {
  *                            targeted correctly.  Default is .g-dropzone-show.
  */
 girderTest.testUploadDropAction = function (itemSize, multiple, selector, dropActiveSelector) {
-    let files = [], i;
+    const files = [];
     multiple = multiple || 1;
     selector = selector || '.g-drop-zone';
     dropActiveSelector = (dropActiveSelector || '.g-dropzone-show') + ':visible';
 
-    for (i = 0; i < multiple; i += 1) {
+    for (let i = 0; i < multiple; i += 1) {
         files.push({
             name: 'upload' + i + '.tmp',
             size: itemSize
@@ -1164,7 +1164,7 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
     const backboneAjax = Backbone.$.ajax;
 
     Backbone.$.ajax = function () {
-        let opts = {}, record;
+        let opts = {};
 
         if (arguments.length === 1) {
             opts = arguments[0];
@@ -1176,7 +1176,7 @@ girderTest.anonymousLoadPage = function (logoutFirst, fragment, hasLoginDialog, 
             opts.url = arguments[0];
         }
 
-        record = {
+        const record = {
             opts: opts
         };
 

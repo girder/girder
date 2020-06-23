@@ -17,10 +17,10 @@ const cookie = {
                 return m.replace(/^\s+/, '').replace(/\s+$/, '');
             })
             .each(function (c) {
-                let arr = c.split('='),
-                    key = arr[0],
-                    value = null,
-                    size = _.size(arr);
+                const arr = c.split('=');
+                const key = arr[0];
+                let value = null;
+                const size = _.size(arr);
                 if (size > 1) {
                     value = arr.slice(1).join('');
                 }
@@ -30,8 +30,8 @@ const cookie = {
     },
 
     find: function (name) {
-        let foundCookie = null,
-            list = this.findAll();
+        let foundCookie = null;
+        const list = this.findAll();
 
         _.each(list, function (value, key) {
             if (key === name) {

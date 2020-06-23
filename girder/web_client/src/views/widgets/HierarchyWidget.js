@@ -736,8 +736,8 @@ const HierarchyWidget = View.extend({
      * the checked menu state.
      */
     updateChecked: function () {
-        let folders = this.folderListView.checked,
-            items = [];
+        const folders = this.folderListView.checked;
+        let items = [];
 
         // Only show actions corresponding to the minimum access level over
         // the whole set of checked resources.

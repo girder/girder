@@ -117,8 +117,8 @@ const ConfigView = View.extend({
     },
 
     render: function () {
-        let origin = window.location.protocol + '//' + window.location.host,
-            _apiRoot = getApiRoot();
+        const origin = window.location.protocol + '//' + window.location.host;
+        let _apiRoot = getApiRoot();
 
         if (_apiRoot.substring(0, 1) !== '/') {
             _apiRoot = '/' + _apiRoot;

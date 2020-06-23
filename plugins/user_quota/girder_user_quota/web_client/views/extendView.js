@@ -17,11 +17,10 @@ function extendView(View, Template, modelType) {
     };
 
     wrap(View, 'render', function (render) {
-        let el, settings;
         /* Add the quota menu item to the resource menu as needed */
         render.call(this);
-        el = $('.g-' + modelType + '-header a.g-delete-' + modelType).closest('li');
-        settings = {
+        const el = $('.g-' + modelType + '-header a.g-delete-' + modelType).closest('li');
+        const settings = {
             AccessType: AccessType,
             currentUser: getCurrentUser()
         };

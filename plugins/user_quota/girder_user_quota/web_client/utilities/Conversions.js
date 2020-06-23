@@ -27,7 +27,9 @@ function sizeToValueAndUnits(sizeValue) {
  *                    for none. */
 function valueAndUnitsToSize(sizeValue, sizeUnits) {
     let sizeBytes = sizeValue;
-    let match, i, suffixes = 'bkMGT';
+    let match;
+    let i;
+    const suffixes = 'bkMGT';
     if (parseFloat(sizeValue) > 0) {
         sizeBytes = parseFloat(sizeValue);
         /* parse suffix */

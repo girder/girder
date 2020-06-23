@@ -81,11 +81,11 @@ function formatCount(n, opts) {
     n = n || 0;
     opts = opts || {};
 
-    let i = 0,
-        base = opts.base || 1000,
-        sep = opts.sep || '',
-        maxLen = opts.maxLen || 3,
-        precision = maxLen - 1;
+    let i = 0;
+    const base = opts.base || 1000;
+    const sep = opts.sep || '';
+    const maxLen = opts.maxLen || 3;
+    let precision = maxLen - 1;
 
     for (; n > base; i += 1) {
         n /= base;
@@ -147,7 +147,8 @@ function parseQueryString(queryString) {
     const params = {};
     if (queryString) {
         _.each(queryString.replace(/\+/g, ' ').split(/&/g), function (el) {
-            let aux = el.split('='), val;
+            const aux = el.split('=');
+            let val;
             if (aux.length > 1) {
                 val = decodeURIComponent(el.substr(aux[0].length + 1));
             }
@@ -167,8 +168,8 @@ function parseQueryString(queryString) {
  * @return {Object} An object mapping the names of options to values.
  */
 function defineFlags(options, allOption) {
-    let i = 0,
-        obj = {};
+    let i = 0;
+    const obj = {};
 
     if (allOption) {
         obj[allOption] = 1;
@@ -216,10 +217,10 @@ function splitRoute(route) {
     if (!route) {
         return { base: '', name: '' };
     }
-    let firstIndex = route.indexOf('?'),
-        lastIndex = route.lastIndexOf('?'),
-        dialogName,
-        baseRoute;
+    const firstIndex = route.indexOf('?');
+    const lastIndex = route.lastIndexOf('?');
+    let dialogName;
+    let baseRoute;
 
     if (firstIndex === -1) {
         baseRoute = route;
