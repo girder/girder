@@ -6,5 +6,5 @@
       each item in licenses
         optgroup(label=item.category)
           each license in item.licenses
-            - var sel=null; if (license.name === currentLicense) sel="selected";
+            - const sel = license.name === currentLicense ? 'selected' : null;
             option(value=license.name, selected=sel)= license.name
