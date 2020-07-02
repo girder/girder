@@ -6,6 +6,7 @@
       - python3-setuptools
       - python3-dev
     force_apt_get: true
+    update_cache: true
   become: true
   become_user: root
 
