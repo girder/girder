@@ -9,6 +9,7 @@ Restart=always
 ExecStart={{ girder_virtualenv }}/bin/girder serve
 Environment=LC_ALL=C.UTF-8
 Environment=LANG=C.UTF-8
+{{ girder_service_script_content }}
 
 [Install]
 WantedBy=multi-user.target

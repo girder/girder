@@ -6,3 +6,4 @@ girder_development_mode: false
 girder_version: "latest"
 girder_virtualenv: "{{ ansible_user_dir }}/.virtualenvs/girder"
 girder_web: true
+girder_service_script_content: ""
