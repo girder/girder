@@ -439,3 +439,6 @@ you could simply run:
    git push --tags
 
 That will trigger CircleCI to run, and if all tests pass, the 4.5.6 release will be uploaded to PyPI.
+
+Finally, complete the form at https://github.com/girder/girder/releases/new to inform GitHub that
+the new tag is a proper release version.
