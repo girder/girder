@@ -28,16 +28,9 @@
         path: "{{ ansible_user_dir }}/.bashrc"
         state: present
 
-    - name: Update package cache
-      apt:
-        update_cache: true
-        force_apt_get: true
-      changed_when: false
-      become: true
-      become_user: root
-
     - name: Install Girder plugin prerequisites
       apt:
+        update_cache: true
         name:
           # Needed for 'ldap'
           - libldap2-dev
