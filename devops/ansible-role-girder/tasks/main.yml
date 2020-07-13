@@ -1,6 +1,9 @@
 ---
 - name: Install Python 3 prereqs
   apt:
+    # This is the first apt step, so update the cache
+    update_cache: true
+    cache_valid_time: 3600  # 1 hour
     name:
       - python3-venv
       - python3-setuptools
