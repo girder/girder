@@ -420,7 +420,7 @@ class Job(AccessControlledModel):
         """Helper for updating a job's log."""
         if overwrite:
             updates['$set']['log'] = [log]
-        else:
+        elif log:
             updates['$push']['log'] = log
         if notify and user:
             expires = now + datetime.timedelta(seconds=30)
