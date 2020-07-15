@@ -438,7 +438,9 @@ class filtermodel:  # noqa: class name
             user = getCurrentUser()
 
             if isinstance(val, _MONGO_CURSOR_TYPES):
-                if callable(getattr(val, 'count', None)):
+                if callable(getattr(val, 'count_documents', None)):
+                    cherrypy.response.headers['Girder-Total-Count'] = val.count_documents()
+                elif callable(getattr(val, 'count', None)):
                     cherrypy.response.headers['Girder-Total-Count'] = val.count()
                 return [model.filter(m, user, self.addFields) for m in val]
             elif isinstance(val, (list, tuple, types.GeneratorType)):
@@ -613,7 +615,9 @@ def _mongoCursorToList(val):
     # This needs to be before the callable check, as mongo cursors can
     # be callable.
     if isinstance(val, _MONGO_CURSOR_TYPES):
-        if callable(getattr(val, 'count', None)):
+        if callable(getattr(val, 'count_documents', None)):
+            cherrypy.response.headers['Girder-Total-Count'] = val.count_documents()
+        elif callable(getattr(val, 'count', None)):
             cherrypy.response.headers['Girder-Total-Count'] = val.count()
         val = list(val)
     return val
