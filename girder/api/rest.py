@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import cgi
+import html
 import cherrypy
 import collections
 import datetime
@@ -28,6 +28,7 @@ from girder.settings import SettingKey
 from girder.utility import toBool, config, JsonEncoder, optionalArgumentDecorator
 from girder.utility._cache import requestCache
 from girder.utility.model_importer import ModelImporter
+
 
 # Arbitrary buffer length for stream-reading request bodies
 READ_BUFFER_LEN = 65536
@@ -510,7 +511,7 @@ def _createResponse(val):
         elif accept.value == 'text/html':
             # Pretty-print and HTML-ify the response for the browser
             setResponseHeader('Content-Type', 'text/html')
-            resp = cgi.escape(json.dumps(
+            resp = html.escape(json.dumps(
                 val, indent=4, sort_keys=True, allow_nan=False, separators=(',', ': '),
                 cls=JsonEncoder))
             resp = resp.replace(' ', '&nbsp;').replace('\n', '<br />')
