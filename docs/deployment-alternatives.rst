@@ -97,7 +97,7 @@ Every time a new commit is pushed to master, Docker Hub is updated with new
 images for running Girder. These containers expose Girder at
 port 8080 and require the database URL to be passed in as an option. For more
 information, see the
-`Docker Hub Page <https://registry.hub.docker.com/u/girder/girder/>`_. Since the
+`Docker Hub Page <https://hub.docker.com/r/girder/girder>`_. Since the
 container does not run a database, you'll need to run a command in the form: ::
 
    $ docker run -p 8080:8080 girder/girder --database mongodb://db-server-external-ip:27017/girder --host 0.0.0.0
