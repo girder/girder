@@ -14,6 +14,7 @@ import types
 import unicodedata
 import urllib.parse
 import uuid
+import fnmatch
 
 from dogpile.cache.util import kwarg_function_key_generator
 
@@ -744,11 +745,13 @@ def _setCommonCORSHeaders():
     if allowed:
         setResponseHeader('Access-Control-Allow-Credentials', 'true')
         setResponseHeader(
-            'Access-Control-Expose-Headers', Setting().get(SettingKey.CORS_EXPOSE_HEADERS))
+            'Access-Control-Expose-Headers', Setting().get(SettingKey.CORS_EXPOSE_HEADERS)
+        )
 
         allowedList = {o.strip() for o in allowed.split(',')}
+        allowedListWithoutWildcard = allowedList - {'*'}
 
-        if origin in allowedList:
+        if any((fnmatch.fnmatch(origin, pattern) for pattern in allowedListWithoutWildcard)):
             setResponseHeader('Access-Control-Allow-Origin', origin)
         elif '*' in allowedList:
             setResponseHeader('Access-Control-Allow-Origin', '*')
