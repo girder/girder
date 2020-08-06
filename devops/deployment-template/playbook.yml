@@ -23,8 +23,9 @@
         virtualenv: "{{ girder_virtualenv }}"
         state: latest
         name:
-          # Modify the list below to add any number of desired Girder plugins
+          # If no plugins are desired, remove everything below and set "name: []" above
+          # Otherwise, modify the list below to add any number of desired Girder plugins
           - girder-user-quota
           # Unpublished plugins may be specified as Git repositories, as below
-          - git+https://github.com/girder/girder-table-view.git
-          # If no plugins are desired, remove these entries and set "name: []" above
+          # - git+https://github.com/girder/girder-api-key-control.git
+          
