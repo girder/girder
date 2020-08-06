@@ -6,6 +6,8 @@ import pytz
 
 from girder.api import rest
 from girder.exceptions import GirderException
+from girder.settings import SettingKey
+from girder.models.setting import Setting
 import girder.events
 
 date = datetime.datetime.now()
@@ -132,3 +134,26 @@ def testSetContentDisposition(name, disp, expected):
         assert rest.setContentDisposition(name, setHeader=False) == expected
     else:
         assert rest.setContentDisposition(name, disp, setHeader=False) == expected
+
+
+@pytest.mark.parametrize('allowed,origin,expected', [
+    ('*', 'thing.com', '*'),
+    ('*,thing.com', 'thing.com', 'thing.com'),
+    ('thing.com', 'thing.com', 'thing.com'),
+    ('thing.com', 'notthing.com', None),
+    ('thing.com', 'subdomain.thing.com', None),
+    ('*.thing.com', 'subdomain.thing.com', 'subdomain.thing.com'),
+    (
+        'fixed*more-fixed.thing.com',
+        'fixed-something-more-fixed.thing.com',
+        'fixed-something-more-fixed.thing.com'
+    ),
+    ('fixed*more-fixed.thing.com', 'other-fixed*other.thing.com', None),
+    ('anything,thing.com,thing,*thing,thing*', 'anything.com', None),
+    ('*thing*', 'anything.com', 'anything.com'),
+])
+def testDynamicCORS(server, allowed, origin, expected):
+    Setting().set(SettingKey.CORS_ALLOW_ORIGIN, allowed)
+
+    resp = server.request('/user/me', method='GET', additionalHeaders=[('Origin', origin)])
+    assert resp.headers.get('Access-Control-Allow-Origin') == expected
