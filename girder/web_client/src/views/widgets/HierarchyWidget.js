@@ -684,6 +684,7 @@ var HierarchyWidget = View.extend({
             yesText: 'Delete',
             confirmCallback: () => {
                 var resources = this._getCheckedResourceParam();
+                var resourceSize = this._getCheckedResourceSize();
                 /* Content on DELETE requests is somewhat oddly supported (I
                  * can't get it to work under jasmine/phantom), so override the
                  * method. */
@@ -699,7 +700,9 @@ var HierarchyWidget = View.extend({
                     if (folders.length && this.parentModel.has('nFolders')) {
                         this.parentModel.increment('nFolders', -folders.length);
                     }
-
+                    if (this.parentModel.has('size') && resourceSize.items) {
+                        this.parentModel.increment('size', -resourceSize.items);
+                    }
                     this.setCurrentModel(this.parentModel, { setRoute: false });
                 });
             }
@@ -853,6 +856,26 @@ var HierarchyWidget = View.extend({
             return resources;
         }
         return JSON.stringify(resources);
+    },
+
+    /**
+     * Get the sum of the sizes of checked resources.
+     */
+    _getCheckedResourceSize: function () {
+        var totalSize = { items: 0, folders: 0 };
+        var folders = this.folderListView.checked;
+        _.each(folders, function (cid) {
+            var folder = this.folderListView.collection.get(cid);
+            totalSize.folders += (folder.get('size') || 0);
+        }, this);
+        if (this.itemListView) {
+            var items = this.itemListView.checked;
+            _.each(items, function (cid) {
+                var item = this.itemListView.collection.get(cid);
+                totalSize.items += (item.get('size') || 0);
+            }, this);
+        }
+        return totalSize;
     },
 
     downloadChecked: function () {
