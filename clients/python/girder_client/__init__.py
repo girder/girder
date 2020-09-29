@@ -538,7 +538,7 @@ class GirderClient:
         """
         params = dict(params or {})
         params['offset'] = offset or 0
-        params['limit'] = limit or DEFAULT_PAGE_LIMIT
+        params['limit'] = limit if limit is not None else DEFAULT_PAGE_LIMIT
 
         while True:
             records = self.get(path, params)
