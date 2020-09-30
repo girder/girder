@@ -12,7 +12,7 @@ import newServerTemplate from '../templates/newServerTemplate.pug';
 import '../stylesheets/configView.styl';
 import '@girder/core/utilities/jquery/girderEnable';
 
-const FIELDS = ['uri', 'bindName', 'baseDn', 'password', 'searchField'];
+const FIELDS = ['uri', 'bindName', 'baseDn', 'password', 'searchField', 'queryFilter'];
 
 var ConfigView = View.extend({
     events: {
