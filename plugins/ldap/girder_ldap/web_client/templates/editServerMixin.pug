@@ -34,6 +34,10 @@ mixin ldapServerEditPanel(server, index)
           input.input-sm.form-control(id=`g-ldap-server-${index}-searchField`,
               name="searchField", value=server.searchField, placeholder="Search field (default: uid)")
         .form-group
+          label.control-label(for=`g-ldap-server-${index}-queryFilter`) Query Filter (optional)
+          input.input-sm.form-control(id=`g-ldap-server-${index}-queryFilter`,
+              name="queryFilter", value=server.queryFilter, placeholder="Query Filter")
+        .form-group
           button.g-ldap-test.btn.btn-sm.btn-default(index=index, type="button") Test connection
           .g-ldap-test-result.hide(id=`g-ldap-server-${index}-conn-ok`, status="success")
             i.icon-ok

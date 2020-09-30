@@ -45,3 +45,4 @@ def _validateServers(doc):
             server['uri'] = 'ldap://' + server['uri']
         server['password'] = server.get('password', '')
         server['searchField'] = server.get('searchField', 'uid')
+        server['queryFilter'] = server.get('queryFilter', '')
