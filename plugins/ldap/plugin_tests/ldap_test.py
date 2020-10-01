@@ -170,24 +170,24 @@ class LdapTestCase(base.TestCase):
                 'baseDn': 'ou=Users,dc=foo,dc=bar,dc=org',
                 'bindName': 'cn=foo,ou=Users,dc=foo,dc=bar,dc=org',
                 'password': 'foo',
-                'searchField': 'sAMAccountName',
-                'queryFilter': 'memberOf=cn=MyGroup,ou=Users,dc=foo,dc=bar,dc=org',
+                'searchField': 'uid',
+                'queryFilter': 'memberOf=cn=MyGroup,ou=Groups,dc=foo,dc=bar,dc=org',
                 'uri': 'foo.bar.org:389'
             }])
 
             resp = self.request('/user/authentication', basicAuth='hello:world')
             self.assertStatusOk(resp)
-            self.assertEqual(mockLdap.lastSearchStr, "(&(sAMAccountName=hello)(memberOf=cn=MyGroup,ou=Users,dc=foo,dc=bar,dc=org))")
+            self.assertEqual(mockLdap.lastSearchStr, "(&(uid=hello)(memberOf=cn=MyGroup,ou=Users,dc=foo,dc=bar,dc=org))")
 
             # Verify backwards compatibility when queryFilter is not set
             Setting().set(PluginSettings.SERVERS, [{
                 'baseDn': 'ou=Users,dc=foo,dc=bar,dc=org',
                 'bindName': 'cn=foo,ou=Users,dc=foo,dc=bar,dc=org',
                 'password': 'foo',
-                'searchField': 'sAMAccountName',
+                'searchField': 'uid',
                 'uri': 'foo.bar.org:389'
             }])
 
             resp = self.request('/user/authentication', basicAuth='hello:world')
             self.assertStatusOk(resp)
-            self.assertEqual(mockLdap.lastSearchStr, "sAMAccountName=hello")
+            self.assertEqual(mockLdap.lastSearchStr, "uid=hello")
