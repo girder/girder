@@ -91,7 +91,7 @@ def _ldapAuth(event):
             conn.bind_s(server['bindName'], server['password'], ldap.AUTH_SIMPLE)
 
             searchStr = '%s=%s' % (server['searchField'], login)
-            if server['queryFilter']:
+            if server.get('queryFilter'):
                 searchStr = '(&(%s)(%s))' % (searchStr, server['queryFilter'])
 
             # Add the searchStr to the attributes, keep local scope.
