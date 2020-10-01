@@ -157,6 +157,7 @@ class LdapTestCase(base.TestCase):
             def __init__(self):
                 MockLdap.__init__(self)
                 self.lastSearchStr = None
+
             def search_s(self, baseDn, scope, searchStr, lattr):
                 self.lastSearchStr = searchStr
                 return MockLdap.search_s(self, baseDn, scope, searchStr, lattr)
