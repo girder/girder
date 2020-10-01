@@ -177,7 +177,7 @@ class LdapTestCase(base.TestCase):
 
             resp = self.request('/user/authentication', basicAuth='hello:world')
             self.assertStatusOk(resp)
-            self.assertEqual(mockLdap.lastSearchStr, "(&(uid=hello)(memberOf=cn=MyGroup,ou=Users,dc=foo,dc=bar,dc=org))")
+            self.assertEqual(mockLdap.lastSearchStr, "(&(uid=hello)(memberOf=cn=MyGroup,ou=Groups,dc=foo,dc=bar,dc=org))")
 
             # Verify backwards compatibility when queryFilter is not set
             Setting().set(PluginSettings.SERVERS, [{
