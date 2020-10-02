@@ -1082,6 +1082,9 @@ describe('browser hierarchy paginated selection', function () {
                 _item.save();
             }
         });
+        waitsFor(function () {
+            return itemlist.length === 100;
+        }, 'item creation');
     });
 
     it('test browserwidget defaultSelectedResource [item with paginated views]', function () {
@@ -1107,7 +1110,8 @@ describe('browser hierarchy paginated selection', function () {
 
         waitsFor(function () {
             return $('.g-hierarchy-widget').length > 0 &&
-                               $('.g-item-list-link').length > 0;
+                               $('.g-item-list-link').length > 0 &&
+                               $('.g-hierarachy-paginated-bar').length > 0;
         }, 'the hierarchy widget to display');
 
         runs(function () {
