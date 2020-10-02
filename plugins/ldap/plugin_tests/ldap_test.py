@@ -150,3 +150,46 @@ class LdapTestCase(base.TestCase):
             self.assertStatusOk(resp)
             self.assertTrue(resp.json['connected'])
             self.assertNotIn('error', resp.json)
+
+    def testLdapQueryFilter(self):
+
+        class RecordSearchMockLdap(MockLdap):
+            def __init__(self):
+                MockLdap.__init__(self)
+                self.lastSearchStr = None
+
+            def search_s(self, baseDn, scope, searchStr, lattr):
+                self.lastSearchStr = searchStr
+                return MockLdap.search_s(self, baseDn, scope, searchStr, lattr)
+
+        mockLdap = RecordSearchMockLdap()
+
+        with unittest.mock.patch('ldap.initialize', return_value=mockLdap):
+
+            # Test whether existing queryFilter is ANDed with searchField
+            queryFilter = 'memberOf=cn=MyGroup,ou=Groups,dc=foo,dc=bar,dc=org'
+            Setting().set(PluginSettings.SERVERS, [{
+                'baseDn': 'ou=Users,dc=foo,dc=bar,dc=org',
+                'bindName': 'cn=foo,ou=Users,dc=foo,dc=bar,dc=org',
+                'password': 'foo',
+                'searchField': 'uid',
+                'queryFilter': queryFilter,
+                'uri': 'foo.bar.org:389'
+            }])
+
+            resp = self.request('/user/authentication', basicAuth='hello:world')
+            self.assertStatusOk(resp)
+            self.assertEqual(mockLdap.lastSearchStr, '(&(uid=hello)(%s))' % queryFilter)
+
+            # Verify backwards compatibility when queryFilter is not set
+            Setting().set(PluginSettings.SERVERS, [{
+                'baseDn': 'ou=Users,dc=foo,dc=bar,dc=org',
+                'bindName': 'cn=foo,ou=Users,dc=foo,dc=bar,dc=org',
+                'password': 'foo',
+                'searchField': 'uid',
+                'uri': 'foo.bar.org:389'
+            }])
+
+            resp = self.request('/user/authentication', basicAuth='hello:world')
+            self.assertStatusOk(resp)
+            self.assertEqual(mockLdap.lastSearchStr, 'uid=hello')
