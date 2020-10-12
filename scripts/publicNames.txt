@@ -707,6 +707,7 @@ girder
                 subtreeCount
                 updateSize
                 validate
+                verifyLogin
                 verifyOtp
     plugin
         GirderPlugin
