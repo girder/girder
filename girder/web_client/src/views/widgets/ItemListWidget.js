@@ -85,7 +85,7 @@ var ItemListWidget = View.extend({
                     restRequest({
                         url: `item/${this._selectedItem.get('_id')}/position`,
                         method: 'GET',
-                        data: { folderId: this._selectedItem.get('folderId') }
+                        data: { folderId: this._selectedItem.get('folderId'), sort: 'name' }
                     }).done((val) => {
                         // Now we fetch the correct page for the position
                         val = Number(val);
@@ -237,11 +237,16 @@ var ItemListWidget = View.extend({
     centerSelected: function () {
         const widgetcontainer = this.$el.parents('.g-hierarchy-widget-container');
         const selected = this.$('li.g-item-list-entry.g-selected');
-
         if (widgetcontainer.length > 0 && selected.length > 0) {
-            const centerPos = (widgetcontainer.height() / 2.0) + (selected.outerHeight() / 2.0);
-            // Take the current scroll top position and add it to the position of the top of the selected item, then center it
-            const scrollPos = widgetcontainer[0].scrollTop + selected.position().top - centerPos;
+            // These items will effect the scroll position if they exists
+            const folderHeight  = $('.g-folder-list').length ? $('.g-folder-list').height() : 0;
+            const breadcrumbHeight = $('.g-hierarchy-breadcrumb-bar').length ? $('.g-hierarchy-breadcrumb-bar').height() : 0;
+            const selectedTop = selected.position().top;
+            // The selectedTop position needs to account for the breadcrumbHeight and the folderHeight
+            const scrollingPos = selectedTop + folderHeight + breadcrumbHeight;
+            const centerPos = (widgetcontainer.height() / 2.0) - (folderHeight / 2.0) - (breadcrumbHeight / 2.0) - (selected.outerHeight() / 2.0);
+
+            const scrollPos = scrollingPos - centerPos;
             if (this.tempScrollPos === undefined) {
                 this.tempScrollPos = scrollPos;
             }
