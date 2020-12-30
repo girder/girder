@@ -43,7 +43,10 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder>=3', 'pyjwt'],
+    install_requires=[
+        'girder>=3',
+        'pyjwt<2',
+    ],
     entry_points={
         'girder.plugin': [
             'oauth = girder_oauth:OAuthPlugin'

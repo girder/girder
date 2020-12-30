@@ -43,7 +43,11 @@ setup(
     include_package_data=True,
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder>=3', 'pydicom>=2.0.0'],
+    install_requires=[
+        'girder>=3',
+        'pydicom>=2.0.0,<2.1.0;python_version<"3.7"',
+        'pydicom>=2.0.0;python_version>="3.7"',
+    ],
     entry_points={
         'girder.plugin': [
             'dicom_viewer = girder_dicom_viewer:DicomViewerPlugin'
