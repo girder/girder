@@ -51,6 +51,7 @@ def _stat(doc, model):
         info.st_mtime = time.mktime(doc['updated'].timetuple())
     elif 'created' in doc:
         info.st_mtime = time.mktime(doc['created'].timetuple())
+    info.st_atime = info.st_mtime
 
     if model == 'file':
         info.st_mode = 0o777 | stat.S_IFREG
