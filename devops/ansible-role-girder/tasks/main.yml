@@ -25,8 +25,8 @@
 
 - name: Upgrade pip in the virtualenv
   pip:
-    name: pip
-    extra_args: "--update"
+    name: "pip>=21.0.1"
+    state: present
     virtualenv: "{{ girder_virtualenv }}"
     # Implicitly create a Python 3 virtualenv if it doesn't exist
     virtualenv_command: "/usr/bin/python3 -m venv"
