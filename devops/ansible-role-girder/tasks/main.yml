@@ -23,7 +23,7 @@
 - import_tasks: nodejs.yml
   when: girder_web|bool
 
-- name: Upgrade pip in the virtualenv
+- name: Install a recent pip version
   pip:
     name: pip
     version: ">=21.0.1"
