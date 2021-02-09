@@ -23,10 +23,10 @@
 - import_tasks: nodejs.yml
   when: girder_web|bool
 
-- name: Upgrade pip in the virtualenv
+- name: Install a recent pip version
   pip:
     name: pip
-    extra_args: "--update"
+    version: ">=21.0.1"
     virtualenv: "{{ girder_virtualenv }}"
     # Implicitly create a Python 3 virtualenv if it doesn't exist
     virtualenv_command: "/usr/bin/python3 -m venv"

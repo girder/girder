@@ -80,7 +80,7 @@ And under the containing ``server`` block, make sure to add the following rule:
 
 Ansible
 -------
-:doc:`installation` provides a complete installation workflow, which depends primarily on the
+The Ansible deployment provides a complete installation workflow which depends primarily on the
 Ansible roles:
 
 * `girder.girder <https://galaxy.ansible.com/girder/girder>`_
