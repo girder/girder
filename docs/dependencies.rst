@@ -15,13 +15,15 @@ Installation of Girder's server has the following system dependencies:
             newer Python v3.7+ versions as well, but that support is not verified by Girder's automated testing at this
             time, so use at your own risk.
 
-* `pip <https://pip.pypa.io/>`_ v8.1+
+* `pip <https://pip.pypa.io/>`_ v21.0.1+
 
   * This is necessary to install Python packages.
 
   * v8.1 is required to install packages via `Python wheels <https://pythonwheels.com/>`_, which significantly reduce
     system dependencies on `manylinux <https://github.com/pypa/manylinux>`_-compatible distributions (which includes
     almost everything except Alpine).
+
+  * v21.0.1 is required by the cryptography v3.4+ package, which is pulled in by other dependencies.
 
 * `setuptools <https://setuptools.readthedocs.io/>`_ v21+
 
