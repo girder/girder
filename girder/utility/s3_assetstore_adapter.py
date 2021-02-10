@@ -453,7 +453,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     parent=parent, name=name, parentType=parentType, creator=user,
                     reuseExisting=True)
                 self.importData(parent=folder, parentType='folder', params={
-                    'importPath': obj['Prefix']
+                    **params, 'importPath': obj['Prefix']
                 }, progress=progress, user=user, **kwargs)
 
     def deleteFile(self, file):
