@@ -6,7 +6,7 @@ look through the documentation first if something is unclear, and let us know ho
 do better.
 
 - Ask a question on the `Girder users email list <http://public.kitware.com/mailman/listinfo/girder-users>`_
-- Ask a question in the `Gitter Forum <https://gitter.im/girder/girder>`_
+- Ask a question in the `Discourse Forum <https://discourse.girder.org>`_
 - Submit a feature request or bug, or add to the discussion on the `Girder issue tracker <https://github.com/girder/girder/issues>`_
 - Submit a `Pull Request <https://github.com/girder/girder/pulls>`_ to improve Girder or its documentation
 
