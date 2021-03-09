@@ -23,6 +23,7 @@ platforms:
       - seccomp=unconfined
     networks:
       - name: molecule
+    network_mode: default
     groups:
       - targets
   - name: mongodb
@@ -31,6 +32,7 @@ platforms:
     override_command: false
     networks:
       - name: molecule
+    network_mode: default
     groups:
       - services
 provisioner:
