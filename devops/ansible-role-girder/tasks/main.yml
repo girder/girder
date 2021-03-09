@@ -47,7 +47,7 @@
 
 - name: Configure Girder config file
   ini_file:
-    path: "{{ ansible_user_dir }}/.girder/girder.cfg"
+    path: "{{ ansible_facts['user_dir'] }}/.girder/girder.cfg"
     mode: 0644
     section: "{{ item.section }}"
     option: "{{ item.option }}"
