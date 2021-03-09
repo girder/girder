@@ -1,8 +1,7 @@
 # girder.girder
 [![Apache 2.0](https://img.shields.io/badge/license-Apache%202-blue.svg)](https://raw.githubusercontent.com/girder/ansible-role-girder/master/LICENSE)
-[![Build Status](https://circleci.com/gh/girder/girder.png?style=shield)](https://circleci.com/gh/girder/girder)
 
-An Ansible role to install [Girder](https://github.com/girder/girder).
+An Ansible role to install the [Girder data management platform](https://github.com/girder/girder).
 
 ## Requirements
 

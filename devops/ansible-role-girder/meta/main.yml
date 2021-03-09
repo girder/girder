@@ -1,10 +1,14 @@
 ---
 galaxy_info:
-  author: Kitware, Inc.
+  role_name: girder
+  author: girder
   description: Install the Girder data management platform.
+
   company: Kitware, Inc.
   issue_tracker_url: https://github.com/girder/girder/issues
+
   license: Apache
+
   min_ansible_version: 2.7
 
   platforms:
