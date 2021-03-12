@@ -327,7 +327,7 @@ class Description:
             that were passed.
         :type schema: dict
         """
-        if default:
+        if default is not None:
             default = bson.json_util.dumps(default)
 
         self.param(
