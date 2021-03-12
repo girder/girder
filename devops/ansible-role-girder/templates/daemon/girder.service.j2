@@ -1,10 +1,11 @@
+# {{ ansible_managed }}
 [Unit]
 Description=Girder
 After=network.target
 
 [Service]
-User={{ ansible_facts['user_id'] }}
-Group={{ ansible_facts['user_id'] }}
+User={{ ansible_facts['real_user_id'] }}
+Group={{ ansible_facts['real_group_id'] }}
 Restart=always
 ExecStart={{ girder_virtualenv }}/bin/girder serve
 Environment=LC_ALL=C.UTF-8
