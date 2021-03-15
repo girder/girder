@@ -346,6 +346,89 @@ def _upload(gc, parent_type, parent_id, local_folder,
         blacklist=blacklist.split(','), dryRun=dry_run, reference=reference)
 
 
+_short_help = 'List contents of a collection, folder, or item'
+
+
+@main.command('list', short_help=_short_help, help='%s\n\n%s' % (
+    _short_help, _common_help.replace('LOCAL_FOLDER', 'LOCAL_FOLDER (default: ".")')))
+@_CommonParameters(additional_parent_types=[
+    'collection', 'user', 'item', 'file'], path_default='.')
+@click.option('--limit', default=None,
+              help='maximum number of records to list')
+@click.option('--offset', default=None,
+              help='starting offset into list')
+@click.pass_obj
+def _list(gc, parent_type, parent_id, local_folder, limit, offset):
+
+    """
+    TODO / DISCUSS:
+        Possible extensions:
+            - [ ] Allow user to specify columns of interested (e.g. sha512 if
+                  available)
+            - [ ] Allow query-by-name rather than by id?
+            - [ ] Show folder tree structure?
+            - [X] Show the name of the parent item/folder/collection?
+    """
+    if parent_type == 'auto':
+        parent_type = _lookup_parent_type(gc, parent_id)
+
+    this_record = gc.getResource(parent_type, parent_id)
+
+    if this_record['_modelType'] == 'folder':
+        prev_record = gc.getResource(this_record['parentCollection'], this_record['parentId'])
+        print('Parent {_modelType}: {_id} - {name}'.format(**prev_record))
+    if this_record['_modelType'] in 'item':
+        prev_record = gc.getResource('folder', this_record['folderId'])
+        print('Parent {_modelType}: {_id} - {name}'.format(**prev_record))
+
+    if this_record['_modelType'] in 'file':
+        item_record = gc.getResource('item', this_record['itemId'])
+        folder_record = gc.getResource('folder', item_record['folderId'])
+        print('Parent folder: {_id} - {name}'.format(**folder_record))
+        print('Parent item: {_id} - {name}'.format(**item_record))
+
+    print('Listing {_modelType}: {_id} - {name}'.format(**this_record))
+
+    if parent_type == 'file':
+        # Just print the file and parent info, there are no children
+        return
+
+    if parent_type == 'collection':
+        # collections can only have children that are folders
+        child_types = ['folder']
+    elif parent_type == 'item':
+        child_types = ['file']
+    else:
+        # List children of various types
+        child_types = ['folder', 'item']
+
+    for child_type in child_types:
+        print('=== {} ==='.format(child_type))
+        print('{:<24} {:<6} {:<24}'.format('ID', 'TYPE', 'NAME'))
+
+        if child_type == 'folder':
+            records = gc.listFolder(parent_id, limit=limit, offset=offset,
+                                    parentFolderType=parent_type)
+        elif child_type == 'item':
+            records = gc.listItem(parent_id, limit=limit, offset=offset)
+        elif child_type == 'file':
+            # hack so listing items lists its files
+            child_type = 'item'
+            records = [this_record]
+        else:
+            raise NotImplementedError
+
+        for record in records:
+            if child_type == 'item':
+                print('{_id:<24} {_modelType:<6} {name}'.format(**record))
+                # List files in the item
+                _id = record['_id']
+                for record in gc.listFile(_id, limit=limit, offset=offset):
+                    print('{_id:<24} {_modelType:<6} {name}'.format(**record))
+            else:
+                print('{_id:<24} {_modelType:<6} {name}'.format(**record))
+
+
 if __name__ == '__main__':
     click.echo('Deprecation notice: Use "girder-client" to run the CLI.', err=True)
     main()
