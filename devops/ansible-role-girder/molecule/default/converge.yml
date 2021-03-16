@@ -2,6 +2,6 @@
 - name: Converge
   hosts: targets
   roles:
-    - role: ansible-role-girder
+    - role: girder.girder
       vars:
         girder_database_uri: "mongodb://mongodb:27017/girder"

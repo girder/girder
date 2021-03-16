@@ -14,6 +14,7 @@ __pycache__
 .vagrant
 *.py[cod]
 **/*.retry
+.cache
 
 # IDE / OS generated
 .DS_Store
