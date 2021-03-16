@@ -5,7 +5,7 @@ An Ansible role to install the [Girder data management platform](https://github.
 
 ## Requirements
 
-Ubuntu 18.04+.
+Ubuntu 18.04.
 
 Python 3 should be used as
 [the target host Python interpreter](https://docs.ansible.com/ansible/latest/reference_appendices/interpreter_discovery.html).
