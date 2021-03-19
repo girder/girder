@@ -7,13 +7,19 @@ Server Install
 --------------
 Installation of Girder's server has the following system dependencies:
 
-* `Python <https://www.python.org>`_ v3.6+
+.. note:: Girder only performs continuous integration testing on this particular combination
+          of dependencies. The Girder development team can only provide bugfixes and support
+          for this environment.
+
+* `Ubuntu <https://releases.ubuntu.com/>`_ 18.04
+
+  * Girder interacts with some system libraries (particularly
+    `OpenSSL <https://packages.ubuntu.com/bionic/openssl>`_) at a very low level, so other
+    operating system distributions and versions may not be compatible.
+
+* `Python <https://www.python.org>`_ v3.6
 
   * This is necessary to run most of the server software.
-
-  .. note:: Girder performs continuous integration testing using Python v3.6. Girder *should* work on
-            newer Python v3.7+ versions as well, but that support is not verified by Girder's automated testing at this
-            time, so use at your own risk.
 
 * `pip <https://pip.pypa.io/>`_ v21.0.1+
 

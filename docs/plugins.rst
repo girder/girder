@@ -309,7 +309,7 @@ Installation of this plugin requires LDAP and SASL shared libraries to be instal
 available to the Girder process. These may be installed system-wide via package managers
 in the following way:
 
-* On Ubnutu 18.04, install the ``libldap2-dev`` and ``libsasl2-dev`` APT packages.
+* On Ubuntu 18.04, install the ``libldap2-dev`` and ``libsasl2-dev`` APT packages.
 * On RHEL (CentOS) 7, install the ``openldap-devel`` and ``cyrus-sasl-devel`` RPM packages.
 
 Administrators can configure the ordered list of LDAP servers to try on the
