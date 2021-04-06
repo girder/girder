@@ -89,7 +89,7 @@ describe('Test the settings page', function () {
             $('.g-submit-settings').trigger('click');
         });
         waitsFor(function () {
-            return $('#g-settings-error-message').text() === 'Cookie lifetime must be an integer > 0.';
+            return $('#g-settings-error-message').text() === 'Cookie lifetime must be a number > 0.0.';
         }, 'error message to be shown');
         runs(function () {
             $('#g-core-cookie-lifetime').val('180');

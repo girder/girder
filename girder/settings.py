@@ -175,12 +175,12 @@ class SettingValidator:
     @setting_utilities.validator(SettingKey.COOKIE_LIFETIME)
     def _validateCookieLifetime(doc):
         try:
-            doc['value'] = int(doc['value'])
+            doc['value'] = float(doc['value'])
             if doc['value'] > 0:
                 return
         except ValueError:
             pass  # We want to raise the ValidationException
-        raise ValidationException('Cookie lifetime must be an integer > 0.', 'value')
+        raise ValidationException('Cookie lifetime must be a number > 0.0.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.CORS_ALLOW_HEADERS)
