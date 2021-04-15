@@ -412,7 +412,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     def importData(self, parent, parentType, params, progress, user, recursive=True, **kwargs):
         importPath = params.get('importPath', '').strip().lstrip('/')
         bucket = self.assetstore['bucket']
-        paginator = self.client.get_paginator('list_objects_v2')
+        paginator = self.client.get_paginator('list_objects')
         pageIterator = paginator.paginate(Bucket=bucket, Prefix=importPath, Delimiter='/')
         for resp in pageIterator:
             # Start with objects
