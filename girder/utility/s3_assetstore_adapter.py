@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import datetime
 import json
 import re
 import urllib.parse
@@ -408,9 +409,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                         yield chunk
             return stream
 
-    def importData(self, parent, parentType, params, progress, user, recursive=True, **kwargs):
+    def importData(self, parent, parentType, params, progress, user, force_recursive=True, **kwargs):
         importPath = params.get('importPath', '').strip().lstrip('/')
         bucket = self.assetstore['bucket']
+        now = datetime.datetime.utcnow()
         paginator = self.client.get_paginator('list_objects')
         pageIterator = paginator.paginate(Bucket=bucket, Prefix=importPath, Delimiter='/')
         for resp in pageIterator:
@@ -445,22 +447,23 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     file['imported'] = True
                     File().save(file)
 
-            # Now recurse into subdirectories
-            if recursive:
-                for obj in resp.get('CommonPrefixes', []):
-                    if progress:
-                        progress.update(message=obj['Prefix'])
+            for obj in resp.get('CommonPrefixes', []):
+                if progress:
+                    progress.update(message=obj['Prefix'])
 
-                    name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
+                name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
+                folder = Folder().createFolder(
+                    parent=parent, name=name, parentType=parentType, creator=user,
+                    reuseExisting=True)
 
-                    folder = Folder().createFolder(
-                        parent=parent, name=name, parentType=parentType, creator=user,
-                        reuseExisting=True)
-                    events.trigger('s3_assetstore_imported', {
-                        'id': folder['_id'],
-                        'type': 'folder',
-                        'importPath': obj['Prefix'],
-                    })
+                events.trigger('s3_assetstore_imported', {
+                    'id': folder['_id'],
+                    'type': 'folder',
+                    'importPath': obj['Prefix'],
+                })
+                # recurse into subdirectories if force_recursive is true
+                # or the folder was newly created.
+                if force_recursive or folder['created'] >= now:
                     self.importData(parent=folder, parentType='folder', params={
                         **params, 'importPath': obj['Prefix']
                     }, progress=progress, user=user, **kwargs)
