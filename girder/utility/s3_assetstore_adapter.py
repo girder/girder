@@ -459,7 +459,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     events.trigger('s3_assetstore_imported', {
                         'id': folder['_id'],
                         'type': 'folder',
-                        'importPath': obj['Key'],
+                        'importPath': obj['Prefix'],
                     })
                     self.importData(parent=folder, parentType='folder', params={
                         **params, 'importPath': obj['Prefix']
