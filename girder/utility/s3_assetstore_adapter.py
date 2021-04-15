@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
+import json
+import os
+import re
+import urllib.parse
+import uuid
+
 import boto3
 import botocore
 import cherrypy
-import json
-import re
 import requests
-import uuid
-import urllib.parse
 
-from girder import logger, events
+from girder import events, logger
 from girder.api.rest import setContentDisposition
 from girder.exceptions import GirderException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
+
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 BUF_LEN = 65536  # Buffer size for download stream
@@ -406,14 +409,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                         yield chunk
             return stream
 
-    def importData(self, parent, parentType, params, progress, user, **kwargs):
+    def importData(self, parent, parentType, params, progress, user, recursive=True, **kwargs):
         importPath = params.get('importPath', '').strip().lstrip('/')
-
-        if importPath and not importPath.endswith('/'):
-            importPath += '/'
-
         bucket = self.assetstore['bucket']
-        paginator = self.client.get_paginator('list_objects')
+        paginator = self.client.get_paginator('list_objects_v2')
         pageIterator = paginator.paginate(Bucket=bucket, Prefix=importPath, Delimiter='/')
         for resp in pageIterator:
             # Start with objects
@@ -432,6 +431,11 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 if self.shouldImportFile(obj['Key'], params):
                     item = Item().createItem(
                         name=name, creator=user, folder=parent, reuseExisting=True)
+                    events.trigger('s3_assetstore_imported', {
+                        'id': item['_id'],
+                        'type': 'item',
+                        'importPath': obj['Key'],
+                    })
                     # Create a file record; delay saving it until we have added
                     # the import information.
                     file = File().createFile(
@@ -443,18 +447,24 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     File().save(file)
 
             # Now recurse into subdirectories
-            for obj in resp.get('CommonPrefixes', []):
-                if progress:
-                    progress.update(message=obj['Prefix'])
+            if recursive:
+                for obj in resp.get('CommonPrefixes', []):
+                    if progress:
+                        progress.update(message=obj['Prefix'])
 
-                name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
+                    name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
 
-                folder = Folder().createFolder(
-                    parent=parent, name=name, parentType=parentType, creator=user,
-                    reuseExisting=True)
-                self.importData(parent=folder, parentType='folder', params={
-                    **params, 'importPath': obj['Prefix']
-                }, progress=progress, user=user, **kwargs)
+                    folder = Folder().createFolder(
+                        parent=parent, name=name, parentType=parentType, creator=user,
+                        reuseExisting=True)
+                    events.trigger('s3_assetstore_imported', {
+                        'id': folder['_id'],
+                        'type': 'folder',
+                        'importPath': obj['Key'],
+                    })
+                    self.importData(parent=folder, parentType='folder', params={
+                        **params, 'importPath': obj['Prefix']
+                    }, progress=progress, user=user, **kwargs)
 
     def deleteFile(self, file):
         """
