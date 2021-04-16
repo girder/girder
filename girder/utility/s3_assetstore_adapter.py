@@ -409,7 +409,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                         yield chunk
             return stream
 
-    def importData(self, parent, parentType, params, progress, user, force_recursive=True, **kwargs):
+    def importData(self, parent, parentType, params, progress,
+                   user, force_recursive=True, **kwargs):
         importPath = params.get('importPath', '').strip().lstrip('/')
         bucket = self.assetstore['bucket']
         now = datetime.datetime.utcnow()
