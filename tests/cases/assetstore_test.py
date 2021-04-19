@@ -686,7 +686,7 @@ class AssetstoreTestCase(base.TestCase):
         # Attempt to import item directly into user; should fail
         resp = self.request(
             '/assetstore/%s/import' % assetstore['_id'], method='POST', params={
-                'importPath': '/foo/bar',
+                'importPath': '/foo/bar/',
                 'destinationType': 'user',
                 'destinationId': self.admin['_id']
             }, user=self.admin)
