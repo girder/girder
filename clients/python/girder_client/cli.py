@@ -55,7 +55,7 @@ class GirderCli(GirderClient):
 
             def formatPos(_self):
                 pos = formatSize(_self.pos)
-                if _self.length_known:
+                if _self.length is not None:
                     pos += '/%s' % formatSize(_self.length)
                 return pos
 
