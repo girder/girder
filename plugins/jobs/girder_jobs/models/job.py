@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 import datetime
+
 from bson import json_util
+from pymongo.errors import DocumentTooLarge
 
 from girder import events
 from girder.constants import AccessType, SortDir
-from girder.exceptions import ValidationException
+from girder.exceptions import RestException, ValidationException
 from girder.models.model_base import AccessControlledModel
 from girder.models.notification import Notification
 from girder.models.token import Token
 from girder.models.user import User
 
-from ..constants import JobStatus, JOB_HANDLER_LOCAL
+from ..constants import JOB_HANDLER_LOCAL, JobStatus
 
 
 class Job(AccessControlledModel):
@@ -397,7 +399,12 @@ class Job(AccessControlledModel):
             job['updated'] = now
             updates['$set']['updated'] = now
 
-            updateResult = self.update(query, update=updates, multi=False)
+            try:
+                updateResult = self.update(query, update=updates, multi=False)
+            except DocumentTooLarge:
+                # It's plausible that the cause of this error is that the log has become too large
+                raise RestException('Document size exceeded', code=413)
+
             # If our query didn't match anything then our state transition
             # was not valid. So raise an exception
             if updateResult.matched_count != 1:
