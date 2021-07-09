@@ -2,8 +2,13 @@
 Release Notes
 =============
 
-This is the summary list of changes to Girder between each release. For full
-details, see the commit logs at https://github.com/girder/girder
+**This page is no longer being maintained.**
+
+This is the summary list of changes to Girder between each release.
+To find information about the latest release, see the releases page at
+`https://github.com/girder/girder/releases <https://github.com/girder/girder/releases>`_.
+For full details on changes, see the commit logs at
+`https://github.com/girder/girder/commits <https://github.com/girder/girder/commits>`_.
 
 Unreleased
 ==========
