@@ -454,7 +454,7 @@ class GirderClient:
             **kwargs)
 
         # If success, return the json object. Otherwise throw an exception.
-        if result.status_code in (200, 201):
+        if result.ok:
             if jsonResp:
                 return result.json()
             else:
