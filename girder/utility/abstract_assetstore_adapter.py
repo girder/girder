@@ -108,6 +108,9 @@ class FileHandle:
     def close(self):
         pass
 
+    def seekable(self):
+        return True
+
 
 class AbstractAssetstoreAdapter:
     """
