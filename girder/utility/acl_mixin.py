@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from bson.py3compat import abc
 import collections
 import itertools
+from collections import abc
 
 from ..models.model_base import Model, AccessControlledModel, _permissionClauses
 from ..exceptions import AccessException
