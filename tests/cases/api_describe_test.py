@@ -400,7 +400,7 @@ class ApiDescribeTestCase(base.TestCase):
             'integer': None,
             'float': 1.,
             'json1': None,
-            'json2': {},
+            'json2': '{}',
             'timestamp': None,
             'datestamp': None
         })
