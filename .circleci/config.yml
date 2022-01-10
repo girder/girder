@@ -362,7 +362,7 @@ workflows:
             - server-lint-test
             - web-lint-test
             - coverage
-            - ansible-test
+            # - ansible-test
           filters:
             tags:
               only: /^v[0-9]+.*/
@@ -373,7 +373,7 @@ workflows:
             - server-lint-test
             - web-lint-test
             - coverage
-            - ansible-test
+            # - ansible-test
           filters:
             tags:
               only: /^v[0-9]+.*/
