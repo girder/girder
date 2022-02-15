@@ -16,7 +16,7 @@ executors:
     working_directory: /home/circleci/project
   machine:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202111-02
     working_directory: /home/circleci/project
 
 commands:
@@ -174,6 +174,8 @@ jobs:
             source $NVM_DIR/nvm.sh
             nvm install v12
             nvm alias default v12
+            NODE_DIR=$(dirname $(which node))
+            echo "export PATH=$NODE_DIR:\$PATH" >> $BASH_ENV
       - run:
           # Technically, we should add the circleci user to the fuse group, log
           # out, and log back in for it to take effect.  This allows fuse to be
@@ -191,8 +193,8 @@ jobs:
       - run:
           name: Install MongoDB
           command: |
-            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2930ADAE8CAF5059EE73BB4B58712A2291FA4AD5
-            echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.6 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.6.list
+            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 656408E390CFB1F5
+            echo "deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu $(lsb_release -sc)/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org.list
             sudo apt-get update
             sudo apt-get install -y mongodb-org-server
             sudo systemctl start mongod
@@ -202,7 +204,8 @@ jobs:
           # (https://www.npmjs.com/package/node-gyp), so install it first before switching to
           # Python 3.
           name: Install node-gyp
-          command: npm install --global node-gyp
+          command: |
+            npm install --global node-gyp
       - run:
           name: Allow Boto to work with Python 3
           command: sudo rm --force /etc/boto.cfg
@@ -218,7 +221,8 @@ jobs:
       - run:
           name: Build Girder web client
           command: |
-            source $NVM_DIR/nvm.sh
+            npm --version
+            node --version
             girder build --dev | cat
       - run:
           name: Create Girder build directory
