@@ -42,7 +42,6 @@ RUN cd plugins \
     done \
  && cd ..
 
-# RUN python3 -m pip install --upgrade --upgrade-strategy eager --editable .
 RUN girder build
 
 EXPOSE 8080
