@@ -29,19 +29,6 @@ RUN python3 setup.py bdist_wheel \
  && cd dist && python3 -m pip install girder && cd .. \
  && rm -rf build dist
 
-# Build and install all plugins found in `plugins` directory
-RUN cd plugins \
- && for plugin in `ls -d *`;\
-    do \
-    echo Building ${plugin} \
-    && cd ${plugin} \
-    && python3 setup.py bdist_wheel \
-    && cd dist && python3 -m pip install girder-`echo ${plugin} | tr _ -` && cd .. \
-    && rm -rf build dist \
-    && cd ..;\
-    done \
- && cd ..
-
 RUN girder build
 
 EXPOSE 8080
