@@ -100,7 +100,8 @@ may only be set up and managed by administrator ``Users``.
 
 In the core of Girder, there are three supported ``Assetstore`` types:
 
-* **Filesystem**
+Filesystem
+^^^^^^^^^^
 
 Files uploaded into this type of ``Assetstore`` will be stored on the local
 system filesystem of the server using content-addressed storage. Simply specify
@@ -111,7 +112,8 @@ the root directory under which files should be stored.
    assetstore root to a location on the filesystem that is shared between all
    of the application servers.
 
-* **GridFS**
+GridFS
+^^^^^^
 
 This ``Assetstore`` type stores files directly within your Mongo database using
 the **GridFS** model. You must specify the database name where files will be
@@ -122,7 +124,8 @@ This database type has the advantage of automatically scaling horizontally with
 your DBMS. However, it is marginally slower than the Filesystem assetstore type
 in a typical single-server use case.
 
-* **S3**
+S3
+^^
 
 This ``Assetstore`` type stores files in an **Amazon S3** bucket. You must
 provide the bucket name, an optional path prefix within the bucket, and
@@ -138,20 +141,27 @@ This can be edited by navigating to the bucket in the AWS S3 console, selecting
 **Properties**, then **Permissions**, and then clicking **Edit CORS Configuration**.
 The below CORS configuration is sufficient for Girder's needs:
 
-.. code-block:: xml
+.. code-block:: json
 
-    <?xml version="1.0" encoding="UTF-8"?>
-    <CORSConfiguration xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
-        <CORSRule>
-            <AllowedOrigin>*</AllowedOrigin>
-            <AllowedMethod>GET</AllowedMethod>
-            <AllowedMethod>PUT</AllowedMethod>
-            <AllowedMethod>POST</AllowedMethod>
-            <MaxAgeSeconds>3000</MaxAgeSeconds>
-            <ExposeHeader>ETag</ExposeHeader>
-            <AllowedHeader>*</AllowedHeader>
-        </CORSRule>
-    </CORSConfiguration>
+    [
+        {
+            "AllowedHeaders": [
+                "*"
+            ],
+            "AllowedMethods": [
+                "GET",
+                "PUT",
+                "POST"
+            ],
+            "AllowedOrigins": [
+                "*"
+            ],
+            "ExposeHeaders": [
+                "ETag"
+            ],
+            "MaxAgeSeconds": 3000
+        }
+    ]
 
 .. note::
 
