@@ -102,7 +102,7 @@ Upload a local file hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To upload a folder hierarchy rooted at `test_folder` to the Girder Folder with
-id `54b6d41a8926486c0cbca367` ::
+id `54b6d41a8926486c0cbca367` (folder id can obtained from the URL)::
 
 
     girder-client upload 54b6d41a8926486c0cbca367 test_folder
