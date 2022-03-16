@@ -81,6 +81,10 @@ var OAuthLoginView = View.extend({
             icon: 'bitbucket',
             class: 'g-oauth-button-bitbucket'
         },
+        microsoft: {
+            icon: 'windows',
+            class: 'g-oauth-button-microsoft'
+        },
         linkedin: {
             icon: 'linkedin',
             class: 'g-oauth-button-linkedin'

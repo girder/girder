@@ -36,13 +36,18 @@ p Only fill in the information for the OAuth2 providers you wish to enable.
             span.g-oauth-value= `${origin}${apiRoot}/oauth/${provider.id}/callback`
           form.g-oauth-provider-form(role="form",
               id=`g-oauth-provider-${provider.id}-form`, provider-id=provider.id)
+            if provider.takesTenantId
+              .form-group
+                label.control-label(for=`g-oauth-provider-${provider.id}-tenant-id`) #{provider.name} tenant ID
+                input.input-sm.form-control(id=`g-oauth-provider-${provider.id}-tenant-id`,
+                    type="text", placeholder="Tenant ID, e.g., 885af973-684f-2561-7a74-5bedd6a0d901")
             .form-group
               label.control-label(for=`g-oauth-provider-${provider.id}-client-id`) #{provider.name} client ID
               input.input-sm.form-control(id=`g-oauth-provider-${provider.id}-client-id`,
-                  type="text", placeholder="Client ID")
+                  type="text", placeholder="Client ID, e.g., b394e84b-a2f1-e65a-b2ef-f7457ccd2d2a")
             .form-group
               label.control-label(for=`g-oauth-provider-${provider.id}-client-secret`) #{provider.name} client secret
               input.input-sm.form-control(id=`g-oauth-provider-${provider.id}-client-secret`,
-                  type="text", placeholder="Client secret")
+                  type="text", placeholder="Client secret, e.g., bS_BkHNW2DJl-XIvCI3WP6w24~LoC54ZiefaY")
             p.g-validation-failed-message(id=`g-oauth-provider-${provider.id}-error-message`)
             input.btn.btn-sm.btn-primary(type="submit", value="Save", provider-id=provider.id)

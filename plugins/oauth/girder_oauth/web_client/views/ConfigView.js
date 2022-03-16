@@ -50,6 +50,7 @@ var ConfigView = View.extend({
             name: 'Google',
             icon: 'gplus',
             hasAuthorizedOrigins: true,
+            takesTenantId: false,
             instructions: 'Client IDs and secret keys are managed in the Google ' +
                           'Developer Console. When creating your client ID there, ' +
                           'use the following values:'
@@ -58,6 +59,7 @@ var ConfigView = View.extend({
             name: 'Globus',
             icon: 'globe',
             hasAuthorizedOrigins: false,
+            takesTenantId: false,
             instructions: 'Client IDs and secret keys are managed in the Google ' +
                           'Developer Console. When creating your client ID there, ' +
                           'use the following values:'
@@ -66,6 +68,7 @@ var ConfigView = View.extend({
             name: 'GitHub',
             icon: 'github-circled',
             hasAuthorizedOrigins: false,
+            takesTenantId: false,
             instructions: 'Client IDs and secret keys are managed in the ' +
                           'Applications page of your GitHub account settings. ' +
                           'Use the following as the authorization callback URL:'
@@ -74,14 +77,28 @@ var ConfigView = View.extend({
             name: 'Bitbucket',
             icon: 'bitbucket',
             hasAuthorizedOrigins: false,
+            takesTenantId: false,
             instructions: 'Client IDs and secret keys are managed in the ' +
                           'Applications page of your Bitbucket account settings. ' +
                           'Use the following as the authorization callback URL:'
+        }, {
+            id: 'microsoft',
+            name: 'Microsoft',
+            icon: 'windows',
+            hasAuthorizedOrigins: false,
+            takesTenantId: true,
+            instructions: 'Application (client) ID and secret keys can be found ' +
+                          'at the "Overview" and "Certificates & secrets" sections ' +
+                          'of the Azure application website. Select the "User.Read" ' +
+                          'permission under "API permissions - Microsoft Graph - ' +
+                          'Delegated permissions" and add this callback URL to the ' +
+                          '"Redirect URIs" under "Authentication":'
         }, {
             id: 'linkedin',
             name: 'LinkedIn',
             icon: 'linkedin',
             hasAuthorizedOrigins: false,
+            takesTenantId: false,
             instructions: 'Client IDs and secret keys are managed at the ' +
                           'Applications page of the LinkedIn Developers site. ' +
                           'Select the "r_basicprofile" and "r_emailaddress" ' +
@@ -92,6 +109,7 @@ var ConfigView = View.extend({
             name: 'Box',
             icon: 'box',
             hasAuthorizedOrigins: false,
+            takesTenantId: false,
             instructions: 'Client IDs and secret keys are managed in the Box ' +
                           'Developer Services page. When creating your client ID ' +
                           'there, use the following as the authorization callback URL:'

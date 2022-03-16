@@ -1378,6 +1378,9 @@ class OauthTest(base.TestCase):
         ):
             self._testOauth(providerInfo)
 
+    def testMicrosoftOauth(self):  # noqa
+        return  # TODO
+
     def testBoxOauth(self):  # noqa
         providerInfo = {
             'id': 'box',
