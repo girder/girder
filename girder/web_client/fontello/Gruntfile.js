@@ -6,6 +6,7 @@ module.exports = function (grunt) {
         fontello: {
             dist: {
                 options: {
+                    host: 'https://fontello.com',
                     config: 'fontello.config.json',
                     fonts: 'dist/fonts',
                     styles: 'dist/css',
