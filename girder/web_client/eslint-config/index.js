@@ -65,7 +65,9 @@ module.exports = {
         'promise/no-native': 'error',
         'promise/no-nesting': 'error',
         'promise/no-return-in-finally': 'error',
-        'promise/no-return-wrap': 'error',
+        'promise/no-return-wrap': 'error'
+        /*
+         * See comments below about removing underscore linting.
         'underscore/collection-return': 'error',
         'underscore/identity-shorthand': ['error', 'always'],
         'underscore/jquery-each': ['error', 'never'],
@@ -88,14 +90,19 @@ module.exports = {
         'underscore/prefer-underscore-typecheck': 'error',
         'underscore/prefer-where': 'error',
         'underscore/preferred-alias': 'error',
-        'underscore/prop-shorthand': ['error', 'always']
+        'underscore/prop-shorthand': ['error', 'always']a
+        */
     },
     env: {
         browser: true
     },
     plugins: [
-        'backbone',
-        'underscore'
+        'backbone'
+        // we had included the underscore plugin, but it is woefully out of
+        // date and has security warnings on its dependencies.  Until we update
+        // to a better or newer version, disable it so that we don't pull in
+        // critically insecure packages.
+        // 'underscore'
     ],
     settings: {
         backbone: {
