@@ -312,13 +312,13 @@ def importRecursive(type, parent, root):
     root = resolvePath(root)
     folders = {root: parent}
 
-    for root, dirs, files in os.walk(root, followlinks=True):
-        parent = folders[root]
+    for wroot, dirs, files in os.walk(root, followlinks=True):
+        parent = folders[wroot]
         parent.setdefault('folders', [])
         parent.setdefault('items', [])
 
         for dir in dirs:
-            path = os.path.join(root, dir)
+            path = os.path.join(wroot, dir)
             folder = {
                 'name': dir
             }
@@ -326,7 +326,7 @@ def importRecursive(type, parent, root):
             parent['folders'].append(folder)
 
         for file in files:
-            path = os.path.join(root, file)
+            path = os.path.join(wroot, file)
 
             parent['items'].append({
                 'name': file,
