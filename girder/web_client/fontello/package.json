@@ -13,12 +13,17 @@
   "main": "index.js",
   "scripts": {
     "build": "grunt",
-    "prepublishOnly": "$npm_execpath install && $npm_execpath run build"
+    "prepublishOnly": "$npm_execpath install && $npm_execpath run build",
+    "preinstall": "npm-force-resolutions"
   },
   "devDependencies": {
     "grunt": "^1.4.1",
     "grunt-contrib-clean": "^2.0.0",
-    "grunt-fontello": "^0.3.7"
+    "grunt-fontello": "^0.3.7",
+    "npm-force-resolutions": "^0.0.10"
+  },
+  "resolutions": {
+    "getobject": "^1.0.0"
   },
   "keywords": [
     "fontello",
