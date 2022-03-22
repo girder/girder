@@ -16,7 +16,7 @@
     "prepublishOnly": "$npm_execpath install && $npm_execpath run build"
   },
   "devDependencies": {
-    "grunt": "^1.0.3",
+    "grunt": "^1.4.1",
     "grunt-contrib-clean": "^2.0.0",
     "grunt-fontello": "^0.3.7"
   },
