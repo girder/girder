@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import urllib.parse
-
 from msal import ConfidentialClientApplication
 
 from girder.exceptions import RestException
