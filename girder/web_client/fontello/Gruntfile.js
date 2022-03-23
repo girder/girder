@@ -1,29 +1,26 @@
 module.exports = function (grunt) {
     grunt.initConfig({
-        clean: [
-            'dist'
-        ],
-        fontello: {
+        clean: {
+            dist: ['dist'],
+            extra: [
+                'dist/css/fontello-codes.css',
+                'dist/css/fontello-embedded.css',
+                'dist/css/fontello-ie7.css',
+                'dist/css/fontello-ie7-codes.css'
+            ]
+        },
+        shell: {
             dist: {
-                options: {
-                    host: 'https://fontello.com',
-                    config: 'fontello.config.json',
-                    fonts: 'dist/fonts',
-                    styles: 'dist/css',
-                    exclude: [
-                        'fontello-codes.css',
-                        'fontello-embedded.css',
-                        'fontello-ie7.css',
-                        'fontello-ie7-codes.css'
-                    ],
-                    force: true
-                }
+                command: 'fontello-cli install --config fontello.config.json --css dist/css --font dist/fonts --host https://fontello.com'
+            },
+            adjust: {
+                command: "sed -i 's/\\/font\\//\\/fonts\\//g' dist/css/fontello.css"
             }
         }
     });
 
     grunt.loadNpmTasks('grunt-contrib-clean');
-    grunt.loadNpmTasks('grunt-fontello');
+    grunt.loadNpmTasks('grunt-shell');
 
-    grunt.registerTask('default', ['clean', 'fontello']);
+    grunt.registerTask('default', ['clean:dist', 'shell:dist', 'shell:adjust', 'clean:extra']);
 };
