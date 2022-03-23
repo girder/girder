@@ -90,7 +90,7 @@ module.exports = {
         'underscore/prefer-underscore-typecheck': 'error',
         'underscore/prefer-where': 'error',
         'underscore/preferred-alias': 'error',
-        'underscore/prop-shorthand': ['error', 'always']a
+        'underscore/prop-shorthand': ['error', 'always']
         */
     },
     env: {
