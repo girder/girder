@@ -1,7 +1,7 @@
 module.exports = function (grunt) {
     grunt.initConfig({
         clean: {
-            dist: ['dist'],
+            dist: ['dist', '.fontello-session'],
             extra: [
                 'dist/css/fontello-codes.css',
                 'dist/css/fontello-embedded.css',

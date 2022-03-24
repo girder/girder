@@ -26,7 +26,7 @@ import '@girder/fontello/dist/css/animation.css';
 
 # Updating
 To add new icons to this build, visit
-[Fontello's website](http://fontello.com) and upload the
+[Fontello's website](https://fontello.com) and upload the
 `fontello.config.json` file within this package. Select new icons
 (but don't remove any), then download the new confguration via the site
 and overwrite `fontello.config.json` here. Then, just run:
