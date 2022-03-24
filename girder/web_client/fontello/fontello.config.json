@@ -2339,6 +2339,20 @@
       "css": "connectdevelop",
       "code": 59780,
       "src": "fontawesome"
+    },
+    {
+      "uid": "e1fe00b0dea8d5e6cfe324ca801e0305",
+      "css": "microsoft",
+      "code": 59781,
+      "src": "custom_icons",
+      "selected": true,
+      "svg": {
+        "path": "M0 62.5H419.1V481.6H0V62.5ZM455.9 62.5H875V481.6H455.9V62.5ZM0 518.4H419.1V937.5H0V518.4ZM455.9 518.4H875V937.5H455.9V518.4Z",
+        "width": 875
+      },
+      "search": [
+        "microsoft"
+      ]
     }
   ]
 }
