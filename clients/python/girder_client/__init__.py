@@ -1320,7 +1320,8 @@ class GirderClient:
             for item in items:
                 _id = item['_id']
                 self.incomingMetadata[_id] = item
-                if sync and _id in self.localMetadata and item['updated'] == self.localMetadata[_id]['updated']:
+                if (sync and _id in self.localMetadata
+                        and item['updated'] == self.localMetadata[_id]['updated']):
                     continue
                 self.downloadItem(item['_id'], dest, name=item['name'])
 
