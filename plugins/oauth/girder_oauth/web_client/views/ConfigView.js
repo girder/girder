@@ -84,7 +84,7 @@ var ConfigView = View.extend({
         }, {
             id: 'microsoft',
             name: 'Microsoft',
-            icon: 'windows',
+            icon: 'microsoft',
             hasAuthorizedOrigins: false,
             takesTenantId: true,
             instructions: 'Application (client) ID and secret keys can be found ' +
