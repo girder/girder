@@ -4,15 +4,18 @@ from msal import ConfidentialClientApplication
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 
-from .base import ProviderBase
 from ..settings import PluginSettings
+from .base import ProviderBase
 
 
 class Microsoft(ProviderBase):
-    _MSR_TENANT = 'common'  # TODO: allow custom tenant ID from plugin GUI
-    _AUTHORITY = f'https://login.microsoftonline.com/{_MSR_TENANT}'
     _AUTH_SCOPES = ['User.Read']
     _API_USER_URL = 'https://graph.microsoft.com/v1.0/me'
+
+    @classmethod
+    def _authority(cls):
+        tenantId = Setting().get(PluginSettings.MICROSOFT_TENANT_ID) or 'common'
+        return f'https://login.microsoftonline.com/{tenantId}'
 
     def getClientIdSetting(self):
         return Setting().get(PluginSettings.MICROSOFT_CLIENT_ID)
@@ -33,7 +36,7 @@ class Microsoft(ProviderBase):
         app = ConfidentialClientApplication(
             client_id=clientId,
             client_credential=clientSecret,
-            authority=cls._AUTHORITY,
+            authority=cls._authority(),
         )
         # The default response type is 'code', so we don't need to pass it
         url = app.get_authorization_request_url(
@@ -46,7 +49,7 @@ class Microsoft(ProviderBase):
         app = ConfidentialClientApplication(
             client_id=self.clientId,
             client_credential=self.clientSecret,
-            authority=self._AUTHORITY,
+            authority=self._authority(),
         )
         result = app.acquire_token_by_authorization_code(
             code,

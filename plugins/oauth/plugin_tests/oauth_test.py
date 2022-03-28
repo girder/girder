@@ -1379,7 +1379,59 @@ class OauthTest(base.TestCase):
             self._testOauth(providerInfo)
 
     def testMicrosoftOauth(self):  # noqa
-        return  # TODO
+        providerInfo = {
+            'id': 'microsoft',
+            'name': 'Microsoft',
+            'client_id': {
+                'key': PluginSettings.MICROSOFT_CLIENT_ID,
+                'value': 'microsoft_test_client_id'
+            },
+            'client_secret': {
+                'key': PluginSettings.MICROSOFT_CLIENT_SECRET,
+                'value': 'microsoft_test_client_secret'
+            },
+            'allowed_callback_re':
+                r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/microsoft/callback$',
+            'url_re': r'^https://login\.microsoftonline\.com/organizations/oauth2/v2\.0/authorize',
+            'accounts': {
+                'existing': {
+                    'auth_code': 'microsoft_existing_auth_code',
+                    'access_token': 'microsoft_existing_test_token',
+                    'user': {
+                        'login': self.adminUser['login'],
+                        'email': self.adminUser['email'],
+                        'firstName': self.adminUser['firstName'],
+                        'lastName': self.adminUser['lastName'],
+                        'oauth': {
+                            'provider': 'microsoft',
+                            'id': '2399'
+                        }
+                    }
+                },
+                'new': {
+                    'auth_code': 'microsoft_new_auth_code',
+                    'access_token': 'microsoft_new_test_token',
+                    'user': {
+                        # login may be provided externally by Microsoft; for
+                        # simplicity here, do not use a username with whitespace
+                        # or underscores
+                        'login': 'drago',
+                        'email': 'metaphor@labs.ussr.gov',
+                        'firstName': 'Ivan',
+                        'lastName': 'Drago',
+                        'oauth': {
+                            'provider': 'microsoft',
+                            'id': 1985,
+                        }
+                    }
+                }
+            }
+        }
+
+        @httmock.urlmatch(scheme='https', netloc='^login.microsoftonline.com$',
+                          path='^/organizations/oauth2/v2.0/authorize$', method='GET')
+        def mockMicrosoftRedirect(url, request):
+            return
 
     def testBoxOauth(self):  # noqa
         providerInfo = {

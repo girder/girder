@@ -23,6 +23,7 @@ class PluginSettings:
 
     MICROSOFT_CLIENT_ID = 'oauth.microsoft_client_id'
     MICROSOFT_CLIENT_SECRET = 'oauth.microsoft_client_secret'
+    MICROSOFT_TENANT_ID = 'oauth.microsoft_tenant_id'
 
     BOX_CLIENT_ID = 'oauth.box_client_id'
     BOX_CLIENT_SECRET = 'oauth.box_client_secret'
@@ -53,6 +54,7 @@ def _defaultIgnoreRegistrationPolicy():
     PluginSettings.BITBUCKET_CLIENT_SECRET,
     PluginSettings.MICROSOFT_CLIENT_SECRET,
     PluginSettings.BOX_CLIENT_SECRET,
+    PluginSettings.MICROSOFT_TENANT_ID,
 })
 def _defaultOtherSettings():
     return ''
@@ -84,7 +86,8 @@ def _validateIgnoreRegistrationPolicy(doc):
     PluginSettings.LINKEDIN_CLIENT_SECRET,
     PluginSettings.BITBUCKET_CLIENT_SECRET,
     PluginSettings.MICROSOFT_CLIENT_SECRET,
-    PluginSettings.BOX_CLIENT_SECRET
+    PluginSettings.BOX_CLIENT_SECRET,
+    PluginSettings.MICROSOFT_TENANT_ID,
 })
 def _validateOtherSettings(doc):
     pass

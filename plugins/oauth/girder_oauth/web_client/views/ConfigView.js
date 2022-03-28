@@ -16,13 +16,20 @@ var ConfigView = View.extend({
             var providerId = $(event.target).attr('provider-id');
             this.$('#g-oauth-provider-' + providerId + '-error-message').empty();
 
-            this._saveSettings(providerId, [{
+            const settings = [{
                 key: 'oauth.' + providerId + '_client_id',
                 value: this.$('#g-oauth-provider-' + providerId + '-client-id').val().trim()
             }, {
                 key: 'oauth.' + providerId + '_client_secret',
                 value: this.$('#g-oauth-provider-' + providerId + '-client-secret').val().trim()
-            }]);
+            }];
+            if (_.findWhere(this.providers, {id: providerId}).takesTenantId) {
+                settings.push({
+                    key: 'oauth.' + providerId + '_tenant_id',
+                    value: this.$('#g-oauth-provider-' + providerId + '-tenant-id').val().trim()
+                });
+            }
+            this._saveSettings(providerId, settings);
         },
 
         'change .g-ignore-registration-policy': function (event) {
@@ -120,6 +127,9 @@ var ConfigView = View.extend({
         _.each(this.providerIds, function (id) {
             settingKeys.push('oauth.' + id + '_client_id');
             settingKeys.push('oauth.' + id + '_client_secret');
+            if (_.findWhere(this.providers, {id: id}).takesTenantId) {
+                settingKeys.push('oauth.' + id + '_tenant_id');
+            }
         }, this);
 
         restRequest({
@@ -162,6 +172,10 @@ var ConfigView = View.extend({
                     this.settingVals['oauth.' + id + '_client_id']);
                 this.$('#g-oauth-provider-' + id + '-client-secret').val(
                     this.settingVals['oauth.' + id + '_client_secret']);
+                if (_.findWhere(this.providers, {id: id}).takesTenantId) {
+                    this.$('#g-oauth-provider-' + id + '-tenant-id').val(
+                        this.settingVals['oauth.' + id + '_tenant_id']);
+                }
             }, this);
 
             var checked = this.settingVals['oauth.ignore_registration_policy'];
