@@ -1230,6 +1230,7 @@ plugins
                     LINKEDIN_CLIENT_SECRET
                     MICROSOFT_CLIENT_ID
                     MICROSOFT_CLIENT_SECRET
+                    MICROSOFT_TENANT_ID
                     PROVIDERS_ENABLED
     readme
         girder_readme
