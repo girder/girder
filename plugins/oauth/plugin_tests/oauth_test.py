@@ -1391,7 +1391,8 @@ class OauthTest(base.TestCase):
                 'value': 'microsoft_test_client_secret'
             },
             'allowed_callback_re':
-                r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/microsoft/callback$',
+                r'^http://127\.0\.0\.1(?::\d+)?'
+                r'/api/v1/oauth/microsoft/callback$',
             'url_re': r'^https://login\.microsoftonline\.com/organizations/oauth2/v2\.0/authorize',
             'accounts': {
                 'existing': {
@@ -1431,7 +1432,50 @@ class OauthTest(base.TestCase):
         @httmock.urlmatch(scheme='https', netloc='^login.microsoftonline.com$',
                           path='^/organizations/oauth2/v2.0/authorize$', method='GET')
         def mockMicrosoftRedirect(url, request):
-            return
+            redirectUri = None
+            try:
+                params = urllib.parse.parse_qs(url.query)
+                # Check redirect_uri first, so other errors can still redirect
+                redirectUri = params['redirect_uri'][0]
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 404,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                self.assertRegex(redirectUri, providerInfo['allowed_callback_re'])
+                state = params['state'][0]
+                # Nothing to test for state, since provider doesn't care
+                self.assertEqual(params['scope'], ['account'])
+            except (KeyError, AssertionError) as e:
+                returnQuery = urllib.parse.urlencode({
+                    'error': repr(e),
+                    'error_description': repr(e)
+                })
+            else:
+                returnQuery = urllib.parse.urlencode({
+                    'state': state,
+                    'code': providerInfo['accounts'][self.accountType]['auth_code']
+                })
+            return {
+                'status_code': 302,
+                'headers': {
+                    'Location': '%s?%s' % (redirectUri, returnQuery)
+                }
+            }
+
+        with httmock.HTTMock(
+            mockMicrosoftRedirect,
+            # mockMicrosoftToken,
+            # mockMicrosoftApiUser,
+            # mockMicrosoftApiEmail,
+            # Must keep 'mockOtherRequest' last
+            self.mockOtherRequest,
+        ):
+            self._testOauth(providerInfo)
 
     def testBoxOauth(self):  # noqa
         providerInfo = {
