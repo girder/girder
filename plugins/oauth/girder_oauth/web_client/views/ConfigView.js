@@ -48,7 +48,7 @@ var ConfigView = View.extend({
         this.providers = [{
             id: 'google',
             name: 'Google',
-            icon: 'gplus',
+            icon: 'google',
             hasAuthorizedOrigins: true,
             instructions: 'Client IDs and secret keys are managed in the Google ' +
                           'Developer Console. When creating your client ID there, ' +
@@ -90,7 +90,7 @@ var ConfigView = View.extend({
         }, {
             id: 'box',
             name: 'Box',
-            icon: 'box',
+            icon: 'box-brand',
             hasAuthorizedOrigins: false,
             instructions: 'Client IDs and secret keys are managed in the Box ' +
                           'Developer Services page. When creating your client ID ' +
