@@ -117,6 +117,11 @@ def dropTestDatabase(dropModels=True):
         for model in _modelSingletons:
             model.reconnect()
 
+    # Invalidate cache regions which persist across tests -- if we dropped
+    # the database, we want to flush the cache, too.
+    cache.invalidate()
+    requestCache.invalidate()
+
 
 def dropGridFSDatabase(dbName):
     """
