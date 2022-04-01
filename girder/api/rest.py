@@ -919,12 +919,17 @@ class Resource:
 
             ``rest.get.item/:id.after``
 
-        would be fired after the route handler returns. The query params are
-        passed in the info of the before and after event handlers as
-        event.info['params'], and the matched route tokens are passed in
-        as dict items of event.info, so in the previous example event.info would
-        also contain an 'id' key with the value of 123. For endpoints with empty
-        sub-routes, the trailing slash is omitted from the event name, e.g.:
+        would be fired after the route handler returns. If the request fails,
+        instead of firing the after event,
+
+            ``rest.get.item/:id.failed``
+
+        would be fired. The query params are passed in the info of the before,
+        after, and failed event handlers as event.info['params'], and the matched
+        route tokens are passed in as dict items of event.info, so in the previous
+        example event.info would also contain an 'id' key with the value of 123.
+        For endpoints with empty sub-routes, the trailing slash is omitted from
+        the event name, e.g.:
 
             ``rest.post.group.before``
 
@@ -965,7 +970,14 @@ class Resource:
             val = event.responses[0]
         else:
             self._defaultAccess(handler)
-            val = handler(**kwargs)
+
+            # Attempt to handle and trigger failed event if an
+            # exception is raised.
+            try:
+                val = handler(**kwargs)
+            except Exception as e:
+                events.trigger('.'.join((eventPrefix, 'failed')), kwargs)
+                raise e
 
         # Fire the after-call event that has a chance to augment the
         # return value of the API method that was called. You can
