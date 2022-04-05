@@ -975,9 +975,9 @@ class Resource:
             # exception is raised.
             try:
                 val = handler(**kwargs)
-            except Exception as e:
+            except Exception:
                 events.trigger('.'.join((eventPrefix, 'failed')), kwargs)
-                raise e
+                raise
 
         # Fire the after-call event that has a chance to augment the
         # return value of the API method that was called. You can
