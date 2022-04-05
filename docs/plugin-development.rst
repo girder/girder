@@ -479,6 +479,14 @@ You may change the access level of the route in your handler, but you will
 need to do so explicitly by declaring a different decorator than the underlying
 route handler.
 
+*  **Exception during REST call**
+
+This event is fired if an exception is raised while the default handler is executing.
+Like the before REST call event, this event recieves the same kwargs as the default
+route handler. The caught exception is raised again after this event is handled.
+The identifier for this event is, e.g., ``rest.get.item/:id.failed``.
+
+
 *  **After REST call**
 
 Just like the before REST call event, but this is fired after the default
