@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import warnings
+
 from msal import ConfidentialClientApplication
 
 from girder.exceptions import RestException
@@ -51,10 +53,12 @@ class Microsoft(ProviderBase):
             client_credential=self.clientSecret,
             authority=self._authority(),
         )
-        result = app.acquire_token_by_authorization_code(
-            code,
-            self._AUTH_SCOPES,
-        )
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', DeprecationWarning)
+            result = app.acquire_token_by_authorization_code(
+                code,
+                self._AUTH_SCOPES,
+            )
         if 'access_token' not in result:
             strings = result['error'], result['error_description']
             raise Exception('Error "%s" acquiring access token for client: %s' % strings)
