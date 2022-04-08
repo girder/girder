@@ -54,10 +54,14 @@ def _computeSlowStatus(process, status, db):
             # exception
             pass
     status['mongoDbStats'] = db.command('dbStats')
-    status['mongoDbPath'] = getDbConnection().admin.command(
-        'getCmdLineOpts')['parsed']['storage']['dbPath']
-    status['mongoDbDiskUsage'] = _objectToDict(
-        psutil.disk_usage(status['mongoDbPath']))
+    try:
+        # This can fail when mongo is on a different system.
+        status['mongoDbPath'] = getDbConnection().admin.command(
+            'getCmdLineOpts')['parsed']['storage']['dbPath']
+        status['mongoDbDiskUsage'] = _objectToDict(
+            psutil.disk_usage(status['mongoDbPath']))
+    except Exception:
+        pass
 
     status['processDirectChildrenCount'] = len(process.children())
     status['processAllChildrenCount'] = len(process.children(True))
