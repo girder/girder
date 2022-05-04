@@ -16,13 +16,20 @@ var ConfigView = View.extend({
             var providerId = $(event.target).attr('provider-id');
             this.$('#g-oauth-provider-' + providerId + '-error-message').empty();
 
-            this._saveSettings(providerId, [{
+            const settings = [{
                 key: 'oauth.' + providerId + '_client_id',
                 value: this.$('#g-oauth-provider-' + providerId + '-client-id').val().trim()
             }, {
                 key: 'oauth.' + providerId + '_client_secret',
                 value: this.$('#g-oauth-provider-' + providerId + '-client-secret').val().trim()
-            }]);
+            }];
+            if (_.findWhere(this.providers, { id: providerId }).takesTenantId) {
+                settings.push({
+                    key: 'oauth.' + providerId + '_tenant_id',
+                    value: this.$('#g-oauth-provider-' + providerId + '-tenant-id').val().trim()
+                });
+            }
+            this._saveSettings(providerId, settings);
         },
 
         'change .g-ignore-registration-policy': function (event) {
@@ -50,6 +57,7 @@ var ConfigView = View.extend({
             name: 'Google',
             icon: 'google',
             hasAuthorizedOrigins: true,
+            takesTenantId: false,
             instructions: 'Client IDs and secret keys are managed in the Google ' +
                           'Developer Console. When creating your client ID there, ' +
                           'use the following values:'
@@ -58,6 +66,7 @@ var ConfigView = View.extend({
             name: 'Globus',
             icon: 'globe',
             hasAuthorizedOrigins: false,
+            takesTenantId: false,
             instructions: 'Client IDs and secret keys are managed in the Google ' +
                           'Developer Console. When creating your client ID there, ' +
                           'use the following values:'
@@ -66,6 +75,7 @@ var ConfigView = View.extend({
             name: 'GitHub',
             icon: 'github-circled',
             hasAuthorizedOrigins: false,
+            takesTenantId: false,
             instructions: 'Client IDs and secret keys are managed in the ' +
                           'Applications page of your GitHub account settings. ' +
                           'Use the following as the authorization callback URL:'
@@ -74,14 +84,28 @@ var ConfigView = View.extend({
             name: 'Bitbucket',
             icon: 'bitbucket',
             hasAuthorizedOrigins: false,
+            takesTenantId: false,
             instructions: 'Client IDs and secret keys are managed in the ' +
                           'Applications page of your Bitbucket account settings. ' +
                           'Use the following as the authorization callback URL:'
+        }, {
+            id: 'microsoft',
+            name: 'Microsoft',
+            icon: 'microsoft',
+            hasAuthorizedOrigins: false,
+            takesTenantId: true,
+            instructions: 'Application (client) ID and secret keys can be found ' +
+                          'at the "Overview" and "Certificates & secrets" sections ' +
+                          'of the Azure application website. Select the "User.Read" ' +
+                          'permission under "API permissions - Microsoft Graph - ' +
+                          'Delegated permissions" and add this callback URL to the ' +
+                          '"Redirect URIs" under "Authentication":'
         }, {
             id: 'linkedin',
             name: 'LinkedIn',
             icon: 'linkedin',
             hasAuthorizedOrigins: false,
+            takesTenantId: false,
             instructions: 'Client IDs and secret keys are managed at the ' +
                           'Applications page of the LinkedIn Developers site. ' +
                           'Select the "r_basicprofile" and "r_emailaddress" ' +
@@ -92,6 +116,7 @@ var ConfigView = View.extend({
             name: 'Box',
             icon: 'box-brand',
             hasAuthorizedOrigins: false,
+            takesTenantId: false,
             instructions: 'Client IDs and secret keys are managed in the Box ' +
                           'Developer Services page. When creating your client ID ' +
                           'there, use the following as the authorization callback URL:'
@@ -102,6 +127,9 @@ var ConfigView = View.extend({
         _.each(this.providerIds, function (id) {
             settingKeys.push('oauth.' + id + '_client_id');
             settingKeys.push('oauth.' + id + '_client_secret');
+            if (_.findWhere(this.providers, { id: id }).takesTenantId) {
+                settingKeys.push('oauth.' + id + '_tenant_id');
+            }
         }, this);
 
         restRequest({
@@ -144,6 +172,10 @@ var ConfigView = View.extend({
                     this.settingVals['oauth.' + id + '_client_id']);
                 this.$('#g-oauth-provider-' + id + '-client-secret').val(
                     this.settingVals['oauth.' + id + '_client_secret']);
+                if (_.findWhere(this.providers, { id: id }).takesTenantId) {
+                    this.$('#g-oauth-provider-' + id + '-tenant-id').val(
+                        this.settingVals['oauth.' + id + '_tenant_id']);
+                }
             }, this);
 
             var checked = this.settingVals['oauth.ignore_registration_policy'];

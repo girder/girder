@@ -1202,6 +1202,13 @@ plugins
                         getToken
                         getUrl
                         getUser
+                microsoft
+                    Microsoft
+                        getClientIdSetting
+                        getClientSecretSetting
+                        getToken
+                        getUrl
+                        getUser
             rest
                 OAuth
                     callback
@@ -1221,6 +1228,9 @@ plugins
                     IGNORE_REGISTRATION_POLICY
                     LINKEDIN_CLIENT_ID
                     LINKEDIN_CLIENT_SECRET
+                    MICROSOFT_CLIENT_ID
+                    MICROSOFT_CLIENT_SECRET
+                    MICROSOFT_TENANT_ID
                     PROVIDERS_ENABLED
     readme
         girder_readme

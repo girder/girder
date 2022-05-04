@@ -6,6 +6,7 @@ from .globus import Globus
 from .github import GitHub
 from .linkedin import LinkedIn
 from .bitbucket import Bitbucket
+from .microsoft import Microsoft
 from .box import Box
 
 
@@ -21,4 +22,5 @@ addProvider(Globus)
 addProvider(GitHub)
 addProvider(LinkedIn)
 addProvider(Bitbucket)
+addProvider(Microsoft)
 addProvider(Box)

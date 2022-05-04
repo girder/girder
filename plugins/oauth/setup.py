@@ -45,6 +45,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'girder>=3',
+        'msal',
         'pyjwt<2',
     ],
     entry_points={

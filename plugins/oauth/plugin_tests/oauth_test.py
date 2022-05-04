@@ -1378,6 +1378,107 @@ class OauthTest(base.TestCase):
         ):
             self._testOauth(providerInfo)
 
+    def XtestMicrosoftOauth(self):  # noqa
+        # This test is disabled for now:
+        # https://github.com/girder/girder/pull/3393#issuecomment-1113589758
+        providerInfo = {
+            'id': 'microsoft',
+            'name': 'Microsoft',
+            'client_id': {
+                'key': PluginSettings.MICROSOFT_CLIENT_ID,
+                'value': 'microsoft_test_client_id'
+            },
+            'client_secret': {
+                'key': PluginSettings.MICROSOFT_CLIENT_SECRET,
+                'value': 'microsoft_test_client_secret'
+            },
+            'allowed_callback_re':
+                r'^http://127\.0\.0\.1(?::\d+)?'
+                r'/api/v1/oauth/microsoft/callback$',
+            'url_re': r'^https://login\.microsoftonline\.com/organizations/oauth2/v2\.0/authorize',
+            'accounts': {
+                'existing': {
+                    'auth_code': 'microsoft_existing_auth_code',
+                    'access_token': 'microsoft_existing_test_token',
+                    'user': {
+                        'login': self.adminUser['login'],
+                        'email': self.adminUser['email'],
+                        'firstName': self.adminUser['firstName'],
+                        'lastName': self.adminUser['lastName'],
+                        'oauth': {
+                            'provider': 'microsoft',
+                            'id': '2399'
+                        }
+                    }
+                },
+                'new': {
+                    'auth_code': 'microsoft_new_auth_code',
+                    'access_token': 'microsoft_new_test_token',
+                    'user': {
+                        # login may be provided externally by Microsoft; for
+                        # simplicity here, do not use a username with whitespace
+                        # or underscores
+                        'login': 'drago',
+                        'email': 'metaphor@labs.ussr.gov',
+                        'firstName': 'Ivan',
+                        'lastName': 'Drago',
+                        'oauth': {
+                            'provider': 'microsoft',
+                            'id': 1985,
+                        }
+                    }
+                }
+            }
+        }
+
+        @httmock.urlmatch(scheme='https', netloc='^login.microsoftonline.com$',
+                          path='^/organizations/oauth2/v2.0/authorize$', method='GET')
+        def mockMicrosoftRedirect(url, request):
+            redirectUri = None
+            try:
+                params = urllib.parse.parse_qs(url.query)
+                # Check redirect_uri first, so other errors can still redirect
+                redirectUri = params['redirect_uri'][0]
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 404,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                self.assertRegex(redirectUri, providerInfo['allowed_callback_re'])
+                state = params['state'][0]
+                # Nothing to test for state, since provider doesn't care
+                self.assertEqual(params['scope'], ['account'])
+            except (KeyError, AssertionError) as e:
+                returnQuery = urllib.parse.urlencode({
+                    'error': repr(e),
+                    'error_description': repr(e)
+                })
+            else:
+                returnQuery = urllib.parse.urlencode({
+                    'state': state,
+                    'code': providerInfo['accounts'][self.accountType]['auth_code']
+                })
+            return {
+                'status_code': 302,
+                'headers': {
+                    'Location': '%s?%s' % (redirectUri, returnQuery)
+                }
+            }
+
+        with httmock.HTTMock(
+            mockMicrosoftRedirect,
+            # mockMicrosoftToken,
+            # mockMicrosoftApiUser,
+            # mockMicrosoftApiEmail,
+            # Must keep 'mockOtherRequest' last
+            self.mockOtherRequest,
+        ):
+            self._testOauth(providerInfo)
+
     def testBoxOauth(self):  # noqa
         providerInfo = {
             'id': 'box',
