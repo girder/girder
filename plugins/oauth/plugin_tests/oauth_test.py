@@ -1378,7 +1378,9 @@ class OauthTest(base.TestCase):
         ):
             self._testOauth(providerInfo)
 
-    def testMicrosoftOauth(self):  # noqa
+    def XtestMicrosoftOauth(self):  # noqa
+        # This test is disabled for now:
+        # https://github.com/girder/girder/pull/3393#issuecomment-1113589758
         providerInfo = {
             'id': 'microsoft',
             'name': 'Microsoft',
