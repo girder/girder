@@ -77,7 +77,7 @@ var ItemListWidget = View.extend({
 
         this.collection.fetch({ folderId: settings.folderId }).done(() => {
             this._totalPages = Math.ceil(this.collection.getTotalCount() / this.collection.pageLimit);
-            if (this._paginated && this.collection.hasNextPage) {
+            if (this._paginated && this.collection.hasNextPage()) {
                 // Tells the parent container that the item is paginated so it can render the page selector
                 this.trigger('g:paginated');
                 // We need to get the position in the list for the selected item
