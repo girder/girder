@@ -229,8 +229,7 @@ class DicomViewerTest(base.TestCase):
         # One of the test files in the pydicom module will throw an IOError
         # when parsing metadata.  We should work around that and still be able
         # to import the file
-        samplePath = os.path.join(os.path.dirname(os.path.abspath(
-            pydicom.__file__)), 'data', 'test_files', 'CT_small.dcm')
+        samplePath = pydicom.data.get_testdata_file('CT_small.dcm')
         admin, user = self.users
         # Create a collection, folder, and item
         collection = Collection().createCollection('collection4', admin, public=True)
@@ -260,8 +259,7 @@ class DicomViewerTest(base.TestCase):
         # One of the test files in the pydicom module will throw an IOError
         # when parsing metadata.  We should work around that and still be able
         # to import the file
-        samplePath = os.path.join(os.path.dirname(os.path.abspath(
-            pydicom.__file__)), 'data', 'test_files', 'OBXXXX1A.dcm')
+        samplePath = pydicom.data.get_testdata_file('OBXXXX1A.dcm')
         admin, user = self.users
         # Create a collection, folder, and item
         collection = Collection().createCollection('collection5', admin, public=True)

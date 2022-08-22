@@ -132,7 +132,7 @@ class AssetstoreTestCase(base.TestCase):
         # Now break the root of the new assetstore and make sure we can still
         # list it
         oldroot = assetstore['root']
-        assetstore['root'] = '///invalidpath'
+        assetstore['root'] = os.path.join(os.devnull, 'invalidpath')
         assetstore = Assetstore().save(assetstore, validate=False)
         assetstoresAfter = list(Assetstore().list())
         self.assertEqual(len(assetstoresBefore), len(assetstoresAfter))
