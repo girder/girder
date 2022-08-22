@@ -1162,11 +1162,11 @@ describe('browser hierarchy paginated selection', function () {
         });
 
         waitsFor(function () {
-            return $('.g-hierarachy-paginated-bar').length === 0;
+            return $('.g-hierarachy-paginated-bar:not(.hidden)').length === 0;
         }, 'The removal of the page selection');
 
         runs(function () {
-            expect($('.g-hierarachy-paginated-bar').length).toBe(0);
+            expect($('.g-hierarachy-paginated-bar:not(.hidden)').length).toBe(0);
             $('.g-breadcrumb-link[g-index="1"]').trigger('click');
         }, 'Make sure paginated text is removed when a folder has less than one page');
 
