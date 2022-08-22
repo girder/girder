@@ -281,14 +281,17 @@ var HierarchyWidget = View.extend({
                 this.itemCount = this.itemListView.collection.length;
                 this._childCountCheck();
                 if (this._paginated && this.hierarchyPaginated && this.itemListView.getNumPages() > 1) {
-                    this.render();
+                    if (this.parentModel.resourceName !== 'collection') {
+                        this.hierarchyPaginated.setElement(this.$('.g-hierarachy-paginated-bar')).render();
+                    }
                     this.$('.g-hierarchy-breadcrumb-bar').addClass('g-hierarchy-sticky');
                     this.$('.g-hierarachy-paginated-bar').addClass('g-hierarchy-sticky');
                     this.$('.g-hierarchy-breadcrumb-bar').css({ top: 0 });
                     this.$('.g-hierarachy-paginated-bar').css({ bottom: 0 });
+                    this.$('.g-hierarachy-paginated-bar').removeClass('hidden');
                 } else {
                     // We remove the bar if the current folder doesn't have more than one page, keep the sticky breadcrumb though
-                    this.$('.g-hierarachy-paginated-bar').remove();
+                    this.$('.g-hierarachy-paginated-bar').addClass('hidden');
                 }
             });
             // Only emitted when there is more than one page of data
