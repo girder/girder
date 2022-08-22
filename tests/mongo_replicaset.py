@@ -360,8 +360,8 @@ if __name__ == '__main__':
     parser.add_argument(
         '--dirroot', default='/tmp/mongodb',
         help='The root name of directories to create.  Multiple directories '
-        'e created with paths like <dirroot>1, <dirroot>2.  They are deleted '
-        'en the program finishes.  Default /tmp/mongodb.')
+        'are created with paths like <dirroot>1, <dirroot>2.  They are deleted '
+        'when the program finishes.  Default /tmp/mongodb.')
     parser.add_argument(
         '--pause', action='count',
         help='Pause and unpause replicateset servers.', default=0)

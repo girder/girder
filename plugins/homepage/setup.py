@@ -23,7 +23,11 @@ def prerelease_local_scheme(version):
 setup(
     name='girder-homepage',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
-    setup_requires=['setuptools-scm', 'setuptools-git'],
+    setup_requires=[
+        'setuptools-scm<7 ; python_version < "3.7"',
+        'setuptools-scm ; python_version >= "3.7"',
+        'setuptools-git',
+    ],
     description='Customize the homepage using Markdown.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

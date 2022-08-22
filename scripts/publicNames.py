@@ -53,10 +53,10 @@ def addFileSymbols(filePath, symbolTree):
         symbolAbbrviatedKind = symbolExtensions[0]  # noqa: F841
         if len(symbolExtensions) >= 2:
             # Symbol is scoped
-            symbolScopeKind, symbolScope = symbolExtensions[1].split(':')
+            symbolScopeKind, symbolScope = symbolExtensions[1].split(':', 1)
             if symbolScopeKind == 'class':
                 pass
-            elif symbolScopeKind == 'function':
+            elif symbolScopeKind in {'function', 'typeref'}:
                 # Symbols defined inside functions are not visible
                 continue
             elif symbolScopeKind == 'member':
