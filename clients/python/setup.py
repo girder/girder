@@ -32,7 +32,10 @@ with open('README.rst') as f:
 setup(
     name='girder-client',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
-    setup_requires=['setuptools-scm'],
+    setup_requires=[
+        'setuptools-scm<7 ; python_version < "3.7"',
+        'setuptools-scm ; python_version >= "3.7"',
+    ],
     description='Python client for interacting with Girder servers',
     long_description=readme,
     author='Kitware, Inc.',
