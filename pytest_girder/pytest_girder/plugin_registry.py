@@ -22,6 +22,11 @@ class _MockDistribution:
         meta.version = version
         meta.description = description
         meta.url = url
+        meta.long_description_content_type = None
+        meta.project_urls = {}
+        meta.provides_extras = ()
+        meta.license_file = None
+        meta.license_files = None
         pkgInfo = io.StringIO()
         meta.write_pkg_file(pkgInfo)
         return pkgInfo.getvalue()
