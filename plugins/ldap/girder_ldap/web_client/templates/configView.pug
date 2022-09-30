@@ -12,6 +12,16 @@ p.
 
 .g-ldap-server-list-title LDAP servers
 form.g-ldap-server-form(role="form")
+  .panel-group.g-ldap-settings-panel
+        .form-group
+          label.control-label(for=`g-ldap-settings-timeout`) Timeout
+          input.input-sm.form-control.g-uri-input(id=`g-ldap-setting-timeout`,
+              name="timeout", value=settings.timeout, placeholder="4")
+        .fall-back-settings
+          label.control-label(for=`g-ldap-settings-fallback`)
+            input.g-setting-switch(id=`g-ldap-setting-fallback` type="checkbox",
+            checked=(settings.fallback ? 'checked' : undefined), data-size="mini", data-on-color="primary")
+            | Fall Back to Girder Login
   .panel-group.g-ldap-server-accordion
     each server, index in servers
       +ldapServerEditPanel(server, index)
