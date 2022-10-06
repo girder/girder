@@ -4,14 +4,14 @@ import subprocess
 import tempfile
 import time
 
-from .. import base
-
 from girder.constants import ROOT_DIR
 from girder.exceptions import FilePathException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.user import User
+
+from .. import base
 
 
 def setUpModule():
