@@ -37,14 +37,14 @@ def uuidMock():
 
 @pytest.mark.parametrize('mode,msg,hasTrace', [
     ('production', 'An unexpected error occurred on the server.', False),
-    ('development', "Exception: Exception('Specific message 1234',)", True)
+    ('development', 'Specific message 1234', True)
 ])
 def testExceptionHandlingBasedOnServerMode(exceptionServer, uuidMock, mode, msg, hasTrace):
     with serverMode(mode):
         resp = exceptionServer.request('/item/exception', exception=True)
 
     assertStatus(resp, 500)
-    assert resp.json['message'] == msg
+    assert msg in resp.json['message']
     assert resp.json['type'] == 'internal'
     assert resp.json['uid'] == uuidMock
     assert ('trace' in resp.json) is hasTrace

@@ -292,6 +292,7 @@ jobs:
           path: girder
       - setup_remote_docker:
           docker_layer_caching: true
+          version: 20.10.12
       - run:
           name: Run Ansible tests
           command: tox -e ansible
