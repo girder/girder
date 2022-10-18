@@ -22,6 +22,8 @@ module.exports = {
             }
         }],
         'no-throw-literal': 'off', // This would be desirable, but interferes with use in Promise.then
+        'no-var': 'off',
+        'object-shorthand': 'off',
         'one-var': 'off',
         quotes: ['error', 'single', {
             avoidEscape: true,
@@ -61,6 +63,7 @@ module.exports = {
             groups: ['builtin', 'external', ['internal', 'parent', 'sibling', 'index']],
             'newlines-between': 'always-and-inside-groups'
         }],
+        'n/no-deprecated-api': 'off',
         'promise/always-return': 'error',
         'promise/no-native': 'error',
         'promise/no-nesting': 'error',
