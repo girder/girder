@@ -1,4 +1,3 @@
-
 import { getCurrentUser } from '@girder/core/auth';
 import { AccessType } from '@girder/core/constants';
 import events from '@girder/core/events';

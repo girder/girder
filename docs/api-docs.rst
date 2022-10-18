@@ -255,5 +255,5 @@ Web client
 Documentation for Girder's web client library is not hosted online, but may be built locally by
 running (from the top-level directory):
 ```bash
-npm install && npm run docs
+npm install && npm install --no-save esdoc esdoc-standard-plugin && npm run docs
 ```
