@@ -451,6 +451,25 @@ class Describe(Resource):
         super().__init__()
         self.route('GET', (), self.listResources, nodoc=True)
 
+    def _addSwaggerValues(self, paths, definitions):
+        for path in paths.values():
+            for method in path.values():
+                for param in method.get('parameters', []):
+                    if param.get('in', '') == 'formData' and 'consumes' not in method:
+                        method['consumes'] = [
+                            'multipart/form-data', 'application/x-www-form-urlencoded']
+                for param in (method.get('parameters', []) + list(
+                        method.get('responses', {}).values())):
+                    if 'schema' not in param:
+                        continue
+                    schema = param['schema']
+                    schema = schema.get('items', schema)
+                    defin = schema.get('$ref', '').split('#/definitions/')
+                    if len(defin) == 2 and defin[1] not in definitions:
+                        definitions[defin[1]] = {
+                            'type': defin[1] if defin[1] in
+                            {'string', 'boolean', 'integer', 'number'} else 'object'}
+
     @access.public
     def listResources(self, params):
         # Paths Object
@@ -487,6 +506,11 @@ class Describe(Resource):
                 # Path Item Object
                 pathItem = {}
                 for method, operation in methods.items():
+                    operation = operation.copy()
+                    if 'parameters' in operation:
+                        operation['parameters'] = [
+                            {k: v for k, v in param.items() if not k.startswith('_')}
+                            for param in operation['parameters']]
                     # Operation Object
                     pathItem[method.lower()] = operation
                     if prefixPath:
@@ -496,6 +520,8 @@ class Describe(Resource):
                     route = '/'.join([''] + prefixPath + [route[1:]])
 
                 paths[route] = pathItem
+
+        self._addSwaggerValues(paths, definitions)
 
         apiUrl = getApiUrl(preferReferer=True)
         urlParts = getUrlParts(apiUrl)

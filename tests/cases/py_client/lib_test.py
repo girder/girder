@@ -796,7 +796,7 @@ class PythonClientTestCase(base.TestCase):
 
         def checkDescription(description):
             self.assertEqual(description['basePath'], '/api/v1')
-            self.assertEqual(description['definitions'], {})
+            self.assertNotEqual(description['definitions'], {})
             self.assertEqual(description['info']['title'], 'Girder REST API')
             self.assertEqual(description['info']['version'], girder.constants.VERSION['release'])
             self.assertGreater(len(description['paths']), 0)
