@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import collections
 import functools
+
 from girder import logprint
 
 models = collections.defaultdict(dict)
@@ -30,7 +31,7 @@ def _toRoutePath(resource, route):
     return path
 
 
-def _toOperation(info, resource, handler):
+def _toOperation(info, resource, handler, path=None, method=None):
     """
     Augment route info, returning a Swagger-compatible operation description.
     """
@@ -42,6 +43,11 @@ def _toOperation(info, resource, handler):
     # all operations described in the API.
     if 'operationId' not in operation:
         operation['operationId'] = str(resource) + '_' + handler.__name__
+        if method and method.lower() != 'get':
+            operation['operationId'] += '_' + method.lower()
+        if path:
+            operation['operationId'] += '_' + path.split('/', 2)[-1].replace(
+                '/', '_').replace('{', '').replace('}', '')
     return operation
 
 
@@ -65,7 +71,7 @@ def addRouteDocs(resource, route, method, info, handler):
     """
     path = _toRoutePath(resource, route)
 
-    operation = _toOperation(info, resource, handler)
+    operation = _toOperation(info, resource, handler, path, method)
 
     # Add the operation to the given route
     if method not in routes[resource][path]:

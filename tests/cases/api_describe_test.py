@@ -223,7 +223,8 @@ class ApiDescribeTestCase(base.TestCase):
         resp = self.request(path='/describe')
         self.assertStatusOk(resp)
         self.assertTrue('definitions' in resp.json)
-        self.assertHasKeys(('Body', 'Global'), resp.json['definitions'])
+        self.assertIn('Body', resp.json['definitions'])
+        self.assertIn('Global', resp.json['definitions'])
         self.assertEqual(resp.json['definitions']['Body'], testModel)
         self.assertEqual(resp.json['definitions']['Global'], globalModel)
 

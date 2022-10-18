@@ -16,19 +16,19 @@ describe('Test the swagger pages', function () {
             $('li#resource_system.resource .heading h2 a').trigger('click');
         });
         waitsFor(function () {
-            return $('#system_system_getVersion:visible').length > 0;
+            return $('#system_system_getVersion_version:visible').length > 0;
         }, 'end points to be visible');
         runs(function () {
-            $('#system_system_getVersion h3 a').trigger('click');
+            $('#system_system_getVersion_version h3 a').trigger('click');
         });
         waitsFor(function () {
-            return $('#system_system_getVersion .sandbox_header input.submit:visible').length > 0;
+            return $('#system_system_getVersion_version .sandbox_header input.submit:visible').length > 0;
         }, 'version try out button to be visible');
         runs(function () {
-            $('#system_system_getVersion .sandbox_header input.submit').trigger('click');
+            $('#system_system_getVersion_version_content .sandbox_header input.submit').trigger('click');
         });
         waitsFor(function () {
-            return $('#system_system_getVersion .response_body.json').text().indexOf('release') >= 0;
+            return $('#system_system_getVersion_version_content .response_body.json').text().indexOf('release') >= 0;
         }, 'version information was returned');
     });
 });
