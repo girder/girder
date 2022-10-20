@@ -2,7 +2,7 @@ const path = require('path');
 const process = require('process');
 
 const _ = require('underscore');
-const extendify = require('extendify-updated');
+const extendify = require('extendify');
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
