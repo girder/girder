@@ -21,7 +21,7 @@ def encode(token):
     :return: The encoded string
     :rtype: str
     """
-    return token.replace('\\', '\\\\').replace('/', '\\/')
+    return token.replace('\\', '\\\\').replace('/', '\\-')
 
 
 def decode(token):
@@ -31,7 +31,7 @@ def decode(token):
     :return: The decoded string
     :rtype: str
     """
-    return token.replace(r'\/', '/').replace('\\\\', '\\')
+    return token.replace('\\-', '/').replace('\\\\', '\\')
 
 
 def split(path):

@@ -152,6 +152,7 @@ class ServerFuse(fuse.Operations):
         name = path_util.getResourceName(model, doc)
         if isinstance(name, bytes):
             name = name.decode('utf8')
+        name = path_util.encode(name)
         return name
 
     def _list(self, doc, model):
