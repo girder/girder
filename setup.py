@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 
 def prerelease_local_scheme(version):
@@ -30,6 +30,7 @@ installReqs = [
     'click-plugins',
     'dogpile.cache',
     'filelock',
+    'importlib-metadata<5 ; python_version < "3.8"',
     'jsonschema',
     'Mako',
     'passlib [bcrypt,totp]',
