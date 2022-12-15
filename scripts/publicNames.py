@@ -41,7 +41,7 @@ def addFileSymbols(filePath, symbolTree):
             # Skip "as"-renamed imported modules
             '-I'
             # Skip unknown symbols (which are typically "as"-renamed imported symbols)
-            '-x',
+            '-Y',
 
         ]),
         filePath
