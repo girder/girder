@@ -17,13 +17,30 @@ from girder.settings import SettingKey
 from girder.utility import config, toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
-from girder.utility.resource import _apiRouteMap
 from . import docs, access
 from .rest import Resource, getApiUrl, getUrlParts
 
 from inspect import signature, Parameter
 
 SWAGGER_VERSION = '2.0'
+
+
+def _walkTree(node, path=()):
+    # This will infinitely recurse if anything mounted under the API root
+    # has a cyclical reference. That's bad.
+    routeMap = {}
+    for k, v in vars(node).items():
+        if isinstance(v, Resource):
+            full_path = list(path)
+            full_path.append(k)
+            routeMap[v] = full_path
+
+        if hasattr(v, 'exposed'):
+            new_path = list(path)
+            new_path.append(k)
+            routeMap.update(_walkTree(v, new_path))
+
+    return routeMap
 
 
 class Description:
@@ -478,10 +495,10 @@ class Describe(Resource):
         # Definitions Object
         definitions = dict(**docs.models[None])
 
+        routeMap = _walkTree(cherrypy.request.app.root.api.v1)
+
         # List of Tag Objects
         tags = []
-
-        routeMap = _apiRouteMap()
 
         for resource in sorted(docs.routes.keys(), key=str):
             # Update Definitions Object

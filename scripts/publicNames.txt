@@ -887,7 +887,6 @@ girder
             noProgress
             setResponseTimeLimit
         random
-        resource
         s3_assetstore_adapter
             BUF_LEN
             DEFAULT_REGION
