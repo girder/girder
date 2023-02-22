@@ -495,7 +495,17 @@ class Describe(Resource):
         # Definitions Object
         definitions = dict(**docs.models[None])
 
-        routeMap = _walkTree(cherrypy.request.app.root.api.v1)
+        wsgiRoot = cherrypy.request.app.root
+
+        # This is due to the idiosyncracy of mounting the API root at both {core_girder_route}/api
+        # as well as under /api. Depending which one is being used, the API root object could be
+        # either at .api.v1 or just at .v1 due to the way it's mounted in server.py.
+        try:
+            apiRoot = wsgiRoot.api.v1
+        except AttributeError:
+            apiRoot = wsgiRoot.v1
+
+        routeMap = _walkTree(apiRoot)
 
         # List of Tag Objects
         tags = []
