@@ -73,7 +73,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         client = S3AssetstoreAdapter._s3Client(params)
         if doc.get('readOnly'):
             try:
-                client.head_bucket(Bucket=doc['bucket'])
+                paginator = client.get_paginator('list_objects')
+                pageIterator = paginator.paginate(
+                    Bucket=doc['bucket'], Prefix=doc['prefix'], Delimiter='/')
+                for resp in pageIterator:
+                    resp.get('Contents', [])
+                    break
             except Exception:
                 logger.exception('S3 assetstore validation exception')
                 raise ValidationException(
@@ -412,6 +417,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     def importData(self, parent, parentType, params, progress,
                    user, force_recursive=True, **kwargs):
         importPath = params.get('importPath', '').strip().lstrip('/')
+        if (self.assetstore.get('prefix', '')
+                and importPath != self.assetstore['prefix']
+                and not importPath.startswith(self.assetstore['prefix'] + '/')):
+            importPath = (self.assetstore['prefix'] + '/' + importPath).rstrip('/')
         bucket = self.assetstore['bucket']
         now = datetime.datetime.utcnow()
         paginator = self.client.get_paginator('list_objects')
