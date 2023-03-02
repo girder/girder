@@ -719,15 +719,6 @@ class AssetstoreTestCase(base.TestCase):
         self.assertStatusOk(resp)
         children = resp.json
         self.assertEqual(len(children), 1)
-        self.assertEqual(children[0]['name'], 'foo')
-
-        resp = self.request('/folder', user=self.admin, params={
-            'parentId': children[0]['_id'],
-            'parentType': 'folder'
-        })
-        self.assertStatusOk(resp)
-        children = resp.json
-        self.assertEqual(len(children), 1)
         self.assertEqual(children[0]['name'], 'bar')
 
         resp = self.request('/item', user=self.admin, params={
