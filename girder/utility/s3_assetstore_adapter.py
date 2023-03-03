@@ -73,7 +73,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         client = S3AssetstoreAdapter._s3Client(params)
         if doc.get('readOnly'):
             try:
-                client.head_bucket(Bucket=doc['bucket'])
+                paginator = client.get_paginator('list_objects')
+                pageIterator = paginator.paginate(
+                    Bucket=doc['bucket'], Prefix=doc['prefix'], Delimiter='/')
+                for resp in pageIterator:
+                    resp.get('Contents', [])
+                    break
             except Exception:
                 logger.exception('S3 assetstore validation exception')
                 raise ValidationException(
