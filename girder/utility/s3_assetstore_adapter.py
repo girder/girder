@@ -75,10 +75,24 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             try:
                 client.list_objects(
                     Bucket=doc['bucket'], Prefix=doc['prefix'], Delimiter='/', MaxKeys=1)
+
             except Exception:
-                logger.exception('S3 assetstore validation exception')
-                raise ValidationException(
-                    'Unable to connect to bucket "%s".' % doc['bucket'], 'bucket')
+                # Retry with a slash at the end of the prefix.  If a bucket and
+                # prefix is authorized for listing via a pattern of <prefix>/*
+                # in the ACL, asking for the prefix by itself will fail but
+                # with a slash succeeds.  If no prefix is specified, don't
+                # retry.
+                try:
+                    if doc['prefix']:
+                        client.list_objects(
+                            Bucket=doc['bucket'], Prefix=doc['prefix'] + '/',
+                            Delimiter='/', MaxKeys=1)
+                    else:
+                        raise
+                except Exception:
+                    logger.exception('S3 assetstore validation exception')
+                    raise ValidationException(
+                        'Unable to connect to bucket "%s".' % doc['bucket'], 'bucket')
         else:
             # Make sure we can write into the given bucket using boto
             try:
