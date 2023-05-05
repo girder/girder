@@ -77,7 +77,7 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
             shutil.rmtree(path, ignore_errors=True)
 
         # Run npm install
-        installCommand = [npm, 'install']
+        installCommand = [npm, 'install', '--install-links']
         if mode == ServerMode.PRODUCTION:
             installCommand.append('--production')
         check_call(installCommand, cwd=staging)
