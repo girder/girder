@@ -281,8 +281,14 @@ jobs:
           # Human-readable coverage reports
           path: girder/build/test/artifacts
       - run:
+          name: Install Codecov client
+          command: |
+              curl -Os https://uploader.codecov.io/latest/linux/codecov
+              chmod +x codecov
+          working_directory: girder
+      - run:
           name: Upload coverage
-          command: tox -e codecov_upload
+          command: ./codecov --disable search pycov gcov --root girder --required --file build/test/coverage/py_coverage.xml build/test/coverage/cobertura-coverage.xml
           working_directory: girder
 
   ansible-test:
