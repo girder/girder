@@ -15,7 +15,7 @@ class DllBootstrapPlugin {
             compilation.mainTemplate.plugin('startup', (source, chunk) => {
                 const bootstrapEntry = this.options[chunk.name];
                 if (bootstrapEntry) {
-                    const module = chunk.modules.find((m) => m.rawRequest === bootstrapEntry);
+                    const module = chunk.mapModules((m) => m).find((m) => m.rawRequest === bootstrapEntry);
                     source = `__webpack_require__(${module.id});\n${source}`;
                 }
                 return source;
