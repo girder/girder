@@ -12,23 +12,23 @@
         "url": "https://github.com/girder/girder.git"
     },
     "dependencies": {
-        "as-jqplot": "~1.0.8",
-        "backbone": "~1.4.0",
-        "bootstrap": "~3.4.1",
+        "as-jqplot": "^1.0.8",
+        "backbone": "^1.4.0",
+        "bootstrap": "^3.4.1",
         "bootstrap-switch": "~3.3.4",
-        "eonasdan-bootstrap-datetimepicker": "~4.17",
+        "eonasdan-bootstrap-datetimepicker": "^4.17",
         "@girder/fontello": "*",
-        "jquery": "~3.5.1",
+        "jquery": "^3.7.0",
         "jsoneditor": "~5.9.3",
-        "moment": "~2.24.0",
-        "moment-timezone": "~0.5.27",
+        "moment": "^2.24.0",
+        "moment-timezone": "^0.5.27",
         "qrcode": "~1.4.4",
-        "remarkable": "~2.0.0",
-        "sprintf-js": "~1.1.2",
-        "swagger-ui": "~2.2.10",
+        "remarkable": "^2.0.0",
+        "sprintf-js": "^1.1.2",
+        "swagger-ui": "^2.2.10",
         "typeface-open-sans": "^0.0.75",
-        "underscore": "~1.13.6",
-        "url-otpauth": "~2.0.0"
+        "underscore": "^1.13.6",
+        "url-otpauth": "^2.0.0"
     },
     "main": "./index.js"
 }
