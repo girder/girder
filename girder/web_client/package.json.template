@@ -32,6 +32,7 @@
         "stylus": "^0.54.5",
         "stylus-loader": "^3.0.1",
         "toposort": "^1.0.3",
+        "tslib": "2.5.0",
         "uglifyjs-webpack-plugin": "^1.1.6",
         "webpack": "^3.12.0",
         "whatwg-fetch": "^2.0.4"
