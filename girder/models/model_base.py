@@ -198,7 +198,11 @@ class Model(metaclass=_ModelSingleton):
 
     def _createIndex(self, index):
         if isinstance(index, (list, tuple)):
-            self.collection.create_index(index[0], **index[1])
+            try:
+                self.collection.create_index(index[0], **index[1])
+            except pymongo.errors.OperationFailure:
+                self.collection.drop_index(index[0])
+                self.collection.create_index(index[0], **index[1])
         else:
             self.collection.create_index(index)
 
