@@ -5,7 +5,8 @@ import View from '@girder/core/views/View';
 
 import dateTimeRangeWidgetTemplate from '@girder/core/templates/widgets/dateTimeRangeWidget.pug';
 
-import 'eonasdan-bootstrap-datetimepicker'; // /src/js/bootstrap-datetimepicker.js'
+// Momentjs is not require()'d in the way this library expects
+// import 'eonasdan-bootstrap-datetimepicker'; // /src/js/bootstrap-datetimepicker.js'
 import 'eonasdan-bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css';
 
 /**

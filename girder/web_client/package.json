@@ -1,0 +1,41 @@
+{
+  "name": "@girder/web",
+  "license": "Apache-2.0",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --force",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@girder/fontello": "^3.1.20",
+    "as-jqplot": "~1.0.8",
+    "backbone": "~1.4.0",
+    "bootstrap": "~3.4.1",
+    "bootstrap-switch": "~3.3.4",
+    "eonasdan-bootstrap-datetimepicker": "~4.17",
+    "jquery": "~3.5.1",
+    "jsoneditor": "~5.9.3",
+    "moment": "~2.24.0",
+    "moment-timezone": "~0.5.27",
+    "qrcode": "~1.4.4",
+    "remarkable": "~2.0.0",
+    "typeface-open-sans": "^0.0.75",
+    "underscore": "~1.13.6",
+    "url-otpauth": "~2.0.0",
+    "vue": "^3.2.47"
+  },
+  "devDependencies": {
+    "@types/node": "^20.2.3",
+    "@vitejs/plugin-vue": "^4.1.0",
+    "pug": "^3.0.2",
+    "stylus": "^0.54.5",
+    "typescript": "^5.0.2",
+    "vite": "^4.3.2",
+    "vitest": "^0.31.1",
+    "vue-tsc": "^1.4.2"
+  }
+}

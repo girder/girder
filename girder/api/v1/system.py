@@ -41,6 +41,7 @@ class System(Resource):
         self.route('GET', ('version',), self.getVersion)
         self.route('GET', ('configuration',), self.getConfigurationOption)
         self.route('GET', ('setting',), self.getSetting)
+        self.route('GET', ('public_settings',), self.getPublicSettings)
         self.route('GET', ('plugins',), self.getPlugins)
         self.route('GET', ('access_flag',), self.getAccessFlags)
         self.route('PUT', ('setting',), self.setSetting)
@@ -120,6 +121,21 @@ class System(Resource):
         else:
             self.requireParams({'key': key})
             return Setting().get(key)
+
+    @access.public()
+    @autoDescribeRoute(
+        Description('Get publicly accessible settings.')
+    )
+    def getPublicSettings(self):
+        publicSettings = [
+            SettingKey.BRAND_NAME,
+            SettingKey.CONTACT_EMAIL_ADDRESS,
+            SettingKey.PRIVACY_NOTICE,
+            SettingKey.BANNER_COLOR,
+            SettingKey.REGISTRATION_POLICY,
+            SettingKey.ENABLE_PASSWORD_LOGIN,
+        ]
+        return {k: Setting().get(k) for k in publicSettings}
 
     @access.admin(scope=TokenScope.PLUGINS_READ)
     @autoDescribeRoute(
