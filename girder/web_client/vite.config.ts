@@ -6,7 +6,7 @@ import { compileClient } from 'pug';
 function pugPlugin() {
   return {
     name: 'pug',
-    transform(src: string, id) {
+    transform(src: string, id: string) {
       if (id.endsWith('.pug')) {
         return {
           code: `${compileClient(src, {filename: id})}\nexport default template`,
@@ -27,8 +27,5 @@ export default defineConfig({
     alias: {
       '@girder/core': resolve(__dirname, 'src'),
     }
-  },
-  test: {
-    include: ['test/spec/*.{js,ts}'],
   },
 });
