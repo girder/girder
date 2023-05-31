@@ -6,7 +6,9 @@ import * as girder from '@girder/core';
 import { setApiRoot, restRequest } from '@girder/core/rest';
 
 // Hack for now to get SPA working from a different port
-setApiRoot('http://localhost:8080/api/v1');
+const urlParams = new URLSearchParams(window.location.search);
+const apiRoot = urlParams.get('apiRoot');
+setApiRoot(apiRoot ? decodeURIComponent(apiRoot) : 'http://localhost:8080/api/v1');
 
 window.girder = girder;
 

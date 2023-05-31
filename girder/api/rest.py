@@ -6,6 +6,7 @@ import datetime
 from functools import wraps
 import inspect
 import json
+import os
 import posixpath
 import pymongo
 import sys
@@ -740,7 +741,9 @@ def _setCommonCORSHeaders():
         # If there is no origin header, this is not a cross origin request
         return
 
-    allowed = Setting().get(SettingKey.CORS_ALLOW_ORIGIN)
+    allowed = os.getenv('GIRDER_CORS_ALLOW_ORIGIN')
+    if allowed is None:
+        allowed = Setting().get(SettingKey.CORS_ALLOW_ORIGIN)
 
     if allowed:
         setResponseHeader('Access-Control-Allow-Credentials', 'true')

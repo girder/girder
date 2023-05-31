@@ -8,11 +8,19 @@ export default mergeConfig(
   defineConfig({
     test: {
       environment: 'jsdom',
-      exclude: [...configDefaults.exclude, 'e2e/*'],
+      // exclude: [...configDefaults.exclude, 'e2e/*'],
+      exclude: [...configDefaults.exclude],
       root: fileURLToPath(new URL('./', import.meta.url)),
       transformMode: {
         web: [/\.[jt]sx$/],
       },
-    }
+      coverage: {
+        provider: 'istanbul',
+      },
+      // browser: {
+      //   enabled: true,
+      //   name: 'chrome',
+      // },
+    },
   })
 )
