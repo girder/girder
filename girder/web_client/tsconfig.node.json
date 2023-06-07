@@ -1,6 +1,6 @@
 {
   "extends": "@tsconfig/node18/tsconfig.json",
-  "include": ["vite.config.*", "vitest.config.*", "cypress.config.*", "playwright.config.*"],
+  "include": ["vite.config.*", "vitest.config.*", "cypress.config.*", "playwright.config.*", "tests/playwright-global-setup.*", "tests/playwright-teardown.*", "tests/playwright-setup.ts"],
   "compilerOptions": {
     "composite": true,
     "module": "ESNext",

@@ -43,6 +43,7 @@ $(function () {
             registrationPolicy: resp['core.registration_policy'],
             enablePasswordLogin: resp['core.enable_password_login'],
         }).render();
+        document.title = resp['core.brand_name'];
         girder.events.trigger('g:appload.after', app);
     }).fail((resp) => {
         girder.events.trigger('g:error', resp);

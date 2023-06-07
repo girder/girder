@@ -1,5 +1,6 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
+import istanbul from 'vite-plugin-istanbul';
 import { resolve } from 'path';
 import { compileClient } from 'pug';
 
@@ -22,6 +23,12 @@ export default defineConfig({
   plugins: [
     vue(),
     pugPlugin(),
+    istanbul({
+      include: 'src/*',
+      exclude: ['node_modules', 'test/'],
+      extension: [ '.js', '.ts', '.vue' ],
+      // requireEnv: true,
+    }),
   ],
   resolve: {
     alias: {

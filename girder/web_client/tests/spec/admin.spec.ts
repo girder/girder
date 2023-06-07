@@ -1,9 +1,8 @@
-import { describe, test } from 'vitest';
-import { expect } from '@playwright/test';
-import { createUser, delay, login, logout, waitForDialog } from './util';
-import { setupServer } from './server';
+import { expect, test } from '@playwright/test';
+import { createUser, delay, login, logout, waitForDialog } from '../util';
+import { setupServer } from '../server';
 
-describe('Create an admin and non-admin user', () => {
+test.describe('Create an admin and non-admin user', () => {
   setupServer();
 
   test('Register a user (first is admin)', async ({ page }) => {

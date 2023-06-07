@@ -1,12 +1,14 @@
-import { describe, test } from 'vitest';
-import { setupServer } from './server';
-import { createUser } from './util';
+import { test } from '@playwright/test';
+import { setupServer } from '../server';
+import { createUser } from '../util';
 
-describe('Create, edit, and delete folders', () => {
+test.describe('Create, edit, and delete folders', () => {
   setupServer();
 
   test('Create folder', async ({ page }) => {
     await createUser(page, 'admin', 'admin@girder.test', 'Admin', 'Admin', 'adminpassword!');
+    await page.getByRole('link', { name: 'Users' }).click();
+    await page.locator('.g-user-search-form .g-search-field').isVisible();
   });
 });
 

@@ -3,6 +3,17 @@ import { expect, Page } from '@playwright/test';
 export const waitForDialog = async (page: Page) => {
   await expect(page.locator('#g-dialog-container')).toBeVisible();
   await expect(page.locator('.modal-backdrop')).toBeVisible();
+  await delay(500);
+  // @ts-ignore
+  // while (await page.evaluate(() => window.girder._inTransition)) {
+  //   await delay(100);
+  // }
+//   waitsFor(function () {
+//     return !girder._inTransition;
+// }, 'dialog transitions to finish');
+// waitsFor(function () {
+//     return girder.rest.numberOutstandingRestRequests() === 0;
+// }, 'dialog rest requests to finish' + desc);
 };
 
 export const logout = async (page: Page) => {

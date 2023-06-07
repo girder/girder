@@ -1,5 +1,5 @@
 {
-  "name": "@girder/web",
+  "name": "@girder/core",
   "license": "Apache-2.0",
   "private": true,
   "version": "0.0.0",
@@ -8,11 +8,10 @@
     "dev": "vite",
     "build": "run-p type-check build-only",
     "preview": "vite preview",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "show-coverage": "http-server coverage --port 8888 -o",
+    "test": "playwright test",
+    "show-coverage": "http-server coverage/report --port 8888 -o",
     "build-only": "vite build",
-    "type-check": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false",
+    "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write src/"
   },
@@ -35,7 +34,7 @@
     "vue": "^3.2.47"
   },
   "devDependencies": {
-    "@playwright/test": "^1.33.0",
+    "@playwright/test": "^1.34.3",
     "@rushstack/eslint-patch": "^1.2.0",
     "@tsconfig/node18": "^2.0.1",
     "@types/istanbul-lib-report": "^3.0.0",
@@ -44,7 +43,6 @@
     "@types/node": "^18.16.8",
     "@types/pug": "^2.0.6",
     "@vitejs/plugin-vue": "^4.2.3",
-    "@vitest/ui": "^0.31.2",
     "@vue/eslint-config-prettier": "^7.1.0",
     "@vue/eslint-config-typescript": "^11.0.3",
     "@vue/test-utils": "^2.3.2",
@@ -62,7 +60,7 @@
     "typescript": "~5.0.4",
     "v8-to-istanbul": "^9.1.0",
     "vite": "^4.3.5",
-    "vitest": "^0.31.0",
+    "vite-plugin-istanbul": "^4.1.0",
     "vue-tsc": "^1.6.4"
   }
 }
