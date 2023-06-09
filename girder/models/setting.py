@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import json
+import os
+
 import pymongo
 
 from .model_base import Model
@@ -83,6 +86,18 @@ class Setting(Model):
         This method is so built in caching decorators can be used without specifying
         custom logic for dealing with the default kwarg of self.get.
         """
+        envKey = f'GIRDER_SETTING_{key.replace(".", "_").upper()}'
+        if envKey in os.environ:
+            value = os.environ[envKey]
+            try:
+                value = json.loads(value)
+            except ValueError:
+                pass
+            return {
+                'key': key,
+                'value': value,
+            }
+
         return self.findOne({'key': key})
 
     def get(self, key):
