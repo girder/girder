@@ -11,6 +11,36 @@ be set at the following locations (ordered by precedent):
 #. ~/.girder/girder.cfg
 #. /etc/girder.cfg
 
+Settings
+--------
+
+Girder settings are specific key-value pairs that control system behavior.
+There are two ways to change Girder settings.
+
+Via the Web API / front-end web site
+....................................
+
+System settings can be set and retrieved using the web API endpoint at `/api/v1/system/setting`.
+Most of them are exposed via the web UI under **Admin console** -> **System configuration**.
+When setting the values through the web API endpoint, they will be interpreted as JSON.
+
+Via the environment
+...................
+
+Any system setting can be controlled via environment variables as well. To do so, find the
+key of the setting and apply the following transformation:
+
+* transform all `.` characters in the key to `_`
+* convert it to uppercase
+* prefix it with `GIRDER_SETTING_`
+
+Whatever value you set for that environment variable will be parsed as JSON and used at runtime.
+If the value cannot be parsed as JSON, its raw string value will be used instead. For example, to set
+the setting named `"core.brand_name"`, you'd use `GIRDER_SETTING_CORE_BRAND_NAME='My brand name'`
+
+Settings set through environment variables will override any setting value that is set in the database
+via the web API.
+
 Logging
 -------
 
