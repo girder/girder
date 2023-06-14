@@ -1,12 +1,13 @@
-/* eslint-disable import/first */
+import { initConfigView } from './views/ConfigView';
 
-import router from '@girder/core/router';
-import events from '@girder/core/events';
-import { exposePluginConfig } from '@girder/core/utilities/PluginUtils';
+export const initRoutes = (girder) => {
+    const { router, events, utilities } = girder;
 
-exposePluginConfig('homepage', 'plugins/homepage/config');
+    const exposePluginConfig = utilities.PluginUtils.exposePluginConfig;
 
-import ConfigView from './views/ConfigView';
-router.route('plugins/homepage/config', 'homepageConfig', function () {
-    events.trigger('g:navigateTo', ConfigView);
-});
+    exposePluginConfig('homepage', 'plugins/homepage/config');
+
+    router.route('plugins/homepage/config', 'homepageConfig', function () {
+        events.trigger('g:navigateTo', initConfigView(girder));
+    });
+};

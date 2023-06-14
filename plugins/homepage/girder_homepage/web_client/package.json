@@ -1,21 +1,43 @@
 {
-    "name": "@girder/homepage",
-    "version": "0.0.0",
-    "description": "Customize the homepage using Markdown.",
-    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#homepage",
-    "bugs": {
-        "url": "https://github.com/girder/girder/issues"
+  "name": "@girder/girder-plugin-homepage",
+  "version": "0.0.0",
+  "description": "Customize the homepage using Markdown.",
+  "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#homepage",
+  "bugs": {
+    "url": "https://github.com/girder/girder/issues"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/girder/girder.git"
+  },
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/girder-plugin-homepage.umd.cjs",
+  "module": "./dist/girder-plugin-homepage.js",
+  "exports": {
+    ".": {
+      "import": "./dist/girder-plugin-homepage.js",
+      "require": "./dist/girder-plugin-homepage.umd.cjs"
     },
-    "license": "Apache-2.0",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/girder/girder.git"
-    },
-    "peerDependencies": {
-        "@girder/core": "*"
-    },
-    "girderPlugin": {
-        "name": "homepage",
-        "main": "./main.js"
+    "./style.css": {
+      "import": "./dist/style.css",
+      "require": "./dist/style.css"
     }
+  },
+  "scripts": {
+    "build": "vite build"
+  },
+  "author": "",
+  "dependencies": {
+    "@girder/core": "file:../../../../girder/web/core"
+  },
+  "devDependencies": {
+    "pug": "^3.0.2",
+    "stylus": "^0.59.0",
+    "vite": "^4.3.9",
+    "vite-plugin-istanbul": "^4.1.0"
+  }
 }

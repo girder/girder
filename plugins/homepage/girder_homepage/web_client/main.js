@@ -1,4 +1,11 @@
-import './routes';
+import { initRoutes } from './routes';
+import { initFrontPageView } from './views/FrontPageView';
 
-// Extends and overrides API
-import './views/FrontPageView';
+export const dependencies = [
+  '@girder/dummy-dependency',
+];
+
+export const init = (girder) => {
+  initRoutes(girder);
+  initFrontPageView(girder);
+};
