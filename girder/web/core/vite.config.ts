@@ -1,8 +1,11 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import istanbul from 'vite-plugin-istanbul';
-import { resolve } from 'path';
+import path, { resolve } from 'path';
 import { compileClient } from 'pug';
+import dts from 'vite-plugin-dts';
+import inject from "@rollup/plugin-inject";
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 function pugPlugin() {
   return {
@@ -21,6 +24,23 @@ function pugPlugin() {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    inject({
+      $: 'jquery',
+      jQuery: 'jquery',
+      exclude: 'src/**/*.pug',
+    }),
+    dts({
+      insertTypesEntry: true,
+      exclude: ['node_modules/**', 'dist/**'],
+    }),
+    viteStaticCopy({
+      targets: [
+        {
+          src: path.resolve(__dirname, './src') + '/[!.]*',
+          dest: './src',
+        },
+      ],
+    }),
     vue(),
     pugPlugin(),
     istanbul({
@@ -34,5 +54,13 @@ export default defineConfig({
     alias: {
       '@girder/core': resolve(__dirname, 'src'),
     }
+  },
+  build: {
+    sourcemap: true,
+    lib: {
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'GirderCore',
+      fileName: 'girder-core',
+    },
   },
 });
