@@ -1,22 +1,10 @@
 # -*- coding: utf-8 -*-
-import os
 import pkg_resources
-import subprocess
 
 import sphinx_rtd_theme
 from sphinx.domains.python import PythonDomain
 
 needs_sphinx = '1.6'
-
-if os.environ.get('READTHEDOCS'):
-    # If this is being built on ReadTheDocs (RTD); then package installation will not be done via
-    # Tox. Instead, RTD will run "python setup.py install" on the root "setup.py" file for Girder
-    # only. Since the docs also import girder_client via autodoc, that package must be explictly
-    # installed too.
-    subprocess.check_call(
-        ['python', 'setup.py', 'install'],
-        cwd=os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'clients', 'python'))
-    )
 
 # Get package imports and version
 # The 'girder' and "girder_client" packages must be installed at this point
