@@ -1,8 +1,12 @@
-export const initFrontPageView = (girder) => {
-    const FrontPageView = girder.views.body.FrontPageView;
-    const renderMarkdown = girder.misc.renderMarkdown;
-    const { restRequest, getApiRoot } = girder.rest;
-    const wrap = girder.utilities.PluginUtils.wrap;
+import { Girder } from '@girder/core';
+
+export const initFrontPageView = (girder: Girder) => {
+    const {
+        views: { body: { FrontPageView } },
+        misc: { renderMarkdown },
+        rest: { restRequest, getApiRoot },
+        utilities: { PluginUtils: { wrap }},
+    } = girder;
 
     wrap(FrontPageView, 'render', function (render) {
         restRequest({

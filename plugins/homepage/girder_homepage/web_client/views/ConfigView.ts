@@ -1,15 +1,19 @@
+import { Girder } from '@girder/core';
+// @ts-ignore
 import ConfigViewTemplate from '../templates/configView.pug';
 import '../stylesheets/configView.styl';
 
-export const initConfigView = (girder) => {
-    const FolderModel = girder.models.FolderModel;
-    const MarkdownWidget = girder.views.widgets.MarkdownWidget;
-    const PluginConfigBreadcrumbWidget = girder.views.widgets.PluginConfigBreadcrumbWidget;
-    const View = girder.views.View;
-    const UploadWidget = girder.views.widgets.UploadWidget;
-    const events = girder.events;
-    const { restRequest, getApiRoot } = girder.rest;
-    const $ = girder.$;
+export const initConfigView = (girder: Girder) => {
+    const {
+        $,
+        events,
+        models: { FolderModel },
+        rest: { restRequest, getApiRoot },
+        views: {
+            View,
+            widgets: { MarkdownWidget,PluginConfigBreadcrumbWidget, UploadWidget }
+        },
+    } = girder;
 
     const ConfigView = View.extend({
         events: {

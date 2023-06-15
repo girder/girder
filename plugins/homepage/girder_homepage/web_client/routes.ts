@@ -1,6 +1,7 @@
+import { Girder } from '@girder/core';
 import { initConfigView } from './views/ConfigView';
 
-export const initRoutes = (girder) => {
+export const initRoutes = (girder: Girder) => {
     const { router, events, utilities } = girder;
 
     const exposePluginConfig = utilities.PluginUtils.exposePluginConfig;

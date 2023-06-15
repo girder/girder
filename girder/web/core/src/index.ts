@@ -16,11 +16,11 @@ import $ from 'jquery';
 var plugins = {};
 
 export type GirderPlugin = {
-    init: (girder: any) => void;
+    init: (girder: Girder) => void;
     dependencies?: string[];
 };
 
-const loadPlugins: (modules: {[name: string]: GirderPlugin}, girder: any) => void = (modules, girder) => {
+const loadPlugins: (modules: {[name: string]: GirderPlugin}, girder: Girder) => void = (modules, girder) => {
     const dependencyList: [string, string][] = [];
     const pluginModules: {[name: string]: GirderPlugin} = {};
     for (const path in modules) {
@@ -88,7 +88,7 @@ const initializeDefaultApp = async () => {
     });
 };
 
-export {
+const girder = {
     $,
     loadPlugins,
     initializeDefaultApp,
@@ -107,4 +107,8 @@ export {
     views
 };
 
-// type Girder = typeof girder;
+export type Girder = typeof girder;
+
+export {
+    girder,
+};
