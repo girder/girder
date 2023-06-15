@@ -101,7 +101,7 @@ function login(username, password, cors = corsAuth, otpToken = null) {
         setCurrentUser(new UserModel(response.user));
         setCurrentToken(response.user.token.token);
 
-        if (cors && !cookie.find('girderToken')) {
+        if (!cookie.find('girderToken')) {
             // For cross-origin requests, we should write the token into
             // this document's cookie also.
             document.cookie = 'girderToken=' + getCurrentToken();

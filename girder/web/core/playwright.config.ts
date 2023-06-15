@@ -79,9 +79,8 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npx vite preview --port 5173',
+    command: 'npx vite dev --port 5173',
     port: 5173,
     reuseExistingServer: false
   },

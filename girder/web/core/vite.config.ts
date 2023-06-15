@@ -24,6 +24,17 @@ function pugPlugin() {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
+    {
+      ...viteStaticCopy({
+        targets: [
+          {
+            src: path.resolve(__dirname, './src') + '/[!.]*',
+            dest: './src',
+          },
+        ],
+      }),
+      apply: 'build',
+    },
     inject({
       $: 'jquery',
       jQuery: 'jquery',
@@ -33,19 +44,11 @@ export default defineConfig({
       insertTypesEntry: true,
       exclude: ['node_modules/**', 'dist/**'],
     }),
-    viteStaticCopy({
-      targets: [
-        {
-          src: path.resolve(__dirname, './src') + '/[!.]*',
-          dest: './src',
-        },
-      ],
-    }),
     vue(),
     pugPlugin(),
     istanbul({
       include: 'src/*',
-      exclude: ['node_modules', 'test/'],
+      exclude: ['node_modules', 'test/', 'dist/'],
       extension: [ '.js', '.ts', '.vue' ],
       // requireEnv: true,
     }),

@@ -10,7 +10,7 @@ const startServer = async (port: number) => {
 
   const database = `${mongoUri}/girder-${port}`;
   const serverProcess = spawn(girderExecutable, ['serve', '--database', database, '--port', `${port}`], {
-    env: { ...process.env, GIRDER_CORS_ALLOW_ORIGIN: '*' },
+    env: { ...process.env, GIRDER_SETTING_CORE_CORS_ALLOW_ORIGIN: '*' },
   });
   await new Promise<void>((resolve, reject) => {
     serverProcess?.stdout.on('data', (data: string) => {
