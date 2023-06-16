@@ -4,6 +4,7 @@ import * as constants from './constants';
 import * as dialog from './dialog';
 import * as misc from './misc';
 import * as models from './models';
+import * as pluginUtils from './pluginUtils';
 import * as rest from './rest';
 import * as utilities from './utilities';
 import * as views from './views';
@@ -15,44 +16,60 @@ import $ from 'jquery';
 // This will be modified dynamically when plugins are loaded.
 var plugins = {};
 
-export type GirderPlugin = {
-    init: (girder: Girder) => void;
-    dependencies?: string[];
+export type GirderPackageInfo = {
+    girderPlugin?: {
+        dependencies?: string[];
+    };
 };
 
-const loadPlugins: (modules: {[name: string]: GirderPlugin}, girder: Girder) => void = (modules, girder) => {
-    const dependencyList: [string, string][] = [];
-    const pluginModules: {[name: string]: GirderPlugin} = {};
+const extractPackageName = (path: string) => {
+    const match = /^\/node_modules\/(.*?)girder-plugin-(.*?)\//g.exec(path);
+    if (!match) {
+        return null;
+    }
+    return `${match[1]}girder-plugin-${match[2]}`;
+}
+
+const loadPlugins = async (modules: Record<string, () => Promise<unknown>>, packageInfo: Record<string, GirderPackageInfo>) => {
+    const pluginModules: Record<string, () => Promise<unknown>> = {};
     for (const path in modules) {
         const plugin = modules[path];
-        const match = /^\/node_modules\/(.*)girder-plugin-(.*)\//g.exec(path);
-        if (!match) {
+        const name = extractPackageName(path);
+        if (!name) {
             console.error(`Problem parsing module name from path: ${path}`)
             continue;
         }
-        const name = `${match[1]}girder-plugin-${match[2]}`;
         pluginModules[name] = plugin;
-        if (plugin.dependencies) {
-            plugin.dependencies.forEach((dependency) => {
-                dependencyList.push([name, dependency])
+    }
+
+    const dependencyList: [string, string][] = [];
+    for (const path in packageInfo) {
+        const info = packageInfo[path];
+        const name = extractPackageName(path);
+        if (!name) {
+            console.error(`Problem parsing module name from path: ${path}`)
+            continue;
+        }
+        if (info && info.girderPlugin && info.girderPlugin.dependencies) {
+            info.girderPlugin.dependencies.forEach((dependency) => {
+                dependencyList.push([name, dependency]);
             });
         }
     }
 
-    // TODO: use toposort library
-    const toposort = (list: [string, string][]) => {
-        const nodes = Array.from(new Set(list.flat(1)));
-        return nodes;
+    // TODO: Use toposort library. For now it's a random order.
+    const toposort = (nodes: string[], links: [string, string][]) => {
+        return Array.from(new Set([...nodes, ...links.flat(1)]));
     }
+    const sortedDependencies = toposort(Object.keys(pluginModules), dependencyList);
 
-    const sortedDependencies = toposort(dependencyList);
-    sortedDependencies.forEach((name) => {
+    for (const name of sortedDependencies) {
         if (pluginModules[name] === undefined) {
             console.error(`Required module ${name} not found`);
-            return;
+            continue;
         }
-        pluginModules[name].init(girder);
-    });
+        await pluginModules[name]();
+    }
 };
 
 const initializeDefaultApp = async () => {
@@ -100,6 +117,7 @@ const girder = {
     misc,
     models,
     plugins,
+    pluginUtils,
     rest,
     router,
     utilities,

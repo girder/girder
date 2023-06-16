@@ -31,7 +31,7 @@ export default defineConfig({
   build: {
     sourcemap: true,
     lib: {
-      entry: resolve(__dirname, 'main.ts'),
+      entry: resolve(__dirname, 'main.js'),
       name: 'GirderPluginHomepage',
       fileName: 'girder-plugin-homepage',
     },
