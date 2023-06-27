@@ -99,7 +99,10 @@ def _ldapAuth(event):
             results = conn.search_s(server['baseDn'], ldap.SCOPE_SUBTREE, searchStr, lattr)
             if results:
                 entry, attrs = results[0]
-                dn = attrs['distinguishedName'][0].decode('utf8')
+                try:
+                    dn = attrs['distinguishedName'][0].decode('utf8')
+                except KeyError:
+                    dn = entry
                 try:
                     conn.bind_s(dn, password, ldap.AUTH_SIMPLE)
                 except ldap.LDAPError:
