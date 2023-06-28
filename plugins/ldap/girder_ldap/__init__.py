@@ -99,6 +99,11 @@ def _ldapAuth(event):
             results = conn.search_s(server['baseDn'], ldap.SCOPE_SUBTREE, searchStr, lattr)
             if results:
                 entry, attrs = results[0]
+                # Some servers respond with a distinguishedName which can be
+                # used to then validate the password; other servers respond
+                # with the necessary information in the search entry.  For the
+                # second case, this can be validated locally with a demo
+                # LDAP server.
                 try:
                     dn = attrs['distinguishedName'][0].decode('utf8')
                 except KeyError:
