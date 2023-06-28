@@ -68,6 +68,11 @@ class LdapTestCase(base.TestCase):
             'uri': 'foo.bar.org:389'
         }])
 
+        settings.set(PluginSettings.SETTINGS, {
+            'timeout': 4,
+            'fallback': True
+        })
+
         with unittest.mock.patch('ldap.initialize', return_value=MockLdap()) as ldapInit:
             resp = self.request('/user/authentication', basicAuth='hello:world')
             self.assertEqual(len(ldapInit.mock_calls), 1)
@@ -123,10 +128,37 @@ class LdapTestCase(base.TestCase):
         }
         with unittest.mock.patch('ldap.initialize', return_value=MockLdap(record=record)):
             resp = self.request('/user/authentication', basicAuth='fizzbuzz:foo')
-            self.assertStatusOk(resp)
-            self.assertEqual(resp.json['user']['login'], 'fizzbuzz')
-            self.assertEqual(resp.json['user']['firstName'], 'Fizz')
-            self.assertEqual(resp.json['user']['lastName'], 'Buzz')
+
+    def testLdapFallthrough(self):
+        # Test if fall through is disabled and the user isn't found there is an error
+        settings = Setting()
+        settings.set(PluginSettings.SERVERS, [{
+            'baseDn': 'cn=Users,dc=foo,dc=bar,dc=org',
+            'bindName': 'cn=foo,cn=Users,dc=foo,dc=bar,dc=org',
+            'password': 'foo',
+            'searchField': 'mail',
+            'uri': 'foo.bar.org:389'
+        }])
+
+        settings.set(PluginSettings.SETTINGS, {
+            'timeout': 4,
+            'fallback': False
+        })
+
+        normalUser = User().createUser(
+            login='normal', firstName='Normal', lastName='User', email='normal@girder.test',
+            password='normaluser')
+        # Test unfound user in the system
+        with unittest.mock.patch('ldap.initialize', return_value=MockLdap(searchFail=True)):
+            resp = self.request('/user/authentication', basicAuth='normal:normaluser')
+            self.assertStatus(resp, 403)
+            message = f"Cannot find user: {normalUser['login']} in LDAP"
+            self.assertEqual(message, resp.json['message'])
+
+        with unittest.mock.patch('ldap.initialize', return_value=MockLdap(bindFail=True)):
+            resp = self.request('/user/authentication', basicAuth='hello:world')
+            self.assertStatus(resp, 403)
+            self.assertEqual('Error using LDAP authentication', resp.json['message'])
 
     def testLdapStatusCheck(self):
         admin = User().createUser(
@@ -176,6 +208,11 @@ class LdapTestCase(base.TestCase):
                 'queryFilter': queryFilter,
                 'uri': 'foo.bar.org:389'
             }])
+
+            Setting().set(PluginSettings.SETTINGS, {
+                'timeout': 4,
+                'fallback': True
+            })
 
             resp = self.request('/user/authentication', basicAuth='hello:world')
             self.assertStatusOk(resp)

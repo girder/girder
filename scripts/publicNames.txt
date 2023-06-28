@@ -1140,6 +1140,7 @@ plugins
             settings
                 PluginSettings
                     SERVERS
+                    SETTINGS
     oauth
         girder_oauth
             OAuthPlugin

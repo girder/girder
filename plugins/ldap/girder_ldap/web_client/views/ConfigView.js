@@ -14,6 +14,8 @@ import '@girder/core/utilities/jquery/girderEnable';
 
 const FIELDS = ['uri', 'bindName', 'baseDn', 'password', 'searchField', 'queryFilter'];
 
+const SETTING_FIELDS = ['timeout', 'fallback'];
+
 var ConfigView = View.extend({
     events: {
         'submit .g-ldap-server-form': function (event) {
@@ -70,10 +72,11 @@ var ConfigView = View.extend({
             method: 'GET',
             url: 'system/setting',
             data: {
-                key: 'ldap.servers'
+                list: JSON.stringify(['ldap.servers', 'ldap.settings'])
             }
         }).done((resp) => {
-            this.servers = resp;
+            this.servers = resp['ldap.servers'];
+            this.settings = resp['ldap.settings'];
             this.render();
         });
 
@@ -85,7 +88,8 @@ var ConfigView = View.extend({
 
     render: function () {
         this.$el.html(template({
-            servers: this.servers
+            servers: this.servers,
+            settings: this.settings
         }));
 
         this.breadcrumb.setElement(this.$('.g-config-breadcrumb-container')).render();
@@ -105,14 +109,19 @@ var ConfigView = View.extend({
             return server;
         });
 
-        this.$('.g-validation-failed-message').empty();
+        const settings = {};
+        _.each(SETTING_FIELDS, (field) => {
+            settings[field] = $('.g-ldap-settings-panel').find(`input[name="${field}"]`).val();
+        });
 
+        this.$('.g-validation-failed-message').empty();
+        settings.fallback = $('#g-ldap-setting-fallback').is(':checked');
+        settings.timeout = parseInt(settings.timeout, 10);
         restRequest({
             method: 'PUT',
             url: 'system/setting',
             data: {
-                key: 'ldap.servers',
-                value: JSON.stringify(servers)
+                list: JSON.stringify([{ key: 'ldap.servers', value: servers }, { key: 'ldap.settings', value: settings }])
             },
             error: null
         }).done(() => {
