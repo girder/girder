@@ -196,9 +196,6 @@ Utility
 .. automodule:: girder.utility.progress
    :members:
 
-.. automodule:: girder.utility.resource
-   :members:
-
 .. automodule:: girder.utility.s3_assetstore_adapter
    :members:
 

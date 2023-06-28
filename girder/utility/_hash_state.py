@@ -4,9 +4,10 @@
 # Inspired by http://code.activestate.com/recipes/
 # 578479-save-and-restore-sha-512-internal-state/
 
-import hashlib
-import ctypes
 import binascii
+import ctypes
+import hashlib
+import ssl
 import sys
 
 _ver = sys.version_info
@@ -64,7 +65,12 @@ def _getHashStateDataPointer(hashObject):
         # https://github.com/python/cpython/commit/9d9615f6782be4b1f38b47d4d56cee208c26a970
         evpStruct = ctypes.cast(hashPointer[_HASHLIB_EVP_STRUCT_OFFSET],
                                 ctypes.POINTER(ctypes.c_void_p))
-        stateDataPointer = ctypes.cast(evpStruct[3], ctypes.POINTER(ctypes.c_char))
+        if ssl._OPENSSL_API_VERSION < (3, 0):
+            # OpenSSL 1.x
+            stateDataPointer = ctypes.cast(evpStruct[3], ctypes.POINTER(ctypes.c_char))
+        else:
+            # OpenSSL 3.x
+            stateDataPointer = ctypes.cast(evpStruct[7], ctypes.POINTER(ctypes.c_char))
 
     assert stateDataPointer
     return stateDataPointer

@@ -2,7 +2,7 @@ const path = require('path');
 const process = require('process');
 
 const _ = require('underscore');
-const extendify = require('extendify');
+const mergeWith = require('lodash.mergewith');
 const webpack = require('webpack');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
@@ -51,13 +51,12 @@ module.exports = function (grunt) {
     // Load the global webpack config
     const webpackConfig = require('./webpack.config.js');
     const updateWebpackConfig = _.partial(
-        extendify({
-            inPlace: true,
-            isDeep: true,
-            arrays: 'concat'
-        }),
-        webpackConfig
-    );
+        mergeWith, webpackConfig, _, function (x, y) {
+            if (_.isArray(y)) {
+                x = _.isArray(x) ? x : (_.isUndefined(x) ? [] : [x]);
+                return x.concat(y);
+            }
+        });
     const plugins = grunt.config.get('pkg.girder.plugins') || [];
 
     // Extend the global webpack config options with environment-specific changes

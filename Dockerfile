@@ -19,6 +19,8 @@ RUN apt-get update && apt-get install -qy \
 # why this is necessary.
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
+# See https://github.com/pypa/distutils/issues/17
+ENV SETUPTOOLS_USE_DISTUTILS=stdlib
 
 RUN mkdir /girder
 WORKDIR /girder

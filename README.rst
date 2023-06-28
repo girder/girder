@@ -18,9 +18,10 @@ We'd love for you to `contribute to Girder <CONTRIBUTING.rst>`_.
 
 .. |logo| image:: girder/web_client/static/img/Girder_Favicon.png
 
-.. |kitware-logo| image:: https://www.kitware.com/img/small_logo_over.png
+.. |kitware-logo| image:: https://www.kitware.com/main/wp-content/uploads/2021/10/Kitware-Wordmark.svg
     :target: https://kitware.com
     :alt: Kitware Logo
+    :width: 180
 
 .. |build-status| image:: https://circleci.com/gh/girder/girder.png?style=shield
     :target: https://circleci.com/gh/girder/girder

@@ -166,9 +166,10 @@ def setup(mode=None, plugins=None, curConfig=None):
                           'response.headers.server': 'Girder %s' % __version__,
                           'error_page.default': _errorDefault}})
 
-    # Mount API (special case)
-    # The API is always mounted at /api AND at api relative to the Girder root
-    cherrypy.tree.mount(girderWebroot.api, '/api', appconf)
+    if routeTable[constants.GIRDER_ROUTE_ID] != '/':
+        # Mount API (special case)
+        # The API is always mounted at /api AND at api relative to the Girder root
+        cherrypy.tree.mount(girderWebroot.api, '/api', appconf)
 
     # Mount everything else in the routeTable
     for name, route in routeTable.items():

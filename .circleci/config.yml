@@ -281,8 +281,14 @@ jobs:
           # Human-readable coverage reports
           path: girder/build/test/artifacts
       - run:
+          name: Install Codecov client
+          command: |
+              curl -Os https://uploader.codecov.io/latest/linux/codecov
+              chmod +x codecov
+          working_directory: girder
+      - run:
           name: Upload coverage
-          command: tox -e codecov_upload
+          command: ./codecov --disable search pycov gcov --root girder --required --file build/test/coverage/py_coverage.xml build/test/coverage/cobertura-coverage.xml
           working_directory: girder
 
   ansible-test:
@@ -297,6 +303,49 @@ jobs:
           name: Run Ansible tests
           command: tox -e ansible
           working_directory: girder
+
+  dockers:
+    machine:
+        image: ubuntu-2004:202111-02
+    steps:
+      - checkout
+      - run:
+          name: Build the Girder docker
+          command: |
+            docker build --force-rm -t girder/girder .
+      - run:
+          name: Build the Girder test docker
+          command: |
+            cd .circleci
+            docker build --force-rm -t girder/girder_test .
+
+  publish-dockers:
+    machine:
+        image: ubuntu-2004:202111-02
+    steps:
+      - checkout
+      - run:
+          name: Build the Girder docker
+          command: |
+            docker build --force-rm -t girder/girder .
+      - run:
+          name: Build the Girder test docker
+          command: |
+            cd .circleci
+            docker build --force-rm -t girder/girder_test .
+      - run:
+          name: Publish the images to Docker Hub
+          command: |
+              echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+              docker push girder/girder:latest
+              docker tag girder/girder:latest girder/girder:latest-py3
+              docker push girder/girder:latest-py3
+              if [[ $CIRCLE_TAG =~ ^v.*$ ]]; then
+              docker tag girder/girder:latest "girder/girder:$CIRCLE_TAG"
+              docker push "girder/girder:$CIRCLE_TAG"
+              docker tag girder/girder:latest "girder/girder:${CIRCLE_TAG}-py3"
+              docker push "girder/girder:${CIRCLE_TAG}-py3"
+              fi
 
   publish:
     executor: py3
@@ -363,6 +412,10 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+.*/
+      - dockers:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
       - publish:
           requires:
             - server-lint-test
@@ -385,3 +438,13 @@ workflows:
               only: /^v[0-9]+.*/
             branches:
               ignore: /.*/
+      - publish-dockers:
+          requires:
+            - dockers
+            - publish-release
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              only:
+                - master

@@ -199,11 +199,15 @@ class System(Resource):
         uploadList = list(Upload().list(
             filters=filters, limit=limit, offset=offset, sort=sort))
         if includeUntracked and (limit == 0 or len(uploadList) < limit):
-            untrackedList = Upload().untrackedUploads('list', assetstoreId)
-            if limit == 0:
-                uploadList += untrackedList
-            elif len(uploadList) < limit:
-                uploadList += untrackedList[:limit - len(uploadList)]
+            try:
+                untrackedList = Upload().untrackedUploads('list', assetstoreId)
+                if limit == 0:
+                    uploadList += untrackedList
+                elif len(uploadList) < limit:
+                    uploadList += untrackedList[:limit - len(uploadList)]
+            except Exception:
+                girder.logger.debug(
+                    'Could not get untracked uploads for assetstore %s', assetstoreId)
         return uploadList
 
     @access.admin(scope=TokenScope.PARTIAL_UPLOAD_CLEAN)
@@ -254,7 +258,11 @@ class System(Resource):
                         'girder.api.v1.system.delete-upload-failed')
                 raise
         if includeUntracked:
-            uploadList += Upload().untrackedUploads('delete', assetstoreId)
+            try:
+                uploadList += Upload().untrackedUploads('delete', assetstoreId)
+            except Exception:
+                girder.logger.debug(
+                    'Could not delete untracked uploads for assetstore %s', assetstoreId)
         return uploadList
 
     @access.public

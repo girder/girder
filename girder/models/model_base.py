@@ -2,6 +2,7 @@
 import copy
 import functools
 import itertools
+import os
 import pymongo
 import re
 
@@ -20,6 +21,11 @@ _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
 # the database is dropped between each test case. If we find a cleverer way to do
 # that, we don't need to store these here.
 _modelSingletons = []
+
+if 'GIRDER_MAX_CURSOR_TIMEOUT_MS' in os.environ:
+    _MAX_CURSOR_TIMEOUT_MS = int(os.environ['GIRDER_MAX_CURSOR_TIMEOUT_MS'])
+else:
+    _MAX_CURSOR_TIMEOUT_MS = None
 
 
 def _permissionClauses(user=None, level=None, prefix=''):
@@ -192,7 +198,11 @@ class Model(metaclass=_ModelSingleton):
 
     def _createIndex(self, index):
         if isinstance(index, (list, tuple)):
-            self.collection.create_index(index[0], **index[1])
+            try:
+                self.collection.create_index(index[0], **index[1])
+            except pymongo.errors.OperationFailure:
+                self.collection.drop_index(index[0])
+                self.collection.create_index(index[0], **index[1])
         else:
             self.collection.create_index(index)
 
@@ -300,6 +310,7 @@ class Model(metaclass=_ModelSingleton):
         query = query or {}
         kwargs = {k: kwargs[k] for k in kwargs if k in _allowedFindArgs}
 
+        timeout = timeout or _MAX_CURSOR_TIMEOUT_MS
         cursor = self.collection.find(
             filter=query, skip=offset, limit=limit, projection=fields,
             no_cursor_timeout=timeout is None, sort=sort, **kwargs)
