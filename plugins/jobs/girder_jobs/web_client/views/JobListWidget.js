@@ -1,16 +1,3 @@
-import $ from 'jquery';
-import _ from 'underscore';
-
-import PaginateWidget from '@girder/core/views/widgets/PaginateWidget';
-import View from '@girder/core/views/View';
-import router from '@girder/core/router';
-import events from '@girder/core/events';
-import { restRequest } from '@girder/core/rest';
-import { defineFlags, formatDate, DATE_SECOND, _whenAll } from '@girder/core/misc';
-import eventStream from '@girder/core/utilities/EventStream';
-import { getCurrentUser } from '@girder/core/auth';
-import { SORT_DESC } from '@girder/core/constants';
-
 import JobCollection from '../collections/JobCollection';
 import JobStatus from '../JobStatus';
 import JobListWidgetTemplate from '../templates/jobListWidget.pug';
@@ -19,6 +6,18 @@ import JobListTemplate from '../templates/jobList.pug';
 
 import CheckBoxMenu from './CheckBoxMenu';
 import JobGraphWidget from './JobGraphWidget';
+
+const PaginateWidget = girder.views.widgets.PaginateWidget;
+const View = girder.views.View;
+const router = girder.router;
+const events = girder.events;
+const { restRequest } = girder.rest;
+const { defineFlags, formatDate, DATE_SECOND, _whenAll } = girder.misc;
+const eventStream = girder.utilities.EventStream;
+const { getCurrentUser } = girder.auth;
+const { SORT_DESC } = girder.constants;
+
+const { _, $ } = girder;
 
 var JobListWidget = View.extend({
     events: {

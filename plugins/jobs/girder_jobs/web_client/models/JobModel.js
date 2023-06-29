@@ -1,8 +1,7 @@
-import _ from 'underscore';
-
-import AccessControlledModel from '@girder/core/models/AccessControlledModel';
-
 import JobStatus from '../JobStatus';
+
+const AccessControlledModel = girder.models.AccessControlledModel;
+const { _ } = girder;
 
 var JobModel = AccessControlledModel.extend({
     resourceName: 'job',

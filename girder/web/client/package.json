@@ -12,6 +12,7 @@
   "dependencies": {
     "@girder/core": "file:../core",
     "@girder/girder-plugin-homepage": "file:../../../plugins/homepage/girder_homepage/web_client",
+    "@girder/girder-plugin-jobs": "file:../../../plugins/jobs/girder_jobs/web_client",
     "vue": "^3.3.2"
   },
   "devDependencies": {

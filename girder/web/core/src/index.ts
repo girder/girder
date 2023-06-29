@@ -12,6 +12,8 @@ import events from './events';
 import router from './router';
 import version from './version';
 import $ from 'jquery';
+import _ from 'underscore';
+import moment from 'moment';
 
 // This will be modified dynamically when plugins are loaded.
 var plugins = {};
@@ -107,6 +109,8 @@ const initializeDefaultApp = async () => {
 
 const girder = {
     $,
+    _,
+    moment,
     loadPlugins,
     initializeDefaultApp,
     auth,
