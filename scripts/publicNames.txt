@@ -305,6 +305,7 @@ girder
                     getLogLevel
                     getPartialUploads
                     getPlugins
+                    getPublicSettings
                     getSetting
                     getVersion
                     setLogLevel
