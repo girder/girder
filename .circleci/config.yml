@@ -5,11 +5,11 @@ executors:
   py3:
     docker:
       # This image uses the newest version of many dependencies
-      - image: girder/girder_test:latest
+      - image: girder/girder_test:node16
     working_directory: /home/circleci/project
   py3-mongo:
     docker:
-      - image: girder/girder_test:latest
+      - image: girder/girder_test:node16
       # Use the oldest supported MongoDB
       # This is equivalent to the deprecated circleci/mongo:<version>-ram image
       - image: mongo:3.6
