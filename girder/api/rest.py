@@ -6,7 +6,6 @@ import datetime
 from functools import wraps
 import inspect
 import json
-import os
 import posixpath
 import pymongo
 import sys
