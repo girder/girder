@@ -138,11 +138,11 @@ jobs:
       - run:
           name: Install npm dependencies for @girder/core
           command: npm install
-          working_directory: girder/web/core
+          working_directory: girder/girder/web/core
       - run:
           name: Test @girder/core
           command: npm run test
-          working_directory: girder/web/core
+          working_directory: girder/girder/web/core
 
   integration-test:
     executor: machine
