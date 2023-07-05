@@ -136,15 +136,12 @@ jobs:
           path: girder
       - install-girder
       - run:
-          name: Install npx
-          command: npm install -g npx
-      - run:
           name: Install npm dependencies for @girder/core
           command: npm install
           working_directory: girder/girder/web/core
       - run:
           name: Install playwright browser dependencies
-          command: npx playwright install --with-deps
+          command: npm run install-browsers
           working_directory: girder/girder/web/core
       - run:
           name: Test @girder/core
