@@ -136,30 +136,13 @@ jobs:
           path: girder
       - install-girder
       - run:
-          name: Build Girder web client
-          command: girder build --dev | cat
+          name: Install npm dependencies for @girder/core
+          command: npm install
+          working_directory: girder/web/core
       - run:
-          name: Create Girder build directory
-          command: mkdir girder_build
-      - run:
-          name: Run CTest
-          command: >-
-            ctest
-            --extra-verbose
-            --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
-          environment:
-            TEST_GROUP: browser
-            PYTHON_VERSION: 3.6
-            PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
-            JASMINE_TIMEOUT: 15000
-          working_directory: girder_build
-      - store_artifacts:
-          # Failure screenshots from web tests
-          path: girder/build/test/artifacts
-      - persist_to_workspace:
-          root: /home/circleci/project
-          paths:
-            - girder/build/test/coverage
+          name: Test @girder/core
+          command: npm run test
+          working_directory: girder/web/core
 
   integration-test:
     executor: machine
