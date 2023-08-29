@@ -97,6 +97,7 @@ class Model(metaclass=_ModelSingleton):
         self._textIndex = None
         self._textLanguage = None
         self.prefixSearchFields = ('lowerName', 'name')
+        self.globalSearchFields = ('lowerName', 'name')
 
         self._filterKeys = {
             AccessType.READ: set(),
@@ -463,6 +464,72 @@ class Model(metaclass=_ModelSingleton):
             results from the cursor.
         """
         filters = self._prefixSearchFilters(query, filters, prefixSearchFields)
+
+        return self.find(
+            filters, offset=offset, limit=limit, sort=sort, fields=fields)
+
+    def _globalSearchFilters(self, query, filters=None, globalSearchFields=None):
+        """
+        Return a set of filters and fields used in the text search.
+
+        :param query: The text query. Will be stemmed internally.
+        :type query: str
+        :param filters: Any additional query operators to apply.
+        :type filters: dict
+        :param globalSearchFields: To override the model's globalSearchFields
+            attribute for this invocation, pass an alternate iterable.
+        :returns: filters to be passed to the query.
+        """
+        filters = filters or {}
+        filters['$or'] = filters.get('$or', [])
+
+        for field in (globalSearchFields or self.globalSearchFields):
+            if isinstance(field, (list, tuple)):
+                filters['$or'].append({
+                    field[0]: {
+                        '$regex': '%s' % re.escape(query),
+                        '$options': field[1]
+                    }
+                })
+            else:
+                filters['$or'].append({
+                    field: {'$regex': '%s' % re.escape(query)}
+                })
+        return filters
+
+    def globalSearch(self, query, offset=0, limit=0, sort=None, fields=None,
+                     filters=None, globalSearchFields=None, **kwargs):
+        """
+        Search for documents in this model's collection by a string.
+        The fields that will be searched based on this string must be set as
+        the ``globalSearchFields`` attribute of this model, which must be an
+        iterable. Elements of this iterable must be either a string representing
+        the field name, or a 2-tuple in which the first element is the field
+        name, and the second element is a string representing the regex search
+        options.
+
+        :param query: The string to look for
+        :type query: str
+        :param offset: The offset into the results
+        :type offset: int
+        :param limit: Maximum number of documents to return
+        :type limit: int
+        :param sort: The sort order.
+        :type sort: List of (key, order) tuples.
+        :param fields: A mask for filtering result documents by key, or None to
+            return the full document, passed to MongoDB find() as the
+            `projection` param.  This is a string or iterable of strings to be
+            included from the document, or dict for an inclusion or exclusion
+            projection`.
+        :type fields: `str, list, set, or tuple`
+        :param filters: Any additional query operators to apply.
+        :type filters: dict
+        :param globalSearchFields: To override the model's globalSearchFields
+            attribute for this invocation, pass an alternate iterable.
+        :returns: A pymongo cursor. It is left to the caller to build the
+            results from the cursor.
+        """
+        filters = self._globalSearchFilters(query, filters, globalSearchFields)
 
         return self.find(
             filters, offset=offset, limit=limit, sort=sort, fields=fields)
@@ -1590,6 +1657,43 @@ class AccessControlledModel(Model):
             results from the cursor.
         """
         filters = self._prefixSearchFilters(query, filters, prefixSearchFields)
+
+        return self.findWithPermissions(
+            filters, offset=offset, limit=limit, sort=sort, fields=fields,
+            user=user, level=level)
+
+    def globalSearch(self, query, user=None, filters=None, limit=0, offset=0,
+                     sort=None, fields=None, level=AccessType.READ, globalSearchFields=None):
+        """
+        Custom override of Model.globalSearch to also force permission-based
+        filtering. The parameters are the same as Model.globalSearch.
+
+        :param query: The string to look for
+        :type query: str
+        :param user: The user to apply permission filtering for.
+        :type user: dict or None
+        :param filters: Any additional query operators to apply.
+        :type filters: dict
+        :param limit: Maximum number of documents to return
+        :type limit: int
+        :param offset: The offset into the results
+        :type offset: int
+        :param sort: The sort order.
+        :type sort: List of (key, order) tuples.
+        :param fields: A mask for filtering result documents by key, or None to
+            return the full document, passed to MongoDB find() as the
+            `projection` param.  This is a string or iterable of strings to be
+            included from the document, or dict for an inclusion or exclusion
+            projection`.
+        :type fields: `str, list, set, or tuple`
+        :param level: The access level to require.
+        :type level: girder.constants.AccessType
+        :param globalSearchFields: To override the model's globalSearchFields
+            attribute for this invocation, pass an alternate iterable.
+        :returns: A pymongo cursor. It is left to the caller to build the
+            results from the cursor.
+        """
+        filters = self._globalSearchFilters(query, filters, globalSearchFields)
 
         return self.findWithPermissions(
             filters, offset=offset, limit=limit, sort=sort, fields=fields,

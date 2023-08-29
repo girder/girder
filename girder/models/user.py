@@ -26,6 +26,8 @@ class User(AccessControlledModel):
                             'created'])
         self.prefixSearchFields = (
             'login', ('firstName', 'i'), ('lastName', 'i'))
+        self.globalSearchFields = (
+            'login', ('firstName', 'i'), ('lastName', 'i'))
 
         self.ensureTextIndex({
             'login': 1,

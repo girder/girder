@@ -601,6 +601,7 @@ girder
                 findWithPermissions
                 getAccessLevel
                 getFullAccessList
+                globalSearch
                 hasAccess
                 hasAccessFlags
                 list
@@ -624,6 +625,7 @@ girder
                 filterDocument
                 find
                 findOne
+                globalSearch
                 hideFields
                 increment
                 initialize
@@ -800,6 +802,7 @@ girder
             AccessControlMixin
                 filterResultsByPermission
                 findWithPermissions
+                globalSearch
                 hasAccess
                 hasAccessFlags
                 load

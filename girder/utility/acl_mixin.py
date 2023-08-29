@@ -191,6 +191,24 @@ class AccessControlMixin:
             filters, offset=offset, limit=limit, sort=sort, fields=fields,
             user=user, level=level)
 
+    def globalSearch(self, query, user=None, filters=None, limit=0, offset=0,
+                     sort=None, fields=None, level=AccessType.READ,
+                     globalSearchFields=None):
+        """
+        Custom override of Model.globalSearch to also force permission-based
+        filtering. The parameters are the same as Model.globalSearch.
+
+        :param user: The user to apply permission filtering for.
+        :type user: dict or None
+        :param level: The access level to require.
+        :type level: girder.constants.AccessType
+        """
+        filters = self._globalSearchFilters(query, filters, globalSearchFields)
+
+        return self.findWithPermissions(
+            filters, offset=offset, limit=limit, sort=sort, fields=fields,
+            user=user, level=level)
+
     def permissionClauses(self, user=None, level=None, prefix=''):
         return _permissionClauses(user, level, prefix)
 
