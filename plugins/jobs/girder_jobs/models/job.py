@@ -49,7 +49,7 @@ class Job(AccessControlledModel):
         if childJob['parentId']:
             raise ValidationException('Cannot overwrite the Parent Id')
 
-    def list(self, user=None, types=None, statuses=None,
+    def list(self, user=None, types=None, statuses=None, handlers=None,
              limit=0, offset=0, sort=None, currentUser=None, parentJob=None):
         """
         List a page of jobs for a given user.
@@ -60,6 +60,8 @@ class Job(AccessControlledModel):
         :type types: array of type string, or None.
         :param statuses: job status filter.
         :type statuses: array of status integer, or None.
+        :param handlers: job handler filter.
+        :type handlers: array of type string or None, or None.
         :param limit: The page limit.
         :param limit: The page limit.
         :param offset: The page offset.
@@ -69,11 +71,13 @@ class Job(AccessControlledModel):
         """
         return self.findWithPermissions(
             offset=offset, limit=limit, sort=sort, user=currentUser,
-            types=types, statuses=statuses, jobUser=user, parentJob=parentJob)
+            types=types, statuses=statuses, handlers=handlers,
+            jobUser=user, parentJob=parentJob)
 
     def findWithPermissions(self, query=None, offset=0, limit=0, timeout=None, fields=None,
                             sort=None, user=None, level=AccessType.READ,
-                            types=None, statuses=None, jobUser=None, parentJob=None, **kwargs):
+                            types=None, statuses=None, handlers=None,
+                            jobUser=None, parentJob=None, **kwargs):
         """
         Search the list of jobs.
         :param query: The search query (see general MongoDB docs for "find()")
@@ -99,6 +103,8 @@ class Job(AccessControlledModel):
         :type types: array of type string, or None.
         :param statuses: job status filter.
         :type statuses: array of status integer, or None.
+        :param handlers: job handler filter.
+        :type handlers: array of type string or None, or None.
         :param jobUser: The user who owns the job.
         :type jobUser: dict, 'all', 'none', or None.
         :param parentJob: Parent Job.
@@ -120,6 +126,8 @@ class Job(AccessControlledModel):
                 query['type'] = {'$in': types}
             if statuses is not None:
                 query['status'] = {'$in': statuses}
+            if handlers is not None:
+                query['handler'] = {'$in': handlers}
             if parentJob:
                 query['parentId'] = parentJob['_id']
         return super().findWithPermissions(

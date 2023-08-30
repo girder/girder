@@ -190,7 +190,8 @@ class JobsTestCase(base.TestCase):
         # get with filter
         resp = self.request('/job/all', user=self.users[0], params={
             'types': json.dumps(['t']),
-            'statuses': json.dumps([0])
+            'statuses': json.dumps([0]),
+            'handlers': json.dumps([None])
         })
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 5)
