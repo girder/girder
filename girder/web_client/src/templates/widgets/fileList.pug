@@ -17,7 +17,13 @@ ul.g-file-list
       a.g-show-info(file-cid=file.cid, title="Show info")
         i.icon-info
       if file.has('size')
-        .g-file-size= formatSize(file.get('size'))
+        .g-file-detail
+          i.icon-hdd
+          | #{formatSize(file.get('size'))}
+      if file.has('created')
+        .g-file-detail
+          i.icon-clock
+          | #{formatDate(file.get('created'), DATE_SECOND)}
       .g-file-actions-container(file-cid=file.cid)
         if parentItem && parentItem.get('_accessLevel') >= AccessType.WRITE
           a.g-update-info(title="Edit file info")

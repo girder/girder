@@ -37,19 +37,25 @@
   >li
     padding 3px 5px
     border-bottom 1px solid #f2f2f2
+    display flex
 
     .g-file-list-link
       margin-right 3px
       border-right 1px solid #e3e3e3
       padding-right 6px
+      flex-shrink 0
 
-    .g-file-size
+    .g-file-detail
       margin 0 6px
       color #888
       display inline-block
+      overflow hidden
+      white-space nowrap
+      text-overflow ellipsis
 
     .g-file-actions-container
-      float right
+      margin-left auto
+      flex-shrink 0
 
 .g-item-breadcrumb-container
   margin-bottom 10px

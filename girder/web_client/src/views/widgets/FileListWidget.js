@@ -7,7 +7,7 @@ import UploadWidget from '@girder/core/views/widgets/UploadWidget';
 import View from '@girder/core/views/View';
 import { AccessType } from '@girder/core/constants';
 import { confirm } from '@girder/core/dialog';
-import { formatSize } from '@girder/core/misc';
+import { formatSize, formatDate, DATE_SECOND } from '@girder/core/misc';
 import events from '@girder/core/events';
 
 import FileListTemplate from '@girder/core/templates/widgets/fileList.pug';
@@ -123,8 +123,10 @@ var FileListWidget = View.extend({
             files: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
             AccessType: AccessType,
+            parentItem: this.parentItem,
             formatSize: formatSize,
-            parentItem: this.parentItem
+            formatDate: formatDate,
+            DATE_SECOND: DATE_SECOND
         }));
 
         if (this.fileEdit) {
