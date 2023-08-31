@@ -11,11 +11,13 @@ import '@girder/core/utilities/jquery/girderModal';
 var FileInfoWidget = View.extend({
     initialize: function (settings) {
         this.parentItem = settings.parentItem;
+        this.user = settings.user;
     },
 
     render: function () {
         this.$el.html(FileInfoDialogTemplate({
             file: this.model,
+            user: this.user,
             formatDate: formatDate,
             DATE_SECOND: DATE_SECOND
         })).girderModal(this);

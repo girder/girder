@@ -9,6 +9,7 @@ import { AccessType } from '@girder/core/constants';
 import { confirm } from '@girder/core/dialog';
 import { formatSize, formatDate, DATE_SECOND } from '@girder/core/misc';
 import events from '@girder/core/events';
+import { restRequest } from '@girder/core/rest';
 
 import FileListTemplate from '@girder/core/templates/widgets/fileList.pug';
 
@@ -23,12 +24,19 @@ var FileListWidget = View.extend({
 
         'click a.g-show-info': function (e) {
             var cid = $(e.currentTarget).attr('file-cid');
-            new FileInfoWidget({
-                el: $('#g-dialog-container'),
-                model: this.collection.get(cid),
-                parentItem: this.parentItem,
-                parentView: this
-            }).render();
+            var model = this.collection.get(cid);
+            var id = model.get('creatorId');
+            restRequest({
+                url: 'user/' + id
+            }).done((user) => {
+                new FileInfoWidget({
+                    el: $('#g-dialog-container'),
+                    model,
+                    user,
+                    parentItem: this.parentItem,
+                    parentView: this
+                }).render();
+            });
         },
 
         'click a.g-update-contents': function (e) {

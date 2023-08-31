@@ -13,6 +13,11 @@
           span= 'Created '
           span.g-bold-part= formatDate(file.get('created'), DATE_SECOND)
 
+        .g-file-info-line(property="creator")
+          i.icon-user
+          span= 'Creator: '
+          span.g-bold-part #{user && user.login || 'unknown'}
+
         .g-file-info-line(property="mimeType")
           i.icon-info
           span MIME type:
