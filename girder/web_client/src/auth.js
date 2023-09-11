@@ -72,9 +72,9 @@ function fetchCurrentUser() {
  * Encode password using TextEncoder to support unicode
  */
 function basicAuthEncode(username, password) {
-  const encoder = new TextEncoder()
-  const data = encoder.encode(username + ':' + password)
-  return 'Basic ' + btoa(String.fromCharCode(...data))
+    const encoder = new TextEncoder();
+    const data = encoder.encode(username + ':' + password);
+    return 'Basic ' + btoa(String.fromCharCode(...data));
 }
 
 /**
