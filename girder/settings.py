@@ -71,7 +71,7 @@ class SettingDefault:
             'Content-Type, Cookie, Girder-Authorization, Girder-OTP, Girder-Token',
         SettingKey.CORS_ALLOW_METHODS: 'GET, POST, PUT, HEAD, DELETE',
         SettingKey.CORS_ALLOW_ORIGIN: '',
-        SettingKey.CORS_EXPOSE_HEADERS: 'Girder-Total-Count',
+        SettingKey.CORS_EXPOSE_HEADERS: 'Girder-Total-Count, Content-Disposition',
         # An apache server using reverse proxy would also need
         #  X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
         #  X-Forwarded-Host, Remote-Addr
