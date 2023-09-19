@@ -416,22 +416,25 @@ class Upload(Model):
             file=file, user=user, size=int(file['size']), assetstore=assetstore)
         if file['size'] == 0:
             return File().filter(self.finalizeUpload(upload), user)
-        # Uploads need to be chunked for some assetstores
-        chunkSize = self._getChunkSize()
-        chunk = None
-        for data in File().download(file, headers=False)():
-            if chunk is not None:
-                chunk += data
-            else:
-                chunk = data
-            if len(chunk) >= chunkSize:
-                upload = self.handleChunk(upload, RequestBodyStream(io.BytesIO(chunk), len(chunk)))
-                progress.update(increment=len(chunk))
-                chunk = None
 
-        if chunk is not None:
-            upload = self.handleChunk(upload, RequestBodyStream(io.BytesIO(chunk), len(chunk)))
-            progress.update(increment=len(chunk))
+        # Uploads need to be chunked for some assetstores
+        def upload_chunks(upload, chunks):
+            uploadchunk = b''.join(chunks)
+            upload = self.handleChunk(upload, RequestBodyStream(io.BytesIO(uploadchunk),
+                                                                len(uploadchunk)))
+            progress.update(increment=len(uploadchunk))
+            return upload
+
+        chunkSize = self._getChunkSize()
+        chunks = []
+        for data in File().download(file, headers=False)():
+            chunks.append(data)
+            if sum(len(chunk) for chunk in chunks) >= chunkSize:
+                upload = upload_chunks(upload, chunks)
+                chunks = []
+
+        if len(chunks):
+            upload = upload_chunks(upload, chunks)
 
         return upload
 
