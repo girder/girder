@@ -183,16 +183,20 @@ class Upload(Model):
         if 'fileId' in upload:  # Updating an existing file's contents
             file = File().load(upload['fileId'], force=True)
 
+            if upload.get('attachParent'):
+                item = Item().load(upload['parentId'], force=True)
+            else:
+                item = Item().load(file['itemId'], force=True)
+
+            File().propagateSizeChange(item, upload['size'] - file['size'])
+
             # Delete the previous file contents from the containing assetstore
             assetstore_utilities.getAssetstoreAdapter(
                 Assetstore().load(file['assetstoreId'])).deleteFile(file)
 
-            item = Item().load(file['itemId'], force=True)
-            File().propagateSizeChange(item, upload['size'] - file['size'])
-
             # Update file info
             file['creatorId'] = upload['userId']
-            file['created'] = datetime.datetime.utcnow()
+            file['updated'] = datetime.datetime.utcnow()
             file['assetstoreId'] = assetstore['_id']
             file['size'] = upload['size']
             # If the file was previously imported, it is no longer.
@@ -291,22 +295,31 @@ class Upload(Model):
             unspecified, the current assetstore is used.
         """
         from girder.utility import assetstore_utilities
+        from .item import Item
 
         assetstore = self.getTargetAssetstore('file', file, assetstore)
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.utcnow()
 
-        upload = {
-            'created': now,
-            'updated': now,
-            'userId': user['_id'],
-            'fileId': file['_id'],
-            'assetstoreId': assetstore['_id'],
-            'size': size,
-            'name': file['name'],
-            'mimeType': file['mimeType'],
-            'received': 0
-        }
+        if 'attachedToId' in file:
+            parent = Item().findOne({'_id': file['attachedToId']})
+            upload = self.createUpload(
+                user=None, name=file['name'], parentType=file['attachedToType'],
+                parent=parent, size=file['size'], mimeType=file['mimeType'],
+                assetstore=assetstore, attachParent=True, save=False)
+            upload.update({'fileId': file['_id']})
+        else:
+            upload = {
+                'created': now,
+                'updated': now,
+                'userId': user['_id'],
+                'fileId': file['_id'],
+                'assetstoreId': assetstore['_id'],
+                'size': size,
+                'name': file['name'],
+                'mimeType': file['mimeType'],
+                'received': 0
+            }
         if reference is not None:
             upload['reference'] = reference
         upload = adapter.initUpload(upload)
