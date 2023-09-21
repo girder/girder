@@ -258,7 +258,10 @@ class QuotaPolicy(Resource):
                 return None, None
         if model == 'file':
             model = 'item'
-            resource = Item().load(id=resource['itemId'], force=True)
+            if 'attachedToId' in resource:
+                resource = Item().load(id=resource['attachedToId'], force=True)
+            else:
+                resource = Item().load(id=resource['itemId'], force=True)
         if model in ('folder', 'item'):
             if ('baseParentType' not in resource
                     or 'baseParentId' not in resource):
