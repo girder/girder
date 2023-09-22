@@ -183,12 +183,9 @@ class Upload(Model):
         if 'fileId' in upload:  # Updating an existing file's contents
             file = File().load(upload['fileId'], force=True)
 
-            if upload.get('attachParent'):
-                item = Item().load(upload['parentId'], force=True)
-            else:
+            if not upload.get('attachParent'):
                 item = Item().load(file['itemId'], force=True)
-
-            File().propagateSizeChange(item, upload['size'] - file['size'])
+                File().propagateSizeChange(item, upload['size'] - file['size'])
 
             # Delete the previous file contents from the containing assetstore
             assetstore_utilities.getAssetstoreAdapter(
