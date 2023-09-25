@@ -256,6 +256,11 @@ class QuotaPolicy(Resource):
                 resource = ModelImporter.model(model).load(id=resource, force=True)
             except ImportError:
                 return None, None
+
+        # Attached files have no quota
+        if resource.get('attachedToId'):
+            return None, None
+
         if model == 'file':
             model = 'item'
             resource = Item().load(id=resource['itemId'], force=True)

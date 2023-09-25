@@ -9,6 +9,7 @@ from .model_base import Model
 from girder.exceptions import GirderException, ValidationException, NoAssetstoreAdapter
 from girder.settings import SettingKey
 from girder.utility import RequestBodyStream
+from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import noProgress
 
 
@@ -183,12 +184,13 @@ class Upload(Model):
         if 'fileId' in upload:  # Updating an existing file's contents
             file = File().load(upload['fileId'], force=True)
 
+            if not upload.get('attachParent'):
+                item = Item().load(file['itemId'], force=True)
+                File().propagateSizeChange(item, upload['size'] - file['size'])
+
             # Delete the previous file contents from the containing assetstore
             assetstore_utilities.getAssetstoreAdapter(
                 Assetstore().load(file['assetstoreId'])).deleteFile(file)
-
-            item = Item().load(file['itemId'], force=True)
-            File().propagateSizeChange(item, upload['size'] - file['size'])
 
             # Update file info
             file['creatorId'] = upload['userId']
@@ -296,17 +298,26 @@ class Upload(Model):
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.utcnow()
 
-        upload = {
-            'created': now,
-            'updated': now,
-            'userId': user['_id'],
-            'fileId': file['_id'],
-            'assetstoreId': assetstore['_id'],
-            'size': size,
-            'name': file['name'],
-            'mimeType': file['mimeType'],
-            'received': 0
-        }
+        if 'attachedToId' in file:
+            parent = ModelImporter.model(
+                file['attachedToType']).findOne({'_id': file['attachedToId']})
+            upload = self.createUpload(
+                user=None, name=file['name'], parentType=file['attachedToType'],
+                parent=parent, size=file['size'], mimeType=file['mimeType'],
+                assetstore=assetstore, attachParent=True, save=False)
+            upload.update({'fileId': file['_id']})
+        else:
+            upload = {
+                'created': now,
+                'updated': now,
+                'userId': user['_id'],
+                'fileId': file['_id'],
+                'assetstoreId': assetstore['_id'],
+                'size': size,
+                'name': file['name'],
+                'mimeType': file['mimeType'],
+                'received': 0
+            }
         if reference is not None:
             upload['reference'] = reference
         upload = adapter.initUpload(upload)
