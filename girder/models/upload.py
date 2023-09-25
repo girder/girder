@@ -194,7 +194,7 @@ class Upload(Model):
 
             # Update file info
             file['creatorId'] = upload['userId']
-            file['updated'] = datetime.datetime.utcnow()
+            file['created'] = datetime.datetime.utcnow()
             file['assetstoreId'] = assetstore['_id']
             file['size'] = upload['size']
             # If the file was previously imported, it is no longer.
