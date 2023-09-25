@@ -9,6 +9,7 @@ from .model_base import Model
 from girder.exceptions import GirderException, ValidationException, NoAssetstoreAdapter
 from girder.settings import SettingKey
 from girder.utility import RequestBodyStream
+from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import noProgress
 
 
@@ -292,14 +293,14 @@ class Upload(Model):
             unspecified, the current assetstore is used.
         """
         from girder.utility import assetstore_utilities
-        from .item import Item
 
         assetstore = self.getTargetAssetstore('file', file, assetstore)
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
         now = datetime.datetime.utcnow()
 
         if 'attachedToId' in file:
-            parent = Item().findOne({'_id': file['attachedToId']})
+            parent = ModelImporter.model(
+                file['attachedToType']).findOne({'_id': file['attachedToId']})
             upload = self.createUpload(
                 user=None, name=file['name'], parentType=file['attachedToType'],
                 parent=parent, size=file['size'], mimeType=file['mimeType'],
