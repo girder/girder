@@ -4,7 +4,7 @@
 let version = null;
 
 try {
-    version = process.env.GIRDER_VERSION || null;
+    version = import.meta.env.VITE_GIRDER_VERSION || null;
 } catch (e) {}
 
 export default version;

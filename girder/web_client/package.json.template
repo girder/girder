@@ -25,6 +25,8 @@
         "grunt-webpack": "^3.0.2",
         "lodash.mergewith": "^4.6.2",
         "mkdirp": "^0.5.1",
+        "moment": "~2.24.0",
+        "moment-timezone": "~0.5.27",
         "nib": "^1.1.2",
         "pug": "^2.0.0-rc.3",
         "pug-loader": "^2.3.0",
@@ -35,17 +37,22 @@
         "toposort": "^1.0.3",
         "tslib": "2.5.0",
         "uglifyjs-webpack-plugin": "^1.1.6",
+        "vue": "^3.3.4",
         "webpack": "^3.12.0",
         "whatwg-fetch": "^2.0.4"
     },
     "devDependencies": {
+        "@rollup/plugin-inject": "^5.0.3",
+        "@vitejs/plugin-vue": "^4.2.3",
         "babel-plugin-istanbul": "^4.1.5",
         "babel-polyfill": "^6.26.0",
-        "event-source": "^0.1.1"
+        "event-source": "^0.1.1",
+        "typescript": "^5.0.2",
+        "vite": "^4.4.9",
+        "vue-tsc": "^1.8.8"
     },
     "scripts": {
-        "build": "grunt",
-        "watch": "grunt --watch"
+        "build": "vue-tsc && vite build"
     },
     "girder": {
         "plugins": []

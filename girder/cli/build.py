@@ -78,31 +78,42 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
 
         # Run npm install
         installCommand = [npm, 'install', '--install-links']
+        installCommand = [npm, 'install']
         if mode == ServerMode.PRODUCTION:
             installCommand.append('--production')
         check_call(installCommand, cwd=staging)
 
-    quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
+
+    # quiet = '--no-progress=false' if sys.stdout.isatty() else '--no-progress=true'
+    # buildCommand = [
+    #     npm, 'run', 'build', '--',
+    #     '--girder-version=%s' % girder.__version__,
+    #     '--static-path=%s' % STATIC_ROOT_DIR,
+    #     '--static-public-path=%s' % server.getStaticPublicPath(),
+    #     quiet
+    # ]
     buildCommand = [
-        npm, 'run', 'build', '--',
-        '--girder-version=%s' % girder.__version__,
-        '--static-path=%s' % STATIC_ROOT_DIR,
-        '--static-public-path=%s' % server.getStaticPublicPath(),
-        quiet
+        npm, 'run', 'build', '--', '--emptyOutDir',
+        '--outDir', os.path.join(f"{os.path.dirname(STATIC_ROOT_DIR)}{server.getStaticPublicPath()}", 'built'),
+        '--base', os.path.join(server.getStaticPublicPath(), 'built')
     ]
     if watch:
         buildCommand.append('--watch')
-    if watch_plugin:
-        buildCommand.extend([
-            '--watch',
-            'webpack:plugin_%s' % watch_plugin
-        ])
+    # if watch_plugin:
+    #     buildCommand.extend([
+    #         '--watch',
+    #         'webpack:plugin_%s' % watch_plugin
+    #     ])
     if mode == ServerMode.DEVELOPMENT:
-        buildCommand.append('--env=dev')
+        buildCommand.append('--mode=development')
     else:
-        buildCommand.append('--env=prod')
-    check_call(buildCommand, cwd=staging)
+        buildCommand.append('--mode=production')
 
+    env = os.environ.copy()
+    print(girder.__version__)
+    env['VITE_GIRDER_VERSION'] = girder.__version__
+
+    check_call(buildCommand, cwd=staging, env=env)
 
 def _collectPluginDependencies():
     packages = {}
