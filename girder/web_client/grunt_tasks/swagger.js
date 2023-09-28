@@ -12,8 +12,18 @@ module.exports = function (grunt) {
             swagger: {
                 files: [{
                     expand: true,
-                    cwd: 'node_modules/swagger-ui/dist',
-                    src: ['lib/**', 'css/**', 'images/**', 'swagger-ui.min.js'],
+                    cwd: 'node_modules/swagger-ui-dist',
+                    src: ['swagger-ui.css', 'swagger-ui-bundle.js'],
+                    dest: builtPath
+                }, {
+                    expand: true,
+                    cwd: 'node_modules/jquery/dist',
+                    src: ['jquery.slim.min.js'],
+                    dest: builtPath
+                }, {
+                    expand: true,
+                    cwd: 'node_modules/underscore',
+                    src: ['underscore-min.js'],
                     dest: builtPath
                 }]
             },

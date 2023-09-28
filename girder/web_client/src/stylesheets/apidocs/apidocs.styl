@@ -6,6 +6,7 @@ $border = 1px solid #d7d7d7
 body
   font-family "Open Sans", sans-serif
   background-color #adada1
+  margin 0
 
 .right
   float right
@@ -47,3 +48,30 @@ body
 
   .docs-swagger-container
     border-radius 0 0 $radius $radius
+
+.swagger-ui
+  font-size 13px
+  .wrapper
+    padding 0
+  .opblock-tag
+    font-size 20px
+    padding 5px
+  .opblock
+    .opblock-summary
+      padding 0
+  .table-container
+    padding 5px 12px
+  table tbody tr
+    td
+      padding 8px 0
+    td:first-of-type
+      padding 8px 8px 8px 0
+  .markdown p
+    margin 0.2em auto
+  input[type=email], input[type=file], input[type=password], input[type=search], input[type=text], textarea
+    margin 0
+  .scheme-container, .information-container.wrapper
+    display none
+  .parameter__name
+    font-size 13px
+    font-family monospace

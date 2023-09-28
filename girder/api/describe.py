@@ -565,7 +565,15 @@ class Describe(Resource):
             'basePath': basePath,
             'tags': tags,
             'paths': paths,
-            'definitions': definitions
+            'definitions': definitions,
+            'securityDefinitions': {
+                'Girder-Token': {
+                    'type': 'apiKey',
+                    'in': 'header',
+                    'name': 'Girder-Token',
+                }
+            },
+            'security': [{'Girder-Token': []}],
         }
 
 

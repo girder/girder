@@ -25,7 +25,7 @@
         "qrcode": "~1.4.4",
         "remarkable": "^2.0.0",
         "sprintf-js": "^1.1.2",
-        "swagger-ui": "^2.2.10",
+        "swagger-ui-dist": "^5.7.2",
         "typeface-open-sans": "^0.0.75",
         "underscore": "^1.13.6",
         "url-otpauth": "^2.0.0"

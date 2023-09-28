@@ -1,21 +1,16 @@
 /* eslint-env jquery */
-/* global _ SwaggerUi SwaggerClient hljs */
 $(function () {
     var apiRoot = $('#g-global-info-apiroot').text().replace(
         '%HOST%', window.location.origin);
     if (!apiRoot) {
         apiRoot = window.location.origin + window.location.pathname;
     }
-    window.swaggerUi = new SwaggerUi({
-        url: 'describe',
-        dom_id: 'swagger-ui-container',
+    var swaggerUi = new window.SwaggerUIBundle({
+        url: apiRoot + '/describe',
+        dom_id: '#swagger-ui-container',
         supportHeaderParams: false,
         supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
-        onComplete: function (swaggerApi, swaggerUi) {
-            $('pre code').each(function (i, e) {
-                hljs.highlightBlock(e);
-            });
-
+        onComplete: function () {
             addApiKeyAuthorization();
         },
         onFailure: function (data) {
@@ -28,9 +23,12 @@ $(function () {
         jsonEditor: false,
         apisSorter: 'alpha',
         operationsSorter: sortOperations,
-        defaultModelRendering: 'schema',
+        defaultModelRendering: 'model',
         showRequestHeaders: false,
-        validatorUrl: null
+        validatorUrl: null,
+        tryItOutEnabled: true,
+        defaultModelsExpandDepth: -1,
+        deepLinking: true
     });
 
     var methodOrder = ['get', 'put', 'post', 'patch', 'delete'];
@@ -39,12 +37,12 @@ $(function () {
     // Methods not in the pre-defined ordered list are placed at the end and
     // sorted alphabetically.
     function sortOperations(op1, op2) {
-        var pathCmp = op1.path.localeCompare(op2.path);
+        var pathCmp = op1.get('path').localeCompare(op2.get('path'));
         if (pathCmp !== 0) {
             return pathCmp;
         }
-        var index1 = methodOrder.indexOf(op1.method);
-        var index2 = methodOrder.indexOf(op2.method);
+        var index1 = methodOrder.indexOf(op1.get('method'));
+        var index2 = methodOrder.indexOf(op2.get('method'));
         if (index1 > -1 && index2 > -1) {
             return index1 > index2 ? 1 : (index1 < index2 ? -1 : 0);
         }
@@ -54,24 +52,20 @@ $(function () {
         if (index2 > -1) {
             return 1;
         }
-        return op1.method.localeCompare(op2.method);
+        return op1.get('method').localeCompare(op2.get('method'));
     }
 
     function addApiKeyAuthorization() {
         var cookieParams = document.cookie.split(';').map(function (m) {
             return m.replace(/^\s+/, '').replace(/\s+$/, '');
         });
-        _.each(cookieParams, function (val, i) {
+        cookieParams.forEach(function (val) {
             var arr = val.split('=');
             if (arr[0] === 'girderToken') {
                 // Make swagger send the Girder-Token header with each request.
-                var apiKeyAuth = new SwaggerClient.ApiKeyAuthorization(
-                    'Girder-Token', arr[1], 'header');
-                window.swaggerUi.api.clientAuthorizations.add(
-                    'Girder-Token', apiKeyAuth);
+                swaggerUi.preauthorizeApiKey(
+                    'Girder-Token', arr[1]);
             }
         });
     }
-
-    window.swaggerUi.load();
 });
