@@ -3,8 +3,7 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${brandName | h} - REST API Documentation</title>
-    <link rel="stylesheet" href="${staticPublicPath}/built/swagger/css/reset.css">
-    <link rel="stylesheet" href="${staticPublicPath}/built/swagger/css/screen.css">
+    <link rel="stylesheet" href="${staticPublicPath}/built/swagger/swagger-ui.css">
     <link rel="stylesheet" href="${staticPublicPath}/built/swagger/docs.css">
     <link rel="icon" type="image/png" href="${staticPublicPath}/built/Girder_Favicon.png">
     <style type="text/css">
@@ -21,7 +20,7 @@
       <%block name="docsHeader">
       <span>${brandName | h} REST API Documentation</span>
       <i class="icon-book-alt right"></i>
-      <div id="g-global-info-apiroot" style="display: none">${apiRoot}</div>
+      <div id="g-global-info-apiroot" style="display: none">%HOST%/${apiRoot}</div>
       </%block>
     </div>
     <div class="docs-body">
@@ -45,19 +44,9 @@
           class="swagger-ui-wrap docs-swagger-container">
       </div>
     </div>
-    <script src="${staticPublicPath}/built/swagger/lib/object-assign-pollyfill.js"></script>
-    <script src="${staticPublicPath}/built/swagger/lib/jquery-1.8.0.min.js"></script>
-    <script src="${staticPublicPath}/built/swagger/lib/jquery.slideto.min.js"></script>
-    <script src="${staticPublicPath}/built/swagger/lib/jquery.wiggle.min.js"></script>
-    <script src="${staticPublicPath}/built/swagger/lib/jquery.ba-bbq.min.js"></script>
-    <script src="${staticPublicPath}/built/swagger/lib/handlebars-4.0.5.js"></script>
-    <script src="${staticPublicPath}/built/swagger/lib/lodash.min.js"></script>
-    <script src="${staticPublicPath}/built/swagger/lib/backbone-min.js"></script>
-    <script src="${staticPublicPath}/built/swagger/swagger-ui.min.js"></script>
-    <script src="${staticPublicPath}/built/swagger/lib/highlight.9.1.0.pack.js"></script>
-    <script src="${staticPublicPath}/built/swagger/lib/highlight.9.1.0.pack_extended.js"></script>
-    <script src='${staticPublicPath}/built/swagger/lib/jsoneditor.min.js'></script>
-    <script src='${staticPublicPath}/built/swagger/lib/marked.js'></script>
+    <script src="${staticPublicPath}/built/swagger/jquery.slim.min.js"></script>
+    <script src="${staticPublicPath}/built/swagger/underscore-min.js"></script>
+    <script src="${staticPublicPath}/built/swagger/swagger-ui-bundle.js"></script>
     <script src="${staticPublicPath}/built/swagger/girder-swagger.js"></script>
     % if mode == 'testing':
     <script src="${staticPublicPath}/built/testing.min.js"></script>

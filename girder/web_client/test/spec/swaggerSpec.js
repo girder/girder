@@ -1,34 +1,28 @@
 describe('Test the swagger pages', function () {
     it('Test swagger', function () {
         waitsFor(function () {
-            return $('li#resource_system.resource').length > 0;
+            return $('#operations-tag-system').length > 0;
         }, 'swagger docs to appear');
         runs(function () {
-            expect($('li#resource_system.resource .heading h2 a').text()).toBe('system');
+            expect($('#operations-tag-system a span').text()).toBe('system');
         });
-        // There seems to be some delay between the link showing and when
-        // swaggerUi actually binds the event handler.  Wait until jquery
-        // reports that the event is bound
-        waitsFor(function () {
-            return $._data($('li#resource_system.resource .heading h2 a')[0], 'events') !== undefined;
-        }, 'events to be bound');
         runs(function () {
-            $('li#resource_system.resource .heading h2 a').trigger('click');
+            $('#operations-tag-system a').trigger('click');
         });
         waitsFor(function () {
-            return $('#system_system_getVersion_version:visible').length > 0;
+            return $('#operations-system-system_getVersion_version:visible').length > 0;
         }, 'end points to be visible');
         runs(function () {
-            $('#system_system_getVersion_version h3 a').trigger('click');
+            $('#operations-system-system_getVersion_version a').trigger('click');
         });
         waitsFor(function () {
-            return $('#system_system_getVersion_version .sandbox_header input.submit:visible').length > 0;
-        }, 'version try out button to be visible');
+            return $('#operations-system-system_getVersion_version .execute:visible').length > 0;
+        }, 'version execute button to be visible');
         runs(function () {
-            $('#system_system_getVersion_version_content .sandbox_header input.submit').trigger('click');
+            $('#operations-system-system_getVersion_version .execute').trigger('click');
         });
         waitsFor(function () {
-            return $('#system_system_getVersion_version_content .response_body.json').text().indexOf('release') >= 0;
+            return $('#operations-system-system_getVersion_version .highlight-code code').text().indexOf('release') >= 0;
         }, 'version information was returned');
     });
 });
