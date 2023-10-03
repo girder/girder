@@ -35,6 +35,7 @@ export default defineConfig({
     }),
     vue(),
     pugPlugin(),
+    // TODO make sure we remove this for prod build
     istanbul({
       include: 'src/*',
       exclude: ['node_modules', 'test/', 'dist/'],

@@ -1,12 +1,19 @@
-# -*- coding: utf-8 -*-
-from girder.plugin import GirderPlugin
+from pathlib import Path
+
+from girder.plugin import GirderPlugin, registerPluginStaticContent
 
 from . import rest
 
 
 class HomepagePlugin(GirderPlugin):
     DISPLAY_NAME = 'Homepage'
-    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         info['apiRoot'].homepage = rest.Homepage()
+
+        registerPluginStaticContent(
+            plugin='homepage',
+            css=['/style.css'],
+            js=['/girder-plugin-homepage.js'],
+            staticDir=Path(__file__).parent / 'web_client' / 'dist',
+        )

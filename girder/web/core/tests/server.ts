@@ -5,8 +5,8 @@ import { ChildProcessWithoutNullStreams } from 'child_process';
 import { test } from '@playwright/test';
 
 const startServer = async (port: number) => {
-  const mongoUri = process.env['GIRDER_CLIENT_TESTING_MONGO_URI'] ?? 'mongodb://localhost:27017';
-  const girderExecutable = process.env['GIRDER_CLIENT_TESTING_GIRDER_EXECUTABLE'] ?? 'girder';
+  const mongoUri = process.env.GIRDER_CLIENT_TESTING_MONGO_URI ?? 'mongodb://localhost:27017';
+  const girderExecutable = process.env.GIRDER_CLIENT_TESTING_GIRDER_EXECUTABLE ?? 'girder';
 
   const database = `${mongoUri}/girder-${port}`;
   const serverProcess = spawn(girderExecutable, ['serve', '--database', database, '--port', `${port}`], {
@@ -31,9 +31,9 @@ const startServer = async (port: number) => {
 
 export const setupServer = () => {
   let serverProcess: ChildProcessWithoutNullStreams;
-  const port = Math.floor(Math.random() * 10000 + 40000);
+  const port = Math.floor(Math.random() * 10000 + 40000); // TODO better port range
 
-  test.beforeAll(async ({ browser }) => {
+  test.beforeAll(async () => {
     serverProcess = await startServer(port);
   });
 
@@ -43,7 +43,7 @@ export const setupServer = () => {
 
   test.beforeEach(async ({ page }) => {
     await startCoverage(page);
-    await page.goto(`/?apiRoot=${encodeURIComponent(`http://localhost:${port}/api/v1`)}`);
+    await page.goto(`http://localhost:${port}/`);
     await expect(page.getByRole('link', { name: 'About' })).toBeVisible();
   });
 

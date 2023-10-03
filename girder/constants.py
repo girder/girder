@@ -7,6 +7,7 @@ import sys
 
 import girder
 
+# TODO turn all these into pathlib.Paths
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(PACKAGE_DIR)
 LOG_ROOT = os.path.join(os.path.expanduser('~'), '.girder', 'logs')
@@ -27,7 +28,7 @@ VERSION = {
 
 #: The local directory containing the static content.
 STATIC_PREFIX = os.path.join(sys.prefix, 'share', 'girder')
-STATIC_ROOT_DIR = os.path.join(STATIC_PREFIX, 'static')
+STATIC_ROOT_DIR = os.path.join(PACKAGE_DIR, 'web', 'client', 'dist')
 
 
 def registerAccessFlag(key, name, description=None, admin=False):

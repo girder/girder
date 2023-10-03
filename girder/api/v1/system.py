@@ -2,7 +2,9 @@
 import cherrypy
 import datetime
 import errno
+from functools import lru_cache
 import girder
+from itertools import chain
 import json
 import os
 import logging
@@ -19,6 +21,7 @@ from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.models.upload import Upload
 from girder.models.user import User
+from girder.plugin import getPluginStaticContent
 from girder.settings import SettingKey
 from girder.utility import config, system
 from girder.utility.progress import ProgressContext
@@ -43,6 +46,7 @@ class System(Resource):
         self.route('GET', ('setting',), self.getSetting)
         self.route('GET', ('public_settings',), self.getPublicSettings)
         self.route('GET', ('plugins',), self.getPlugins)
+        self.route('GET', ('plugin_static_files',), self.getPluginStaticFiles)
         self.route('GET', ('access_flag',), self.getAccessFlags)
         self.route('PUT', ('setting',), self.setSetting)
         self.route('GET', ('uploads',), self.getPartialUploads)
@@ -54,6 +58,19 @@ class System(Resource):
         self.route('PUT', ('log', 'level'), self.setLogLevel)
         self.route('GET', ('setting', 'collection_creation_policy', 'access'),
                    self.getCollectionCreationPolicyAccess)
+
+    @access.public
+    @autoDescribeRoute(
+        Description('Get the list of plugin static files to be injected into the Girder app.'),
+        hide=True,
+    )
+    @lru_cache(maxsize=1)  # this serves data that is immutable after server startup
+    def getPluginStaticFiles(self):
+        contentObjects = list(getPluginStaticContent().values())
+        return {
+            'css': list(chain(*[content.css for content in contentObjects])),
+            'js': list(chain(*[content.js for content in contentObjects])),
+        }
 
     @access.admin
     @autoDescribeRoute(

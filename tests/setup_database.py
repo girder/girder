@@ -11,7 +11,8 @@ from girder.utility.model_importer import ModelImporter
 warnings.warn(
     'setup_database.py is only meant for test fixtures, not for provisioning.'
     "\nSee Girder's ansible client for a deployment solution: "
-    'https://github.com/girder/girder/tree/master/devops/ansible-role-girder/library'
+    'https://github.com/girder/girder/tree/master/devops/ansible-role-girder/library',
+    stacklevel=2,
 )
 
 #: A prefix for all relative file paths

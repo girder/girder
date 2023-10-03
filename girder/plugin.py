@@ -2,21 +2,55 @@
 This module defines functions for registering, loading, and querying girder plugins.
 """
 
+from collections import OrderedDict
+from dataclasses import dataclass
 import distutils.dist
 from functools import wraps
 import io
-import json
-import os
-from pkg_resources import iter_entry_points, resource_filename
+from pathlib import Path
+from pkg_resources import iter_entry_points
+from typing import List
 
-from girder import logprint
+import cherrypy
+
+from girder import logprint, __version__
 from girder.exceptions import GirderException
+
+
+@dataclass
+class PluginStaticContent:
+    css: List[str]
+    js: List[str]
 
 
 _NAMESPACE = 'girder.plugin'
 _pluginRegistry = None
 _pluginLoadOrder = []
 _pluginWebroots = {}
+_pluginStaticContent: OrderedDict[str, PluginStaticContent] = OrderedDict()
+
+
+def getPluginStaticContent():
+    return _pluginStaticContent
+
+
+def registerPluginStaticContent(plugin: str, css: List[str], js: List[str], staticDir: Path):
+    from girder.utility.server import _errorDefault
+
+    if plugin not in _pluginStaticContent:
+        cherrypy.tree.mount(None, f'/plugin_static/{plugin}', {
+            '/': {
+                'tools.staticdir.on': True,
+                'tools.staticdir.dir': str(staticDir),
+                'request.show_tracebacks': False,
+                'response.headers.server': f'Girder {__version__}',
+                'error_page.default': _errorDefault
+            }
+        })
+        _pluginStaticContent[plugin] = PluginStaticContent(
+            css=[f'/plugin_static/{plugin}/{f.lstrip("/")}' for f in css],
+            js=[f'/plugin_static/{plugin}/{f.lstrip("/")}' for f in js],
+        )
 
 
 def getPluginWebroots():
@@ -86,40 +120,11 @@ class GirderPlugin(metaclass=_PluginMeta):
     #: used internally, this name can be an arbitrary string.
     DISPLAY_NAME = None
 
-    #: The path of the plugin's web client source code.  This path is given relative to the python
-    #: package.  This property is used to link the web client source into the staging area while
-    #: building in development mode.  When this value is `None` it indicates there is no web client
-    #: component.
-    CLIENT_SOURCE_PATH = None
-
     def __init__(self, entrypoint):
         self._name = entrypoint.name
         self._loaded = False
         self._dist = entrypoint.dist
         self._metadata = _readPackageMetadata(self._dist)
-
-    def npmPackages(self):
-        """Return a dictionary of npm packages -> versions for building the plugin client.
-
-        By default, this dictionary will be assembled from the CLIENT_SOURCE_PATH property by
-        inspecting the package.json file in the indicated directory.  Plugins can override this
-        method customize the behaivor for advanced usage.
-        """
-        if self.CLIENT_SOURCE_PATH is None:
-            return {}
-
-        packageJsonFile = resource_filename(
-            self.__module__,
-            os.path.join(self.CLIENT_SOURCE_PATH, 'package.json')
-        )
-        if not os.path.isfile(packageJsonFile):
-            raise Exception('Invalid web client path provided: %s' % packageJsonFile)
-
-        with open(packageJsonFile, 'r') as f:
-            packageJson = json.load(f)
-            packageName = packageJson['name']
-
-        return {packageName: 'file:%s' % os.path.dirname(packageJsonFile)}
 
     @property
     def name(self):

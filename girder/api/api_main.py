@@ -15,11 +15,11 @@ class ApiDocs:
         raise cherrypy.HTTPRedirect(cherrypy.url() + '/v1')
 
 
-def addApiToNode(node):
-    node.api = ApiDocs()
-    _addV1ToNode(node.api)
+def buildApi():
+    api = ApiDocs()
+    _addV1ToNode(api)
 
-    return node
+    return api
 
 
 def _addV1ToNode(node):

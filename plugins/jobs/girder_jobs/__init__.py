@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import importlib
+from pathlib import Path
 
 from girder import events
-from girder.plugin import GirderPlugin
+from girder.plugin import GirderPlugin, registerPluginStaticContent
 from girder.utility.model_importer import ModelImporter
 
 from . import constants, job_rest
@@ -31,9 +32,14 @@ def scheduleLocal(event):
 
 class JobsPlugin(GirderPlugin):
     DISPLAY_NAME = 'Jobs'
-    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         ModelImporter.registerModel('job', Job, 'jobs')
         info['apiRoot'].job = job_rest.Job()
         events.bind('jobs.schedule', 'jobs', scheduleLocal)
+        registerPluginStaticContent(
+            plugin='jobs',
+            css=['/style.css'],
+            js=['/girder-plugin-jobs.js'],
+            staticDir=Path(__file__).parent / 'web_client' / 'dist',
+        )

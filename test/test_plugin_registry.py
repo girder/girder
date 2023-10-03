@@ -1,4 +1,3 @@
-import tempfile
 import unittest.mock
 
 import pytest
@@ -40,13 +39,6 @@ class LoadMockMixin:
 
 
 class NoDeps(LoadMockMixin, GirderPlugin):
-    def load(self, info):
-        self._testLoadMock(info)
-
-
-class PluginWithNPM(LoadMockMixin, GirderPlugin):
-    CLIENT_SOURCE_PATH = 'web_client'
-
     def load(self, info):
         self._testLoadMock(info)
 
@@ -117,16 +109,6 @@ def testPluginMetadata(registry):
     assert pluginDef.url == 'url'
     assert pluginDef.description == 'description'
     assert pluginDef.npmPackages() == {}
-
-
-@pytest.mark.plugin('client_plugin', PluginWithNPM)
-def testPluginWithNPMPackage(registry):
-    with tempfile.NamedTemporaryFile() as packageJson:
-        packageJson.write(b'{"name": "@girder/test_plugin"}')
-        packageJson.flush()
-        pluginDef = plugin.getPlugin('client_plugin')
-        with unittest.mock.patch.object(plugin, 'resource_filename', return_value=packageJson.name):
-            assert '@girder/test_plugin' in pluginDef.npmPackages()
 
 
 @pytest.mark.plugin('plugin1', NoDeps)

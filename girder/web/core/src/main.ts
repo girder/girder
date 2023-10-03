@@ -1,3 +1,4 @@
 import { girder } from '@girder/core';
 
-girder.initializeDefaultApp();
+const apiRoot = import.meta.env.API_ROOT ?? '/api/v1';
+girder.initializeDefaultApp(apiRoot);
