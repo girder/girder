@@ -1330,11 +1330,11 @@ pytest_girder
                 isMailQueueEmpty
                 loop
                 start
+                    MockSmtpServer
+                        mailQueue
+                        process_message
                 stop
                 waitForMail
-            MockSmtpServer
-                mailQueue
-                process_message
             buildHeaders
             getResponseBody
             request
