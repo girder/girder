@@ -29,6 +29,10 @@ class MockSmtpReceiver:
         the current process so as to reduce potential conflicts with parallel
         tests that are started nearly simultaneously.
         """
+        # These imports are not at module level because the smtpd package was
+        # removed from Python 3.12.  By having them within the class, tests
+        # that do not require the smtp mocks can still use the pytest girder
+        # fixtures.
         import smtpd
 
         class MockSmtpServer(smtpd.SMTPServer):
@@ -53,6 +57,7 @@ class MockSmtpReceiver:
         self.thread.start()
 
     def loop(self):
+        # See comment in start about import scoping
         import asyncore
 
         """
