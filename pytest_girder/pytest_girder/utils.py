@@ -1,4 +1,3 @@
-import asyncore
 import base64
 import cherrypy
 import contextlib
@@ -8,7 +7,6 @@ import io
 import json
 import os
 import queue
-import smtpd
 import socket
 import threading
 import time
@@ -16,13 +14,6 @@ import urllib.parse
 
 _startPort = 31000
 _maxTries = 100
-
-
-class MockSmtpServer(smtpd.SMTPServer):
-    mailQueue = queue.Queue()
-
-    def process_message(self, peer, mailfrom, rcpttos, data, **kwargs):
-        self.mailQueue.put(data)
 
 
 class MockSmtpReceiver:
@@ -38,6 +29,14 @@ class MockSmtpReceiver:
         the current process so as to reduce potential conflicts with parallel
         tests that are started nearly simultaneously.
         """
+        import smtpd
+
+        class MockSmtpServer(smtpd.SMTPServer):
+            mailQueue = queue.Queue()
+
+            def process_message(self, peer, mailfrom, rcpttos, data, **kwargs):
+                self.mailQueue.put(data)
+
         for porttry in range(_maxTries):
             port = _startPort + ((porttry + os.getpid()) % _maxTries)
             try:
@@ -54,6 +53,8 @@ class MockSmtpReceiver:
         self.thread.start()
 
     def loop(self):
+        import asyncore
+
         """
         Instead of calling asyncore.loop directly, wrap it with a small
         timeout.  This prevents using 100% cpu and still allows a graceful exit.
