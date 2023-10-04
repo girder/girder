@@ -5,11 +5,11 @@ executors:
   py3:
     docker:
       # This image uses the newest version of many dependencies
-      - image: girder/girder_test:latest
+      - image: girder/girder_test:py36-node12
     working_directory: /home/circleci/project
   py3-mongo:
     docker:
-      - image: girder/girder_test:latest
+      - image: girder/girder_test:py36-node12
       # Use the oldest supported MongoDB
       # This is equivalent to the deprecated circleci/mongo:<version>-ram image
       - image: mongo:3.6
@@ -292,13 +292,23 @@ jobs:
           working_directory: girder
 
   ansible-test:
-    executor: py3
+    docker:
+      - image: cimg/python:3.8
+    working_directory: ~/project
     steps:
+      - run:
+          name: Install packages needed for ansible
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y rsync
       - checkout:
           path: girder
       - setup_remote_docker:
           docker_layer_caching: true
           version: 20.10.12
+      - run:
+          name: Install tox
+          command: pip install tox
       - run:
           name: Run Ansible tests
           command: tox -e ansible
@@ -317,7 +327,7 @@ jobs:
           name: Build the Girder test docker
           command: |
             cd .circleci
-            docker build --force-rm -t girder/girder_test .
+            docker build --force-rm -t girder/girder_test:py36-node12 .
 
   publish-dockers:
     machine:
@@ -332,7 +342,7 @@ jobs:
           name: Build the Girder test docker
           command: |
             cd .circleci
-            docker build --force-rm -t girder/girder_test .
+            docker build --force-rm -t girder/girder_test:py36-node12 .
       - run:
           name: Publish the images to Docker Hub
           command: |
@@ -348,7 +358,9 @@ jobs:
               fi
 
   publish:
-    executor: py3
+    docker:
+      - image: cimg/python:3.8
+    working_directory: ~/project
     steps:
       - checkout:
           path: girder
