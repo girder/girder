@@ -1,9 +1,10 @@
+import fs from 'fs/promises';
+
 import v8toIstanbul from 'v8-to-istanbul';
 import libReport from 'istanbul-lib-report';
 import reports from 'istanbul-reports';
 import { Page } from '@playwright/test';
 import libCoverage from 'istanbul-lib-coverage';
-import fs from 'fs/promises';
 
 const createId = (length: number) => {
   let result = '';

@@ -5,6 +5,7 @@ import events from '@girder/core/events';
 import eventStream from '@girder/core/utilities/EventStream';
 
 var View = Backbone.View.extend({
+    // eslint-disable-next-line backbone/no-constructor
     constructor: function (opts) {
         if (opts && _.has(opts, 'parentView')) {
             if (opts.parentView) {

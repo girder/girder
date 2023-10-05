@@ -1,8 +1,9 @@
+import fs from 'fs/promises';
+
 import { PlaywrightTestConfig } from "@playwright/test";
 import libCoverage from 'istanbul-lib-coverage';
 import libReport from 'istanbul-lib-report';
 import reports from 'istanbul-reports';
-import fs from 'fs/promises';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default async (_config: PlaywrightTestConfig) => {

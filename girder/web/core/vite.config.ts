@@ -1,7 +1,8 @@
+import path, { resolve } from 'path';
+
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import istanbul from 'vite-plugin-istanbul';
-import path, { resolve } from 'path';
 import { compileClient } from 'pug';
 import dts from 'vite-plugin-dts';
 import inject from "@rollup/plugin-inject";

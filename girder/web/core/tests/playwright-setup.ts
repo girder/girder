@@ -1,5 +1,6 @@
-import { PlaywrightTestConfig } from "@playwright/test";
 import fs from 'fs';
+
+import { PlaywrightTestConfig } from "@playwright/test";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default (_config: PlaywrightTestConfig) => {

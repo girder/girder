@@ -1,6 +1,7 @@
+import { resolve } from 'path';
+
 import { defineConfig } from 'vite';
 import istanbul from 'vite-plugin-istanbul';
-import { resolve } from 'path';
 import { compileClient } from 'pug';
 
 function pugPlugin() {

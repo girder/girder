@@ -8,14 +8,76 @@ import { restRequest } from '@girder/core/rest';
  * Admin
  */
 import AdminView from '@girder/core/views/body/AdminView';
-router.route('admin', 'admin', function () {
-    events.trigger('g:navigateTo', AdminView);
-});
 
 /**
  * Assetstores
  */
 import AssetstoresView from '@girder/core/views/body/AssetstoresView';
+
+/**
+ * Collections
+ */
+import CollectionsView from '@girder/core/views/body/CollectionsView';
+
+/**
+ * Collection
+ */
+import CollectionView from '@girder/core/views/body/CollectionView';
+
+/**
+ * Folder
+ */
+import FolderView from '@girder/core/views/body/FolderView';
+
+/**
+ * FrontPage
+ */
+import FrontPageView from '@girder/core/views/body/FrontPageView';
+
+/**
+ * Groups
+ */
+import GroupsView from '@girder/core/views/body/GroupsView';
+
+/**
+ * Group
+ */
+import GroupView from '@girder/core/views/body/GroupView';
+
+/**
+ * Item
+ */
+import ItemView from '@girder/core/views/body/ItemView';
+
+/**
+ * Plugins
+ */
+import PluginsView from '@girder/core/views/body/PluginsView';
+import UsersView from '@girder/core/views/body/UsersView';
+
+/**
+ * SystemConfiguration
+ */
+import SystemConfigurationView from '@girder/core/views/body/SystemConfigurationView';
+
+/**
+ * UserAccount
+ */
+import UserAccountView from '@girder/core/views/body/UserAccountView';
+import UserModel from '@girder/core/models/UserModel';
+
+/**
+ * User
+ */
+import UserView from '@girder/core/views/body/UserView';
+
+/**
+ * SearchResults
+ */
+import SearchResultsView from '@girder/core/views/body/SearchResultsView';
+router.route('admin', 'admin', function () {
+    events.trigger('g:navigateTo', AdminView);
+});
 router.route('assetstores', 'assetstores', function (params) {
     events.trigger('g:navigateTo', AssetstoresView, {
         assetstoreEdit: params.dialog === 'assetstoreedit' ? params.dialogid : false
@@ -24,20 +86,10 @@ router.route('assetstores', 'assetstores', function (params) {
 router.route('assetstore/:id/import', 'assetstoreImport', function (assetstoreId) {
     AssetstoresView.import(assetstoreId);
 });
-
-/**
- * Collections
- */
-import CollectionsView from '@girder/core/views/body/CollectionsView';
 router.route('collections', 'collections', function (params) {
     events.trigger('g:navigateTo', CollectionsView, params || {});
     events.trigger('g:highlightItem', 'CollectionsView');
 });
-
-/**
- * Collection
- */
-import CollectionView from '@girder/core/views/body/CollectionView';
 router.route('collection/:id', 'collectionAccess', function (cid, params) {
     CollectionView.fetchAndInit(cid, {
         access: params.dialog === 'access',
@@ -58,11 +110,6 @@ router.route('collection/:id/folder/:id', 'collectionFolder', function (cid, fol
         itemCreate: params.dialog === 'itemcreate'
     });
 });
-
-/**
- * Folder
- */
-import FolderView from '@girder/core/views/body/FolderView';
 router.route('folder/:id', 'folder', function (id, params) {
     FolderView.fetchAndInit(id, {
         upload: params.dialog === 'upload',
@@ -72,28 +119,13 @@ router.route('folder/:id', 'folder', function (id, params) {
         itemCreate: params.dialog === 'itemcreate'
     });
 });
-
-/**
- * FrontPage
- */
-import FrontPageView from '@girder/core/views/body/FrontPageView';
 router.route('', 'index', function () {
     events.trigger('g:navigateTo', FrontPageView);
 });
-
-/**
- * Groups
- */
-import GroupsView from '@girder/core/views/body/GroupsView';
 router.route('groups', 'groups', function (params) {
     events.trigger('g:navigateTo', GroupsView, params || {});
     events.trigger('g:highlightItem', 'GroupsView');
 });
-
-/**
- * Group
- */
-import GroupView from '@girder/core/views/body/GroupView';
 router.route('group/:id', 'groupView', function (groupId, params) {
     GroupView.fetchAndInit(groupId, {
         edit: params.dialog === 'edit'
@@ -105,11 +137,6 @@ router.route('group/:id/:tab', 'groupView', function (groupId, tab, params) {
         tab: tab
     });
 });
-
-/**
- * Item
- */
-import ItemView from '@girder/core/views/body/ItemView';
 router.route('item/:id', 'item', function (itemId, params) {
     ItemView.fetchAndInit(itemId, {
         edit: params.dialog === 'itemedit',
@@ -117,29 +144,12 @@ router.route('item/:id', 'item', function (itemId, params) {
         upload: params.dialog === 'upload' ? params.dialogid : false
     });
 });
-
-/**
- * Plugins
- */
-import PluginsView from '@girder/core/views/body/PluginsView';
-import UsersView from '@girder/core/views/body/UsersView';
 router.route('plugins', 'plugins', function () {
     events.trigger('g:navigateTo', PluginsView);
 });
-
-/**
- * SystemConfiguration
- */
-import SystemConfigurationView from '@girder/core/views/body/SystemConfigurationView';
 router.route('settings', 'settings', function () {
     events.trigger('g:navigateTo', SystemConfigurationView);
 });
-
-/**
- * UserAccount
- */
-import UserAccountView from '@girder/core/views/body/UserAccountView';
-import UserModel from '@girder/core/models/UserModel';
 router.route('useraccount/:id/:tab', 'accountTab', function (id, tab) {
     UserAccountView.fetchAndInit(id, tab);
 });
@@ -195,11 +205,6 @@ router.route('users', 'users', function (params) {
     events.trigger('g:navigateTo', UsersView, params || {});
     events.trigger('g:highlightItem', 'UsersView');
 });
-
-/**
- * User
- */
-import UserView from '@girder/core/views/body/UserView';
 router.route('user/:id', 'user', function (userId, params) {
     UserView.fetchAndInit(userId, {
         folderCreate: params.dialog === 'foldercreate',
@@ -216,11 +221,6 @@ router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId, pa
         itemCreate: params.dialog === 'itemcreate'
     });
 });
-
-/**
- * SearchResults
- */
-import SearchResultsView from '@girder/core/views/body/SearchResultsView';
 router.route('search/results', 'SearchResults', function (params) {
     events.trigger('g:navigateTo', SearchResultsView, {
         query: params.query,

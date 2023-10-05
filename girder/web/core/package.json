@@ -30,8 +30,6 @@
     "show-coverage": "http-server coverage/report --port 8888 -o",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
-    "format": "prettier --write src/",
     "install-browsers": "playwright install --with-deps"
   },
   "dependencies": {
@@ -55,7 +53,6 @@
   "devDependencies": {
     "@playwright/test": "^1.34.3",
     "@rollup/plugin-inject": "^5.0.3",
-    "@rushstack/eslint-patch": "^1.2.0",
     "@tsconfig/node18": "^2.0.1",
     "@types/istanbul-lib-report": "^3.0.0",
     "@types/istanbul-reports": "^3.0.1",
@@ -63,12 +60,8 @@
     "@types/node": "^18.16.16",
     "@types/pug": "^2.0.6",
     "@vitejs/plugin-vue": "^4.2.3",
-    "@vue/eslint-config-prettier": "^7.1.0",
-    "@vue/eslint-config-typescript": "^11.0.3",
     "@vue/test-utils": "^2.3.2",
     "@vue/tsconfig": "^0.4.0",
-    "eslint": "^8.39.0",
-    "eslint-plugin-vue": "^9.11.0",
     "http-server": "^14.1.1",
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.1.5",
@@ -76,7 +69,6 @@
     "npm-run-all": "^4.1.5",
     "playwright": "^1.34.3",
     "playwright-test-coverage": "^1.2.12",
-    "prettier": "^2.8.8",
     "pug": "^3.0.2",
     "stylus": "^0.54.5",
     "typescript": "~5.0.4",

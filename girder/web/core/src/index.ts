@@ -1,3 +1,9 @@
+import $ from 'jquery';
+
+import _ from 'underscore';
+
+import moment from 'moment';
+
 import * as auth from './auth';
 import * as collections from './collections';
 import * as constants from './constants';
@@ -11,9 +17,6 @@ import * as views from './views';
 import events from './events';
 import router from './router';
 import version from './version';
-import $ from 'jquery';
-import _ from 'underscore';
-import moment from 'moment';
 
 const initializeDefaultApp = async (apiRoot: string, el: string | HTMLElement = 'body') => {
     return new Promise((resolve, reject) => {
@@ -40,7 +43,7 @@ const initializeDefaultApp = async (apiRoot: string, el: string | HTMLElement = 
                 resolve(app);
             }).fail((resp: any) => {
                 events.trigger('g:error', resp);
-                reject(null);
+                reject(new Error("Could not retrieve public settings from server."));
             });
         });
     });
