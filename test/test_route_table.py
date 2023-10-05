@@ -67,9 +67,9 @@ def testRouteTableBehavior(server, admin):
     assert 'some webroot' in getResponseBody(resp)
 
     # girder should be at /
-    resp = server.request('/', prefix='', isJson=False)
+    resp = server.request('/', prefix='', isJson=False, appPrefix='')
     assertStatusOk(resp)
-    assert 'g-global-info-apiroot' in getResponseBody(resp)
+    assert '<title>Girder</title>' in getResponseBody(resp)
 
     table = Setting().get(SettingKey.ROUTE_TABLE)
     assert 'has_webroot' in table
