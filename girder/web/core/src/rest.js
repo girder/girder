@@ -31,13 +31,6 @@ function setApiRoot(root) {
     apiRoot = root.replace(/\/$/, '');
 }
 
-// Initialize the API root (at JS load time)
-// This could be overridden when the App is started, but we need sensible defaults so models, etc.
-// can be easily used without having to start an App or explicitly set these values
-setApiRoot(
-    $('#g-global-info-apiroot').text().replace('%HOST%', window.location.origin) || '/api/v1'
-);
-
 /**
  * Make a request to the REST API.
  *
