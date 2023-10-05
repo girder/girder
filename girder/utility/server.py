@@ -117,7 +117,7 @@ def loadRouteTable(reconcileRoutes=False):
 
         for name in pluginWebroots.keys():
             if name not in routeTable:
-                routeTable[name] = os.path.join('/', name)
+                routeTable[name] = f'/{name.lstrip("/")}'
                 hasChanged = True
 
         if hasChanged:
