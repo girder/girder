@@ -9,7 +9,7 @@ from functools import wraps
 import io
 from pathlib import Path
 from pkg_resources import iter_entry_points
-from typing import List
+from typing import List, OrderedDict as OrderedDictType
 
 import cherrypy
 
@@ -27,7 +27,7 @@ _NAMESPACE = 'girder.plugin'
 _pluginRegistry = None
 _pluginLoadOrder = []
 _pluginWebroots = {}
-_pluginStaticContent: OrderedDict[str, PluginStaticContent] = OrderedDict()
+_pluginStaticContent: OrderedDictType[str, PluginStaticContent] = OrderedDict()
 
 
 def getPluginStaticContent():
