@@ -20,6 +20,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - \
 RUN apt-get update \
   && apt-get install --assume-yes \
     cmake \
+    autoconf \
   # Note: universal-ctags is installed for use in the public_names CI job.
   && git clone "https://github.com/universal-ctags/ctags.git" "./ctags" \
   && cd ./ctags \
