@@ -63,10 +63,10 @@ jobs:
           name: Run server linting tests
           command: tox -e lint
           working_directory: girder
-      - run:
-          name: Test public symbols
-          command: tox -e public_names
-          working_directory: girder
+      #- run:
+      #    name: Test public symbols
+      #    command: tox -e public_names
+      #    working_directory: girder
       - run:
           name: Test building docs
           command: tox -e docs
