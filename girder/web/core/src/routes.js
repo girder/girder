@@ -1,5 +1,3 @@
-/* eslint-disable import/first */
-
 import router from '@girder/core/router';
 import events from '@girder/core/events';
 import eventStream from '@girder/core/utilities/EventStream';

@@ -18,7 +18,7 @@ var SortCollectionWidget = View.extend({
             this.collection.sortField = sortField;
             this.collection.fetch({}, true);
         },
-        'click a.g-sort-order-button': function (event) {
+        'click a.g-sort-order-button': function () {
             if (this.collection.sortDir === SORT_ASC) {
                 this.collection.sortDir = SORT_DESC;
             } else {

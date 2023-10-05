@@ -135,7 +135,7 @@ var RootSelectorWidget = View.extend({
      * Called when the user selects a new item.  Resolves the
      * model object from the DOM and triggers the g:selected event.
      */
-    _selectRoot: function (evt) {
+    _selectRoot: function () {
         var sel = this.$(':selected');
         var id = sel.val();
         var group = sel.data('group') || null;

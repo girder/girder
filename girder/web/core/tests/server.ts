@@ -12,7 +12,7 @@ const startServer = async (port: number) => {
   const serverProcess = spawn(girderExecutable, ['serve', '--database', database, '--port', `${port}`], {
     env: { ...process.env, GIRDER_SETTING_CORE_CORS_ALLOW_ORIGIN: '*' },
   });
-  await new Promise<void>((resolve, reject) => {
+  await new Promise<void>((resolve) => {
     serverProcess?.stdout.on('data', (data: string) => {
       console.log(`stdout: ${data}`);
     });

@@ -8,10 +8,10 @@ import PaginateWidgetTemplate from '@girder/core/templates/widgets/paginateWidge
  */
 var PaginateWidget = View.extend({
     events: {
-        'click .g-page-next:not(.disabled)': function (e) {
+        'click .g-page-next:not(.disabled)': function () {
             this.collection.fetchNextPage();
         },
-        'click .g-page-prev:not(.disabled)': function (e) {
+        'click .g-page-prev:not(.disabled)': function () {
             this.collection.fetchPreviousPage();
         }
     },

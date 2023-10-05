@@ -16,8 +16,11 @@
         "npm": ">=5.2"
     },
     "devDependencies": {
-        "@girder/eslint-config": "file:./girder/web_client/eslint-config",
-        "@girder/pug-lint-config": "file:./girder/web_client/pug-lint-config",
+        "@girder/eslint-config": "^3.1.21",
+        "@girder/pug-lint-config": "^3.1.21",
+        "@rushstack/eslint-patch": "^1.2.0",
+        "@vue/eslint-config-prettier": "^7.1.0",
+        "@vue/eslint-config-typescript": "^11.0.3",
         "esdoc": "^1.1.0",
         "esdoc-standard-plugin": "^1.0.0",
         "eslint": "^8.20.0",
@@ -27,6 +30,7 @@
         "eslint-plugin-import": "^2.26.0",
         "eslint-plugin-n": "^15.3.0",
         "eslint-plugin-promise": "^6.0.0",
+        "eslint-plugin-vue": "^9.11.0",
         "nyc": "^15.1.0",
         "phantomjs-prebuilt": "^2.1.16",
         "pug-lint": "^2.6.0",
@@ -62,8 +66,9 @@
         "overrides": [
             {
                 "files": [
-                    "girder/web_client/test/**",
-                    "plugins/*/plugin_tests/**"
+                    "girder/web/**",
+                    "plugins/*/plugin_tests/**",
+                    "plugins/**/web_client/**"
                 ],
                 "globals": {
                     "Backbone": true,
@@ -81,8 +86,7 @@
         "root": true
     },
     "eslintIgnore": [
-        "build/",
-        "girder/web_client/test/lib/",
+        "dist/",
         "**/node_modules/"
     ],
     "nyc": {

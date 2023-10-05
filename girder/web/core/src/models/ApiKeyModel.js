@@ -20,10 +20,10 @@ var ApiKeyModel = AccessControlledModel.extend({
     save: function () {
         // Scope needs to be sent to the server as JSON
         var scope = this.get('scope');
-        this.set('scope', JSON.stringify(scope), { silent: true }); // eslint-disable-line backbone/no-silent
+        this.set('scope', JSON.stringify(scope), { silent: true });
         var promise = AccessControlledModel.prototype.save.call(this, arguments);
         // Restore scope to its original state
-        this.set('scope', scope, { silent: true }); // eslint-disable-line backbone/no-silent
+        this.set('scope', scope, { silent: true });
         return promise;
     }
 });

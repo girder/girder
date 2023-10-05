@@ -75,12 +75,9 @@ function fetchCurrentUser() {
  *
  * @param username The username or email to login as.
  * @param password The password to use.
- * @param cors If the girder server is on a different origin, set this
- *        to "true" to save the auth cookie on the current domain. Alternatively,
- *        you may set the global option "girder.corsAuth = true".
  * @param otpToken An optional one-time password to include with the login.
  */
-function login(username, password, cors = corsAuth, otpToken = null) {
+function login(username, password, otpToken = null) {
     var auth = 'Basic ' + window.btoa(username + ':' + password);
 
     const headers = {

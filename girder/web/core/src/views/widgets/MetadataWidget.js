@@ -93,7 +93,7 @@ var MetadatumWidget = View.extend({
         this.parentView.modes[newEditorMode].editor(opts).render();
     },
 
-    editMetadata: function (event) {
+    editMetadata: function () {
         this.$el.addClass('editing');
         this.$el.empty();
 
@@ -118,7 +118,9 @@ var MetadatumWidget = View.extend({
                 if (jsonValue !== undefined && !_.isObject(jsonValue)) {
                     opts.value = jsonValue;
                 }
-            } catch (e) {}
+            } catch (e) {
+                // ignore
+            }
         }
 
         this.parentView.modes[this.mode].editor(opts)
@@ -412,7 +414,9 @@ var MetadataWidget = View.extend({
                             try {
                                 JSON.parse(value);
                                 return true;
-                            } catch (e) {}
+                            } catch (e) {
+                                // ignore
+                            }
 
                             return false;
                         },

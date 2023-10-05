@@ -1,3 +1,6 @@
+import ConfigViewTemplate from '../templates/configView.pug';
+import '../stylesheets/configView.styl';
+
 const $ = girder.$;
 
 const FolderModel = girder.models.FolderModel;
@@ -7,9 +10,6 @@ const View = girder.views.View;
 const UploadWidget = girder.views.widgets.UploadWidget;
 const events = girder.events;
 const { restRequest, getApiRoot } = girder.rest;
-
-import ConfigViewTemplate from '../templates/configView.pug';
-import '../stylesheets/configView.styl';
 
 const ConfigView = View.extend({
     events: {

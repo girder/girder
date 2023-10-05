@@ -5,7 +5,7 @@ import events from '@girder/core/events';
 import eventStream from '@girder/core/utilities/EventStream';
 
 var View = Backbone.View.extend({
-    constructor: function (opts) { // eslint-disable-line backbone/no-constructor
+    constructor: function (opts) {
         if (opts && _.has(opts, 'parentView')) {
             if (opts.parentView) {
                 opts.parentView.registerChildView(this);

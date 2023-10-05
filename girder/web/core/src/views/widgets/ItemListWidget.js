@@ -272,7 +272,7 @@ var ItemListWidget = View.extend({
             }
 
             // Event handler for loading images declared once
-            const onLoadImage = (event) => {
+            const onLoadImage = () => {
                 if (this.observer) {
                     this.centerSelected();
                 }

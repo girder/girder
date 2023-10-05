@@ -13,10 +13,10 @@ import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
 
 var SearchPaginateWidget = View.extend({
     events: {
-        'click .g-page-next:not(.disabled)': function (e) {
+        'click .g-page-next:not(.disabled)': function () {
             this._updateHasNextPage(true);
         },
-        'click .g-page-prev:not(.disabled)': function (e) {
+        'click .g-page-prev:not(.disabled)': function () {
             this._updateHasPreviousPage(true);
         }
     },

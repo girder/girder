@@ -20,7 +20,7 @@ var FolderModel = AccessControlledModel.extend({
         return restRequest({
             url: `${this.resourceName}/${this.id}/contents`,
             method: 'DELETE'
-        }).done((resp) => {
+        }).done(() => {
             this.trigger('g:success');
         }).fail((err) => {
             this.trigger('g:error', err);

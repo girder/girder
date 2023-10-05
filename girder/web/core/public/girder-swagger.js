@@ -11,7 +11,7 @@ $(function () {
         dom_id: 'swagger-ui-container',
         supportHeaderParams: false,
         supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
-        onComplete: function (swaggerApi, swaggerUi) {
+        onComplete: function () {
             $('pre code').each(function (i, e) {
                 hljs.highlightBlock(e);
             });
@@ -61,7 +61,7 @@ $(function () {
         var cookieParams = document.cookie.split(';').map(function (m) {
             return m.replace(/^\s+/, '').replace(/\s+$/, '');
         });
-        _.each(cookieParams, function (val, i) {
+        _.each(cookieParams, function (val) {
             var arr = val.split('=');
             if (arr[0] === 'girderToken') {
                 // Make swagger send the Girder-Token header with each request.

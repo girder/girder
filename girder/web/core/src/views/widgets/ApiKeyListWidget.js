@@ -38,7 +38,7 @@ var ApiKeyListWidget = View.extend({
             }
         },
 
-        'click .g-api-key-new': function (e) {
+        'click .g-api-key-new': function () {
             this._renderEditWidget();
         },
 
