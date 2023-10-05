@@ -1041,7 +1041,7 @@ class FileTestCase(base.TestCase):
         self.assertEqual(resp.json['offset'], len(chunk1))
 
         # Hack: make moto accept our too-small chunks
-        moto.s3.models.UPLOAD_PART_MIN_SIZE = 5
+        moto.s3.models.S3_UPLOAD_PART_MIN_SIZE = 5
 
         # Send the second chunk
         with httmock.HTTMock(mockChunkUpload):
