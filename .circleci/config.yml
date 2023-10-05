@@ -4,12 +4,11 @@ version: 2.1
 executors:
   py3:
     docker:
-      # This image uses the newest version of many dependencies
-      - image: girder/girder_test:node16
+      - image: girder/girder_test:latest
     working_directory: /home/circleci/project
   py3-mongo:
     docker:
-      - image: girder/girder_test:node16
+      - image: girder/girder_test:latest
       # Use the oldest supported MongoDB
       # This is equivalent to the deprecated circleci/mongo:<version>-ram image
       - image: mongo:3.6
@@ -28,7 +27,7 @@ commands:
           name: Generate python environment checksum file
           command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
       - restore_cache:
-          key: venv-py3.6-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
+          key: venv-py3.8-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - run:
           name: Create virtual environment (if necessary)
           command: if [ ! -d girder_env ]; then python3 -m venv girder_env; fi
@@ -52,7 +51,7 @@ commands:
       - save_cache:
           paths:
             - girder_env
-          key: venv-py3.6-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
+          key: venv-py3.8-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
 
 jobs:
   server-lint-test:
@@ -107,7 +106,7 @@ jobs:
             --exclude-regex '^server_pytest_core$'
           environment:
             TEST_GROUP: python
-            PYTHON_VERSION: 3.6
+            PYTHON_VERSION: 3.8
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
           working_directory: girder_build
       - persist_to_workspace:
@@ -198,10 +197,10 @@ jobs:
           name: Allow Boto to work with Python 3
           command: sudo rm --force /etc/boto.cfg
       - run:
-          name: Set up Python 3.6
+          name: Set up Python 3.8
           command: |
-             pyenv install 3.6.3 || true
-             pyenv global 3.6.3
+             pyenv install 3.8 || true
+             pyenv global 3.8
       - run:
           name: Install system dependencies for Girder plugins
           command: sudo apt-get install -y libldap2-dev libsasl2-dev
@@ -220,7 +219,7 @@ jobs:
           command: >-
             cmake
             ../girder
-            -DPYTHON_VERSION=3.6
+            -DPYTHON_VERSION=3.8
             -DPYTHON_EXECUTABLE=$CIRCLE_WORKING_DIRECTORY/girder_env/bin/python
           working_directory: girder_build
       - run:
