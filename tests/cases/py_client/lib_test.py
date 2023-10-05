@@ -148,7 +148,7 @@ class PythonClientTestCase(base.TestCase):
         self.assertTrue(flag)
 
         # Interactive login (successfully)
-        with unittest.mock.patch('builtins.input', return_value=self.user['login']),\
+        with unittest.mock.patch('builtins.input', return_value=self.user['login']), \
                 unittest.mock.patch('getpass.getpass', return_value='password'):
             self.client.authenticate(interactive=True)
 
