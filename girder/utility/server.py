@@ -150,7 +150,7 @@ def setup(mode=None, plugins=None, curConfig=None):
     routeTable = loadRouteTable(reconcileRoutes=True)
 
     # Mount static files
-    cherrypy.tree.mount(None, '/',
+    cherrypy.tree.mount(None, routeTable[constants.GIRDER_ROUTE_ID],
                         {'/':
                          {'tools.staticdir.on': True,
                           'tools.staticdir.index': 'index.html',
