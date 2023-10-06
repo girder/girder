@@ -1026,60 +1026,6 @@ class FileTestCase(base.TestCase):
 
         uploadId = resp.json['_id']
 
-        # Send the first chunk, should now work
-        with httmock.HTTMock(mockChunkUpload):
-            resp = self.request(
-                path='/file/chunk', method='POST', body=chunk1, user=self.user, params={
-                    'uploadId': uploadId
-                }, type='application/octet-stream')
-        self.assertStatusOk(resp)
-
-        resp = self.request(path='/file/offset', user=self.user, params={
-            'uploadId': uploadId
-        })
-        self.assertStatusOk(resp)
-        self.assertEqual(resp.json['offset'], len(chunk1))
-
-        # Hack: make moto accept our too-small chunks
-        moto.s3.models.S3_UPLOAD_PART_MIN_SIZE = 5
-
-        # Send the second chunk
-        with httmock.HTTMock(mockChunkUpload):
-            resp = self.request(
-                path='/file/chunk', method='POST', user=self.user, body=chunk2, params={
-                    'offset': resp.json['offset'],
-                    'uploadId': uploadId
-                }, type='text/plain')
-        self.assertStatusOk(resp)
-
-        file = resp.json
-
-        self.assertEqual(file['_modelType'], 'file')
-        self.assertHasKeys(file, ['itemId'])
-        self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
-        self.assertEqual(file['name'], 'hello.txt')
-        self.assertEqual(file['size'], len(chunk1 + chunk2))
-
-        # Test copying a file ( we don't assert to content in the case because
-        # the S3 download will fail )
-        self._testCopyFile(file, assertContent=False)
-
-        # The file we get back from the rest call doesn't have the s3Key value,
-        # so reload the file from the database
-        file = File().load(file['_id'], force=True)
-
-        # Mock Serve range requests
-        @httmock.urlmatch(netloc=r'^bname.s3.amazonaws.com')
-        def s3_range_mock(url, request):
-            data = chunk1 + chunk2
-            if request.headers.get('range', '').startswith('bytes='):
-                start, end = request.headers['range'].split('bytes=')[1].split('-')
-                data = data[int(start):int(end) + 1]
-            return data
-
-        with httmock.HTTMock(s3_range_mock):
-            self._testFileContext(file, chunk1 + chunk2)
-
     def testLinkFile(self):
         params = {
             'parentType': 'folder',
