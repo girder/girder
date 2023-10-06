@@ -15,7 +15,7 @@ config.loadConfig()  # Must reload config to pickup correct port
 
 def setUpModule():
     server = base.startServer(mock=False)
-    server.root.api.v1.stream_test = StreamTestResource()
+    server.apps['/api'].root.v1.stream_test = StreamTestResource()
 
 
 def tearDownModule():
