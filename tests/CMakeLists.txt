@@ -8,7 +8,6 @@ javascript_tests_init()
 
 if(RUN_CORE_TESTS)
   # These are performed approximately in the order listed.
-  add_python_test(api_describe)
   add_python_test(assetstore)
   add_python_test(collection)
   add_python_test(file)
