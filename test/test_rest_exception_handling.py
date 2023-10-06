@@ -23,9 +23,9 @@ def exceptionServer(server):
     def _raiseException(*args, **kwargs):
         raise Exception('Specific message ' + cherrypy.request.girderRequestUid)
 
-    server.root.api.v1.item.route('GET', ('exception',), _raiseException)
+    server.apps['/api'].root.v1.item.route('GET', ('exception',), _raiseException)
     yield server
-    server.root.api.v1.item.removeRoute('GET', ('exception',))
+    server.apps['/api'].root.v1.item.removeRoute('GET', ('exception',))
 
 
 @pytest.fixture
