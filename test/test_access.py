@@ -109,10 +109,11 @@ class AccessTestResource(Resource):
 
 @pytest.fixture
 def server(server):
-    server.root.api.v1.accesstest = AccessTestResource()
+    accesstest = AccessTestResource()
+
+    server.apps['/api'].root.v1.accesstest = accesstest
     # Public access endpoints do not need to be a Resource subclass method,
     # they can be a regular function
-    accesstest = server.root.api.v1.accesstest
     accesstest.route('GET', ('default_function_access', ),
                      defaultFunctionHandler)
     accesstest.route('GET', ('admin_function_access', ), adminFunctionHandler)
