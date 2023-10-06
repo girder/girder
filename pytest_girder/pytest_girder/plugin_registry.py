@@ -83,3 +83,5 @@ class PluginRegistry:
         finally:
             plugin._pluginRegistry = None
             plugin._pluginLoadOrder = []
+            plugin._pluginStaticContent.clear()
+            plugin._pluginWebroots.clear()
