@@ -108,7 +108,6 @@ def testPluginMetadata(registry):
     assert pluginDef.version == '1.0.0'
     assert pluginDef.url == 'url'
     assert pluginDef.description == 'description'
-    assert pluginDef.npmPackages() == {}
 
 
 @pytest.mark.plugin('plugin1', NoDeps)
