@@ -226,11 +226,17 @@ jobs:
           command: sudo apt-get install -y libldap2-dev libsasl2-dev
       - install-girder
       - run:
-          name: Build Girder web client
+          name: Install and build @girder/core
           command: |
-            npm --version
-            node --version
-            girder build --dev | cat
+            npm install
+            npm run build
+          working_directory: girder/girder/web/core
+      - run:
+          name: Install and build Girder client
+          command: |
+            npm install
+            npm run build
+          working_directory: girder/girder/web/client
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
