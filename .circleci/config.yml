@@ -173,14 +173,14 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Install NodeJS 12
+          name: Install NodeJS 16
           # CircleCI resets the Bash environment between every step, so any steps using node or npm
           # must first:
           #   source $NVM_DIR/nvm.sh
           command: |
             source $NVM_DIR/nvm.sh
-            nvm install v12
-            nvm alias default v12
+            nvm install v16
+            nvm alias default v16
             NODE_DIR=$(dirname $(which node))
             echo "export PATH=$NODE_DIR:\$PATH" >> $BASH_ENV
       - run:
