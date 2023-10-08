@@ -134,7 +134,7 @@ class WebClientTestCase(base.TestCase):
         # nothing should be stored in this db
         base.dropGridFSDatabase('girder_webclient_gridfs')
 
-        testServer.root.api.v1.webclienttest = WebClientTestEndpoints()
+        testServer.apps['/api'].root.v1.webclienttest = WebClientTestEndpoints()
 
         if 'SETUP_MODULES' in os.environ:
             import imp
