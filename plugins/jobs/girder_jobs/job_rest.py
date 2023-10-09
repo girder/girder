@@ -37,9 +37,10 @@ class Job(Resource):
                     destName='parentJob', paramType='query', required=False)
         .jsonParam('types', 'Filter for type', requireArray=True, required=False)
         .jsonParam('statuses', 'Filter for status', requireArray=True, required=False)
+        .jsonParam('handlers', 'Filter for handler', requireArray=True, required=False)
         .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING)
     )
-    def listJobs(self, userId, parentJob, types, statuses, limit, offset, sort):
+    def listJobs(self, userId, parentJob, types, statuses, handlers, limit, offset, sort):
         currentUser = self.getCurrentUser()
         if not userId:
             user = currentUser
@@ -54,7 +55,8 @@ class Job(Resource):
 
         return list(self._model.list(
             user=user, offset=offset, limit=limit, types=types,
-            statuses=statuses, sort=sort, currentUser=currentUser, parentJob=parent))
+            statuses=statuses, handlers=handlers,
+            sort=sort, currentUser=currentUser, parentJob=parent))
 
     @filtermodel(model=JobModel)
     @access.token(scope=constants.REST_CREATE_JOB_TOKEN_SCOPE, required=True)
@@ -92,13 +94,15 @@ class Job(Resource):
         Description('List all jobs.')
         .jsonParam('types', 'Filter for type', requireArray=True, required=False)
         .jsonParam('statuses', 'Filter for status', requireArray=True, required=False)
+        .jsonParam('handlers', 'Filter for handler', requireArray=True, required=False)
         .pagingParams(defaultSort='created', defaultSortDir=SortDir.DESCENDING)
     )
-    def listAllJobs(self, types, statuses, limit, offset, sort):
+    def listAllJobs(self, types, statuses, handlers, limit, offset, sort):
         currentUser = self.getCurrentUser()
         return list(self._model.list(
             user='all', offset=offset, limit=limit, types=types,
-            statuses=statuses, sort=sort, currentUser=currentUser))
+            statuses=statuses, handlers=handlers,
+            sort=sort, currentUser=currentUser))
 
     @access.public
     @filtermodel(JobModel)

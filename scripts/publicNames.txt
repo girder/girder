@@ -1140,6 +1140,7 @@ plugins
             settings
                 PluginSettings
                     SERVERS
+                    SETTINGS
     oauth
         girder_oauth
             OAuthPlugin
@@ -1329,11 +1330,11 @@ pytest_girder
                 isMailQueueEmpty
                 loop
                 start
+                    MockSmtpServer
+                        mailQueue
+                        process_message
                 stop
                 waitForMail
-            MockSmtpServer
-                mailQueue
-                process_message
             buildHeaders
             getResponseBody
             request

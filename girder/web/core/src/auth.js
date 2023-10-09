@@ -69,6 +69,15 @@ function fetchCurrentUser() {
 }
 
 /**
+ * Encode password using TextEncoder to support unicode
+ */
+function basicAuthEncode(username, password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(username + ':' + password);
+    return 'Basic ' + btoa(String.fromCharCode(...data));
+}
+
+/**
  * Log in to the server. If successful, sets the value of currentUser
  * and currentToken and triggers the "g:login" and "g:login.success".
  * On failure, triggers the "g:login.error" event.
@@ -78,7 +87,7 @@ function fetchCurrentUser() {
  * @param otpToken An optional one-time password to include with the login.
  */
 function login(username, password, otpToken = null) {
-    var auth = 'Basic ' + window.btoa(username + ':' + password);
+    var auth = basicAuthEncode(username, password);
 
     const headers = {
         Authorization: auth
