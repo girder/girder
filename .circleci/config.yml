@@ -140,24 +140,32 @@ jobs:
             npm install
             npm run build
           working_directory: girder/girder/web/core
+          environment:
+            VITE_COVERAGE: 'true'
       - run:
           name: Install and build Girder client
           command: |
             npm install
             npm run build
           working_directory: girder/girder/web/client
+          environment:
+            VITE_COVERAGE: 'true'
       - run:
           name: Install and build jobs plugin client
           command: |
             npm install
             npm run build
           working_directory: girder/plugins/jobs/girder_jobs/web_client
+          environment:
+            VITE_COVERAGE: 'true'
       - run:
           name: Install and build homepage plugin client
           command: |
             npm install
             npm run build
           working_directory: girder/plugins/homepage/girder_homepage/web_client
+          environment:
+            VITE_COVERAGE: 'true'
       - run:
           name: Install playwright browser dependencies
           command: npm run install-browsers

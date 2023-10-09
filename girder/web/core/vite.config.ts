@@ -36,12 +36,12 @@ export default defineConfig({
     }),
     vue(),
     pugPlugin(),
-    // TODO make sure we remove this for prod build
     istanbul({
       include: 'src/*',
-      exclude: ['node_modules', 'test/', 'dist/'],
+      exclude: ['node_modules', 'tests/', 'dist/'],
       extension: [ '.js', '.ts', '.vue' ],
-      // requireEnv: true,
+      // requireEnv means istanbul plugin is only enabled when VITE_COVERAGE=true
+      requireEnv: true,
     }),
     viteStaticCopy({
       targets: [
