@@ -364,6 +364,9 @@ jobs:
     steps:
       - checkout:
           path: girder
+      - run:
+          name: Install tox
+          command: pip install tox
       - deploy:
           name: Publish Python packages
           command: tox -e publish
