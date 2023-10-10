@@ -3,7 +3,6 @@
 Constants should be defined here.
 """
 import os
-import sys
 
 import girder
 
