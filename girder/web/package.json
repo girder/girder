@@ -4,23 +4,23 @@
   "version": "0.0.0",
   "type": "module",
   "files": [
-    "dist"
+    "dist-lib"
   ],
-  "main": "./dist/girder-core.umd.cjs",
-  "module": "./dist/girder-core.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist-lib/girder-core.umd.cjs",
+  "module": "./dist-lib/girder-core.js",
+  "types": "./dist-lib/index.d.ts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/girder-core.js"
+        "types": "./dist-lib/index.d.ts",
+        "default": "./dist-lib/girder-core.js"
       },
       "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/girder-core.umd.cjs"
+        "types": "./dist-lib/index.d.ts",
+        "default": "./dist-lib/girder-core.umd.cjs"
       }
     },
-    "./style.css": "./dist/style.css"
+    "./style.css": "./dist-lib/style.css"
   },
   "scripts": {
     "dev": "vite",

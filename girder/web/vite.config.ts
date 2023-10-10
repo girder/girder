@@ -23,6 +23,8 @@ function pugPlugin() {
 }
 
 let buildOpts = {};
+const plugins: any[] = [];
+let outDir = 'dist';
 
 if (process.env.BUILD_LIB) {
   buildOpts = {
@@ -32,6 +34,13 @@ if (process.env.BUILD_LIB) {
       fileName: 'girder-core',
     }
   };
+
+  plugins.push(dts({
+    insertTypesEntry: true,
+    exclude: ['node_modules/**', 'dist-lib/**'],
+  }));
+
+  outDir = 'dist-lib';
 }
 
 // https://vitejs.dev/config/
@@ -41,10 +50,6 @@ export default defineConfig({
       $: 'jquery',
       jQuery: 'jquery',
       exclude: 'src/**/*.pug',
-    }),
-    dts({
-      insertTypesEntry: true,
-      exclude: ['node_modules/**', 'dist/**'],
     }),
     vue(),
     pugPlugin(),
@@ -63,6 +68,7 @@ export default defineConfig({
         },
       ],
     }).filter((config) => config.apply === 'build'), // Don't copy sources for dev server
+    ...plugins,
   ],
   resolve: {
     alias: {
@@ -71,6 +77,7 @@ export default defineConfig({
   },
   build: {
     sourcemap: true,
+    outDir,
     ...buildOpts,
   },
 });

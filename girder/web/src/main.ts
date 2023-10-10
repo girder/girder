@@ -12,7 +12,7 @@ interface StaticFilesSpec {
   js: string[],
 }
 
-const apiRoot = process.env.API_ROOT ?? '/api/v1';
+const apiRoot = import.meta.env.VITE_API_ROOT ?? '/api/v1';
 
 (async () => {
   const staticFilesResp = await fetch(`${apiRoot}/system/plugin_static_files`);
