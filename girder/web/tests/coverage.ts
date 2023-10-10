@@ -30,6 +30,11 @@ export const outputCoverageReport = async (page: Page) => {
   try {
     const coverage = await page.coverage.stopJSCoverage();
     for (const entry of coverage) {
+      if (/plugin_static/.test(entry.url)) {
+        /* TODO handle plugin JS files by mapping them back to the correct local file */
+        console.warn('Skipping plugin coverage', entry.url);
+        continue;
+      }
       const converter = v8toIstanbul(
         'dist/assets/index.js',
         0,
@@ -65,5 +70,6 @@ export const outputCoverageReport = async (page: Page) => {
     }
   } catch (e) {
     // Ok if there's an error thrown when we are not on chromium
+    console.error('coverage failed', e);
   }
 };

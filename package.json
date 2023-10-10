@@ -30,19 +30,16 @@
         "eslint-plugin-n": "^15.3.0",
         "eslint-plugin-promise": "^6.0.0",
         "eslint-plugin-vue": "^9.11.0",
-        "nyc": "^15.1.0",
-        "phantomjs-prebuilt": "^2.1.16",
         "pug-lint": "^2.6.0",
         "stylint": "^2.0.0"
     },
     "scripts": {
         "lint": "eslint --cache . && pug-lint . && stylint",
         "docs": "esdoc",
-        "coverage": "nyc report && mv build/test/artifacts/web_coverage/cobertura-coverage.xml build/test/coverage/",
         "publish-all": "./.circleci/publish_npm.sh"
     },
     "esdoc": {
-        "source": "girder/web_client/src",
+        "source": "girder/web/src",
         "destination": "build/docs/web",
         "index": "README.rst",
         "plugins": [
@@ -100,15 +97,6 @@
         "dist/",
         "**/node_modules/"
     ],
-    "nyc": {
-        "reporter": [
-            "cobertura",
-            "html",
-            "text-summary"
-        ],
-        "report-dir": "build/test/artifacts/web_coverage",
-        "temp-dir": "build/test/coverage/web_temp"
-    },
     "pugLintConfig": {
         "extends": "@girder/pug-lint-config",
         "excludeFiles": [

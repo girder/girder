@@ -29,6 +29,7 @@
     "test": "playwright test",
     "show-coverage": "http-server coverage/report --port 8888 -o",
     "build-only": "vite build",
+    "build-lib": "BUILD_LIB=true vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "install-browsers": "playwright install --with-deps"
   },

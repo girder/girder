@@ -139,7 +139,7 @@ jobs:
           command: |
             npm install
             npm run build
-          working_directory: girder/girder/web/core
+          working_directory: girder/girder/web
           environment:
             VITE_COVERAGE: 'true'
       - run:
@@ -169,11 +169,13 @@ jobs:
       - run:
           name: Install playwright browser dependencies
           command: npm run install-browsers
-          working_directory: girder/girder/web/core
+          working_directory: girder/girder/web
       - run:
           name: Test @girder/core
           command: npm run test
-          working_directory: girder/girder/web/core
+          working_directory: girder/girder/web
+      - store_artifacts:
+          path: girder/girder/web/coverage/report
 
   integration-test:
     executor: machine
@@ -238,7 +240,7 @@ jobs:
           command: |
             npm install
             npm run build
-          working_directory: girder/girder/web/core
+          working_directory: girder/girder/web
       - run:
           name: Install and build Girder client
           command: |
@@ -289,17 +291,6 @@ jobs:
           name: Generate Python coverage report
           command: tox -e coverage
           working_directory: girder
-      - run:
-          name: Install Javascript utilities
-          command: npm ci
-          working_directory: girder
-      - run:
-          name: Generate web coverage report
-          command: npm run coverage
-          working_directory: girder
-      - store_artifacts:
-          # Human-readable coverage reports
-          path: girder/build/test/artifacts
       - run:
           name: Install Codecov client
           command: |

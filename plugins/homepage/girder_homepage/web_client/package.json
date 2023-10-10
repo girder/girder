@@ -31,7 +31,7 @@
   },
   "author": "",
   "dependencies": {
-    "@girder/core": "file:../../../../girder/web/core"
+    "@girder/core": "file:../../../../girder/web"
   },
   "devDependencies": {
     "pug": "^3.0.2",

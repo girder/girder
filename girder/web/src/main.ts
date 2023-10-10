@@ -1,5 +1,4 @@
-import { girder } from '@girder/core';
-import '@girder/core/style.css';
+import { girder } from '.';
 
 declare global {
   interface Window {
@@ -13,9 +12,9 @@ interface StaticFilesSpec {
   js: string[],
 }
 
-const apiRoot = import.meta.env.API_ROOT ?? '/api/v1';
+const apiRoot = process.env.API_ROOT ?? '/api/v1';
 
-const init = async () => {
+(async () => {
   const staticFilesResp = await fetch(`${apiRoot}/system/plugin_static_files`);
   const staticFiles: StaticFilesSpec = await staticFilesResp.json();
 
@@ -34,7 +33,5 @@ const init = async () => {
     document.head.appendChild(script);
   })
 
-  girder.initializeDefaultApp(apiRoot);
-};
-
-init();
+  await girder.initializeDefaultApp(apiRoot);
+})();

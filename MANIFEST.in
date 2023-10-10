@@ -4,10 +4,15 @@ include README.rst
 graft girder
 prune test
 prune tests
-prune girder/web/core/
-prune girder/web/client/node_modules
-prune girder/web/client/public
-prune girder/web/client/src
-exclude girder/web/client/package.json
-exclude girder/web/client/package-lock.json
+prune girder/web/fontello
+prune girder/web/node_modules
+prune girder/web/public
+prune girder/web/src
+exclude girder/web/index.html
+exclude girder/web/package-lock.json
+exclude girder/web/package.json
+exclude girder/web/tsconfig.app.json
+exclude girder/web/tsconfig.json
+exclude girder/web/tsconfig.node.json
+exclude girder/web/vite.config.ts
 global-exclude *.pyc *.pyo *.cmake __pycache__

@@ -22,6 +22,18 @@ function pugPlugin() {
   };
 }
 
+let buildOpts = {};
+
+if (process.env.BUILD_LIB) {
+  buildOpts = {
+    lib: {
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'GirderCore',
+      fileName: 'girder-core',
+    }
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -59,10 +71,6 @@ export default defineConfig({
   },
   build: {
     sourcemap: true,
-    lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
-      name: 'GirderCore',
-      fileName: 'girder-core',
-    },
+    ...buildOpts,
   },
 });

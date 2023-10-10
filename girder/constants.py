@@ -27,8 +27,7 @@ VERSION = {
 }
 
 #: The local directory containing the static content.
-STATIC_PREFIX = os.path.join(sys.prefix, 'share', 'girder')
-STATIC_ROOT_DIR = os.path.join(PACKAGE_DIR, 'web', 'client', 'dist')
+STATIC_ROOT_DIR = os.path.join(PACKAGE_DIR, 'web', 'dist')
 
 
 def registerAccessFlag(key, name, description=None, admin=False):
