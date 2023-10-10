@@ -143,14 +143,6 @@ jobs:
           environment:
             VITE_COVERAGE: 'true'
       - run:
-          name: Install and build Girder client
-          command: |
-            npm install
-            npm run build
-          working_directory: girder/girder/web/client
-          environment:
-            VITE_COVERAGE: 'true'
-      - run:
           name: Install and build jobs plugin client
           command: |
             npm install
@@ -241,12 +233,6 @@ jobs:
             npm install
             npm run build
           working_directory: girder/girder/web
-      - run:
-          name: Install and build Girder client
-          command: |
-            npm install
-            npm run build
-          working_directory: girder/girder/web/client
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
