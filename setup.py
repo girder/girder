@@ -96,7 +96,6 @@ setup(
             'mount = girder.cli.mount:main',
             'shell = girder.cli.shell:main',
             'sftpd = girder.cli.sftpd:main',
-            'build = girder.cli.build:main'
         ]
     }
 )

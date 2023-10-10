@@ -1,4 +1,4 @@
-FROM node:12-buster
+FROM node:16-buster
 LABEL maintainer="Kitware, Inc. <kitware@kitware.com>"
 
 RUN apt-get update && apt-get install -qy \
@@ -26,12 +26,12 @@ RUN mkdir /girder
 WORKDIR /girder
 COPY . /girder/
 
+RUN cd /girder/girder/web && npm i && npm run build && cd /girder
+
 # Build girder wheel file, and install it
 RUN python3 setup.py bdist_wheel \
  && cd dist && python3 -m pip install girder && cd .. \
  && rm -rf build dist
-
-RUN girder build
 
 EXPOSE 8080
 
