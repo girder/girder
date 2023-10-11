@@ -2,7 +2,6 @@ import path, { resolve } from 'path';
 
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import istanbul from 'vite-plugin-istanbul';
 import { compileClient } from 'pug';
 import dts from 'vite-plugin-dts';
 import inject from "@rollup/plugin-inject";
@@ -53,13 +52,6 @@ export default defineConfig({
     }),
     vue(),
     pugPlugin(),
-    istanbul({
-      include: 'src/*',
-      exclude: ['node_modules', 'tests/', 'dist/'],
-      extension: [ '.js', '.ts', '.vue' ],
-      // requireEnv means istanbul plugin is only enabled when VITE_COVERAGE=true
-      requireEnv: true,
-    }),
     viteStaticCopy({
       targets: [
         {
