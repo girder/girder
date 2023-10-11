@@ -1,6 +1,4 @@
-/* global process */
-
-const versionRaw = process.env.GIRDER_VERSION || null;
+const versionRaw = import.meta.env.GIRDER_VERSION || null;
 
 // Enforce that it's a string or null to make TypeScript happy
 const version = versionRaw === null ? null : `${versionRaw}`;

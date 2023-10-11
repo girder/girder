@@ -62,7 +62,7 @@ export const outputCoverageReport = async (page: Page) => {
           lines: [50, 80] as [number, number],
         },
         coverageMap: map,
-      })
+      });
       const report = reports.create('html', {
         skipEmpty: false,
       });
