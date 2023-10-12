@@ -102,7 +102,7 @@ class CustomRoot(GirderPlugin):
 @pytest.mark.plugin('test_plugin', CustomRoot)
 @pytest.mark.parametrize('route,text,app', [
     ('/', 'hello world from test_plugin', ''),
-    ('/api/v1', 'Girder REST API Documentation', '/api'),
+    ('/api/v1', 'Girder - REST API Documentation', '/api'),
     ('/static_route', 'Hello world!', '/static_route')
 ])
 def testPluginRoutesForHumans(server, route, text, app):
