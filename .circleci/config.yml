@@ -5,11 +5,11 @@ executors:
   py3:
     docker:
       # This image uses the newest version of many dependencies
-      - image: girder/girder_test:py36-node12
+      - image: girder/girder_test:py36-node14
     working_directory: /home/circleci/project
   py3-mongo:
     docker:
-      - image: girder/girder_test:py36-node12
+      - image: girder/girder_test:py36-node14
       # Use the oldest supported MongoDB
       # This is equivalent to the deprecated circleci/mongo:<version>-ram image
       - image: mongo:3.6
@@ -167,14 +167,14 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Install NodeJS 12
+          name: Install NodeJS 14
           # CircleCI resets the Bash environment between every step, so any steps using node or npm
           # must first:
           #   source $NVM_DIR/nvm.sh
           command: |
             source $NVM_DIR/nvm.sh
-            nvm install v12
-            nvm alias default v12
+            nvm install v14
+            nvm alias default v14
             NODE_DIR=$(dirname $(which node))
             echo "export PATH=$NODE_DIR:\$PATH" >> $BASH_ENV
       - run:
@@ -327,7 +327,7 @@ jobs:
           name: Build the Girder test docker
           command: |
             cd .circleci
-            docker build --force-rm -t girder/girder_test:py36-node12 .
+            docker build --force-rm -t girder/girder_test:py36-node14 .
 
   publish-dockers:
     machine:
@@ -342,7 +342,7 @@ jobs:
           name: Build the Girder test docker
           command: |
             cd .circleci
-            docker build --force-rm -t girder/girder_test:py36-node12 .
+            docker build --force-rm -t girder/girder_test:py36-node14 .
       - run:
           name: Publish the images to Docker Hub
           command: |

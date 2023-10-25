@@ -11,7 +11,7 @@ RUN apt-get update \
     libsasl2-dev \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
   && apt-get install -y nodejs \
   && find / -xdev -name __pycache__ -type d -exec rm -r {} \+ \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

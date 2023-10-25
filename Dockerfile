@@ -1,4 +1,4 @@
-FROM node:12-buster
+FROM node:14-buster
 LABEL maintainer="Kitware, Inc. <kitware@kitware.com>"
 
 RUN apt-get update && apt-get install -qy \
