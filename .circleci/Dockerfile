@@ -1,4 +1,4 @@
-FROM cimg/python:3.6
+FROM cimg/python:3.8
 LABEL maintainer="Kitware, Inc. <kitware@kitware.com>"
 
 # Don't use "sudo"
@@ -9,6 +9,8 @@ RUN apt-get update \
   && apt-get install --assume-yes \
     libldap2-dev \
     libsasl2-dev \
+    autotools-dev \
+    automake \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \

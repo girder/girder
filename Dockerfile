@@ -1,5 +1,10 @@
-FROM node:14-buster
+FROM ubuntu:22.04
+
 LABEL maintainer="Kitware, Inc. <kitware@kitware.com>"
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=en_US.UTF-8 \
+    LC_ALL=C.UTF-8
 
 RUN apt-get update && apt-get install -qy \
     gcc \
@@ -8,6 +13,7 @@ RUN apt-get update && apt-get install -qy \
     libldap2-dev \
     libsasl2-dev \
     python3-pip \
+    curl \
 && apt-get clean && rm -rf /var/lib/apt/lists/* \
 && python3 -m pip install --upgrade \
     pip \
@@ -15,12 +21,17 @@ RUN apt-get update && apt-get install -qy \
     setuptools_scm \
     wheel
 
-# See http://click.pocoo.org/5/python3/#python-3-surrogate-handling for more detail on
-# why this is necessary.
-ENV LC_ALL=C.UTF-8
-ENV LANG=C.UTF-8
-# See https://github.com/pypa/distutils/issues/17
-ENV SETUPTOOLS_USE_DISTUTILS=stdlib
+# Use nvm to install node
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+
+# Default node version
+RUN . ~/.bashrc && \
+    nvm install 14 && \
+    nvm alias default 14 && \
+    nvm use default && \
+    ln -s $(dirname `which npm`) /usr/local/node
+
+ENV PATH="/usr/local/node:$PATH"
 
 RUN mkdir /girder
 WORKDIR /girder

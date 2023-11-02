@@ -28,4 +28,3 @@
           - girder-user-quota
           # Unpublished plugins may be specified as Git repositories, as below
           # - git+https://github.com/girder/girder-api-key-control.git
-          
