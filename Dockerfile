@@ -15,11 +15,14 @@ RUN apt-get update && apt-get install -qy \
     python3-pip \
     curl \
 && apt-get clean && rm -rf /var/lib/apt/lists/* \
-&& python3 -m pip install --upgrade \
+&& python3 -m pip install --upgrade --no-cache-dir \
     pip \
     setuptools \
     setuptools_scm \
     wheel
+
+RUN curl -LJ https://github.com/krallin/tini/releases/download/v0.19.0/tini -o /sbin/tini && \
+    chmod +x /sbin/tini
 
 # Use nvm to install node
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
@@ -39,11 +42,14 @@ COPY . /girder/
 
 # Build girder wheel file, and install it
 RUN python3 setup.py bdist_wheel \
- && cd dist && python3 -m pip install girder && cd .. \
+ && cd dist && python3 -m pip install --no-cache-dir girder && cd .. \
  && rm -rf build dist
 
-RUN girder build
+RUN girder build && \
+    rm --recursive --force \
+    /root/.npm \
+    /usr/local/lib/python*/site-packages/girder/web_client/node_modules
 
 EXPOSE 8080
 
-ENTRYPOINT ["girder", "serve"]
+ENTRYPOINT ["/sbin/tini", "--", "girder", "serve"]
