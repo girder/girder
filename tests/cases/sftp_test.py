@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import paramiko
 import io
 import socket
@@ -75,7 +74,7 @@ class SftpTestCase(base.TestCase):
             'password': 'passwd'
         })
 
-        admin, user = [User().createUser(**user) for user in users]
+        admin, user = (User().createUser(**user) for user in users)
 
         collections = ({
             'name': 'public collection',

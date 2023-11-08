@@ -22,8 +22,7 @@ setup(
     name='pytest-girder',
     use_scm_version={'root': '..', 'local_scheme': prerelease_local_scheme},
     setup_requires=[
-        'setuptools-scm<7 ; python_version < "3.7"',
-        'setuptools-scm ; python_version >= "3.7"',
+        'setuptools-scm',
     ],
     description='A set of pytest fixtures for testing Girder applications.',
     author='Kitware, Inc.',
@@ -32,6 +31,7 @@ setup(
     classifiers=[
         'Framework :: Pytest'
     ],
+    python_requires='>=3.8',
     packages=find_packages(),
     install_requires=[
         'girder>=3',

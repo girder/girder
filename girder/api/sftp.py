@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from functools import wraps
 import paramiko
 import socketserver
@@ -78,7 +77,7 @@ class _FileHandle(paramiko.SFTPHandle):
 
     def read(self, offset, length):
         if length > MAX_BUF_LEN:
-            raise IOError(
+            raise OSError(
                 'Requested chunk length (%d) is larger than the maximum allowed.' % length)
 
         if offset != self._handle.tell() and offset < self.file['size']:

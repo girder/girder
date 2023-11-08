@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 
 from setuptools import find_packages, setup
@@ -24,8 +23,7 @@ setup(
     name='girder-autojoin',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
     setup_requires=[
-        'setuptools-scm<7 ; python_version < "3.7"',
-        'setuptools-scm ; python_version >= "3.7"',
+        'setuptools-scm',
         'setuptools-git',
     ],
     description='Automatically assign new users to groups based on their email domain',
@@ -40,11 +38,9 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
     ],
     include_package_data=True,
+    python_requires='>=3.8',
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
     install_requires=['girder>=3'],

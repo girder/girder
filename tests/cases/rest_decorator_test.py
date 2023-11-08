@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import json
 import os
 import requests
@@ -29,7 +28,7 @@ class TestEndpointDecoratorException(base.TestCase):
 
     @endpoint
     def pointlessEndpointUnicode(self, path, params):
-        raise Exception(u'\u0400 cannot be converted to ascii.')
+        raise Exception('\u0400 cannot be converted to ascii.')
 
     @endpoint
     def pointlessEndpointBytes(self, path, params):
@@ -91,4 +90,4 @@ class TestEndpointDecoratorException(base.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.headers['Content-Type'], 'text/plain;charset=utf-8')
         self.assertEqual(resp.content, b'this is not encoded \xf0\x9f\x91\x8d')
-        self.assertEqual(resp.text, u'this is not encoded \U0001F44D')
+        self.assertEqual(resp.text, 'this is not encoded \U0001F44D')

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import copy
 import datetime
 import json
@@ -699,10 +698,9 @@ class Folder(AccessControlledModel):
         for sub in childFolders:
             if sub['name'] == metadataFile:
                 metadataFile = None
-            for (filepath, file) in self.fileList(
-                    sub, user, path, includeMetadata, subpath=True,
-                    mimeFilter=mimeFilter, data=data):
-                yield (filepath, file)
+            yield from self.fileList(
+                sub, user, path, includeMetadata, subpath=True,
+                mimeFilter=mimeFilter, data=data)
 
         # Eagerly evaluate this list, as the MongoDB cursor can time out on long requests
         childItems = list(self.childItems(
@@ -711,9 +709,8 @@ class Folder(AccessControlledModel):
         for item in childItems:
             if item['name'] == metadataFile:
                 metadataFile = None
-            for (filepath, file) in itemModel.fileList(
-                    item, user, path, includeMetadata, mimeFilter=mimeFilter, data=data):
-                yield (filepath, file)
+            yield from itemModel.fileList(
+                item, user, path, includeMetadata, mimeFilter=mimeFilter, data=data)
 
         if includeMetadata and metadataFile and doc.get('meta', {}):
             def stream():

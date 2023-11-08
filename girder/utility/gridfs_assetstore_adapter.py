@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import bson
 from hashlib import sha512
 import io

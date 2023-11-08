@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from pkg_resources import DistributionNotFound, get_distribution
 
 try:
@@ -542,8 +541,7 @@ class GirderClient:
 
         while True:
             records = self.get(path, params)
-            for record in records:
-                yield record
+            yield from records
 
             n = len(records)
             if limit or n < params['limit']:
@@ -1386,7 +1384,7 @@ class GirderClient:
         :param dest: The local download destination.
         """
         try:
-            with open(os.path.join(dest, '.girder_metadata'), 'r') as fh:
+            with open(os.path.join(dest, '.girder_metadata')) as fh:
                 self.localMetadata = json.loads(fh.read())
         except OSError:
             print('Local metadata does not exists. Falling back to download.')

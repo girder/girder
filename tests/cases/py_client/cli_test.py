@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import contextlib
 import girder_client.cli
 from http.client import HTTPConnection

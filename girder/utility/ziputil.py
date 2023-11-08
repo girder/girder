@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module is essentially a subset of the python zipfile module that has been
 modified to allow it to read arbitrary streams (using generators) as input,

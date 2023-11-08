@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import html
 import cherrypy
 import collections
@@ -751,7 +750,7 @@ def _setCommonCORSHeaders():
         allowedList = {o.strip() for o in allowed.split(',')}
         allowedListWithoutWildcard = allowedList - {'*'}
 
-        if any((fnmatch.fnmatch(origin, pattern) for pattern in allowedListWithoutWildcard)):
+        if any(fnmatch.fnmatch(origin, pattern) for pattern in allowedListWithoutWildcard):
             setResponseHeader('Access-Control-Allow-Origin', origin)
         elif '*' in allowedList:
             setResponseHeader('Access-Control-Allow-Origin', '*')

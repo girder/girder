@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import bson.json_util
 import dateutil.parser
 from functools import wraps

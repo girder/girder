@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from girder_jobs.models.job import Job
 
 

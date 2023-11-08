@@ -115,7 +115,7 @@ class GirderPlugin(metaclass=_PluginMeta):
         if not os.path.isfile(packageJsonFile):
             raise Exception('Invalid web client path provided: %s' % packageJsonFile)
 
-        with open(packageJsonFile, 'r') as f:
+        with open(packageJsonFile) as f:
             packageJson = json.load(f)
             packageName = packageJson['name']
 

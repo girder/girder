@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from girder import events
 from girder.constants import AccessType
 from girder.models.file import File

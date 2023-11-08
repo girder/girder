@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 This module contains the Girder events framework. It maintains a global mapping
 of events to listeners, and contains utilities for callers to handle or trigger

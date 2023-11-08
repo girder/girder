@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import cherrypy
 import datetime
 import os
@@ -111,8 +110,7 @@ class File(acl_mixin.AccessControlMixin, Model):
                     extraParameters=extraParameters)
 
                 def downloadGenerator():
-                    for data in fileDownload():
-                        yield data
+                    yield from fileDownload()
                     if endByte is None or endByte >= file['size']:
                         events.trigger('model.file.download.complete', info={
                             'file': file,

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from girder.plugin import GirderPlugin
 
 from . import rest

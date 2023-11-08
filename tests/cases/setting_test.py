@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from .. import base
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting

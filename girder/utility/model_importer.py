@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 _modelClasses = {}
 _coreModelsRegistered = False
 

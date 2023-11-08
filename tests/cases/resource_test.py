@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 import io
 import json
@@ -709,7 +708,7 @@ class ResourceTestCase(base.TestCase):
             pass
         # Test that we don't crash on Unicode file names
         for _ in zip.addFile(
-                genEmptyFile(100), u'\u0421\u0443\u043f\u0435\u0440-\u0440'
+                genEmptyFile(100), '\u0421\u0443\u043f\u0435\u0440-\u0440'
                 '\u0443\u0441\u0441\u043a\u0438, \u0627\u0633\u0645 \u0627'
                 '\u0644\u0645\u0644\u0641 \u0628\u0627\u0644\u0644\u063a'
                 '\u0629 \u0627\u0644\u0639\u0631\u0628\u064a\u0629'):

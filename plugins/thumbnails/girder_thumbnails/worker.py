@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from bson.objectid import ObjectId
 import functools
 import io

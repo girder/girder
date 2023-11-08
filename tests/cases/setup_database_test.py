@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from .. import base
 from girder.models.collection import Collection
 from girder.models.file import File
