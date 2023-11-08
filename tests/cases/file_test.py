@@ -1013,6 +1013,9 @@ class FileTestCase(base.TestCase):
         # Enable testing of multi-chunk proxied upload
         S3AssetstoreAdapter.CHUNK_LEN = 5
 
+        # Hack: make moto accept our too-small chunks
+        moto.s3.models.S3_UPLOAD_PART_MIN_SIZE = 5
+
         resp = self.request(
             path='/file', method='POST', user=self.user, params={
                 'parentType': 'folder',
@@ -1025,6 +1028,13 @@ class FileTestCase(base.TestCase):
         self.assertTrue(resp.json['s3']['chunked'])
 
         uploadId = resp.json['_id']
+
+        # Because we are moking http requests, and moto insists that there be
+        # uploaded parts, this is failing.  See line 409 of moto/s3/models.py.
+        # We bypass this.
+        from moto.utilities.utils import md5_hash
+        moto.s3.models.FakeMultipart.complete = lambda *args, **kwargs: (
+            bytearray(), f'{md5_hash().hexdigest()}-0')
 
         # Send the first chunk, should now work
         with httmock.HTTMock(mockChunkUpload):
@@ -1039,9 +1049,6 @@ class FileTestCase(base.TestCase):
         })
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['offset'], len(chunk1))
-
-        # Hack: make moto accept our too-small chunks
-        moto.s3.models.UPLOAD_PART_MIN_SIZE = 5
 
         # Send the second chunk
         with httmock.HTTMock(mockChunkUpload):

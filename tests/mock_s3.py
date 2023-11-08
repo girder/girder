@@ -45,7 +45,7 @@ def startMockS3Server():
     """
     # Reduce the chunk size to allow faster testing.
     S3AssetstoreAdapter.CHUNK_LEN = 1024 * 256
-    moto.s3.models.UPLOAD_PART_MIN_SIZE = 1024 * 256
+    moto.s3.models.S3_UPLOAD_PART_MIN_SIZE = 1024 * 256
     # turn off logging from the S3 server unless we've asked to keep it
     if 'mocks3' not in os.environ.get('EXTRADEBUG', '').split():
         logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
