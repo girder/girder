@@ -101,8 +101,8 @@ See https://pypi.python.org/pypi/certifi
 Upload a local file hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To upload a folder hierarchy rooted at `test_folder` to the Girder Folder with
-id `54b6d41a8926486c0cbca367` (folder id can obtained from the URL)::
+To upload a folder hierarchy rooted at ``test_folder`` to the Girder Folder with
+id ``54b6d41a8926486c0cbca367`` (folder id can obtained from the URL)::
 
 
     girder-client upload 54b6d41a8926486c0cbca367 test_folder
@@ -156,7 +156,7 @@ Folder
 """"""
 
 To download a Girder Folder hierarchy rooted at Folder id
-`54b6d40b8926486c0cbca364` under the local folder `download_folder` ::
+``54b6d40b8926486c0cbca364`` under the local folder ``download_folder`` ::
 
     girder-client download 54b6d40b8926486c0cbca364 download_folder
 
@@ -165,7 +165,7 @@ Collection
 """"""""""
 
 To download the Girder Folder hierarchies associated with a Girder Collection
-with id `57b5c9e58d777f126827f5a1` under the local folder `download_folder` ::
+with id ``57b5c9e58d777f126827f5a1`` under the local folder ``download_folder`` ::
 
     girder-client download --parent-type collection 57b5c9e58d777f126827f5a1 download_folder
 
@@ -173,23 +173,23 @@ User
 """"
 
 To download the Girder Folder hierarchies associated with a Girder User
-with id `54f8ac238d777f69813604af` under the local folder `download_folder` ::
+with id ``54f8ac238d777f69813604af`` under the local folder ``download_folder`` ::
 
     girder-client download --parent-type user 54b6d40b8926486c0cbca364 download_folder
 
 Item
 """"
 
-To download the file(s) associated with a Girder Item with if `58b8eb798d777f0aef5d0f78` under
-the local folder `download_folder`::
+To download the file(s) associated with a Girder Item with if ``58b8eb798d777f0aef5d0f78`` under
+the local folder ``download_folder``::
 
     girder-client download --parent-type item 8b8eb798d777f0aef5d0f78 download_folder
 
 File
 """"
 
-To download a specific file from girder with id `58b8eb798d777f0aef5d0f78` to
-the local file `local_file` ::
+To download a specific file from girder with id ``58b8eb798d777f0aef5d0f78`` to
+the local file ``local_file`` ::
 
     girder-client download --parent-type file 8b8eb798d777f0aef5d0f78  local_file
 
@@ -197,12 +197,12 @@ the local file `local_file` ::
 Auto-detecting parent-type
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Both download and upload commands accept a `--parent-type` argument allowing the users
+Both download and upload commands accept a ``--parent-type`` argument allowing the users
 to specify the type (folder, collection, user, or item) associated with the chosen
 object id.
 
 If the argument is omitted, the client will conveniently try to autodetect the type
-by iteratively invoking the `resource/%id/path?type=%type` API end point and checking
+by iteratively invoking the ``resource/%id/path?type=%type`` API end point and checking
 if a resource is found.
 
 Note that relying on auto-detection incurs extra network requests, which will slow down
@@ -211,8 +211,8 @@ the script, so it should be avoided for time-sensitive operations.
 Synchronize local folder with a Folder hierarchy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-If the `download_folder` is a local copy of a Girder Folder hierarchy rooted at
-Folder id `54b6d40b8926486c0cbca364`, any change made to the Girder Folder remotely
+If the ``download_folder`` is a local copy of a Girder Folder hierarchy rooted at
+Folder id ``54b6d40b8926486c0cbca364``, any change made to the Girder Folder remotely
 can be synchronized locally by ::
 
     girder-client localsync 54b6d40b8926486c0cbca364 download_folder
@@ -220,9 +220,9 @@ can be synchronized locally by ::
 This will only download new Items or Items that have been modified since the
 last download/localsync. Local files that are no longer present in the remote
 Girder Folder will not be removed. This command relies on a presence of
-metadata file `.metadata-girder` within `download_folder`, which is created
-upon `girder-client download`. If `.metadata-girder` is not present,
-`localsync` will fallback to `download`.
+metadata file ``.metadata-girder`` within ``download_folder``, which is created
+upon ``girder-client download``. If ``.metadata-girder`` is not present,
+``localsync`` will fallback to ``download``.
 
 The Python Client Library
 -------------------------
@@ -234,7 +234,7 @@ Recursively inherit access control to a Folder's descendants
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This will take the access control and public value in the Girder Folder with
-id `54b43e9b8926486c0c06cb4f` and copy those to all of the descendant Folders
+id ``54b43e9b8926486c0c06cb4f`` and copy those to all of the descendant Folders
 
 .. code-block:: python
 

@@ -42,7 +42,7 @@ normal objects. For example, to use the ``list`` method of the Group model:
     groups = Group().list(user=self.getCurrentUser())
 
 All models that require the standard access control semantics should extend the
-`AccessControlledModel` class. Otherwise, they should extend the `Model` class.
+``AccessControlledModel`` class. Otherwise, they should extend the ``Model`` class.
 
 All model classes must have an ``initialize`` method in which they declare
 the name of their corresponding Mongo collection, as well as any collection
