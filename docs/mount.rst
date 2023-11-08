@@ -11,7 +11,7 @@ improve reading these files.
 Additionally, some C extensions expect multiple files in the same Girder item
 to be stored in the same directory and with specific file extensions.  When a
 Girder FUSE mount is available, these will work -- instead of passing the
-Girder file object, call `File().getGirderMountFilePath()` to get a path to the
+Girder file object, call ``File().getGirderMountFilePath()`` to get a path to the
 file.
 
 To enable a Girder FUSE mount, run ``girder mount <mount path>``, where

@@ -35,7 +35,7 @@ Example Plugin
 ^^^^^^^^^^^^^^
 
 We'll use a contrived example to demonstrate the capabilities and components of
-a plugin. Our plugin will be called `cats`. ::
+a plugin. Our plugin will be called ``cats``. ::
 
     mkdir cats
 
@@ -472,7 +472,7 @@ receive the same kwargs as the default route handler in the event's info.
 
 Since handlers of this event run prior to the normal access level check of the
 underlying route handler, they are bound by the same access level rules as route
-handlers; they must be decorated by one of the functions in `girder.api.access`.
+handlers; they must be decorated by one of the functions in ``girder.api.access``.
 If you do not decorate them with one, they will default to requiring administrator
 access. This is to prevent accidental reduction of security by plugin developers.
 You may change the access level of the route in your handler, but you will
@@ -513,7 +513,7 @@ not to be performed.
 
 * **After model creation**
 
-You can receive an event `after` a resource of a specific type is created and
+You can receive an event ``after`` a resource of a specific type is created and
 saved to the database. This is sent immediately before the after-save event,
 but only occurs upon creation of a new document. You cannot prevent any default
 actions with this hook. The format of the event name is, e.g.
@@ -521,7 +521,7 @@ actions with this hook. The format of the event name is, e.g.
 
 * **After model save**
 
-You can also receive an event `after` a resource of a specific type is saved
+You can also receive an event ``after`` a resource of a specific type is saved
 to the database. This is useful if your handler needs to know the ``_id`` field
 of the document. You cannot prevent any default actions with this hook. The
 format of the event name is, e.g. ``model.folder.save.after``.
@@ -745,7 +745,7 @@ instead, we'll use a slightly less straightforward but equally powerful
 mechanism. This is best demonstrated by example. Let's say we want to execute
 some code any time the core ``HierarchyWidget`` is rendered, for instance to
 inject some additional elements into the view. We use Girder's ``wrap`` utility
-function to `wrap` the method of the core prototype with our own function.
+function to ``wrap`` the method of the core prototype with our own function.
 
 .. code-block:: javascript
 

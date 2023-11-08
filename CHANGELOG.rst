@@ -19,7 +19,7 @@ Changes
 * Move minimum node version to 8.x due to upstream packages using newer ES features.
   (`#2707 <https://github.com/girder/girder/pull/2707>`_).
 * Require MongoDB 3.4+ (`#2900 <https://github.com/girder/girder/pull/2900>`_)
-* Removed the `@access.cookie` decorator; this is now an option on the other access decorators.
+* Removed the ``@access.cookie`` decorator; this is now an option on the other access decorators.
 
 Bug Fixes
 ---------
@@ -45,7 +45,7 @@ Added Features
 * Google Storage is provisionally supported via S3 Assetstore
   (`#2876 <https://github.com/girder/girder/pull/2876>`_).
 
-* Added an `NPM_EXE` environment variable and `--npm` flag to `girder build` to configure the npm executable used.
+* Added an ``NPM_EXE`` environment variable and ``--npm`` flag to ``girder build`` to configure the npm executable used.
   (`#2826 <https://github.com/girder/girder/pull/2826>`_).
 
 * Added a privacy notice link to the footer which can be set on the Server Configuration view of the web client (
@@ -321,8 +321,8 @@ Added Features
 * Add a Description method to mark a route as deprecated
 * Many improvements to the web client test infrastructure including
 
-  * A new CMake macro, `add_standard_plugin_tests`, to enable basic tests for a typical plugin layout
-  * A new `girderTest.importPlugin` function, to load plugin JS and CSS in web client tests
+  * A new CMake macro, ``add_standard_plugin_tests``, to enable basic tests for a typical plugin layout
+  * A new ``girderTest.importPlugin`` function, to load plugin JS and CSS in web client tests
   * A static analysis test for Stylus files
   * New rules for Javascript and Pug static analysis tests
 
@@ -338,14 +338,14 @@ Changes
 Deprecations
 ------------
 
-* job Plugin: Python Job model `listAll` method
-* hashsum_download plugin: Python `HashedFile.supportedAlgorithms` symbol
-* item_tasks plugin: `item_task_json_description` and `item_task_json_specs` routes
-* `module.loaders` in webpack helper files, and the use of Webpack 1.0 syntax in plugins' webpack helper files
-* `restRequest.error` in rest.js
-* `npm-install` in client side build
-* `girderTest.addCoveredScript` and `girderTest.addCoveredScripts` in testUtilities.js
-* access to file paths outside `/static/built/` in the web client test environment
+* job Plugin: Python Job model ``listAll`` method
+* hashsum_download plugin: Python ``HashedFile.supportedAlgorithms`` symbol
+* item_tasks plugin: ``item_task_json_description`` and ``item_task_json_specs`` routes
+* ``module.loaders`` in webpack helper files, and the use of Webpack 1.0 syntax in plugins' webpack helper files
+* ``restRequest.error`` in rest.js
+* ``npm-install`` in client side build
+* ``girderTest.addCoveredScript`` and ``girderTest.addCoveredScripts`` in testUtilities.js
+* access to file paths outside ``/static/built/`` in the web client test environment
 
 Removals
 --------

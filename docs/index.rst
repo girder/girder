@@ -90,7 +90,7 @@ extend the core system behavior is nearly limitless.
 Plugins are self-contained in their own directory within the Girder source tree.
 Therefore they can reside in their own separate source repository, and are installed
 by simply copying the plugin source tree under an existing Girder installation's
-`plugins` directory. The Girder repository contains several generally
+``plugins`` directory. The Girder repository contains several generally
 useful plugins out of the box, which are described in the :doc:`plugins` section.
 
 
