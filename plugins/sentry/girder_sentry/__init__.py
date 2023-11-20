@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import sentry_sdk
 from girder.plugin import GirderPlugin
 from girder.models.setting import Setting

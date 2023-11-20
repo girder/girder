@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from girder.utility import _hash_state
 import hashlib
 import pytest

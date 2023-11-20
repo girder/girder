@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import json
 from girder import events
 from girder.constants import AccessType

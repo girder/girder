@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Constants should be defined here.
 """

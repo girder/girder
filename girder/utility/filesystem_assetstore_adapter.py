@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import filelock
 from hashlib import sha512
 import io

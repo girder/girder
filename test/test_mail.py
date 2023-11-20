@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 
 import pytest
@@ -71,7 +70,7 @@ def testPluginTemplates(server):
 
 
 def testUnicodeEmail(smtp):
-    text = u'Contains unic\xf8de \u0420\u043e\u0441\u0441\u0438\u044f'
+    text = 'Contains unic\xf8de \u0420\u043e\u0441\u0441\u0438\u044f'
     mail_utils.sendMail(text, text, ['fake@fake.com'])
     assert smtp.waitForMail()
     message = smtp.getMail(parse=True)

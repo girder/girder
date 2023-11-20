@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 import json
 
@@ -37,7 +36,7 @@ class FolderTestCase(base.TestCase):
             'lastName': 'Last',
             'password': 'goodpassword'
         })
-        self.admin, self.user = [User().createUser(**user) for user in users]
+        self.admin, self.user = (User().createUser(**user) for user in users)
 
     def testLegacyFolders(self):
         folder = Folder().createFolder(

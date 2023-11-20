@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from bson.objectid import ObjectId, InvalidId
 from girder import logger
 from girder.api import access

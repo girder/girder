@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import click
 from http.client import HTTPConnection
 import logging

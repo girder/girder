@@ -24,7 +24,7 @@ from girder_audit_logs import Record
 
 def index_folder(folderId):
     if Folder().load(folderId, force=True) is None:
-        raise ValueError('folderId={} was not a valid folder'.format(folderId))
+        raise ValueError(f'folderId={folderId} was not a valid folder')
     items = Item().find({'folderId': ObjectId(folderId)})
     subfolders = Folder().find({'parentId': ObjectId(folderId)})
 

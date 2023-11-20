@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 
 from setuptools import setup, find_packages
@@ -33,8 +32,7 @@ setup(
     name='girder-client',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
     setup_requires=[
-        'setuptools-scm<7 ; python_version < "3.7"',
-        'setuptools-scm ; python_version >= "3.7"',
+        'setuptools-scm',
     ],
     description='Python client for interacting with Girder servers',
     long_description=readme,
@@ -43,12 +41,13 @@ setup(
     url='http://girder.readthedocs.org/en/latest/python-client.html',
     license='Apache 2.0',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3'
     ],
+    python_requires='>=3.8',
     packages=find_packages(exclude=('tests.*', 'tests')),
     install_requires=install_reqs,
     zip_safe=False,

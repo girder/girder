@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import cherrypy
 import click
 import errno
@@ -50,8 +49,8 @@ class ServerFuse(fuse.Operations):
             stat = os.stat(os.path.expanduser('~'))
         # we always set st_mode, st_size, st_ino, st_nlink, so we don't need
         # to track those.
-        self._defaultStat = dict((key, getattr(stat, key)) for key in (
-            'st_atime', 'st_ctime', 'st_gid', 'st_mtime', 'st_uid', 'st_blksize'))
+        self._defaultStat = {key: getattr(stat, key) for key in (
+            'st_atime', 'st_ctime', 'st_gid', 'st_mtime', 'st_uid', 'st_blksize')}
         self.nextFH = 1
         self.openFiles = {}
         self.openFilesLock = threading.Lock()
@@ -269,9 +268,9 @@ class ServerFuse(fuse.Operations):
         :returns: a list of names.  This always includes . and ..
         """
         path = path.rstrip('/')
-        result = [u'.', u'..']
+        result = ['.', '..']
         if path == '':
-            result.extend([u'collection', u'user'])
+            result.extend(['collection', 'user'])
         elif path in ('/user', '/collection'):
             model = path[1:]
             docList = ModelImporter.model(model).find({}, sort=None)

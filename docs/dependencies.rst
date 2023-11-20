@@ -17,7 +17,7 @@ Installation of Girder's server has the following system dependencies:
     `OpenSSL <https://packages.ubuntu.com/bionic/openssl>`_) at a very low level, so other
     operating system distributions and versions may not be compatible.
 
-* `Python <https://www.python.org>`_ v3.6
+* `Python <https://www.python.org>`_ v3.8
 
   * This is necessary to run most of the server software.
 
@@ -110,11 +110,11 @@ Web Client Build
 ----------------
 Building Girder's web client has the following system dependencies:
 
-* `Node.js <https://nodejs.org/>`_ v10 to v14
+* `Node.js <https://nodejs.org/>`_ v14
 
   * This is necessary to execute many aspects of the web client build system.
 
-* `npm <https://www.npmjs.com/>`_ v5.2 to v6
+* `npm <https://www.npmjs.com/>`_ v6
 
   * This is necessary to install web client packages.
 

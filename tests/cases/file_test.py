@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import boto3
 import httmock
 import io
@@ -424,7 +423,7 @@ class FileTestCase(base.TestCase):
                     for (path, file) in Folder().fileList(
                         testFolder, user=self.user,
                         subpath=True, data=False)]
-        self.assertEqual(fileList, [(u'Test/random.bin', u'random.bin')])
+        self.assertEqual(fileList, [('Test/random.bin', 'random.bin')])
 
         # Download the folder
         resp = self.request(
@@ -795,9 +794,9 @@ class FileTestCase(base.TestCase):
 
         # Test unicode filenames for content disposition.  The test name has
         # quotes, a Linear-B codepoint, Cyrllic, Arabic, Chinese, and an emoji.
-        filename = u'Unicode "sample" \U00010088 ' + \
-                   u'\u043e\u0431\u0440\u0430\u0437\u0435\u0446 ' + \
-                   u'\u0639\u064a\u0646\u0629 \u6a23\u54c1 \U0001f603'
+        filename = 'Unicode "sample" \U00010088 ' + \
+                   '\u043e\u0431\u0440\u0430\u0437\u0435\u0446 ' + \
+                   '\u0639\u064a\u0646\u0629 \u6a23\u54c1 \U0001f603'
         file = self._testUploadFile(filename)
         file = File().load(file['_id'], force=True)
         testval = 'filename="Unicode \\"sample\\"     "; filename*=UTF-8\'\'' \

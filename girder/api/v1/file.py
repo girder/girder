@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import cherrypy
 import errno
 
@@ -233,7 +232,7 @@ class File(Resource):
                     upload['received'], offset))
         try:
             return Upload().handleChunk(upload, chunk, filter=True, user=user)
-        except IOError as exc:
+        except OSError as exc:
             if exc.errno == errno.EACCES:
                 raise Exception('Failed to store upload.')
             raise

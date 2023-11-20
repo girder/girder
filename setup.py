@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 
 from setuptools import find_packages, setup
@@ -30,7 +29,6 @@ installReqs = [
     'click-plugins',
     'dogpile.cache',
     'filelock',
-    'importlib-metadata<5 ; python_version < "3.8"',
     'jsonschema',
     'Mako',
     'passlib [bcrypt,totp]',
@@ -56,8 +54,7 @@ setup(
     name='girder',
     use_scm_version={'local_scheme': prerelease_local_scheme},
     setup_requires=[
-        'setuptools-scm<7 ; python_version < "3.7"',
-        'setuptools-scm ; python_version >= "3.7"',
+        'setuptools-scm',
     ],
     description='Web-based data management platform',
     long_description=readme,
@@ -72,15 +69,12 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
     ],
+    python_requires='>=3.8',
     packages=find_packages(
         exclude=('girder.test', 'tests.*', 'tests', '*.plugin_tests.*', '*.plugin_tests')
     ),
     include_package_data=True,
-    python_requires='>=3.6',
     install_requires=installReqs,
     extras_require=extrasReqs,
     zip_safe=False,

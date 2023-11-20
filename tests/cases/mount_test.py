@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 import os
 import stat
@@ -66,9 +65,9 @@ class ServerFuseTestCase(base.TestCase):
             'user/user/Private/Item 4/File 4': 'File 4',
             'user/user/Private/Folder/Item 5/File 5': 'File 5',
             'collection/Test Collection/Private/Collection Item/Collection File': 'File 1A',
-            u'collection/Test Collection/Private/Collection Item/'
-            u'\u0444\u0430\u0439\u043b \u043a\u043e\u043b\u043b\u0435\u043a'
-            u'\u0446\u0438\u0438': 'File 1A',
+            'collection/Test Collection/Private/Collection Item/'
+            '\u0444\u0430\u0439\u043b \u043a\u043e\u043b\u043b\u0435\u043a'
+            '\u0446\u0438\u0438': 'File 1A',
         }
         self.adminFileName = 'user/admin/Private/Item 1/File 1A'
         self.publicFileName = 'user/user/Public/Item 3/File 3'

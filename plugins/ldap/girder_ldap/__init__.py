@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import ldap
 
 from girder import events

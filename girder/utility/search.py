@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from functools import partial
 
 from girder.exceptions import GirderException

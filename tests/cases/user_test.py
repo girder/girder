@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import cherrypy
 import collections
 import datetime
@@ -622,7 +621,7 @@ class UserTestCase(base.TestCase):
             'parentId': user1['_id'],
             'parentCollection': 'user'})
         self.assertSetEqual(
-            set(folder['name'] for folder in user1Folders),
+            {folder['name'] for folder in user1Folders},
             {'Public', 'Private'}
         )
 
@@ -643,7 +642,7 @@ class UserTestCase(base.TestCase):
             'parentId': user2['_id'],
             'parentCollection': 'user'})
         self.assertSetEqual(
-            set(folder['name'] for folder in user2Folders),
+            {folder['name'] for folder in user2Folders},
             set()
         )
 

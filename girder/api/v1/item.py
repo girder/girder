@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.utility import ziputil
@@ -242,8 +241,7 @@ class Item(Resource):
         def stream():
             zip = ziputil.ZipGenerator(item['name'])
             for (path, file) in self._model.fileList(item, subpath=False):
-                for data in zip.addFile(file, path):
-                    yield data
+                yield from zip.addFile(file, path)
             yield zip.footer()
         return stream
 

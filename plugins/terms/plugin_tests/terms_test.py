@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.settings import SettingKey
@@ -69,7 +68,7 @@ class TermsTest(base.TestCase):
             'name': 'Terms Collection',
             'description': 'Some other description.',
             'public': True,
-            'terms': u'# Sample Terms of Use\n\n**\u00af\\\\\\_(\u30c4)\\_/\u00af**'.encode('utf-8')
+            'terms': '# Sample Terms of Use\n\n**\u00af\\\\\\_(\u30c4)\\_/\u00af**'.encode()
         })
         self.assertStatusOk(resp)
         self.assertDictContainsSubset({
@@ -78,7 +77,7 @@ class TermsTest(base.TestCase):
             'public': True,
             'size': 0,
             '_modelType': 'collection',
-            'terms': u'# Sample Terms of Use\n\n**\u00af\\\\\\_(\u30c4)\\_/\u00af**'
+            'terms': '# Sample Terms of Use\n\n**\u00af\\\\\\_(\u30c4)\\_/\u00af**'
         }, resp.json)
         termsCollectionId = resp.json['_id']
 
@@ -92,7 +91,7 @@ class TermsTest(base.TestCase):
             'public': True,
             'size': 0,
             '_modelType': 'collection',
-            'terms': u'# Sample Terms of Use\n\n**\u00af\\\\\\_(\u30c4)\\_/\u00af**'
+            'terms': '# Sample Terms of Use\n\n**\u00af\\\\\\_(\u30c4)\\_/\u00af**'
         }, resp.json)
 
         # Ensure that the user has not yet accepted any terms

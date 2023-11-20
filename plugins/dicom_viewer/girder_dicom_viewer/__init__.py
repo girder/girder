@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 import json
 
@@ -114,20 +113,20 @@ def _removeUniqueMetadata(dicomMeta, additionalMeta):
     this means not have any dict or list as properties
     """
     return dict(
-        set(
+        {
             (
                 k,
                 tuple(v) if isinstance(v, list) else v
             )
             for k, v in dicomMeta.items()
-        )
-        & set(
+        }
+        & {
             (
                 k,
                 tuple(v) if isinstance(v, list) else v
             )
             for k, v in additionalMeta.items()
-        )
+        }
     )
 
 
@@ -183,7 +182,7 @@ def _coerceMetadata(dataset):
     for tag in dataset.keys():
         try:
             dataElement = dataset[tag]
-        except IOError:
+        except OSError:
             continue
         if dataElement.tag.element == 0:
             # Skip Group Length tags, which are always element 0x0000
