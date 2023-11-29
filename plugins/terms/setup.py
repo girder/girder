@@ -22,10 +22,6 @@ def prerelease_local_scheme(version):
 setup(
     name='girder-terms',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
-    setup_requires=[
-        'setuptools-scm',
-        'setuptools-git',
-    ],
     description='Allows Girder collections to require users to accept terms of '
     'use before browsing.',
     author='Kitware, Inc.',

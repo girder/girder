@@ -55,9 +55,6 @@ extrasReqs = {
 setup(
     name='girder',
     use_scm_version={'local_scheme': prerelease_local_scheme},
-    setup_requires=[
-        'setuptools-scm',
-    ],
     description='Web-based data management platform',
     long_description=readme,
     author='Kitware, Inc.',

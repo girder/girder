@@ -21,9 +21,6 @@ def prerelease_local_scheme(version):
 setup(
     name='girder-audit-logs',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
-    setup_requires=[
-        'setuptools-scm',
-    ],
     description='Keeps detailed logs of every REST request and low-level file download event.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

@@ -21,9 +21,6 @@ def prerelease_local_scheme(version):
 setup(
     name='pytest-girder',
     use_scm_version={'root': '..', 'local_scheme': prerelease_local_scheme},
-    setup_requires=[
-        'setuptools-scm',
-    ],
     description='A set of pytest fixtures for testing Girder applications.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

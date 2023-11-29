@@ -22,10 +22,6 @@ def prerelease_local_scheme(version):
 setup(
     name='girder-hashsum-download',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
-    setup_requires=[
-        'setuptools-scm',
-        'setuptools-git',
-    ],
     description='Allows download of a file by its hashsum.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

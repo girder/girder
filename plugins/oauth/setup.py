@@ -22,10 +22,6 @@ def prerelease_local_scheme(version):
 setup(
     name='girder-oauth',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
-    setup_requires=[
-        'setuptools-scm',
-        'setuptools-git',
-    ],
     description='Allow users to login via supported OAuth2 providers.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

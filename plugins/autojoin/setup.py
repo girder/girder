@@ -22,10 +22,6 @@ def prerelease_local_scheme(version):
 setup(
     name='girder-autojoin',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
-    setup_requires=[
-        'setuptools-scm',
-        'setuptools-git',
-    ],
     description='Automatically assign new users to groups based on their email domain',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',

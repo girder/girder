@@ -12,6 +12,7 @@ for directory in "${PUBLISHED_PYTHON_PACKAGES[@]}"; do
     pushd "$directory"
     rm -fr dist
     python setup.py sdist
+    pip wheel . --no-deps -w dist
     popd
     twine upload --skip-existing "$directory/dist/*"
 done

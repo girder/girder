@@ -22,10 +22,6 @@ def prerelease_local_scheme(version):
 setup(
     name='girder-sentry',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
-    setup_requires=[
-        'setuptools-scm',
-        'setuptools-git',
-    ],
     description='Allow the automatic tracking of issues using Sentry.',
     maintainer='Kitware, Inc.',
     maintainer_email='kitware@kitware.com',
