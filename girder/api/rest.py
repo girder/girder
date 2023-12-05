@@ -287,17 +287,20 @@ def getBodyJson(allowConstants=False):
         to the correct float values, but are not valid in strict JSON.
     :type allowConstants: bool
     """
-    if allowConstants:
-        _parseConstants = None
-    else:
-        def _parseConstants(val):
-            raise RestException('Error: "%s" is not valid JSON.' % val)
+    if not hasattr(cherrypy.request, 'girderBodyJson'):
+        if allowConstants:
+            _parseConstants = None
+        else:
+            def _parseConstants(val):
+                raise RestException('Error: "%s" is not valid JSON.' % val)
 
-    text = cherrypy.request.body.read().decode('utf8')
-    try:
-        return json.loads(text, parse_constant=_parseConstants)
-    except ValueError:
-        raise RestException('Invalid JSON passed in request body.')
+        text = cherrypy.request.body.read().decode('utf8')
+        try:
+            cherrypy.request.girderBodyJson = json.loads(text, parse_constant=_parseConstants)
+        except ValueError:
+            raise RestException('Invalid JSON passed in request body.')
+
+    return cherrypy.request.girderBodyJson
 
 
 def getParamJson(name, params, default=None):
