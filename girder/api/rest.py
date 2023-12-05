@@ -282,6 +282,10 @@ def getBodyJson(allowConstants=False):
     parsed value, or raises a :class:`girder.api.rest.RestException` for
     invalid JSON.
 
+    It's important to note that this function caches the parsed JSON body; subsequent
+    calls to this within the same request lifecycle will always return the same object as
+    the first call, regardless of the arguments passed in to this function.
+
     :param allowConstants: Whether the keywords Infinity, -Infinity, and NaN
         should be allowed. These keywords are valid JavaScript and will parse
         to the correct float values, but are not valid in strict JSON.
