@@ -737,25 +737,9 @@ describe('browser hierarchy selection', function () {
         $('.modal').remove();
         $.support.transition = transition;
     });
-    it('register a user', function () {
-        runs(function () {
-            var _user = new girder.models.UserModel({
-                login: 'mylogin',
-                password: 'mypassword',
-                email: 'email@girder.test',
-                firstName: 'First',
-                lastName: 'Last'
-            }).on('g:saved', function () {
-                user = _user;
-            });
-
-            _user.save();
-        });
-
-        waitsFor(function () {
-            return !!user;
-        }, 'user registration');
-    });
+    it('register a user', girderTest.createUser(
+        'mylogin', 'email@girder.test', 'First', 'Last', 'mypassword'
+    ));
 
     it('create top level folder', function () {
         runs(function () {
