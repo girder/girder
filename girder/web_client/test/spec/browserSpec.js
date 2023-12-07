@@ -737,9 +737,26 @@ describe('browser hierarchy selection', function () {
         $('.modal').remove();
         $.support.transition = transition;
     });
-    it('register a user', girderTest.createUser(
-        'mylogin', 'email@girder.test', 'First', 'Last', 'mypassword'
-    ));
+    it('register a user', function () {
+        runs(function () {
+            var _user = new girder.models.UserModel({
+                login: 'mylogin',
+                password: 'mypassword',
+                email: 'email@girder.test',
+                firstName: 'First',
+                lastName: 'Last'
+            }).on('g:saved', function () {
+                user = _user;
+                window.localStorage.setItem('girderToken', user.get('authToken').token);
+            });
+
+            _user.save();
+        });
+
+        waitsFor(function () {
+            return !!user;
+        }, 'user registration');
+    });
 
     it('create top level folder', function () {
         runs(function () {
@@ -981,6 +998,7 @@ describe('browser hierarchy paginated selection', function () {
     });
     it('register a user', function () {
         runs(function () {
+            window.localStorage.removeItem('girderToken');
             var _user = new girder.models.UserModel({
                 login: 'mylogin2',
                 password: 'mypassword',
@@ -989,6 +1007,7 @@ describe('browser hierarchy paginated selection', function () {
                 lastName: 'Last'
             }).on('g:saved', function () {
                 user = _user;
+                window.localStorage.setItem('girderToken', user.get('authToken').token);
             });
 
             _user.save();

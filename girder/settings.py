@@ -272,6 +272,12 @@ class SettingValidator:
                 'Girder mount information must be a dict with the "path" key.', 'value')
 
     @staticmethod
+    @setting_utilities.validator(SettingKey.HTTP_ONLY_COOKIES)
+    def _validateHttpOnlyCookies(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException('HTTP only cookies setting must be boolean.', 'value')
+
+    @staticmethod
     @setting_utilities.validator(SettingKey.PRIVACY_NOTICE)
     def _validatePrivacyNotice(doc):
         if not doc['value']:
