@@ -3,7 +3,7 @@ import _ from 'underscore';
 import Backbone from 'backbone';
 
 import events from '@girder/core/events';
-import { getCurrentToken, cookie } from '@girder/core/auth';
+import { getCurrentToken } from '@girder/core/auth';
 
 let apiRoot;
 var uploadHandlers = {};
@@ -70,7 +70,7 @@ const restRequest = function (opts) {
     const defaults = {
         // the default 'method' is 'GET', as set by 'jquery.ajax'
 
-        girderToken: getCurrentToken() || cookie.find('girderToken'),
+        girderToken: getCurrentToken() || window.localStorage.getItem('girderToken'),
 
         error: (error, status) => {
             let info;

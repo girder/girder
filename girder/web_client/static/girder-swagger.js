@@ -56,16 +56,9 @@ $(function () {
     }
 
     function addApiKeyAuthorization() {
-        var cookieParams = document.cookie.split(';').map(function (m) {
-            return m.replace(/^\s+/, '').replace(/\s+$/, '');
-        });
-        cookieParams.forEach(function (val) {
-            var arr = val.split('=');
-            if (arr[0] === 'girderToken') {
-                // Make swagger send the Girder-Token header with each request.
-                swaggerUi.preauthorizeApiKey(
-                    'Girder-Token', arr[1]);
-            }
-        });
+        const girderToken = window.localStorage.getItem('girderToken');
+        if (girderToken) {
+            swaggerUi.preauthorizeApiKey('Girder-Token', girderToken);
+        }
     }
 });

@@ -1,7 +1,7 @@
 import UserModel from '@girder/core/models/UserModel';
 import View from '@girder/core/views/View';
 import events from '@girder/core/events';
-import { getCurrentUser, setCurrentUser, getCurrentToken, setCurrentToken, corsAuth } from '@girder/core/auth';
+import { getCurrentUser, setCurrentUser, getCurrentToken, setCurrentToken } from '@girder/core/auth';
 import { handleClose, handleOpen } from '@girder/core/dialog';
 
 import RegisterDialogTemplate from '@girder/core/templates/layout/registerDialog.pug';
@@ -44,10 +44,7 @@ var RegisterView = View.extend({
                     if (authToken.token) {
                         setCurrentUser(user);
                         setCurrentToken(authToken.token);
-
-                        if (corsAuth) {
-                            document.cookie = 'girderToken=' + getCurrentToken();
-                        }
+                        window.localStorage.setItem('girderToken', getCurrentToken());
 
                         events.trigger('g:login');
                     } else {

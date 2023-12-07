@@ -1181,7 +1181,9 @@ class Resource:
         cookie['girderToken'] = str(token['_id'])
         cookie['girderToken']['path'] = '/'
         cookie['girderToken']['expires'] = int(days * 3600 * 24)
-        cookie['girderToken']['httponly'] = True
+
+        if Setting().get(SettingKey.HTTP_ONLY_COOKIES):
+            cookie['girderToken']['httponly'] = True
 
         # CherryPy proxy tools modify the request.base, but not request.scheme, when receiving
         # X-Forwarded-Proto headers from a reverse proxy
