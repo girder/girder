@@ -34,6 +34,7 @@ describe('Test hierarchy widget non-standard options', function () {
                 lastName: 'Last'
             }).on('g:saved', function () {
                 user = _user;
+                window.localStorage.setItem('girderToken', user.get('authToken').token);
             });
 
             _user.save();

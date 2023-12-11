@@ -41,6 +41,10 @@ the setting named ``"core.brand_name"``, you'd use ``GIRDER_SETTING_CORE_BRAND_N
 Settings set through environment variables will override any setting value that is set in the database
 via the web API.
 
+The full list of system settings available in Girder core can be seen in the file
+``girder/girder/settings.py``, under the ``SettingKey`` class. Plugins may add additional settings
+within their own packages.
+
 Logging
 -------
 

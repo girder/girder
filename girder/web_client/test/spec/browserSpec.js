@@ -747,6 +747,7 @@ describe('browser hierarchy selection', function () {
                 lastName: 'Last'
             }).on('g:saved', function () {
                 user = _user;
+                window.localStorage.setItem('girderToken', user.get('authToken').token);
             });
 
             _user.save();
@@ -997,6 +998,7 @@ describe('browser hierarchy paginated selection', function () {
     });
     it('register a user', function () {
         runs(function () {
+            window.localStorage.removeItem('girderToken');
             var _user = new girder.models.UserModel({
                 login: 'mylogin2',
                 password: 'mypassword',
@@ -1005,6 +1007,7 @@ describe('browser hierarchy paginated selection', function () {
                 lastName: 'Last'
             }).on('g:saved', function () {
                 user = _user;
+                window.localStorage.setItem('girderToken', user.get('authToken').token);
             });
 
             _user.save();

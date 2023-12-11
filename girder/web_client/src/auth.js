@@ -8,6 +8,7 @@ import { restRequest } from '@girder/core/rest';
 // girder.corsAuth could be an override. See login doc below.
 var corsAuth = false;
 
+// TODO delete in next major version
 var cookie = {
     findAll: function () {
         var cookies = {};
@@ -43,7 +44,7 @@ var cookie = {
 };
 
 var currentUser = null;
-var currentToken = cookie.find('girderToken');
+var currentToken = window.localStorage.getItem('girderToken');
 
 function getCurrentUser() {
     return currentUser;
@@ -110,11 +111,7 @@ function login(username, password, cors = corsAuth, otpToken = null) {
         setCurrentUser(new UserModel(response.user));
         setCurrentToken(response.user.token.token);
 
-        if (cors && !cookie.find('girderToken')) {
-            // For cross-origin requests, we should write the token into
-            // this document's cookie also.
-            document.cookie = 'girderToken=' + getCurrentToken();
-        }
+        window.localStorage.setItem('girderToken', response.user.token.token);
 
         events.trigger('g:login.success', response.user);
         events.trigger('g:login', response);
@@ -132,6 +129,8 @@ function logout() {
     }).done(function () {
         setCurrentUser(null);
         setCurrentToken(null);
+
+        window.localStorage.removeItem('girderToken');
 
         events.trigger('g:login', null);
         events.trigger('g:logout.success');
