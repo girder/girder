@@ -46,6 +46,8 @@ extrasReqs = {
         'paramiko'
     ],
     'mount': [
+        'cachetools',
+        'diskcache',
         'fusepy>=3.0'
     ]
 }
