@@ -372,10 +372,10 @@ jobs:
           name: Publish Python packages
           command: tox -e publish
           working_directory: girder
-      - deploy:
-          name: Publish Ansible role
-          command: tox -e release_ansible
-          working_directory: girder
+      # - deploy:
+      #     name: Publish Ansible role
+      #     command: tox -e release_ansible
+      #     working_directory: girder
 
   publish-release:
     executor: py3
@@ -424,10 +424,10 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+.*/
-      - ansible-test:
-          filters:
-            tags:
-              only: /^v[0-9]+.*/
+      # - ansible-test:
+      #     filters:
+      #       tags:
+      #         only: /^v[0-9]+.*/
       - dockers:
           filters:
             tags:
