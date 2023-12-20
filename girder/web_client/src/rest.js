@@ -3,7 +3,7 @@ import _ from 'underscore';
 import Backbone from 'backbone';
 
 import events from '@girder/core/events';
-import { getCurrentToken } from '@girder/core/auth';
+import { getCurrentToken, setCurrentUser, setCurrentToken } from '@girder/core/auth';
 
 let apiRoot;
 var uploadHandlers = {};
@@ -75,6 +75,8 @@ const restRequest = function (opts) {
         error: (error, status) => {
             let info;
             if (error.status === 401) {
+                setCurrentUser(null);
+                setCurrentToken(null);
                 events.trigger('g:loginUi');
                 info = {
                     text: 'You must log in to view this resource',
