@@ -29,7 +29,7 @@ coverage
 girder-worker
 httmock
 mongomock
-moto[server]
+moto[server]<4.2.12
 pytest
 pytest-cov
 python-dateutil
