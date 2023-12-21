@@ -29,8 +29,8 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | b
 
 # Default node version
 RUN . ~/.bashrc && \
-    nvm install 14 && \
-    nvm alias default 14 && \
+    nvm install 16 && \
+    nvm alias default 16 && \
     nvm use default && \
     ln -s $(dirname `which npm`) /usr/local/node
 
