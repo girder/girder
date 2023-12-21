@@ -161,18 +161,6 @@ jobs:
           name: Test @girder/core
           command: npm run test
           working_directory: girder/girder/web
-      - run:
-          name: Run CTest
-          command: >-
-            ctest
-            --extra-verbose
-            --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
-          environment:
-            TEST_GROUP: browser
-            PYTHON_VERSION: 3.8
-            PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
-            JASMINE_TIMEOUT: 15000
-          working_directory: girder_build
       - store_artifacts:
           path: girder/girder/web/coverage/report
 
