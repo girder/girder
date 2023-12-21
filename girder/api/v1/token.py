@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from ..rest import Resource
 from ..describe import Description, autoDescribeRoute
 from girder.api import access

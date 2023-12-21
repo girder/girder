@@ -24,12 +24,12 @@
 -e plugins/virtual_folders
 
 # External dependencies
-configparser==3.5.0
+configparser
 coverage
 girder-worker
 httmock
 mongomock
-moto[server,s3]
+moto[server]<4.2.12
 pytest>=3.6
 pytest-cov>=2.6
 python-dateutil

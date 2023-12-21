@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import argparse
 import boto3
 import errno
@@ -56,7 +55,7 @@ def startMockS3Server():
         try:
             test_socket.bind(('0.0.0.0', port))
             selectedPort = port
-        except socket.error as err:
+        except OSError as err:
             # Allow address in use errors to fail quietly
             if err.errno != errno.EADDRINUSE:
                 raise

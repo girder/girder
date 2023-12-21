@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from ..constants import AssetstoreType
 from ..exceptions import NoAssetstoreAdapter
 from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter

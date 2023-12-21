@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from .external_data_core_test import ExternalDataCoreTest
 import os
 import hashlib
@@ -19,7 +18,7 @@ class ExternalDataPluginTest(ExternalDataCoreTest):
         )
 
         hash = hashlib.md5()
-        with open(filepath, 'r') as f:
+        with open(filepath) as f:
             hash.update(f.read().encode('utf-8'))
             self.assertEqual(
                 hash.hexdigest(),

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import pytest
 
 from girder.exceptions import AccessException

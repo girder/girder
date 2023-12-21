@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from bson.objectid import ObjectId
 import functools
 import io
@@ -90,7 +89,7 @@ def createThumbnail(width, height, crop, fileId, attachToType, attachToId):
             x2 = int(x2 / 2 + width * hr / 2)
         image = image.crop((x1, y1, x2, y2))
 
-    image.thumbnail((width, height))
+    image.thumbnail((width, height), Image.LANCZOS)
 
     out = io.BytesIO()
     image.convert('RGB').save(out, 'JPEG', quality=85)

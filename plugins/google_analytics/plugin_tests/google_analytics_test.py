@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from tests import base
 from girder.models.setting import Setting
 

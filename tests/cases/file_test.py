@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import boto3
 import httmock
 import io
@@ -424,7 +423,7 @@ class FileTestCase(base.TestCase):
                     for (path, file) in Folder().fileList(
                         testFolder, user=self.user,
                         subpath=True, data=False)]
-        self.assertEqual(fileList, [(u'Test/random.bin', u'random.bin')])
+        self.assertEqual(fileList, [('Test/random.bin', 'random.bin')])
 
         # Download the folder
         resp = self.request(
@@ -795,9 +794,9 @@ class FileTestCase(base.TestCase):
 
         # Test unicode filenames for content disposition.  The test name has
         # quotes, a Linear-B codepoint, Cyrllic, Arabic, Chinese, and an emoji.
-        filename = u'Unicode "sample" \U00010088 ' + \
-                   u'\u043e\u0431\u0440\u0430\u0437\u0435\u0446 ' + \
-                   u'\u0639\u064a\u0646\u0629 \u6a23\u54c1 \U0001f603'
+        filename = 'Unicode "sample" \U00010088 ' + \
+                   '\u043e\u0431\u0440\u0430\u0437\u0435\u0446 ' + \
+                   '\u0639\u064a\u0646\u0629 \u6a23\u54c1 \U0001f603'
         file = self._testUploadFile(filename)
         file = File().load(file['_id'], force=True)
         testval = 'filename="Unicode \\"sample\\"     "; filename*=UTF-8\'\'' \
@@ -1013,6 +1012,9 @@ class FileTestCase(base.TestCase):
         # Enable testing of multi-chunk proxied upload
         S3AssetstoreAdapter.CHUNK_LEN = 5
 
+        # Hack: make moto accept our too-small chunks
+        moto.s3.models.S3_UPLOAD_PART_MIN_SIZE = 5
+
         resp = self.request(
             path='/file', method='POST', user=self.user, params={
                 'parentType': 'folder',
@@ -1025,6 +1027,64 @@ class FileTestCase(base.TestCase):
         self.assertTrue(resp.json['s3']['chunked'])
 
         uploadId = resp.json['_id']
+
+        # Because we are mocking http requests, and moto insists that there be
+        # uploaded parts, this is failing.  See line 409 of moto/s3/models.py.
+        # We bypass this.
+        from moto.utilities.utils import md5_hash
+        moto.s3.models.FakeMultipart.complete = lambda *args, **kwargs: (
+            bytearray(), f'{md5_hash().hexdigest()}-0')
+
+        # Send the first chunk, should now work
+        with httmock.HTTMock(mockChunkUpload):
+            resp = self.request(
+                path='/file/chunk', method='POST', body=chunk1, user=self.user, params={
+                    'uploadId': uploadId
+                }, type='application/octet-stream')
+        self.assertStatusOk(resp)
+
+        resp = self.request(path='/file/offset', user=self.user, params={
+            'uploadId': uploadId
+        })
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['offset'], len(chunk1))
+
+        # Send the second chunk
+        with httmock.HTTMock(mockChunkUpload):
+            resp = self.request(
+                path='/file/chunk', method='POST', user=self.user, body=chunk2, params={
+                    'offset': resp.json['offset'],
+                    'uploadId': uploadId
+                }, type='text/plain')
+        self.assertStatusOk(resp)
+
+        file = resp.json
+
+        self.assertEqual(file['_modelType'], 'file')
+        self.assertHasKeys(file, ['itemId'])
+        self.assertEqual(file['assetstoreId'], str(self.assetstore['_id']))
+        self.assertEqual(file['name'], 'hello.txt')
+        self.assertEqual(file['size'], len(chunk1 + chunk2))
+
+        # Test copying a file ( we don't assert to content in the case because
+        # the S3 download will fail )
+        self._testCopyFile(file, assertContent=False)
+
+        # The file we get back from the rest call doesn't have the s3Key value,
+        # so reload the file from the database
+        file = File().load(file['_id'], force=True)
+
+        # Mock Serve range requests
+        @httmock.urlmatch(netloc=r'^bname.s3.amazonaws.com')
+        def s3_range_mock(url, request):
+            data = chunk1 + chunk2
+            if request.headers.get('range', '').startswith('bytes='):
+                start, end = request.headers['range'].split('bytes=')[1].split('-')
+                data = data[int(start):int(end) + 1]
+            return data
+
+        with httmock.HTTMock(s3_range_mock):
+            self._testFileContext(file, chunk1 + chunk2)
 
     def testLinkFile(self):
         params = {

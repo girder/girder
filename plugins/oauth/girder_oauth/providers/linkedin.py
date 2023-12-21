@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import urllib.parse
 
 from girder.api.rest import getApiUrl

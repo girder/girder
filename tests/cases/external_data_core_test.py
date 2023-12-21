@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import unittest
 import hashlib
 import os
@@ -17,7 +16,7 @@ class ExternalDataCoreTest(unittest.TestCase):
         )
 
         hash = hashlib.md5()
-        with open(filepath, 'r') as f:
+        with open(filepath) as f:
             hash.update(f.read().encode('utf-8'))
             self.assertEqual(
                 hash.hexdigest(),

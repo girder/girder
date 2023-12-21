@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 import json
 import pytest
@@ -125,9 +124,9 @@ def testSetContentDispositionFails(name, disp, msg):
     ('filename', 'form-data; name="chunk"', 'form-data; name="chunk"; filename="filename"'),
     ('file "name"', None, 'attachment; filename="file \\"name\\""'),
     ('file\\name', None, 'attachment; filename="file\\\\name"'),
-    (u'\u043e\u0431\u0440\u0430\u0437\u0435\u0446', None,
+    ('\u043e\u0431\u0440\u0430\u0437\u0435\u0446', None,
      'attachment; filename=""; filename*=UTF-8\'\'%D0%BE%D0%B1%D1%80%D0%B0%D0%B7%D0%B5%D1%86'),
-    (u'\U0001f603', None, 'attachment; filename=""; filename*=UTF-8\'\'%F0%9F%98%83')
+    ('\U0001f603', None, 'attachment; filename=""; filename*=UTF-8\'\'%F0%9F%98%83')
 ])
 def testSetContentDisposition(name, disp, expected):
     if disp is None:

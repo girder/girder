@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from .. import base
 from girder.constants import AccessType
 from girder.models.folder import Folder

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from girder.exceptions import ValidationException
 from girder.models.folder import Folder
 from girder.models.setting import Setting

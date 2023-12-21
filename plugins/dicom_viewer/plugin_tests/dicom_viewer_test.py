@@ -117,7 +117,7 @@ class DicomViewerTest(base.TestCase):
         for i in range(0, 4):
             self.assertTrue('_id' in dicomItem['dicom']['files'][i])
             self.assertTrue('name' in dicomItem['dicom']['files'][i])
-            self.assertEqual(dicomItem['dicom']['files'][i]['name'], 'dicomFile{}.dcm'.format(i))
+            self.assertEqual(dicomItem['dicom']['files'][i]['name'], f'dicomFile{i}.dcm')
             self.assertTrue('SeriesNumber' in dicomItem['dicom']['files'][i]['dicom'])
             self.assertTrue('InstanceNumber' in dicomItem['dicom']['files'][i]['dicom'])
             self.assertTrue('SliceLocation' in dicomItem['dicom']['files'][i]['dicom'])
@@ -176,7 +176,7 @@ class DicomViewerTest(base.TestCase):
                 dcmFile = Upload().uploadFromFile(
                     obj=fp,
                     size=os.path.getsize(file),
-                    name='dicomFile{}.dcm'.format(i),
+                    name=f'dicomFile{i}.dcm',
                     parentType='item',
                     parent=item,
                     mimeType='application/dicom',

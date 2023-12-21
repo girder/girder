@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from collections import OrderedDict
 
 import cherrypy
@@ -33,6 +32,7 @@ class SettingKey:
     ENABLE_NOTIFICATION_STREAM = 'core.enable_notification_stream'
     ENABLE_PASSWORD_LOGIN = 'core.enable_password_login'
     GIRDER_MOUNT_INFORMATION = 'core.girder_mount_information'
+    HTTP_ONLY_COOKIES = 'core.http_only_cookies'
     PRIVACY_NOTICE = 'core.privacy_notice'
     REGISTRATION_POLICY = 'core.registration_policy'
     ROUTE_TABLE = 'core.route_table'
@@ -81,6 +81,7 @@ class SettingDefault:
         SettingKey.ENABLE_NOTIFICATION_STREAM: True,
         SettingKey.ENABLE_PASSWORD_LOGIN: True,
         SettingKey.GIRDER_MOUNT_INFORMATION: None,
+        SettingKey.HTTP_ONLY_COOKIES: False,  # TODO This will go away in next major version
         SettingKey.PRIVACY_NOTICE: 'https://www.kitware.com/privacy',
         SettingKey.REGISTRATION_POLICY: 'open',
         # SettingKey.ROUTE_TABLE is provided by a function
@@ -269,6 +270,12 @@ class SettingValidator:
         if not isinstance(value, dict) or 'path' not in value:
             raise ValidationException(
                 'Girder mount information must be a dict with the "path" key.', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.HTTP_ONLY_COOKIES)
+    def _validateHttpOnlyCookies(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException('HTTP only cookies setting must be boolean.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.PRIVACY_NOTICE)

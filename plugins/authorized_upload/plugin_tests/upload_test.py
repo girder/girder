@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from girder.models.folder import Folder
 from girder.models.setting import Setting
 from girder.models.token import Token

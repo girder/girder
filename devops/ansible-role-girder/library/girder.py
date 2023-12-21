@@ -874,7 +874,7 @@ class Resource:
         if resource_type in self.known_resources:
             self.resource_type = resource_type
         else:
-            raise Exception('{} is an unknown resource!'.format(resource_type))
+            raise Exception(f'{resource_type} is an unknown resource!')
 
     @property
     def resources(self):
@@ -893,7 +893,7 @@ class Resource:
 
     def __apply(self, _id, func, *args, **kwargs):
         if _id in self.resources.keys():
-            ret = func('{}/{}'.format(self.resource_type, _id),
+            ret = func(f'{self.resource_type}/{_id}',
                        *args, **kwargs)
             self.client.changed = True
         return ret
@@ -937,7 +937,7 @@ class Resource:
                 pass
             return self.__apply(_id, self.client.put, body, **kwargs)
         else:
-            raise Exception('{} does not exist!'.format(_id))
+            raise Exception(f'{_id} does not exist!')
 
     def update_by_name(self, name, body, **kwargs):
         return self.update(self.resources_by_name[name]['_id'],
@@ -962,12 +962,12 @@ class AccessMixin:
     def put_access(self, _id, access, public=True):
         current_access = self.get_access(_id)
 
-        if set([tuple(u.values()) for u in access['users']]) ^ \
-           set([(u['id'], u['level']) for u in current_access['users']]):
+        if {tuple(u.values()) for u in access['users']} ^ \
+           {(u['id'], u['level']) for u in current_access['users']}:
             self.client.changed = True
 
-        if set([tuple(g.values()) for g in access['groups']]) ^ \
-           set([(u['id'], u['level']) for u in current_access['groups']]):
+        if {tuple(g.values()) for g in access['groups']} ^ \
+           {(u['id'], u['level']) for u in current_access['groups']}:
             self.client.changed = True
 
         return self.client.put('{}/{}/access'
@@ -1136,7 +1136,7 @@ class GirderClientModule(GirderClient):
         ret = {'added': [],
                'removed': []}
 
-        files = self.get('item/{}/files'.format(itemId))
+        files = self.get(f'item/{itemId}/files')
 
         if self.module.params['state'] == 'present':
 
@@ -1147,11 +1147,11 @@ class GirderClientModule(GirderClient):
                 'name': os.path.basename(s),
                 'size': os.path.getsize(s)} for s in sources}
 
-            source_names = set([(s['name'], s['size'])
-                                for s in source_dict.values()])
+            source_names = {(s['name'], s['size'])
+                            for s in source_dict.values()}
 
-            file_names = set([(f['name'], f['size'])
-                              for f in file_dict.values()])
+            file_names = {(f['name'], f['size'])
+                          for f in file_dict.values()}
 
             for n, _ in (file_names - source_names):
                 self.delete('file/{}'.format(file_dict[n]['_id']))
@@ -1174,7 +1174,7 @@ class GirderClientModule(GirderClient):
     def _get_user_by_login(self, login):
         try:
             user = self.get('/resource/lookup',
-                            {'path': '/user/{}'.format(login)})
+                            {'path': f'/user/{login}'})
         except requests.HTTPError:
             user = None
         return user
@@ -1221,14 +1221,14 @@ class GirderClientModule(GirderClient):
 
                 # dict of current login -> user information for this group
                 members = {m['login']: m for m in
-                           self.get('group/{}/member'.format(group_id))}
+                           self.get(f'group/{group_id}/member')}
 
                 # Add these users
                 for login in (set(user_levels.keys()) - set(members.keys())):
                     user = self._get_user_by_login(login)
                     if user is not None:
                         # add user at level
-                        self.post('group/{}/invitation'.format(group_id),
+                        self.post(f'group/{group_id}/invitation',
                                   {'userId': user['_id'],
                                    'level': user_levels[login],
                                    'quiet': True,
@@ -1240,13 +1240,13 @@ class GirderClientModule(GirderClient):
 
                 # Remove these users
                 for login in (set(members.keys()) - set(user_levels.keys())):
-                    self.delete('/group/{}/member'.format(group_id),
+                    self.delete(f'/group/{group_id}/member',
                                 {'userId': members[login]['_id']})
                     ret['removed'].append(members[login])
 
                 # Set of users that potentially need to be updated
                 if len(set(members.keys()) & set(user_levels.keys())):
-                    group_access = self.get('group/{}/access'.format(group_id))
+                    group_access = self.get(f'group/{group_id}/access')
                     # dict of current login -> access information for this group
                     user_access = {m['login']: m
                                    for m in group_access['access']['users']}
@@ -1395,7 +1395,7 @@ class GirderClientModule(GirderClient):
         groups = access.get('groups', None)
 
         if groups is not None:
-            assert set(g['type'] for g in groups if 'type' in g) <= \
+            assert {g['type'] for g in groups if 'type' in g} <= \
                 set(self.access_types.keys()), 'Invalid access type!'
 
             # Hash of name -> group information
@@ -1409,7 +1409,7 @@ class GirderClientModule(GirderClient):
 
         if users is not None:
 
-            assert set(u['type'] for u in users if 'type' in u) <= \
+            assert {u['type'] for u in users if 'type' in u} <= \
                 set(self.access_types.keys()), 'Invalid access type!'
 
             # Hash of login -> user information
@@ -1450,7 +1450,7 @@ class GirderClientModule(GirderClient):
 
         # Make sure we remove folders not listed
         for name in (set(current_folders.keys())
-                     - set([f['name'] for f in folders])):
+                     - {f['name'] for f in folders}):
 
             original_state = self.module.params['state']
             self.module.params['state'] = 'absent'
@@ -1526,7 +1526,7 @@ class GirderClientModule(GirderClient):
                 passed_in = [firstName, lastName, email, admin]
 
                 # If there is actually an update to be made
-                if set([(k, v) for k, v in me.items() if k in updateable]) ^ \
+                if {(k, v) for k, v in me.items() if k in updateable} ^ \
                    set(zip(updateable, passed_in)):
 
                     self.put('user/%s' % me['_id'],
@@ -1554,7 +1554,7 @@ class GirderClientModule(GirderClient):
 
             if folders is not None:
                 _id = self.get('resource/lookup',
-                               {'path': '/user/{}'.format(login)})['_id']
+                               {'path': f'/user/{login}'})['_id']
                 self._process_folders(folders, _id, 'user')
 
         elif self.module.params['state'] == 'absent':
@@ -1678,15 +1678,15 @@ class GirderClientModule(GirderClient):
 
                 # tuples of (key,  value) for fields that can be updated
                 # in the assetstore
-                assetstore_items = set((k, assetstores[name][k])
-                                       for k in updateable
-                                       if k in assetstores[name].keys())
+                assetstore_items = {(k, assetstores[name][k])
+                                    for k in updateable
+                                    if k in assetstores[name].keys()}
 
                 # tuples of (key,  value) for fields that can be updated
                 # in the argument_hash for this assetstore type
-                arg_hash_items = set((k, argument_hash[type][k])
-                                     for k in updateable
-                                     if k in argument_hash[type].keys())
+                arg_hash_items = {(k, argument_hash[type][k])
+                                  for k in updateable
+                                  if k in argument_hash[type].keys()}
 
                 # if arg_hash_items not a subset of assetstore_items
                 if not arg_hash_items <= assetstore_items:
@@ -1770,16 +1770,16 @@ def main():
     # Default spec for initalizing and authenticating
     argument_spec = {
         # __init__
-        'host': dict(),
-        'port': dict(),
-        'apiRoot': dict(),
-        'apiUrl': dict(),
-        'scheme': dict(),
-        'dryrun': dict(),
-        'blacklist': dict(),
+        'host': {},
+        'port': {},
+        'apiRoot': {},
+        'apiUrl': {},
+        'scheme': {},
+        'dryrun': {},
+        'blacklist': {},
 
         # authenticate
-        'username': dict(),
+        'username': {},
         'password': dict(
             no_log=True
         ),
@@ -1820,6 +1820,7 @@ def main():
                                                 traceback.format_exc()))
     except Exception as e:
         import traceback
+
         # exc_type, exc_obj, exec_tb = sys.exc_info()
         module.fail_json(msg='%s: %s\n\n%s' % (e.__class__, str(e),
                                                traceback.format_exc()))

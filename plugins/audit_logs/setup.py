@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 
 from setuptools import find_packages, setup
@@ -23,8 +22,7 @@ setup(
     name='girder-audit-logs',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
     setup_requires=[
-        'setuptools-scm<7 ; python_version < "3.7"',
-        'setuptools-scm ; python_version >= "3.7"',
+        'setuptools-scm',
     ],
     description='Keeps detailed logs of every REST request and low-level file download event.',
     author='Kitware, Inc.',
@@ -37,10 +35,8 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
     ],
+    python_requires='>=3.8',
     packages=find_packages(),
     zip_safe=False,
     install_requires=['girder>=3'],

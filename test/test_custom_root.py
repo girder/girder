@@ -64,7 +64,7 @@ class Other(Resource):
     @describeRoute(None)
     def rawReturningText(self, params):
         setResponseHeader('Content-Type', 'text/plain')
-        return u'this is not encoded \U0001F44D'
+        return 'this is not encoded \U0001F44D'
 
     @access.public
     @describeRoute(None)

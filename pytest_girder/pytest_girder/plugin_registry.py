@@ -67,10 +67,8 @@ class PluginRegistry:
 
     def _iter_entry_points(self, *args, **kwargs):
         if self._include_installed_plugins:
-            for ep in iter_entry_points(*args, **kwargs):
-                yield ep
-        for ep in self._plugins:
-            yield ep
+            yield from iter_entry_points(*args, **kwargs)
+        yield from self._plugins
 
     @contextmanager
     def __call__(self):

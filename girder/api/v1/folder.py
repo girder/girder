@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
@@ -167,8 +166,7 @@ class Folder(Resource):
             zip = ziputil.ZipGenerator(folder['name'])
             for (path, file) in self._model.fileList(
                     folder, user=user, subpath=False, mimeFilter=mimeFilter):
-                for data in zip.addFile(file, path):
-                    yield data
+                yield from zip.addFile(file, path)
             yield zip.footer()
         return stream
 

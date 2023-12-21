@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import pkg_resources
 
 import sphinx_rtd_theme
@@ -29,8 +28,8 @@ _girder_imports |= {
 # Set Sphinx variables
 master_doc = 'index'
 
-project = u'Girder'
-copyright = u'2014-2018, Kitware, Inc.'
+project = 'Girder'
+copyright = '2014-2018, Kitware, Inc.'
 release = _girder_version
 version = '.'.join(release.split('.')[:2])
 
@@ -39,7 +38,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_favicon = 'favicon.ico'
 
 latex_documents = [
-    ('index', 'Girder.tex', u'Girder Documentation', u'Kitware, Inc.', 'manual'),
+    ('index', 'Girder.tex', 'Girder Documentation', 'Kitware, Inc.', 'manual'),
 ]
 
 # Setup Sphinx extensions (and associated variables)

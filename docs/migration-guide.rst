@@ -158,8 +158,8 @@ Other backwards incompatible changes affecting plugins
   parameter; callers should use the ``url`` parameter instead. Callers are also encouraged to use
   the ``method`` parameter instead of ``type``.
 
-* The CMake function `add_standard_plugin_tests` can not detect the python package of your
-  plugin.  It now requires you pass the keyword argument `PACKAGE` with the package name.
+* The CMake function ``add_standard_plugin_tests`` can not detect the python package of your
+  plugin.  It now requires you pass the keyword argument ``PACKAGE`` with the package name.
   For example, the jobs plugin ``plugin.cmake`` file contains the following line:
 
   .. code-block:: cmake

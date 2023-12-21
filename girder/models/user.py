@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 import os
 import re
@@ -558,9 +557,8 @@ class User(AccessControlledModel):
             fields=['name'] + (['meta'] if includeMetadata else [])
         ))
         for folder in childFolders:
-            for (filepath, file) in folderModel.fileList(
-                    folder, user, path, includeMetadata, subpath=True, data=data):
-                yield (filepath, file)
+            yield from folderModel.fileList(
+                folder, user, path, includeMetadata, subpath=True, data=data)
 
     def subtreeCount(self, doc, includeItems=True, user=None, level=None):
         """

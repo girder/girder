@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import hashlib
 import io
 import time
@@ -56,8 +55,8 @@ class HashsumDownloadTest(base.TestCase):
             else:
                 self.privateFolder = folder
 
-        self.userData = u'\u266a Il dolce suono mi ' \
-                        u'colp\u00ec di sua voce! \u266a'.encode('utf8')
+        self.userData = '\u266a Il dolce suono mi ' \
+                        'colp\u00ec di sua voce! \u266a'.encode()
         self.privateFile = Upload().uploadFromFile(
             obj=io.BytesIO(self.userData),
             size=len(self.userData),
@@ -87,7 +86,7 @@ class HashsumDownloadTest(base.TestCase):
         )
 
         self.privateOnlyData =\
-            u'\u2641 \u2600 \u2601 \u2614 \u2665'.encode('utf8')
+            '\u2641 \u2600 \u2601 \u2614 \u2665'.encode()
         self.privateOnlyFile = Upload().uploadFromFile(
             obj=io.BytesIO(self.privateOnlyData),
             size=len(self.privateOnlyData),

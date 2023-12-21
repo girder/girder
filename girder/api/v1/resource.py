@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource as BaseResource, setResponseHeader, setContentDisposition
 from girder.constants import AccessType, TokenScope
@@ -178,8 +177,7 @@ class Resource(BaseResource):
                     doc = model.load(id=id, user=user, level=AccessType.READ)
                     for (path, file) in model.fileList(
                             doc=doc, user=user, includeMetadata=includeMetadata, subpath=True):
-                        for data in zip.addFile(file, path):
-                            yield data
+                        yield from zip.addFile(file, path)
             yield zip.footer()
         return stream
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import re
 import cherrypy
 from girder.api import access

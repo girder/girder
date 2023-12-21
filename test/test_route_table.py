@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import pytest
 from pytest_girder.assertions import assertStatusOk
 from pytest_girder.utils import getResponseBody

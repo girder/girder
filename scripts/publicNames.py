@@ -3,7 +3,10 @@ import os
 import subprocess
 import re
 
-Tree = lambda: collections.defaultdict(Tree)  # noqa: E731
+
+def Tree():
+    return collections.defaultdict(Tree)
+
 
 EXCLUDE_DIRS = [
     # Only look in girder, plugins and clients folders i.e. exclude all directories that don't begin

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from girder.api import access
 from girder.api.describe import describeRoute, Description
 from girder.api.rest import loadmodel, Resource

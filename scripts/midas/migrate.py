@@ -269,7 +269,7 @@ def handle_item(item, parent, depth, bc):
             # "The item must have at least one revision to have metadata"
             metadata = None
         if metadata:
-            metadata = dict((x['qualifier'], x['value']) for x in metadata)
+            metadata = {x['qualifier']: x['value'] for x in metadata}
             breadcrumb('Metadata', bc, '[%d keys]' % len(metadata))
             if not DRY_RUN:
                 gc.addMetadataToItem(newItem['_id'], metadata)

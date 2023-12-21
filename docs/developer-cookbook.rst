@@ -331,7 +331,7 @@ Adding Automated Tests with CTest
 
 The server side Python tests are run using
 `unittest <https://docs.python.org/2/library/unittest.html>`_. All of the actual
-test cases are stored under `tests/cases`.
+test cases are stored under ``tests/cases``.
 
 **Adding to an Existing Test Case**
 
@@ -367,9 +367,9 @@ appropriate class name of course):
 Then, in the **MyTestCase** class, just add functions that start with **test**,
 and they will automatically be run by unittest.
 
-Finally, you'll need to register your test in the `CMakeLists.txt` file in the
-`tests` directory. Just add a line like the ones already there at the bottom.
-For example, if the test file you created was called `thing_test.py`, you would
+Finally, you'll need to register your test in the ``CMakeLists.txt`` file in the
+``tests`` directory. Just add a line like the ones already there at the bottom.
+For example, if the test file you created was called ``thing_test.py``, you would
 add:
 
 .. code-block:: cmake

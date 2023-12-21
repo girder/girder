@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 import os
 import stat
@@ -66,9 +65,9 @@ class ServerFuseTestCase(base.TestCase):
             'user/user/Private/Item 4/File 4': 'File 4',
             'user/user/Private/Folder/Item 5/File 5': 'File 5',
             'collection/Test Collection/Private/Collection Item/Collection File': 'File 1A',
-            u'collection/Test Collection/Private/Collection Item/'
-            u'\u0444\u0430\u0439\u043b \u043a\u043e\u043b\u043b\u0435\u043a'
-            u'\u0446\u0438\u0438': 'File 1A',
+            'collection/Test Collection/Private/Collection Item/'
+            '\u0444\u0430\u0439\u043b \u043a\u043e\u043b\u043b\u0435\u043a'
+            '\u0446\u0438\u0438': 'File 1A',
         }
         self.adminFileName = 'user/admin/Private/Item 1/File 1A'
         self.publicFileName = 'user/user/Public/Item 3/File 3'
@@ -279,22 +278,22 @@ class ServerFuseTestCase(base.TestCase):
 
     def testFunctionGetPath(self):
         op = mount.ServerFuse()
-        resource = op._getPath(self.publicFileName)
+        resource = op._get_path(self.publicFileName)
         self.assertEqual(resource['model'], 'file')
-        resource = op._getPath(os.path.dirname(self.publicFileName))
+        resource = op._get_path(os.path.dirname(self.publicFileName))
         self.assertEqual(resource['model'], 'item')
-        resource = op._getPath(os.path.dirname(os.path.dirname(self.publicFileName)))
+        resource = op._get_path(os.path.dirname(os.path.dirname(self.publicFileName)))
         self.assertEqual(resource['model'], 'folder')
-        resource = op._getPath(self.privateFileName)
+        resource = op._get_path(self.privateFileName)
         self.assertEqual(resource['model'], 'file')
         with self.assertRaises(fuse.FuseOSError):
-            op._getPath('nosuchpath')
+            op._get_path('nosuchpath')
 
     def testFunctionStat(self):
         op = mount.ServerFuse()
-        resource = op._getPath(self.publicFileName)
+        resource = op._get_path(self.publicFileName)
         attr = op._stat(resource['document'], resource['model'])
-        self.assertEqual(attr['st_ino'], -1)
+        self.assertIn('st_ino', attr)
         self.assertEqual(attr['st_nlink'], 1)
         self.assertGreater(attr['st_mtime'], time.time() - 1e5)
         self.assertEqual(attr['st_ctime'], attr['st_mtime'])
@@ -303,43 +302,43 @@ class ServerFuseTestCase(base.TestCase):
         resource['document']['updated'] = datetime.datetime.utcfromtimestamp(time.time() + 1)
         File().save(resource['document'])
         oldmtime = attr['st_mtime']
-        resource = op._getPath(self.publicFileName)
+        resource = op._get_path(self.publicFileName)
         attr = op._stat(resource['document'], resource['model'])
         self.assertGreater(attr['st_mtime'], oldmtime)
 
-        resource = op._getPath(os.path.dirname(self.publicFileName))
+        resource = op._get_path(os.path.dirname(self.publicFileName))
         attr = op._stat(resource['document'], resource['model'])
         self.assertEqual(attr['st_mode'], 0o500 | stat.S_IFDIR)
         self.assertEqual(attr['st_size'], 0)
-        resource = op._getPath(os.path.dirname(os.path.dirname(self.publicFileName)))
+        resource = op._get_path(os.path.dirname(os.path.dirname(self.publicFileName)))
         attr = op._stat(resource['document'], resource['model'])
         self.assertEqual(attr['st_mode'], 0o500 | stat.S_IFDIR)
         self.assertEqual(attr['st_size'], 0)
 
     def testFunctionName(self):
         op = mount.ServerFuse()
-        resource = op._getPath(self.publicFileName)
+        resource = op._get_path(self.publicFileName)
         name = op._name(resource['document'], resource['model'])
         self.assertEqual(name, os.path.basename(self.publicFileName))
-        resource = op._getPath(os.path.dirname(self.publicFileName))
+        resource = op._get_path(os.path.dirname(self.publicFileName))
         name = op._name(resource['document'], resource['model'])
         self.assertEqual(name, os.path.basename(os.path.dirname(self.publicFileName)))
 
     def testFunctionList(self):
         op = mount.ServerFuse()
-        resource = op._getPath(os.path.dirname(self.publicFileName))
+        resource = op._get_path(os.path.dirname(self.publicFileName))
         filelist = op._list(resource['document'], resource['model'])
         self.assertIn(os.path.basename(self.publicFileName), filelist)
-        resource2 = op._getPath(os.path.dirname(os.path.dirname(self.publicFileName)))
+        resource2 = op._get_path(os.path.dirname(os.path.dirname(self.publicFileName)))
         filelist = op._list(resource2['document'], resource2['model'])
         self.assertIn(os.path.basename(os.path.dirname(self.publicFileName)), filelist)
-        resource3 = op._getPath(os.path.dirname(self.adminFileName))
+        resource3 = op._get_path(os.path.dirname(self.adminFileName))
         filelist = op._list(resource3['document'], resource3['model'])
         self.assertIn(os.path.basename(self.adminFileName), filelist)
-        resource4 = op._getPath(os.path.dirname(os.path.dirname(self.adminFileName)))
+        resource4 = op._get_path(os.path.dirname(os.path.dirname(self.adminFileName)))
         filelist = op._list(resource4['document'], resource4['model'])
         self.assertIn(os.path.basename(os.path.dirname(self.adminFileName)), filelist)
-        resource5 = op._getPath(os.path.dirname(os.path.dirname(
+        resource5 = op._get_path(os.path.dirname(os.path.dirname(
             os.path.dirname(self.adminFileName))))
         filelist = op._list(resource5['document'], resource5['model'])
         self.assertIn(os.path.basename(os.path.dirname(
@@ -359,7 +358,7 @@ class ServerFuseTestCase(base.TestCase):
         self.assertEqual(attr['st_mode'], 0o500 | stat.S_IFDIR)
         self.assertEqual(attr['st_size'], 0)
         attr = op.getattr(self.publicFileName)
-        self.assertEqual(attr['st_ino'], -1)
+        self.assertIn('st_ino', attr)
         self.assertEqual(attr['st_nlink'], 1)
         self.assertGreater(attr['st_mtime'], time.time() - 1e5)
         self.assertEqual(attr['st_ctime'], attr['st_mtime'])
