@@ -17,11 +17,12 @@ provide helpful development tools and to allow the test suite to run: ::
 
 Install front-end web client development dependencies and build the web client code: ::
 
-    girder build --dev
+    cd girder/web && yarn && yarn build
 
-For more options for building the web client, run: ::
+This will build the core web client. Any plugins you plan to install that have front-end code
+will need to be built as well. For example, to build the jobs plugin: ::
 
-    girder build --help
+    cd plugins/jobs/girder_jobs/web_client && yarn && yarn build
 
 Finally, you'll want to set your server into development mode. Add the following entry into your
 local config file (see :ref:`Configuration <configuration>` for instructions):
@@ -45,20 +46,11 @@ During Development
 Once Girder is started via ``girder serve``, the server
 will reload itself whenever a Python file is modified.
 
-If you are doing front-end development, it's much faster to use a *watch* process to perform
-automatic fast rebuilds of your code whenever you make changes to source files.
+If you are doing front-end development on the core app, it's much faster to use the dev server to
+perform hot reloads whenever you make changes to source files. ::
 
-If you are making changes to Girder's core web client, run the following watch command: ::
+    cd girder/web && yarn dev
 
-    girder build --watch
-
-If you are developing a web client of a plugin, run: ::
-
-    girder build --watch-plugin your_plugin_name
-
-With ``watch`` option, *sourcemaps* will be generated, which helps debugging front-end code in browser.
-When you want to end the watch process, press Ctrl+C (or however you would normally terminate a
-process in your terminal).
 
 Girder Shell
 ^^^^^^^^^^^^
