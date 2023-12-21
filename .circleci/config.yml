@@ -5,11 +5,11 @@ executors:
   py3:
     docker:
       # This image uses the newest version of many dependencies
-      - image: girder/girder_test:py38-node14
+      - image: girder/girder_test:py38-node16
     working_directory: /home/circleci/project
   py3-mongo:
     docker:
-      - image: girder/girder_test:py38-node14
+      - image: girder/girder_test:latest
       # Use the oldest supported MongoDB
       # This is equivalent to the deprecated circleci/mongo:<version>-ram image
       - image: mongo:3.6
@@ -331,7 +331,7 @@ jobs:
           name: Build the Girder test docker
           command: |
             cd .circleci
-            docker build --force-rm -t girder/girder_test:py38-node14 .
+            docker build --force-rm -t girder/girder_test:py38-node16 .
 
   publish-dockers:
     machine:
@@ -346,7 +346,7 @@ jobs:
           name: Build the Girder test docker
           command: |
             cd .circleci
-            docker build --force-rm -t girder/girder_test:py38-node14 .
+            docker build --force-rm -t girder/girder_test:py38-node16 .
       - run:
           name: Publish the images to Docker Hub
           command: |
@@ -360,7 +360,7 @@ jobs:
               docker tag girder/girder:latest "girder/girder:${CIRCLE_TAG}-py3"
               docker push "girder/girder:${CIRCLE_TAG}-py3"
               fi
-              docker push girder/girder_test:py38-node14
+              docker push girder/girder_test:py38-node16
 
   publish:
     docker:
