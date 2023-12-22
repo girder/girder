@@ -148,6 +148,12 @@ jobs:
             npm run build
           working_directory: girder/plugins/authorized_upload/girder_authorized_upload/web_client
       - run:
+          name: Install and build autojoin plugin client
+          command: |
+            npm install
+            npm run build
+          working_directory: girder/plugins/autojoin/girder_autojoin/web_client
+      - run:
           name: Install and build jobs plugin client
           command: |
             npm install

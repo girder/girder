@@ -1,7 +1,9 @@
+from pathlib import Path
+
 from girder import events
 from girder.models.group import Group
 from girder.models.setting import Setting
-from girder.plugin import GirderPlugin
+from girder.plugin import GirderPlugin, registerPluginStaticContent
 
 from .settings import PluginSettings
 
@@ -28,3 +30,10 @@ class AutojoinPlugin(GirderPlugin):
 
     def load(self, info):
         events.bind('model.user.save.created', 'autojoin', userCreated)
+
+        registerPluginStaticContent(
+            plugin='autojoin',
+            css=['/style.css'],
+            js=['/girder-plugin-autojoin.umd.cjs'],
+            staticDir=Path(__file__).parent / 'web_client' / 'dist',
+        )
