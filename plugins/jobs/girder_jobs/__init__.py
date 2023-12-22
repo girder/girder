@@ -39,6 +39,6 @@ class JobsPlugin(GirderPlugin):
         registerPluginStaticContent(
             plugin='jobs',
             css=['/style.css'],
-            js=['/girder-plugin-jobs.js'],
+            js=['/girder-plugin-jobs.umd.cjs'],
             staticDir=Path(__file__).parent / 'web_client' / 'dist',
         )

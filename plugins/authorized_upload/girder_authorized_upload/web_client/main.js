@@ -1,10 +1,10 @@
 import './routes.js';
-
-import HierarchyWidget from '@girder/core/views/widgets/HierarchyWidget';
-import { AccessType } from '@girder/core/constants';
-import { wrap } from '@girder/core/utilities/PluginUtils';
-
 import template from './templates/folderActions.pug';
+
+
+const HierarchyWidget = girder.views.widgets.HierarchyWidget;
+const { wrap } = girder.utilities.PluginUtils;
+const { AccessType } = girder.constants;
 
 // Add an entry to create an authorized upload in the hierarchy widget folder menu
 wrap(HierarchyWidget, 'render', function (render) {

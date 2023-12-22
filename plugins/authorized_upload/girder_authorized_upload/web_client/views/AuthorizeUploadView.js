@@ -1,8 +1,8 @@
-import View from '@girder/core/views/View';
-import { restRequest } from '@girder/core/rest';
-
 import template from '../templates/authorizeUpload.pug';
 import '../stylesheets/authorizeUpload.styl';
+
+const View = girder.views.View;
+const { restRequest } = girder.rest;
 
 var AuthorizeUploadView = View.extend({
     events: {

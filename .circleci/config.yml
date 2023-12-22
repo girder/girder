@@ -142,6 +142,12 @@ jobs:
             npm run build
           working_directory: girder/girder/web
       - run:
+          name: Install and build authorized upload plugin client
+          command: |
+            npm install
+            npm run build
+          working_directory: girder/plugins/authorized_upload/girder_authorized_upload/web_client
+      - run:
           name: Install and build jobs plugin client
           command: |
             npm install

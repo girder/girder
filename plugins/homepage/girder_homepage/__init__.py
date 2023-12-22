@@ -14,6 +14,6 @@ class HomepagePlugin(GirderPlugin):
         registerPluginStaticContent(
             plugin='homepage',
             css=['/style.css'],
-            js=['/girder-plugin-homepage.js'],
+            js=['/girder-plugin-homepage.umd.cjs'],
             staticDir=Path(__file__).parent / 'web_client' / 'dist',
         )
