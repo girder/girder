@@ -3,9 +3,7 @@
 !audit_logs/
 !authorized_upload/
 !autojoin/
-!dicom_viewer/
 !download_statistics/
-!fuse/
 !google_analytics/
 !gravatar/
 !hashsum_download/

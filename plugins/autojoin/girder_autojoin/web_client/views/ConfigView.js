@@ -1,3 +1,6 @@
+import ConfigViewTemplate from '../templates/configView.pug';
+import '../stylesheets/configView.styl';
+
 const $ = girder.$;
 const GroupCollection = girder.collections.GroupCollection;
 const PluginConfigBreadcrumbWidget = girder.views.widgets.PluginConfigBreadcrumbWidget;
@@ -5,9 +8,6 @@ const router = girder.router;
 const events = girder.events;
 const View = girder.views.View;
 const { restRequest } = girder.rest;
-
-import ConfigViewTemplate from '../templates/configView.pug';
-import '../stylesheets/configView.styl';
 
 var ConfigView = View.extend({
     events: {
