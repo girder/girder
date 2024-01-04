@@ -1,23 +1,44 @@
 {
-    "name": "@girder/ldap",
+    "name": "@girder/girder-plugin-ldap",
     "version": "0.0.0",
     "description": "Authenticate user credentials against LDAP or Active Directory servers.",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#ldap-authentication",
     "bugs": {
-        "url": "https://github.com/girder/girder/issues"
+      "url": "https://github.com/girder/girder/issues"
     },
     "license": "Apache-2.0",
     "repository": {
-        "type": "git",
-        "url": "https://github.com/girder/girder.git"
+      "type": "git",
+      "url": "git+https://github.com/girder/girder.git"
     },
-    "peerDependencies": {
-        "@girder/core": "*"
+    "type": "module",
+    "files": [
+      "dist",
+      "package.json"
+    ],
+    "main": "./dist/girder-plugin-ldap-authentication.umd.cjs",
+    "module": "./dist/girder-plugin-ldap-authentication.js",
+    "exports": {
+      ".": {
+        "import": "./dist/girder-plugin-ldap-authentication.js",
+        "require": "./dist/girder-plugin-ldap-authentication.umd.cjs"
+      },
+      "./style.css": "./dist/style.css",
+      "./package.json": "./package.json"
     },
+    "scripts": {
+      "build": "vite build",
+      "dev": "vite build --watch"
+    },
+    "author": "",
     "dependencies": {
-        "sortablejs": "1.5.1"
+      "@girder/core": "file:../../../../girder/web"
     },
-    "girderPlugin": {
-        "name": "ldap",
-        "main": "./main.js"
+    "devDependencies": {
+      "pug": "^3.0.2",
+      "sortablejs": "1.5.1",
+      "stylus": "^0.59.0",
+      "vite": "^4.3.9",
+      "vite-plugin-istanbul": "^4.1.0"
     }
-}
+  }
