@@ -2,7 +2,7 @@
     "name": "@girder/girder-plugin-gravatar",
     "version": "0.0.0",
     "description": "Adds Gravatar URLs for users.",
-    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#auto-join",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#gravatar-portraits",
     "bugs": {
       "url": "https://github.com/girder/girder/issues"
     },

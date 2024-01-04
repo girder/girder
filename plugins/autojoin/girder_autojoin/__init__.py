@@ -26,7 +26,6 @@ def userCreated(event):
 
 class AutojoinPlugin(GirderPlugin):
     DISPLAY_NAME = 'Auto Join'
-    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         events.bind('model.user.save.created', 'autojoin', userCreated)

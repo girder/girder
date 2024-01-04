@@ -51,7 +51,6 @@ def _userUpdate(event):
 
 class GravatarPlugin(GirderPlugin):
     DISPLAY_NAME = 'Gravatar Portraits'
-    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         info['apiRoot'].user.route('GET', (':id', 'gravatar'), getGravatar)
