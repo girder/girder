@@ -1,9 +1,11 @@
+from pathlib import Path
+
 from girder import events
 from girder.constants import AccessType
 from girder.exceptions import ValidationException
 from girder.models.item import Item
 from girder.models.setting import Setting
-from girder.plugin import GirderPlugin
+from girder.plugin import GirderPlugin, registerPluginStaticContent
 
 from .rest import getLicenses
 from .settings import PluginSettings
@@ -76,7 +78,6 @@ def validateItem(event):
 
 class ItemLicensesPlugin(GirderPlugin):
     DISPLAY_NAME = 'Item Licenses'
-    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         # Bind REST events
@@ -92,3 +93,10 @@ class ItemLicensesPlugin(GirderPlugin):
 
         # Add endpoint to get list of licenses
         info['apiRoot'].item.route('GET', ('licenses',), getLicenses)
+
+        registerPluginStaticContent(
+            plugin='item_licenses',
+            css=['/style.css'],
+            js=['/girder-plugin-item-licenses.umd.cjs'],
+            staticDir=Path(__file__).parent / 'web_client' / 'dist',
+        )

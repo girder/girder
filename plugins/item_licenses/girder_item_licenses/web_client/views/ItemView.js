@@ -1,10 +1,9 @@
-import $ from 'jquery';
-
-import ItemView from '@girder/core/views/body/ItemView';
-import { restRequest } from '@girder/core/rest';
-import { wrap } from '@girder/core/utilities/PluginUtils';
-
 import ItemLicenseWidget from './ItemLicenseWidget';
+
+const $ = girder.$;
+const ItemView = girder.views.ItemView;
+const { restRequest } = girder.rest;
+const { wrap } = girder.utilities.PluginUtils;
 
 /**
  * Show license on the item page.

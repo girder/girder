@@ -1,11 +1,11 @@
-import $ from 'jquery';
-import _ from 'underscore';
-
-import ItemModel from '@girder/core/models/ItemModel';
-import UploadWidget from '@girder/core/views/widgets/UploadWidget';
-import { wrap } from '@girder/core/utilities/PluginUtils';
 
 import SelectLicenseWidget from './SelectLicenseWidget';
+
+const $ = girder.$;
+const _ = girder._;
+const ItemModel = girder.models.ItemModel;
+const UploadWidget = girder.views.widgets.UploadWidget;
+const { wrap } = girder.utilities.PluginUtils;
 
 /**
  * Add select license widget to the upload widget.
