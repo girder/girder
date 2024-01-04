@@ -96,6 +96,7 @@
     },
     "eslintIgnore": [
         "dist/",
+        "dist-lib/",
         "**/node_modules/"
     ],
     "pugLintConfig": {
@@ -108,6 +109,10 @@
     "stylelint": {
         "extends": [
             "stylelint-stylus/standard"
+        ],
+        "ignoreFiles": [
+            "girder/web/dist/**/*.styl",
+            "girder/web/dist-lib/**/*.styl"
         ]
     }
 }

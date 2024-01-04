@@ -1,5 +1,7 @@
-import cherrypy
 import hashlib
+from pathlib import Path
+
+import cherrypy
 
 from girder import events
 from girder.api import access
@@ -7,7 +9,7 @@ from girder.api.describe import Description, autoDescribeRoute
 from girder.models.model_base import AccessType
 from girder.models.setting import Setting
 from girder.models.user import User
-from girder.plugin import GirderPlugin
+from girder.plugin import GirderPlugin, registerPluginStaticContent
 
 from .settings import PluginSettings
 
@@ -57,3 +59,10 @@ class GravatarPlugin(GirderPlugin):
         User().exposeFields(level=AccessType.READ, fields='gravatar_baseUrl')
 
         events.bind('model.user.save', 'gravatar', _userUpdate)
+
+        registerPluginStaticContent(
+            plugin='gravatar',
+            css=['/style.css'],
+            js=['/girder-plugin-gravatar.umd.cjs'],
+            staticDir=Path(__file__).parent / 'web_client' / 'dist',
+        )
