@@ -1,14 +1,13 @@
-import _ from 'underscore';
-
-import events from '@girder/core/events';
-import CollectionModel from '@girder/core/models/CollectionModel';
-import FolderModel from '@girder/core/models/FolderModel';
-import ItemModel from '@girder/core/models/ItemModel';
-import CollectionView from '@girder/core/views/body/CollectionView';
-import FolderView from '@girder/core/views/body/FolderView';
-import ItemView from '@girder/core/views/body/ItemView';
-
 import TermsAcceptanceView from './views/TermsAcceptanceView';
+
+const _ = girder._;
+const events = girder.events;
+const CollectionView = girder.views.body.CollectionView;
+const FolderView = girder.views.body.FolderView;
+const ItemView = girder.views.body.ItemView;
+const CollectionModel = girder.models.CollectionModel;
+const FolderModel = girder.models.FolderModel;
+const ItemModel = girder.models.ItemModel;
 
 CollectionView.fetchAndInit = function (cid, params) {
     const collection = new CollectionModel({ _id: cid });

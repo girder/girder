@@ -1,11 +1,10 @@
-import Backbone from 'backbone';
-
-import { renderMarkdown } from '@girder/core/misc';
-import router from '@girder/core/router';
-import View from '@girder/core/views/View';
-
 import TermsAcceptanceTemplate from '../templates/termsAcceptance.pug';
 import '../stylesheets/termsAcceptance.styl';
+
+const Backbone = girder.Backbone;
+const { renderMarkdown } = girder.misc;
+const View = girder.views.View;
+const router = girder.router;
 
 const TermsAcceptanceView = View.extend({
     events: {

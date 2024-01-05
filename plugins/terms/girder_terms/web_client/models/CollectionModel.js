@@ -1,9 +1,9 @@
-import $ from 'jquery';
 import createHash from 'sha.js';
 
-import { getCurrentUser } from '@girder/core/auth';
-import CollectionModel from '@girder/core/models/CollectionModel';
-import { restRequest } from '@girder/core/rest';
+const $ = girder.$;
+const { getCurrentUser } = girder.auth;
+const { restRequest } = girder.rest;
+const CollectionModel = girder.models.CollectionModel;
 
 const termsAcceptedFallback = {};
 

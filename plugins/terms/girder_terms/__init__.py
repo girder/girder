@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+from pathlib import Path
 
 from girder import events
 from girder.api import access
@@ -10,7 +11,7 @@ from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
 from girder.models.collection import Collection as CollectionModel
 from girder.models.user import User
-from girder.plugin import GirderPlugin
+from girder.plugin import GirderPlugin, registerPluginStaticContent
 
 
 @access.user(scope=TokenScope.DATA_READ)
@@ -63,7 +64,6 @@ def afterPostPutCollection(event):
 
 class TermsPlugin(GirderPlugin):
     DISPLAY_NAME = 'Terms of Use'
-    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         # Augment the collection creation and edit routes to accept a terms field
@@ -84,3 +84,10 @@ class TermsPlugin(GirderPlugin):
 
         # Expose the terms field on all users
         User().exposeFields(level=AccessType.ADMIN, fields={'terms'})
+
+        registerPluginStaticContent(
+            plugin='terms',
+            css=['/style.css'],
+            js=['/girder-plugin-terms.umd.cjs'],
+            staticDir=Path(__file__).parent / 'web_client' / 'dist',
+        )
