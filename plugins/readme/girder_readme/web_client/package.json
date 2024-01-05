@@ -1,20 +1,43 @@
 {
-    "name": "@girder/readme",
+    "name": "@girder/girder-plugin-readme",
     "version": "0.0.0",
     "description": "Render READMEs from the folder view",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#readme",
     "bugs": {
-        "url": "https://github.com/girder/girder/issues"
+      "url": "https://github.com/girder/girder/issues"
     },
     "license": "Apache-2.0",
     "repository": {
-        "type": "git",
-        "url": "https://github.com/girder/girder.git"
+      "type": "git",
+      "url": "git+https://github.com/girder/girder.git"
     },
-    "peerDependencies": {
-        "@girder/core": "*"
+    "type": "module",
+    "files": [
+      "dist",
+      "package.json"
+    ],
+    "main": "./dist/girder-plugin-readme.umd.cjs",
+    "module": "./dist/girder-plugin-readme.js",
+    "exports": {
+      ".": {
+        "import": "./dist/girder-plugin-readme.js",
+        "require": "./dist/girder-plugin-readme.umd.cjs"
+      },
+      "./style.css": "./dist/style.css",
+      "./package.json": "./package.json"
     },
-    "girderPlugin": {
-        "name": "readme",
-        "main": "./main.js"
+    "scripts": {
+      "build": "vite build",
+      "dev": "vite build --watch"
+    },
+    "author": "",
+    "dependencies": {
+      "@girder/core": "file:../../../../girder/web"
+    },
+    "devDependencies": {
+      "pug": "^3.0.2",
+      "stylus": "^0.59.0",
+      "vite": "^4.3.9",
+      "vite-plugin-istanbul": "^4.1.0"
     }
-}
+  }
