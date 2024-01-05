@@ -1,12 +1,11 @@
-import $ from 'jquery';
-import _ from 'underscore';
-
-import View from '@girder/core/views/View';
-import { restRequest } from '@girder/core/rest';
-import { splitRoute } from '@girder/core/misc';
-
 import OAuthLoginViewTemplate from '../templates/oauthLoginView.pug';
 import '../stylesheets/oauthLoginView.styl';
+
+const $ = girder.$;
+const _ = girder._;
+const View = girder.views.View;
+const { restRequest } = girder.rest;
+const { splitRoute } = girder.misc;
 
 var OAuthLoginView = View.extend({
     events: {

@@ -16,12 +16,12 @@
       "dist",
       "package.json"
     ],
-    "main": "./dist/girder-plugin-ldap-authentication.umd.cjs",
-    "module": "./dist/girder-plugin-ldap-authentication.js",
+    "main": "./dist/girder-plugin-ldap.umd.cjs",
+    "module": "./dist/girder-plugin-ldap.js",
     "exports": {
       ".": {
-        "import": "./dist/girder-plugin-ldap-authentication.js",
-        "require": "./dist/girder-plugin-ldap-authentication.umd.cjs"
+        "import": "./dist/girder-plugin-ldap.js",
+        "require": "./dist/girder-plugin-ldap.umd.cjs"
       },
       "./style.css": "./dist/style.css",
       "./package.json": "./package.json"
