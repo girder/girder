@@ -1,12 +1,11 @@
-import _ from 'underscore';
-
-import FileCollection from '@girder/core/collections/FileCollection';
-import ItemView from '@girder/core/views/body/ItemView';
-import { wrap } from '@girder/core/utilities/PluginUtils';
-
 import ItemViewTemplate from '../templates/itemView.pug';
 
 import FlowView from './FlowView';
+
+const _ = girder._;
+const ItemView = girder.views.ItemView;
+const { wrap } = girder.utilities.PluginUtils;
+const FileCollection = girder.collections.FileCollection;
 
 // Show thumbnails on the item page
 wrap(ItemView, 'render', function (render) {

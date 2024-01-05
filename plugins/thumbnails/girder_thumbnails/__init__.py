@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+
 from girder import events
 from girder.constants import AccessType
 from girder.models.collection import Collection
@@ -6,7 +8,7 @@ from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.user import User
-from girder.plugin import getPlugin, GirderPlugin
+from girder.plugin import getPlugin, GirderPlugin, registerPluginStaticContent
 from girder.utility.model_importer import ModelImporter
 from . import rest, utils
 
@@ -85,7 +87,6 @@ def _onUpload(event):
 
 class ThumbnailsPlugin(GirderPlugin):
     DISPLAY_NAME = 'Thumbnails'
-    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         getPlugin('jobs').load(info)
@@ -99,3 +100,10 @@ class ThumbnailsPlugin(GirderPlugin):
 
         events.bind('model.file.remove', name, removeThumbnailLink)
         events.bind('data.process', name, _onUpload)
+
+        registerPluginStaticContent(
+            plugin='thumbnails',
+            css=['/style.css'],
+            js=['/girder-plugin-thumbnails.umd.cjs'],
+            staticDir=Path(__file__).parent / 'web_client' / 'dist',
+        )
