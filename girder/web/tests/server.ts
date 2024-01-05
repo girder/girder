@@ -1,13 +1,13 @@
-import { spawn , ChildProcessWithoutNullStreams } from 'child_process';
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 
-import { expect , test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 import { outputCoverageReport, startCoverage } from './coverage';
 
-const startServer = async (port: number) => {
-  const mongoUri = process.env.GIRDER_CLIENT_TESTING_MONGO_URI ?? 'mongodb://localhost:27017';
-  const girderExecutable = process.env.GIRDER_CLIENT_TESTING_GIRDER_EXECUTABLE ?? 'girder';
+const mongoUri = process.env.GIRDER_CLIENT_TESTING_MONGO_URI ?? 'mongodb://localhost:27017';
+const girderExecutable = process.env.GIRDER_CLIENT_TESTING_GIRDER_EXECUTABLE ?? 'girder';
 
+const startServer = async (port: number) => {
   const database = `${mongoUri}/girder-${port}`;
   const serverProcess = spawn(girderExecutable, ['serve', '--database', database, '--port', `${port}`], {
     env: { ...process.env, GIRDER_SETTING_CORE_CORS_ALLOW_ORIGIN: '*' },
@@ -39,6 +39,25 @@ export const setupServer = () => {
 
   test.afterAll(async () => {
     serverProcess?.kill();
+
+    const mongoshProcess = spawn('mongosh', [`${mongoUri}/girder-${port}`, '--eval', 'db.dropDatabase();']);
+
+    await new Promise<void>((resolve) => {
+      mongoshProcess?.on('close', (code) => {
+        if (code === 0) {
+          console.log('mongo database cleaned up');
+        } else {
+          console.error('mongo database cleanup failed with code', code);
+        }
+
+        resolve();
+      });
+
+      mongoshProcess?.on('error', (err) => {
+        console.error('mongosh process error -- database not cleaned up', err);
+        resolve();
+      });
+    });
   });
 
   test.beforeEach(async ({ page }) => {
