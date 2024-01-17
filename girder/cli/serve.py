@@ -1,9 +1,13 @@
+import tempfile
+
 import cherrypy
 import click
 
 from girder import _attachFileLogHandlers
 from girder.utility import server
 from girder.constants import ServerMode
+from girder.models.assetstore import Assetstore
+from girder.models.file import File
 
 
 @click.command(name='serve', short_help='Run the Girder server.', help='Run the Girder server.')
@@ -19,7 +23,9 @@ from girder.constants import ServerMode
               show_default=True, help='The interface to bind to')
 @click.option('-p', '--port', type=int, default=cherrypy.config['server.socket_port'],
               show_default=True, help='The port to bind to')
-def main(dev, mode, database, host, port):
+@click.option('--with-temp-assetstore', default=False, is_flag=True,
+              help='Create a temporary assetstore for this server instance')
+def main(dev, mode, database, host, port, with_temp_assetstore):
     if dev and mode:
         raise click.ClickException('Conflict between --dev and --mode')
     if dev:
@@ -35,4 +41,20 @@ def main(dev, mode, database, host, port):
 
     cherrypy.engine.signal_handler.subscribe()
     cherrypy.engine.start()
-    cherrypy.engine.block()
+
+    if with_temp_assetstore:
+        with tempfile.TemporaryDirectory() as tempdir:
+            assetstore = Assetstore().createFilesystemAssetstore(
+                name=tempdir,
+                root=tempdir,
+            )
+            try:
+                cherrypy.engine.block()
+            finally:
+                # Delete all files in the assetstore
+                File().removeWithQuery({
+                    'assetstoreId': assetstore['_id']
+                })
+                Assetstore().remove(assetstore)
+    else:
+        cherrypy.engine.block()

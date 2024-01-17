@@ -27,11 +27,11 @@ export const logout = async (page: Page) => {
 
 export const createUser = async (
   page: Page,
-  login: string,
-  email: string,
-  firstName: string,
-  lastName: string,
-  password: string,
+  login: string = 'firstlast',
+  email: string = 'email@email.com',
+  firstName: string = 'first',
+  lastName: string = 'last',
+  password: string = 'password',
 ) => {
   await expect(page.locator('.g-register')).toBeVisible();
   await page.locator('.g-register').click();
@@ -69,3 +69,13 @@ export const login = async (
 };
 
 export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export const upload = async (page: Page, file: string | string[]) => {
+  // This should be called from a folder view, where the upload button is visible.
+  // At the end, the file will be uploaded and you'll be back on the folder view.
+  await page.locator('.g-upload-here-button').first().click();
+  await expect(page.locator('.g-drop-zone')).toBeVisible();
+  await page.locator('#g-files').setInputFiles(file);
+  await page.locator('.g-start-upload').click();
+  await expect(page.locator('.g-start-upload')).toBeHidden();
+};

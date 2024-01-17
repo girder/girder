@@ -9,7 +9,12 @@ const girderExecutable = process.env.GIRDER_CLIENT_TESTING_GIRDER_EXECUTABLE ?? 
 
 const startServer = async (port: number) => {
   const database = `${mongoUri}/girder-${port}`;
-  const serverProcess = spawn(girderExecutable, ['serve', '--database', database, '--port', `${port}`], {
+  const serverProcess = spawn(girderExecutable, [
+    'serve',
+    '--database', database,
+    '--port', `${port}`,
+    '--with-temp-assetstore',
+  ], {
     env: { ...process.env, GIRDER_SETTING_CORE_CORS_ALLOW_ORIGIN: '*' },
   });
   await new Promise<void>((resolve) => {
