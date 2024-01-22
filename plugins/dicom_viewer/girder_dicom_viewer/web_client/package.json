@@ -17,6 +17,7 @@
     "dependencies": {
         "daikon": "^1.2.44",
         "shader-loader": "^1.3.0",
+        "jpeg-lossless-decoder-js": "~2.0",
         "vtk.js": "^5.10.3"
     },
     "girderPlugin": {
