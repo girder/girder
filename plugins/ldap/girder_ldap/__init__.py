@@ -95,7 +95,7 @@ def _processResults(event, results, conn, server, settings):
             user = _getLdapUser(attrs, server, settings)
             if user:
                 event.stopPropagation().preventDefault().addResponse(user)
-        except BaseException as err:
+        except Exception as err:
             if not settings['fallback']:
                 raise RestException(f'LDAP Error: {err}', 403)
     else:
