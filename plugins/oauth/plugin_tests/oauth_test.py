@@ -559,7 +559,7 @@ class OauthTest(base.TestCase):
                 'id_token': jwt.encode({
                     'sub': account['user']['oauth']['id'],
                     'email': account['user']['email'],
-                }, 'secret').decode()
+                }, 'secret', algorithm='HS256')
             })
 
         @httmock.urlmatch(scheme='https', netloc=r'^accounts\.google\.com$',
