@@ -188,7 +188,10 @@ class ServerFuse(fuse.Operations):
 
         if model == 'file':
             attr['st_mode'] = 0o400 | stat.S_IFREG
-            attr['st_size'] = doc.get('size', len(doc.get('linkUrl', '')))
+            if 'size' in doc and doc['size'] is None:
+                attr['st_size'], _ = File().updateSize(doc) or (0, 0)
+            else:
+                attr['st_size'] = doc.get('size', len(doc.get('linkUrl', '')))
         else:
             attr['st_mode'] = 0o500 | stat.S_IFDIR
             # Directories have zero size.  We could, instead, list the size
