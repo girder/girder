@@ -43,6 +43,14 @@ export const setupServer = () => {
   });
 
   test.afterAll(async () => {
+    if (process.env.GIRDER_CLIENT_TESTING_KEEP_SERVER_ALIVE) {
+      if (serverProcess) {
+        console.log('WARNING: Girder server is being kept alive after test ends. Use the following to kill it:');
+        console.log(`kill ${serverProcess?.pid}`);
+      }
+      return;
+    }
+
     serverProcess?.kill();
 
     const mongoshProcess = spawn('mongosh', [`${mongoUri}/girder-${port}`, '--eval', 'db.dropDatabase();']);

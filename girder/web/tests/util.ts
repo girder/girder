@@ -70,12 +70,14 @@ export const login = async (
 
 export const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export const upload = async (page: Page, file: string | string[]) => {
+export const upload = async (page: Page, file: string | string[], awaitSuccess: boolean = true) => {
   // This should be called from a folder view, where the upload button is visible.
   // At the end, the file will be uploaded and you'll be back on the folder view.
   await page.locator('.g-upload-here-button').first().click();
   await expect(page.locator('.g-drop-zone')).toBeVisible();
   await page.locator('#g-files').setInputFiles(file);
   await page.locator('.g-start-upload').click();
-  await expect(page.locator('.g-start-upload')).toBeHidden();
+  if (awaitSuccess) {
+    await expect(page.locator('.g-start-upload')).toBeHidden();
+  }
 };
