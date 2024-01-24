@@ -450,8 +450,15 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param file: The file.
         :type file: dict
         """
-        # TODO: check underlying assetstore for size?
-        return file.get('size', 0), 0
+        fixes = 0
+        if file.get('assetstoreId'):
+            size = self.getAssetstoreAdapter(file).getFileSize(file)
+            if size != file.get('size', 0):
+                file['size'] = size
+                self.update({'_id': file['_id']}, {'$set': {'size': size}})
+                fixes += 1
+
+        return file.get('size', 0), fixes
 
     def open(self, file):
         """
