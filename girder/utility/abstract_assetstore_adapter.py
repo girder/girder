@@ -202,6 +202,16 @@ class AbstractAssetstoreAdapter:
         """
         return upload['received']
 
+    def getFileSize(self, file):
+        """
+        Get the file size (computing it, if necessary). Default behavior simply
+        returns `file.get('size', 0)`. This method exists because some
+        assetstores do not compute the file size immediately, but only when
+        it is actually needed. The assetstore may also need to update the file
+        size after some changes.
+        """
+        return file.get('size', 0)
+
     def deleteFile(self, file):
         """
         This is called when a File is deleted to allow the adapter to remove

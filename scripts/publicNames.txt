@@ -781,6 +781,7 @@ girder
                 finalizeUpload
                 findInvalidFiles
                 getChunkSize
+                getFileSize
                 getLocalFilePath
                 importData
                 initUpload
