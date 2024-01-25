@@ -30,17 +30,24 @@ export const outputCoverageReport = async (page: Page) => {
   try {
     const coverage = await page.coverage.stopJSCoverage();
     for (const entry of coverage) {
+      let converter;
       if (/plugin_static/.test(entry.url)) {
-        /* TODO handle plugin JS files by mapping them back to the correct local file */
-        console.warn('Skipping plugin coverage', entry.url);
-        continue;
+        const [plugin, filename] = entry.url.split('/').slice(-2);
+
+        converter = v8toIstanbul(
+          `../../plugins/${plugin}/girder_${plugin}/web_client/dist/${filename}`,
+          0,
+          { source: entry.source ?? '' },
+          (path) => path.includes('node_modules')
+        );
+      } else {
+        converter = v8toIstanbul(
+          'dist/assets/index.js',
+          0,
+          { source: entry.source ?? '' },
+          (path) => path.includes('node_modules')
+        );
       }
-      const converter = v8toIstanbul(
-        'dist/assets/index.js',
-        0,
-        { source: entry.source ?? '' },
-        (path) => path.includes('node_modules')
-      );
       await converter.load();
       converter.applyCoverage(entry.functions);
 
