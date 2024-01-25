@@ -264,8 +264,12 @@ class File(Resource):
         Defers to the underlying assetstore adapter to stream a file out.
         Requires read permission on the folder that contains the file's item.
         """
-        rangeHeader = cherrypy.lib.httputil.get_ranges(
-            cherrypy.request.headers.get('Range'), file.get('size', 0))
+        rangeRequest = cherrypy.request.headers.get('Range')
+        if rangeRequest and file.get('size') is None:
+            # Ensure the file size is updated
+            self._model.updateSize(file)
+
+        rangeHeader = cherrypy.lib.httputil.get_ranges(rangeRequest, file.get('size', 0))
 
         # The HTTP Range header takes precedence over query params
         if rangeHeader and len(rangeHeader):
