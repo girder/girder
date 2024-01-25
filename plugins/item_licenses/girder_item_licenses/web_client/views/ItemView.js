@@ -1,7 +1,7 @@
 import ItemLicenseWidget from './ItemLicenseWidget';
 
 const $ = girder.$;
-const ItemView = girder.views.ItemView;
+const ItemView = girder.views.body.ItemView;
 const { restRequest } = girder.rest;
 const { wrap } = girder.utilities.PluginUtils;
 

@@ -3,7 +3,7 @@ import ItemViewTemplate from '../templates/itemView.pug';
 import FlowView from './FlowView';
 
 const _ = girder._;
-const ItemView = girder.views.ItemView;
+const ItemView = girder.views.body.ItemView;
 const { wrap } = girder.utilities.PluginUtils;
 const FileCollection = girder.collections.FileCollection;
 

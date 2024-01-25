@@ -53,7 +53,7 @@ export const createUser = async (
 export const login = async (
   page: Page,
   login: string,
-  password: string,
+  password: string = 'password',
 ) => {
   await expect(page.locator('.g-login')).toBeVisible();
   await page.locator('.g-login').click();
