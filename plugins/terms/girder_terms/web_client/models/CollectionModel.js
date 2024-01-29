@@ -1,6 +1,3 @@
-import createHash from 'sha.js';
-
-const $ = girder.$;
 const { getCurrentUser } = girder.auth;
 const { restRequest } = girder.rest;
 const CollectionModel = girder.models.CollectionModel;
@@ -12,16 +9,13 @@ CollectionModel.prototype.hasTerms = function () {
     return Boolean(this.get('terms'));
 };
 
-CollectionModel.prototype.currentUserHasAcceptedTerms = function () {
-    const termsHash = this._hashTerms();
+CollectionModel.prototype.currentUserHasAcceptedTerms = async function () {
+    const termsHash = await this._hashTerms();
     const currentUser = getCurrentUser();
     if (currentUser) {
         const userAcceptedTerms = currentUser.get('terms');
         // Lodash's _.get would be nice here
-        return userAcceptedTerms &&
-            userAcceptedTerms.collection &&
-            userAcceptedTerms.collection[this.id] &&
-            (userAcceptedTerms.collection[this.id].hash === termsHash);
+        return userAcceptedTerms?.collection?.[this.id]?.hash === termsHash;
     } else {
         const storageKey = `terms.collection.${this.id}`;
         try {
@@ -32,8 +26,8 @@ CollectionModel.prototype.currentUserHasAcceptedTerms = function () {
     }
 };
 
-CollectionModel.prototype.currentUserSetAcceptTerms = function () {
-    const termsHash = this._hashTerms();
+CollectionModel.prototype.currentUserSetAcceptTerms = async function () {
+    const termsHash = await this._hashTerms();
     const currentUser = getCurrentUser();
     if (currentUser) {
         return restRequest({
@@ -68,11 +62,13 @@ CollectionModel.prototype.currentUserSetAcceptTerms = function () {
         } catch (e) {
             termsAcceptedFallback[this.id] = termsHash;
         }
-        return $.Deferred().resolve().promise();
+        return girder.$.Deferred().resolve().promise();
     }
 };
 
-CollectionModel.prototype._hashTerms = function () {
-    window.hex = createHash('sha256').update(this.get('terms'));
-    return createHash('sha256').update(this.get('terms')).digest('hex');
+CollectionModel.prototype._hashTerms = async function () {
+    const arr = new window.TextEncoder().encode(this.get('terms'));
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', arr);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 };

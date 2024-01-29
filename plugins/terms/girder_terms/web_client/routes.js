@@ -12,8 +12,8 @@ const ItemModel = girder.models.ItemModel;
 CollectionView.fetchAndInit = function (cid, params) {
     const collection = new CollectionModel({ _id: cid });
     collection.fetch()
-        .done(() => {
-            if (collection.hasTerms() && !collection.currentUserHasAcceptedTerms()) {
+        .done(async () => {
+            if (collection.hasTerms() && !(await collection.currentUserHasAcceptedTerms())) {
                 events.trigger(
                     'g:navigateTo',
                     TermsAcceptanceView,
@@ -41,8 +41,8 @@ FolderView.fetchAndInit = function (id, params) {
                 return undefined;
             }
         })
-        .done(() => {
-            if (collection && collection.hasTerms() && !collection.currentUserHasAcceptedTerms()) {
+        .done(async () => {
+            if (collection && collection.hasTerms() && !(await collection.currentUserHasAcceptedTerms())) {
                 events.trigger(
                     'g:navigateTo',
                     TermsAcceptanceView,
@@ -70,8 +70,8 @@ ItemView.fetchAndInit = function (itemId, params) {
                 return undefined;
             }
         })
-        .done(() => {
-            if (collection && collection.hasTerms() && !collection.currentUserHasAcceptedTerms()) {
+        .done(async () => {
+            if (collection && collection.hasTerms() && !(await collection.currentUserHasAcceptedTerms())) {
                 events.trigger(
                     'g:navigateTo',
                     TermsAcceptanceView,

@@ -8,17 +8,16 @@ const router = girder.router;
 
 const TermsAcceptanceView = View.extend({
     events: {
-        'click #g-terms-accept': function (event) {
+        'click #g-terms-accept': async function (event) {
             const buttons = this.$('button');
             buttons.girderEnable(false);
 
-            this.model.currentUserSetAcceptTerms()
-                // This is never expected to fail, but use "always" for safety
-                .always(() => {
-                    buttons.girderEnable(true);
-                    // Re-route to the current page, without reloading the DOM
-                    Backbone.history.loadUrl(Backbone.history.getHash());
-                });
+            await this.model.currentUserSetAcceptTerms();
+
+            buttons.girderEnable(true);
+
+            // Re-route to the current page, without reloading the DOM
+            Backbone.history.loadUrl(Backbone.history.getHash());
         },
         'click #g-terms-reject': function (event) {
             // Route to home page

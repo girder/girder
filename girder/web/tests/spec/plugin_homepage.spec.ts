@@ -6,7 +6,7 @@ import { createUser } from '../util';
 test.describe('Test the homepage front-end', () => {
     setupServer();
 
-    test('verify presence of key file', async ({ page }) => {
+    test('exercise homepage customization', async ({ page }) => {
         await createUser(page);
 
         await page.getByRole('link', { name: ' Admin console' }).click();
@@ -27,5 +27,11 @@ test.describe('Test the homepage front-end', () => {
         await expect(page.locator('strong')).toContainText('bold');
         await expect(page.locator('em')).toContainText('italic');
         await expect(page.locator('a[href="https://girder.readthedocs.io/"]')).toContainText('link to Girder!');
+
+        await page.getByRole('link', { name: ' Collections' }).click();
+        await page.getByRole('button', { name: ' Create collection' }).click();
+        await page.getByPlaceholder('Enter collection name').fill('New collection');
+        await page.getByRole('button', { name: ' Create', exact: true }).click();
+        await expect(page.getByRole('button', { name: '' })).toBeVisible();
     });
 });

@@ -2,6 +2,8 @@ import $ from 'jquery';
 
 import _ from 'underscore';
 
+import Backbone from 'backbone';
+
 import moment from 'moment';
 
 import * as auth from './auth';
@@ -52,6 +54,7 @@ const initializeDefaultApp = async (apiRoot: string, el: string | HTMLElement = 
 const girder = {
     $,
     _,
+    Backbone,
     moment,
     initializeDefaultApp,
     auth,
