@@ -59,7 +59,7 @@ class File(acl_mixin.AccessControlMixin, Model):
             item = Item().load(file['itemId'], force=True)
             if item is not None:
                 # files that are linkUrls might not have a size field
-                if 'size' in file:
+                if file.get('size') is not None:
                     self.propagateSizeChange(item, -file['size'], updateItemSize)
             else:
                 girder.logger.warning('Broken reference in file %s: no item %s exists' %
