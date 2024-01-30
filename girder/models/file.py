@@ -59,7 +59,7 @@ class File(acl_mixin.AccessControlMixin, Model):
             item = Item().load(file['itemId'], force=True)
             if item is not None:
                 # files that are linkUrls might not have a size field
-                if 'size' in file:
+                if file.get('size') is not None:
                     self.propagateSizeChange(item, -file['size'], updateItemSize)
             else:
                 girder.logger.warning('Broken reference in file %s: no item %s exists' %
@@ -450,8 +450,15 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param file: The file.
         :type file: dict
         """
-        # TODO: check underlying assetstore for size?
-        return file.get('size', 0), 0
+        fixes = 0
+        if file.get('assetstoreId'):
+            size = self.getAssetstoreAdapter(file).getFileSize(file)
+            if size != file.get('size', 0):
+                file['size'] = size
+                self.update({'_id': file['_id']}, {'$set': {'size': size}})
+                fixes += 1
+
+        return file.get('size', 0), fixes
 
     def open(self, file):
         """

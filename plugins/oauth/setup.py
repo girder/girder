@@ -46,7 +46,7 @@ setup(
     install_requires=[
         'girder>=3',
         'msal',
-        'pyjwt<2',
+        'pyjwt>=2,<3',
     ],
     entry_points={
         'girder.plugin': [

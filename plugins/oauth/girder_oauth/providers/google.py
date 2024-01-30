@@ -58,7 +58,7 @@ class Google(ProviderBase):
         idToken = token['id_token']
 
         # Because the token came directly from Google's API, we don't need to verify it
-        payload = jwt.decode(idToken, verify=False)
+        payload = jwt.decode(idToken, algorithms=['HS256'], options={'verify_signature': False})
 
         oauthId = payload['sub']
 
