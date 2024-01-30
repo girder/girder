@@ -343,7 +343,7 @@ jobs:
 
   publish:
     docker:
-      - image: cimg/python:3.8
+      - image: girder/girder_test:py38-node16
     working_directory: ~/project
     steps:
       - checkout:
