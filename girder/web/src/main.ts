@@ -33,12 +33,19 @@ const apiRoot = import.meta.env.VITE_API_ROOT ?? '/api/v1';
     document.head.appendChild(link);
   });
 
+  const scriptPromises: Promise<void>[] = [];
   staticFiles.js.forEach((href) => {
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = new URL(href, origin).href;
-    document.head.appendChild(script);
-  })
+    scriptPromises.push(new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = new URL(href, origin).href;
+      document.head.appendChild(script);
+      script.addEventListener('load', function() {
+        resolve();
+      });
+    }));
+  });
 
+  await Promise.all(scriptPromises);
   await girder.initializeDefaultApp(apiRoot);
 })();
