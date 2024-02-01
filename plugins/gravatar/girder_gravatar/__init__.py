@@ -61,7 +61,7 @@ class GravatarPlugin(GirderPlugin):
 
         registerPluginStaticContent(
             plugin='gravatar',
-            css=['/style.css'],
+            css=[],
             js=['/girder-plugin-gravatar.umd.cjs'],
             staticDir=Path(__file__).parent / 'web_client' / 'dist',
         )
