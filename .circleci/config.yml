@@ -154,6 +154,10 @@ jobs:
           working_directory: girder/girder/web
       - store_artifacts:
           path: girder/girder/web/coverage/report
+          destination: coverage
+      - store_artifacts:
+          path: girder/girder/web/test-results
+          destination: test-results
 
   integration-test:
     executor: machine
