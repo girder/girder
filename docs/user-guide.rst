@@ -112,18 +112,6 @@ the root directory under which files should be stored.
    assetstore root to a location on the filesystem that is shared between all
    of the application servers.
 
-GridFS
-^^^^^^
-
-This ``Assetstore`` type stores files directly within your Mongo database using
-the **GridFS** model. You must specify the database name where files will be
-stored; for now, the same credentials will be used for this database as for the
-main application database.
-
-This database type has the advantage of automatically scaling horizontally with
-your DBMS. However, it is marginally slower than the Filesystem assetstore type
-in a typical single-server use case.
-
 S3
 ^^
 

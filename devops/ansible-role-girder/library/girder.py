@@ -163,7 +163,7 @@ options:
                           - Name of the assetstore
                   type:
                       required: true
-                      choices: ['filesystem', 'gridfs', 's3', 'hdfs', 'database']
+                      choices: ['filesystem', 's3', 'hdfs', 'database']
                       description:
                           - Currently only 'filesystem' has been tested
                   readOnly:
@@ -184,23 +184,7 @@ options:
                       description:
                           -  Filesystem path to the assetstore
 
-              options (gridfs) (EXPERIMENTAL):
-                   db:
-                       required: true
-                       description:
-                           - database name
-                   mongohost:
-                       required: true
-                       description:
-                           - Mongo host URI
-
-                   replicaset:
-                       required: false
-                       default: ''
-                       description:
-                           - Replica set name
-
-              options (s3) (EXPERIMENTAL):
+              options (s3):
                    bucket:
                        required: true
                        description:
@@ -1581,7 +1565,6 @@ class GirderClientModule(GirderClient):
 
     assetstore_types = {
         'filesystem': 0,
-        'gridfs': 1,
         's3': 2,
         'hdfs': 'hdfs',
         'database': 'database'
@@ -1609,11 +1592,6 @@ class GirderClientModule(GirderClient):
             'filesystem': {'name': name,
                            'type': self.assetstore_types[type],
                            'root': root},
-            'gridfs': {'name': name,
-                       'type': self.assetstore_types[type],
-                       'db': db,
-                       'mongohost': mongohost,
-                       'replicaset': replicaset},
             's3': {'name': name,
                    'type': self.assetstore_types[type],
                    'bucket': bucket},

@@ -100,21 +100,6 @@ fieldsMap[AssetstoreType.FILESYSTEM] = {
     }
 };
 
-fieldsMap[AssetstoreType.GRIDFS] = {
-    get: function () {
-        return {
-            db: this.$('#g-edit-gridfs-db').val(),
-            mongohost: this.$('#g-edit-gridfs-mongohost').val(),
-            replicaset: this.$('#g-edit-gridfs-replicaset').val()
-        };
-    },
-    set: function () {
-        this.$('#g-edit-gridfs-db').val(this.model.get('db'));
-        this.$('#g-edit-gridfs-mongohost').val(this.model.get('mongohost'));
-        this.$('#g-edit-gridfs-replicaset').val(this.model.get('replicaset'));
-    }
-};
-
 fieldsMap[AssetstoreType.S3] = {
     get: function () {
         return {

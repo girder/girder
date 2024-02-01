@@ -382,7 +382,6 @@ girder
             validate
         AssetstoreType
             FILESYSTEM
-            GRIDFS
             S3
         CoreEventHandler
             ACCESS_CONTROL_CLEANUP
@@ -483,7 +482,6 @@ girder
             Assetstore
                 addComputedInfo
                 createFilesystemAssetstore
-                createGridFsAssetstore
                 createS3Assetstore
                 getCurrent
                 importData
@@ -842,20 +840,6 @@ girder
                 uploadChunk
                 validateInfo
         genToken
-        gridfs_assetstore_adapter
-            CHUNK_SIZE
-            GridFsAssetstoreAdapter
-                cancelUpload
-                deleteFile
-                downloadFile
-                fileIndexFields
-                finalizeUpload
-                initUpload
-                requestOffset
-                uploadChunk
-                validateInfo
-            RECENT_CONNECTION_CACHE_MAX_SIZE
-            RECENT_CONNECTION_CACHE_TIME
         mail_utils
             addTemplateDirectory
             getEmailUrlPrefix

@@ -12,8 +12,7 @@ from hashlib import sha512
 from .. import base, mock_s3
 
 from girder import events
-from girder.models import getDbConnection
-from girder.exceptions import AccessException, GirderException, FilePathException
+from girder.exceptions import AccessException, GirderException
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -21,7 +20,6 @@ from girder.models.folder import Folder
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.settings import SettingKey
-from girder.utility import gridfs_assetstore_adapter
 from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
 
@@ -804,59 +802,6 @@ class FileTestCase(base.TestCase):
             '%B0%D0%B7%D0%B5%D1%86%20%D8%B9%D9%8A%D9%86%D8%A9%20%E6%A8%A3%E5' \
             '%93%81%20%F0%9F%98%83'
         self._testDownloadFile(file, chunk1 + chunk2, testval)
-
-    def testGridFsAssetstore(self):
-        """
-        Test usage of the GridFS assetstore type.
-        """
-        # Must also lower GridFS's internal chunk size to support our small chunks
-        gridfs_assetstore_adapter.CHUNK_SIZE, old = 6, gridfs_assetstore_adapter.CHUNK_SIZE
-
-        # Clear any old DB data
-        base.dropGridFSDatabase('girder_test_file_assetstore')
-        # Clear the assetstore database
-        conn = getDbConnection()
-        conn.drop_database('girder_test_file_assetstore')
-
-        Assetstore().remove(Assetstore().getCurrent())
-        assetstore = Assetstore().createGridFsAssetstore(
-            name='Test', db='girder_test_file_assetstore')
-        self.assetstore = assetstore
-
-        chunkColl = conn['girder_test_file_assetstore']['chunk']
-
-        # Upload the two-chunk file
-        file = self._testUploadFile('helloWorld1.txt')
-        hash = sha512(chunkData).hexdigest()
-        file = File().load(file['_id'], force=True)
-        self.assertEqual(hash, file['sha512'])
-
-        # The file should have no local path
-        self.assertRaises(FilePathException, File().getLocalFilePath, file)
-
-        # We should have two chunks in the database
-        self.assertEqual(chunkColl.find({'uuid': file['chunkUuid']}).count(), 2)
-
-        self._testDownloadFile(file, chunk1 + chunk2)
-
-        # Reset chunk size so the large file testing isn't horribly slow
-        gridfs_assetstore_adapter.CHUNK_SIZE = old
-
-        self._testDownloadFolder()
-        self._testDownloadCollection()
-
-        # Delete the file, make sure chunks are gone from database
-        self._testDeleteFile(file)
-        self.assertEqual(chunkColl.find({'uuid': file['chunkUuid']}).count(), 0)
-
-        empty = self._testEmptyUpload('empty.txt')
-        self.assertEqual(sha512().hexdigest(), empty['sha512'])
-        self._testDownloadFile(empty, '')
-        self._testDeleteFile(empty)
-
-        # Test copying a file
-        copyTestFile = self._testUploadFile('helloWorld1.txt')
-        self._testCopyFile(copyTestFile)
 
     @moto.mock_s3
     def testS3Assetstore(self):

@@ -364,16 +364,6 @@ class UploadTestCase(base.TestCase):
         self.assertEqual(fullPath0, fullPath1)
         self.assertTrue(os.path.exists(fullPath1))
 
-    def testGridFSAssetstoreUpload(self):
-        # Clear any old DB data
-        base.dropGridFSDatabase('girder_test_upload_assetstore')
-        # Clear the assetstore database and create a GridFS assetstore
-        Assetstore().remove(Assetstore().getCurrent())
-        assetstore = Assetstore().createGridFsAssetstore(
-            name='Test', db='girder_test_upload_assetstore')
-        self.assetstore = assetstore
-        self._testUpload()
-
     def testS3AssetstoreUpload(self):
         # Clear the assetstore database and create an S3 assetstore
         Assetstore().remove(self.assetstore)

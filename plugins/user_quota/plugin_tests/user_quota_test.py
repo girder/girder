@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import tempfile
 
 from tests import base
 from girder.constants import AssetstoreType
@@ -352,36 +353,36 @@ class QuotaTestCase(base.TestCase):
         """
         # We want three assetstores for testing, one of which is unreachable.
         # We already have one, which is the current assetstore.
-        base.dropGridFSDatabase('girder_test_user_quota_assetstore')
-        params = {
-            'name': 'Non-current Store',
-            'type': AssetstoreType.GRIDFS,
-            'db': 'girder_test_user_quota_assetstore'
-        }
-        resp = self.request(path='/assetstore', method='POST', user=self.admin,
-                            params=params)
-        self.assertStatusOk(resp)
+        with tempfile.TemporaryDirectory() as root:
+            params = {
+                'name': 'Non-current Store',
+                'type': AssetstoreType.FILESYSTEM,
+                'root': root,
+            }
+            resp = self.request(path='/assetstore', method='POST', user=self.admin,
+                                params=params)
+            self.assertStatusOk(resp)
 
-        # Create a broken assetstore. (Must bypass validation since it should
-        # not let us create an assetstore in a broken state).
-        Assetstore().save({
-            'name': 'Broken Store',
-            'type': AssetstoreType.FILESYSTEM,
-            'root': '/dev/null',
-            'created': datetime.datetime.utcnow()
-        }, validate=False)
+            # Create a broken assetstore. (Must bypass validation since it should
+            # not let us create an assetstore in a broken state).
+            Assetstore().save({
+                'name': 'Broken Store',
+                'type': AssetstoreType.FILESYSTEM,
+                'root': '/dev/null',
+                'created': datetime.datetime.utcnow()
+            }, validate=False)
 
-        # Now get the assetstores and save their ids for later
-        resp = self.request(path='/assetstore', method='GET', user=self.admin,
-                            params={'sort': 'created'})
-        self.assertStatusOk(resp)
-        assetstores = resp.json
-        self.assertEqual(len(assetstores), 3)
-        self.currentAssetstore = assetstores[0]
-        self.alternateAssetstore = assetstores[1]
-        self.brokenAssetstore = assetstores[2]
-        self._testAssetstores('user', self.user, self.admin)
-        self._testAssetstores('collection', self.collection, self.admin)
+            # Now get the assetstores and save their ids for later
+            resp = self.request(path='/assetstore', method='GET', user=self.admin,
+                                params={'sort': 'created'})
+            self.assertStatusOk(resp)
+            assetstores = resp.json
+            self.assertEqual(len(assetstores), 3)
+            self.currentAssetstore = assetstores[0]
+            self.alternateAssetstore = assetstores[1]
+            self.brokenAssetstore = assetstores[2]
+            self._testAssetstores('user', self.user, self.admin)
+            self._testAssetstores('collection', self.collection, self.admin)
 
     def testQuotaPolicy(self):
         """

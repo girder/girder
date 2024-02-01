@@ -23,16 +23,6 @@ var NewAssetstoreWidget = View.extend({
             });
         },
 
-        'submit #g-new-gridfs-form': function (e) {
-            this.createAssetstore(e, this.$('#g-new-gridfs-error'), {
-                type: AssetstoreType.GRIDFS,
-                name: this.$('#g-new-gridfs-name').val(),
-                db: this.$('#g-new-gridfs-db').val(),
-                mongohost: this.$('#g-new-gridfs-mongohost').val(),
-                replicaset: this.$('#g-new-gridfs-replicaset').val()
-            });
-        },
-
         'submit #g-new-s3-form': function (e) {
             this.createAssetstore(e, this.$('#g-new-s3-error'), {
                 type: AssetstoreType.S3,

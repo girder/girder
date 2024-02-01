@@ -121,19 +121,6 @@ def dropTestDatabase(dropModels=True):
     requestCache.invalidate()
 
 
-def dropGridFSDatabase(dbName):
-    """
-    Clear all contents from a gridFS database used as an assetstore.
-    :param dbName: the name of the database to drop.
-    """
-    db_connection = getDbConnection()
-    if dbName in db_connection.list_database_names():
-        if dbName not in usedDBs and 'newdb' in os.environ.get('EXTRADEBUG', '').split():
-            raise Exception('Warning: database %s already exists' % dbName)
-        db_connection.drop_database(dbName)
-    usedDBs[dbName] = True
-
-
 def dropFsAssetstore(path):
     """
     Delete all of the files in a filesystem assetstore.  This unlinks the path,
@@ -156,7 +143,7 @@ class TestCase(unittest.TestCase):
         We want to start with a clean database each time, so we drop the test
         database before each test. We then add an assetstore so the file model
         can be used without 500 errors.
-        :param assetstoreType: if 'gridfs' or 's3', use that assetstore.
+        :param assetstoreType: if 's3', use that assetstore.
             For any other value, use a filesystem assetstore.
         """
         self.assetstoreType = assetstoreType
@@ -164,13 +151,7 @@ class TestCase(unittest.TestCase):
         assetstoreName = os.environ.get('GIRDER_TEST_ASSETSTORE', 'test')
         assetstorePath = os.path.join(
             ROOT_DIR, 'tests', 'assetstore', assetstoreName)
-        if assetstoreType == 'gridfs':
-            # Name this as '_auto' to prevent conflict with assetstores created
-            # within test methods
-            gridfsDbName = 'girder_test_%s_assetstore_auto' % assetstoreName.replace('.', '_')
-            dropGridFSDatabase(gridfsDbName)
-            self.assetstore = Assetstore().createGridFsAssetstore(name='Test', db=gridfsDbName)
-        elif assetstoreType == 's3':
+        if assetstoreType == 's3':
             self.assetstore = Assetstore().createS3Assetstore(
                 name='Test', bucket='bucketname', accessKeyId='test',
                 secret='test', service=mockS3Server.service)
