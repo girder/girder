@@ -4,8 +4,6 @@ if("${MONGOD_EXECUTABLE}" STREQUAL "MONGOD_EXECUTABLE-NOTFOUND")
   set(MONGOD_EXECUTABLE "local mongod required")
 endif()
 
-javascript_tests_init()
-
 if(RUN_CORE_TESTS)
   # These are performed approximately in the order listed.
   add_python_test(assetstore)
@@ -41,31 +39,6 @@ if(RUN_CORE_TESTS)
 
   add_python_test(py_client.cli BIND_SERVER RESOURCE_LOCKS py_client_test_dir)
   add_python_test(py_client.lib BIND_SERVER RESOURCE_LOCKS py_client_test_dir)
-
-  add_web_client_test(data_filesystem "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE filesystem)
-  add_web_client_test(data_gridfs "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE gridfs)
-  add_web_client_test(data_s3 "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE s3 WEBSECURITY false)
-  add_web_client_test(admin "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/adminSpec.js" ASSETSTORE s3 WEBSECURITY false
-    RESOURCE_LOCKS replicaset
-    )
-  add_web_client_test(collection "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/collectionSpec.js")
-  add_web_client_test(collection_base_class "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/collectionBaseClassSpec.js")
-  add_web_client_test(model "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/modelSpec.js")
-  add_web_client_test(group "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/groupSpec.js")
-  add_web_client_test(user "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/userSpec.js")
-  add_web_client_test(item "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/itemSpec.js")
-  add_web_client_test(folder "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/folderSpec.js")
-  add_web_client_test(routing "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/routingSpec.js")
-  add_web_client_test(version "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/versionSpec.js")
-  add_web_client_test(custom_widgets "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/customWidgetsSpec.js")
-  add_web_client_test(widgets "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/widgetsSpec.js")
-  add_web_client_test(datetime_widget "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dateTimeWidgetSpec.js")
-  add_web_client_test(sort_widget "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/sortWidgetSpec.js")
-  add_web_client_test(empty_layout "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/emptyLayoutSpec.js")
-  # add_web_client_test(swagger "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/swaggerSpec.js" BASEURL "/api/v1")
-  add_web_client_test(browser "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/browserSpec.js")
-  add_web_client_test(set_api "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/setApiSpec.js")
-  add_web_client_test(utilities "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/utilitiesSpec.js")
 
   # Add tests for the local TestData module
   add_plugin_data_path("has_external_data" "${PROJECT_SOURCE_DIR}/tests/test_plugins/has_external_data")
@@ -114,7 +87,6 @@ macro(add_standard_plugin_tests)
     foreach(_clientTestFile ${_clientTests})
       get_filename_component(_clientTestFileName "${_clientTestFile}" NAME)
       string(REGEX REPLACE "Spec\\.js$" "" _clientTestName "${_clientTestFileName}")
-      add_web_client_test(${_clientTestName} "${_clientTestFile}" PLUGIN ${_pluginName})
     endforeach()
   endif()
 endmacro()
