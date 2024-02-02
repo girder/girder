@@ -244,7 +244,7 @@ class Upload(Model):
         }
         if 'reference' in upload:
             eventParams['reference'] = upload['reference']
-        events.daemon.trigger('data.process', eventParams)
+        events.trigger('data.process', eventParams)
 
         return file
 

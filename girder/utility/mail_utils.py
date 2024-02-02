@@ -193,14 +193,14 @@ def sendMail(subject, text, to, bcc=None):
     """
     msg, recipients = _createMessage(subject, text, to, bcc)
 
-    events.daemon.trigger('_sendmail', info={
+    events.trigger('_sendmail', info={
         'message': msg,
         'recipients': recipients
     })
 
 
 def sendMailToAdmins(subject, text):
-    """Send an email asynchronously to site admins."""
+    """Send an email to site admins."""
     from girder.models.user import User
 
     to = [u['email'] for u in User().getAdmins()]
@@ -208,6 +208,6 @@ def sendMailToAdmins(subject, text):
 
 
 def sendMailIndividually(subject, text, to):
-    """Send emails asynchronously to all recipients individually."""
+    """Send emails to all recipients individually."""
     for address in to:
         sendMail(address, subject, text)

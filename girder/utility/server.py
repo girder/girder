@@ -3,7 +3,6 @@ import mako
 import mimetypes
 import os
 
-import girder.events
 from girder import constants, logprint, __version__, logStdoutStderr, _setupCache
 from girder.models.setting import Setting
 from girder import plugin
@@ -75,10 +74,6 @@ def configureServer(mode=None, plugins=None, curConfig=None):
     from girder.api.api_main import buildApi
 
     api = buildApi()
-
-    girder.events.setupDaemon()
-    cherrypy.engine.subscribe('start', girder.events.daemon.start)
-    cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
 
     routeTable = loadRouteTable()
     info = {

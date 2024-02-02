@@ -443,14 +443,8 @@ girder
             addResponse
             preventDefault
             stopPropagation
-        ForegroundEventsDaemon
-            start
-            stop
-            trigger
         bind
         bound
-        daemon
-        setupDaemon
         trigger
         unbind
         unbindAll
