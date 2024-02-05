@@ -497,11 +497,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             }
             matching = File().find(q, limit=2, fields=[])
             if matching.count(True) == 1:
-                events.trigger(info={
-                    'client': self.client,
-                    'bucket': self.assetstore['bucket'],
-                    'key': file['s3Key']
-                }, callback=_deleteFileImpl)
+                self.client.delete_object(Bucket=self.assetstore['bucket'], Key=file['s3Key'])
 
     def fileUpdated(self, file):
         """
@@ -655,7 +651,3 @@ def makeBotoConnectParams(accessKeyId, secret, service=None, region=None, inferC
         params['endpoint_url'] = service
 
     return params
-
-
-def _deleteFileImpl(event):
-    event.info['client'].delete_object(Bucket=event.info['bucket'], Key=event.info['key'])

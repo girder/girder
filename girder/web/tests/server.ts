@@ -15,7 +15,11 @@ const startServer = async (port: number) => {
     '--port', `${port}`,
     '--with-temp-assetstore',
   ], {
-    env: { ...process.env, GIRDER_SETTING_CORE_CORS_ALLOW_ORIGIN: '*' },
+    env: {
+      ...process.env,
+      GIRDER_SETTING_CORE_CORS_ALLOW_ORIGIN: '*',
+      GIRDER_EMAIL_TO_CONSOLE: 'true',
+    },
   });
   await new Promise<void>((resolve) => {
     serverProcess?.stdout.on('data', (data: string) => {

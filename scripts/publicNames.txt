@@ -840,7 +840,6 @@ girder
             renderTemplate
             sendMail
             sendMailIndividually
-            sendMailSync
             sendMailToAdmins
             validateEmailAddress
         mkdir

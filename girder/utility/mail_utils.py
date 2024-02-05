@@ -147,6 +147,11 @@ class _SMTPConnection:
 def _submitEmail(msg, recipients):
     from girder.models.setting import Setting
 
+    if os.environ.get('GIRDER_EMAIL_TO_CONSOLE'):
+        print('Redirecting email to console:')
+        print(msg.as_string())
+        return
+
     setting = Setting()
     smtp = _SMTPConnection(
         host=setting.get(SettingKey.SMTP_HOST),
@@ -171,16 +176,9 @@ def _sendmail(event):
 events.bind('_sendmail', 'core.email', _sendmail)
 
 
-def sendMailSync(subject, text, to, bcc=None):
-    """Send an email synchronously."""
-    msg, recipients = _createMessage(subject, text, to, bcc)
-
-    _submitEmail(msg, recipients)
-
-
 def sendMail(subject, text, to, bcc=None):
     """
-    Send an email asynchronously.
+    Send an email.
 
     :param subject: The subject line of the email.
     :type subject: str

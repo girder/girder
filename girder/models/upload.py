@@ -235,7 +235,7 @@ class Upload(Model):
         logger.info('Upload complete. Upload=%s File=%s User=%s' % (
             upload['_id'], file['_id'], upload['userId']))
 
-        # Add an async event for handlers that wish to process this file.
+        # Add an event for handlers that wish to process this file.
         eventParams = {
             'file': file,
             'assetstore': assetstore,
