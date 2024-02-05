@@ -8,9 +8,7 @@ from girder.settings import SettingKey
 from girder.utility.model_importer import ModelImporter
 
 warnings.warn(  # noqa B028
-    'setup_database.py is only meant for test fixtures, not for provisioning.'
-    "\nSee Girder's ansible client for a deployment solution: "
-    'https://github.com/girder/girder/tree/master/devops/ansible-role-girder/library',
+    'setup_database.py is only meant for test fixtures, not for provisioning.',
     stacklevel=2,
 )
 

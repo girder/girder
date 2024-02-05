@@ -78,18 +78,6 @@ And under the containing ``server`` block, make sure to add the following rule:
         # ... elided configuration
     }
 
-Ansible
--------
-:doc:`deployment` provides a complete installation workflow which depends primarily on the
-Ansible roles:
-
-* `girder.girder <https://galaxy.ansible.com/girder/girder>`_
-* `girder.mongodb <https://galaxy.ansible.com/girder/mongodb>`_
-* `girder.nginx <https://galaxy.ansible.com/girder/nginx>`_
-
-These roles are also independently usable and may be composed as part of larger, custom Ansible
-playbooks.
-
 Docker Container
 ----------------
 

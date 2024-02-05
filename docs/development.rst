@@ -32,26 +32,6 @@ local config file (see :ref:`Configuration <configuration>` for instructions):
     [server]
     mode="development"
 
-Vagrant
-^^^^^^^
-
-A shortcut to going through the development environment configuration steps is
-to use `Vagrant <https://www.vagrantup.com>`_ to setup the environment on a
-`VirtualBox <https://www.virtualbox.org>`_ virtual machine. For more
-documentation on how to set this up, see `Developer Installation <dev-installation.html>`__
-
-During Development
-------------------
-
-Once Girder is started via ``girder serve``, the server
-will reload itself whenever a Python file is modified.
-
-If you are doing front-end development on the core app, it's much faster to use the dev server to
-perform hot reloads whenever you make changes to source files. ::
-
-    cd girder/web && yarn dev
-
-
 Girder Shell
 ^^^^^^^^^^^^
 
