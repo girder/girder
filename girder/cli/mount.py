@@ -14,7 +14,8 @@ import click
 import fuse
 
 import girder
-from girder import events, logger, logprint
+from girder import events, logger, logprint, plugin
+from girder.constants import ServerMode
 from girder.exceptions import AccessException, FilePathException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
@@ -24,7 +25,7 @@ from girder.settings import SettingKey
 from girder.utility import config
 from girder.utility import path as path_util
 from girder.utility.model_importer import ModelImporter
-from girder.utility.server import configureServer
+from girder.utility.server import create_app
 
 
 class ServerFuse(fuse.Operations):
@@ -568,8 +569,9 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
         cherrypy.config['database']['uri'] = database
     if plugins is not None:
         plugins = plugins.split(',')
-    webroot, appconf = configureServer(plugins=plugins)
-    girder._setupCache()
+
+    app_info = create_app(ServerMode.DEVELOPMENT)
+    plugin._loadPlugins(app_info.__dict__, names=plugins)
 
     options = {
         # By default, we run in the background so the mount command returns

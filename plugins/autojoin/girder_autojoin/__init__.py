@@ -35,4 +35,5 @@ class AutojoinPlugin(GirderPlugin):
             css=['/style.css'],
             js=['/girder-plugin-autojoin.umd.cjs'],
             staticDir=Path(__file__).parent / 'web_client' / 'dist',
+            tree=info['serverRoot'],
         )

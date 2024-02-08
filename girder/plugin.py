@@ -11,8 +11,6 @@ from pathlib import Path
 from pkg_resources import iter_entry_points
 from typing import List, OrderedDict as OrderedDictType
 
-import cherrypy
-
 from girder import logprint, __version__
 from girder.exceptions import GirderException
 
@@ -34,11 +32,11 @@ def getPluginStaticContent():
     return _pluginStaticContent
 
 
-def registerPluginStaticContent(plugin: str, css: List[str], js: List[str], staticDir: Path):
+def registerPluginStaticContent(plugin: str, css: List[str], js: List[str], staticDir: Path, tree):
     from girder.utility.server import _errorDefault
 
     if plugin not in _pluginStaticContent:
-        cherrypy.tree.mount(None, f'/plugin_static/{plugin}', {
+        tree.mount(None, f'/plugin_static/{plugin}', {
             '/': {
                 'tools.staticdir.on': True,
                 'tools.staticdir.dir': str(staticDir),

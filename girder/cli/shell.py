@@ -2,7 +2,8 @@ import click
 import girder
 import sys
 
-from girder.utility.server import configureServer
+from girder import constants, plugin
+from girder.utility.server import create_app
 
 
 def _launchShell(context):
@@ -33,16 +34,17 @@ def main(plugins, script, args):
     if plugins is not None:
         plugins = plugins.split(',')
 
-    webroot, appconf = configureServer(plugins=plugins)
+    app_info = create_app(constants.ServerMode.DEVELOPMENT)
+    plugin._loadPlugins(app_info.__dict__, plugins)
 
     if script is None:
         _launchShell({
-            'webroot': webroot,
-            'appconf': appconf
+            'webroot': app_info.serverRoot,
+            'appconf': app_info.config,
         })
     else:
         globals_ = {k: v for k, v in globals().items() if k not in {'__file__', '__name__'}}
         sys.argv = [script] + list(args)
         exec(open(script, 'rb').read(), dict(
-            webroot=webroot, appconf=appconf, __name__='__main__',
+            webroot=app_info.serverRoot, appconf=app_info.config, __name__='__main__',
             __file__=script, **globals_))

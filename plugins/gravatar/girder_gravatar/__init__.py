@@ -64,4 +64,5 @@ class GravatarPlugin(GirderPlugin):
             css=[],
             js=['/girder-plugin-gravatar.umd.cjs'],
             staticDir=Path(__file__).parent / 'web_client' / 'dist',
+            tree=info['serverRoot'],
         )
