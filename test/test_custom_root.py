@@ -2,18 +2,15 @@ import os
 import urllib.parse
 import pytest
 
-import cherrypy
 from pytest_girder.assertions import assertStatus, assertStatusOk
 from pytest_girder.utils import getResponseBody
 
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import boundHandler, rawResponse, Resource, setResponseHeader
-from girder.constants import TokenScope, GIRDER_ROUTE_ID
-from girder.settings import SettingKey
-from girder.models.setting import Setting
+from girder.constants import TokenScope
 from girder.utility.server import staticFile
-from girder.plugin import GirderPlugin, registerPluginWebroot
+from girder.plugin import GirderPlugin
 
 
 @access.user(scope=TokenScope.ANONYMOUS_SESSION)
@@ -82,14 +79,8 @@ class Other(Resource):
 
 class CustomRoot(GirderPlugin):
     def load(self, info):
-        registerPluginWebroot(CustomAppRoot(), 'custom_plugin')
-        Setting().set(SettingKey.ROUTE_TABLE, {
-            GIRDER_ROUTE_ID: '/girder',
-            'custom_plugin': '/'
-        })
-
         path = os.path.join(os.path.dirname(__file__), 'data', 'static.txt')
-        cherrypy.tree.mount(staticFile(path), '/static_route', info['config'])
+        info['serverRoot'].mount(staticFile(path), '/static_route', info['config'])
 
         info['apiRoot'].collection.route('GET', ('unbound', 'default', 'noargs'),
                                          unboundHandlerDefaultNoArgs)
@@ -101,7 +92,6 @@ class CustomRoot(GirderPlugin):
 
 @pytest.mark.plugin('test_plugin', CustomRoot)
 @pytest.mark.parametrize('route,text,app', [
-    ('/', 'hello world from test_plugin', ''),
     ('/api/v1', 'Girder - REST API Documentation', '/api'),
     ('/static_route', 'Hello world!', '/static_route')
 ])
