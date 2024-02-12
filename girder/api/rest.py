@@ -182,7 +182,7 @@ def getCurrentUser(returnToken=False):
     if event.defaultPrevented and len(event.responses) > 0:
         return event.responses[0]
 
-    token = getCurrentToken()
+    token = getCurrentToken(True)
 
     def retVal(user, token):
         setCurrentUser(user)
