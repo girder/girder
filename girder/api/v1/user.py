@@ -74,6 +74,7 @@ class User(Resource):
         Description('Retrieve the currently logged-in user information.')
         .responseClass('User')
     )
+    @access.user(cookie=True)
     def getMe(self):
         return self.getCurrentUser()
 
