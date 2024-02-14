@@ -3,7 +3,7 @@ import pkg_resources
 import sphinx_rtd_theme
 from sphinx.domains.python import PythonDomain
 
-needs_sphinx = '1.6'
+# needs_sphinx = '1.6'
 
 # Get package imports and version
 # The 'girder' and "girder_client" packages must be installed at this point
@@ -46,6 +46,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
+    'sphinxcontrib.jquery',
 ]
 
 autodoc_mock_imports = list(_girder_imports)
