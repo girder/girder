@@ -339,6 +339,7 @@ class ServerFuse(fuse.Operations):
                         self.diskcache['cache'][key] = data
                     except Exception:
                         logger.exception('diskcache threw an exception in set')
+                if isinstance(data, bytes):
                     result += data[max(0, offset - idxoffset):
                                    min(len(data), offset + size - idxoffset)]
                 else:
