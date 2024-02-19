@@ -1,13 +1,14 @@
 import filelock
 from hashlib import sha512
 import io
+import logging
 import os
 import psutil
 import shutil
 import stat
 import tempfile
 
-from girder import events, logger
+from girder import events
 from girder.api.rest import setResponseHeader
 from girder.exceptions import ValidationException, GirderException
 from girder.models.file import File
@@ -22,6 +23,8 @@ BUF_SIZE = 65536
 
 # Default permissions for the files written to the filesystem
 DEFAULT_PERMS = stat.S_IRUSR | stat.S_IWUSR
+
+logger = logging.getLogger(__name__)
 
 
 class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -95,12 +98,10 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             mkdir(self.tempDir)
         except OSError:
             self.unavailable = True
-            logger.exception('Failed to create filesystem assetstore '
-                             'directories %s' % self.tempDir)
+            logger.exception('Failed to create filesystem assetstore directories %s', self.tempDir)
         if not os.access(self.assetstore['root'], os.W_OK):
             self.unavailable = True
-            logger.error('Could not write to assetstore root: %s',
-                         self.assetstore['root'])
+            logger.error('Could not write to assetstore root: %s', self.assetstore['root'])
 
     def capacityInfo(self):
         """
@@ -111,8 +112,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             usage = psutil.disk_usage(self.assetstore['root'])
             return {'free': usage.free, 'total': usage.total}
         except OSError:
-            logger.exception(
-                'Failed to get disk usage of %s' % self.assetstore['root'])
+            logger.exception('Failed to get disk usage of %s', self.assetstore['root'])
         # If psutil.disk_usage fails or we can't query the assetstore's root
         # directory, just report nothing regarding disk capacity
         return {
@@ -305,7 +305,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                     try:
                         os.unlink(path)
                     except Exception:
-                        logger.exception('Failed to delete file %s' % path)
+                        logger.exception('Failed to delete file %s', path)
 
     def cancelUpload(self, upload):
         """

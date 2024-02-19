@@ -13,8 +13,7 @@ import cherrypy
 import click
 import fuse
 
-import girder
-from girder import events, logger, logprint, plugin
+from girder import events, plugin
 from girder.constants import ServerMode
 from girder.exceptions import AccessException, FilePathException, ValidationException
 from girder.models.file import File
@@ -22,10 +21,11 @@ from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.settings import SettingKey
-from girder.utility import config
 from girder.utility import path as path_util
 from girder.utility.model_importer import ModelImporter
 from girder.utility.server import create_app
+
+logger = logging.getLogger(__name__)
 
 
 class ServerFuse(fuse.Operations):
@@ -458,15 +458,14 @@ class FUSELogError(fuse.FUSE):
         RuntimeError exception.
         """
         try:
-            logger.debug('Mounting %s\n' % mountpoint)
+            logger.debug('Mounting %s\n', mountpoint)
             super().__init__(operations, mountpoint, *args, **kwargs)
-            logger.debug('Mounted %s\n' % mountpoint)
+            logger.debug('Mounted %s\n', mountpoint)
         except RuntimeError:
-            logprint.error(
+            logger.error(
                 'Failed to mount FUSE.  Does the mountpoint (%r) exist and is '
                 'it empty?  Does the user have permission to create FUSE '
-                'mounts?  It could be another FUSE mount issue, too.' % (
-                    mountpoint, ))
+                'mounts?  It could be another FUSE mount issue, too.', mountpoint)
             Setting().unset(SettingKey.GIRDER_MOUNT_INFORMATION)
 
 
@@ -557,14 +556,10 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
     :param plugins: an optional list of plugins to enable.  If None, use the
         plugins that are configured.
     """
-    if quiet or verbose:
-        curConfig = config.getConfig()
-        curConfig.setdefault('logging', {})['log_quiet'] = True
-        curConfig.setdefault('logging', {})['log_level'] = 'FATAL'
-        girder._attachFileLogHandlers()
-        if verbose:
-            logger.setLevel(max(1, logging.ERROR - verbose * 10))
-            logger.addHandler(logging.StreamHandler())
+    if verbose:
+        logger.setLevel(max(1, logging.ERROR - verbose * 10))
+    if not quiet:
+        logger.addHandler(logging.StreamHandler())
     if database and '://' in database:
         cherrypy.config['database']['uri'] = database
     if plugins is not None:
@@ -598,7 +593,7 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
             else:
                 key, value = opt, True
             if key in ('ro', 'rw') and options.get(key) != value:
-                logprint.warning('Ignoring the %s=%r option' % (key, value))
+                logger.warning('Ignoring the %s=%r option', key, value)
                 continue
             options[key] = value
     opClass = ServerFuse(stat=os.stat(path), options=options)

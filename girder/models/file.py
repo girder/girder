@@ -1,9 +1,9 @@
 import cherrypy
 import datetime
+import logging
 import os
 
 from .model_base import Model, AccessControlledModel
-import girder
 from girder import auditLogger, events
 from girder.constants import AccessType, CoreEventHandler
 from girder.exceptions import FilePathException, ValidationException
@@ -11,6 +11,8 @@ from girder.models.setting import Setting
 from girder.settings import SettingKey
 from girder.utility import acl_mixin, path as path_util
 from girder.utility.model_importer import ModelImporter
+
+logger = logging.getLogger(__name__)
 
 
 class File(acl_mixin.AccessControlMixin, Model):
@@ -62,8 +64,8 @@ class File(acl_mixin.AccessControlMixin, Model):
                 if file.get('size') is not None:
                     self.propagateSizeChange(item, -file['size'], updateItemSize)
             else:
-                girder.logger.warning('Broken reference in file %s: no item %s exists' %
-                                      (file['_id'], file['itemId']))
+                logger.warning(
+                    'Broken reference in file %s: no item %s exists', file['_id'], file['itemId'])
 
         super().remove(file)
 

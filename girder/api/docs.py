@@ -1,8 +1,8 @@
 import collections
 import functools
+import logging
 
-from girder import logprint
-
+logger = logging.getLogger(__name__)
 models = collections.defaultdict(dict)
 # routes is dict of dicts of dicts
 # e.g. routes[resource][path][method]
@@ -144,7 +144,7 @@ def addModel(name, model, resources=None, silent=False):
             models[resource][name] = model
     else:
         if not silent:
-            logprint.warning(
+            logger.warning(
                 'WARNING: adding swagger models without specifying resources '
-                'to bind to is discouraged (%s).' % name)
+                'to bind to is discouraged (%s).', name)
         models[None][name] = model

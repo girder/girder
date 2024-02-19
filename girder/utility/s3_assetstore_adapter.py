@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import re
 import urllib.parse
 import uuid
@@ -9,7 +10,7 @@ import botocore
 import cherrypy
 import requests
 
-from girder import events, logger
+from girder import events
 from girder.api.rest import setContentDisposition
 from girder.exceptions import GirderException, ValidationException
 from girder.models.file import File
@@ -20,6 +21,7 @@ from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 BUF_LEN = 65536  # Buffer size for download stream
 DEFAULT_REGION = 'us-east-1'
+logger = logging.getLogger(__name__)
 
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -289,8 +291,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
             resp = requests.request(method='PUT', url=url, data=chunk, headers=headers)
             if resp.status_code not in (200, 201):
-                logger.error('S3 multipart upload failure %d (uploadId=%s):\n%s' % (
-                    resp.status_code, upload['_id'], resp.text))
+                logger.error(
+                    'S3 multipart upload failure %d (uploadId=%s): %s',
+                    resp.status_code, upload['_id'], resp.text
+                )
                 raise GirderException('Upload failed (bad gateway)')
 
             upload['received'] += size
@@ -304,8 +308,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 method=reqInfo['method'], url=reqInfo['url'], data=chunk,
                 headers=dict(reqInfo['headers'], **{'Content-Length': str(size)}))
             if resp.status_code not in (200, 201):
-                logger.error('S3 upload failure %d (uploadId=%s):\n%s' % (
-                    resp.status_code, upload['_id'], resp.text))
+                logger.error(
+                    'S3 upload failure %d (uploadId=%s): %s',
+                    resp.status_code, upload['_id'], resp.text
+                )
                 raise GirderException('Upload failed (bad gateway)')
 
             upload['received'] = size

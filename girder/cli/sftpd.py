@@ -1,12 +1,13 @@
 import click
+import logging
 import os
 import paramiko
 import sys
 
-from girder import logprint
 from girder.api.sftp import SftpServer
 
 DEFAULT_PORT = 8022
+logger = logging.getLogger(__name__)
 
 
 @click.command(name='sftpd', short_help='Run the Girder SFTP service.',
@@ -26,12 +27,11 @@ def main(identity_file, port, host):
     try:
         hostKey = paramiko.RSAKey.from_private_key_file(identity_file)
     except paramiko.ssh_exception.PasswordRequiredException:
-        logprint.error(
-            'Error: encrypted key files are not supported (%s).' % identity_file, file=sys.stderr)
+        logger.error('Error: encrypted key files are not supported (%s).', identity_file)
         sys.exit(1)
 
     server = SftpServer((host, port), hostKey)
-    logprint.info('Girder SFTP service listening on %s:%d.' % (host, port))
+    logger.info('Girder SFTP service listening on %s:%d.', host, port)
 
     try:
         server.serve_forever()

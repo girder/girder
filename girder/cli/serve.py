@@ -3,7 +3,7 @@ import tempfile
 import cherrypy
 import click
 
-from girder import _attachFileLogHandlers, plugin
+from girder import plugin
 from girder.utility import server
 from girder.constants import ServerMode
 from girder.models.assetstore import Assetstore
@@ -36,7 +36,6 @@ def main(dev: bool, mode: str, database: str, host: str, port: int, with_temp_as
     cherrypy.config['server.socket_host'] = host
     cherrypy.config['server.socket_port'] = port
 
-    _attachFileLogHandlers()
     app_info = server.create_app(mode)
     plugin._loadPlugins(app_info.__dict__)
 

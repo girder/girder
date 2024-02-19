@@ -1,10 +1,11 @@
+import logging
 import pymongo
 import urllib.parse
 
-from girder import logprint
 from girder.utility import config
 
 _dbClients = {}
+logger = logging.getLogger(__name__)
 
 
 def getDbConfig():
@@ -26,7 +27,7 @@ def getDbConnection(uri=None, replicaSet=None, quiet=False, **kwargs):
     :param uri: if specified, connect to this mongo db rather than the one in
                 the config.
     :param replicaSet: if uri is specified, use this replica set.
-    :param quiet: if true, don't logprint warnings and success.
+    :param quiet: if true, don't log warnings and success.
     :type quiet: bool
     """
     global _dbClients
@@ -73,8 +74,7 @@ def getDbConnection(uri=None, replicaSet=None, quiet=False, **kwargs):
     if uri is None:
         dbUriRedacted = 'mongodb://localhost:27017/girder'
         if not quiet:
-            logprint.warning('WARNING: No MongoDB URI specified, using '
-                             'the default value')
+            logger.warning('WARNING: No MongoDB URI specified, using the default value')
 
         client = pymongo.MongoClient(dbUriRedacted, **clientOptions)
     else:
@@ -90,7 +90,7 @@ def getDbConnection(uri=None, replicaSet=None, quiet=False, **kwargs):
         desc = ''
         if replicaSet:
             desc += ', replica set: %s' % replicaSet
-        logprint.info('Connecting to MongoDB: %s%s' % (dbUriRedacted, desc))
+        logger.info('Connecting to MongoDB: %s%s', dbUriRedacted, desc)
 
     # Make sure we can connect to the mongo server at startup
     client.server_info()

@@ -1,14 +1,18 @@
 import cherrypy
 from dataclasses import dataclass
+import logging
 import mako
 import mimetypes
 import os
+import sys
 
-from girder import __version__, _setupCache, constants, logprint, logStdoutStderr, plugin
+from girder import __version__, _setupCache, constants, plugin
 from girder.models.setting import Setting
 from girder.settings import SettingKey
 from girder.utility import config
 from girder.constants import ServerMode
+
+logger = logging.getLogger(__name__)
 
 with open(os.path.join(os.path.dirname(__file__), 'error.mako')) as f:
     _errorTemplate = f.read()
@@ -76,8 +80,6 @@ class AppInfo:
 
 
 def create_app(mode: str) -> AppInfo:
-    logStdoutStderr()
-
     curConfig = config.getConfig()
     appconf = {
         '/': {
@@ -97,8 +99,15 @@ def create_app(mode: str) -> AppInfo:
     curConfig.update(appconf)
     curConfig['server']['mode'] = mode
 
-    logprint.info('Running in mode: ' + curConfig['server']['mode'])
+    logging.basicConfig(stream=sys.stdout, level=os.environ.get('LOGLEVEL', 'INFO'))
+
+    logger.info('Running in mode: %s', curConfig['server']['mode'])
     cherrypy.config['engine.autoreload.on'] = mode == ServerMode.DEVELOPMENT
+    cherrypy.config.update({
+        'log.screen': False,
+        'log.access_file': '',
+        'log.error_file': ''
+    })
 
     _setupCache()
 

@@ -1,6 +1,7 @@
 import copy
 import functools
 import itertools
+import logging
 import os
 import pymongo
 import re
@@ -8,7 +9,7 @@ import re
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from pymongo.errors import WriteError
-from girder import events, logprint, logger, auditLogger
+from girder import events, auditLogger
 from girder.constants import AccessType, CoreEventHandler, ACCESS_FLAGS, TEXT_SCORE_SORT_MAX
 from girder.models import getDbConnection
 from girder.exceptions import AccessException, ValidationException
@@ -20,6 +21,7 @@ _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
 # the database is dropped between each test case. If we find a cleverer way to do
 # that, we don't need to store these here.
 _modelSingletons = []
+logger = logging.getLogger(__name__)
 
 if 'GIRDER_MAX_CURSOR_TIMEOUT_MS' in os.environ:
     _MAX_CURSOR_TIMEOUT_MS = int(os.environ['GIRDER_MAX_CURSOR_TIMEOUT_MS'])
@@ -127,7 +129,7 @@ class Model(metaclass=_ModelSingleton):
                     textIdx, weights=self._textIndex,
                     default_language=self._textLanguage)
             except pymongo.errors.OperationFailure:
-                logprint.warning('WARNING: Text search not enabled.')
+                logger.warning('WARNING: Text search not enabled.')
 
         self._connected = True
 

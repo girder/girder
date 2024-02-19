@@ -5,6 +5,7 @@ import datetime
 from functools import wraps
 import inspect
 import json
+import logging
 import posixpath
 import pymongo
 import sys
@@ -18,7 +19,7 @@ import fnmatch
 from dogpile.cache.util import kwarg_function_key_generator
 
 from . import docs
-from girder import auditLogger, events, logger, logprint
+from girder import auditLogger, events
 from girder.constants import TokenScope, SortDir, ServerMode
 from girder.exceptions import AccessException, GirderException, ValidationException, RestException
 from girder.models.setting import Setting
@@ -34,6 +35,7 @@ from girder.utility.model_importer import ModelImporter
 READ_BUFFER_LEN = 65536
 
 _MONGO_CURSOR_TYPES = (pymongo.cursor.Cursor, pymongo.command_cursor.CommandCursor)
+logger = logging.getLogger(__name__)
 
 
 def getUrlParts(url=None):
@@ -785,9 +787,9 @@ class Resource:
         """
         if not hasattr(self, '_routes'):
             super().__init__()
-            logprint.warning(
+            logger.warning(
                 'WARNING: Resource subclass "%s" did not call '
-                '"Resource__init__()" from its constructor.' %
+                '"Resource__init__()" from its constructor.',
                 self.__class__.__name__)
 
     def route(self, method, route, handler, nodoc=False, resource=None):
@@ -836,16 +838,16 @@ class Resource:
                     info=handler.description.asDict(), handler=handler)
         elif not nodoc:
             routePath = '/'.join([resource] + list(route))
-            logprint.warning(
-                'WARNING: No description docs present for route %s %s' % (
-                    method, routePath))
+            logger.warning(
+                'WARNING: No description docs present for route %s %s',
+                method, routePath)
 
         # Warn if there is no access decorator on the handler function
         if not hasattr(handler, 'accessLevel'):
             routePath = '/'.join([resource] + list(route))
-            logprint.warning(
-                'WARNING: No access level specified for route %s %s' % (
-                    method, routePath))
+            logger.warning(
+                'WARNING: No access level specified for route %s %s',
+                method, routePath)
 
     def removeRoute(self, method, route, resource=None):
         """

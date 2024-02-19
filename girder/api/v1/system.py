@@ -2,10 +2,8 @@ import cherrypy
 import datetime
 import errno
 from functools import lru_cache
-import girder
 from itertools import chain
 import json
-import os
 import logging
 
 from girder import plugin
@@ -29,6 +27,7 @@ from ..rest import Resource
 
 ModuleStartTime = datetime.datetime.utcnow()
 LOG_BUF_SIZE = 65536
+logger = logging.getLogger(__name__)
 
 
 class System(Resource):
@@ -52,9 +51,6 @@ class System(Resource):
         self.route('DELETE', ('uploads',), self.discardPartialUploads)
         self.route('GET', ('check',), self.systemStatus)
         self.route('PUT', ('check',), self.systemConsistencyCheck)
-        self.route('GET', ('log',), self.getLog)
-        self.route('GET', ('log', 'level'), self.getLogLevel)
-        self.route('PUT', ('log', 'level'), self.setLogLevel)
         self.route('GET', ('setting', 'collection_creation_policy', 'access'),
                    self.getCollectionCreationPolicyAccess)
 
@@ -238,8 +234,7 @@ class System(Resource):
                 elif len(uploadList) < limit:
                     uploadList += untrackedList[:limit - len(uploadList)]
             except Exception:
-                girder.logger.debug(
-                    'Could not get untracked uploads for assetstore %s', assetstoreId)
+                logger.debug('Could not get untracked uploads for assetstore %s', assetstoreId)
         return uploadList
 
     @access.admin(scope=TokenScope.PARTIAL_UPLOAD_CLEAN)
@@ -293,8 +288,7 @@ class System(Resource):
             try:
                 uploadList += Upload().untrackedUploads('delete', assetstoreId)
             except Exception:
-                girder.logger.debug(
-                    'Could not delete untracked uploads for assetstore %s', assetstoreId)
+                logger.debug('Could not delete untracked uploads for assetstore %s', assetstoreId)
         return uploadList
 
     @access.public
@@ -355,80 +349,6 @@ class System(Resource):
         # * check that all resources validate
         # * for filesystem assetstores, find files that are not tracked.
         # * for s3 assetstores, find elements that are not tracked.
-
-    @access.admin
-    @autoDescribeRoute(
-        Description('Show the most recent contents of the server logs.')
-        .notes('Must be a system administrator to call this.')
-        .param('bytes', 'Controls how many bytes (from the end of the log) to show. '
-               'Pass 0 to show the whole log.', dataType='integer', required=False, default=4096)
-        .param('log', 'Which log to tail.', enum=('error', 'info'),
-               required=False, default='error')
-        .errorResponse('You are not a system administrator.', 403)
-    )
-    def getLog(self, bytes, log):
-        path = girder.getLogPaths()[log]
-        filesize = os.path.getsize(path)
-        length = int(bytes) or filesize
-        filesize1 = 0
-        if length > filesize:
-            path1 = path + '.1'
-            if os.path.exists(path1):
-                filesize1 = os.path.getsize(path1)
-
-        def stream():
-            yield '=== Last %d bytes of %s: ===\n\n' % (
-                min(length, filesize + filesize1), path
-            )
-
-            readlength = length
-            if readlength > filesize and filesize1:
-                readlength = length - filesize
-                with open(path1, 'rb') as f:
-                    if readlength < filesize1:
-                        f.seek(-readlength, os.SEEK_END)
-                    while True:
-                        data = f.read(LOG_BUF_SIZE)
-                        if not data:
-                            break
-                        yield data
-                readlength = filesize
-            with open(path, 'rb') as f:
-                if readlength < filesize:
-                    f.seek(-readlength, os.SEEK_END)
-                while True:
-                    data = f.read(LOG_BUF_SIZE)
-                    if not data:
-                        break
-                    yield data
-        return stream
-
-    @access.admin
-    @autoDescribeRoute(
-        Description('Get the current log level.')
-        .notes('Must be a system administrator to call this.')
-        .errorResponse('You are not a system administrator.', 403)
-    )
-    def getLogLevel(self):
-        level = girder.logger.getEffectiveLevel()
-        return logging.getLevelName(level)
-
-    @access.admin
-    @autoDescribeRoute(
-        Description('Set the current log level.')
-        .notes('Must be a system administrator to call this.')
-        .param('level', 'The new level to set.',
-               enum=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
-               default='INFO')
-        .errorResponse('You are not a system administrator.', 403)
-    )
-    def setLogLevel(self, level):
-        level = logging.getLevelName(level)
-        for logger in (girder.logger, cherrypy.log.access_log, cherrypy.log.error_log):
-            logger.setLevel(level)
-            for handler in logger.handlers:
-                handler.setLevel(level)
-        return logging.getLevelName(level)
 
     @access.admin
     @autoDescribeRoute(

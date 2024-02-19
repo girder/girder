@@ -6,8 +6,9 @@ import jsonschema
 import os
 import cherrypy
 from collections import OrderedDict
+import logging
 
-from girder import constants, logprint
+from girder import constants
 from girder.api.rest import getCurrentUser, getBodyJson
 from girder.constants import SortDir, VERSION
 from girder.exceptions import RestException
@@ -22,6 +23,7 @@ from .rest import Resource, getApiUrl, getUrlParts
 from inspect import signature, Parameter
 
 SWAGGER_VERSION = '2.0'
+logger = logging.getLogger(__name__)
 
 
 def _walkTree(node, path=()):
@@ -169,7 +171,7 @@ class Description:
         # by a schema added using addModel(...), we don't know for sure as we
         # don't know the resource name here to look it up.
         elif paramType != 'body':
-            logprint.warning(
+            logger.warning(
                 'WARNING: Invalid dataType "%s" specified for parameter names "%s"' %
                 (dataType, name))
 
@@ -179,7 +181,7 @@ class Description:
         if paramType != 'body' and dataType not in (
                 'string', 'number', 'integer', 'long', 'boolean', 'array', 'file', 'float',
                 'double', 'date', 'dateTime'):
-            logprint.warning(
+            logger.warning(
                 'WARNING: Invalid dataType "%s" specified for parameter "%s"' % (dataType, name))
 
         if paramType == 'form':

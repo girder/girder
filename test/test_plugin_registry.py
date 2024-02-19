@@ -1,3 +1,4 @@
+import logging
 import unittest.mock
 
 import pytest
@@ -6,12 +7,6 @@ from pytest_girder.plugin_registry import PluginRegistry
 from girder import plugin
 from girder.exceptions import GirderException
 from girder.plugin import GirderPlugin
-
-
-@pytest.fixture
-def logprint():
-    with unittest.mock.patch.object(plugin, 'logprint') as logprintMock:
-        yield logprintMock
 
 
 @pytest.fixture
@@ -154,7 +149,8 @@ def testPluginLoadReturn(registry):
 
 
 @pytest.mark.plugin('plugin1', NoDeps)
-def testLoadPluginsSingle(registry, logprint):
+def testLoadPluginsSingle(registry, caplog):
+    caplog.set_level(logging.INFO)
     plugin._loadPlugins(info={}, names=['plugin1'])
 
     assert set(plugin.loadedPlugins()) == {'plugin1'}
@@ -164,7 +160,7 @@ def testLoadPluginsSingle(registry, logprint):
     assert plugin1Definition.loaded is True
     plugin1Definition._testLoadMock.assert_called_once()
 
-    logprint.success.assert_any_call('Loaded plugin "plugin1"')
+    assert 'Loaded plugin "plugin1"' in caplog.text
 
 
 @pytest.mark.plugin('throws', ThrowsOnLoad)
@@ -184,7 +180,8 @@ def testLoadPluginsWithError(registry):
 
 @pytest.mark.plugin('plugin1', NoDeps)
 @pytest.mark.plugin('plugin2', DependsOnPlugin1)
-def testLoadPluginsWithDeps(registry, logprint):
+def testLoadPluginsWithDeps(registry, caplog):
+    caplog.set_level(logging.INFO)
     plugin._loadPlugins(info={}, names=['plugin2'])
 
     assert set(plugin.loadedPlugins()) == {'plugin1', 'plugin2'}
@@ -196,10 +193,9 @@ def testLoadPluginsWithDeps(registry, logprint):
         pluginDefinition._testLoadMock.assert_called_once()
 
     # Since plugin1 is the dependant, it must be loaded first
-    logprint.success.assert_has_calls([
-        unittest.mock.call('Loaded plugin "plugin1"'),
-        unittest.mock.call('Loaded plugin "plugin2"')
-    ], any_order=False)
+    assert 'Loaded plugin "plugin1"' in caplog.text
+    assert 'Loaded plugin "plugin2"' in caplog.text
+    assert caplog.text.index('"plugin1"') < caplog.text.index('"plugin2"')
 
 
 @pytest.mark.plugin('plugin1', NoDeps)

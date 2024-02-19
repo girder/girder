@@ -7,12 +7,15 @@ from dataclasses import dataclass
 import distutils.dist
 from functools import wraps
 import io
+import logging
 from pathlib import Path
 from pkg_resources import iter_entry_points
 from typing import List, OrderedDict as OrderedDictType
 
-from girder import logprint, __version__
+from girder import __version__
 from girder.exceptions import GirderException
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -91,7 +94,7 @@ class _PluginMeta(type):
 
                 self._loaded = True
                 _pluginLoadOrder.append(self.name)
-                logprint.success('Loaded plugin "%s"' % self.name)
+                logger.info('Loaded plugin "%s"', self.name)
 
             return self._return
 

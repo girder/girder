@@ -1,8 +1,9 @@
 import datetime
 import io
+import logging
 from bson.objectid import ObjectId
 
-from girder import events, logger
+from girder import events
 from girder.api import rest
 from .model_base import Model
 from girder.exceptions import GirderException, ValidationException, NoAssetstoreAdapter
@@ -10,6 +11,8 @@ from girder.settings import SettingKey
 from girder.utility import RequestBodyStream
 from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import noProgress
+
+logger = logging.getLogger(__name__)
 
 
 class Upload(Model):
@@ -232,8 +235,10 @@ class Upload(Model):
         if '_id' in upload:
             self.remove(upload)
 
-        logger.info('Upload complete. Upload=%s File=%s User=%s' % (
-            upload['_id'], file['_id'], upload['userId']))
+        logger.info(
+            'Upload complete. Upload=%s File=%s User=%s',
+            upload['_id'], file['_id'], upload['userId']
+        )
 
         # Add an event for handlers that wish to process this file.
         eventParams = {

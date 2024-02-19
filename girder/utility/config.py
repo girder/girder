@@ -1,8 +1,10 @@
 import cherrypy
+import logging
 import os
 
-import girder
 from girder.constants import PACKAGE_DIR
+
+logger = logging.getLogger(__name__)
 
 
 def _mergeConfig(filename):
@@ -22,19 +24,6 @@ def _loadConfigsByPrecedent():
     """
     Load configuration in reverse order of precedent.
     """
-    # TODO: Deprecated, remove in a later version
-    def _printConfigurationWarning():
-        girder.logprint.warning(
-            'Detected girder.local.cfg, this location is no longer supported.\n'
-            'For supported locations, see '
-            'https://girder.readthedocs.io/en/stable/configuration.html#configuration')
-
-    if os.path.exists(os.path.join(PACKAGE_DIR, 'conf', 'girder.local.cfg')):
-        # This can't use logprint since configuration is loaded before initialization.
-        # Note this also won't be displayed when starting other services that don't start a CherryPy
-        # server such as girder mount or girder sftpd.
-        cherrypy.engine.subscribe('start', _printConfigurationWarning)
-
     configPaths = [os.path.join(PACKAGE_DIR, 'conf', 'girder.dist.cfg'),
                    os.path.join('/etc', 'girder.cfg'),
                    os.path.join(os.path.expanduser('~'), '.girder', 'girder.cfg')]
