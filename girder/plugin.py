@@ -27,7 +27,6 @@ class PluginStaticContent:
 _NAMESPACE = 'girder.plugin'
 _pluginRegistry = None
 _pluginLoadOrder = []
-_pluginWebroots = {}
 _pluginStaticContent: OrderedDictType[str, PluginStaticContent] = OrderedDict()
 
 
@@ -52,21 +51,6 @@ def registerPluginStaticContent(plugin: str, css: List[str], js: List[str], stat
             css=[f'/plugin_static/{plugin}/{f.lstrip("/")}' for f in css],
             js=[f'/plugin_static/{plugin}/{f.lstrip("/")}' for f in js],
         )
-
-
-def getPluginWebroots():
-    global _pluginWebroots
-    return _pluginWebroots
-
-
-def registerPluginWebroot(webroot, name):
-    """
-    Adds a webroot to the global registry for plugins based on
-    the plugin name.
-    """
-    global _pluginWebroots
-
-    _pluginWebroots[name] = webroot
 
 
 class _PluginMeta(type):

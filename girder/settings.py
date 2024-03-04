@@ -4,7 +4,6 @@ import cherrypy
 from bson import ObjectId
 import re
 
-from girder.constants import GIRDER_ROUTE_ID
 from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 
@@ -34,7 +33,6 @@ class SettingKey:
     GIRDER_MOUNT_INFORMATION = 'core.girder_mount_information'
     PRIVACY_NOTICE = 'core.privacy_notice'
     REGISTRATION_POLICY = 'core.registration_policy'
-    ROUTE_TABLE = 'core.route_table'
     SERVER_ROOT = 'core.server_root'
     SMTP_ENCRYPTION = 'core.smtp.encryption'
     SMTP_HOST = 'core.smtp_host'
@@ -82,7 +80,6 @@ class SettingDefault:
         SettingKey.GIRDER_MOUNT_INFORMATION: None,
         SettingKey.PRIVACY_NOTICE: 'https://www.kitware.com/privacy',
         SettingKey.REGISTRATION_POLICY: 'open',
-        # SettingKey.ROUTE_TABLE is provided by a function
         SettingKey.SERVER_ROOT: '',
         SettingKey.SMTP_ENCRYPTION: 'none',
         SettingKey.SMTP_HOST: 'localhost',
@@ -101,13 +98,6 @@ class SettingDefault:
             if cherrypy.request.local.port != 80:
                 host += ':%d' % cherrypy.request.local.port
             return host
-
-    @staticmethod
-    @setting_utilities.default(SettingKey.ROUTE_TABLE)
-    def _defaultRouteTable():
-        return {
-            GIRDER_ROUTE_ID: '/'
-        }
 
 
 class SettingValidator:
@@ -282,20 +272,6 @@ class SettingValidator:
         if doc['value'] not in ('open', 'closed', 'approve'):
             raise ValidationException(
                 'Registration policy must be "open", "closed", or "approve".', 'value')
-
-    @staticmethod
-    @setting_utilities.validator(SettingKey.ROUTE_TABLE)
-    def _validateRouteTable(doc):
-        nonEmptyRoutes = [route for route in doc['value'].values() if route]
-        if GIRDER_ROUTE_ID not in doc['value'] or not doc['value'][GIRDER_ROUTE_ID]:
-            raise ValidationException('Girder root must be routable.', 'value')
-
-        for key in doc['value']:
-            if (doc['value'][key] and not doc['value'][key].startswith('/')):
-                raise ValidationException('Routes must begin with a forward slash.', 'value')
-
-        if len(nonEmptyRoutes) > len(set(nonEmptyRoutes)):
-            raise ValidationException('Routes must be unique.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.SERVER_ROOT)

@@ -6,9 +6,7 @@ import mimetypes
 import os
 import sys
 
-from girder import __version__, _setupCache, constants, plugin
-from girder.models.setting import Setting
-from girder.settings import SettingKey
+from girder import __version__, _setupCache, constants
 from girder.utility import config
 from girder.constants import ServerMode
 
@@ -34,44 +32,6 @@ def getStaticPublicPath():
     return config.getConfig()['server']['static_public_path']
 
 
-def loadRouteTable(reconcileRoutes=False):
-    """
-    Retrieves the route table from Girder and reconciles the state of it with the current
-    application state.
-
-    Reconciliation ensures that every enabled plugin has a route by assigning default routes for
-    plugins that have none, such as newly-enabled plugins.
-
-    :returns: The non empty routes (as a dict of name -> route) to be mounted by CherryPy
-              during Girder's setup phase.
-    """
-    pluginWebroots = plugin.getPluginWebroots()
-    routeTable = Setting().get(SettingKey.ROUTE_TABLE)
-
-    def reconcileRouteTable(routeTable):
-        hasChanged = False
-
-        # Migration for the removed static root setting
-        if 'core_static_root' in routeTable:
-            del routeTable['core_static_root']
-            hasChanged = True
-
-        for name in pluginWebroots.keys():
-            if name not in routeTable:
-                routeTable[name] = f'/{name.lstrip("/")}'
-                hasChanged = True
-
-        if hasChanged:
-            Setting().set(SettingKey.ROUTE_TABLE, routeTable)
-
-        return routeTable
-
-    if reconcileRoutes:
-        routeTable = reconcileRouteTable(routeTable)
-
-    return {name: route for (name, route) in routeTable.items() if route}
-
-
 @dataclass
 class AppInfo:
     config: dict
@@ -91,7 +51,7 @@ def create_app(mode: str) -> AppInfo:
         }
     }
     # Add MIME types for serving Fontello files from staticdir;
-    # these may be missing or incorrect in the OS
+    # these may be missing or incorrect in the OS. This is idempotent.
     mimetypes.add_type('application/vnd.ms-fontobject', '.eot')
     mimetypes.add_type('application/x-font-ttf', '.ttf')
     mimetypes.add_type('application/font-woff', '.woff')
@@ -118,18 +78,14 @@ def create_app(mode: str) -> AppInfo:
     apiRoot = buildApi()
     tree = cherrypy._cptree.Tree()
 
-    routeTable = loadRouteTable()
     info = AppInfo(
         config=appconf,
         serverRoot=tree,
         apiRoot=apiRoot.v1,
     )
 
-    pluginWebroots = plugin.getPluginWebroots()
-    routeTable = loadRouteTable(reconcileRoutes=True)
-
     # Mount static files
-    tree.mount(None, routeTable[constants.GIRDER_ROUTE_ID], {
+    tree.mount(None, '/', {
         '/': {
             'tools.staticdir.on': True,
             'tools.staticdir.index': 'index.html',
@@ -140,22 +96,8 @@ def create_app(mode: str) -> AppInfo:
         }
     })
 
-    # Mount API
-    tree.mount(
-        apiRoot,
-        f"{routeTable[constants.GIRDER_ROUTE_ID].rstrip('/')}/api",
-        appconf
-    )
-
-    if routeTable[constants.GIRDER_ROUTE_ID] != '/':
-        # Mount API (special case)
-        # The API is always mounted at /api AND at api relative to the Girder root
-        tree.mount(apiRoot, '/api', appconf)
-
-    # Mount everything else in the routeTable
-    for name, route in routeTable.items():
-        if name != constants.GIRDER_ROUTE_ID and name in pluginWebroots:
-            tree.mount(pluginWebroots[name], route, appconf)
+    # Mount the web API
+    tree.mount(apiRoot, '/api', appconf)
 
     return info
 

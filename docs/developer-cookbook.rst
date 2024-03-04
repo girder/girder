@@ -525,17 +525,21 @@ web client. This plugin may be written in a way which enables administrators
 to mount the application at a configured endpoint, including the option of
 replacing the root node with the plugin application.
 
-To achieve this, you simply have to register your own root and configure your routes
-as you wish. In your plugin's ``load`` method, you would follow this convention:
+To achieve this, follow the below example (TODO):
 
 .. code-block:: python
 
-    from girder.plugin import registerPluginWebroot
-    registerPluginWebroot(CustomAppRoot(), info['name'])
+        from girder.api import access
+        from girder.api.rest import Resource
 
-This will register your ``CustomAppRoot`` with Girder so that it can then be mounted
-wherever an Administrator specifies using the Server Configuration Panel. See
-:ref:`Managing Routes <managing-routes>`.
+        class MyPlugin(Resource):
+            def __init__(self):
+                super(MyPlugin, self).__init__()
+                self.resourceName = 'my_plugin'
+
+            TODO
+
+
 
 Supporting web browser operations where custom headers cannot be set
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

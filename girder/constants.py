@@ -10,9 +10,6 @@ PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(PACKAGE_DIR)
 ACCESS_FLAGS = {}
 
-# Identifier for Girder's entry in the route table
-GIRDER_ROUTE_ID = 'core_girder'
-
 # Threshold below which text search results will be sorted by their text score.
 # Setting this too high causes mongodb to use too many resources for searches
 # that yield lots of results.
@@ -221,6 +218,3 @@ class CoreEventHandler:
 
     # For adding a user into its own ACL.
     USER_SELF_ACCESS = 'core.grantSelfAccess'
-
-    # For updating the cached webroot HTML when settings change.
-    WEBROOT_SETTING_CHANGE = 'core.updateWebrootSettings'

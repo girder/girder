@@ -1,4 +1,3 @@
-import $ from 'jquery';
 import _ from 'underscore';
 
 import AccessWidget from '@girder/core/views/widgets/AccessWidget';
@@ -30,14 +29,7 @@ var SystemConfigurationView = View.extend({
             var settings = _.map(this.settingsKeys, (key) => {
                 const element = this.$('#g-' + key.replace(/[_.]/g, '-'));
 
-                if (key === 'core.route_table') {
-                    return {
-                        key,
-                        value: _.object(_.map($('.g-core-route-table'), function (el) {
-                            return [$(el).data('webrootName'), $(el).val()];
-                        }))
-                    };
-                } else if (_.contains(
+                if (_.contains(
                     [
                         'core.api_keys',
                         'core.enable_password_login',
@@ -111,7 +103,6 @@ var SystemConfigurationView = View.extend({
             'core.add_to_group_policy',
             'core.collection_create_policy',
             'core.user_default_folders',
-            'core.route_table'
         ];
         this.settingsKeys = keys;
         restRequest({
@@ -129,11 +120,6 @@ var SystemConfigurationView = View.extend({
     render: function () {
         this.$el.html(SystemConfigurationTemplate({
             settings: this.settings,
-            routes: this.settings['core.route_table'],
-            routeKeys: _.sortBy(
-                _.keys(this.settings['core.route_table']),
-                (a) => a.indexOf('core_') === 0 ? -1 : 0
-            ),
             JSON: window.JSON
         }));
 
