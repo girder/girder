@@ -1,5 +1,4 @@
 import cherrypy
-from dataclasses import dataclass
 import logging
 import mako
 import mimetypes
@@ -32,14 +31,7 @@ def getStaticPublicPath():
     return config.getConfig()['server']['static_public_path']
 
 
-@dataclass
-class AppInfo:
-    config: dict
-    serverRoot: cherrypy._cptree.Tree
-    apiRoot: cherrypy._cptree.Tree
-
-
-def create_app(mode: str) -> AppInfo:
+def create_app(mode: str) -> dict:
     curConfig = config.getConfig()
     appconf = {
         '/': {
@@ -78,14 +70,10 @@ def create_app(mode: str) -> AppInfo:
     apiRoot = buildApi()
     tree = cherrypy._cptree.Tree()
 
-    info = AppInfo(
-        config=appconf,
-        serverRoot=tree,
-        apiRoot=apiRoot.v1,
-    )
+    info = dict(config=appconf, serverRoot=tree, apiRoot=apiRoot.v1)
 
     # Mount static files
-    tree.mount(None, '/', {
+    tree.mount(None, '', {
         '/': {
             'tools.staticdir.on': True,
             'tools.staticdir.index': 'index.html',

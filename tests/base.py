@@ -47,9 +47,9 @@ def startServer(mock=True, mockS3=False):
     usedDBs[dbName] = True
 
     app_info = create_app(mode=ServerMode.TESTING)
-    plugin._loadPlugins(app_info.__dict__, enabledPlugins)
+    plugin._loadPlugins(app_info, enabledPlugins)
 
-    cherrypy.tree = app_info.serverRoot
+    cherrypy.tree = app_info['serverRoot']
 
     if mock:
         cherrypy.server.unsubscribe()

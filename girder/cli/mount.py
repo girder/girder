@@ -566,7 +566,7 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
         plugins = plugins.split(',')
 
     app_info = create_app(ServerMode.DEVELOPMENT)
-    plugin._loadPlugins(app_info.__dict__, names=plugins)
+    plugin._loadPlugins(app_info, names=plugins)
 
     options = {
         # By default, we run in the background so the mount command returns

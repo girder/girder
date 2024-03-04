@@ -37,9 +37,9 @@ def main(dev: bool, mode: str, database: str, host: str, port: int, with_temp_as
     cherrypy.config['server.socket_port'] = port
 
     app_info = server.create_app(mode)
-    plugin._loadPlugins(app_info.__dict__)
+    plugin._loadPlugins(app_info)
 
-    cherrypy.tree = app_info.serverRoot
+    cherrypy.tree = app_info['serverRoot']
     cherrypy.engine.signal_handler.subscribe()
     cherrypy.engine.start()
 
