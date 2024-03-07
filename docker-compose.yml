@@ -14,3 +14,5 @@ girder:
   links:
     - "mongodb:mongodb"
   command: --host 0.0.0.0 --database mongodb://mongodb:27017/girder
+  volumes:
+    - ".:/girder"

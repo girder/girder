@@ -278,29 +278,6 @@ jobs:
           command: ./codecov --disable search pycov gcov --root girder --required --file build/test/coverage/py_coverage.xml build/test/coverage/cobertura-coverage.xml
           working_directory: girder
 
-  ansible-test:
-    docker:
-      - image: cimg/python:3.8
-    working_directory: ~/project
-    steps:
-      - run:
-          name: Install packages needed for ansible
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y rsync
-      - checkout:
-          path: girder
-      - setup_remote_docker:
-          docker_layer_caching: true
-          version: 20.10.12
-      - run:
-          name: Install tox
-          command: pip install tox
-      - run:
-          name: Run Ansible tests
-          command: tox -e ansible
-          working_directory: girder
-
   dockers:
     machine:
         image: ubuntu-2004:202111-02
@@ -359,10 +336,6 @@ jobs:
           name: Publish Python packages
           command: tox -e publish
           working_directory: girder
-      # - deploy:
-      #     name: Publish Ansible role
-      #     command: tox -e release_ansible
-      #     working_directory: girder
 
   publish-release:
     executor: py3
@@ -411,10 +384,6 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+.*/
-      # - ansible-test:
-      #     filters:
-      #       tags:
-      #         only: /^v[0-9]+.*/
       - dockers:
           filters:
             tags:
@@ -424,7 +393,6 @@ workflows:
             - server-lint-test
             - web-lint-test
             - coverage
-            # - ansible-test
           filters:
             tags:
               only: /^v[0-9]+.*/
@@ -435,7 +403,6 @@ workflows:
             - server-lint-test
             - web-lint-test
             - coverage
-            # - ansible-test
           filters:
             tags:
               only: /^v[0-9]+.*/
