@@ -318,11 +318,11 @@ def serverContext(plugins=None, bindPort=False) -> ServerFixture:
         # By default, pass "[]" to "plugins", disabling any installed plugins
         plugins = []
     app_info = create_app(mode=ServerMode.TESTING)
-    plugin._loadPlugins(app_info.__dict__, plugins)
+    plugin._loadPlugins(app_info, plugins)
 
-    server_fixture = ServerFixture(serverRoot=app_info.serverRoot)
+    server_fixture = ServerFixture(serverRoot=app_info['serverRoot'])
 
-    cherrypy.tree = app_info.serverRoot
+    cherrypy.tree = app_info['serverRoot']
     cherrypy.server.unsubscribe()
     if bindPort:
         cherrypy.server.subscribe()

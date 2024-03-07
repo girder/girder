@@ -84,15 +84,3 @@ to the info log, while the error log will just contain warnings and errors.
 Setting ``log_quiet`` to True will suppress all output to stdout (even http
 access logs if specified in ``log_access``).  Information will still be sent to
 the log files.
-
-.. _managing-routes:
-
-Managing Routes
----------------
-
-When plugins which have their own custom webroot are enabled, they are mounted at /pluginName.
-In certain cases it may be desirable for the site administrator to mount such plugins at their own
-specified paths.
-
-These paths can be modified by navigating to Admin Console -> Server Configuration and
-visiting the Routing section.

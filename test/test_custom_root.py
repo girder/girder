@@ -31,7 +31,7 @@ def unboundHandlerDefault(self, params):
 
 class CustomAppRoot:
     """
-    The webroot endpoint simply serves the main index HTML file.
+    This route simply serves the main index HTML file.
     """
 
     exposed = True

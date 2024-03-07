@@ -221,8 +221,3 @@ def testLoadPluginsMissing(registry):
         plugin._loadPlugins(info={}, names=['missing'])
 
     assert plugin.loadedPlugins() == []
-
-
-def testRegisterWebroot(registry):
-    plugin.registerPluginWebroot('webroot', 'plugin')
-    assert plugin.getPluginWebroots() == {'plugin': 'webroot'}

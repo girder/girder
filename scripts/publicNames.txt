@@ -378,8 +378,6 @@ girder
             GROUP_CREATOR_ACCESS
             USER_DEFAULT_FOLDERS
             USER_SELF_ACCESS
-            WEBROOT_SETTING_CHANGE
-        GIRDER_ROUTE_ID
         PACKAGE_DIR
         ROOT_DIR
         STATIC_ROOT_DIR
@@ -688,9 +686,7 @@ girder
             version
         allPlugins
         getPlugin
-        getPluginWebroots
         loadedPlugins
-        registerPluginWebroot
     settings
         SettingDefault
             defaults
@@ -714,7 +710,6 @@ girder
             GIRDER_MOUNT_INFORMATION
             PRIVACY_NOTICE
             REGISTRATION_POLICY
-            ROUTE_TABLE
             SERVER_ROOT
             SMTP_ENCRYPTION
             SMTP_HOST
@@ -864,7 +859,6 @@ girder
             create_app
             getApiRoot
             getStaticPublicPath
-            loadRouteTable
             staticFile
         setting_utilities
             default
