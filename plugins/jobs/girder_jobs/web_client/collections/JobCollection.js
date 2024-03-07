@@ -1,6 +1,6 @@
-import Collection from '@girder/core/collections/Collection';
-
 import JobModel from '../models/JobModel';
+
+const Collection = girder.collections.Collection;
 
 var JobCollection = Collection.extend({
     resourceName: 'job',

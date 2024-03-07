@@ -99,7 +99,7 @@ class RoutesTestCase(base.TestCase):
         self.assertRaises(RestException, dummy.handleRoute, 'DUMMY', ('guid', 'dummy'), {})
 
     def testCORS(self):
-        testServer.root.api.v1.dummy = DummyResource()
+        testServer.apps['/api'].root.v1.dummy = DummyResource()
 
         # When no origin header is passed, we shouldn't receive CORS headers
         resp = self.request(path='/dummy/test')

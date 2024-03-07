@@ -13,7 +13,7 @@ RUN apt-get update \
     automake \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - \
   && apt-get install -y nodejs \
   && find / -xdev -name __pycache__ -type d -exec rm -r {} \+ \
   && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -22,6 +22,8 @@ RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
 RUN apt-get update \
   && apt-get install --assume-yes \
     cmake \
+    automake \
+    nodejs \
   # Note: universal-ctags is installed for use in the public_names CI job.
   && git clone "https://github.com/universal-ctags/ctags.git" "./ctags" \
   && cd ./ctags \

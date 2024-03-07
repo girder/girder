@@ -23,7 +23,6 @@ from girder.models.token import Token
 from girder.settings import SettingKey
 from . import mock_smtp
 from . import mock_s3
-from . import mongo_replicaset
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'setup_database.*')
@@ -158,8 +157,7 @@ class TestCase(unittest.TestCase):
         database before each test. We then add an assetstore so the file model
         can be used without 500 errors.
         :param assetstoreType: if 'gridfs' or 's3', use that assetstore.
-            'gridfsrs' uses a GridFS assetstore with a replicaset. For any other value, use
-            a filesystem assetstore.
+            For any other value, use a filesystem assetstore.
         """
         self.assetstoreType = assetstoreType
         dropTestDatabase(dropModels=dropModels)
@@ -172,14 +170,6 @@ class TestCase(unittest.TestCase):
             gridfsDbName = 'girder_test_%s_assetstore_auto' % assetstoreName.replace('.', '_')
             dropGridFSDatabase(gridfsDbName)
             self.assetstore = Assetstore().createGridFsAssetstore(name='Test', db=gridfsDbName)
-        elif assetstoreType == 'gridfsrs':
-            gridfsDbName = 'girder_test_%s_rs_assetstore_auto' % assetstoreName
-            self.replicaSetConfig = mongo_replicaset.makeConfig()
-            mongo_replicaset.startMongoReplicaSet(self.replicaSetConfig)
-            self.assetstore = Assetstore().createGridFsAssetstore(
-                name='Test', db=gridfsDbName,
-                mongohost='mongodb://127.0.0.1:27070,127.0.0.1:27071,'
-                '127.0.0.1:27072', replicaset='replicaset')
         elif assetstoreType == 's3':
             self.assetstore = Assetstore().createS3Assetstore(
                 name='Test', bucket='bucketname', accessKeyId='test',
@@ -201,10 +191,6 @@ class TestCase(unittest.TestCase):
         """
         Stop any services that we started just for this test.
         """
-        # If "self.setUp" is overridden, "self.assetstoreType" may not be set
-        if getattr(self, 'assetstoreType', None) == 'gridfsrs':
-            mongo_replicaset.stopMongoReplicaSet(self.replicaSetConfig)
-
         # Invalidate cache regions which persist across tests
         cache.invalidate()
         requestCache.invalidate()
@@ -432,7 +418,7 @@ class TestCase(unittest.TestCase):
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
                 type=None, exception=False, cookie=None, token=None,
                 additionalHeaders=None, useHttps=False,
-                authHeader='Authorization', appPrefix=''):
+                authHeader='Authorization', appPrefix='/api'):
         """
         Make an HTTP request.
 

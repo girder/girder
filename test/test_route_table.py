@@ -53,22 +53,25 @@ def testRouteTableValidationSuccess(value, db):
     })
 
 
-@pytest.mark.plugin('has_webroot', HasWebroot)
-def testRouteTableBehavior(server, admin):
+@pytest.fixture
+def routeTableReconfig(db):
     Setting().set(SettingKey.ROUTE_TABLE, {
         GIRDER_ROUTE_ID: '/',
         'has_webroot': '/has_webroot'
     })
 
+
+@pytest.mark.plugin('has_webroot', HasWebroot)
+def testRouteTableBehavior(routeTableReconfig, server, admin):
     # /has_webroot should serve our plugin webroot
     resp = server.request('/has_webroot', prefix='', isJson=False, appPrefix='/has_webroot')
     assertStatusOk(resp)
     assert 'some webroot' in getResponseBody(resp)
 
     # girder should be at /
-    resp = server.request('/', prefix='', isJson=False)
+    resp = server.request('/api/v1', prefix='', isJson=False)
     assertStatusOk(resp)
-    assert 'g-global-info-apiroot' in getResponseBody(resp)
+    assert '<title>Girder - REST API Documentation</title>' in getResponseBody(resp)
 
     table = Setting().get(SettingKey.ROUTE_TABLE)
     assert 'has_webroot' in table

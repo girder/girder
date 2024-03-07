@@ -1028,7 +1028,7 @@ class FileTestCase(base.TestCase):
 
         uploadId = resp.json['_id']
 
-        # Because we are moking http requests, and moto insists that there be
+        # Because we are mocking http requests, and moto insists that there be
         # uploaded parts, this is failing.  See line 409 of moto/s3/models.py.
         # We bypass this.
         from moto.utilities.utils import md5_hash

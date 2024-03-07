@@ -16,8 +16,12 @@
         "npm": ">=5.2"
     },
     "devDependencies": {
-        "@girder/eslint-config": "file:./girder/web_client/eslint-config",
-        "@girder/pug-lint-config": "file:./girder/web_client/pug-lint-config",
+        "@girder/eslint-config": "^3.1.21",
+        "@girder/pug-lint-config": "^3.1.21",
+        "@vue/eslint-config-prettier": "^7.1.0",
+        "@vue/eslint-config-typescript": "^11.0.3",
+        "esdoc": "^1.1.0",
+        "esdoc-standard-plugin": "^1.0.0",
         "eslint": "^8.20.0",
         "eslint-config-semistandard": "^17.0.0",
         "eslint-config-standard": "^17.0.0",
@@ -25,8 +29,7 @@
         "eslint-plugin-import": "^2.26.0",
         "eslint-plugin-n": "^15.3.0",
         "eslint-plugin-promise": "^6.0.0",
-        "nyc": "^15.1.0",
-        "phantomjs-prebuilt": "^2.1.16",
+        "eslint-plugin-vue": "^9.11.0",
         "pug-lint": "^2.6.0",
         "stylelint": "^15.11.0",
         "stylelint-stylus": "^0.18.0"
@@ -34,11 +37,10 @@
     "scripts": {
         "lint": "eslint --cache . && pug-lint . && stylelint **/*.styl",
         "docs": "esdoc",
-        "coverage": "nyc report && mv build/test/artifacts/web_coverage/cobertura-coverage.xml build/test/coverage/",
         "publish-all": "./.circleci/publish_npm.sh"
     },
     "esdoc": {
-        "source": "girder/web_client/src",
+        "source": "girder/web/src",
         "destination": "build/docs/web",
         "index": "README.rst",
         "plugins": [
@@ -57,12 +59,22 @@
         ]
     },
     "eslintConfig": {
-        "extends": "@girder",
+        "extends": [
+            "@girder",
+            "plugin:vue/vue3-essential",
+            "eslint:recommended",
+            "@vue/eslint-config-typescript",
+            "@vue/eslint-config-prettier/skip-formatting"
+        ],
+        "rules": {
+            "promise/no-native": 0
+        },
         "overrides": [
             {
                 "files": [
-                    "girder/web_client/test/**",
-                    "plugins/*/plugin_tests/**"
+                    "girder/web/**",
+                    "plugins/*/plugin_tests/**",
+                    "plugins/**/web_client/**"
                 ],
                 "globals": {
                     "Backbone": true,
@@ -74,25 +86,19 @@
                 "env": {
                     "jasmine": true,
                     "jquery": true
+                },
+                "parserOptions": {
+                    "ecmaVersion": "latest"
                 }
             }
         ],
         "root": true
     },
     "eslintIgnore": [
-        "build/",
-        "girder/web_client/test/lib/",
+        "dist/",
+        "dist-lib/",
         "**/node_modules/"
     ],
-    "nyc": {
-        "reporter": [
-            "cobertura",
-            "html",
-            "text-summary"
-        ],
-        "report-dir": "build/test/artifacts/web_coverage",
-        "temp-dir": "build/test/coverage/web_temp"
-    },
     "pugLintConfig": {
         "extends": "@girder/pug-lint-config",
         "excludeFiles": [
@@ -103,6 +109,10 @@
     "stylelint": {
         "extends": [
             "stylelint-stylus/standard"
+        ],
+        "ignoreFiles": [
+            "girder/web/dist/**/*.styl",
+            "girder/web/dist-lib/**/*.styl"
         ]
     }
 }

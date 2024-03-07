@@ -17,11 +17,12 @@ provide helpful development tools and to allow the test suite to run: ::
 
 Install front-end web client development dependencies and build the web client code: ::
 
-    girder build --dev
+    cd girder/web && yarn && yarn build
 
-For more options for building the web client, run: ::
+This will build the core web client. Any plugins you plan to install that have front-end code
+will need to be built as well. For example, to build the jobs plugin: ::
 
-    girder build --help
+    cd plugins/jobs/girder_jobs/web_client && yarn && yarn build
 
 Finally, you'll want to set your server into development mode. Add the following entry into your
 local config file (see :ref:`Configuration <configuration>` for instructions):
@@ -45,20 +46,11 @@ During Development
 Once Girder is started via ``girder serve``, the server
 will reload itself whenever a Python file is modified.
 
-If you are doing front-end development, it's much faster to use a *watch* process to perform
-automatic fast rebuilds of your code whenever you make changes to source files.
+If you are doing front-end development on the core app, it's much faster to use the dev server to
+perform hot reloads whenever you make changes to source files. ::
 
-If you are making changes to Girder's core web client, run the following watch command: ::
+    cd girder/web && yarn dev
 
-    girder build --watch
-
-If you are developing a web client of a plugin, run: ::
-
-    girder build --watch-plugin your_plugin_name
-
-With ``watch`` option, *sourcemaps* will be generated, which helps debugging front-end code in browser.
-When you want to end the watch process, press Ctrl+C (or however you would normally terminate a
-process in your terminal).
 
 Girder Shell
 ^^^^^^^^^^^^
@@ -231,119 +223,39 @@ To run static analysis tests on client side code, run from the top-level Girder 
    npm i
    npm run lint
 
-Running the Tests with CTest
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Using the same setup as above for the Server Side Tests, your environment will be set up.
-The client side tests and server side tests are both harnessed with CTest, so use the following commands to run both ::
+Running the client end-to-end tests
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    cd girder-build
-    ctest
+Girder's web client test suite are setup as end-to-end tests that make use of an actual server
+and database. To run them, make sure you are within your Girder virtual environment, and make sure
+`mongod` is running locally on port 27017. You'll also need to make sure you've built all the plugin
+web client code, which can be done with:
 
-will run all of the tests, which include the client side tests.  Our client tests use the
-Jasmine JS testing framework.
+.. code-block:: bash
 
-If you encounter errors, there is a chance you missed certain steps for setting up development dependencies.
-You could use ``ccmake`` to change ``CMake`` configuration. Or, it might be easier to recreate the environment from the beginning.
+    python .circleci/build_plugins.py ./plugins
 
-When running client side tests, if you try to SIGINT (ctrl+c) the CTest process, CTest
-won't pass that signal down to the test processes for them to handle.  This can result
-in orphaned python unittest processes and can prevent future runs of client tests.  If you
-run a client side test and see an error message similar to ``IOError: Port 30015 not free on '0.0.0.0'``,
-then look for an existing process similar to ``/usr/bin/python3 -m unittest -v tests.web_client_test``,
-kill the process, and then try your tests again.
+Once that is done, then run:
+
+.. code-block:: bash
+
+    cd girder/web
+    npm i
+    npm run test
+
 
 Adding a New Client Side Test
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To add a new client side test, add a new spec file in ``/girder/web_client/test/spec/``, add a line
-referencing your spec file to ``/girder/tests/CMakeLists.txt`` using the ``add_web_client_test`` function,
-and then run in your build directory ::
-
-    cmake ../girder
-
-before running your tests.
-
-An example of a very simple client side test would be as follows ::
-
-    add_web_client_test(some_client_test "someSpec.js" PLUGIN "my_plugin")
-
-The ``PLUGIN`` argument indicates that "my_plugin" is the owner of ``some_client_test``, at the time of the test my_plugin and all of its dependencies will be loaded.
-
-If additional plugins are needed for a specific test, that can be achieved using the ``ENABLEDPLUGINS`` argument ::
-
-    add_web_client_test(another_client_test "anotherSpec.js" PLUGIN "my_plugin" ENABLEDPLUGINS "my_plugin" "jobs")
-
-Here ``ENABLEDPLUGINS`` ensures that my_plugin *and* the jobs plugin are loaded, along with their dependencies at the time of ``another_client_test``.
-
-.. note:: Core functionality shouldn't depend on plugins being enabled, this test definition is more suitable for a plugin. Information for testing plugins can be found under :doc:`plugin-development`.
-
-You will find many useful methods for client side testing in the ``girderTest`` object
-defined at ``/girder/web_client/test/testUtils.js``.
-
+To add a new client side test, add a new spec file in ``girder/web/test/spec/``. We recommend
+copying an existing test case for setting up the server, and then using VSCode's Playwright plugin
+to record your interactions.
 
 Test Coverage Reporting
 -----------------------
 When Girder's full test suite is run in the CI environment, a test coverage report for both
 server and client code is generated and uploaded to Codecov. This may be
 `viewed online at any time <https://codecov.io/gh/girder/girder>`_.
-
-Initializing the Database for a Test
-------------------------------------
-
-.. note:: This functionality has not yet been ported to our ``pytest`` tests.
-
-When running tests in Girder, the database will initially be empty.  Often times, you want to be able to start the test with the database in a
-particular state.  To avoid repetitive initialization code, Girder provides a way to import a folder hierarchy from the file system
-using a simple initialization file.  This file is in YAML (or JSON) format and provides a list of objects to insert into the database
-before executing your test.  A typical example of this format is as follows
-
-.. code-block:: YAML
-
-    ---
-    users:
-      - login: 'admin'
-        password: 'password'
-        firstName: 'First'
-        lastName: 'Last'
-        email: 'admin@girder.test'
-        admin: true
-        import: 'files/user'
-
-    collections:
-      - name: 'My collection'
-        public: true
-        creator: 'admin'
-        import: 'files/collection'
-
-This will create one admin user and a public collection owned by that user.  Both the generated user and collection objects
-will contain folders imported from the file system.  Relative paths provided by the ``import`` key will be resolved relative
-to the location of the YAML file on disk.  You can also describe the full hierarchy in the YAML file itself for more complicated
-use cases.  See the test spec in ``tests/cases/setup_database_test.yml`` for a more complete example.
-
-.. note::
-
-    When importing from a local path into a user or collection, files directly under that path are ignored because
-    items can be only inserted under folders.
-
-To use the initialization mechanism, you should add the YAML file next to your test file.  For example, if your test
-is defined in ``tests/cases/my_test.py``, then the initialization spec should go in ``tests/cases/my_test.yml``.  This
-file will be automatically detected and loaded before executing your test code.  This is true for both python and
-javascript tests added in core or inside plugins.
-
-The python module ``setup_database.py`` that generates the database can also be run standalone to help in development.  To use it,
-you should point girder to an empty database ::
-
-    GIRDER_MONGO_URI='mongodb://127.0.0.1:27017/mytest' python tests/setup_database.py tests/test_database/spec.yml
-
-You can browse the result in Girder by running ::
-
-    GIRDER_MONGO_URI='mongodb://127.0.0.1:27017/mytest' girder serve
-
-.. note::
-
-    The ``setup_database`` module is meant to provision fixures for tests **only**.  If you want to provision
-    a Girder instance for deployment, see the `Girder ansible client <https://github.com/girder/girder/tree/master/devops/ansible-role-girder/library>`_.
-
 
 Code Review
 -----------

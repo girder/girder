@@ -1,0 +1,2 @@
+prune girder_gravatar/web_client
+include girder_gravatar/web_client/dist/girder-plugin-gravatar.umd.cjs

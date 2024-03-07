@@ -13,7 +13,7 @@ from girder.constants import SortDir, VERSION
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 from girder.settings import SettingKey
-from girder.utility import config, toBool
+from girder.utility import toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
 from . import docs, access
@@ -447,16 +447,11 @@ class ApiDocs(WebrootBase):
 
     def __init__(self, templatePath=None):
         if not templatePath:
-            templatePath = os.path.join(constants.PACKAGE_DIR,
-                                        'api', 'api_docs.mako')
+            templatePath = os.path.join(constants.PACKAGE_DIR, 'api', 'api_docs.mako')
         super().__init__(templatePath)
-
-        curConfig = config.getConfig()
-        self.vars['mode'] = curConfig['server'].get('mode', '')
 
     def _renderHTML(self):
         from girder.utility import server
-        self.vars['apiRoot'] = server.getApiRoot()
         self.vars['staticPublicPath'] = server.getStaticPublicPath()
         self.vars['brandName'] = Setting().get(SettingKey.BRAND_NAME)
         return super()._renderHTML()

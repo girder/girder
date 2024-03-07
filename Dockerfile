@@ -29,8 +29,8 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | b
 
 # Default node version
 RUN . ~/.bashrc && \
-    nvm install 14 && \
-    nvm alias default 14 && \
+    nvm install 16 && \
+    nvm alias default 16 && \
     nvm use default && \
     ln -s $(dirname `which npm`) /usr/local/node
 
@@ -40,15 +40,12 @@ RUN mkdir /girder
 WORKDIR /girder
 COPY . /girder/
 
+RUN cd /girder/girder/web && npm i && npm run build && cd /girder
+
 # Build girder wheel file, and install it
 RUN python3 setup.py bdist_wheel \
  && cd dist && python3 -m pip install --no-cache-dir girder && cd .. \
  && rm -rf build dist
-
-RUN girder build && \
-    rm --recursive --force \
-    /root/.npm \
-    /usr/local/lib/python*/site-packages/girder/web_client/node_modules
 
 EXPOSE 8080
 

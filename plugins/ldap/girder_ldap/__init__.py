@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import ldap
 
 from girder import events
@@ -7,7 +9,7 @@ from girder.api.rest import boundHandler
 from girder.exceptions import ValidationException, RestException
 from girder.models.setting import Setting
 from girder.models.user import User
-from girder.plugin import GirderPlugin
+from girder.plugin import GirderPlugin, registerPluginStaticContent
 
 from .settings import PluginSettings
 
@@ -163,8 +165,14 @@ def _ldapServerTest(self, uri, bindName, password, params):
 
 class LDAPPlugin(GirderPlugin):
     DISPLAY_NAME = 'LDAP Authentication'
-    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         events.bind('model.user.authenticate', 'ldap', _ldapAuth)
         info['apiRoot'].system.route('GET', ('ldap_server', 'status'), _ldapServerTest)
+
+        registerPluginStaticContent(
+            plugin='ldap',
+            css=['/style.css'],
+            js=['/girder-plugin-ldap.umd.cjs'],
+            staticDir=Path(__file__).parent / 'web_client' / 'dist',
+        )

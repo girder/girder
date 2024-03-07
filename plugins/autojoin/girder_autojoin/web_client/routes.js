@@ -1,12 +1,11 @@
-/* eslint-disable import/first */
+import ConfigView from './views/ConfigView';
 
-import router from '@girder/core/router';
-import events from '@girder/core/events';
-import { exposePluginConfig } from '@girder/core/utilities/PluginUtils';
+const router = girder.router;
+const events = girder.events;
+const { exposePluginConfig } = girder.utilities.PluginUtils;
 
 exposePluginConfig('autojoin', 'plugins/autojoin/config');
 
-import ConfigView from './views/ConfigView';
 router.route('plugins/autojoin/config', 'autojoinConfig', function () {
     events.trigger('g:navigateTo', ConfigView);
 });

@@ -2,15 +2,18 @@ import os
 import urllib.parse
 import pytest
 
+import cherrypy
 from pytest_girder.assertions import assertStatus, assertStatusOk
 from pytest_girder.utils import getResponseBody
 
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import boundHandler, rawResponse, Resource, setResponseHeader
-from girder.constants import TokenScope
+from girder.constants import TokenScope, GIRDER_ROUTE_ID
+from girder.settings import SettingKey
+from girder.models.setting import Setting
 from girder.utility.server import staticFile
-from girder.plugin import GirderPlugin
+from girder.plugin import GirderPlugin, registerPluginWebroot
 
 
 @access.user(scope=TokenScope.ANONYMOUS_SESSION)
@@ -79,10 +82,14 @@ class Other(Resource):
 
 class CustomRoot(GirderPlugin):
     def load(self, info):
-        info['serverRoot'], info['serverRoot'].girder = (
-            CustomAppRoot(), info['serverRoot'])
-        info['serverRoot'].api = info['serverRoot'].girder.api
-        del info['serverRoot'].girder.api
+        registerPluginWebroot(CustomAppRoot(), 'custom_plugin')
+        Setting().set(SettingKey.ROUTE_TABLE, {
+            GIRDER_ROUTE_ID: '/girder',
+            'custom_plugin': '/'
+        })
+
+        path = os.path.join(os.path.dirname(__file__), 'data', 'static.txt')
+        cherrypy.tree.mount(staticFile(path), '/static_route', info['config'])
 
         info['apiRoot'].collection.route('GET', ('unbound', 'default', 'noargs'),
                                          unboundHandlerDefaultNoArgs)
@@ -90,26 +97,23 @@ class CustomRoot(GirderPlugin):
                                          unboundHandlerDefault)
 
         info['apiRoot'].other = Other()
-        path = os.path.join(os.path.dirname(__file__), 'data', 'static.txt')
-        info['serverRoot'].static_route = staticFile(path)
 
 
 @pytest.mark.plugin('test_plugin', CustomRoot)
-@pytest.mark.parametrize('route,text', [
-    ('/', 'hello world from test_plugin'),
-    ('/girder', 'g-global-info-apiroot'),
-    ('/api/v1', 'Girder REST API Documentation'),
-    ('/static_route', 'Hello world!')
+@pytest.mark.parametrize('route,text,app', [
+    ('/', 'hello world from test_plugin', ''),
+    ('/api/v1', 'Girder - REST API Documentation', '/api'),
+    ('/static_route', 'Hello world!', '/static_route')
 ])
-def testPluginRoutesForHumans(server, route, text):
-    resp = server.request(route, prefix='', isJson=False)
+def testPluginRoutesForHumans(server, route, text, app):
+    resp = server.request(route, prefix='', isJson=False, appPrefix=app)
     assertStatusOk(resp)
     assert text in getResponseBody(resp)
 
 
 def testServerInfoInErrorPage(server):
     # For security, we want to ensure cherrypy does not appear in server info
-    resp = server.request('/girder/api/v1', prefix='', isJson=False)
+    resp = server.request('/girder/api/v1', prefix='', isJson=False, appPrefix='')
     assertStatus(resp, 404)
     body = getResponseBody(resp).lower()
     server = resp.headers['Server'].lower()

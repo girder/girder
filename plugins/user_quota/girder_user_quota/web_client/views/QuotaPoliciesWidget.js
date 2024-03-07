@@ -1,15 +1,12 @@
-import $ from 'jquery';
-import _ from 'underscore';
-
-import View from '@girder/core/views/View';
-import { formatSize } from '@girder/core/misc';
-import { getCurrentUser } from '@girder/core/auth';
-import { handleOpen, handleClose } from '@girder/core/dialog';
-import '@girder/core/utilities/jquery/girderEnable';
-import '@girder/core/utilities/jquery/girderModal';
-
 import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 import QuotaPoliciesWidgetTemplate from '../templates/quotaPoliciesWidget.pug';
+
+const $ = girder.$;
+const _ = girder._;
+const View = girder.views.View;
+const { getCurrentUser } = girder.auth;
+const { formatSize } = girder.misc;
+const { handleOpen, handleClose } = girder.dialog;
 
 var QuotaPoliciesWidget = View.extend({
     events: {

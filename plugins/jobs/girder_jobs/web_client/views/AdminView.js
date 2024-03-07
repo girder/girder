@@ -1,7 +1,7 @@
-import { wrap } from '@girder/core/utilities/PluginUtils';
-import AdminView from '@girder/core/views/body/AdminView';
-
 import adminViewMenuItemTemplate from '../templates/adminViewMenuItem.pug';
+
+const { wrap } = girder.utilities.PluginUtils;
+const AdminView = girder.views.body.AdminView;
 
 /**
  * Add an entry to the AdminView

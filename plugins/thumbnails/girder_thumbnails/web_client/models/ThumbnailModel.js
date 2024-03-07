@@ -1,4 +1,4 @@
-import Model from '@girder/core/models/Model';
+const Model = girder.models.Model;
 
 var ThumbnailModel = Model.extend({
     resourceName: 'thumbnail'

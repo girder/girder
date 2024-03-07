@@ -10,7 +10,6 @@ from girder import plugin
 from girder.settings import SettingKey
 from girder.utility import config
 from girder.constants import ServerMode
-from . import webroot
 
 with open(os.path.join(os.path.dirname(__file__), 'error.mako')) as f:
     _errorTemplate = f.read()
@@ -73,10 +72,9 @@ def configureServer(mode=None, plugins=None, curConfig=None):
 
     # Don't import this until after the configs have been read; some module
     # initialization code requires the configuration to be set up.
-    from girder.api import api_main
+    from girder.api.api_main import buildApi
 
-    root = webroot.Webroot()
-    api_main.addApiToNode(root)
+    api = buildApi()
 
     girder.events.setupDaemon()
     cherrypy.engine.subscribe('start', girder.events.daemon.start)
@@ -85,15 +83,14 @@ def configureServer(mode=None, plugins=None, curConfig=None):
     routeTable = loadRouteTable()
     info = {
         'config': appconf,
-        'serverRoot': root,
+        'serverRoot': cherrypy.tree,
         'serverRootPath': routeTable[constants.GIRDER_ROUTE_ID],
-        'apiRoot': root.api.v1,
+        'apiRoot': api.v1,
     }
 
     plugin._loadPlugins(info, plugins)
-    root, appconf = info['serverRoot'], info['config']
 
-    return root, appconf
+    return api, info['config']
 
 
 def loadRouteTable(reconcileRoutes=False):
@@ -120,7 +117,7 @@ def loadRouteTable(reconcileRoutes=False):
 
         for name in pluginWebroots.keys():
             if name not in routeTable:
-                routeTable[name] = os.path.join('/', name)
+                routeTable[name] = f'/{name.lstrip("/")}'
                 hasChanged = True
 
         if hasChanged:
@@ -149,33 +146,37 @@ def setup(mode=None, plugins=None, curConfig=None):
     logStdoutStderr()
 
     pluginWebroots = plugin.getPluginWebroots()
-    girderWebroot, appconf = configureServer(mode, plugins, curConfig)
+    apiRoot, appconf = configureServer(mode, plugins, curConfig)
     routeTable = loadRouteTable(reconcileRoutes=True)
 
-    # Mount Girder
-    application = cherrypy.tree.mount(
-        girderWebroot, str(routeTable[constants.GIRDER_ROUTE_ID]), appconf)
-
     # Mount static files
-    cherrypy.tree.mount(None, '/static',
+    cherrypy.tree.mount(None, routeTable[constants.GIRDER_ROUTE_ID],
                         {'/':
                          {'tools.staticdir.on': True,
-                          'tools.staticdir.dir': os.path.join(constants.STATIC_ROOT_DIR),
+                          'tools.staticdir.index': 'index.html',
+                          'tools.staticdir.dir': constants.STATIC_ROOT_DIR,
                           'request.show_tracebacks': appconf['/']['request.show_tracebacks'],
                           'response.headers.server': 'Girder %s' % __version__,
                           'error_page.default': _errorDefault}})
 
+    # Mount API
+    cherrypy.tree.mount(
+        apiRoot,
+        f"{routeTable[constants.GIRDER_ROUTE_ID].rstrip('/')}/api",
+        appconf
+    )
+
     if routeTable[constants.GIRDER_ROUTE_ID] != '/':
         # Mount API (special case)
         # The API is always mounted at /api AND at api relative to the Girder root
-        cherrypy.tree.mount(girderWebroot.api, '/api', appconf)
+        cherrypy.tree.mount(apiRoot, '/api', appconf)
 
     # Mount everything else in the routeTable
     for name, route in routeTable.items():
         if name != constants.GIRDER_ROUTE_ID and name in pluginWebroots:
             cherrypy.tree.mount(pluginWebroots[name], route, appconf)
 
-    return application
+    return cherrypy.tree
 
 
 class _StaticFileRoute:

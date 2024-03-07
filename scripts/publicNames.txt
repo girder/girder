@@ -305,6 +305,7 @@ girder
                     getLogLevel
                     getPartialUploads
                     getPlugins
+                    getPublicSettings
                     getSetting
                     getVersion
                     setLogLevel
@@ -396,7 +397,6 @@ girder
         MAX_LOG_SIZE
         PACKAGE_DIR
         ROOT_DIR
-        STATIC_PREFIX
         STATIC_ROOT_DIR
         ServerMode
             DEVELOPMENT

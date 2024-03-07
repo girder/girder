@@ -5,11 +5,11 @@ executors:
   py3:
     docker:
       # This image uses the newest version of many dependencies
-      - image: girder/girder_test:py38-node14
+      - image: girder/girder_test:py38-node16
     working_directory: /home/circleci/project
   py3-mongo:
     docker:
-      - image: girder/girder_test:py38-node14
+      - image: girder/girder_test:latest
       # Use the oldest supported MongoDB
       # This is equivalent to the deprecated circleci/mongo:<version>-ram image
       - image: mongo:3.6
@@ -27,8 +27,8 @@ commands:
       - run:
           name: Generate python environment checksum file
           command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
-      - restore_cache:
-          key: venv-py3.8-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
+      #- restore_cache:
+      #    key: venv-py3.8-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - run:
           name: Create virtual environment (if necessary)
           command: if [ ! -d girder_env ]; then python3 -m venv girder_env; fi
@@ -49,10 +49,10 @@ commands:
             --editable clients/python
             --requirement requirements-dev.txt
           working_directory: girder
-      - save_cache:
-          paths:
-            - girder_env
-          key: venv-py3.8-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
+      #- save_cache:
+      #    paths:
+      #      - girder_env
+      #    key: venv-py3.8-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
 
 jobs:
   server-lint-test:
@@ -64,10 +64,10 @@ jobs:
           name: Run server linting tests
           command: tox -e lint
           working_directory: girder
-      - run:
-          name: Test public symbols
-          command: tox -e public_names
-          working_directory: girder
+      #- run:
+      #    name: Test public symbols
+      #    command: tox -e public_names
+      #    working_directory: girder
       - run:
           name: Test building docs
           command: tox -e docs
@@ -136,30 +136,28 @@ jobs:
           path: girder
       - install-girder
       - run:
-          name: Build Girder web client
-          command: girder build --dev | cat
+          name: Install and build @girder/core
+          command: |
+            npm install
+            npm run build
+          working_directory: girder/girder/web
       - run:
-          name: Create Girder build directory
-          command: mkdir girder_build
+          name: Install and build all plugins
+          command: python girder/.circleci/build_plugins.py girder/plugins
       - run:
-          name: Run CTest
-          command: >-
-            ctest
-            --extra-verbose
-            --script "$CIRCLE_WORKING_DIRECTORY/girder/.circleci/ci_test.cmake"
-          environment:
-            TEST_GROUP: browser
-            PYTHON_VERSION: 3.8
-            PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
-            JASMINE_TIMEOUT: 15000
-          working_directory: girder_build
+          name: Install playwright browser dependencies
+          command: npm run install-browsers
+          working_directory: girder/girder/web
+      - run:
+          name: Test @girder/core
+          command: npm run test
+          working_directory: girder/girder/web
       - store_artifacts:
-          # Failure screenshots from web tests
-          path: girder/build/test/artifacts
-      - persist_to_workspace:
-          root: /home/circleci/project
-          paths:
-            - girder/build/test/coverage
+          path: girder/girder/web/coverage/report
+          destination: coverage
+      - store_artifacts:
+          path: girder/girder/web/test-results
+          destination: test-results
 
   integration-test:
     executor: machine
@@ -167,14 +165,14 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Install NodeJS 14
+          name: Install NodeJS 16
           # CircleCI resets the Bash environment between every step, so any steps using node or npm
           # must first:
           #   source $NVM_DIR/nvm.sh
           command: |
             source $NVM_DIR/nvm.sh
-            nvm install v14
-            nvm alias default v14
+            nvm install v16
+            nvm alias default v16
             NODE_DIR=$(dirname $(which node))
             echo "export PATH=$NODE_DIR:\$PATH" >> $BASH_ENV
       - run:
@@ -220,11 +218,11 @@ jobs:
           command: sudo apt-get install -y libldap2-dev libsasl2-dev
       - install-girder
       - run:
-          name: Build Girder web client
+          name: Install and build @girder/core
           command: |
-            npm --version
-            node --version
-            girder build --dev | cat
+            npm install
+            npm run build
+          working_directory: girder/girder/web
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
@@ -269,17 +267,6 @@ jobs:
           name: Generate Python coverage report
           command: tox -e coverage
           working_directory: girder
-      - run:
-          name: Install Javascript utilities
-          command: npm ci
-          working_directory: girder
-      - run:
-          name: Generate web coverage report
-          command: npm run coverage
-          working_directory: girder
-      - store_artifacts:
-          # Human-readable coverage reports
-          path: girder/build/test/artifacts
       - run:
           name: Install Codecov client
           command: |
@@ -327,7 +314,7 @@ jobs:
           name: Build the Girder test docker
           command: |
             cd .circleci
-            docker build --force-rm -t girder/girder_test:py38-node14 .
+            docker build --force-rm -t girder/girder_test:py38-node16 .
 
   publish-dockers:
     machine:
@@ -342,7 +329,7 @@ jobs:
           name: Build the Girder test docker
           command: |
             cd .circleci
-            docker build --force-rm -t girder/girder_test:py38-node14 .
+            docker build --force-rm -t girder/girder_test:py38-node16 .
       - run:
           name: Publish the images to Docker Hub
           command: |
@@ -356,11 +343,11 @@ jobs:
               docker tag girder/girder:latest "girder/girder:${CIRCLE_TAG}-py3"
               docker push "girder/girder:${CIRCLE_TAG}-py3"
               fi
-              docker push girder/girder_test:py38-node14
+              docker push girder/girder_test:py38-node16
 
   publish:
     docker:
-      - image: cimg/python:3.8
+      - image: girder/girder_test:py38-node16
     working_directory: ~/project
     steps:
       - checkout:

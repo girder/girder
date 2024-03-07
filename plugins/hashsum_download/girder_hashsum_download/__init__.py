@@ -1,4 +1,5 @@
 import hashlib
+from pathlib import Path
 
 import girder
 from girder import events
@@ -11,7 +12,7 @@ from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
 from girder.models.file import File as FileModel
 from girder.models.setting import Setting
-from girder.plugin import GirderPlugin
+from girder.plugin import GirderPlugin, registerPluginStaticContent
 from girder.utility.progress import ProgressContext, noProgress
 
 from .settings import PluginSettings
@@ -192,10 +193,16 @@ def _computeHash(file, progress=noProgress):
 
 class HashsumDownloadPlugin(GirderPlugin):
     DISPLAY_NAME = 'Hashsum Download'
-    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         HashedFile(info['apiRoot'].file)
         FileModel().exposeFields(level=AccessType.READ, fields=SUPPORTED_ALGORITHMS)
 
         events.bind('data.process', 'hashsum_download', _computeHashHook)
+
+        registerPluginStaticContent(
+            plugin='hashsum_download',
+            css=['/style.css'],
+            js=['/girder-plugin-hashsum-download.umd.cjs'],
+            staticDir=Path(__file__).parent / 'web_client' / 'dist',
+        )

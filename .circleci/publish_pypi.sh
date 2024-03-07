@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+python .circleci/build_plugins.py plugins/
+
 # Build and publish sdist's for all Python packages in this repo
 readonly PUBLISHED_PYTHON_PACKAGES=(
   .

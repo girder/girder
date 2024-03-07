@@ -10,7 +10,6 @@ Developer Documentation
    development
    plugin-development
    developer-cookbook
-   external-web-clients
    python-client
    security
    build-docs

@@ -1,12 +1,11 @@
-import $ from 'jquery';
-
-import { AccessType } from '@girder/core/constants';
-import EditCollectionWidget from '@girder/core/views/widgets/EditCollectionWidget';
-import MarkdownWidget from '@girder/core/views/widgets/MarkdownWidget';
-import { wrap } from '@girder/core/utilities/PluginUtils';
-
 import EditCollectionTermsWidgetTemplate from '../templates/editCollectionTermsWidget.pug';
 import '../stylesheets/editCollectionTermsWidget.styl';
+
+const $ = girder.$;
+const { AccessType } = girder.constants;
+const EditCollectionWidget = girder.views.widgets.EditCollectionWidget;
+const MarkdownWidget = girder.views.widgets.MarkdownWidget;
+const { wrap } = girder.utilities.PluginUtils;
 
 wrap(EditCollectionWidget, 'initialize', function (initialize, ...args) {
     initialize.apply(this, args);

@@ -1,5 +1,5 @@
-import { wrap } from '@girder/core/utilities/PluginUtils';
-import UploadWidget from '@girder/core/views/widgets/UploadWidget';
+const { wrap } = girder.utilities.PluginUtils;
+const UploadWidget = girder.views.widgets.UploadWidget;
 
 wrap(UploadWidget, 'uploadNextFile', function (uploadNextFile) {
     this.$('.g-drop-zone').addClass('hide');

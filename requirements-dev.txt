@@ -7,7 +7,6 @@
 -e plugins/audit_logs
 -e plugins/authorized_upload
 -e plugins/autojoin
--e plugins/dicom_viewer
 -e plugins/download_statistics
 -e plugins/google_analytics
 -e plugins/gravatar
@@ -30,8 +29,8 @@ girder-worker
 httmock
 mongomock
 moto[server]<4.2.12
-pytest
-pytest-cov
+pytest>=3.6
+pytest-cov>=2.6
 python-dateutil
 tox
 virtualenv

@@ -1,16 +1,15 @@
-import _ from 'underscore';
-
-import { restRequest } from '@girder/core/rest';
-import TimelineWidget from '@girder/core/views/widgets/TimelineWidget';
-import View from '@girder/core/views/View';
-import eventStream from '@girder/core/utilities/EventStream';
-import { formatDate, DATE_SECOND } from '@girder/core/misc';
-import events from '@girder/core/events';
-
 import JobDetailsWidgetTemplate from '../templates/jobDetailsWidget.pug';
 import JobStatus from '../JobStatus';
 
 import '../stylesheets/jobDetailsWidget.styl';
+
+const { restRequest } = girder.rest;
+const TimelineWidget = girder.views.widgets.TimelineWidget;
+const View = girder.views.View;
+const eventStream = girder.utilities.EventStream;
+const { formatDate, DATE_SECOND } = girder.misc;
+const events = girder.events;
+const { _ } = girder;
 
 var JobDetailsWidget = View.extend({
     events: {

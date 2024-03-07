@@ -1,8 +1,10 @@
+from pathlib import Path
+
 from girder import events
 from girder.constants import SortDir
 from girder.exceptions import ValidationException
 from girder.models.user import User
-from girder.plugin import GirderPlugin
+from girder.plugin import GirderPlugin, registerPluginStaticContent
 
 from . import rest, providers
 
@@ -39,7 +41,6 @@ def checkOauthUser(event):
 
 class OAuthPlugin(GirderPlugin):
     DISPLAY_NAME = 'OAuth2 Login'
-    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         User().ensureIndex((
@@ -49,3 +50,10 @@ class OAuthPlugin(GirderPlugin):
         events.bind('no_password_login_attempt', 'oauth', checkOauthUser)
 
         info['apiRoot'].oauth = rest.OAuth()
+
+        registerPluginStaticContent(
+            plugin='oauth',
+            css=['/style.css'],
+            js=['/girder-plugin-oauth.umd.cjs'],
+            staticDir=Path(__file__).parent / 'web_client' / 'dist',
+        )

@@ -1,15 +1,15 @@
-import $ from 'jquery';
-
-import FolderModel from '@girder/core/models/FolderModel';
-import MarkdownWidget from '@girder/core/views/widgets/MarkdownWidget';
-import PluginConfigBreadcrumbWidget from '@girder/core/views/widgets/PluginConfigBreadcrumbWidget';
-import View from '@girder/core/views/View';
-import UploadWidget from '@girder/core/views/widgets/UploadWidget';
-import events from '@girder/core/events';
-import { restRequest, getApiRoot } from '@girder/core/rest';
-
 import ConfigViewTemplate from '../templates/configView.pug';
 import '../stylesheets/configView.styl';
+
+const $ = girder.$;
+
+const FolderModel = girder.models.FolderModel;
+const MarkdownWidget = girder.views.widgets.MarkdownWidget;
+const PluginConfigBreadcrumbWidget = girder.views.widgets.PluginConfigBreadcrumbWidget;
+const View = girder.views.View;
+const UploadWidget = girder.views.widgets.UploadWidget;
+const events = girder.events;
+const { restRequest, getApiRoot } = girder.rest;
 
 const ConfigView = View.extend({
     events: {
@@ -117,7 +117,7 @@ const ConfigView = View.extend({
         if (this.logoFileId) {
             logoUrl = `${getApiRoot()}/file/${this.logoFileId}/download?contentDisposition=inline`;
         } else {
-            logoUrl = require('@girder/core/assets/Girder_Mark.png');
+            logoUrl = 'Girder_Mark.png';
         }
         this.$('.g-homepage-logo-preview img').attr('src', logoUrl);
     },

@@ -1,10 +1,10 @@
-import FolderModel from '@girder/core/models/FolderModel';
-import View from '@girder/core/views/View';
-import UploadWidget from '@girder/core/views/widgets/UploadWidget';
-import { setCurrentToken } from '@girder/core/auth';
-
 import template from '../templates/authorizedUpload.pug';
 import '../stylesheets/authorizedUpload.styl';
+
+const FolderModel = girder.models.FolderModel;
+const View = girder.views.View;
+const UploadWidget = girder.views.widgets.UploadWidget;
+const { setCurrentToken } = girder.auth;
 
 var AuthorizedUploadView = View.extend({
     initialize: function (settings) {

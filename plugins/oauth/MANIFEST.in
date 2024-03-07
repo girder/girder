@@ -1,0 +1,3 @@
+prune girder_oauth/web_client
+include girder_oauth/web_client/dist/girder-plugin-oauth.umd.cjs
+include girder_oauth/web_client/dist/style.css

@@ -36,7 +36,7 @@ class TestEndpoints(Resource):
 
 def setUpModule():
     testServer = base.startServer()
-    testServer.root.api.v1.test_endpoints = TestEndpoints()
+    testServer.apps['/api'].root.v1.test_endpoints = TestEndpoints()
 
 
 def tearDownModule():

@@ -45,6 +45,6 @@ To rebuild the web client:
 
 .. code-block:: bash
 
-    girder build --dev
+    cd girder/web && yarn build
 
 For more development documentation, see `During Development <development.html#during-development>`__

@@ -15,6 +15,7 @@ EXCLUDE_DIRS = [
     # Exclude plugin tests
     'plugin_tests',
     '\\.egg/',
+    '\\.eggs/',
     'node_modules/']
 
 IGNORE_FILES = ['setup.py']
