@@ -5,8 +5,9 @@ import mimetypes
 import os
 import sys
 
-from girder import __version__, _setupCache, constants
+from girder import __version__, constants
 from girder.utility import config
+from girder.utility._cache import _setupCache
 from girder.constants import ServerMode
 
 logger = logging.getLogger(__name__)
@@ -21,14 +22,6 @@ def _errorDefault(status, message, *args, **kwargs):
     404's. This overrides the default cherrypy error pages.
     """
     return mako.template.Template(_errorTemplate).render(status=status, message=message)
-
-
-def getApiRoot():
-    return config.getConfig()['server']['api_root']
-
-
-def getStaticPublicPath():
-    return config.getConfig()['server']['static_public_path']
 
 
 def create_app(mode: str) -> dict:
@@ -49,7 +42,7 @@ def create_app(mode: str) -> dict:
     mimetypes.add_type('application/font-woff', '.woff')
 
     curConfig.update(appconf)
-    curConfig['server']['mode'] = mode
+    curConfig['server'] = {'mode': mode}
 
     logging.basicConfig(stream=sys.stdout, level=os.environ.get('LOGLEVEL', 'INFO'))
 
@@ -61,7 +54,7 @@ def create_app(mode: str) -> dict:
         'log.error_file': ''
     })
 
-    _setupCache()
+    _setupCache(curConfig)
 
     # Don't import this until after the configs have been read; some module
     # initialization code requires the configuration to be set up.

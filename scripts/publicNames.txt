@@ -857,8 +857,6 @@ girder
             removeSearchMode
         server
             create_app
-            getApiRoot
-            getStaticPublicPath
             staticFile
         setting_utilities
             default

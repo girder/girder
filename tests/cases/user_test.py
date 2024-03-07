@@ -1,4 +1,3 @@
-import cherrypy
 import collections
 import datetime
 import re
@@ -69,8 +68,7 @@ class UserTestCase(base.TestCase):
         # Now test parameter validation
         resp = self.request(path='/user', method='POST', params=params)
         self.assertValidationError(resp, 'password')
-        self.assertEqual(cherrypy.config['users']['password_description'],
-                         resp.json['message'])
+        self.assertEqual('Password must be at least 6 characters long.', resp.json['message'])
 
         params['password'] = 'good:password'
         resp = self.request(path='/user', method='POST', params=params)

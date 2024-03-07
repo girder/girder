@@ -18,6 +18,8 @@ class SettingKey:
     API_KEYS = 'core.api_keys'
     BANNER_COLOR = 'core.banner_color'
     BRAND_NAME = 'core.brand_name'
+    CACHE_ENABLED = 'core.cache.enabled'
+    CACHE_CONFIG = 'core.cache_config'
     COLLECTION_CREATE_POLICY = 'core.collection_create_policy'
     CONTACT_EMAIL_ADDRESS = 'core.contact_email_address'
     COOKIE_LIFETIME = 'core.cookie_lifetime'
@@ -54,6 +56,8 @@ class SettingDefault:
         SettingKey.API_KEYS: True,
         SettingKey.BANNER_COLOR: '#3F3B3B',
         SettingKey.BRAND_NAME: 'Girder',
+        SettingKey.CACHE_ENABLED: False,
+        SettingKey.CACHE_CONFIG: {},
         SettingKey.COLLECTION_CREATE_POLICY: {
             'open': False,
             'groups': [],
@@ -129,6 +133,18 @@ class SettingValidator:
     def _validateBrandName(doc):
         if not doc['value']:
             raise ValidationException('The brand name may not be empty', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.CACHE_ENABLED)
+    def _validateCacheEnabled(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException('Cache enabled setting must be boolean.', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.CACHE_CONFIG)
+    def _validateCacheConfig(doc):
+        if not isinstance(doc['value'], dict):
+            raise ValidationException('Cache config must be a JSON object.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.COLLECTION_CREATE_POLICY)

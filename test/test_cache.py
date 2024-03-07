@@ -1,11 +1,11 @@
 import unittest.mock
+
 import pytest
 
-from girder import _setupCache
 from girder.models.setting import Setting
 from girder.settings import SettingKey
-from girder.utility import config
-from girder.utility._cache import cache, requestCache
+from girder.utility._cache import cache, requestCache, _setupCache
+from girder.utility.config import getConfig
 
 
 @pytest.fixture
@@ -13,14 +13,14 @@ def enabledCache():
     """
     Side effect fixture which enables and sets up predefined caches.
     """
-    cfg = config.getConfig()
-    cfg['cache']['enabled'] = True
-    _setupCache()
+    config = getConfig()
+    Setting().set(SettingKey.CACHE_ENABLED, True)
+    _setupCache(config)
 
     yield
 
-    cfg['cache']['enabled'] = False
-    _setupCache()
+    Setting().set(SettingKey.CACHE_ENABLED, False)
+    _setupCache(config)
 
 
 def testCachesAreAlwaysConfigured():

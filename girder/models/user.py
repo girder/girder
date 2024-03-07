@@ -10,8 +10,13 @@ from girder import events
 from girder.constants import AccessType, CoreEventHandler, TokenScope
 from girder.exceptions import AccessException, ValidationException
 from girder.settings import SettingKey
-from girder.utility import config, mail_utils
+from girder.utility import mail_utils
 from girder.utility._cache import rateLimitBuffer
+
+_password_regex = re.compile(os.getenv('GIRDER_PASSWORD_REGEX', r'.{6}.*'))
+_password_valid_description = os.getenv(
+    'GIRDER_VALID_PASSWORD_DESCRIPTION', 'Password must be at least 6 characters long.'
+)
 
 
 class User(AccessControlledModel):
@@ -301,11 +306,9 @@ class User(AccessControlledModel):
         if password is None:
             user['salt'] = None
         else:
-            cur_config = config.getConfig()
-
             # Normally this would go in validate() but password is a special case.
-            if not re.match(cur_config['users']['password_regex'], password):
-                raise ValidationException(cur_config['users']['password_description'], 'password')
+            if not re.match(_password_regex, password):
+                raise ValidationException(_password_valid_description, 'password')
 
             user['salt'] = self._cryptContext.hash(password)
 
