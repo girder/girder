@@ -90,4 +90,5 @@ class TermsPlugin(GirderPlugin):
             css=['/style.css'],
             js=['/girder-plugin-terms.umd.cjs'],
             staticDir=Path(__file__).parent / 'web_client' / 'dist',
+            tree=info['serverRoot'],
         )

@@ -21,4 +21,5 @@ class SentryPlugin(GirderPlugin):
             css=['/style.css'],
             js=['/girder-plugin-sentry.umd.cjs'],
             staticDir=Path(__file__).parent / 'web_client' / 'dist',
+            tree=info['serverRoot'],
         )

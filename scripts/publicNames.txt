@@ -888,11 +888,10 @@ girder
             getSearchModeHandler
             removeSearchMode
         server
-            configureServer
+            create_app
             getApiRoot
             getStaticPublicPath
             loadRouteTable
-            setup
             staticFile
         setting_utilities
             default

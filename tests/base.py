@@ -11,8 +11,9 @@ import unittest
 import urllib.parse
 import warnings
 
+from girder import plugin
 from girder.utility._cache import cache, requestCache
-from girder.utility.server import setup as setupServer
+from girder.utility.server import create_app
 from girder.constants import AccessType, ROOT_DIR, ServerMode
 from girder.models import getDbConnection
 from girder.models.model_base import _modelSingletons
@@ -45,8 +46,10 @@ def startServer(mock=True, mockS3=False):
     dbName = cherrypy.config['database']['uri'].split('/')[-1]
     usedDBs[dbName] = True
 
-    # By default, this passes "[]" to "plugins", disabling any installed plugins
-    server = setupServer(mode=ServerMode.TESTING, plugins=enabledPlugins)
+    app_info = create_app(mode=ServerMode.TESTING)
+    plugin._loadPlugins(app_info.__dict__, enabledPlugins)
+
+    cherrypy.tree = app_info.serverRoot
 
     if mock:
         cherrypy.server.unsubscribe()
@@ -71,7 +74,7 @@ def startServer(mock=True, mockS3=False):
         global mockS3Server
         mockS3Server = mock_s3.startMockS3Server()
 
-    return server
+    return cherrypy.tree
 
 
 def stopServer():

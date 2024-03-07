@@ -99,4 +99,5 @@ class ItemLicensesPlugin(GirderPlugin):
             css=['/style.css'],
             js=['/girder-plugin-item-licenses.umd.cjs'],
             staticDir=Path(__file__).parent / 'web_client' / 'dist',
+            tree=info['serverRoot'],
         )

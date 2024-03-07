@@ -205,4 +205,5 @@ class HashsumDownloadPlugin(GirderPlugin):
             css=['/style.css'],
             js=['/girder-plugin-hashsum-download.umd.cjs'],
             staticDir=Path(__file__).parent / 'web_client' / 'dist',
+            tree=info['serverRoot'],
         )

@@ -1,6 +1,7 @@
 import base64
 import cherrypy
 import contextlib
+from dataclasses import dataclass
 import email
 import errno
 import io
@@ -10,6 +11,7 @@ import queue
 import socket
 import threading
 import time
+from typing import Optional
 import urllib.parse
 
 _startPort = 31000
@@ -294,33 +296,50 @@ def _findFreePort():
         return sock.getsockname()[1]
 
 
+@dataclass
+class ServerFixture:
+    request = staticmethod(request)
+    uploadFile = staticmethod(uploadFile)
+    serverRoot: cherrypy._cptree.Tree
+    boundPort: Optional[int] = None
+
+    def __getattr__(self, name):
+        return getattr(self.serverRoot, name)
+
+
 @contextlib.contextmanager
-def serverContext(plugins=None, bindPort=False):
+def serverContext(plugins=None, bindPort=False) -> ServerFixture:
+    from girder import plugin
     from girder.api import docs
-    from girder.utility.server import setup as setupServer
+    from girder.utility.server import create_app
     from girder.constants import ServerMode
 
     if plugins is None:
         # By default, pass "[]" to "plugins", disabling any installed plugins
         plugins = []
-    server = setupServer(mode=ServerMode.TESTING, plugins=plugins)
-    server.request = request
-    server.uploadFile = uploadFile
+    app_info = create_app(mode=ServerMode.TESTING)
+    plugin._loadPlugins(app_info.__dict__, plugins)
+
+    server_fixture = ServerFixture(serverRoot=app_info.serverRoot)
+
+    cherrypy.tree = app_info.serverRoot
     cherrypy.server.unsubscribe()
     if bindPort:
         cherrypy.server.subscribe()
         port = _findFreePort()
         cherrypy.config['server.socket_port'] = port
-        server.boundPort = port
+        server_fixture.boundPort = port
         # This is needed if cherrypy started once on another port
         cherrypy.server.socket_port = port
-    cherrypy.config.update({'environment': 'embedded',
-                            'log.screen': False,
-                            'request.throw_errors': True})
+    cherrypy.config.update({
+        'environment': 'embedded',
+        'log.screen': False,
+        'request.throw_errors': True
+    })
     cherrypy.engine.start()
 
     try:
-        yield server
+        yield server_fixture
     finally:
         cherrypy.engine.stop()
         cherrypy.engine.exit()

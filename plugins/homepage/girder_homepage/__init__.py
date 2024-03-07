@@ -16,4 +16,5 @@ class HomepagePlugin(GirderPlugin):
             css=['/style.css'],
             js=['/girder-plugin-homepage.umd.cjs'],
             staticDir=Path(__file__).parent / 'web_client' / 'dist',
+            tree=info['serverRoot'],
         )

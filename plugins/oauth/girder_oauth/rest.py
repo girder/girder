@@ -1,5 +1,6 @@
 import cherrypy
 import datetime
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 from girder import events
 from girder.constants import AccessType
@@ -134,10 +135,20 @@ class OAuth(Resource):
         if event.defaultPrevented:
             raise cherrypy.HTTPRedirect(redirect)
 
-        girderToken = self.sendAuthTokenCookie(user)
-        try:
-            redirect = redirect.format(girderToken=str(girderToken['_id']))
-        except KeyError:
-            pass  # in case there's another {} that's not handled by format
+        token = str(Token().createToken(user)['_id'])
 
-        raise cherrypy.HTTPRedirect(redirect)
+        # Set `girderToken` in the query params of the redirect URL
+        parsed = urlparse(redirect)
+        query_params = parse_qs(parsed.query)
+        query_params['girderToken'] = token
+        encoded_query_params = urlencode(query_params)
+        updated_redirect = urlunparse((
+            parsed.scheme,
+            parsed.netloc,
+            parsed.path,
+            parsed.params,
+            encoded_query_params,
+            parsed.fragment,
+        ))
+
+        raise cherrypy.HTTPRedirect(updated_redirect)

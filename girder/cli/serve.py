@@ -3,7 +3,7 @@ import tempfile
 import cherrypy
 import click
 
-from girder import _attachFileLogHandlers
+from girder import _attachFileLogHandlers, plugin
 from girder.utility import server
 from girder.constants import ServerMode
 from girder.models.assetstore import Assetstore
@@ -16,7 +16,7 @@ from girder.models.file import File
     ServerMode.PRODUCTION,
     ServerMode.DEVELOPMENT,
     ServerMode.TESTING
-    ]), default=None, show_default=True, help='Specify the server mode')
+    ]), default=ServerMode.DEVELOPMENT, show_default=True, help='Specify the server mode')
 @click.option('-d', '--database', default=cherrypy.config['database']['uri'],
               show_default=True, help='The database URI to connect to')
 @click.option('-H', '--host', default=cherrypy.config['server.socket_host'],
@@ -25,7 +25,7 @@ from girder.models.file import File
               show_default=True, help='The port to bind to')
 @click.option('--with-temp-assetstore', default=False, is_flag=True,
               help='Create a temporary assetstore for this server instance')
-def main(dev, mode, database, host, port, with_temp_assetstore):
+def main(dev: bool, mode: str, database: str, host: str, port: int, with_temp_assetstore: bool):
     if dev and mode:
         raise click.ClickException('Conflict between --dev and --mode')
     if dev:
@@ -37,8 +37,10 @@ def main(dev, mode, database, host, port, with_temp_assetstore):
     cherrypy.config['server.socket_port'] = port
 
     _attachFileLogHandlers()
-    server.setup(mode)
+    app_info = server.create_app(mode)
+    plugin._loadPlugins(app_info.__dict__)
 
+    cherrypy.tree = app_info.serverRoot
     cherrypy.engine.signal_handler.subscribe()
     cherrypy.engine.start()
 

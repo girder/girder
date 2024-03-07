@@ -1,11 +1,11 @@
 import cherrypy
+from dataclasses import dataclass
 import mako
 import mimetypes
 import os
 
-from girder import constants, logprint, __version__, logStdoutStderr, _setupCache
+from girder import __version__, _setupCache, constants, logprint, logStdoutStderr, plugin
 from girder.models.setting import Setting
-from girder import plugin
 from girder.settings import SettingKey
 from girder.utility import config
 from girder.constants import ServerMode
@@ -28,64 +28,6 @@ def getApiRoot():
 
 def getStaticPublicPath():
     return config.getConfig()['server']['static_public_path']
-
-
-def configureServer(mode=None, plugins=None, curConfig=None):
-    """
-    Function to setup the cherrypy server. It configures it, but does
-    not actually start it.
-
-    :param mode: The server mode to start in.
-    :type mode: string
-    :param plugins: If you wish to start the server with a custom set of
-        plugins, pass this as a list of plugins to load. Otherwise,
-        all installed plugins will be loaded.
-    :param curConfig: The configuration dictionary to update.
-    """
-    if curConfig is None:
-        curConfig = config.getConfig()
-
-    appconf = {
-        '/': {
-            'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
-            'request.show_tracebacks': mode == ServerMode.TESTING,
-            'request.methods_with_bodies': ('POST', 'PUT', 'PATCH'),
-            'response.headers.server': 'Girder %s' % __version__,
-            'error_page.default': _errorDefault
-        }
-    }
-    # Add MIME types for serving Fontello files from staticdir;
-    # these may be missing or incorrect in the OS
-    mimetypes.add_type('application/vnd.ms-fontobject', '.eot')
-    mimetypes.add_type('application/x-font-ttf', '.ttf')
-    mimetypes.add_type('application/font-woff', '.woff')
-
-    curConfig.update(appconf)
-    if mode:
-        curConfig['server']['mode'] = mode
-
-    logprint.info('Running in mode: ' + curConfig['server']['mode'])
-    cherrypy.config['engine.autoreload.on'] = mode == ServerMode.DEVELOPMENT
-
-    _setupCache()
-
-    # Don't import this until after the configs have been read; some module
-    # initialization code requires the configuration to be set up.
-    from girder.api.api_main import buildApi
-
-    api = buildApi()
-
-    routeTable = loadRouteTable()
-    info = {
-        'config': appconf,
-        'serverRoot': cherrypy.tree,
-        'serverRootPath': routeTable[constants.GIRDER_ROUTE_ID],
-        'apiRoot': api.v1,
-    }
-
-    plugin._loadPlugins(info, plugins)
-
-    return api, info['config']
 
 
 def loadRouteTable(reconcileRoutes=False):
@@ -126,36 +68,71 @@ def loadRouteTable(reconcileRoutes=False):
     return {name: route for (name, route) in routeTable.items() if route}
 
 
-def setup(mode=None, plugins=None, curConfig=None):
-    """
-    Configure and mount the Girder server and plugins under the
-    appropriate routes.
+@dataclass
+class AppInfo:
+    config: dict
+    serverRoot: cherrypy._cptree.Tree
+    apiRoot: cherrypy._cptree.Tree
 
-    See ROUTE_TABLE setting.
 
-    :param mode: The server mode to start in.
-    :type mode: string
-    :param plugins: List of plugins to enable.
-    :param curConfig: The config object to update.
-    """
+def create_app(mode: str) -> AppInfo:
     logStdoutStderr()
 
+    curConfig = config.getConfig()
+    appconf = {
+        '/': {
+            'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
+            'request.show_tracebacks': mode == ServerMode.TESTING,
+            'request.methods_with_bodies': ('POST', 'PUT', 'PATCH'),
+            'response.headers.server': 'Girder %s' % __version__,
+            'error_page.default': _errorDefault
+        }
+    }
+    # Add MIME types for serving Fontello files from staticdir;
+    # these may be missing or incorrect in the OS
+    mimetypes.add_type('application/vnd.ms-fontobject', '.eot')
+    mimetypes.add_type('application/x-font-ttf', '.ttf')
+    mimetypes.add_type('application/font-woff', '.woff')
+
+    curConfig.update(appconf)
+    curConfig['server']['mode'] = mode
+
+    logprint.info('Running in mode: ' + curConfig['server']['mode'])
+    cherrypy.config['engine.autoreload.on'] = mode == ServerMode.DEVELOPMENT
+
+    _setupCache()
+
+    # Don't import this until after the configs have been read; some module
+    # initialization code requires the configuration to be set up.
+    from girder.api.api_main import buildApi
+
+    apiRoot = buildApi()
+    tree = cherrypy._cptree.Tree()
+
+    routeTable = loadRouteTable()
+    info = AppInfo(
+        config=appconf,
+        serverRoot=tree,
+        apiRoot=apiRoot.v1,
+    )
+
     pluginWebroots = plugin.getPluginWebroots()
-    apiRoot, appconf = configureServer(mode, plugins, curConfig)
     routeTable = loadRouteTable(reconcileRoutes=True)
 
     # Mount static files
-    cherrypy.tree.mount(None, routeTable[constants.GIRDER_ROUTE_ID],
-                        {'/':
-                         {'tools.staticdir.on': True,
-                          'tools.staticdir.index': 'index.html',
-                          'tools.staticdir.dir': constants.STATIC_ROOT_DIR,
-                          'request.show_tracebacks': appconf['/']['request.show_tracebacks'],
-                          'response.headers.server': 'Girder %s' % __version__,
-                          'error_page.default': _errorDefault}})
+    tree.mount(None, routeTable[constants.GIRDER_ROUTE_ID], {
+        '/': {
+            'tools.staticdir.on': True,
+            'tools.staticdir.index': 'index.html',
+            'tools.staticdir.dir': constants.STATIC_ROOT_DIR,
+            'request.show_tracebacks': appconf['/']['request.show_tracebacks'],
+            'response.headers.server': f'Girder {__version__}',
+            'error_page.default': _errorDefault
+        }
+    })
 
     # Mount API
-    cherrypy.tree.mount(
+    tree.mount(
         apiRoot,
         f"{routeTable[constants.GIRDER_ROUTE_ID].rstrip('/')}/api",
         appconf
@@ -164,14 +141,14 @@ def setup(mode=None, plugins=None, curConfig=None):
     if routeTable[constants.GIRDER_ROUTE_ID] != '/':
         # Mount API (special case)
         # The API is always mounted at /api AND at api relative to the Girder root
-        cherrypy.tree.mount(apiRoot, '/api', appconf)
+        tree.mount(apiRoot, '/api', appconf)
 
     # Mount everything else in the routeTable
     for name, route in routeTable.items():
         if name != constants.GIRDER_ROUTE_ID and name in pluginWebroots:
-            cherrypy.tree.mount(pluginWebroots[name], route, appconf)
+            tree.mount(pluginWebroots[name], route, appconf)
 
-    return cherrypy.tree
+    return info
 
 
 class _StaticFileRoute:

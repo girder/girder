@@ -56,4 +56,5 @@ class OAuthPlugin(GirderPlugin):
             css=['/style.css'],
             js=['/girder-plugin-oauth.umd.cjs'],
             staticDir=Path(__file__).parent / 'web_client' / 'dist',
+            tree=info['serverRoot'],
         )

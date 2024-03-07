@@ -8,4 +8,3 @@ Administrator Documentation
    configuration
    mount
    sftp
-   deployment-alternatives

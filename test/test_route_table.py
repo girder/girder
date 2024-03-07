@@ -1,24 +1,9 @@
 import pytest
-from pytest_girder.assertions import assertStatusOk
-from pytest_girder.utils import getResponseBody
 
 from girder.constants import GIRDER_ROUTE_ID
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting
-from girder.plugin import GirderPlugin, registerPluginWebroot
 from girder.settings import SettingKey
-
-
-class SomeWebroot:
-    exposed = True
-
-    def GET(self):
-        return 'some webroot'
-
-
-class HasWebroot(GirderPlugin):
-    def load(self, info):
-        registerPluginWebroot(SomeWebroot(), 'has_webroot')
 
 
 @pytest.mark.parametrize('value,err', [
@@ -59,20 +44,3 @@ def routeTableReconfig(db):
         GIRDER_ROUTE_ID: '/',
         'has_webroot': '/has_webroot'
     })
-
-
-@pytest.mark.plugin('has_webroot', HasWebroot)
-def testRouteTableBehavior(routeTableReconfig, server, admin):
-    # /has_webroot should serve our plugin webroot
-    resp = server.request('/has_webroot', prefix='', isJson=False, appPrefix='/has_webroot')
-    assertStatusOk(resp)
-    assert 'some webroot' in getResponseBody(resp)
-
-    # girder should be at /
-    resp = server.request('/api/v1', prefix='', isJson=False)
-    assertStatusOk(resp)
-    assert '<title>Girder - REST API Documentation</title>' in getResponseBody(resp)
-
-    table = Setting().get(SettingKey.ROUTE_TABLE)
-    assert 'has_webroot' in table
-    assert table['has_webroot'] == '/has_webroot'
