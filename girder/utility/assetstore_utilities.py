@@ -1,13 +1,11 @@
 from ..constants import AssetstoreType
 from ..exceptions import NoAssetstoreAdapter
 from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
-from .gridfs_assetstore_adapter import GridFsAssetstoreAdapter
 from .s3_assetstore_adapter import S3AssetstoreAdapter
 
 
 _assetstoreTable = {
     AssetstoreType.FILESYSTEM: FilesystemAssetstoreAdapter,
-    AssetstoreType.GRIDFS: GridFsAssetstoreAdapter,
     AssetstoreType.S3: S3AssetstoreAdapter
 }
 
@@ -65,6 +63,5 @@ def fileIndexFields():
     """
     return list(set(
         FilesystemAssetstoreAdapter.fileIndexFields()
-        + GridFsAssetstoreAdapter.fileIndexFields()
         + S3AssetstoreAdapter.fileIndexFields()
     ))

@@ -31,41 +31,6 @@
   .panel.panel-default
     .panel-heading(data-toggle="collapse",
         data-parent="#g-assetstore-accordion",
-        data-target="#g-create-gridfs-tab")
-      .panel-title
-        a
-          i.icon-leaf
-          span Create new #[b GridFS] assetstore
-    #g-create-gridfs-tab.panel-collapse.collapse
-      .panel-body
-        p.
-          This type of assetstore uses
-          MongoDB's #[a(target="_blank", href="http://docs.mongodb.org/manual/core/gridfs/") GridFS]
-          storage engine. The files should be stored in a separate database
-          from the rest of the server's information to avoid locking issues.
-        form#g-new-gridfs-form(role="form")
-          .form-group
-            label.control-label(for="g-new-gridfs-name") Assetstore name
-            input#g-new-gridfs-name.input-sm.form-control(type="text", placeholder="Name")
-          .form-group
-            label.control-label(for="g-new-gridfs-db") Database name
-            input#g-new-gridfs-db.input-sm.form-control(
-              type="text", placeholder="Database name")
-          .form-group
-            label.control-label(for="g-new-gridfs-mongohost") Mongo Host URI
-            input#g-new-gridfs-mongohost.input-sm.form-control(
-                type="text", placeholder="Mongo host uri (defaults to the main Girder database)",
-                title="The URI is of the form mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]")
-          .form-group
-            label.control-label(for="g-new-gridfs-replicaset") Replica Set
-            input#g-new-gridfs-replicaset.input-sm.form-control(
-                type="text", placeholder="Replica set name (blank if not using a replica set)")
-          p#g-new-gridfs-error.g-validation-failed-message
-          input.g-new-assetstore-submit.btn.btn-sm.btn-primary(type="submit", value="Create")
-
-  .panel.panel-default
-    .panel-heading(data-toggle="collapse",
-        data-parent="#g-assetstore-accordion",
         data-target="#g-create-s3-tab")
       .panel-title
         a

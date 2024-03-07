@@ -59,9 +59,6 @@ class Assetstore(Resource):
         .param('type', 'Type of the assetstore.', dataType='integer')
         .param('root', 'Root path on disk (for filesystem type).', required=False)
         .param('perms', 'File creation permissions (for filesystem type).', required=False)
-        .param('db', 'Database name (for GridFS type)', required=False)
-        .param('mongohost', 'Mongo host URI (for GridFS type)', required=False)
-        .param('replicaset', 'Replica set name (for GridFS type)', required=False)
         .param('bucket', 'The S3 bucket to store data in (for S3 type).', required=False)
         .param('prefix', 'Optional path prefix within the bucket under which '
                'files will be stored (for S3 type).', required=False, default='')
@@ -85,17 +82,13 @@ class Assetstore(Resource):
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
-    def createAssetstore(self, name, type, root, perms, db, mongohost, replicaset, bucket,
+    def createAssetstore(self, name, type, root, perms, bucket,
                          prefix, accessKeyId, secret, service, readOnly, region, inferCredentials,
                          serverSideEncryption):
         if type == AssetstoreType.FILESYSTEM:
             self.requireParams({'root': root})
             return self._model.createFilesystemAssetstore(
                 name=name, root=root, perms=perms)
-        elif type == AssetstoreType.GRIDFS:
-            self.requireParams({'db': db})
-            return self._model.createGridFsAssetstore(
-                name=name, db=db, mongohost=mongohost, replicaset=replicaset)
         elif type == AssetstoreType.S3:
             self.requireParams({'bucket': bucket})
             return self._model.createS3Assetstore(
@@ -153,9 +146,6 @@ class Assetstore(Resource):
         .param('name', 'Unique name for the assetstore.', strip=True)
         .param('root', 'Root path on disk (for Filesystem type)', required=False)
         .param('perms', 'File creation permissions (for Filesystem type)', required=False)
-        .param('db', 'Database name (for GridFS type)', required=False)
-        .param('mongohost', 'Mongo host URI (for GridFS type)', required=False)
-        .param('replicaset', 'Replica set name (for GridFS type)', required=False)
         .param('bucket', 'The S3 bucket to store data in (for S3 type).', required=False)
         .param('prefix', 'Optional path prefix within the bucket under which '
                'files will be stored (for S3 type).', required=False, default='')
@@ -180,7 +170,7 @@ class Assetstore(Resource):
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
-    def updateAssetstore(self, assetstore, name, root, perms, db, mongohost, replicaset,
+    def updateAssetstore(self, assetstore, name, root, perms,
                          bucket, prefix, accessKeyId, secret, service, readOnly, region, current,
                          inferCredentials, serverSideEncryption, params):
         assetstore['name'] = name
@@ -191,13 +181,6 @@ class Assetstore(Resource):
             assetstore['root'] = root
             if perms is not None:
                 assetstore['perms'] = perms
-        elif assetstore['type'] == AssetstoreType.GRIDFS:
-            self.requireParams({'db': db})
-            assetstore['db'] = db
-            if mongohost is not None:
-                assetstore['mongohost'] = mongohost
-            if replicaset is not None:
-                assetstore['replicaset'] = replicaset
         elif assetstore['type'] == AssetstoreType.S3:
             self.requireParams({
                 'bucket': bucket
@@ -217,9 +200,8 @@ class Assetstore(Resource):
                 'assetstore': assetstore,
                 'params': dict(
                     name=name, current=current, readOnly=readOnly, root=root, perms=perms,
-                    db=db, mongohost=mongohost, replicaset=replicaset, bucket=bucket,
-                    prefix=prefix, accessKeyId=accessKeyId, secret=secret, service=service,
-                    region=region, **params
+                    bucket=bucket, prefix=prefix, accessKeyId=accessKeyId, secret=secret,
+                    service=service, region=region, **params
                 )
             })
             if event.defaultPrevented:

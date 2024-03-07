@@ -296,17 +296,9 @@ def _findFreePort():
 
 @contextlib.contextmanager
 def serverContext(plugins=None, bindPort=False):
-    # The event daemon cannot be restarted since it is a threading.Thread
-    # object, however all references to girder.events.daemon are a singular
-    # global daemon due to its side effect on import. We have to hack around
-    # this by creating a unique event daemon each time we startup the server
-    # and assigning it to the global.
-    import girder.events
     from girder.api import docs
     from girder.utility.server import setup as setupServer
     from girder.constants import ServerMode
-
-    girder.events.daemon = girder.events.AsyncEventsThread()
 
     if plugins is None:
         # By default, pass "[]" to "plugins", disabling any installed plugins
@@ -330,8 +322,6 @@ def serverContext(plugins=None, bindPort=False):
     try:
         yield server
     finally:
-        cherrypy.engine.unsubscribe('start', girder.events.daemon.start)
-        cherrypy.engine.unsubscribe('stop', girder.events.daemon.stop)
         cherrypy.engine.stop()
         cherrypy.engine.exit()
         cherrypy.tree.apps = {}

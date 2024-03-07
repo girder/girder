@@ -382,7 +382,6 @@ girder
             validate
         AssetstoreType
             FILESYSTEM
-            GRIDFS
             S3
         CoreEventHandler
             ACCESS_CONTROL_CLEANUP
@@ -444,14 +443,8 @@ girder
             addResponse
             preventDefault
             stopPropagation
-        ForegroundEventsDaemon
-            start
-            stop
-            trigger
         bind
         bound
-        daemon
-        setupDaemon
         trigger
         unbind
         unbindAll
@@ -483,7 +476,6 @@ girder
             Assetstore
                 addComputedInfo
                 createFilesystemAssetstore
-                createGridFsAssetstore
                 createS3Assetstore
                 getCurrent
                 importData
@@ -842,27 +834,12 @@ girder
                 uploadChunk
                 validateInfo
         genToken
-        gridfs_assetstore_adapter
-            CHUNK_SIZE
-            GridFsAssetstoreAdapter
-                cancelUpload
-                deleteFile
-                downloadFile
-                fileIndexFields
-                finalizeUpload
-                initUpload
-                requestOffset
-                uploadChunk
-                validateInfo
-            RECENT_CONNECTION_CACHE_MAX_SIZE
-            RECENT_CONNECTION_CACHE_TIME
         mail_utils
             addTemplateDirectory
             getEmailUrlPrefix
             renderTemplate
             sendMail
             sendMailIndividually
-            sendMailSync
             sendMailToAdmins
             validateEmailAddress
         mkdir

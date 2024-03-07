@@ -485,9 +485,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def deleteFile(self, file):
         """
-        We want to queue up files to be deleted asynchronously since it requires
-        an external HTTP request per file in order to delete them, and we don't
-        want to wait on that.
+        Delete files from S3.
 
         Files that were imported as pre-existing data will not actually be
         deleted from S3, only their references in Girder will be deleted.
@@ -499,11 +497,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             }
             matching = File().find(q, limit=2, fields=[])
             if matching.count(True) == 1:
-                events.daemon.trigger(info={
-                    'client': self.client,
-                    'bucket': self.assetstore['bucket'],
-                    'key': file['s3Key']
-                }, callback=_deleteFileImpl)
+                self.client.delete_object(Bucket=self.assetstore['bucket'], Key=file['s3Key'])
 
     def fileUpdated(self, file):
         """
@@ -657,7 +651,3 @@ def makeBotoConnectParams(accessKeyId, secret, service=None, region=None, inferC
         params['endpoint_url'] = service
 
     return params
-
-
-def _deleteFileImpl(event):
-    event.info['client'].delete_object(Bucket=event.info['bucket'], Key=event.info['key'])

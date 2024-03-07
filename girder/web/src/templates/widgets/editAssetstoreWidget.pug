@@ -17,18 +17,6 @@
             .form-group
               label.control-label(for="g-edit-fs-perms") File creation permissions (octal)
               input#g-edit-fs-perms.input-sm.form-control(type="text", placeholder="600")
-          if assetstore.get('type') === types.GRIDFS
-            .form-group
-              label.control-label(for="g-edit-gridfs-db") Database name
-              input#g-edit-gridfs-db.input-sm.form-control(type="text", placeholder="Database name")
-            .form-group
-              label.control-label(for="g-edit-gridfs-mongohost") Mongo Host URI
-              input#g-edit-gridfs-mongohost.input-sm.form-control(
-                  type="text", placeholder="Mongo host uri (defaults to the main Girder database)",
-                  title="The URI is of the form mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]")
-            .form-group
-              label.control-label(for="g-edit-gridfs-replicaset") Replica Set
-              input#g-edit-gridfs-replicaset.input-sm.form-control(type="text", placeholder="Replica set name (blank if not using a replica set)")
           if assetstore.get('type') === types.S3
             .form-group
               label.control-label(for="g-edit-s3-bucket") S3 bucket name

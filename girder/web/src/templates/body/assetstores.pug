@@ -31,21 +31,6 @@
             div
               b File creation permissions (octal):
               span.g-assetstore-perms  #{(assetstore.get('perms') || 0o600).toString(8)}
-          else if assetstore.get('type') === types.GRIDFS
-            div
-              b Type:
-              span.g-assetstore-type  GridFS
-            div
-              b Database name:
-              span.g-assetstore-root  #{assetstore.get('db')}
-            if assetstore.get('mongohost')
-              div
-                b Mongo Host URI:
-                span.g-assetstore-mongohost  #{assetstore.get('mongohost')}
-              if assetstore.get('replicaset')
-                div
-                  b Replica Set:
-                  span.g-assetstore-replicaset  #{assetstore.get('replicaset')}
           else if assetstore.get('type') === types.S3
             div
               b Type:

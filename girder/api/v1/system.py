@@ -354,7 +354,6 @@ class System(Resource):
         # * check that all groups contain valid users
         # * check that all resources validate
         # * for filesystem assetstores, find files that are not tracked.
-        # * for gridfs assetstores, find chunks that are not tracked.
         # * for s3 assetstores, find elements that are not tracked.
 
     @access.admin

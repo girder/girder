@@ -15,7 +15,6 @@ var AccessType = {
 
 var AssetstoreType = {
     FILESYSTEM: 0,
-    GRIDFS: 1,
     S3: 2
 };
 
