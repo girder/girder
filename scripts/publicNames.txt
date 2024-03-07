@@ -76,13 +76,6 @@ clients
                     sendRestRequest
                 main
 girder
-    LogFormatter
-        format
-        formatException
-    LogLevelFilter
-        filter
-    StreamToLogger
-        write
     api
         access
             admin
@@ -301,14 +294,10 @@ girder
                     getAccessFlags
                     getCollectionCreationPolicyAccess
                     getConfigurationOption
-                    getLog
-                    getLogLevel
-                    getPartialUploads
                     getPlugins
                     getPublicSettings
                     getSetting
                     getVersion
-                    setLogLevel
                     setSetting
                     systemConsistencyCheck
                     systemStatus
@@ -391,9 +380,6 @@ girder
             USER_SELF_ACCESS
             WEBROOT_SETTING_CHANGE
         GIRDER_ROUTE_ID
-        LOG_BACKUP_COUNT
-        LOG_ROOT
-        MAX_LOG_SIZE
         PACKAGE_DIR
         ROOT_DIR
         STATIC_ROOT_DIR
@@ -405,16 +391,6 @@ girder
             ASCENDING
             DESCENDING
         TEXT_SCORE_SORT_MAX
-        TerminalColor
-            ENDC
-            ERROR
-            INFO
-            SUCCESS
-            WARNING
-            error
-            info
-            success
-            warning
         TokenScope
             ANONYMOUS_SESSION
             ASSETSTORES_READ
@@ -459,10 +435,7 @@ girder
         ResourcePathNotFound
         RestException
         ValidationException
-    getLogPaths
-    logStdoutStderr
     logger
-    logprint
     models
         api_key
             ApiKey

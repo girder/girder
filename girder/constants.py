@@ -8,9 +8,6 @@ import girder
 # TODO turn all these into pathlib.Paths
 PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.dirname(PACKAGE_DIR)
-LOG_ROOT = os.path.join(os.path.expanduser('~'), '.girder', 'logs')
-MAX_LOG_SIZE = 1024 * 1024 * 10  # Size in bytes before logs are rotated.
-LOG_BACKUP_COUNT = 5
 ACCESS_FLAGS = {}
 
 # Identifier for Girder's entry in the route table
@@ -56,38 +53,6 @@ class ServerMode:
     PRODUCTION = 'production'
     DEVELOPMENT = 'development'
     TESTING = 'testing'
-
-
-class TerminalColor:
-    """
-    Provides a set of values that can be used to color text in the terminal.
-    """
-
-    ERROR = '\033[1;91m'
-    SUCCESS = '\033[32m'
-    WARNING = '\033[1;33m'
-    INFO = '\033[35m'
-    ENDC = '\033[0m'
-
-    @staticmethod
-    def _color(tag, text):
-        return ''.join([tag, text, TerminalColor.ENDC])
-
-    @staticmethod
-    def error(text):
-        return TerminalColor._color(TerminalColor.ERROR, text)
-
-    @staticmethod
-    def success(text):
-        return TerminalColor._color(TerminalColor.SUCCESS, text)
-
-    @staticmethod
-    def warning(text):
-        return TerminalColor._color(TerminalColor.WARNING, text)
-
-    @staticmethod
-    def info(text):
-        return TerminalColor._color(TerminalColor.INFO, text)
 
 
 class AssetstoreType:

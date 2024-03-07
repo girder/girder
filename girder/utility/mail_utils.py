@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import smtplib
@@ -5,9 +6,10 @@ import smtplib
 from email.mime.text import MIMEText
 from mako.lookup import TemplateLookup
 from girder import events
-from girder import logger
 from girder.constants import PACKAGE_DIR
 from girder.settings import SettingKey
+
+logger = logging.getLogger(__name__)
 
 
 def validateEmailAddress(address):

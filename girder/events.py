@@ -13,9 +13,11 @@ And events should be fired by calling:
 """
 
 import contextlib
-import girder
+import logging
 
 from collections import OrderedDict
+
+logger = logging.getLogger(__name__)
 
 
 class Event:
@@ -95,13 +97,13 @@ def bind(eventName, handlerName, handler):
     :type handler: function
     """
     if eventName in _deprecated:
-        girder.logger.warning('event "%s" is deprecated; %s' % (eventName, _deprecated[eventName]))
+        logger.warning('event "%s" is deprecated; %s', eventName, _deprecated[eventName])
 
     if eventName not in _mapping:
         _mapping[eventName] = OrderedDict()
 
     if handlerName in _mapping[eventName]:
-        girder.logger.warning('Event binding already exists: %s -> %s' % (eventName, handlerName))
+        logger.warning('Event binding already exists: %s -> %s', eventName, handlerName)
     _mapping[eventName][handlerName] = handler
 
 

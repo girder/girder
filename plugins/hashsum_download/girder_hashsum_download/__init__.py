@@ -1,7 +1,6 @@
 import hashlib
 from pathlib import Path
 
-import girder
 from girder import events
 from girder.api import access
 from girder.api.describe import autoDescribeRoute, Description
@@ -23,13 +22,6 @@ _CHUNK_LEN = 65536
 
 
 class HashedFile(File):
-    @property
-    def supportedAlgorithms(self):
-        girder.logger.warning(
-            'HashedFile.supportedAlgorithms is deprecated, use the module-level '
-            'SUPPORTED_ALGORITHMS instead.')
-        return SUPPORTED_ALGORITHMS
-
     def __init__(self, node):
         super().__init__()
 

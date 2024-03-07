@@ -298,20 +298,14 @@ convenience function for that:
 Logging a Message
 ^^^^^^^^^^^^^^^^^
 
-Girder application servers maintain an error log and an information log and expose
-a utility module for sending events to them. Any 500 error that occurs during
-execution of a request will automatically be logged in the error log with a
-full stack trace. Also, any 403 error (meaning a user who is logged in but
-requests access to a resource that they don't have permission to access) will also be logged
-automatically. All log messages automatically include a timestamp, so there
-is no need to add your own.
+Girder uses standard Pythonic and 12-factor app logging practices, e.g.::
 
-If you want to log your own custom error or info messages outside of those default
-behaviors, use the following examples:
 
 .. code-block:: python
 
-    from girder import logger
+    import logging
+
+    logger = logging.getLogger(__name__)
 
     try:
         ...
@@ -320,8 +314,7 @@ behaviors, use the following examples:
         # and remote IP address. Should only be called from within an exception handler.
         logger.exception('A descriptive message')
 
-    # Will log a message to the info log.
-    logger.info('Test')
+    logger.info('This is an info message')
 
 Adding Automated Tests with CTest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,16 +1,18 @@
 import copy
 import datetime
 import json
+import logging
 import os
 
 from bson.objectid import ObjectId
 from .model_base import Model
 from girder import events
-from girder import logger
 from girder.constants import AccessType
 from girder.exceptions import ValidationException, GirderException
 from girder.utility import acl_mixin
 from girder.utility.model_importer import ModelImporter
+
+logger = logging.getLogger(__name__)
 
 
 class Item(acl_mixin.AccessControlMixin, Model):
@@ -182,8 +184,10 @@ class Item(acl_mixin.AccessControlMixin, Model):
             size += file.get('size', 0)
         delta = size - item.get('size', 0)
         if delta:
-            logger.info('Item %s was wrong size: was %d, is %d' % (
-                item['_id'], item['size'], size))
+            logger.info(
+                'Item %s was wrong size: was %d, is %d',
+                item['_id'], item['size'], size
+            )
             item['size'] = size
             self.update({'_id': item['_id']}, update={'$set': {'size': size}})
             self.propagateSizeChange(item, delta)

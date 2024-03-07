@@ -1,14 +1,16 @@
 import json
+import logging
 import os
 
 import pymongo
 
 from .model_base import Model
-from girder import logprint
 from girder.exceptions import ValidationException
 from girder.settings import SettingDefault
 from girder.utility import setting_utilities
 from girder.utility._cache import cache
+
+logger = logging.getLogger(__name__)
 
 
 class Setting(Model):
@@ -54,9 +56,7 @@ class Setting(Model):
                            'count': {'$sum': 1}}}, {
                 '$match': {'count': {'$gt': 1}}}])
             for duplicate in duplicates:
-                logprint.warning(
-                    'Removing duplicate setting with key %s.' % (
-                        duplicate['key']))
+                logger.warning('Removing duplicate setting with key %s.', duplicate['key'])
                 # Remove all of the duplicates.  Keep the item with the lowest
                 # id in Mongo.
                 for duplicateId in sorted(duplicate['ids'])[1:]:

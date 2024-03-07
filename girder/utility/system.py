@@ -6,7 +6,6 @@ import threading
 import time
 
 import girder
-from girder import logger
 from girder.models import getDbConnection
 
 
@@ -40,18 +39,8 @@ def _computeSlowStatus(process, status, db):
         status['girderPath'] = os.path.abspath(girder.__file__)
         status['girderDiskUsage'] = _objectToDict(
             psutil.disk_usage(status['girderPath']))
-    # Report where our logs are and how much space is available for them
+    # the "logs" field is vestigial and no longer used as of v4
     status['logs'] = []
-    for handler in logger.handlers:
-        try:
-            logInfo = {'path': handler.baseFilename}
-            logInfo['diskUsage'] = _objectToDict(
-                psutil.disk_usage(logInfo['path']))
-            status['logs'].append(logInfo)
-        except Exception:
-            # If we can't read information about the log, don't throw an
-            # exception
-            pass
     status['mongoDbStats'] = db.command('dbStats')
     try:
         # This can fail when mongo is on a different system.

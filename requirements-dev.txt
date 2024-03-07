@@ -25,7 +25,6 @@
 # External dependencies
 configparser
 coverage
-girder-worker
 httmock
 mongomock
 moto[server]<4.2.12
