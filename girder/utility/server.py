@@ -77,7 +77,7 @@ def create_app(mode: str) -> dict:
         '/': {
             'tools.staticdir.on': True,
             'tools.staticdir.index': 'index.html',
-            'tools.staticdir.dir': constants.STATIC_ROOT_DIR,
+            'tools.staticdir.dir': os.getenv('GIRDER_STATIC_ROOT_DIR', constants.STATIC_ROOT_DIR),
             'request.show_tracebacks': appconf['/']['request.show_tracebacks'],
             'response.headers.server': f'Girder {__version__}',
             'error_page.default': _errorDefault
