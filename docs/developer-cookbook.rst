@@ -531,7 +531,7 @@ but the command to build the SPA with a different base looks as follows:
 
 .. code-block:: bash
 
-    cd <path_to_girder_source_tree>/web
+    cd <path_to_girder_source_tree>/girder/web
     npx vite build --base=/new_root/
 
 That assumes that you've moved the SPA (``info['serverRoot'].apps['']``) to be served out of

@@ -8,6 +8,234 @@ between major versions of Girder. Major version bumps contain breaking changes
 to the Girder core library, which are enumerated in this guide along with
 instructions on how to update your plugin code to work in the newer version.
 
+3.x |ra| 4.x
+------------
+
+Major version 4 contains significant breaking changes on many fronts. The central theme of these
+changes is to bring Girder into compliance with the principles of the
+`12-factor app <https://12factor.net/>`_ to enhance its portability to various managed runtimes,
+and in turn its ease of scalability. The following are the breaking (or otherwise major) changes,
+ranked roughly in order of how disruptive they are:
+
+Front-end build system changes
+++++++++++++++++++++++++++++++
+
+The largest change to Girder in version 4 is a complete overhaul of the front-end build system. Most
+notably for users and plugin developers, the ``girder build`` command no longer exists, and Girder
+itself will no longer manage the building of its plugins' web client bundles. Rather, each plugin is
+responsible for building its own web client plugin code and exposing it via the following mechanism:
+
+.. code-block:: python
+
+    from pathlib import Path
+
+    from girder.plugin import GirderPlugin, registerPluginStaticContent
+
+    class Foo(GirderPlugin):
+        DISPLAY_NAME = 'Foo'
+
+        def load(self, info):
+            registerPluginStaticContent(
+                plugin='foo',
+                css=['/style.css'],
+                js=['/girder-plugin-foo.umd.cjs'],
+                staticDir=Path(__file__).parent / 'web_client' / 'dist',
+                tree=info['serverRoot'],
+            )
+
+Whatever files are passed into the ``js`` and ``css`` lists will be included in the core web client
+after it loads. The ``staticDir`` argument should point to the directory containing the built web
+client code, i.e. the filenames passed into the ``js`` and ``css`` lists are relative to this local
+path. The ``tree`` argument should be the ``serverRoot`` object passed into the ``load`` method.
+
+Changes within front-end plugin code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There is a mechanical conversion that will need to be performed on all front-end plugin code when
+moving to Girder 4: rather than static ``import`` of symbols from ``@girder/core``
+in your JavaScript/TypeScript code, you will instead rely on the presence of the ``girder`` symbol
+in the global scope (``window.girder``) at runtime. Each import from ``@girder/core`` should be
+changed as in the following examples:
+
+Before:
+
+.. code-block:: javascript
+
+    import router from '@girder/core/router';
+    import events from '@girder/core/events';
+    import { exposePluginConfig } from '@girder/core/utilities/PluginUtils';
+
+    import FrontPageView from '@girder/core/views/body/FrontPageView';
+    import { renderMarkdown } from '@girder/core/misc';
+    import { restRequest, getApiRoot } from '@girder/core/rest';
+    import { wrap } from '@girder/core/utilities/PluginUtils';
+
+After:
+
+.. code-block:: javascript
+
+    const router = girder.router;
+    const events = girder.events;
+    const { exposePluginConfig } = girder.utilities.PluginUtils;
+
+    const FrontPageView = girder.views.body.FrontPageView;
+    const { renderMarkdown } = girder.misc;
+    const { restRequest, getApiRoot } = girder.rest;
+    const { wrap } = girder.utilities.PluginUtils;
+
+
+Static tooling
+^^^^^^^^^^^^^^
+
+If you are using vite as your plugin build tool, you can add the following to your ``vite-env.d.ts``
+file to make TypeScript aware of the ``girder`` symbol, which enables things like IDE
+autocompletion and jump-to-definition for symbols under the ``girder`` namespace.
+
+.. code-block:: typescript
+
+    /// <reference types="vite/client" />
+    import { type Girder } from '@girder/core';
+
+    declare global {
+      const girder: Girder;
+    }
+
+
+Plugins are now also responsible for testing their own web client code. If your plugin was relying
+on any of the old testing infrastructure, those tests will no longer work. We may publish our
+Playwright-based front-end testing utilities as a separate package in the future, but as of 4.0,
+it is not exposed to downstreams.
+
+Removal of the events daemon
+++++++++++++++++++++++++++++
+
+The ``girder.events.daemon`` symbol has been removed, as the use of a background thread violated
+the WSGI contract and tightly coupled Girder to a multi-threaded server model. The main impact of
+this change is that any downstream users listening to the core ``"data.process"`` event,
+which used to be run on the background thread, should now convert their event handlers to be
+celery tasks or otherwise asynchronous methods if there's any risk of the handler taking more
+than 1-2 seconds to complete.
+
+Dynamic route configuration system removed
+++++++++++++++++++++++++++++++++++++++++++
+
+The server-side route table infrastructure that allowed dynamically updating URL paths from which
+webroots would be served has been removed. URL routing should be known at startup time, and not
+changed dynamically. This means that the ``girder.plugin.registerPluginWebroot`` function has been
+removed.
+
+The main challenge this presents is specifically for use cases where downstreams need to serve
+the core Girder front-end application from a base path other than the server root (``/``), since
+with the 4.0 front-end build changes, the front-end application is bundled in and built with a
+static base of ``/``. For this specific use case, one strategy that's supported is to build the
+core front-end application with a different base path, and then configure your server to serve
+the modified front-end client from the desired path on the filesystem.
+
+Example
+^^^^^^^
+
+In your plugin initialization function, add the following:
+
+.. code-block:: python
+
+    core_girder = info['serverRoot'].apps['']
+    core_girder.script_name = '/new_root'
+    info['serverRoot'].mount(core_girder, '/new_root', core_girder.config)
+    del info['serverRoot'].apps['']
+    # Mount your own app under `info['serverRoot']` if you want
+
+Then, build the core front-end application with the desired base path:
+
+.. code-block:: bash
+
+    git clone git@github.com:girder/girder.git
+    cd girder/girder/web
+    npx vite build --base=/new_root/
+    export GIRDER_STATIC_ROOT_DIR=$(pwd)/dist
+
+With that variable set in your environment, the Girder core web client will now be served under
+``/new_root/`` rather than ``/``.
+
+Logging changes
++++++++++++++++
+
+Girder's logging system was overhauled to adhere to
+`12-factor logging principles <https://12factor.net/logs>`_. Use standard idiomatic Python
+logging everywhere now, e.g.:
+
+.. code-block:: python
+
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info('My message')
+
+The ``girder.logprint`` function was removed, and Girder will no longer write log messages to local
+files on the server's filesystem. Additionally, the API endpoints for fetching logs and log info
+were removed. Instead, logs are now written to standard output and it is up to the deployment
+environment to direct them as needed. There are a huge variety of tools and strategies for log
+management, so precise recommendations on log handlers are out of scope for Girder itself.
+
+Config files removed
+++++++++++++++++++++
+
+The ``girder.local.cfg`` and ``girder.dist.cfg`` files are no longer used. Instead, all settings
+should be passed in through the environment, or as command-line overrides in the case of using
+``girder serve`` in development. Everything that was able to be controlled by the config file can
+now be controlled by environment variables; see the
+:ref:`configuration documentation <configuration_via_env>` for specifics on how to set these.
+
+A notable change here is the configuration of the caching modules, which was previously done
+via the config file alone. Now, the caching modules are configured via environment variables. e.g.
+
+.. code-block:: bash
+
+    GIRDER_SETTING_CORE_CACHE_ENABLED=true
+    GIRDER_SETTING_CORE_CACHE_CONFIG='{"cache.global.backend": "dogpile.cache.redis", "cache.global.expiration_time": 7200}'
+
+Config keys prefixed by ``cache.global.`` are used to configure the global dogpile cache, and
+keys prefixed by ``cache.request.`` are used to configure the request cache.
+
+WSGI app for production deployments
++++++++++++++++++++++++++++++++++++
+
+Through load testing (as well as production usage), we discovered that cherrypy's built-in server
+is not suitable for production use. It is not as performant as a dedicated WSGI server, and some
+fraction of requests fail ungracefully under moderate load. As such, the ``girder serve`` command
+is now only suitable for development and testing.
+
+For production deployments, Girder now exposes a well-behaved WSGI app at ``girder.wsgi:app``.
+Use a WSGI server such as gunicorn or uwsgi to serve in production. See
+the :ref:`deployment documentation <deployment>` for an example gunicorn invocation.
+
+Removal of the GridFS assetstore type
++++++++++++++++++++++++++++++++++++++
+
+When we originally created the GridFS assetstore, it seemed like a reasonable blob storage solution.
+However, in 2024, it is no longer a recommended solution for Girder. We have removed the GridFS
+assetstore adapter type from the core codebase. If you are using GridFS, we recommend migrating your
+data to a Filesystem or S3 assetstore type and deleting your GridFS assetstore prior to upgrading
+to major version 4. There are many offerings in the cloud that support either the S3 or filesystem
+assetstore adapter in a scalable way.
+
+Python version support
+++++++++++++++++++++++
+
+Girder will now only maintain support for CPython versions that have not reached their end-of-life.
+Check `this page <https://devguide.python.org/versions/>`_ to see the current status of upstream
+Python version support. Note that this means we will feel free to use newer language features in
+core as soon as they are available in the oldest supported version.
+
+Switch to HttpOnly cookies in core web client
++++++++++++++++++++++++++++++++++++++++++++++
+
+The ``auth.cookie`` symbol has been removed from the core web client. Cookies sent by the server
+will now be set with the ``HttpOnly`` flag. This means that the cookies will no longer be
+accessible to JavaScript, which is a security best practice. If you were relying on the
+``auth.cookie`` symbol in your plugin, you should now use the ``auth.token`` symbol instead.
+
+Note that cookies will still be sent and will still work for read-only endpoints that have
+set the ``cookie=True`` property on their ``@access`` decorator.
+
 2.x |ra| 3.x
 ------------
 
