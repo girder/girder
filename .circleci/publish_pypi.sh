@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+pushd girder/web
+npm install
+npm run build
+popd
+
 python .circleci/build_plugins.py plugins/
 
 # Build and publish sdist's for all Python packages in this repo
