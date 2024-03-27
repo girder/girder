@@ -42,7 +42,7 @@ COPY . /girder/
 
 RUN cd /girder/girder/web && npm i && npm run build && cd /girder
 
-RUN pip install /girder
+RUN pip install -e /girder
 
 EXPOSE 8080
 
