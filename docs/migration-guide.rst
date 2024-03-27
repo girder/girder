@@ -8,19 +8,23 @@ between major versions of Girder. Major version bumps contain breaking changes
 to the Girder core library, which are enumerated in this guide along with
 instructions on how to update your plugin code to work in the newer version.
 
-3.x |ra| 4.x
+3.x |ra| 5.x
 ------------
 
-Major version 4 contains significant breaking changes on many fronts. The central theme of these
+Major version 5 contains significant breaking changes on many fronts. The central theme of these
 changes is to bring Girder into compliance with the principles of the
 `12-factor app <https://12factor.net/>`_ to enhance its portability to various managed runtimes,
-and in turn its ease of scalability. The following are the breaking (or otherwise major) changes,
-ranked roughly in order of how disruptive they are:
+and in turn its ease of scalability. We chose to skip major version 4 due to a name collision with
+Kitware's Django-based stack, which we had originally called Girder 4, but now refer to as Resonant
+to distinguish it from this software.
+
+The following are the breaking (or otherwise major) changes, ranked roughly in order of how
+disruptive they are to downstream plugins:
 
 Front-end build system changes
 ++++++++++++++++++++++++++++++
 
-The largest change to Girder in version 4 is a complete overhaul of the front-end build system. Most
+The largest change to Girder in version 5 is a complete overhaul of the front-end build system. Most
 notably for users and plugin developers, the ``girder build`` command no longer exists, and Girder
 itself will no longer manage the building of its plugins' web client bundles. Rather, each plugin is
 responsible for building its own web client plugin code and exposing it via the following mechanism:
@@ -52,7 +56,7 @@ Changes within front-end plugin code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 There is a mechanical conversion that will need to be performed on all front-end plugin code when
-moving to Girder 4: rather than static ``import`` of symbols from ``@girder/core``
+moving to Girder 5: rather than static ``import`` of symbols from ``@girder/core``
 in your JavaScript/TypeScript code, you will instead rely on the presence of the ``girder`` symbol
 in the global scope (``window.girder``) at runtime. Each import from ``@girder/core`` should be
 changed as in the following examples:
@@ -103,7 +107,7 @@ autocompletion and jump-to-definition for symbols under the ``girder`` namespace
 
 Plugins are now also responsible for testing their own web client code. If your plugin was relying
 on any of the old testing infrastructure, those tests will no longer work. We may publish our
-Playwright-based front-end testing utilities as a separate package in the future, but as of 4.0,
+Playwright-based front-end testing utilities as a separate package in the future, but as of 5.0,
 it is not exposed to downstreams.
 
 Removal of the events daemon
@@ -126,7 +130,7 @@ removed.
 
 The main challenge this presents is specifically for use cases where downstreams need to serve
 the core Girder front-end application from a base path other than the server root (``/``), since
-with the 4.0 front-end build changes, the front-end application is bundled in and built with a
+with the 5.0 front-end build changes, the front-end application is bundled in and built with a
 static base of ``/``. For this specific use case, one strategy that's supported is to build the
 core front-end application with a different base path, and then configure your server to serve
 the modified front-end client from the desired path on the filesystem.
@@ -214,7 +218,7 @@ When we originally created the GridFS assetstore, it seemed like a reasonable bl
 However, in 2024, it is no longer a recommended solution for Girder. We have removed the GridFS
 assetstore adapter type from the core codebase. If you are using GridFS, we recommend migrating your
 data to a Filesystem or S3 assetstore type and deleting your GridFS assetstore prior to upgrading
-to major version 4. There are many offerings in the cloud that support either the S3 or filesystem
+to major version 5. There are many offerings in the cloud that support either the S3 or filesystem
 assetstore adapter in a scalable way.
 
 Python version support
