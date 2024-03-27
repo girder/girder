@@ -42,10 +42,7 @@ COPY . /girder/
 
 RUN cd /girder/girder/web && npm i && npm run build && cd /girder
 
-# Build girder wheel file, and install it
-RUN python3 setup.py bdist_wheel \
- && cd dist && python3 -m pip install --no-cache-dir girder && cd .. \
- && rm -rf build dist
+RUN pip install /girder
 
 EXPOSE 8080
 

@@ -1,18 +1,24 @@
----
-mongodb:
-  image: mongo:4.4
-  ports:
-    - "27017"
-  volumes:
-    - "/data/db"
+version: '3.8'
 
-girder:
-  build: .
-  dockerfile: Dockerfile
-  ports:
-    - "8080:8080"
-  links:
-    - "mongodb:mongodb"
-  command: --host 0.0.0.0 --database mongodb://mongodb:27017/girder
-  volumes:
-    - ".:/girder"
+services:
+  mongodb:
+    image: mongo:4.4
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  girder:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    command: --host 0.0.0.0 --database mongodb://mongodb:27017/girder
+    volumes:
+      - ".:/girder"
+      - assetstore:/assetstore
+
+volumes:
+  mongodb_data:
+  assetstore:
