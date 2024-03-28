@@ -24,23 +24,13 @@ RUN apt-get update && apt-get install -qy \
 RUN curl -LJ https://github.com/krallin/tini/releases/download/v0.19.0/tini -o /sbin/tini && \
     chmod +x /sbin/tini
 
-# Use nvm to install node
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
-
-# Default node version
-RUN . ~/.bashrc && \
-    nvm install 16 && \
-    nvm alias default 16 && \
-    nvm use default && \
-    ln -s $(dirname `which npm`) /usr/local/node
-
-ENV PATH="/usr/local/node:$PATH"
+RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -qy nodejs
 
 RUN mkdir /girder
-WORKDIR /girder
 COPY . /girder/
 
-RUN cd /girder/girder/web && npm i && npm run build && cd /girder
+RUN cd /girder/girder/web && npm i && npm run build
 
 RUN pip install -e /girder
 
