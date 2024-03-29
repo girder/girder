@@ -397,7 +397,9 @@ workflows:
             tags:
               only: /^v[0-9]+.*/
             branches:
-              only: master
+              only:
+                - master
+                - v4-integration
       - publish-release:
           requires:
             - server-lint-test
