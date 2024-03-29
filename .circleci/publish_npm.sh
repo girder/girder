@@ -6,12 +6,9 @@ set -e
 readonly GIT_VERSION=$(git describe --tags)
 readonly PUBLISHED_NPM_PACKAGES=(
   # Published Fontello is used by all builds, and is critical to publish
-  girder/web_client/fontello
-  # These lint configs are used by downstream plugins
-  girder/web_client/eslint-config
-  girder/web_client/pug-lint-config
+  girder/web/fontello
   # The raw JS source is used by some downstream 'external builds'
-  girder/web_client/src
+  girder/web/src
   # These plugins were published to support downstream external builds, and should be kept updated
   plugins/jobs/girder_jobs/web_client
   plugins/oauth/girder_oauth/web_client
