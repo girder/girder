@@ -231,4 +231,5 @@ var AssetstoresView = View.extend({
     }
 });
 
+export { assetstoreImportViewMap };
 export default AssetstoresView;
