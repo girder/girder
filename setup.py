@@ -1,6 +1,6 @@
 import os
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 
 def prerelease_local_scheme(version):
@@ -73,9 +73,7 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     python_requires='>=3.8',
-    packages=find_packages(
-        exclude=('girder.test', 'tests.*', 'tests', '*.plugin_tests.*', '*.plugin_tests')
-    ),
+    packages=['girder'],
     include_package_data=True,
     install_requires=installReqs,
     extras_require=extrasReqs,

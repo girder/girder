@@ -2,6 +2,7 @@ include LICENSE
 include setup.py
 include README.rst
 graft girder
+prune plugins
 prune test
 prune tests
 prune girder/web/fontello

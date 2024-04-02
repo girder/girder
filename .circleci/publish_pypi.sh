@@ -8,7 +8,7 @@ popd
 
 python .circleci/build_plugins.py plugins/
 
-# Build and publish sdist's for all Python packages in this repo
+# Build and publish all Python packages in this repo
 readonly PUBLISHED_PYTHON_PACKAGES=(
   .
   plugins/*
@@ -18,7 +18,7 @@ readonly PUBLISHED_PYTHON_PACKAGES=(
 for directory in "${PUBLISHED_PYTHON_PACKAGES[@]}"; do
     pushd "$directory"
     rm -fr dist
-    python setup.py sdist
+    python -m build
+    twine upload --skip-existing dist/*
     popd
-    twine upload --skip-existing "$directory/dist/*"
 done
