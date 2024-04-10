@@ -5,16 +5,16 @@ import { restRequest } from '@girder/core/rest';
 
 import './routes';
 
-function initGoogleAnalytics(google_analytics_id) {
+function initGoogleAnalytics(googleAnalyticsId) {
     $.getScript({
-        url: `https://www.googletagmanager.com/gtag/js?id=${google_analytics_id}`,
+        url: `https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`,
         success: function () {
             window.dataLayer = window.dataLayer || [];
             function gtag() {
-                dataLayer.push(arguments);
+                dataLayer.push(arguments); // eslint-disable-line no-undef
             }
             gtag('js', new Date());
-            gtag('config', google_analytics_id);
+            gtag('config', googleAnalyticsId);
             window.gtag = gtag;
         }
     });
@@ -27,8 +27,8 @@ events.on('g:appload.after', function () {
             method: 'GET',
             url: 'google_analytics/id'
         }).done((resp) => {
-            if (resp.google_analytics_id) {
-                initGoogleAnalytics(resp.google_analytics_id);
+            if (resp.googleAnalyticsId) {
+                initGoogleAnalytics(resp.googleAnalyticsId);
             }
         });
     }
