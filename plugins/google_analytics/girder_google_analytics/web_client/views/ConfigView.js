@@ -56,6 +56,8 @@ var ConfigView = View.extend({
             },
             error: null
         }).done(() => {
+            location.reload();
+
             events.trigger('g:alert', {
                 icon: 'ok',
                 text: 'Settings saved.',
