@@ -56,7 +56,7 @@ var ConfigView = View.extend({
             },
             error: null
         }).done(() => {
-            location.reload();
+            events.trigger('g:google_analytics.save');
 
             events.trigger('g:alert', {
                 icon: 'ok',
