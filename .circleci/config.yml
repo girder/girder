@@ -138,7 +138,7 @@ jobs:
       - run:
           name: Install and build @girder/core
           command: |
-            npm install
+            npm ci
             npm run build
           working_directory: girder/girder/web
       - run:
@@ -220,7 +220,7 @@ jobs:
       - run:
           name: Install and build @girder/core
           command: |
-            npm install
+            npm ci
             npm run build
           working_directory: girder/girder/web
       - run:

@@ -10,7 +10,7 @@ for plugin_dir in plugins_dir.iterdir():
 
         if plugin_web_client.exists() and (plugin_web_client / 'package-lock.json').exists():
             subprocess.run(
-                'npm install && npm run build',
+                'npm ci && npm run build',
                 check=True,
                 shell=True,
                 stdout=sys.stdout,
