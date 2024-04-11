@@ -21,3 +21,6 @@ __pycache__
 .vscode/
 .*.swo
 .*.swp
+
+# Generated during CI
+/py-env-checksum

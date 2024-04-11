@@ -2,7 +2,7 @@
 set -e
 
 pushd girder/web
-npm install
+npm ci
 npm run build
 popd
 

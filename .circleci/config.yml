@@ -24,9 +24,9 @@ commands:
   install-girder:
     description: "Install Girder in a virtualenv and configure CTest"
     steps:
-      - run:
-          name: Generate python environment checksum file
-          command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
+      #- run:
+      #    name: Generate python environment checksum file
+      #    command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
       #- restore_cache:
       #    key: venv-py3.8-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - run:
@@ -138,7 +138,7 @@ jobs:
       - run:
           name: Install and build @girder/core
           command: |
-            npm install
+            npm ci
             npm run build
           working_directory: girder/girder/web
       - run:
@@ -220,7 +220,7 @@ jobs:
       - run:
           name: Install and build @girder/core
           command: |
-            npm install
+            npm ci
             npm run build
           working_directory: girder/girder/web
       - run:
