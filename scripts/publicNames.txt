@@ -805,6 +805,7 @@ girder
                 hasAccess
                 hasAccessFlags
                 load
+                parentModel
                 permissionClauses
                 prefixSearch
                 requireAccess
