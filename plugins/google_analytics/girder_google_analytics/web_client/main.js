@@ -30,10 +30,7 @@ function initGoogleAnalytics() {
 }
 
 events.on('g:appload.after', function () {
-    var dnt = navigator.doNotTrack || window.doNotTrack;
-    if (dnt !== '1' && dnt !== 'yes') {
-        initGoogleAnalytics();
-    }
+    initGoogleAnalytics();
 });
 
 events.on('g:google_analytics.save', function () {
