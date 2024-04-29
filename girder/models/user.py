@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 import re
 from passlib.context import CryptContext
@@ -12,6 +13,12 @@ from girder.exceptions import AccessException, ValidationException
 from girder.settings import SettingKey
 from girder.utility import config, mail_utils
 from girder.utility._cache import rateLimitBuffer
+
+
+# If logging is at DEBUG level, passlib with fail because of
+#  https://github.com/pyca/bcrypt/issues/684
+# Asking passlib to only log errors resolves this.
+logging.getLogger('passlib').setLevel(logging.ERROR)
 
 
 class User(AccessControlledModel):
