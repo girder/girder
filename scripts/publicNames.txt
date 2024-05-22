@@ -633,6 +633,7 @@ girder
                 remove
                 removeWithQuery
                 save
+                saveMany
                 subtreeCount
                 textSearch
                 update

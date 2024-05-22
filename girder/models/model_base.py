@@ -7,7 +7,7 @@ import re
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from pymongo.errors import WriteError
+from pymongo.errors import BulkWriteError, WriteError
 from girder import events, logprint, logger, auditLogger
 from girder.constants import AccessType, CoreEventHandler, ACCESS_FLAGS, TEXT_SCORE_SORT_MAX
 from girder.models import getDbConnection
@@ -478,6 +478,7 @@ class Model(metaclass=_ModelSingleton):
         :type validate: bool
         :param triggerEvents: Whether to trigger events for validate and
             pre- and post-save hooks.
+        :type triggerEvents: bool
         """
         if validate and triggerEvents:
             event = events.trigger('.'.join(('model', self.name, 'validate')),
@@ -516,6 +517,58 @@ class Model(metaclass=_ModelSingleton):
             events.trigger('model.%s.save.after' % self.name, document)
 
         return document
+
+    def saveMany(self, documents, validate=True, triggerEvents=True):
+        """
+        Create or update several documents in the collection. If a single
+        document fails the validation, no document is added or removed.
+        This triggers two events; one prior to validation, and one prior to
+        saving. Either of these events may have their default action
+        prevented.
+
+        :param documents: The list of document to save.
+        :type documents: list of dict
+        :param validate: Whether to call the model's validate() before saving.
+        :type validate: bool
+        :param triggerEvents: Whether to trigger events for validate and
+            pre- and post-save hooks.
+        :type triggerEvents: bool
+        """
+        if validate and triggerEvents:
+            event = events.trigger('.'.join(('model', self.name, 'validateMultiple')),
+                                   documents)
+            if event.defaultPrevented:
+                validate = False
+
+        if validate:
+            documents = [self.validate(document) for document in documents]
+
+        if triggerEvents:
+            event = events.trigger('model.%s.saveMany' % self.name, documents)
+            if event.defaultPrevented:
+                return documents
+
+        idsToRemove = [ObjectId(document['_id']) for document in documents if '_id' in document]
+        if len(idsToRemove) > 0:
+            try:
+                self.collection.delete_many({'_id': {'$in': idsToRemove}})
+            except WriteError as e:
+                raise ValidationException(
+                    'Database save many failed while deleting duplicate keys: %s' % e.details)
+
+        try:
+            documentIds = self.collection.insert_many(documents).inserted_ids
+        except BulkWriteError as e:
+            raise ValidationException('Database save many failed: %s' % e.details)
+
+        for document, documentId in zip(documents, documentIds):
+            document['_id'] = documentId
+
+        if triggerEvents:
+            events.trigger('model.%s.saveMany.after' % self.name,
+                           {'newDocuments': documents, 'removedIds': idsToRemove})
+
+        return documents
 
     def update(self, query, update, multi=True):
         """

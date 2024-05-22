@@ -340,10 +340,12 @@ class TestAccessControlCleanup:
 
 
 def testTextSearch(db):
-    FakeModel().save({'name': 'first name'})
-    FakeModel().save({'name': 'second name'})
-    FakeModel().save({'name': 'second second'})
-    FakeModel().save({'name': 'fourth names'})
+    FakeModel().saveMany([
+        {'name': 'first name'},
+        {'name': 'second name'},
+        {'name': 'second second'},
+        {'name': 'fourth names'},
+    ])
     assert FakeModel().textSearch('names').count() == 3
     assert FakeModel().textSearch('"names"').count() == 1
     assert FakeModel().textSearch('second').count() == 2
