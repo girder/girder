@@ -121,6 +121,18 @@ const restRequest = function (opts) {
     // Overwrite defaults with passed opts, but do not mutate opts
     const args = _.extend({}, defaults, opts);
 
+    try {
+        // If the data is too large for a GET or PUT request, convert it to a POST request.
+        // Girder's REST API handles this for all requests.
+        if ((!args.method || args.method === 'GET' || args.method === 'PUT') && args.data && !args.contentType) {
+            if (JSON.stringify(args.data).length > 1536) {
+                args.headers = args.header || {};
+                args.headers['X-HTTP-Method-Override'] = args.method || 'GET';
+                args.method = 'POST';
+            }
+        }
+    } catch (err) { }
+
     if (!args.url) {
         throw new Error('restRequest requires a "url" argument');
     }
