@@ -237,7 +237,7 @@ class Upload(Model):
 
         logger.info(
             'Upload complete. Upload=%s File=%s User=%s',
-            upload['_id'], file['_id'], upload['userId']
+            upload.get('_id'), file['_id'], upload['userId']
         )
 
         # Add an event for handlers that wish to process this file.
