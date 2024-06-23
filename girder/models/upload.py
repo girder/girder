@@ -40,7 +40,7 @@ class Upload(Model):
 
     def uploadFromFile(self, obj, size, name, parentType=None, parent=None,
                        user=None, mimeType=None, reference=None,
-                       assetstore=None, attachParent=False):
+                       assetstore=None, attachParent=False, saveTempUpload=True):
         """
         This method wraps the entire upload process into a single function to
         facilitate "internal" uploads from a file-like object. Example:
@@ -78,11 +78,13 @@ class Upload(Model):
             appear as direct children of the parent, but are still associated
             with it.
         :type attachParent: boolean
+        :param saveTempUpload: Temporarilly store upload document in database or not.
+        :type saveTempUpload: boolean
         """
         upload = self.createUpload(
             user=user, name=name, parentType=parentType, parent=parent,
             size=size, mimeType=mimeType, reference=reference,
-            assetstore=assetstore, attachParent=attachParent)
+            assetstore=assetstore, attachParent=attachParent, save=saveTempUpload)
 
         if size == 0:
             return self.finalizeUpload(upload)
