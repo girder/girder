@@ -106,7 +106,8 @@ class FileHandle:
             self._stream = self._adapter.downloadFile(self._file, offset=self._pos, headers=False)()
 
     def close(self):
-        pass
+        self._stream = None
+        self._pos = None
 
     def seekable(self):
         return True
