@@ -15,13 +15,7 @@ interface StaticFilesSpec {
 const apiRoot = import.meta.env.VITE_API_ROOT ?? '/api/v1';
 
 (async () => {
-  let origin = window.origin;
-
-  try {
-    // This will raise an exception if apiRoot is relative
-    origin = new URL(apiRoot).origin;
-  } catch {}
-
+  const origin = apiRoot.startsWith('/') ? window.origin : new URL(apiRoot).origin;
   const staticFilesResp = await fetch(`${apiRoot}/system/plugin_static_files`);
   const staticFiles: StaticFilesSpec = await staticFilesResp.json();
 
