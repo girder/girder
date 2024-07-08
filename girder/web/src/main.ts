@@ -27,9 +27,11 @@ const apiRoot = import.meta.env.VITE_API_ROOT ?? '/api/v1';
     document.head.appendChild(link);
   });
 
-  const scriptPromises: Promise<void>[] = [];
-  staticFiles.js.forEach((href) => {
-    scriptPromises.push(new Promise((resolve) => {
+  // Since plugin JS files may implicitly depend on each other at import time, we can't load
+  // them in parallel. They already come to us in topoligically sorted order, so we can safely
+  // load them one after the other.
+  for (const href of staticFiles.js) {
+    await new Promise<void>((resolve) => {
       const script = document.createElement('script');
       script.type = 'text/javascript';
       script.src = new URL(href, origin).href;
@@ -37,9 +39,8 @@ const apiRoot = import.meta.env.VITE_API_ROOT ?? '/api/v1';
       script.addEventListener('load', function() {
         resolve();
       });
-    }));
-  });
+    });
+  };
 
-  await Promise.all(scriptPromises);
   await girder.initializeDefaultApp(apiRoot);
 })();
