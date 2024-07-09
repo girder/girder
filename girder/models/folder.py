@@ -117,7 +117,7 @@ class Folder(AccessControlledModel):
         :type force: bool
         """
         # Ensure we include extra fields to do the migration below
-        extraFields = {'baseParentId', 'baseParentType', 'parentId', 'parentCollection',
+        extraFields = {'baseParentId', 'baseParentType', 'parentId', 'parentCollection', 'meta',
                        'name', 'lowerName'}
         loadFields = self._supplementFields(fields, extraFields)
 

@@ -146,11 +146,17 @@ separated list to the ``--blacklist`` arg ::
 
     girder-client upload 54b6d41a8926486c0cbca367 test_folder --blacklist .DS_Store
 
-.. note: The girder_client can upload to an S3 Assetstore when uploading to a Girder server
-         that is version 1.3.0 or later.
+.. note:: The girder_client can upload to an S3 Assetstore when uploading to a Girder server
+   that is version 1.3.0 or later.
 
 Download a hierarchy of data into a local folder
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. note:: When downloading files, Girder writes them temporarily under the operating system's
+    temporary directory before moving them to their final destination. If you need the
+    temporary files to be stored elsewhere, perhaps due to being on a different volume or
+    device, simply set the ``TMPDIR`` environment variable to the desired location before
+    invoking the download.
 
 Folder
 """"""

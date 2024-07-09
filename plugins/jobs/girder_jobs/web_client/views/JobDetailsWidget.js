@@ -36,6 +36,9 @@ var JobDetailsWidget = View.extend({
                     this.job.set({ log: [info.text] });
                     container.text(info.text);
                 } else {
+                    if (this.job.get('log') === undefined) {
+                        this.job.set({ log: [] });
+                    }
                     this.job.get('log').push(info.text);
                     container.append(_.escape(info.text));
                 }

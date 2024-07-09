@@ -65,6 +65,8 @@ class FileHandle:
             raise GirderException('Read exceeds maximum allowed size.')
         data = io.BytesIO()
         length = 0
+        if self._stream is None:
+            self._stream = self._adapter.downloadFile(self._file, offset=self._pos, headers=False)()
         for chunk in itertools.chain(self._prev, self._stream):
             chunkLen = len(chunk)
 
@@ -103,7 +105,7 @@ class FileHandle:
 
         if self._pos != oldPos:
             self._prev = []
-            self._stream = self._adapter.downloadFile(self._file, offset=self._pos, headers=False)()
+            self._stream = None
 
     def close(self):
         pass

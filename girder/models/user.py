@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 import re
 from passlib.context import CryptContext
@@ -17,6 +18,12 @@ _password_regex = re.compile(os.getenv('GIRDER_PASSWORD_REGEX', r'.{6}.*'))
 _password_valid_description = os.getenv(
     'GIRDER_VALID_PASSWORD_DESCRIPTION', 'Password must be at least 6 characters long.'
 )
+
+
+# If logging is at DEBUG level, passlib with fail because of
+#  https://github.com/pyca/bcrypt/issues/684
+# Asking passlib to only log errors resolves this.
+logging.getLogger('passlib').setLevel(logging.ERROR)
 
 
 class User(AccessControlledModel):
