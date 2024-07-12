@@ -220,7 +220,7 @@
       - "{{ 'alice' not in group_access }}"
       # bill should be a moderator
       - "{{ 'bill' in  group_access }}"
-      # Note that groupby gives us a dict of lists - thats why we
+      # Note that groupby gives us a dict of lists - that's why we
       # do group_access[...][0][...].
       - "{{ group_access['bill'][0]['level'] == 1 }}"
       # chris should be an admin
@@ -392,7 +392,7 @@
       - "{{ 'alice' not in group_access }}"
       # bill should be a moderator
       - "{{ 'bill' in  group_access }}"
-      # Note that groupby gives us a dict of lists - thats why we
+      # Note that groupby gives us a dict of lists - that's why we
       # do group_access[...][0][...].
       - "{{ group_access['bill'][0]['level'] == 1 }}"
       # chris should be an admin

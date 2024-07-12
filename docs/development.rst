@@ -192,7 +192,7 @@ Girder's legacy automated tests are written with Python's
 test cases are still covered only by unitest.
 
 .. note:: Unless debugging code that is already coverered by a legacy test case, it may be more
-          convenient to allow these tests to be run by Girder's CI envionment, instead of
+          convenient to allow these tests to be run by Girder's CI environment, instead of
           configuring them locally.
 
 To initialize the legacy tests, from the root ``girder`` repo, run:

@@ -265,7 +265,7 @@ class ServerFuseTestCase(base.TestCase):
         with self.assertRaisesRegex(ValidationException, 'with the "path" key'):
             Setting().set(SettingKey.GIRDER_MOUNT_INFORMATION, {'no path': 'key'})
 
-    # Although other tests excerise the individual functions in the FUSE,
+    # Although other tests exercise the individual functions in the FUSE,
     # coverage is not reported since it is run in a separate process.  Each of
     # the operation class functions is tested here.
 

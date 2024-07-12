@@ -72,7 +72,7 @@ def main(dev, mode, watch, watch_plugin, npm, reinstall):
 
         for path in nodeModuleDirs:
             # Include ignore_errors=True to delete readonly files
-            # and skip over nonexistant directories
+            # and skip over nonexistent directories
             shutil.rmtree(path, ignore_errors=True)
 
         # Run npm install
