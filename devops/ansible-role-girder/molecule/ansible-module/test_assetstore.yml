@@ -44,7 +44,7 @@
 
 # Removing an assetstore that doesn't exist should
 # show no change
-- name: Check that deleting an assetstore that doesnt exist doesnt trigger a failure
+- name: Check that deleting an assetstore that doesn't exist doesn't trigger a failure
   assert:
     that:
       - ret["changed"] == false  # noqa 601

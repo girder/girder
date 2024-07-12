@@ -102,7 +102,7 @@ def setResponseTimeLimit(duration=600, onlyExtend=True):
     :param onlyExtend: if True, only ever increase the timeout.  If False, the
                        new duration always replaces the old one.
     """
-    # CherryPy 12.0 no longer has a timeout propery on a response.  Since we
+    # CherryPy 12.0 no longer has a timeout property on a response.  Since we
     # had only been using this to extend the time, if the timeout property is
     # not present, do nothing.
     if (cherrypy.response and getattr(cherrypy.response, 'time', None)
