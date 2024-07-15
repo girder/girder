@@ -195,7 +195,7 @@ def getCurrentUser(returnToken=False):
             return user
 
     if (token is None
-            or token['expires'] < datetime.datetime.utcnow()
+            or token['expires'] < datetime.datetime.now(datetime.timezone.utc)
             or 'userId' not in token):
         return retVal(None, token)
     else:

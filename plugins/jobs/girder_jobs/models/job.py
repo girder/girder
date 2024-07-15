@@ -213,7 +213,7 @@ class Job(AccessControlledModel):
         :param otherFields: Any additional fields to set on the job.
         :type otherFields: dict
         """
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
 
         if when is None:
             when = now
@@ -262,7 +262,8 @@ class Job(AccessControlledModel):
 
             Notification().createNotification(
                 type='job_created', data=job, user=user,
-                expires=datetime.datetime.utcnow() + datetime.timedelta(seconds=30))
+                expires=datetime.datetime.now(datetime.timezone.utc)
+                + datetime.timedelta(seconds=30))
 
             job['kwargs'] = deserialized_kwargs
 
@@ -361,7 +362,7 @@ class Job(AccessControlledModel):
         if event.defaultPrevented:
             return job
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
         user = None
         otherFields = otherFields or {}
         if job['userId']:

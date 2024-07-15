@@ -327,7 +327,7 @@ class User(Resource):
     def checkTemporaryPassword(self, user, token):
         token = Token().load(
             token, user=user, level=AccessType.ADMIN, objectId=False, exc=True)
-        delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
+        delta = (token['expires'] - datetime.datetime.now(datetime.timezone.utc)).total_seconds()
         hasScope = Token().hasScope(token, TokenScope.TEMPORARY_USER_AUTH)
 
         if token.get('userId') != user['_id'] or delta <= 0 or not hasScope:
@@ -425,7 +425,7 @@ class User(Resource):
     def verifyEmail(self, user, token):
         token = Token().load(
             token, user=user, level=AccessType.ADMIN, objectId=False, exc=True)
-        delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
+        delta = (token['expires'] - datetime.datetime.now(datetime.timezone.utc)).total_seconds()
         hasScope = Token().hasScope(token, TokenScope.EMAIL_VERIFICATION)
 
         if token.get('userId') != user['_id'] or delta <= 0 or not hasScope:

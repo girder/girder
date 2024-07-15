@@ -7,7 +7,9 @@ import pymongo
 import re
 
 from bson.objectid import ObjectId
+from bson.codec_options import CodecOptions
 from bson.errors import InvalidId
+from datetime import timezone
 from pymongo.errors import WriteError
 from girder import events, auditLogger
 from girder.constants import AccessType, CoreEventHandler, ACCESS_FLAGS, TEXT_SCORE_SORT_MAX
@@ -117,7 +119,8 @@ class Model(metaclass=_ModelSingleton):
         db_connection = getDbConnection()
         self._dbserver_version = tuple(db_connection.server_info()['versionArray'])
         self.database = db_connection.get_database()
-        self.collection = self.database[self.name]
+        self.collection = self.database[self.name].with_options(
+            codec_options=CodecOptions(tz_aware=True, tzinfo=timezone.utc))
 
         for index in self._indices:
             self._createIndex(index)

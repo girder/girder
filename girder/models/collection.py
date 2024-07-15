@@ -107,7 +107,7 @@ class Collection(AccessControlledModel):
             if existing:
                 return existing
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
 
         collection = {
             'name': name,
@@ -134,7 +134,7 @@ class Collection(AccessControlledModel):
         :type collection: dict
         :returns: The collection document that was edited.
         """
-        collection['updated'] = datetime.datetime.utcnow()
+        collection['updated'] = datetime.datetime.now(datetime.timezone.utc)
 
         # Validate and save the collection
         return self.save(collection)
@@ -202,7 +202,7 @@ class Collection(AccessControlledModel):
 
         self.validateKeys(collection['meta'])
 
-        collection['updated'] = datetime.datetime.utcnow()
+        collection['updated'] = datetime.datetime.now(datetime.timezone.utc)
 
         # Validate and save the collection
         return self.save(collection)
@@ -228,7 +228,7 @@ class Collection(AccessControlledModel):
         for field in fields:
             collection['meta'].pop(field, None)
 
-        collection['updated'] = datetime.datetime.utcnow()
+        collection['updated'] = datetime.datetime.now(datetime.timezone.utc)
 
         return self.save(collection)
 

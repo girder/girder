@@ -43,7 +43,7 @@ class _AuditLogDatabaseHandler(logging.Handler):
             'details': record.details,
             'ip': cherrypy.request.remote.ip,
             'userId': user and user['_id'],
-            'when': datetime.datetime.utcnow()
+            'when': datetime.datetime.now(datetime.timezone.utc)
         }, triggerEvents=False)
 
 
