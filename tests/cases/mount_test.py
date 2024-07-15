@@ -90,7 +90,8 @@ class ServerFuseTestCase(base.TestCase):
         """
         mountpath = self.mountPath
         # Check that the mount lists users and collections
-        self.assertEqual(sorted(os.listdir(mountpath)), sorted(['user', 'collection', 'stats']))
+        self.assertEqual(sorted(os.listdir(mountpath)), sorted([
+            'user', 'collection', 'stats', 'flat']))
         # Check that all known paths exist and that arbitrary other paths don't
         for testpath, contents in self.knownPaths.items():
             localpath = os.path.join(mountpath, testpath)
