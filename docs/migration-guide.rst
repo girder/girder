@@ -240,6 +240,13 @@ accessible to JavaScript, which is a security best practice. If you were relying
 Note that cookies will still be sent and will still work for read-only endpoints that have
 set the ``cookie=True`` property on their ``@access`` decorator.
 
+Timezone aware datetime objects
++++++++++++++++++++++++++++++++
+
+Due to deprecated behavior in Python 3.12, Girder now uses timezone-aware datetime objects.
+If your code relied on the old behavior of naive datetimes, you may need to update it to
+handle timezone-aware datetimes.
+
 2.x |ra| 3.x
 ------------
 
