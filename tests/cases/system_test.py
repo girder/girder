@@ -224,7 +224,7 @@ class SystemTestCase(base.TestCase):
         resp = self.request(path='/system/check', method='PUT',
                             user=self.users[0], params={'progress': True})
         self.assertStatusOk(resp)
-        # tests that check repair of different models are convered in the
+        # tests that check repair of different models are covered in the
         # individual models' tests
 
     def testConsistencyCheck(self):

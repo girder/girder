@@ -28,7 +28,7 @@ standard system unmount commands (e.g., ``fusermount -u <mount path>`` or
 Installation
 ++++++++++++
 
-There are some additional python dependencies to use the Girder mount commnd.
+There are some additional python dependencies to use the Girder mount command.
 These can be installed via: ::
 
   $ pip install -e .[mount]

@@ -183,7 +183,7 @@ Server
   (`#2499 <https://github.com/girder/girder/pull/2499>`_)
 * When a plugin supplying an assetstore fails to load, other assetstores could not be listed.
   (`#2498 <https://github.com/girder/girder/pull/2498>`_)
-* Run pip installation of plugins using a subprocess rather than the pip module, for forward compatbility
+* Run pip installation of plugins using a subprocess rather than the pip module, for forward compatibility
   with pip. (`#2669 <https://github.com/girder/girder/pull/2669>`_)
 * Correct complex plugin dependencies parsing. (`#2496 <https://github.com/girder/girder/pull/2496>`_)
 

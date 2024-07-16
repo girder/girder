@@ -531,7 +531,7 @@ class GirderClient:
         """
         This is a generator that will yield records using the given path and
         params until exhausted. Paging of the records is done internally, but
-        can be overriden by manually passing a ``limit`` value to select only
+        can be overridden by manually passing a ``limit`` value to select only
         a single page. Passing an ``offset`` will work in both single-page and
         exhaustive modes.
         """
@@ -772,7 +772,7 @@ class GirderClient:
 
         :param folderId: Id of the target folder.
         :param access: JSON document specifying access control.
-        :param public: Boolean specificying the public value.
+        :param public: Boolean specifying the public value.
         """
         if access is not None and not isinstance(access, str):
             access = json.dumps(access)

@@ -34,7 +34,7 @@ var EditAssetstoreWidget = View.extend({
 
     /**
      * This maps each type of assetstore to a function to getter and setter
-     * functions. The set functions are reponsible for populating the dialog
+     * functions. The set functions are responsible for populating the dialog
      * fields with the appropriate current model values, and the get functions
      * are responsible for reading the user input values from the dialog and
      * returning a set of fields (excluding the name field) to set on the model.

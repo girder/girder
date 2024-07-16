@@ -9,7 +9,7 @@ if [ "$DIFF" != "" ]; then
 **********************************************************
 
 Public symbols have been introduced (or removed) and those
-changes have not been commited to the scripts/publicNames.txt
+changes have not been committed to the scripts/publicNames.txt
 file. Please run the following command:
 
   python scripts/publicNames.py > scripts/publicNames.txt

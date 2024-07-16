@@ -133,7 +133,7 @@ var Collection = Backbone.Collection.extend({
     },
 
     /**
-     * Sets a specific pagenumber for loading by caluclating the offset
+     * Sets a specific pagenumber for loading by calculating the offset
      * @param {Number} pageNumber The 0 indexed page that should be loaded based on the pageLimit size
      * @param {Object} params Additional parameters to pass to the fetch call
      * @returns {Promise} a fetch promise to retrieve more data
@@ -235,7 +235,7 @@ var Collection = Backbone.Collection.extend({
                     if (numUsed > newNumUsed) {
                         /*
                          * ...therefore, entries are being left out at the end,
-                         * so they necessesarily remain to be fetched.
+                         * so they necessarily remain to be fetched.
                          */
                         this._hasMorePages = true;
                         numUsed = newNumUsed;

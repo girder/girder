@@ -793,7 +793,7 @@ class FileTestCase(base.TestCase):
         self._testCopyFile(copyTestFile)
 
         # Test unicode filenames for content disposition.  The test name has
-        # quotes, a Linear-B codepoint, Cyrllic, Arabic, Chinese, and an emoji.
+        # quotes, a Linear-B codepoint, Cyrillic, Arabic, Chinese, and an emoji.
         filename = 'Unicode "sample" \U00010088 ' + \
                    '\u043e\u0431\u0440\u0430\u0437\u0435\u0446 ' + \
                    '\u0639\u064a\u0646\u0629 \u6a23\u54c1 \U0001f603'
