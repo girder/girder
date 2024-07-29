@@ -369,7 +369,7 @@ class QuotaTestCase(base.TestCase):
                 'name': 'Broken Store',
                 'type': AssetstoreType.FILESYSTEM,
                 'root': '/dev/null',
-                'created': datetime.datetime.utcnow()
+                'created': datetime.datetime.now(datetime.timezone.utc)
             }, validate=False)
 
             # Now get the assetstores and save their ids for later

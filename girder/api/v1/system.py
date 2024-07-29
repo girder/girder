@@ -25,7 +25,7 @@ from girder.utility.progress import ProgressContext
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource
 
-ModuleStartTime = datetime.datetime.utcnow()
+ModuleStartTime = datetime.datetime.now(datetime.timezone.utc)
 LOG_BUF_SIZE = 65536
 logger = logging.getLogger(__name__)
 

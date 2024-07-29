@@ -433,7 +433,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                    user, force_recursive=True, **kwargs):
         importPath = params.get('importPath', '').strip().lstrip('/')
         bucket = self.assetstore['bucket']
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
         paginator = self.client.get_paginator('list_objects')
         pageIterator = paginator.paginate(Bucket=bucket, Prefix=importPath, Delimiter='/')
         for resp in pageIterator:

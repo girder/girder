@@ -268,7 +268,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
             if existing:
                 return existing
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
 
         if not isinstance(creator, dict) or '_id' not in creator:
             # Internal error -- this shouldn't be called without a user.
@@ -302,7 +302,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :type item: dict
         :returns: The item document that was edited.
         """
-        item['updated'] = datetime.datetime.utcnow()
+        item['updated'] = datetime.datetime.now(datetime.timezone.utc)
 
         # Validate and save the item
         return self.save(item)
@@ -348,7 +348,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         self.validateKeys(item['meta'])
 
-        item['updated'] = datetime.datetime.utcnow()
+        item['updated'] = datetime.datetime.now(datetime.timezone.utc)
 
         # Validate and save the item
         return self.save(item)
@@ -374,7 +374,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         for field in fields:
             item['meta'].pop(field, None)
 
-        item['updated'] = datetime.datetime.utcnow()
+        item['updated'] = datetime.datetime.now(datetime.timezone.utc)
 
         return self.save(item)
 

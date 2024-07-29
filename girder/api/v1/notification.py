@@ -1,7 +1,7 @@
 import cherrypy
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, disableAuditLog, setResponseHeader
@@ -70,7 +70,7 @@ class Notification(Resource):
         setResponseHeader('Cache-Control', 'no-cache')
         since = params.get('since')
         if since is not None:
-            since = datetime.utcfromtimestamp(since)
+            since = datetime.fromtimestamp(since, timezone.utc)
 
         def streamGen():
             lastUpdate = since

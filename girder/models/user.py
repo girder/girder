@@ -401,7 +401,7 @@ class User(AccessControlledModel):
             'email': email,
             'firstName': firstName,
             'lastName': lastName,
-            'created': datetime.datetime.utcnow(),
+            'created': datetime.datetime.now(datetime.timezone.utc),
             'emailVerified': False,
             'status': 'pending' if requireApproval else 'enabled',
             'admin': admin,

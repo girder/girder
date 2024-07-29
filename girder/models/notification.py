@@ -53,7 +53,7 @@ class Notification(Model):
             instead of a user.
         :type token: dict
         """
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
         currentTime = time.time()
         doc = {
             'type': type,
@@ -117,7 +117,7 @@ class Notification(Model):
             'resource': resource,
             'resourceName': resourceName
         }
-        expires = datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+        expires = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
 
         return self.createNotification('progress', data, user, expires,
                                        token=token)
@@ -157,7 +157,7 @@ class Notification(Model):
             if field in ('total', 'current', 'state', 'message'):
                 record['data'][field] = value
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
 
         if 'expires' in kwargs:
             expires = kwargs['expires']

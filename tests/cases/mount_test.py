@@ -299,7 +299,9 @@ class ServerFuseTestCase(base.TestCase):
         self.assertEqual(attr['st_ctime'], attr['st_mtime'])
         self.assertEqual(attr['st_mode'], 0o400 | stat.S_IFREG)
         self.assertGreater(attr['st_size'], len(self.knownPaths[self.publicFileName]))
-        resource['document']['updated'] = datetime.datetime.utcfromtimestamp(time.time() + 1)
+        resource['document']['updated'] = datetime.datetime.fromtimestamp(
+            time.time() + 1, datetime.timezone.utc
+        )
         File().save(resource['document'])
         oldmtime = attr['st_mtime']
         resource = op._get_path(self.publicFileName)

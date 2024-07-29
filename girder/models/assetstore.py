@@ -113,7 +113,7 @@ class Assetstore(Model):
     def createFilesystemAssetstore(self, name, root, perms=None):
         return self.save({
             'type': AssetstoreType.FILESYSTEM,
-            'created': datetime.datetime.utcnow(),
+            'created': datetime.datetime.now(datetime.timezone.utc),
             'name': name,
             'root': root,
             'perms': perms
@@ -124,7 +124,7 @@ class Assetstore(Model):
                            serverSideEncryption=False):
         return self.save({
             'type': AssetstoreType.S3,
-            'created': datetime.datetime.utcnow(),
+            'created': datetime.datetime.now(datetime.timezone.utc),
             'name': name,
             'accessKeyId': accessKeyId,
             'secret': secret,
