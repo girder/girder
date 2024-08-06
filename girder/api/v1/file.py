@@ -113,14 +113,10 @@ class File(Resource):
                 chunk = None
 
             try:
-                # TODO: This can be made more efficient by adding
-                #    save=chunk is None
-                # to the createUpload call parameters.  However, since this is
-                # a breaking change, that should be deferred until a major
-                # version upgrade.
                 upload = Upload().createUpload(
                     user=user, name=name, parentType=parentType, parent=parent, size=size,
-                    mimeType=mimeType, reference=reference, assetstore=assetstore)
+                    mimeType=mimeType, reference=reference, assetstore=assetstore,
+                    save=chunk is None)
             except OSError as exc:
                 if exc.errno == errno.EACCES:
                     raise GirderException(

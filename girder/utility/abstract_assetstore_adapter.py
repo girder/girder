@@ -108,7 +108,8 @@ class FileHandle:
             self._stream = None
 
     def close(self):
-        pass
+        self._stream = None
+        self._pos = None
 
     def seekable(self):
         return True
