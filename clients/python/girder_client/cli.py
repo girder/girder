@@ -376,8 +376,10 @@ Examples:
               help='maximum number of records to list')
 @click.option('--offset', default=None,
               help='starting offset into list')
+@click.option('--json', default=False, is_flag=True, show_default=True,
+              help='if True output machine readable json')
 @click.pass_obj
-def _list(gc, parent_type, parent_id, limit, offset):
+def _list(gc, parent_type, parent_id, limit, offset, json):
 
     """
     TODO / DISCUSS:
@@ -386,6 +388,7 @@ def _list(gc, parent_type, parent_id, limit, offset):
                   available)
             - [ ] Allow query-by-name rather than by id?
             - [ ] Show folder tree structure?
+            - [ ] Emit proper machine readable json
             - [X] Show the name of the parent item/folder/collection?
     """
     if parent_type == 'auto':
@@ -393,7 +396,10 @@ def _list(gc, parent_type, parent_id, limit, offset):
 
     this_record = gc.getResource(parent_type, parent_id)
 
-    _list_record_info(gc, this_record)
+    if json:
+        print('{')
+
+    _list_record_info(gc, this_record, json)
 
     if parent_type == 'collection':
         # collections can only have children that are folders
@@ -408,39 +414,55 @@ def _list(gc, parent_type, parent_id, limit, offset):
         child_types = ['folder', 'item']
 
     if child_types:
-        print(f'child_types={child_types}')
         # If there are children, list them
         _list_children_info(gc, this_record, parent_id, parent_type,
-                            child_types, limit, offset)
+                            child_types, limit, offset, json)
+
+    if json:
+        print('}')
 
 
-def _list_record_info(gc, this_record):
+def _list_record_info(gc, this_record, json):
     """
     Helper for :func:`_list` to print the root item.
     """
+    import json as json_mod
     this_type = this_record['_modelType']
     if this_type == 'folder':
         prev_record = gc.getResource(this_record['parentCollection'], this_record['parentId'])
-        print('Parent {_modelType}: {_id} - {name}'.format(**prev_record))
+        if json:
+            print(json_mod.dumps(prev_record))
+        else:
+            print('Parent {_modelType}: {_id} - {name}'.format(**prev_record))
     elif this_type == 'item':
         prev_record = gc.getResource('folder', this_record['folderId'])
-        print('Parent {_modelType}: {_id} - {name}'.format(**prev_record))
+        if json:
+            print(json_mod.dumps(prev_record))
+        else:
+            print('Parent {_modelType}: {_id} - {name}'.format(**prev_record))
     elif this_type == 'file':
         item_record = gc.getResource('item', this_record['itemId'])
         folder_record = gc.getResource('folder', item_record['folderId'])
-        print('Parent folder: {_id} - {name}'.format(**folder_record))
-        print('Parent item: {_id} - {name}'.format(**item_record))
+        if json:
+            print(json_mod.dumps(folder_record))
+            print(json_mod.dumps(item_record))
+        else:
+            print('Parent folder: {_id} - {name}'.format(**folder_record))
+            print('Parent item: {_id} - {name}'.format(**item_record))
+    elif this_type == 'collection':
+        ...
     else:
         raise KeyError(this_record['_modelType'])
     print('Listing {_modelType}: {_id} - {name}'.format(**this_record))
 
 
 def _list_children_info(gc, this_record, parent_id, parent_type, child_types,
-                        limit, offset):
+                        limit, offset, json):
     """
     Helper for :func:`_list` to print nested items.
     """
     import itertools
+    import json as json_mod
     for child_type in child_types:
 
         if child_type == 'folder':
@@ -457,15 +479,19 @@ def _list_children_info(gc, this_record, parent_id, parent_type, child_types,
 
         # Check if records has at least 1 element.
         records_copy, records = itertools.tee(records)
-        first_records = list(itertools.islice(records_copy, 1))
-        if first_records:
-            # Only print the header if there is at least one record
-            print('=== {} ==='.format(child_type))
-            print('{:<24} {:<6} {:<24}'.format('ID', 'TYPE', 'NAME'))
+        if not json:
+            first_records = list(itertools.islice(records_copy, 1))
+            if first_records:
+                # Only print the header if there is at least one record
+                print('=== {} ==='.format(child_type))
+                print('{:<24} {:<6} {:<24}'.format('ID', 'TYPE', 'NAME'))
 
         for record in records:
             if child_type == 'item':
-                print('{_id:<24} {_modelType:<6} {name}'.format(**record))
+                if json:
+                    print(json_mod.dumps(record))
+                else:
+                    print('{_id:<24} {_modelType:<6} {name}'.format(**record))
                 if 0:
                     # Previously we recursed one level deep by defalt, disable
                     # this for now. We should implement a proper recursive tree
@@ -474,7 +500,10 @@ def _list_children_info(gc, this_record, parent_id, parent_type, child_types,
                     for record in gc.listFile(_id, limit=limit, offset=offset):
                         print('{_id:<24} {_modelType:<6} {name}'.format(**record))
             else:
-                print('{_id:<24} {_modelType:<6} {name}'.format(**record))
+                if json:
+                    print(json_mod.dumps(record))
+                else:
+                    print('{_id:<24} {_modelType:<6} {name}'.format(**record))
 
 
 if __name__ == '__main__':
