@@ -394,8 +394,8 @@ def _list(gc, parent_type, parent_id, limit, offset, json):
     this_record = gc.getResource(parent_type, parent_id)
 
     if json:
-        from girder_client.util import JSONEmitter
-        emitter = JSONEmitter()
+        from girder_client._jsonemitter import _JSONEmitter
+        emitter = _JSONEmitter()
         emitter.start_dict()
     else:
         emitter = None

@@ -1,11 +1,11 @@
 """
 Helper functions used by the CLI. Currently this only defines
-:class:`JSONEmitter`, which we test here.
+:class:`_JSONEmitter`, which we test here.
 
 Example:
-    >>> from girder_client.util import JSONEmitter
+    >>> from girder_client.util import _JSONEmitter
     >>> import io
-    >>> self = JSONEmitter(stream=io.StringIO())
+    >>> self = _JSONEmitter(stream=io.StringIO())
     >>> self.start_dict()
     >>> self.setitem('version', '1.0.0')
     >>> self.start_subcontainer('info')
@@ -22,9 +22,9 @@ Example:
     {'version': '1.0.0', 'info': [{}, [{}], {}]}
 
 Example:
-    >>> from girder_client.util import JSONEmitter
+    >>> from girder_client.util import _JSONEmitter
     >>> import io
-    >>> self = JSONEmitter(stream=io.StringIO())
+    >>> self = _JSONEmitter(stream=io.StringIO())
     >>> self.start_dict()
     >>> self.setitem('key1', 'value1')
     >>> self.start_subcontainer('subdict1')
@@ -93,7 +93,7 @@ class _AssertionMixin:
             )
 
 
-class JSONEmitter(_AssertionMixin):
+class _JSONEmitter(_AssertionMixin):
     """
     Helps incrementally emit compliant JSON text.
 
@@ -102,11 +102,11 @@ class JSONEmitter(_AssertionMixin):
 
     Example:
         >>> from girder_client.util import *  # NOQA
-        >>> self = JSONEmitter()
+        >>> self = _JSONEmitter()
         >>> self.start_dict()
         >>> self.end_dict()
         {}
-        >>> self = JSONEmitter()
+        >>> self = _JSONEmitter()
         >>> self.start_dict()
         >>> self.setitem('k1', 'v1')
         >>> self.setitem('k2', 'v2')
