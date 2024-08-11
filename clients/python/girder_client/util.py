@@ -7,6 +7,25 @@ Example:
     >>> import io
     >>> self = JSONEmitter(stream=io.StringIO())
     >>> self.start_dict()
+    >>> self.setitem('version', '1.0.0')
+    >>> self.start_subcontainer('info')
+    >>> self.start_list()
+    >>> self.append({})
+    >>> self.append([{}])
+    >>> self.append({})
+    >>> self.end_list()
+    >>> self.end_dict()
+    >>> text = self.stream.getvalue()
+    >>> # Test that we decode correctly
+    >>> import json as json
+    >>> print(json.loads(text))
+    {'version': '1.0.0', 'info': [{}, [{}], {}]}
+
+Example:
+    >>> from girder_client.util import JSONEmitter
+    >>> import io
+    >>> self = JSONEmitter(stream=io.StringIO())
+    >>> self.start_dict()
     >>> self.setitem('key1', 'value1')
     >>> self.start_subcontainer('subdict1')
     >>> self.start_dict()
@@ -31,28 +50,8 @@ Example:
     >>> #
     >>> text = self.stream.getvalue()
     >>> # Test that we decode correctly
-    >>> #print(text)
     >>> import json
-    >>> print(json.dumps(json.loads(text), indent='    '))
-
-Example:
-    >>> from girder_client.util import JSONEmitter
-    >>> import io
-    >>> self = JSONEmitter(stream=io.StringIO())
-    >>> self.start_dict()
-    >>> self.start_subcontainer('info')
-    >>> self.start_list()
-    >>> self.append({})
-    >>> self.append({})
-    >>> self.append({})
-    >>> self.end_list()
-    >>> self.end_dict()
-    >>> text = self.stream.getvalue()
-    >>> # Test that we decode correctly
-    >>> import json as json
-    >>> print(json.loads(text))
-    {'info': [{}, {}, {}]}
-
+    >>> print(json.dumps(json.loads(text)))
 """
 import json
 
@@ -113,8 +112,6 @@ class JSONEmitter(_AssertionMixin):
         >>> self.setitem('k2', 'v2')
         >>> self.setitem('k3', 'v3')
         >>> self.end_dict()
-
-
     """
     def __init__(self, stream=None, checks=True, ):
         """
