@@ -149,9 +149,15 @@ class JSONEmitter(_AssertionMixin):
         context['size'] += 1
 
     def start_list(self):
+        """
+        Start a new list context. Must be in a list, or in a dict with a
+        prepared subcontainer.
+        """
         context = self._stack[-1]
         if self.checks:
             self._assert_number_of_toplevel_containers_le_1(context)
+            if context['type'] == 'dict':
+                self._assert_subcontainer_is_prepared(context)
 
         self._ensure_separator(context)
 
@@ -180,7 +186,10 @@ class JSONEmitter(_AssertionMixin):
         """
         context = self._stack.pop()
         if self.checks:
+            self._assert_subcontainer_is_not_prepared(context)
             self._assert_context_type_eq(context, 'list')
+        if context['size'] > 0:
+            self.stream.write('\n')
         self.stream.write(']')
 
     def end_dict(self):
