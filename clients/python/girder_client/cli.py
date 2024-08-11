@@ -3,7 +3,6 @@ import click
 from http.client import HTTPConnection
 import logging
 import requests
-import json as json_mod
 from requests.adapters import HTTPAdapter
 import sys
 import types
@@ -389,7 +388,7 @@ def _list(gc, parent_type, parent_id, limit, offset, json):
                   available)
             - [ ] Allow query-by-name rather than by id?
             - [ ] Show folder tree structure?
-            - [ ] Emit proper machine readable json
+            - [X] Emit proper machine readable json
             - [X] Show the name of the parent item/folder/collection?
     """
     if parent_type == 'auto':
@@ -398,7 +397,8 @@ def _list(gc, parent_type, parent_id, limit, offset, json):
     this_record = gc.getResource(parent_type, parent_id)
 
     if json:
-        emitter = _JsonEmitter()
+        from girder_client.util import JSONEmitter
+        emitter = JSONEmitter()
         emitter.start_dict()
     else:
         emitter = None
@@ -488,7 +488,7 @@ def _list_children_info(gc, this_record, parent_id, parent_type, child_types,
         first_records = list(itertools.islice(records_copy, 1))
         if first_records:
             if emitter:
-                emitter.start_subitem(f'{child_type}_children')
+                emitter.start_subcontainer(f'{child_type}_children')
                 emitter.start_list()
             else:
                 # Only print the header if there is at least one record
@@ -498,7 +498,7 @@ def _list_children_info(gc, this_record, parent_id, parent_type, child_types,
         for record in records:
             if child_type == 'item':
                 if emitter:
-                    print(json_mod.dumps(record))
+                    emitter.append(record)
                 else:
                     print('{_id:<24} {_modelType:<6} {name}'.format(**record))
                 if 0:
@@ -516,158 +516,6 @@ def _list_children_info(gc, this_record, parent_id, parent_type, child_types,
 
         if first_records and emitter:
             emitter.end_list()
-
-
-class _JsonEmitter:
-    """
-    Ignore:
-        from girder_client.cli import *  # NOQA
-        from girder_client.cli import _JsonEmitter
-        self = _JsonEmitter()
-        self.start_dict()
-        self.end_dict()
-
-        print('')
-        print('---')
-        print('')
-
-        self = _JsonEmitter()
-        self.start_dict()
-        self.setitem('key1', 'value1')
-        self.setitem('key2', 'value2')
-        self.setitem('key3', 'value3')
-        self.end_dict()
-
-        print('')
-        print('---')
-        print('')
-
-        import io
-        stream = io.StringIO()
-
-        self = _JsonEmitter(stream=stream)
-        self.start_dict()
-        self.setitem('key1', 'value1')
-
-        self.start_subitem('subdict1')
-        self.start_dict()
-        self.end_dict()
-
-        self.start_subitem('subdict2')
-        self.start_dict()
-        self.setitem('subkey1', 'subvalue1')
-        self.setitem('subkey2', 'subvalue2')
-        self.setitem('subkey3', [1, 2, 3, {"a": "a"}])
-        self.end_dict()
-
-        self.start_subitem('sublist')
-        self.start_list()
-        self.append('sublist_value1')
-        self.append('sublist_value2')
-        self.append([1, 2, 3, {"a": "a"}])
-        self.end_list()
-
-        self.setitem('key2', 'value2')
-        self.end_dict()
-
-        text = stream.getvalue()
-        print(text)
-        # Test that we decode correctly
-        import json as json_mod
-        decoded = json_mod.loads(text)
-        print(f'decoded = {ub.urepr(decoded, nl=1)}')
-
-
-    """
-    def __init__(self, stream=None):
-        import sys
-        self._stack = []
-        if stream is None:
-            stream = sys.stdout
-        self.stream = stream
-
-    def start_list(self):
-        if len(self._stack):
-            context = self._stack[-1]
-            if not context.pop('subitem_prepared', False):
-                if context['size'] > 0:
-                    self.stream.write(',\n')  # trailing comma for previous item
-                context['size'] += 1
-        self._stack.append({'type': 'list', 'size': 0})
-        self.stream.write('[')
-
-    def end_list(self):
-        context = self._stack.pop()
-        if context['type'] != 'list':
-            raise AssertionError('Should be in a list, but context is {context}')
-        self.stream.write(']')
-
-    def start_dict(self):
-        if len(self._stack):
-            context = self._stack[-1]
-            if context['type'] == 'list':
-                if context['size'] == 0:
-                    self.stream.write('\n')  # trailing comma for previous item
-                else:
-                    self.stream.write(',\n')  # trailing comma for previous item
-                context['size'] += 1
-            elif context['type'] == 'dict':
-                # can only start an item inside a dict if a subitem
-                # has been preprated.
-                assert context.pop('subitem_prepared', False)
-        self._stack.append({'type': 'dict', 'size': 0})
-        self.stream.write('{')
-
-    def end_dict(self):
-        context = self._stack.pop()
-        assert context['type'] == 'dict'
-        if context['size'] > 0:
-            self.stream.write('\n')  # trailing comma for previous item
-        self.stream.write('}')
-
-    def start_subitem(self, key):
-        """
-        Start a streaming subitem inside of a dictionary
-
-        Can only be called if you are inside a dict context.
-        The next call must start a new container.
-        """
-        context = self._stack[-1]
-        assert context['type'] == 'dict'
-        if context['size'] == 0:
-            self.stream.write('\n')  # trailing comma for previous item
-        else:
-            self.stream.write(',\n')  # trailing comma for previous item
-        context['size'] += 1
-        self.stream.write(json_mod.dumps(key))
-        self.stream.write(': ')
-        context['subitem_prepared'] = True
-
-    def setitem(self, key, value):
-        """
-        Add an item to a dict context
-        """
-        context = self._stack[-1]
-        assert context['type'] == 'dict'
-        if context['size'] == 0:
-            self.stream.write('\n')
-        else:
-            self.stream.write(',\n')  # trailing comma for previous item
-        context['size'] += 1
-        self.stream.write(json_mod.dumps(key))
-        self.stream.write(': ')
-        self.stream.write(json_mod.dumps(value))
-
-    def append(self, item):
-        """
-        Add an item to a list context
-        """
-        context = self._stack[-1]
-        assert context['type'] == 'list'
-        if context['size'] > 0:
-            self.stream.write(',\n')  # trailing comma for previous item
-        context['size'] += 1
-        self.stream.write(json_mod.dumps(item))
 
 
 if __name__ == '__main__':
