@@ -348,7 +348,7 @@ def _upload(gc, parent_type, parent_id, local_folder,
 
 
 _short_help = 'List contents of a collection, folder, or item'
-_long_help = f'''
+_long_help = f"""
 
 {_common_help.replace('LOCAL_FOLDER', 'LOCAL_FOLDER (default: ".")')}
 
@@ -366,7 +366,7 @@ Examples:
     # List FILE: the paraview.png logo
     girder-client --api-url https://data.kitware.com/api/v1 list 647cfb97a71cc6eae69303b6
 
-'''.rstrip()
+""".rstrip()
 
 
 @main.command('list', short_help=_short_help, help=f'{_short_help}\n\n{_long_help}')
@@ -380,17 +380,14 @@ Examples:
               help='if True output machine readable json')
 @click.pass_obj
 def _list(gc, parent_type, parent_id, limit, offset, json):
-
-    """
-    TODO / DISCUSS:
-        Possible extensions:
-            - [ ] Allow user to specify columns of interested (e.g. sha512 if
-                  available)
-            - [ ] Allow query-by-name rather than by id?
-            - [ ] Show folder tree structure?
-            - [X] Emit proper machine readable json
-            - [X] Show the name of the parent item/folder/collection?
-    """
+    # TODO / DISCUSS:
+    #     Possible extensions:
+    #         - [ ] Allow user to specify columns of interested (e.g. sha512 if
+    #               available)
+    #         - [ ] Allow query-by-name rather than by id?
+    #         - [ ] Show folder tree structure?
+    #         - [X] Emit proper machine readable json
+    #         - [X] Show the name of the parent item/folder/collection?
     if parent_type == 'auto':
         parent_type = _lookup_parent_type(gc, parent_id)
 
