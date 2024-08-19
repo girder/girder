@@ -446,7 +446,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
                 if self.shouldImportFile(obj['Key'], params):
                     item = Item().createItem(
-                        name=name, creator=user, folder=parent, reuseExisting=True)
+                        name=self.safeName(name), creator=user, folder=parent,
+                        reuseExisting=True)
                     events.trigger('s3_assetstore_imported', {
                         'id': item['_id'],
                         'type': 'item',
@@ -468,8 +469,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
                 name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
                 folder = Folder().createFolder(
-                    parent=parent, name=name, parentType=parentType, creator=user,
-                    reuseExisting=True)
+                    parent=parent, name=self.safeName(name),
+                    parentType=parentType, creator=user, reuseExisting=True)
 
                 events.trigger('s3_assetstore_imported', {
                     'id': folder['_id'],
