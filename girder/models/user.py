@@ -469,8 +469,9 @@ class User(AccessControlledModel):
             'user': user,
             'url': url
         })
+        brandName = Setting().get(SettingKey.BRAND_NAME)
         mail_utils.sendMailToAdmins(
-            'Girder: Account pending approval',
+            f'{brandName}: Account pending approval',
             text)
 
     def _sendApprovedEmail(self, user):
