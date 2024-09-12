@@ -354,6 +354,7 @@ class Job(AccessControlledModel):
                 'overwrite': overwrite,
                 'status': status,
                 'progressTotal': progressTotal,
+                'progressCurrent': progressCurrent,
                 'progressMessage': progressMessage,
                 'otherFields': otherFields
             }
