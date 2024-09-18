@@ -18,11 +18,13 @@ if not hasattr(pymongo.cursor.Cursor, 'count'):
             stacklevel=2,
         )
         params = {}
-        if with_limit_and_skip and self._Cursor__limit:
-            params['limit'] = self._Cursor__limit
-        if with_limit_and_skip and self._Cursor__skip:
-            params['skip'] = self._Cursor__skip
-        return self._Cursor__collection.count_documents(self._Cursor__spec, **params)
+        if with_limit_and_skip and getattr(self, '_limit', getattr(self, '_Cursor__limit', None)):
+            params['limit'] = getattr(self, '_limit', getattr(self, '_Cursor__limit', None))
+        if with_limit_and_skip and getattr(self, '_skip', getattr(self, '_Cursor__skip', None)):
+            params['skip'] = getattr(self, '_skip', getattr(self, '_Cursor__skip', None))
+        return getattr(self, '_collection', getattr(
+            self, '_Cursor__collection', None)).count_documents(
+                getattr(self, '_spec', getattr(self, '_Cursor__spec', None)), **params)
 
     pymongo.cursor.Cursor.count = _cursorCount
 
