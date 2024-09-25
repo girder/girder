@@ -330,6 +330,12 @@ class FileTestCase(base.TestCase):
                     break
             return buf
 
+        if file['size'] > 0:
+            Setting().set(SettingKey.FILEHANDLE_MAX_SIZE, 0)
+            with File().open(file) as handle:
+                self.assertRaises(GirderException, handle.read)
+            Setting().unset(SettingKey.FILEHANDLE_MAX_SIZE)
+
         # Test reading via the model layer file-like API
         contents = contents.encode('utf8')
         with File().open(file) as handle:
