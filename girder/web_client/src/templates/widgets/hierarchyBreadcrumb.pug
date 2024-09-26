@@ -1,15 +1,15 @@
 <!-- Path/Breadcrumbs -->
 <div class="flex flex-grow">
   <div class="flex items-center p-1">
-      <div class="group relative">
-          if links.length > 0
-            <div class="absolute bg-zinc-800 bg-opacity-80 px-2 py-1 text-white left-1/2 -translate-x-1/2 bottom-full z-100 rounded-md mb-[2px] text-sm whitespace-nowrap htk-hidden group-hover:block">
-                | Go up one level
-            </div>
-            <button class="g-hierarchy-level-up htk-btn htk-btn-ghost htk-btn-secondary htk-btn-sm htk-btn-icon">
-                <i class="ri-corner-left-up-line text-base"></i>
-            </button>
-      </div>
+    <div class="group relative">
+      if links.length > 0
+        <div class="absolute bg-zinc-800 bg-opacity-80 px-2 py-1 text-white left-1/2 -translate-x-1/2 bottom-full z-100 rounded-md mb-[2px] text-sm whitespace-nowrap htk-hidden group-hover:block">
+          | Go up one level
+        </div>
+        <button class="g-hierarchy-level-up htk-btn htk-btn-ghost htk-btn-secondary htk-btn-sm htk-btn-icon">
+          <i class="ri-corner-left-up-line text-base"></i>
+        </button>
+    </div>
   </div>
 
   <ol class="flex items-center whitespace-nowrap h-full">
@@ -44,31 +44,31 @@
 
       if current.resourceName === 'folder' || current.resourceName === 'collection'
         <li class="g-description-preview inline-flex items-center">
-            <div class="group relative">
-                <div class="absolute bg-zinc-800 bg-opacity-80 px-2 py-1 text-white left-1/2 -translate-x-1/2 bottom-full z-100 rounded-md mb-[2px] text-sm whitespace-nowrap htk-hidden group-hover:block">
-                    | Show info
-                </div>
-                <button class="rounded-full hover:bg-zinc-200 px-1 text-zinc-500 hover:text-zinc-700">
-                    <div class="ri-information-line"></div>
-                </button>
+          <div class="group relative">
+            <div class="absolute bg-zinc-800 bg-opacity-80 px-2 py-1 text-white left-1/2 -translate-x-1/2 bottom-full z-100 rounded-md mb-[2px] text-sm whitespace-nowrap htk-hidden group-hover:block">
+              | Show info
             </div>
-        </li>
-    </ol>
+            <button class="rounded-full hover:bg-zinc-200 px-1 text-zinc-500 hover:text-zinc-700">
+              <div class="ri-information-line"></div>
+            </button>
+          </div>
+      </li>
+  </ol>
 </div>
 
 <!-- Current Directory Information -->
 <ul class="flex items-center">
+  <li class="flex items-baseline text-sm px-3 py-1">
+    <i class="ri-folder-6-line text-base mr-1"></i>
+    <span>
+      <span class="g-subfolder-count"></span> <span class="text-xs text-zinc-400">folder(s)</span>
+    </span>
+  </li>
+  if current.resourceName === 'folder'
     <li class="flex items-baseline text-sm px-3 py-1">
-        <i class="ri-folder-6-line text-base mr-1"></i>
-        <span>
-            <span class="g-subfolder-count"></span> <span class="text-xs text-zinc-400">folder(s)</span>
-        </span>
+      <i class="ri-file-3-line text-base mr-1"></i>
+      <span>
+        <span class="g-item-count"></span> <span class="text-xs text-zinc-400">item(s)</span>
+      </span>
     </li>
-    if current.resourceName === 'folder'
-      <li class="flex items-baseline text-sm px-3 py-1">
-          <i class="ri-file-3-line text-base mr-1"></i>
-          <span>
-              <span class="g-item-count"></span> <span class="text-xs text-zinc-400">item(s)</span>
-          </span>
-      </li>
 </ul>
