@@ -47,9 +47,9 @@
     @layer base {
         :root {
             /* User-defined hex values */
-            --primary: #EB1700;
-            --secondary: #EB1700;
-            --accent: #EB1700;
+            --primary: ${bannerColor};
+            --secondary: ${bannerColor};
+            --accent: ${bannerColor};
         }
 
         body {
