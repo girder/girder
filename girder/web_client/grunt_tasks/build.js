@@ -188,7 +188,7 @@ module.exports = function (grunt) {
                         from: 'static/extras',
                         to: path.join(grunt.config.get('builtPath'), 'extras'),
                         toType: 'dir'
-                    }]),
+                    }])
                 ]
             }
         },
