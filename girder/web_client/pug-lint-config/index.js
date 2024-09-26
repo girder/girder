@@ -3,7 +3,7 @@ module.exports = {
     disallowClassAttributeWithStaticValue: true,
     disallowClassLiteralsBeforeIdLiterals: true,
     disallowDuplicateAttributes: true,
-    // disallowHtmlText: true,
+    disallowHtmlText: true,
     disallowIdAttributeWithStaticValue: true,
     disallowLegacyMixinCall: true,
     disallowMultipleLineBreaks: true,
