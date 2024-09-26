@@ -48,7 +48,7 @@ var LayoutHeaderView = View.extend({
         this.$el.html(LayoutHeaderTemplate({
             brandName: this.brandName,
             bannerColor: this.bannerColor,
-            textColor: textColor
+            hash: Backbone.history.location.hash,
         }));
         this.userView.setElement(this.$('.g-current-user-wrapper')).render();
         if (textColor !== '#ffffff') {

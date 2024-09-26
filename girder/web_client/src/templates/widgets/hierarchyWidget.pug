@@ -1,88 +1,102 @@
-.g-hierarchy-widget
-  .g-hierarchy-breadcrumb-bar
-    ol.breadcrumb
-  if showActions
-    .g-hierarchy-actions-header
-      if checkboxes
-        input.g-select-all(type="checkbox", title="Select / Unselect all")
+<div class="g-hierarchy-widget">
+  <div class="mb-3">
+    <div class="g-hierarchy-breadcrumb-bar flex bg-zinc-100 border border-b-0 border-zinc-300 rounded-t-lg min-h-10"></div>
+    if showActions
+      .g-hierarchy-actions-header
+        <div class="flex border border-zinc-300 bg-zinc-200 rounded-b-lg min-h-10">
+          <!-- Inputs -->
+          <div class="flex flex-grow items-center p-1 space-x-1">
+            if checkboxes
+              input.g-select-all(type="checkbox", style="margin: 0 !important", title="Select / Unselect all")
+              <div class="g-checked-actions group relative inline-block text-left">
+                  <div class="absolute bg-zinc-800 bg-opacity-80 px-2 py-1 text-white left-1/2 -translate-x-1/2 bottom-full rounded-md mb-[2px] text-sm whitespace-nowrap htk-hidden group-hover:block">
+                      | Checked actions
+                  </div>
+                  <div class="group relative inline-block text-left">
+                    <button class="g-checked-actions-button dropdown-toggle hover:bg-zinc-300 px-2 py-1 rounded-md tracking-tighter text-lg flex items-center focus:outline-none" data-toggle="dropdown" disabled aria-haspopup="true" aria-expanded="true">
+                      <i class="ri-arrow-down-s-line text-base text-zinc-400 group-hover:text-zinc-600"></i>
+                    </button>
+                    <div class="g-checked-actions-menu dropdown-menu pull-left htk-hidden p-1 bg-white absolute mt-2 min-w-80 right-0 rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-10"></div>
+                  </div>
+              </div>
+          </div>
 
-        .btn-group
-          button.g-checked-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
-            data-toggle="dropdown", disabled="disabled", title="Checked actions")
-            i.icon-check
-            i.icon-down-dir
-          ul.g-checked-actions-menu.dropdown-menu(role="menu")
+          <div class="g-folder-header-buttons flex items-center p-1 space-x-1">
+            if (type === 'folder')
+              if (level >= AccessType.WRITE)
+                <div class="group relative">
+                  <div class="absolute bg-zinc-800 bg-opacity-80 px-2 py-1 text-white left-1/2 -translate-x-1/2 bottom-full rounded-md mb-[2px] text-sm whitespace-nowrap htk-hidden group-hover:block">
+                    | Upload here
+                  </div>
+                  <button class="g-upload-here-button hover:bg-zinc-300 px-2 py-1 rounded-md tracking-wider uppercase text-lg">
+                    <i class="ri-upload-line"></i>
+                  </button>
+                </div>
+              if (level >= AccessType.ADMIN)
+                <div class="group relative">
+                  <div class="absolute bg-zinc-800 bg-opacity-80 px-2 py-1 text-white left-1/2 -translate-x-1/2 bottom-full rounded-md mb-[2px] text-sm whitespace-nowrap htk-hidden group-hover:block">
+                    | Access control
+                  </div>
+                  <button class="g-edit-access hover:bg-zinc-300 px-2 py-1 rounded-md tracking-wider uppercase text-lg">
+                    <i class="ri-lock-line"></i>
+                  </button>
+                </div>
+            else if (type === 'collection')
+              if (level >= AccessType.ADMIN)
+                <div class="group relative">
+                  <div class="absolute bg-zinc-800 bg-opacity-80 px-2 py-1 text-white left-1/2 -translate-x-1/2 bottom-full rounded-md mb-[2px] text-sm whitespace-nowrap htk-hidden group-hover:block">
+                    | Access control
+                  </div>
+                  <button class="g-edit-access hover:bg-zinc-300 px-2 py-1 rounded-md tracking-wider uppercase text-lg">
+                    <i class="ri-lock-line"></i>
+                  </button>
+                </div>
 
-      .g-folder-header-buttons
-        if (type === 'folder')
-          button.g-folder-info-button.btn.btn-sm.btn-info(title="Show folder info")
-            i.icon-info
-          if (level >= AccessType.WRITE)
-            button.g-upload-here-button.btn.btn-sm.btn-success(title="Upload here")
-              i.icon-upload
-          if (level >= AccessType.ADMIN)
-            button.g-folder-access-button.g-edit-access.btn.btn-sm.btn-warning(title="Access control")
-              i.icon-lock
-        else if (type === 'collection')
-          button.g-collection-info-button.btn.btn-sm.btn-info(title="Show collection info")
-            i.icon-info
-          if (level >= AccessType.ADMIN)
-            button.g-edit-access.btn.btn-sm.btn-warning(title="Access control")
-              i.icon-lock
-        .btn-group
-          button.g-folder-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
-              data-toggle="dropdown", title=`${capitalize(type)} actions`)
-            if type === 'collection'
-              i.icon-sitemap
-            else if type === 'user'
-              i.icon-user
-            else if type === 'folder'
-              i.icon-folder-open
-            i.icon-down-dir
-          ul.g-folder-actions-menu.dropdown-menu.pull-right(role="menu")
-            li.dropdown-header(role="presentation")
-              if type === 'collection'
-                i.icon-sitemap
-              else if type === 'user'
-                i.icon-user
-              else if type === 'folder'
-                i.icon-folder-open
-              |  #{model.name()}
-            if type === 'folder' || type === 'collection'
-              li(role="presentation")
-                a.g-download-folder(role="menuitem", href=model.downloadUrl())
-                  i.icon-download
-                  | Download #{type}
-            if level >= AccessType.WRITE
-              li(role="presentation")
-                a.g-create-subfolder(role="menuitem")
-                  i.icon-folder
-                  | Create folder here
-              if type === 'folder' || type === 'collection'
-                if type === 'folder'
-                  li(role="presentation")
-                    a.g-create-item(role="menuitem")
-                      i.icon-doc
-                      | Create item here
-                li(role="presentation")
-                  a.g-edit-folder(role="menuitem")
-                    i.icon-edit
-                    | Edit #{type}
-            if level >= AccessType.ADMIN && (type === 'folder' || type === 'collection')
-              li.divider(role="presentation")
-              li(role="presentation")
-                a.g-delete-folder(role="menuitem")
-                  i.icon-trash
-                  | Delete this #{type}
-      .g-clear-right
-  if onFolderSelect
-    .g-select-folder-container
-      ul.g-folder-list
-        li.g-folder-list-entry(public='true')
-          button.g-select-folder.btn.btn-sm.btn-info
-            i.icon-folder
-            |  Select this #{type}.
-            i.icon-right-dir
+            <div class="group relative inline-block text-left">
+              <button class="g-folder-actions-button dropdown-toggle hover:bg-zinc-300 px-2 py-1 rounded-md tracking-tighter uppercase text-lg flex items-center focus:outline-none" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                <i class="ri-menu-line"></i>
+              </button>
+              <div class=".g-folder-actions-menu dropdown-menu pull-right htk-hidden p-1 bg-white absolute mt-2 min-w-48 right-0 rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-10">
+                if type === 'folder' || type === 'collection'
+                  <a class="g-download-folder text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md" href="#{model.downloadUrl()}">
+                    <i class="ri-download-line pr-2"></i>
+                    | Download #{type}
+                  </a>
+                if level >= AccessType.WRITE
+                  <a class="g-create-subfolder text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
+                    <i class="ri-folder-add-line pr-2"></i>
+                    | Create folder here
+                  </a>
+                  if type === 'folder' || type === 'collection'
+                    if type === 'folder'
+                      <a class="g-create-item text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
+                        <i class="ri-file-add-line pr-2"></i>
+                        | Create item here
+                      </a>
+                    <a class="g-edit-folder text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
+                      <i class="ri-pencil-line pr-2"></i>
+                      | Edit #{type}
+                    </a>
+                if level >= AccessType.ADMIN && (type === 'folder' || type === 'collection')
+                  <a class="g-delete-folder text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
+                    <i class="ri-delete-bin-line pr-2"></i>
+                    | Delete this #{type}
+                  </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+    if onFolderSelect
+      .g-select-folder-container
+        ul.g-folder-list
+          li.g-folder-list-entry(public='true')
+            button.g-select-folder.btn.btn-sm.btn-info
+              i.icon-folder
+              |  Select this #{type}.
+              i.icon-right-dir
+  </div>
+
   .g-folder-list-container
   .g-item-list-container
   .g-empty-parent-message.g-info-message-container.hide
@@ -92,5 +106,7 @@
     else
       |  This folder is empty.
   .g-hierarachy-paginated-bar
+</div>
+
 if showMetadata
   .g-folder-metadata

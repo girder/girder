@@ -183,7 +183,12 @@ module.exports = function (grunt) {
                         from: 'static/img/Girder_Favicon.png',
                         to: grunt.config.get('builtPath'),
                         toType: 'dir'
-                    }])
+                    }]),
+                    new CopyWebpackPlugin([{
+                        from: 'static/extras',
+                        to: path.join(grunt.config.get('builtPath'), 'extras'),
+                        toType: 'dir'
+                    }]),
                 ]
             }
         },

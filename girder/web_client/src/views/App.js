@@ -2,6 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 import 'typeface-open-sans';
+import 'remixicon/fonts/remixicon.css';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap/js/alert';
 import '@girder/fontello/dist/css/animation.css';
@@ -188,7 +189,11 @@ var App = View.extend({
         }
         this.$el.html(LayoutTemplate());
 
-        this.globalNavView.setElement(this.$('#g-global-nav-container')).render();
+        // Only show side navigation if logged in as an admin
+        if (getCurrentUser() && getCurrentUser().get('admin')) {
+            this.globalNavView.setElement(this.$('#g-global-nav-container')).render();
+        }
+
         this.headerView.setElement(this.$('#g-app-header-container')).render();
         this.footerView.setElement(this.$('#g-app-footer-container')).render();
         this.progressListView.setElement(this.$('#g-app-progress-container')).render();
@@ -204,6 +209,9 @@ var App = View.extend({
      */
     navigateTo: function (view, settings, opts) {
         this.globalNavView.deactivateAll();
+
+        // Header changes based on navigation
+        this.headerView.render();
 
         settings = settings || {};
         opts = opts || {};
@@ -346,6 +354,9 @@ var App = View.extend({
         var route = splitRoute(Backbone.history.fragment).base;
         Backbone.history.fragment = null;
         eventStream.close();
+
+        // May need to show or hide side nav based on user
+        this.render();
 
         if (getCurrentUser()) {
             eventStream.open();

@@ -288,10 +288,10 @@ var HierarchyWidget = View.extend({
                     this.$('.g-hierarachy-paginated-bar').addClass('g-hierarchy-sticky');
                     this.$('.g-hierarchy-breadcrumb-bar').css({ top: 0 });
                     this.$('.g-hierarachy-paginated-bar').css({ bottom: 0 });
-                    this.$('.g-hierarachy-paginated-bar').removeClass('hidden');
+                    this.$('.g-hierarachy-paginated-bar').removeClass('htk-hidden');
                 } else {
                     // We remove the bar if the current folder doesn't have more than one page, keep the sticky breadcrumb though
-                    this.$('.g-hierarachy-paginated-bar').addClass('hidden');
+                    this.$('.g-hierarachy-paginated-bar').addClass('htk-hidden');
                 }
             });
             // Only emitted when there is more than one page of data
@@ -351,12 +351,12 @@ var HierarchyWidget = View.extend({
             itemFilter: this._itemFilter
         }));
 
-        if (this.$('.g-folder-actions-menu>li>a').length === 0) {
-            // Disable the actions button if actions list is empty
-            this.$('.g-folder-actions-button').girderEnable(false);
-        }
+        // if (this.$('.g-folder-actions-menu>a').length === 0) {
+        //     // Disable the actions button if actions list is empty
+        //     this.$('.g-folder-actions-button').girderEnable(false);
+        // }
 
-        this.breadcrumbView.setElement(this.$('.g-hierarchy-breadcrumb-bar>ol')).render();
+        this.breadcrumbView.setElement(this.$('.g-hierarchy-breadcrumb-bar')).render();
         this.checkedMenuWidget.dropdownToggle = this.$('.g-checked-actions-button');
         this.checkedMenuWidget.setElement(this.$('.g-checked-actions-menu')).render();
         this.folderListView.setElement(this.$('.g-folder-list-container')).render();

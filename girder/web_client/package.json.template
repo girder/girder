@@ -28,6 +28,7 @@
         "nib": "^1.1.2",
         "pug": "^2.0.0-rc.3",
         "pug-loader": "^2.3.0",
+        "remixicon": "^4.3.0",
         "style-loader": "^0.13.2",
         "stylus": "^0.54.5",
         "stylus-loader": "^3.0.1",
