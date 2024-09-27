@@ -1,8 +1,4 @@
 <div class="g-header-wrapper text-center h-shadow bg-white">
-
-  //- form.g-quick-search-form(role="form")
-  //-   .form-group.g-quick-search-container
-
   <ul class="flex flex-wrap -mb-px h-full text-sm">
     <li class="g-app-title text-primary"> #{brandName} </li>
     - var tab = hash.startsWith('#collection') || hash.startsWith('#item') || hash.startsWith('#folder') ? 'explorer' : 'home';
@@ -13,6 +9,11 @@
     </li>
     <li class="h-full flex items-center border-b-2 #{tab == 'explorer' ? activeClass : inactiveClass}">
       <a href="/#collections" class="inline-block px-4 active" aria-current="page">Image Explorer</a>
+    </li>
+    <li>
+      <form class="g-quick-search-form ml-8" role="form">
+        <div class="form-group g-quick-search-container"></div>
+      </form>
     </li>
     <li class="g-current-user-wrapper ml-auto"></li>
     <li class="g-clear-both"></li>
