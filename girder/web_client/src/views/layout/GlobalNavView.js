@@ -52,27 +52,22 @@ var LayoutGlobalNavView = View.extend({
     },
 
     render: function () {
-        var navItems;
+        var navItems = [];
         if (this.navItems) {
             navItems = this.navItems;
-        } else {
-            navItems = this.defaultNavItems;
-            if (getCurrentUser()) {
-                // copy navItems so that this.defaultNavItems is unchanged
-                navItems = navItems.slice();
-                navItems.push({
-                    name: 'Users',
-                    icon: 'icon-user',
-                    target: 'users'
-                });
-                if (getCurrentUser().get('admin')) {
-                    navItems.push({
-                        name: 'Admin console',
-                        icon: 'icon-wrench',
-                        target: 'admin'
-                    });
-                }
-            }
+        } else if (getCurrentUser() && getCurrentUser().get('admin')) {
+            // copy navItems so that this.defaultNavItems is unchanged
+            navItems = this.defaultNavItems.slice();
+            navItems.push({
+                name: 'Users',
+                icon: 'icon-user',
+                target: 'users'
+            });
+            navItems.push({
+                name: 'Admin console',
+                icon: 'icon-wrench',
+                target: 'admin'
+            });
         }
         this.$el.html(LayoutGlobalNavTemplate({
             navItems: navItems
