@@ -16,7 +16,7 @@ For questions, comments, or to get in touch with the maintainers, head to our `D
 
 We'd love for you to `contribute to Girder <CONTRIBUTING.rst>`_.
 
-.. |logo| image:: girder/web_client/static/img/Girder_Favicon.png
+.. |logo| image:: girder/web/public/Girder_Favicon.png
 
 .. |kitware-logo| image:: https://www.kitware.com/main/wp-content/uploads/2021/10/Kitware-Wordmark.svg
     :target: https://kitware.com
