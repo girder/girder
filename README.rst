@@ -3,9 +3,8 @@
 
 **Data Management Platform**
 
-Girder is a free and open source web-based data management platform developed by
-`Kitware <https://kitware.com>`_ as part of the `Resonant <http://resonant.kitware.com>`_
-data and analytics ecosystem.
+Girder is a free and open source web-based data management platform, developed by
+`Kitware <https://kitware.com>`_.
 
 |kitware-logo|
 
