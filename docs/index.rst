@@ -1,7 +1,7 @@
 Girder: a data management platform
 ==================================
 
-|build-status| |license-badge| |discourse-badge| |codecov-badge| |github-badge|
+|build-status| |license-badge| |codecov-badge| |github-badge|
 
 .. |build-status| image:: https://circleci.com/gh/girder/girder.png?style=shield
     :target: https://circleci.com/gh/girder/girder
@@ -18,10 +18,6 @@ Girder: a data management platform
 .. |github-badge| image:: https://img.shields.io/github/stars/girder/girder.svg?style=social&label=GitHub
     :target: https://github.com/girder/girder
     :alt: GitHub
-
-.. |discourse-badge| image:: https://img.shields.io/badge/discourse-forum-blue.svg
-   :target: https://discourse.girder.org
-   :alt: Discourse
 
 
 What is Girder?
