@@ -27,9 +27,8 @@ Girder: a data management platform
 What is Girder?
 ---------------
 
-Girder is a free and open source web-based **data management platform** developed by
-`Kitware <http://www.kitware.com/>`_ as part of the
-`Resonant data and analytics ecosystem <http://resonant.kitware.com/>`_. What does
+Girder is a free and open source web-based **data management platform**, developed by
+`Kitware <http://www.kitware.com/>`_. What does
 that mean? Girder is both a standalone application and a platform for building new web
 services. It's meant to enable quick and easy construction of web applications
 that have some or all of the following requirements:
