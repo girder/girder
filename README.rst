@@ -11,7 +11,7 @@ Girder is a free and open source web-based data management platform, developed b
 Documentation of the Girder platform can be found at
 https://girder.readthedocs.io.
 
-For questions, comments, or to get in touch with the maintainers, head to our `Discourse forum <https://discourse.girder.org>`_.
+For questions, comments, or to get in touch with the maintainers, head to our `Discussion forum <https://github.com/orgs/girder/discussions>`_.
 
 We'd love for you to `contribute to Girder <CONTRIBUTING.rst>`_.
 
