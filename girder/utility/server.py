@@ -102,7 +102,7 @@ def staticFile(path, contentType=None):
     :param path: The path of the static file to serve from this route.
     :type path: str
     :param contentType: The MIME type of the static file. If set to None, the
-                        content type wll be guessed by the file extension of
+                        content type will be guessed by the file extension of
                         the 'path' argument.
     """
     return _StaticFileRoute(path, contentType)

@@ -37,7 +37,7 @@ installReqs = [
     'jsonschema',
     'Mako',
     'passlib [bcrypt,totp]',
-    'pymongo>=3.6,<4',
+    'pymongo>=4',
     'PyYAML',
     'psutil',
     'pyOpenSSL',

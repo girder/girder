@@ -8,6 +8,7 @@ import json
 import logging
 import posixpath
 import pymongo
+import pymongo.command_cursor
 import sys
 import traceback
 import types

@@ -325,7 +325,7 @@ var ItemListWidget = View.extend({
                 }
             };
 
-            // Add in scroll event to monitor the scrollPos to prevent uncessary updates and also kill observer when user scrolls
+            // Add in scroll event to monitor the scrollPos to prevent unnecessary updates and also kill observer when user scrolls
             widgetcontainer.bind('scroll.observerscroll', (evt) => {
                 if (this.tempScrollPos !== undefined && this.tempScrollPos !== widgetcontainer[0].scrollTop) {
                     this.tempScrollPos = widgetcontainer[0].scrollTop;

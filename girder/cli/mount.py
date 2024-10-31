@@ -171,6 +171,9 @@ class ServerFuse(fuse.Operations):
         # '/user', and 'collection' before calling this method.
         if '/' not in path.rstrip('/')[1:]:
             raise fuse.FuseOSError(errno.ENOENT)
+        flat = path.startswith('/flat')
+        if flat:
+            path = path[5:]
         try:
             # We can't filter the resource, since that removes files'
             # assetstore information and users' size information.
@@ -183,7 +186,23 @@ class ServerFuse(fuse.Operations):
         except Exception:
             logger.exception('ServerFuse server internal error')
             raise fuse.FuseOSError(errno.EROFS)
+        if flat and resource['model'] == 'item':
+            file = self._flatItemFile(resource['document'])
+            if file is not None:
+                file['name'] = resource['document']['name']
+                resource = {
+                    'model': 'file',
+                    'document': file,
+                }
         return resource   # {model, document}
+
+    def _flatItemFile(self, item):
+        return next(File().collection.aggregate([
+            {'$match': {'itemId': item['_id']}},
+            {'$addFields': {'matchName': {'$eq': ['$name', item['name']]}}},
+            {'$sort': {'matchName': -1, '_id': 1}},
+            {'$limit': 1},
+        ]), None)
 
     def _stat(self, doc, model):
         """
@@ -293,7 +312,8 @@ class ServerFuse(fuse.Operations):
         :returns: 0 if access is allowed.  An exception is raised if it is
             not.
         """
-        if path.rstrip('/') in ('', '/user', '/collection'):
+        if path.rstrip('/') in (
+                '', '/user', '/collection', '/flat', '/flat/user', '/flat/collection'):
             return super().access(path, mode)
         # mode is either F_OK or a bitfield of R_OK, W_OK, X_OK
         return 0
@@ -323,7 +343,8 @@ class ServerFuse(fuse.Operations):
             specified.
         :returns: an attribute dictionary.
         """
-        if path.rstrip('/') in ('', '/user', '/collection'):
+        if path.rstrip('/') in (
+                '', '/user', '/collection', '/flat', '/flat/user', '/flat/collection'):
             attr = self._defaultStat.copy()
             attr['st_mode'] = 0o500 | stat.S_IFDIR
             attr['st_size'] = 0
@@ -422,9 +443,16 @@ class ServerFuse(fuse.Operations):
         path = path.rstrip('/')
         result = ['.', '..']
         if path == '':
-            result.extend(['collection', 'user', 'stats'])
+            result.extend(['collection', 'user', 'stats', 'flat'])
+        elif path == '/flat':
+            result.extend(['collection', 'user'])
         elif path in ('/user', '/collection'):
             model = path[1:]
+            docList = ModelImporter.model(model).find({}, sort=None)
+            for doc in docList:
+                result.append(self._name(doc, model))
+        elif path in ('/flat/user', '/flat/collection'):
+            model = path[6:]
             docList = ModelImporter.model(model).find({}, sort=None)
             for doc in docList:
                 result.append(self._name(doc, model))
@@ -663,8 +691,12 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
                 continue
             options[key] = value
     opClass = ServerFuse(stat=os.stat(path), options=options)
-    Setting().set(SettingKey.GIRDER_MOUNT_INFORMATION,
-                  {'path': path, 'mounttime': time.time()})
+    Setting().set(SettingKey.GIRDER_MOUNT_INFORMATION, {
+        'path': path,
+        'mounttime': time.time(),
+        'hasStats': True,
+        'hasFlat': True,
+    })
     FUSELogError(opClass, path, **options)
 
 

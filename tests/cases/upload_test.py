@@ -329,7 +329,7 @@ class UploadTestCase(base.TestCase):
 
         def waitForCondition(*args, **kwargs):
             # Single that we are in the event and then wait to be told that
-            # the delete has occured before returning.
+            # the delete has occurred before returning.
             with conditionInEvent:
                 conditionInEvent.notify()
             with conditionRemoveDone:

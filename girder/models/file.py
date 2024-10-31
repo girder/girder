@@ -485,19 +485,34 @@ class File(acl_mixin.AccessControlMixin, Model):
         """
         return self.getAssetstoreAdapter(file).open(file)
 
-    def getGirderMountFilePath(self, file, validate=True):
+    def getGirderMountFilePath(self, file, validate=True, preferFlat=False):
         """
-        If possible, get the path of the file on a local girder mount.
+        If possible, get the path of the file on a local girder mount.  Flat
+        paths exclude the item component, which, for some types of access of
+        relative paths can be preferred.
 
         :param file: The file document.
         :param validate: if True, check if the path exists and raise an
             exception if it does not.
+        :param preferFlat: if True and the mount supports it, return the flat
+            path that doesn't include item information.
         :returns: a girder mount path to the file or None if no such path is
             available.
         """
         mount = Setting().get(SettingKey.GIRDER_MOUNT_INFORMATION)
         if mount:
-            path = mount['path'].rstrip('/') + path_util.getResourcePath('file', file, force=True)
+            resPath = path_util.getResourcePath('file', file, force=True)
+            path = os.path.join(mount['path'], resPath.lstrip('/'))
+            if preferFlat and mount.get('hasFlat'):
+                flatpath = os.path.join(mount['path'], 'flat', os.path.dirname(resPath).lstrip('/'))
+                # An item can have multiple files, while flatten returns the
+                # "first" file, which might not be the file that was requested.
+                # Perform a simple size check to verify it is the file
+                # requested.  This happens even if validation is False.
+                if (
+                        os.path.exists(path) and os.path.exists(flatpath)
+                        and os.path.getsize(path) == os.path.getsize(flatpath)):
+                    return flatpath
             if not validate or os.path.exists(path):
                 return path
         if validate:

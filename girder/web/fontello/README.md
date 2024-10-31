@@ -28,7 +28,7 @@ import '@girder/fontello/dist/css/animation.css';
 To add new icons to this build, visit
 [Fontello's website](https://fontello.com) and upload the
 `fontello.config.json` file within this package. Select new icons
-(but don't remove any), then download the new confguration via the site
+(but don't remove any), then download the new configuration via the site
 and overwrite `fontello.config.json` here. Then, just run:
 ```bash
 npm install && npm run build

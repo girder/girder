@@ -32,6 +32,7 @@ class SettingKey:
     EMAIL_VERIFICATION = 'core.email_verification'
     ENABLE_NOTIFICATION_STREAM = 'core.enable_notification_stream'
     ENABLE_PASSWORD_LOGIN = 'core.enable_password_login'
+    FILEHANDLE_MAX_SIZE = 'core.filehandle_max_size'
     GIRDER_MOUNT_INFORMATION = 'core.girder_mount_information'
     PRIVACY_NOTICE = 'core.privacy_notice'
     REGISTRATION_POLICY = 'core.registration_policy'
@@ -81,6 +82,7 @@ class SettingDefault:
         SettingKey.EMAIL_VERIFICATION: 'disabled',
         SettingKey.ENABLE_NOTIFICATION_STREAM: True,
         SettingKey.ENABLE_PASSWORD_LOGIN: True,
+        SettingKey.FILEHANDLE_MAX_SIZE: 1024 * 1024 * 16,
         SettingKey.GIRDER_MOUNT_INFORMATION: None,
         SettingKey.PRIVACY_NOTICE: 'https://www.kitware.com/privacy',
         SettingKey.REGISTRATION_POLICY: 'open',
@@ -266,6 +268,18 @@ class SettingValidator:
     def _validateEnablePasswordLogin(doc):
         if not isinstance(doc['value'], bool):
             raise ValidationException('Enable password login setting must be boolean.', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.FILEHANDLE_MAX_SIZE)
+    def _validateFilehandleMaxSize(doc):
+        try:
+            doc['value'] = int(doc['value'])
+            if doc['value'] >= 0:
+                return
+        except ValueError:
+            pass  # We want to raise the ValidationException
+        raise ValidationException(
+            'Maximum file size for filehandle must be an integer >= 0.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.GIRDER_MOUNT_INFORMATION)

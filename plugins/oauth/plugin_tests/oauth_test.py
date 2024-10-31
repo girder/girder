@@ -309,6 +309,7 @@ class OauthTest(base.TestCase):
             self.assertStatus(resp, 303)
             expr = re.compile(r'^http://localhost/\?girderToken=(\w+)#foo/bar$')
             self.assertRegex(resp.headers['Location'], expr)
+            self.assertTrue('girderToken' in resp.cookie)
 
             girderToken = expr.match(resp.headers['Location']).group(1)
             resp = self.request('/user/me', token=girderToken)

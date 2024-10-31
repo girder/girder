@@ -37,7 +37,7 @@ class FileHandle:
         self._pos = None
         # If a read is requested that is longer than the specified size, raise
         # an exception.  This prevents unbounded memory use.
-        self._maximumReadSize = 16 * 1024 * 1024
+        self._maximumReadSize = Setting().get(SettingKey.FILEHANDLE_MAX_SIZE)
 
         self.seek(0)
 
@@ -456,3 +456,16 @@ class AbstractAssetstoreAdapter:
         :rtype: str
         """
         raise FilePathException('This assetstore does not expose file paths')
+
+    def safeName(self, name):
+        """
+        Girder strips item and folder names of whitespace.  If we have a name
+        that will be affected, repalce the leading and trailing whitespace with
+        underscores.
+
+        :param name: The name to possibily modify.
+        :type name: str
+        :returns: a name that will not be altered by strip.
+        :rtype: str
+        """
+        return re.sub(r'^\s+|\s+$', lambda g: '_' * len(g.group()), name)

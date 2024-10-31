@@ -42,7 +42,7 @@ var TimelineWidget = View.extend({
      * @param [settings.segments=[]] A list of segments. Each element of the list
      *    should be an object with the following keys:
      *      - start: A number or timestamp representing
-     *      - end: A numer of timestamp representing the end of this segment.
+     *      - end: A number of timestamp representing the end of this segment.
      *      - [class]: A CSS class name to apply to the segment. Uses the
      *                 widget's defaultSegmentClass if this key is not set.
      *      - [tooltip]: A tooltip value for this segment. Tooltips containing the

@@ -135,12 +135,13 @@ class OAuth(Resource):
         if event.defaultPrevented:
             raise cherrypy.HTTPRedirect(redirect)
 
-        token = str(Token().createToken(user)['_id'])
+        token = Token().createToken(user)
+        token_id = str(token['_id'])
 
         # Set `girderToken` in the query params of the redirect URL
         parsed = urlparse(redirect)
         query_params = parse_qs(parsed.query)
-        query_params['girderToken'] = token
+        query_params['girderToken'] = token_id
         encoded_query_params = urlencode(query_params)
         updated_redirect = urlunparse((
             parsed.scheme,
@@ -150,5 +151,9 @@ class OAuth(Resource):
             encoded_query_params,
             parsed.fragment,
         ))
+
+        # The cookie is still used for e.g. file downloads. Send it from the server
+        # to support HttpOnly usage.
+        self.sendAuthTokenCookie(token=token)
 
         raise cherrypy.HTTPRedirect(updated_redirect)
