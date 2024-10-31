@@ -3,6 +3,7 @@ from girder_jobs.constants import JobStatus
 
 class CustomJobStatus:
     """The custom job status flags for the worker."""
+
     FETCHING_INPUT = 820
     CONVERTING_INPUT = 821
     CONVERTING_OUTPUT = 822

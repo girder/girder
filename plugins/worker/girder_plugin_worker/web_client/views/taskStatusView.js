@@ -13,10 +13,10 @@ var taskStatusView = View.extend({
             var row = e.target.parentElement;
             var workerName = row.childNodes[0].innerText;
             _.each(this.workers, (worker) => {
-                if (worker['name'] === workerName) {
+                if (worker.name === workerName) {
                     this.workerName = workerName;
-                    this.activeTaskList = worker['active'];
-                    this.reservedTaskList = worker['reserved'];
+                    this.activeTaskList = worker.active;
+                    this.reservedTaskList = worker.reserved;
                     this.render();
                 }
             });
@@ -76,16 +76,16 @@ var taskStatusView = View.extend({
         var pingTmp = null;
         _.each(workers, (worker) => {
             if (_.has(report[worker], 'ok')) {
-                reportTmp = report[worker]['ok'];
+                reportTmp = report[worker].ok;
             }
-            if (stats[worker]['total'] !== null) {
-                statsTmp = _.values(stats[worker]['total'])[0];
+            if (stats[worker].total !== null) {
+                statsTmp = _.values(stats[worker].total)[0];
             }
-            if (stats[worker]['pool'] !== null) {
-                concurrencyTmp = stats[worker]['pool']['max-concurrency'];
+            if (stats[worker].pool !== null) {
+                concurrencyTmp = stats[worker].pool['max-concurrency'];
             }
             if (_.has(ping[worker], 'ok')) {
-                pingTmp = ping[worker]['ok'];
+                pingTmp = ping[worker].ok;
             }
             this.workers.push({
                 'name': worker,
