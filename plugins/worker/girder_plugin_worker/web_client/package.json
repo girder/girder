@@ -1,0 +1,25 @@
+{
+    "name": "@girder/worker",
+    "version": "0.2.0",
+    "description": "Distributed offline processing engine built on celery.",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#remote-worker",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "type": "module",
+    "devDependencies": {
+        "@girder/core": "^5.0.0-beta.0",
+        "pug": "^3.0.3",
+        "stylus": "^0.63.0",
+        "vite": "^5.3.0"
+    },
+    "scripts": {
+        "build": "vite build",
+        "watch": "vite build --watch"
+    }
+}
