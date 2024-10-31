@@ -468,6 +468,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     progress.update(message=obj['Prefix'])
 
                 name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
+                # If there is already an item with the folder's name, append
+                # '/'.  This is what S3 does internally, allowing a folder and
+                # file to have the same name once stripped of the right /.
+                if parentType == 'folder' and Item().findOne({
+                    'folderId': parent['_id'],
+                    'name': self.safeName(name),
+                }):
+                    name = name + '/'
                 folder = Folder().createFolder(
                     parent=parent, name=self.safeName(name),
                     parentType=parentType, creator=user, reuseExisting=True)
