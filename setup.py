@@ -61,7 +61,7 @@ setup(
     name='girder',
     use_scm_version={'local_scheme': prerelease_local_scheme},
     setup_requires=[
-        'setuptools-scm',
+        'setuptools-scm<8.1.0',
     ],
     description='Web-based data management platform',
     long_description=readme,
