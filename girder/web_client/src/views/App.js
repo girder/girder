@@ -189,11 +189,7 @@ var App = View.extend({
         }
         this.$el.html(LayoutTemplate());
 
-        // Only show side navigation if logged in as an admin
-        if (getCurrentUser() && getCurrentUser().get('admin')) {
-            this.globalNavView.setElement(this.$('#g-global-nav-container')).render();
-        }
-
+        this.globalNavView.setElement(this.$('#g-global-nav-container')).render();
         this.headerView.setElement(this.$('#g-app-header-container')).render();
         this.footerView.setElement(this.$('#g-app-footer-container')).render();
         this.progressListView.setElement(this.$('#g-app-progress-container')).render();
