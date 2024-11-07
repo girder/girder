@@ -109,7 +109,6 @@ class FDReadStreamConnector(FDStreamConnector):
 
         :returns: The file descriptor for read(input) side of the connection.
         """
-
         return self.input.fileno()
 
     def read(self, n=65536):
@@ -316,8 +315,9 @@ class NamedPipeWriter(FileDescriptorWriter):
 
 
 class ChunkedTransferEncodingStreamWriter(StreamWriter):
-    def __init__(self, url, headers={}):
+    def __init__(self, url, headers=None):
         self._url = url
+        headers = headers or {}
 
         """
         Uses HTTP chunked transfer-encoding to stream a request body to a

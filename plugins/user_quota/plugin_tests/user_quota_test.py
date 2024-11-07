@@ -446,12 +446,21 @@ class QuotaTestCase(base.TestCase):
         self._setPolicy({'fileSizeQuota': None},
                         'user', self.user, self.admin)
         # useDefaultQuota can be True, False, None, yes, no, 0, 1.
-        valdict = {None: True, True: True, 'true': True, 1: True, 'True': True,
-                   False: False, 'false': False, 0: False, 'False': False}
-        for val in valdict:
-            self._setPolicy({'useQuotaDefault': val},
+        values = [
+            (None, True),
+            (True, True),
+            ('true', True),
+            (1, True),
+            ('True', True),
+            (False, False),
+            ('false', False),
+            (0, False),
+            ('False', False),
+        ]
+        for in_val, out_val in values:
+            self._setPolicy({'useQuotaDefault': in_val},
                             'user', self.user, self.admin,
-                            results={'useQuotaDefault': valdict[val]})
+                            results={'useQuotaDefault': out_val})
         self._setPolicy({'useQuotaDefault': 'not_a_boolean'}, 'user',
                         self.user, self.admin, error='Invalid useQuotaDefault')
         # the resource default values behave like fileSizeQuota

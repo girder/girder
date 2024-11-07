@@ -156,7 +156,7 @@ class CeleryTestEndpoints(Resource):
     @access.token
     @filtermodel(model='job', plugin='jobs')
     @describeRoute(
-        Description('Test girder client with no token can\'t access protected resources'))
+        Description("Test girder client with no token can't access protected resources"))
     def test_celery_girder_client_bad_token_fails(self, params):
         result = request_private_path.delay('admin', girder_client_token='')
 

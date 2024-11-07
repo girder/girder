@@ -71,6 +71,6 @@ class GirderSession(BaseUrlSession):
                 def on_timeout(j):
                     return 'Timed out waiting for %s' % 'job/%s' % j['_id']
 
-            warnings.warn(on_timeout(r.json()))
+            warnings.warn(on_timeout(r.json()), stacklevel=2)
 
         yield r.json()

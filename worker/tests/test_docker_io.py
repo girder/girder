@@ -136,7 +136,7 @@ def test_NamedPipe_throws_exception_for_missing_fifo_path(tmpdir):
     # Remove the FIFO
     os.remove(path)
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         np.open('FLAGS')
 
 
@@ -152,7 +152,7 @@ def test_NamedPipe_throws_exception_for_non_fifo_path(tmpdir):
     with open(path, 'w') as fh:
         fh.write('Test Data')
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         np.open('FLAGS')
 
 
@@ -164,7 +164,7 @@ def test_NamedPipe_throws_exception_for_non_readable_path(tmpdir):
     # permissions: --w--w----
     os.chmod(path, 0o220)
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         np.open(os.O_RDONLY)
 
 
@@ -279,7 +279,7 @@ def test_ChunkedTransferEncodingStreamWriter_close_raises_exceptions_on_bad_http
     with mock.patch('girder_worker.docker.io.httplib.HTTPConnection', autospec=True):
         s = ChunkedTransferEncodingStreamWriter('http://bogus.url.com/')
         with mock.patch.object(s.conn, 'getresponse', return_value=mock.MagicMock(status=ec)):
-            with pytest.raises(Exception):
+            with pytest.raises(Exception):  # noqa: B017
                 s.close()
                 s.conn.close.assert_called_once()
 

@@ -36,6 +36,7 @@ class GirderWorkerPluginABC:
     Abstract base class for Girder Worker plugins. Plugins must descend from this
     class; see the :ref:`plugins` section for more information.
     """
+
     def __init__(*args, **kwargs):
         pass
 

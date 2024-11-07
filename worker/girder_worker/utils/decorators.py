@@ -47,7 +47,7 @@ def argument(name, data_type, *args, **kwargs):
         data_type.set_parameter(sig.parameters[name], signature=sig)
         args.insert(0, data_type)
 
-        def call_item_task(inputs, outputs={}):
+        def call_item_task(inputs, outputs=None):
             args, kwargs = parse_inputs(func, inputs)
             return func(*args, **kwargs)
 

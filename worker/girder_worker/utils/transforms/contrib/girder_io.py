@@ -35,6 +35,7 @@ class GirderFileIdAllowDirect(GirderClientTransform):
         after the transform, the file is accessed directly.
     :type local_path: str
     """
+
     def __init__(self, _id, name='', local_path=None, **kwargs):
         super().__init__(**kwargs)
         self.file_id = _id
@@ -60,8 +61,8 @@ class GirderFileIdAllowDirect(GirderClientTransform):
     def transform(self):
         # Don't download if self.local_file_path is set and direct paths are
         # allowed.
-        if (self.local_file_path and self._allowDirectPath() and
-                os.path.isfile(self.local_file_path)):
+        if (self.local_file_path and self._allowDirectPath()
+                and os.path.isfile(self.local_file_path)):
             self.temp_dir_path = None
             self.file_path = self.local_file_path
         else:

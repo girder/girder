@@ -18,16 +18,16 @@ class TestPlugin2(BaseTestPlugin):
         return ['girder_worker._test_plugins.tasks']
 
 
-def TestPluginException1(BaseTestPlugin):
+class TestPluginException1(BaseTestPlugin):
     def __init__(self, *arg, **kwargs):
         raise Exception('Exception in constructor')
 
 
-def TestPluginException2(BaseTestPlugin):
+class TestPluginException2(BaseTestPlugin):
     def task_imports(self):
         raise Exception('Exception in task_imports')
 
 
-def TestPluginInvalidModule(BaseTestPlugin):
+class TestPluginInvalidModule(BaseTestPlugin):
     def task_imports(self):
         return ['not a valid module']

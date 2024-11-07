@@ -34,7 +34,7 @@ def _walk_obj(obj, func, leaf_condition=None):
     descend through the sub-tree.
 
     """
-    if hasattr(leaf_condition, '__call__'):
+    if callable(leaf_condition):
         if leaf_condition(obj):
             return func(obj)
 
@@ -87,7 +87,7 @@ def _worker_inspector(task):
             inspect = app.control.inspect
         except Exception:
             # Celecy < 5
-            from celery.app.control import Inspect as inspect
+            from celery.app.control import Inspect as inspect  # noqa: N813
         _inspector = inspect([task.request.hostname])
 
     return _inspector
@@ -172,7 +172,6 @@ def girder_job(title=None, type='celery', public=False,
     :param otherFields: Any additional fields to set on the job in girder.
     :type otherFields: dict
     """
-
     otherFields = otherFields or {}
 
     def _girder_job(task_obj):

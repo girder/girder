@@ -38,7 +38,7 @@ def test_import_all_includes():
 
 @pytest.mark.namespace('girder_worker._test_plugins.invalid_plugins')
 def test_invalid_plugins():
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         entrypoint.get_plugin_task_modules()
 
 

@@ -364,7 +364,7 @@ class MockModelRepr:
     ({'key': 'value'}, {'key': 'value'}),
     (['some', 'list'], ['some', 'list']),
     (('tuple',), ('tuple', )),
-    (MockModelRepr('TEST'), '\'TEST\'')
+    (MockModelRepr('TEST'), "'TEST'")
 ])
 def test__maybe_model_repr(obj, expected):
     assert _maybe_model_repr(obj) == expected

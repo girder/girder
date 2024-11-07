@@ -159,6 +159,7 @@ class TemporaryVolume(_TemporaryVolumeBase, metaclass=_TemporaryVolumeMetaClass)
         not already exist.
     :type mode: int
     """
+
     # Note that this mode is explicitly set with os.chmod. What you
     # set, is what you get - no os.makedirs umask shenanigans.
 
@@ -392,9 +393,9 @@ class ChunkedTransferEncodingStream(Transform):
     :type header: dict
     """
 
-    def __init__(self, url, headers={}, **kwargs):
+    def __init__(self, url, headers=None, **kwargs):
         self.url = url
-        self.headers = headers
+        self.headers = headers or {}
 
     def transform(self, **kwargs):
         from girder_worker.docker.io import (

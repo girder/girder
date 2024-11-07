@@ -58,7 +58,7 @@ def get_module_tasks(module_name):
 
     for name, func in vars(module).items():
         full_name = '%s.%s' % (module_name, name)
-        if not hasattr(func, '__call__'):
+        if not callable(func):
             # filter out objects that are not callable
             continue
 

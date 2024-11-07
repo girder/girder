@@ -123,7 +123,7 @@ def gw_task_prerun(task=None, sender=None, task_id=None,
 
     except JobSpecNotFound:
         task.job_manager = None
-        logger.warn('No jobInfoSpec. Setting job_manager to None.')
+        logger.warning('No jobInfoSpec. Setting job_manager to None.')
     except StateTransitionException:
         # Fetch the current status of the job
         status = task.job_manager.refreshStatus()
@@ -213,8 +213,8 @@ def gw_task_revoked(sender=None, request=None, **rest):
     except AttributeError:
         pass
     except JobSpecNotFound:
-        logger.warn(
-            'No jobInfoSpec. Unable to move \'%s\' into CANCELED state.')
+        logger.warning(
+            "No jobInfoSpec. Unable to move \'%s\' into CANCELED state.")
 
 
 register('girder_io', jsonpickle.encode, jsonpickle.decode,

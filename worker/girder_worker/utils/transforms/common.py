@@ -8,6 +8,7 @@ class TemporaryDirectory(Transform):
     """
     This transform returns a temporary directory that is removed on cleanup.
     """
+
     def _repr_model_(self):
         return self.__class__.__name__
 

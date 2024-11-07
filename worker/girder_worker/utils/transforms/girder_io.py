@@ -61,6 +61,7 @@ class GirderFileId(GirderClientTransform):
     :param _id: The ID of the file to download.
     :type _id: str
     """
+
     def __init__(self, _id, **kwargs):
         super().__init__(**kwargs)
         self.file_id = _id
@@ -90,6 +91,7 @@ class GirderItemId(GirderClientTransform):
     :param _id: The ID of the item to download.
     :type _id: str
     """
+
     def __init__(self, _id, **kwargs):
         super().__init__(**kwargs)
         self.item_id = _id
@@ -138,6 +140,7 @@ class GirderUploadToItem(GirderClientResultTransform):
     :param upload_kwargs: Additional kwargs to pass to the upload method.
     :type upload_kwargs: dict
     """
+
     def __init__(self, _id, delete_file=False, upload_kwargs=None, **kwargs):
         super().__init__(**kwargs)
         self.item_id = _id
@@ -178,6 +181,7 @@ class GirderUploadToFolder(GirderClientResultTransform):
     :param upload_kwargs: Additional kwargs to pass to the upload method.
     :type upload_kwargs: dict
     """
+
     def __init__(self, _id, delete_file=False, upload_kwargs=None, must_exist=True, **kwargs):
         super().__init__(**kwargs)
         self.folder_id = _id
@@ -229,6 +233,7 @@ class GirderUploadJobArtifact(GirderClientResultTransform):
     :param name: Name for the artifact (only if it's a single file).
     :type name: str
     """
+
     def __init__(self, job_id=None, name=None, **kwargs):
         super().__init__(**kwargs)
         self.job_id = job_id

@@ -22,7 +22,6 @@ def select_loop(exit_condition=lambda: True, readers=None, writers=None):
         select call.
     :type writers: list
     """
-
     BUF_LEN = 65536
 
     try:
