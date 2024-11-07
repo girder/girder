@@ -1,0 +1,28 @@
+.g-config-breadcrumb-container
+
+p.
+  Configure how Girder should connect to the celery worker.
+
+form#g-worker-settings-form(role="form")
+  .form-group
+    label.control-label(for="g-worker-broker") Celery broker URL
+    input#g-worker-broker.input-sm.form-control(
+      type="text", placeholder="Broker (default: amqp://guest:guest@localhost/)")
+  .form-group
+    label.control-label(for="g-worker-backend") Celery backend URL
+    input#g-worker-backend.input-sm.form-control(
+      type="text", placeholder="Backend (default: rpc://guest:guest@localhost/)")
+  .form-group
+    label.control-label(for="g-worker-api-url") Alternative Girder API URL
+    input#g-worker-api-url.input-sm.form-control(
+      type="text", placeholder="API URL (default: auto-detected)")
+  .checkbox
+    label.control-label(for="g-worker-direct-path")
+      input#g-worker-direct-path(type="checkbox")
+      span When possible, send local file paths to the worker to avoid downloading files
+
+  p#g-worker-settings-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")
+
+button.q-worker-task-info.btn.btn-default(title="Task information", style={"margin-top": "10px"})
+  | Task information

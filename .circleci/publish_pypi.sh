@@ -14,6 +14,7 @@ readonly PUBLISHED_PYTHON_PACKAGES=(
   plugins/*
   pytest_girder
   clients/python
+  worker
 )
 for directory in "${PUBLISHED_PYTHON_PACKAGES[@]}"; do
     pushd "$directory"
