@@ -15,8 +15,7 @@ def prerelease_local_scheme(version):
     """
     from setuptools_scm.version import get_local_node_and_date
 
-    if 'CIRCLE_BRANCH' in os.environ and \
-       os.environ['CIRCLE_BRANCH'] == 'master':
+    if os.getenv('CIRCLE_BRANCH') == 'master':
         return ''
     else:
         return get_local_node_and_date(version)
@@ -43,8 +42,8 @@ with open('requirements.in') as f:
 
 setuptools.setup(
     name='girder-worker',
-    use_scm_version={'local_scheme': prerelease_local_scheme},
-    setup_requires=['setuptools_scm'],
+    use_scm_version={'root': '..', 'local_scheme': prerelease_local_scheme},
+    setup_requires=['setuptools_scm', 'setuptools-git'],
     description='Batch execution engine built on celery.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
