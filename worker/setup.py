@@ -61,9 +61,6 @@ setuptools.setup(
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
     ],
-    extras_require={
-        'girder': ['girder>=5', 'girder-jobs>=5'],
-    },
     packages=setuptools.find_packages(
         exclude=('tests.*', 'tests')
     ),
