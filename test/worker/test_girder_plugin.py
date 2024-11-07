@@ -190,7 +190,7 @@ def testWorkerCancel(models):
 
     # Schedule the job, make sure it is sent to celery
     with mock.patch('celery.Celery') as celeryMock, \
-            mock.patch('girder_worker.girder_plugin.event_handlers.AsyncResult') as asyncResult:
+            mock.patch('girder_plugin_worker.event_handlers.AsyncResult') as asyncResult:
         instance = celeryMock.return_value
         instance.send_task.return_value = FakeAsyncResult()
 
