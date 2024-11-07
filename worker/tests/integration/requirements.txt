@@ -1,7 +1,0 @@
-ansible
-pytest
-pytest-xdist
-requests-toolbelt
-girder_client==2.3.0
-girder-worker-utils>=0.8.0
-celery>=4.0.0
