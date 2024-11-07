@@ -1,0 +1,3 @@
+.cache
+common_tasks/*.egg-info
+integration_test_endpoints/*.egg-info

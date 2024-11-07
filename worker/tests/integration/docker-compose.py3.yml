@@ -1,0 +1,13 @@
+version: '2'
+services:
+  girder:
+    build:
+      context: ./
+      dockerfile: Dockerfile.girder-py3
+    image: girder/girder:gw_integration_test-py3
+
+  girder_worker:
+    build:
+      context: ./
+      dockerfile: Dockerfile.girder_worker-py3
+    image: girder/girder_worker:gw_integration_test-py3

@@ -1,0 +1,6 @@
+include setup.py
+include requirements.in
+include girder_worker/worker.dist.cfg
+global-exclude *.pyc *.pyo
+prune girder_worker/plugins/*/tests
+prune girder_worker/core/tests

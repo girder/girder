@@ -1,0 +1,16 @@
+gw_integration_test_girder ansible_connection=docker
+gw_integration_test_girder_worker ansible_connection=docker
+gw_integration_test_mongo ansible_connection=docker
+gw_integration_test_rabbit ansible_connection=docker
+
+[girder]
+gw_integration_test_girder
+
+[worker]
+gw_integration_test_girder_worker
+
+[mongo]
+gw_integration_test_mongo
+
+[rabbit]
+gw_integration_test_rabbit

@@ -1,0 +1,5 @@
+name: Integration Test Endpoints
+description: A plugin that provides a REST endpoint to test girder worker tasks
+version: 0.0.0
+dependencies:
+  - worker
