@@ -74,7 +74,7 @@ def test_TASK_reserved_options_same_as_test_reserved_options():
     assert set(Task.reserved_options) == {h for h, _ in RESERVED_OPTIONS}
 
 
-def test_GirderAsyncResult_job_property_returns_None_on_ImportError():
+def test_GirderAsyncResult_job_property_returns_None_on_ImportError(db):
     gar = GirderAsyncResult('BOGUS_TASK_ID')
     assert gar.job is None
 
