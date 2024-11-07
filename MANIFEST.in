@@ -5,6 +5,7 @@ graft girder
 prune plugins
 prune test
 prune tests
+prune worker
 prune girder/web/fontello
 prune girder/web/node_modules
 prune girder/web/public
