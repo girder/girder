@@ -2,6 +2,7 @@
 # to prevent pip from fetching versions from pypi.
 -e pytest_girder
 -e plugins/jobs
+-e worker
 
 # The following are top level dependencies.
 -e plugins/audit_logs
@@ -22,7 +23,6 @@
 -e plugins/user_quota
 -e plugins/virtual_folders
 -e plugins/worker
--e worker
 
 # External dependencies
 configparser
