@@ -446,7 +446,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
                 if self.shouldImportFile(obj['Key'], params):
                     item = Item().createItem(
-                        name=name, creator=user, folder=parent, reuseExisting=True)
+                        name=self.safeName(name), creator=user, folder=parent,
+                        reuseExisting=True)
                     events.trigger('s3_assetstore_imported', {
                         'id': item['_id'],
                         'type': 'item',
@@ -467,9 +468,17 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     progress.update(message=obj['Prefix'])
 
                 name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
+                # If there is already an item with the folder's name, append
+                # '/'.  This is how S3 presents the names, allowing a folder
+                # and file to have the same name once stripped of the right /.
+                if parentType == 'folder' and Item().findOne({
+                    'folderId': parent['_id'],
+                    'name': self.safeName(name),
+                }):
+                    name = name + '/'
                 folder = Folder().createFolder(
-                    parent=parent, name=name, parentType=parentType, creator=user,
-                    reuseExisting=True)
+                    parent=parent, name=self.safeName(name),
+                    parentType=parentType, creator=user, reuseExisting=True)
 
                 events.trigger('s3_assetstore_imported', {
                     'id': folder['_id'],

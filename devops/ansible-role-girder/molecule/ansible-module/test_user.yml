@@ -24,7 +24,7 @@
 
 # More than one user
 # First user's login is 'admin'
-# First user has admin priviledges
+# First user has admin privileges
 - assert:
     that:
       - ret["gc_return"]|length > 0

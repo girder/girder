@@ -135,7 +135,7 @@ class OauthTest(base.TestCase):
             }
             return callbackParams
 
-        redirect = 'http://localhost/#foo/bar?token={girderToken}'
+        redirect = 'http://localhost/#foo/bar'
 
         class EventHandler:
             def __init__(self):
@@ -167,7 +167,7 @@ class OauthTest(base.TestCase):
             resp = self.request(
                 '/oauth/%s/callback' % providerInfo['id'], params=params, isJson=False)
             self.assertStatus(resp, 303)
-            self.assertTrue('girderToken' not in resp.cookie)
+            self.assertTrue('girderToken' not in resp.headers['Location'])
             self.assertEqual(event_handler.state, 'been in "before"')
 
         params = _getCallbackParams(providerInfo, redirect)
@@ -183,50 +183,8 @@ class OauthTest(base.TestCase):
             resp = self.request(
                 '/oauth/%s/callback' % providerInfo['id'], params=params, isJson=False)
             self.assertStatus(resp, 303)
-            self.assertTrue('girderToken' not in resp.cookie)
+            self.assertTrue('girderToken' not in resp.headers['Location'])
             self.assertEqual(event_handler.state, 'been in "after"')
-
-    def _testOauthTokenAsParam(self, providerInfo):
-        self.accountType = 'existing'
-
-        def _getCallbackParams(providerInfo, redirect):
-            resp = self.request('/oauth/provider', params={
-                'redirect': redirect,
-                'list': True
-            })
-            self.assertStatusOk(resp)
-            providerResp = resp.json[0]
-            resp = requests.get(providerResp['url'], allow_redirects=False)
-            self.assertEqual(resp.status_code, 302)
-            callbackLoc = urllib.parse.urlparse(resp.headers['location'])
-            self.assertEqual(
-                callbackLoc.path, r'/api/v1/oauth/%s/callback' % providerInfo['id'])
-            callbackLocQuery = urllib.parse.parse_qs(callbackLoc.query)
-            self.assertNotHasKeys(callbackLocQuery, ('error',))
-            callbackParams = {
-                key: val[0] for key, val in callbackLocQuery.items()
-            }
-            return callbackParams
-
-        redirect = 'http://localhost/#foo/bar?token={girderToken}'
-        params = _getCallbackParams(providerInfo, redirect)
-
-        resp = self.request(
-            '/oauth/%s/callback' % providerInfo['id'], params=params, isJson=False)
-        self.assertStatus(resp, 303)
-        self.assertTrue('girderToken' in resp.cookie)
-        self.assertEqual(
-            resp.headers['Location'],
-            redirect.format(girderToken=resp.cookie['girderToken'].value))
-
-        redirect = 'http://localhost/#foo/bar?token={foobar}'
-        params = _getCallbackParams(providerInfo, redirect)
-
-        resp = self.request(
-            '/oauth/%s/callback' % providerInfo['id'], params=params, isJson=False)
-        self.assertStatus(resp, 303)
-        self.assertTrue('girderToken' in resp.cookie)
-        self.assertEqual(resp.headers['Location'], redirect)
 
     def _testOauth(self, providerInfo):
         # Close registration to start off, and simulate a new user
@@ -349,10 +307,12 @@ class OauthTest(base.TestCase):
             resp = self.request(
                 '/oauth/%s/callback' % providerInfo['id'], params=params, isJson=False)
             self.assertStatus(resp, 303)
-            self.assertEqual(resp.headers['Location'], 'http://localhost/#foo/bar')
+            expr = re.compile(r'^http://localhost/\?girderToken=(\w+)#foo/bar$')
+            self.assertRegex(resp.headers['Location'], expr)
             self.assertTrue('girderToken' in resp.cookie)
 
-            resp = self.request('/user/me', token=resp.cookie['girderToken'].value)
+            girderToken = expr.match(resp.headers['Location']).group(1)
+            resp = self.request('/user/me', token=girderToken)
             user = resp.json
             self.assertStatusOk(resp)
             self.assertEqual(
@@ -1001,7 +961,6 @@ class OauthTest(base.TestCase):
             self.mockOtherRequest
         ):
             self._testOauth(providerInfo)
-            self._testOauthTokenAsParam(providerInfo)
             self._testOauthEventHandling(providerInfo)
 
     def testLinkedinOauth(self):  # noqa

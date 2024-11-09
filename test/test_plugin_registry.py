@@ -214,7 +214,7 @@ def testLoadPluginsWithDeps(registry, logprint):
         assert pluginDefinition.loaded is True
         pluginDefinition._testLoadMock.assert_called_once()
 
-    # Since plugin1 is the dependant, it must be loaded first
+    # Since plugin1 is the dependent, it must be loaded first
     logprint.success.assert_has_calls([
         unittest.mock.call('Loaded plugin "plugin1"'),
         unittest.mock.call('Loaded plugin "plugin2"')

@@ -33,7 +33,7 @@ def registerAccessFlag(key, name, description=None, admin=False):
     """
     Register a new access flag in the set of ACCESS_FLAGS available
     on data in the hierarchy. These are boolean switches that can be used
-    to control access to specific functionality on specific resoruces.
+    to control access to specific functionality on specific resources.
 
     :param key: The unique identifier for this access flag.
     :type key: str

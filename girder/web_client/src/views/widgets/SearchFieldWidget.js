@@ -39,7 +39,7 @@ var SearchFieldWidget = View.extend({
         'keydown .g-search-field': function (e) {
             var code = e.keyCode || e.which;
             var list, pos;
-            if (code === 13 && this.noResourceSelected) { /* enter without resource seleted */
+            if (code === 13 && this.noResourceSelected) { /* enter without resource selected */
                 e.preventDefault();
                 if (this.$('.g-search-field').val() !== '' && !this.noResultsPage) {
                     this._goToResultPage(this.$('.g-search-field').val(), this.currentMode);

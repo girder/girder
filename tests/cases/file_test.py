@@ -330,6 +330,12 @@ class FileTestCase(base.TestCase):
                     break
             return buf
 
+        if file['size'] > 0:
+            Setting().set(SettingKey.FILEHANDLE_MAX_SIZE, 0)
+            with File().open(file) as handle:
+                self.assertRaises(GirderException, handle.read)
+            Setting().unset(SettingKey.FILEHANDLE_MAX_SIZE)
+
         # Test reading via the model layer file-like API
         contents = contents.encode('utf8')
         with File().open(file) as handle:
@@ -793,7 +799,7 @@ class FileTestCase(base.TestCase):
         self._testCopyFile(copyTestFile)
 
         # Test unicode filenames for content disposition.  The test name has
-        # quotes, a Linear-B codepoint, Cyrllic, Arabic, Chinese, and an emoji.
+        # quotes, a Linear-B codepoint, Cyrillic, Arabic, Chinese, and an emoji.
         filename = 'Unicode "sample" \U00010088 ' + \
                    '\u043e\u0431\u0440\u0430\u0437\u0435\u0446 ' + \
                    '\u0639\u064a\u0646\u0629 \u6a23\u54c1 \U0001f603'

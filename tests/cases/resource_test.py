@@ -322,7 +322,7 @@ class ResourceTestCase(base.TestCase):
         resp = self.request(path='/user', method='GET', user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
-        # Deleting a non-existant object should give an error
+        # Deleting a non-existent object should give an error
         resp = self.request(
             path='/resource', method='DELETE', user=self.admin, params={
                 'resources': json.dumps({'item': [str(self.admin['_id'])]})
@@ -602,7 +602,7 @@ class ResourceTestCase(base.TestCase):
                 'parentId': str(self.items[1]['_id'])
             })
         self.assertStatus(resp, 400)
-        # Moving a non-existant object should give an error
+        # Moving a non-existent object should give an error
         resp = self.request(
             path='/resource/move', method='PUT', user=self.admin, params={
                 'resources': json.dumps({'item': [str(self.admin['_id'])]}),
@@ -670,7 +670,7 @@ class ResourceTestCase(base.TestCase):
                             params={'folderId': str(copiedFolder['_id'])})
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), len(self.items) + 1)
-        # Copying a non-existant object should give an error
+        # Copying a non-existent object should give an error
         resp = self.request(
             path='/resource/copy', method='POST', user=self.admin, params={
                 'resources': json.dumps({'item': [str(self.admin['_id'])]}),

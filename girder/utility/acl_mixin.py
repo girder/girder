@@ -17,6 +17,8 @@ class AccessControlMixin:
 
     resourceColl corresponds to the resource collection that needs to be used
     for resolution, for example the Item model has a resourceColl of folder.
+    For models that are defined in a plugin, the resourceColl has to be a tuple
+    of the collection name and the plugin name.
 
     resourceParent corresponds to the field in which the parent resource
     belongs, so for an item it would be the folderId.
@@ -24,6 +26,18 @@ class AccessControlMixin:
 
     resourceColl = None
     resourceParent = None
+    _parentModel = None
+
+    @property
+    def parentModel(self):
+        if not self._parentModel:
+            if isinstance(self.resourceColl, str):
+                self._parentModel = ModelImporter.model(self.resourceColl)
+            elif isinstance(self.resourceColl, (list, tuple)):
+                self._parentModel = ModelImporter.model(*self.resourceColl)
+            else:
+                raise Exception('Invalid model type: %s' % str(self.resourceColl))
+        return self._parentModel
 
     def load(self, id, level=AccessType.ADMIN, user=None, objectId=True,
              force=False, fields=None, exc=False):
@@ -53,7 +67,7 @@ class AccessControlMixin:
                 loadId = doc.get('attachedToId')
             if isinstance(loadType, str):
                 ModelImporter.model(loadType).load(loadId, level=level, user=user, exc=exc)
-            elif isinstance(loadType, list) and len(loadType) == 2:
+            elif isinstance(loadType, abc.Sequence) and len(loadType) == 2:
                 ModelImporter.model(*loadType).load(loadId, level=level, user=user, exc=exc)
             else:
                 raise Exception('Invalid model type: %s' % str(loadType))
@@ -70,10 +84,8 @@ class AccessControlMixin:
         Takes the same parameters as
         :py:func:`girder.models.model_base.AccessControlledModel.hasAccess`.
         """
-        resource = ModelImporter.model(self.resourceColl).load(
-            resource[self.resourceParent], force=True)
-        return ModelImporter.model(self.resourceColl).hasAccess(
-            resource, user=user, level=level)
+        resource = self.parentModel.load(resource[self.resourceParent], force=True)
+        return self.parentModel.hasAccess(resource, user=user, level=level)
 
     def hasAccessFlags(self, doc, user=None, flags=None):
         """
@@ -82,8 +94,8 @@ class AccessControlMixin:
         if not flags:
             return True
 
-        resource = ModelImporter.model(self.resourceColl).load(doc[self.resourceParent], force=True)
-        return ModelImporter.model(self.resourceColl).hasAccessFlags(resource, user, flags)
+        resource = self.parentModel.load(doc[self.resourceParent], force=True)
+        return self.parentModel.hasAccessFlags(resource, user, flags)
 
     def requireAccess(self, doc, user=None, level=AccessType.READ):
         """
@@ -114,8 +126,8 @@ class AccessControlMixin:
         if not flags:
             return
 
-        resource = ModelImporter.model(self.resourceColl).load(doc[self.resourceParent], force=True)
-        return ModelImporter.model(self.resourceColl).requireAccessFlags(resource, user, flags)
+        resource = self.parentModel.load(doc[self.resourceParent], force=True)
+        return self.parentModel.requireAccessFlags(resource, user, flags)
 
     def filterResultsByPermission(self, cursor, user, level, limit=0, offset=0,
                                   removeKeys=(), flags=None):
@@ -138,12 +150,11 @@ class AccessControlMixin:
 
             # if the resourceId is not cached, check for permission "level"
             # and set the cache
-            resource = ModelImporter.model(self.resourceColl).load(resourceId, force=True)
-            val = ModelImporter.model(self.resourceColl).hasAccess(
-                resource, user=user, level=level)
+            resource = self.parentModel.load(resourceId, force=True)
+            val = self.parentModel.hasAccess(resource, user=user, level=level)
 
             if flags:
-                val = val and ModelImporter.model(self.resourceColl).hasAccessFlags(
+                val = val and self.parentModel.hasAccessFlags(
                     resource, user=user, flags=flags)
 
             resourceAccessCache[resourceId] = val
@@ -280,7 +291,7 @@ class AccessControlMixin:
             #  Note, this also handles models which use attachedToType and
             # attachedToId, since ModelImporter.model(None) will not be an access
             # controlled model.
-            if not isinstance(ModelImporter.model(self.resourceColl), AccessControlledModel):
+            if not isinstance(self.parentModel, AccessControlledModel):
                 return self._findWithPermissionsFallback(
                     query, offset, limit, timeout, fields, sort, user, level,
                     **kwargs)
@@ -289,7 +300,7 @@ class AccessControlMixin:
             initialPipeline = [
                 {'$match': query},
                 {'$lookup': {
-                    'from': self.resourceColl,
+                    'from': self.parentModel.name,
                     'localField': self.resourceParent,
                     'foreignField': '_id',
                     'as': '__parent'

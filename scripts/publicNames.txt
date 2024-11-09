@@ -746,6 +746,7 @@ girder
             EMAIL_VERIFICATION
             ENABLE_NOTIFICATION_STREAM
             ENABLE_PASSWORD_LOGIN
+            FILEHANDLE_MAX_SIZE
             GIRDER_MOUNT_INFORMATION
             HTTP_ONLY_COOKIES
             PRIVACY_NOTICE
@@ -787,6 +788,7 @@ girder
                 initUpload
                 open
                 requestOffset
+                safeName
                 setContentHeaders
                 shouldImportFile
                 untrackedUploads
@@ -805,6 +807,7 @@ girder
                 hasAccess
                 hasAccessFlags
                 load
+                parentModel
                 permissionClauses
                 prefixSearch
                 requireAccess

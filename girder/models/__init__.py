@@ -1,10 +1,32 @@
 import pymongo
+import pymongo.cursor
 import urllib.parse
 
 from girder import logprint
 from girder.utility import config
 
 _dbClients = {}
+
+
+if not hasattr(pymongo.cursor.Cursor, 'count'):
+    import warnings
+
+    def _cursorCount(self, with_limit_and_skip=False):
+        warnings.warn(
+            'count is deprecated. Use Collection.count_documents instead.',
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        params = {}
+        if with_limit_and_skip and getattr(self, '_limit', getattr(self, '_Cursor__limit', None)):
+            params['limit'] = getattr(self, '_limit', getattr(self, '_Cursor__limit', None))
+        if with_limit_and_skip and getattr(self, '_skip', getattr(self, '_Cursor__skip', None)):
+            params['skip'] = getattr(self, '_skip', getattr(self, '_Cursor__skip', None))
+        return getattr(self, '_collection', getattr(
+            self, '_Cursor__collection', None)).count_documents(
+                getattr(self, '_spec', getattr(self, '_Cursor__spec', None)), **params)
+
+    pymongo.cursor.Cursor.count = _cursorCount
 
 
 def getDbConfig():

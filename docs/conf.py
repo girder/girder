@@ -1,9 +1,8 @@
 import pkg_resources
 
-import sphinx_rtd_theme
 from sphinx.domains.python import PythonDomain
 
-needs_sphinx = '1.6'
+# needs_sphinx = '1.6'
 
 # Get package imports and version
 # The 'girder' and "girder_client" packages must be installed at this point
@@ -34,7 +33,6 @@ release = _girder_version
 version = '.'.join(release.split('.')[:2])
 
 html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_favicon = 'favicon.ico'
 
 latex_documents = [
@@ -46,6 +44,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
+    'sphinxcontrib.jquery',
 ]
 
 autodoc_mock_imports = list(_girder_imports)
