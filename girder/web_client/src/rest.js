@@ -67,6 +67,15 @@ setApiRoot(
  */
 const restRequest = function (opts) {
     opts = opts || {};
+
+    const girderToken = getCurrentToken() || window.localStorage.getItem('girderToken');
+    if (!document.cookie.includes('girderToken=')) {
+        if (girderToken) {
+            // Set the "girderToken" cookie with the same value
+            document.cookie = `girderToken=${girderToken}; path=/`;
+        }
+    }
+
     const defaults = {
         // the default 'method' is 'GET', as set by 'jquery.ajax'
 

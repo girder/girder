@@ -1,8 +1,6 @@
 import base64
 import cherrypy
 import datetime
-import requests
-import json
 
 from ..describe import Description, autoDescribeRoute
 from girder.api import access
@@ -77,16 +75,7 @@ class User(Resource):
         .responseClass('User')
     )
     def getMe(self):
-        user = self.getCurrentUser()
-        # return user # Uncomment this for default girder behavior
-        if not user:
-            # This needs to change to be dynamic for the instance/OAuth service being used
-            response = requests.get('https://dsa-uk.ai.uky.edu/api/v1/oauth/provider?redirect=https://dsa-uk.ai.uky.edu/')
-            url = json.loads(response.text)['Microsoft']
-            return {'redirect': url}
-        else:
-            return user
-
+        return self.getCurrentUser()
 
     @access.public
     @autoDescribeRoute(
