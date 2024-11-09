@@ -79,7 +79,8 @@ const restRequest = function (opts) {
     const defaults = {
         // the default 'method' is 'GET', as set by 'jquery.ajax'
 
-        girderToken: getCurrentToken() || window.localStorage.getItem('girderToken'),
+
+        girderToken: girderToken,
 
         error: (error, status) => {
             let info;
