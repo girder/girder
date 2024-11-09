@@ -78,10 +78,14 @@ var App = View.extend({
         // define a function to be run after fetching the user model
         var afterFetch = (user) => {
             this._createLayout();
-
+            // Changes made here
             if (user) {
-                setCurrentUser(new UserModel(user));
-                eventStream.open();
+                if ('redirect' in user){
+                    window.location.href = user.redirect;
+                } else {
+                    setCurrentUser(new UserModel(user));
+                    eventStream.open();
+                }
             }
 
             this._started = true;
