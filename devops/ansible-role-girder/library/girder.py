@@ -814,7 +814,7 @@ EXAMPLES = """
 def unjsonify(a):
     """Convert json parts to python objects.
 
-    Tries to convert a json string or a compund object consisting of partial
+    Tries to convert a json string or a compound object consisting of partial
     json strings to a full python object.  Returns either a json scalar (string,
     int, float), a list or dict of json scalars, or any combination of lists and
     dicts that eventually end at json scalars.
@@ -1767,7 +1767,7 @@ def main():
     :returns: Nothing
     :rtype: NoneType
     """
-    # Default spec for initalizing and authenticating
+    # Default spec for initializing and authenticating
     argument_spec = {
         # __init__
         'host': {},

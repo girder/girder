@@ -9,7 +9,7 @@ import 'bootstrap/js/dropdown';
 
 /**
  * This widget is used to provide a consistent widget for sorting
- * pages of a Collection by a choosen field.
+ * pages of a Collection by a chosen field.
  */
 var SortCollectionWidget = View.extend({
     events: {

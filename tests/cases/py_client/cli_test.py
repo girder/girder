@@ -411,7 +411,7 @@ class PythonCliTestCase(base.TestCase):
             ret['stdout'], 'Creating Item from folder .*tests/cases/py_client/testdata')
         self.assertIn('Adding file world.txt', ret['stdout'])
 
-        # Test re-use existing case
+        # Test reuse existing case
         args.append('--reuse')
         ret = invokeCli(args, username='mylogin', password='password')
         self.assertEqual(ret['exitVal'], 0)

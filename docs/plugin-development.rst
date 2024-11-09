@@ -482,7 +482,7 @@ route handler.
 *  **Exception during REST call**
 
 This event is fired if an exception is raised while the default handler is executing.
-Like the before REST call event, this event recieves the same kwargs as the default
+Like the before REST call event, this event receives the same kwargs as the default
 route handler. The caught exception is raised again after this event is handled.
 The identifier for this event is, e.g., ``rest.get.item/:id.failed``.
 
@@ -866,7 +866,7 @@ packages are installed when you plugin is "pip installed".
 
 By default, Girder does not load its installed plugins in a deterministic order.
 If your plugin depends on other Girder being loaded prior to itself, your plugin
-must explicitly load the other dependant plugins during your plugin's own loading.
+must explicitly load the other dependent plugins during your plugin's own loading.
 
 Girder will guarantee that a given plugin is actually loaded only once, so multiple
 calls to load another plugin are safe and have no effect. Finally, it is possible

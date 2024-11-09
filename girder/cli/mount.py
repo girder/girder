@@ -1,3 +1,5 @@
+#!/usrbin/env python3
+
 import errno
 import functools
 import hashlib
@@ -25,6 +27,10 @@ from girder.utility import config
 from girder.utility import path as path_util
 from girder.utility.model_importer import ModelImporter
 from girder.utility.server import configureServer
+
+
+def _hashkey_first(funcname, *args, **kwargs):
+    return (funcname, args[1])
 
 
 class ServerFuse(fuse.Operations):
@@ -65,6 +71,15 @@ class ServerFuse(fuse.Operations):
         options = options or {}
         self.cache = cachetools.TTLCache(maxsize=10000, ttl=int(options.pop('stat_cache_ttl', 1)))
         self.diskcache = None
+        self._mount_stats = {
+            'open': 0,
+            'read': 0,
+            'release': 0,
+            'dir': 0,
+            'bytesread': 0,
+            'pathlookups': 0,
+            'directpathchecks': 0,
+        }
         self._configure_disk_cache(options)
 
     def _configure_disk_cache(self, cacheopts):
@@ -96,6 +111,8 @@ class ServerFuse(fuse.Operations):
         for key in list((cacheopts or {}).keys()):
             if key.startswith('diskcache'):
                 value = cacheopts.pop(key)
+                if str(value).strip().isdigit():
+                    value = int(value)
                 key = key[len('diskcache'):].lstrip('_')
                 use = True if use is None else use
                 if key:
@@ -106,7 +123,10 @@ class ServerFuse(fuse.Operations):
             chunk = int(options.pop('chunk', 128 * 1024))
             self.diskcache = {
                 'chunk': chunk,
-                'cache': diskcache.Cache(**options)
+                'cache': diskcache.Cache(**options),
+                'hits': 0,
+                'miss': 0,
+                'bytesread': 0,
             }
 
     def __call__(self, op, path, *args, **kwargs):
@@ -136,7 +156,7 @@ class ServerFuse(fuse.Operations):
                 logger.debug('<- %s (length %d) %r', op, len(ret), ret[:16])
 
     @cachetools.cachedmethod(lambda self: self.cache, key=functools.partial(
-        cachetools.keys.hashkey, '_get_path'))
+        _hashkey_first, '_get_path'))
     def _get_path(self, path):
         """
         Given a fuse path, return the associated resource.
@@ -144,11 +164,15 @@ class ServerFuse(fuse.Operations):
         :param path: path within the fuse.
         :returns: a Girder resource dictionary.
         """
+        self._mount_stats['pathlookups'] += 1
         # If asked about a file in top level directory or the top directory,
         # return that it doesn't exist.  Other methods should handle '',
         # '/user', and 'collection' before calling this method.
         if '/' not in path.rstrip('/')[1:]:
             raise fuse.FuseOSError(errno.ENOENT)
+        flat = path.startswith('/flat')
+        if flat:
+            path = path[5:]
         try:
             # We can't filter the resource, since that removes files'
             # assetstore information and users' size information.
@@ -161,7 +185,23 @@ class ServerFuse(fuse.Operations):
         except Exception:
             logger.exception('ServerFuse server internal error')
             raise fuse.FuseOSError(errno.EROFS)
+        if flat and resource['model'] == 'item':
+            file = self._flatItemFile(resource['document'])
+            if file is not None:
+                file['name'] = resource['document']['name']
+                resource = {
+                    'model': 'file',
+                    'document': file,
+                }
         return resource   # {model, document}
+
+    def _flatItemFile(self, item):
+        return next(File().collection.aggregate([
+            {'$match': {'itemId': item['_id']}},
+            {'$addFields': {'matchName': {'$eq': ['$name', item['name']]}}},
+            {'$sort': {'matchName': -1, '_id': 1}},
+            {'$limit': 1},
+        ]), None)
 
     def _stat(self, doc, model):
         """
@@ -239,6 +279,20 @@ class ServerFuse(fuse.Operations):
                 entries.append(self._name(file, 'file'))
         return entries
 
+    def _mount_stats_repr(self):
+        import json
+
+        curstats = self._mount_stats.copy()
+        curstats['openfiles'] = {}
+        for fh in self.openFiles:
+            try:
+                curstats['openfiles'][fh] = self.openFiles[fh]['path']
+            except Exception:
+                pass
+        if self.diskcache:
+            curstats['diskcache'] = {k: v for k, v in self.diskcache.items() if k != 'cache'}
+        return (json.dumps(curstats, indent=2) + '\n').encode()
+
     # We don't handle extended attributes or ioctl.
     getxattr = None
     listxattr = None
@@ -257,7 +311,8 @@ class ServerFuse(fuse.Operations):
         :returns: 0 if access is allowed.  An exception is raised if it is
             not.
         """
-        if path.rstrip('/') in ('', '/user', '/collection'):
+        if path.rstrip('/') in (
+                '', '/user', '/collection', '/flat', '/flat/user', '/flat/collection'):
             return super().access(path, mode)
         # mode is either F_OK or a bitfield of R_OK, W_OK, X_OK
         return 0
@@ -277,7 +332,7 @@ class ServerFuse(fuse.Operations):
         return 0
 
     @cachetools.cachedmethod(lambda self: self.cache, key=functools.partial(
-        cachetools.keys.hashkey, 'getattr'))
+        _hashkey_first, 'getattr'))
     def getattr(self, path, fh=None):
         """
         Get the attributes dictionary of a path.
@@ -287,10 +342,18 @@ class ServerFuse(fuse.Operations):
             specified.
         :returns: an attribute dictionary.
         """
-        if path.rstrip('/') in ('', '/user', '/collection'):
+        if path.rstrip('/') in (
+                '', '/user', '/collection', '/flat', '/flat/user', '/flat/collection'):
             attr = self._defaultStat.copy()
             attr['st_mode'] = 0o500 | stat.S_IFDIR
             attr['st_size'] = 0
+        elif path.rstrip('/') == '/stats':
+            attr = self._defaultStat.copy()
+            attr['st_ino'] = -1
+            attr['st_nlink'] = 1
+            attr['st_ctime'] = attr['st_mtime'] = int(time.time() * 1e9)
+            attr['st_mode'] = 0o400 | stat.S_IFREG
+            attr['st_size'] = len(self._mount_stats_repr())
         else:
             resource = self._get_path(path)
             attr = self._stat(resource['document'], resource['model'])
@@ -311,10 +374,14 @@ class ServerFuse(fuse.Operations):
         :param fh: an open file handle.
         :returns: a block of up to <size> bytes.
         """
+        if path.rstrip('/') == '/stats':
+            data = self._mount_stats_repr()
+            return data[offset:offset + size]
         with self.openFilesLock:
             if fh not in self.openFiles:
                 raise fuse.FuseOSError(errno.EBADF)
             info = self.openFiles[fh]
+        self._mount_stats['read'] += 1
         if self.diskcache and info.get('allowcache'):
             result = b''
             for idx in range(
@@ -325,6 +392,8 @@ class ServerFuse(fuse.Operations):
                 key = '%s-%d-%d' % (info['hash'], idxoffset, idxlen)
                 try:
                     data = self.diskcache['cache'].get(key, None, read=True)
+                    if data is not None:
+                        self.diskcache['hits'] += 1
                 except Exception:
                     logger.exception('diskcache threw an exception in get')
                     data = None
@@ -335,15 +404,19 @@ class ServerFuse(fuse.Operations):
                         handle = info['handle']
                         handle.seek(idxoffset)
                         data = handle.read(idxlen)
+                        self.diskcache['miss'] += 1
+                        self.diskcache['bytesread'] += len(data)
                     try:
                         self.diskcache['cache'][key] = data
                     except Exception:
                         logger.exception('diskcache threw an exception in set')
+                if isinstance(data, bytes):
                     result += data[max(0, offset - idxoffset):
                                    min(len(data), offset + size - idxoffset)]
                 else:
                     data.seek(max(0, offset - idxoffset))
                     result += data.read(size - len(result))
+            self._mount_stats['bytesread'] += len(result)
             return result
         with info['lock']:
             if 'handle' not in info:
@@ -353,6 +426,7 @@ class ServerFuse(fuse.Operations):
                     open(info['directpath'], 'rb'))
             handle = info['handle']
             handle.seek(offset)
+            self._mount_stats['bytesread'] += size
             return handle.read(size)
 
     def readdir(self, path, fh):
@@ -364,12 +438,20 @@ class ServerFuse(fuse.Operations):
             specified.
         :returns: a list of names.  This always includes . and ..
         """
+        self._mount_stats['dir'] += 1
         path = path.rstrip('/')
         result = ['.', '..']
         if path == '':
+            result.extend(['collection', 'user', 'stats', 'flat'])
+        elif path == '/flat':
             result.extend(['collection', 'user'])
         elif path in ('/user', '/collection'):
             model = path[1:]
+            docList = ModelImporter.model(model).find({}, sort=None)
+            for doc in docList:
+                result.append(self._name(doc, model))
+        elif path in ('/flat/user', '/flat/collection'):
+            model = path[6:]
             docList = ModelImporter.model(model).find({}, sort=None)
             for doc in docList:
                 result.append(self._name(doc, model))
@@ -377,6 +459,16 @@ class ServerFuse(fuse.Operations):
             resource = self._get_path(path)
             result.extend(self._list(resource['document'], resource['model']))
         return result
+
+    @cachetools.cachedmethod(lambda self: self.cache, key=functools.partial(
+        _hashkey_first, '_get_direct_path'))
+    def _get_direct_path(self, path, doc):
+        self._mount_stats['directpathchecks'] += 1
+        try:
+            directpath = File().getAssetstoreAdapter(doc).getLocalFilePath(doc)
+        except FilePathException:
+            directpath = None
+        return directpath
 
     def open(self, path, flags):
         """
@@ -387,6 +479,10 @@ class ServerFuse(fuse.Operations):
             read only.
         :returns: a file descriptor.
         """
+        if path.rstrip('/') == '/stats':
+            fh = self.nextFH
+            self.nextFH += 1
+            return fh
         resource = self._get_path(path)
         if resource['model'] != 'file':
             return super().open(path, flags)
@@ -406,18 +502,15 @@ class ServerFuse(fuse.Operations):
             'allowcache': True,
             'lock': threading.Lock(),
         }
-        try:
-            directpath = File().getAssetstoreAdapter(
-                resource['document']).getLocalFilePath(resource['document'])
-            if directpath:
-                info['allowcache'] = False
-                info['directpath'] = directpath
-        except FilePathException:
-            pass
+        directpath = self._get_direct_path(path, resource['document'])
+        if directpath:
+            info['allowcache'] = False
+            info['directpath'] = directpath
         with self.openFilesLock:
             fh = self.nextFH
             self.nextFH += 1
             self.openFiles[fh] = info
+            self._mount_stats['open'] += 1
         return fh
 
     def release(self, path, fh):
@@ -435,6 +528,7 @@ class ServerFuse(fuse.Operations):
                         self.openFiles[fh]['handle'].close()
                         del self.openFiles[fh]['handle']
                     del self.openFiles[fh]
+                    self._mount_stats['release'] += 1
             else:
                 return super().release(path, fh)
         return 0
@@ -600,8 +694,12 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
                 continue
             options[key] = value
     opClass = ServerFuse(stat=os.stat(path), options=options)
-    Setting().set(SettingKey.GIRDER_MOUNT_INFORMATION,
-                  {'path': path, 'mounttime': time.time()})
+    Setting().set(SettingKey.GIRDER_MOUNT_INFORMATION, {
+        'path': path,
+        'mounttime': time.time(),
+        'hasStats': True,
+        'hasFlat': True,
+    })
     FUSELogError(opClass, path, **options)
 
 

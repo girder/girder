@@ -103,7 +103,7 @@ class GirderPlugin(metaclass=_PluginMeta):
 
         By default, this dictionary will be assembled from the CLIENT_SOURCE_PATH property by
         inspecting the package.json file in the indicated directory.  Plugins can override this
-        method customize the behaivor for advanced usage.
+        method customize the behavior for advanced usage.
         """
         if self.CLIENT_SOURCE_PATH is None:
             return {}

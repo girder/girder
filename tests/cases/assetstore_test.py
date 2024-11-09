@@ -5,6 +5,8 @@ import io
 import json
 import moto
 import os
+import shutil
+import tempfile
 import time
 import unittest.mock
 import zipfile
@@ -284,6 +286,33 @@ class AssetstoreTestCase(base.TestCase):
 
         self.assertIsNone(File().load(_file['_id'], force=True))
         self.assertTrue(os.path.isfile(_file['path']))
+
+    def testFilesystemAssetstoreWhitespaceInNames(self):
+        srcdir = os.path.join(ROOT_DIR, 'tests', 'cases', 'py_client', 'testdata')
+        with tempfile.TemporaryDirectory() as tmpdir:
+            spacedir = os.path.join(tmpdir, ' Space \n ')
+            os.mkdir(spacedir)
+            spacefile = os.path.join(spacedir, ' \n hello.txt ')
+            shutil.copy(os.path.join(srcdir, 'hello.txt'), spacefile)
+            folder = next(Folder().childFolders(
+                self.admin, parentType='user', force=True, filters={
+                    'name': 'Public'
+                }))
+
+            params = {
+                'importPath': tmpdir,
+                'destinationType': 'folder',
+                'destinationId': folder['_id'],
+            }
+            path = '/assetstore/%s/import' % str(self.assetstore['_id'])
+            resp = self.request(path, method='POST', params=params, user=self.admin)
+            self.assertStatusOk(resp)
+
+            resp = self.request('/resource/lookup', user=self.admin, params={
+                'path': '/user/admin/Public/_Space___/___hello.txt_'
+            })
+            self.assertStatusOk(resp)
+            self.assertEqual(resp.json['_modelType'], 'item')
 
     def testFilesystemAssetstoreFindInvalidFiles(self):
         # Create several files in the assetstore, some of which point to real
@@ -830,7 +859,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(resp.json['assetstoreId'], fs_assetstore['_id'])
         uploadedFiles = [resp.json]
 
-        # Upload it again targetting a different assetstore
+        # Upload it again targeting a different assetstore
         params['assetstoreId'] = gridfs_assetstore['_id']
         resp = self.request(
             path='/file', method='POST', user=self.admin, params=params)
