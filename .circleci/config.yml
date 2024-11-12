@@ -76,6 +76,8 @@ jobs:
   server-pytest-test:
     executor: py3-mongo
     steps:
+      # slicer_cli_web tests using actual docker
+      - setup_remote_docker
       - checkout:
           path: girder
       - run:
