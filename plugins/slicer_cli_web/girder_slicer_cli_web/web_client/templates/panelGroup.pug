@@ -1,0 +1,20 @@
+if info
+  .s-panel
+    .s-panel-title-container
+      span.s-panel-title
+        | #{info.title}
+      span.s-panel-controls
+        if closeButton
+          i.icon-cancel.s-close-panel-group
+    .s-panel-content
+      .s-info-panel-description.well
+        | #{info.description}
+      .s-info-panel-buttons
+        button.btn.btn-default.s-info-panel-reload Reload
+        button.btn.btn-primary.s-info-panel-submit Submit
+      .clearfix
+
+  .s-jobs-panel.s-panel
+
+each panel in panels
+  .s-panel(class=panel.type, id=panel.id)

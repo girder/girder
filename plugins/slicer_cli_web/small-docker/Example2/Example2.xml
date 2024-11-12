@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<executable>
+  <category>Example</category>
+  <title>Example 2 - Report Inputs</title>
+  <description>Report on a few input parameters.</description>
+  <version>0.1.0</version>
+  <license>Apache 2.0</license>
+  <contributor>David Manthey (Kitware)</contributor>
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters.</description>
+    <image>
+      <name>ImageFile</name>
+      <label>Input Image</label>
+      <channel>input</channel>
+      <description>Input image</description>
+      <index>0</index>
+    </image>
+    <double-vector>
+      <name>Color1</name>
+      <label>RGB Color</label>
+      <description>An RGB Color Vector</description>
+      <channel>input</channel>
+      <index>1</index>
+    </double-vector>
+    <double-vector>
+      <name>Color2</name>
+      <label>YCbCr Color</label>
+      <description>A YCBCr Color Vector</description>
+      <channel>input</channel>
+      <index>2</index>
+    </double-vector>
+  </parameters>
+</executable>

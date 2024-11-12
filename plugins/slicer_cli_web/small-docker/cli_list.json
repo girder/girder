@@ -1,0 +1,32 @@
+{
+  "Example1": {
+    "type": "python"
+  },
+  "Example2": {
+    "type": "python"
+  },
+  "Example3": {
+    "type": "python"
+  },
+  "Example2json": {
+    "alias": "Example2",
+    "type": "python",
+    "desc-type": "json"
+  },
+  "Example2yaml": {
+    "alias": "Example2",
+    "type": "python",
+    "desc-type": "yaml"
+  },
+  "Example2params": {
+    "alias": "Example2",
+    "type": "python",
+    "docker-params": {
+      "ipc_mode": "host"
+    }
+  },
+  "ExampleProgress": {
+    "type": "python",
+    "desc-type": "json"
+  }
+}

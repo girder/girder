@@ -1,0 +1,38 @@
+title: T
+description: D
+documentation_url: https://github.com
+parameter_groups:
+- label: P
+  description: PD
+  advanced: true
+  parameters:
+  - type: image
+    label: test
+    description: testd
+    channel: output
+    index: 0
+    flag:
+      alias: ff
+      decpreatedalias: fi
+      value: i
+    image_type: label
+    reference: asd
+  - type: region
+    label: region
+    channel: input
+    description: te
+    longflag:
+      alias: ff
+      decpreatedalias: ed
+      value: aa
+    default: 0,1,2,3,4,5
+    coordinateSystem: lps
+  - type: file
+    label: f
+    description: file
+    channel: output
+    index: 2
+    reference:
+      parameter: a
+      role: b
+      value: adf

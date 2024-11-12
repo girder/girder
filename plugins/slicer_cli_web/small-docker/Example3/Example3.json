@@ -1,0 +1,41 @@
+{
+  "$schema": "slicer_cli_web/models/schema.json",
+  "category": "Example",
+  "title": "Example 3 - Compare Inputs",
+  "description": "Compare an item, image, and file.",
+  "version": "0.2.0",
+  "license": "Apache 2.0",
+  "contributor": "David Manthey (Kitware)",
+  "parameter_groups": [
+    {
+      "label": "Inputs",
+      "description": "Inputs to compare",
+      "parameters": [
+        {
+          "type": "file",
+          "name": "file1",
+          "longflag": "file1",
+          "description": "An input file",
+          "label": "Input file",
+          "channel": "input"
+        },
+        {
+          "type": "image",
+          "name": "image1",
+          "longflag": "image1",
+          "description": "An input image",
+          "label": "Input image",
+          "channel": "input"
+        },
+        {
+          "type": "item",
+          "name": "item1",
+          "longflag": "item1",
+          "description": "An input item",
+          "label": "Input item",
+          "channel": "input"
+        }
+      ]
+    }
+  ]
+}

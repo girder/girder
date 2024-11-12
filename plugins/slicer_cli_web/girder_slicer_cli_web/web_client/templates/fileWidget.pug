@@ -1,0 +1,30 @@
+extends ./widget.pug
+
+block input
+  .input-group
+    if value && value.name && type === 'multi' && folderName !== undefined
+      - value = `${folderName}/RegEx(${value.name() || '.*'})`;
+    else if value && value.name
+      - value = value.name();
+    - var placeholder = 'Choose a file...'
+    - var multititle = 'Choose multiple files...'
+    - if (['file','item','image', 'multi'].includes(type) && !multiple)
+      - var batchload = true
+    if type === 'item'
+      - placeholder = 'Choose an item...'
+      - multititle = 'Choose multiple items...'
+    if type === 'image'
+      - placeholder = 'Choose an image...'
+      - multititle = 'Choose multiple images...'
+    if type === 'directory'
+      - placeholder = 'Choose a folder...'
+      - multititle = 'Choose multiple folders...'
+    +input(title, type, id, value)(placeholder=placeholder, readonly=true)
+    span.input-group-btn
+      button.btn.btn-default.s-select-file-button(type='button', data-toggle='tooltip', data-placement='right', title=placeholder)
+        i.icon-folder-open
+      if (batchload)
+        button.btn.btn-default.s-select-multifile-button(type='button', data-toggle='tooltip', data-placement='right', title=multititle)
+          span.fa-stack
+            i.icon-folder-open
+            i.icon-plus.fa-cancel-cover

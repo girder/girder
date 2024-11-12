@@ -1,0 +1,13 @@
+{
+  "$schema": "../../slicer_cli_web/models/schema.json",
+  "title": "T",
+  "description": "D",
+  "parameter_groups": [
+    {
+      "label": "P",
+      "description": "PD",
+      "advanced": true,
+      "parameters": []
+    }
+  ]
+}

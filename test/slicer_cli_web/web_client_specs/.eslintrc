@@ -1,0 +1,16 @@
+{
+  "extends": "girder",
+  "rules": {
+    "no-template-curly-in-string": 0
+  },
+  "globals": {
+    "Backbone": true,
+    "_": true,
+    "girderTest": true,
+    "girder": true,
+    "moment": true
+  },
+  "env": {
+    "jasmine": true
+  }
+}

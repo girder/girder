@@ -23,6 +23,7 @@
 -e plugins/user_quota
 -e plugins/virtual_folders
 -e plugins/worker
+-e plugins/slicer_cli_web
 
 # External dependencies
 configparser
@@ -32,6 +33,7 @@ mongomock
 moto[server]<4.2.12
 pytest>=3.6
 pytest-cov>=2.6
+pytest-mock
 python-dateutil
 tox
 virtualenv

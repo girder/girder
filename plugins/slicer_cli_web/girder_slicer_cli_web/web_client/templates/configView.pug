@@ -1,0 +1,53 @@
+.g-config-breadcrumb-container
+
+p.g-slicer-cli-web-description
+  | A girder plugin for exposing slicer CLIs over the web
+
+form#g-slicer-cli-web-form(role="form")
+  .form-group
+    label(for="g-slicer-cli-web-upload-folder") Default Task Upload Folder
+    .input-group.input-group-sm
+      input#g-slicer-cli-web-upload-folder.form-control.input-sm(
+          value=settings.task_folder,
+          type="text",
+          placeholder="Existing folder to use as the default task upload folder")
+      .input-group-btn
+        button.g-open-browser.btn.btn-default(type="button")
+          i.icon-folder-open
+
+  .form-group
+    label(for="g-slicer-cli-web-worker-config-item") Worker Management Configuration Item
+    .input-group.input-group-sm
+      input#g-slicer-cli-web-worker-config-item.form-control.input-sm(
+          value=settings.worker_config_item,
+          type="text",
+          placeholder="Existing item to manage worker configuration")
+      .input-group-btn
+        button.g-open-item-browser.btn.btn-default(type="button")
+          i.icon-folder-open
+
+  p#g-slicer-cli-web-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")
+
+h4 Import Docker Image CLI Tasks
+
+form#g-slicer-cli-web-upload-form(role="form")
+  .form-group
+    label(for="g-slicer-cli-web-image") Docker Image
+    input#g-slicer-cli-web-image.form-control.input-sm(
+        name="name", pattern=".+(:|@).+[,.+(:|@).+]*",
+        type="text", required,
+        placeholder="A name (image:tag) or a list of names (image:tag,image:tag) of the docker images to be loaded")
+  .form-group
+    label(for="g-slicer-cli-web-folder") Task Upload Folder
+    .input-group.input-group-sm
+      input#g-slicer-cli-web-folder.form-control.input-sm(
+          name="folder",
+          value=settings.task_folder, required,
+          type="text",
+          placeholder="Existing folder to use as the task upload folder")
+      .input-group-btn
+        button.g-open-local-browser.btn.btn-default(type="button")
+          i.icon-folder-open
+  p#g-slicer-cli-web-error-upload-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Import Image")

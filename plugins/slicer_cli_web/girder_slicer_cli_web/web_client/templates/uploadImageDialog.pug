@@ -1,0 +1,16 @@
+.modal-dialog
+  .modal-content
+    form#g-slicer-cli-web-upload-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title Upload CLI Docker Images
+      .modal-body
+        .form-group
+          label(for="g-slicer-cli-web-image") Docker Image
+          input#g-slicer-cli-web-image.form-control.input-sm(
+              name="name", pattern=".+(:|@).+[,.+(:|@).+]*",
+              type="text", required,
+              placeholder="A name (image:tag) or a list of names (image:tag,image:tag) of the docker images to be loaded")
+        p#g-slicer-cli-web-error-upload-message
+      .modal-footer
+        button.btn.btn-sm.btn-primary Import Image
