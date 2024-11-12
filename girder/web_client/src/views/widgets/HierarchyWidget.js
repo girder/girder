@@ -416,6 +416,14 @@ var HierarchyWidget = View.extend({
      */
     upOneLevel: function () {
         this.breadcrumbs.pop();
+        if (this.breadcrumbs.length === 0) {
+            if (this.parentModel.resourceName === 'collection') {
+                router.navigate('collections', { trigger: true });
+            } else if (this.parentModel.resourceName === 'user') {
+                router.navigate('users', { trigger: true });
+            }
+            return;
+        }
         this.setCurrentModel(this.breadcrumbs[this.breadcrumbs.length - 1]);
     },
 
