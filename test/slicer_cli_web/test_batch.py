@@ -25,14 +25,14 @@ def waitForBatchJob(job):
     return results
 
 
-def scheduleBatchJob(boundServer, admin, data):
+def scheduleBatchJob(boundServer, admin, data, task_id):
     headers = {
         'Accept': 'application/json',
         'Girder-Token': str(Token().createToken(admin)['_id']),
     }
     req = requests.post(
-        'http://127.0.0.1:%d/api/v1/slicer_cli_web/girder_slicer_cli_web_small/Example3/run' %
-        boundServer.boundPort, headers=headers, data=data)
+        f'http://127.0.0.1:{boundServer.boundPort}/api/v1/slicer_cli_web/cli/{task_id}/run',
+        headers=headers, data=data)
     assert req.status_code == 200
     return req
 
@@ -41,11 +41,11 @@ def scheduleBatchJob(boundServer, admin, data):
 @pytest.mark.plugin('slicer_cli_web')
 def testBatchOneParam(boundServer, admin, girderWorker, smallDocker, fileset):
     req = scheduleBatchJob(boundServer, admin, data={
-        'file1': '',
+        'file1': str(fileset['file1'][0]['_id']),
         'file1_folder': str(fileset['folder1']['_id']),
         'image1': str(fileset['file1'][0]['_id']),
         'item1': str(fileset['item1'][0]['_id']),
-    })
+    }, task_id=smallDocker['Example3']['_id'])
     assert req.status_code == 200
     results = waitForBatchJob(req.json())
     assert results['job']['status'] == JobStatus.SUCCESS
@@ -63,7 +63,7 @@ def testBatchImageParam(boundServer, admin, girderWorker, smallDocker, fileset):
         'image1': r'[0-5]',
         'image1_folder': str(fileset['folder1']['_id']),
         'item1': str(fileset['item1'][0]['_id']),
-    })
+    }, task_id=smallDocker['Example3']['_id'])
     assert req.status_code == 200
     results = waitForBatchJob(req.json())
     assert results['job']['status'] == JobStatus.SUCCESS
@@ -82,7 +82,7 @@ def testBatchTwoParams(boundServer, admin, girderWorker, smallDocker, fileset):
         'image1': str(fileset['file1'][0]['_id']),
         'item1': '',
         'item1_folder': str(fileset['folder1']['_id']),
-    })
+    }, task_id=smallDocker['Example3']['_id'])
     assert req.status_code == 200
     results = waitForBatchJob(req.json())
     assert results['job']['status'] == JobStatus.SUCCESS
@@ -100,7 +100,7 @@ def testBatchMismatchedLists(boundServer, admin, girderWorker, smallDocker, file
         'image1': '[0-3]',
         'image1_folder': str(fileset['folder1']['_id']),
         'item1': str(fileset['item1'][0]['_id']),
-    })
+    }, task_id=smallDocker['Example3']['_id'])
     assert req.status_code == 200
     results = waitForBatchJob(req.json())
     assert results['job']['status'] == JobStatus.ERROR
@@ -115,7 +115,7 @@ def testBatchCancel(boundServer, admin, girderWorker, smallDocker, fileset):
         'file1_folder': str(fileset['folder1']['_id']),
         'image1': str(fileset['file1'][0]['_id']),
         'item1': str(fileset['item1'][0]['_id']),
-    })
+    }, task_id=smallDocker['Example3']['_id'])
     assert req.status_code == 200
     job = Job().load(id=req.json()['_id'], force=True, includeLog=True)
     Job().cancelJob(job)
