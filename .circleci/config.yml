@@ -14,6 +14,7 @@ executors:
       # This is equivalent to the deprecated circleci/mongo:<version>-ram image
       - image: mongo:3.6
         command: bash -c "mkdir /dev/shm/mongo && mongod --storageEngine ephemeralForTest --nojournal --dbpath=/dev/shm/mongo --noauth --bind_ip_all"
+      - image: rabbitmq  # used by slicer-cli-web integration tests
     working_directory: /home/circleci/project
   machine:
     machine:
