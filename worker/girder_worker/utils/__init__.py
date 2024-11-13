@@ -83,7 +83,7 @@ def _worker_inspector(task):
     if _inspector is None:
         try:
             # Celery >= 5
-            from .app import app
+            from ..app import app
             inspect = app.control.inspect
         except Exception:
             # Celecy < 5

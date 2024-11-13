@@ -41,7 +41,7 @@ def scheduleBatchJob(boundServer, admin, data, task_id):
 @pytest.mark.plugin('slicer_cli_web')
 def testBatchOneParam(boundServer, admin, girderWorker, smallDocker, fileset):
     req = scheduleBatchJob(boundServer, admin, data={
-        'file1': str(fileset['file1'][0]['_id']),
+        'file1': '',
         'file1_folder': str(fileset['folder1']['_id']),
         'image1': str(fileset['file1'][0]['_id']),
         'item1': str(fileset['item1'][0]['_id']),

@@ -301,6 +301,7 @@ class DockerResource(Resource):
         return Item().setMetadata(item, metadata)
 
     def _createPutImageJob(self, nameList, baseFolder, pull=False):
+        # TODO convert this to a celery job rather than local job.
         job = Job().createLocalJob(
             module='girder_slicer_cli_web.image_job',
             function='jobPullAndLoad',
