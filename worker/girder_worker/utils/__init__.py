@@ -83,9 +83,9 @@ def _worker_inspector(task):
     if _inspector is None:
         try:
             # Celery >= 5
-            from .app import app
+            from ..app import app
             inspect = app.control.inspect
-        except Exception:
+        except AttributeError:
             # Celecy < 5
             from celery.app.control import Inspect as inspect  # noqa: N813
         _inspector = inspect([task.request.hostname])
