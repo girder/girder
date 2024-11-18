@@ -1,20 +1,5 @@
-#############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#############################################################################
-
 import copy
+import itertools
 import json
 import os
 import re
@@ -40,6 +25,23 @@ from . import TOKEN_SCOPE_MANAGE_TASKS, rest_slicer_cli
 from .cli_utils import as_model, get_cli_parameters
 from .config import PluginSettings
 from .models import CLIItem, DockerImageItem, DockerImageNotFoundError, parser
+from .prepare_task import FOLDER_SUFFIX
+
+
+def _getBatchParams(params, cli_model):
+    """
+    Return a list of parameters that will be used in a batch job.  The list
+    is empty for non-batch jobs.
+
+    :param params: the parameters as passed to the endpoint.
+    :returns: a list of batch parameters from the cli (not their values).
+    """
+    index_params, opt_params, _ = get_cli_parameters(cli_model)
+
+    return [
+        param for param in itertools.chain(index_params, opt_params)
+        if rest_slicer_cli._canBeBatched(param) and params.get(param.identifier() + FOLDER_SUFFIX)
+    ]
 
 
 class DockerResource(Resource):
@@ -54,7 +56,6 @@ class DockerResource(Resource):
         super().__init__()
         self.currentEndpoints = {}
         self.resourceName = name
-        self.jobType = 'slicer_cli_web_job'
         self.route('PUT', ('docker_image',), self.setImages)
         self.route('POST', ('cli',), self.createOrReplaceCli)
         self.route('DELETE', ('docker_image',), self.deleteImage)
@@ -80,7 +81,17 @@ class DockerResource(Resource):
     def runCli(self, item, params):
         user = self.getCurrentUser()
         token = Token().createToken(user=user)
-        return cliSubHandler(CLIItem(item), params, user, token).job
+        cli_item = CLIItem(item)
+        cli_model = as_model(cli_item.xml)
+
+        batchParams = _getBatchParams(params, cli_model)
+        if len(batchParams):
+            job = rest_slicer_cli.batchCLIJob(cli_item, params, user, cli_model.title)
+        else:
+            token = Token().createToken(user=user)
+            job = cliSubHandler(cli_item, cli_model, params, user, token)
+            job = job.job
+        return job
 
     @access.user
     @autoDescribeRoute(
@@ -89,12 +100,15 @@ class DockerResource(Resource):
         .modelParam('jobId', 'The job to re-run', Job, level=AccessType.READ)
     )
     def rerunCli(self, item, job, params):
+        # TODO support batch mode here
+        cli_model = as_model(cli_item.xml)
+
         user = self.getCurrentUser()
         newParams = job.get('_original_params', {})
         newParams.update(params)
 
         token = Token().createToken(user=user)
-        return cliSubHandler(CLIItem(item), newParams, user, token).job
+        return cliSubHandler(CLIItem(item), cli_model, newParams, user, token).job
 
     @access.user
     @describeRoute(
@@ -109,8 +123,10 @@ class DockerResource(Resource):
         user = self.getCurrentUser()
 
         currentItem = CLIItem(item)
+        cli_model = as_model(currentItem.xml)
+
         token = Token().createToken(user=user)
-        job = cliSubHandler(currentItem, params, user, token, key).job
+        job = cliSubHandler(currentItem, cli_model, params, user, token, key).job
         delay = 0.01
         while job['status'] not in {JobStatus.SUCCESS, JobStatus.ERROR, JobStatus.CANCELED}:
             time.sleep(delay)
@@ -485,7 +501,7 @@ class DockerResource(Resource):
         return None
 
 
-def cliSubHandler(cliItem, params, user, token, datalistKey=None):
+def cliSubHandler(cliItem: CLIItem, cli_model, params: dict, user, token, datalistKey=None):
     """
     Create a job for a Slicer CLI item and schedule it.
 
@@ -497,11 +513,10 @@ def cliSubHandler(cliItem, params, user, token, datalistKey=None):
     """
     from .girder_worker_plugin.direct_docker_run import run
 
-    clim = as_model(cliItem.xml)
-    cliTitle = clim.title
+    cliTitle = cli_model.title
 
     original_params = copy.deepcopy(params)
-    index_params, opt_params, simple_out_params = get_cli_parameters(clim)
+    index_params, opt_params, simple_out_params = get_cli_parameters(cli_model)
 
     datalistSpec = {
         param.name: json.loads(param.datalist)

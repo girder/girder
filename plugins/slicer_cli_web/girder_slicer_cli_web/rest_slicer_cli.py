@@ -188,7 +188,7 @@ def batchCLIJob(cliItem, params, user, cliTitle):
     if not Setting().get('worker.api_url'):
         Setting().set('worker.api_url', getApiUrl())
     job = Job().createLocalJob(
-        module='slicer_cli_web.rest_slicer_cli',
+        module='girder_slicer_cli_web.rest_slicer_cli',
         function='batchCLITask',
         kwargs={
             'cliItemId': str(cliItem._id),
