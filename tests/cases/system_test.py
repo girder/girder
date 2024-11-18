@@ -161,6 +161,7 @@ class SystemTestCase(base.TestCase):
             SettingKey.SMTP_HOST: '',
             SettingKey.SMTP_PASSWORD: {},
             SettingKey.SMTP_USERNAME: {},
+            SettingKey.COOKIE_DOMAIN: {},
             SettingKey.CORS_ALLOW_ORIGIN: {},
             SettingKey.CORS_ALLOW_METHODS: {},
             SettingKey.CORS_ALLOW_HEADERS: {},

@@ -1198,6 +1198,9 @@ class Resource:
         if cherrypy.request.scheme == 'https' or cherrypy.request.base.startswith('https'):
             cookie['girderToken']['secure'] = True
 
+        if domain := Setting().get(SettingKey.COOKIE_DOMAIN):
+            cookie['girderToken']['domain'] = domain
+
         return token
 
     def deleteAuthTokenCookie(self):
