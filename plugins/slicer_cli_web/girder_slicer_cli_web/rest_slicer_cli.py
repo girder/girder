@@ -187,6 +187,7 @@ def batchCLIJob(cliItem, params, user, cliTitle):
     # running concurrently.
     if not Setting().get('worker.api_url'):
         Setting().set('worker.api_url', getApiUrl())
+    # TODO we need to make this a celery task rather than a local job
     job = Job().createLocalJob(
         module='girder_slicer_cli_web.rest_slicer_cli',
         function='batchCLITask',

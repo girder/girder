@@ -171,6 +171,9 @@ def testWorkerDifferentTask(server, models):
 
 @pytest.mark.plugin('worker')
 def testWorkerCancel(models):
+    # Set an API_URL so we can use the spec outside of a rest request
+    Setting().set(PluginSettings.API_URL, 'http://127.0.0.1/api/v1')
+
     jobModel = Job()
     job = jobModel.createJob(
         title='title', type='foo', handler='worker_handler',
@@ -206,6 +209,9 @@ def testWorkerCancel(models):
 
 @pytest.mark.plugin('worker')
 def testWorkerWithParent(models):
+    # Set an API_URL so we can use the spec outside of a rest request
+    Setting().set(PluginSettings.API_URL, 'http://127.0.0.1/api/v1')
+
     jobModel = Job()
     parentJob = jobModel.createJob(
         title='title', type='foo', handler='worker_handler',
@@ -235,7 +241,7 @@ def testLocalJob(models):
 @pytest.mark.plugin('worker')
 def testGirderInputSpec(models):
     # Set an API_URL so we can use the spec outside of a rest request
-    Setting().set(PluginSettings.API_URL, 'http://127.0.0.1')
+    Setting().set(PluginSettings.API_URL, 'http://127.0.0.1/api/v1')
     Setting().set(PluginSettings.DIRECT_PATH, True)
 
     spec = utils.girderInputSpec(models['adminFolder'], resourceType='folder')
@@ -279,6 +285,9 @@ def testDirectPathSettingValidation(server, models):
 
 @pytest.mark.plugin('worker')
 def testWorkerStatusEndpoint(server, models):
+    # Set an API_URL so we can use the spec outside of a rest request
+    Setting().set(PluginSettings.API_URL, 'http://127.0.0.1/api/v1')
+
     # Create a job to be handled by the worker plugin
     job = Job().createJob(
         title='title', type='foo', handler='worker_handler',

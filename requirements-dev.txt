@@ -33,6 +33,7 @@ mongomock
 moto[server]<4.2.12
 pytest>=3.6
 pytest-cov>=2.6
+pytest-forked
 pytest-mock
 python-dateutil
 tox

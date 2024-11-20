@@ -70,4 +70,4 @@ requestCache = make_region(name='girder.request').configure(backend='dogpile.cac
 # It holds data for rate limiting, which is ephemeral, but must be persisted (i.e. it's not optional
 # or best-effort).
 # TODO we need to make this configurable to be share-nothing in a multi-process environment
-rateLimitBuffer = make_region(name='girder.rate_limit')
+rateLimitBuffer = make_region(name='girder.rate_limit').configure(backend='dogpile.cache.memory')
