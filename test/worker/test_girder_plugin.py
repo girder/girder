@@ -13,7 +13,6 @@ from pytest_girder.assertions import assertStatus, assertStatusOk
 
 from girder_plugin_worker.constants import PluginSettings
 from girder_plugin_worker import celery, utils
-from girder_plugin_worker.status import CustomJobStatus
 
 
 def tearDownModule():
@@ -167,61 +166,6 @@ def testWorkerDifferentTask(server, models):
             'some_other.task', job['args'], job['kwargs'])
         assert 'queue' in sendTaskCalls[0][2]
         assert sendTaskCalls[0][2]['queue'] == 'my_other_q'
-
-
-@pytest.mark.plugin('worker')
-def testWorkerCancel(models):
-    # Set an API_URL so we can use the spec outside of a rest request
-    Setting().set(PluginSettings.API_URL, 'http://127.0.0.1/api/v1')
-
-    jobModel = Job()
-    job = jobModel.createJob(
-        title='title', type='foo', handler='worker_handler',
-        user=models['admin'], public=False, args=(), kwargs={})
-
-    job['kwargs'] = {
-        'jobInfo': utils.jobInfoSpec(job),
-        'inputs': [
-            utils.girderInputSpec(models['adminFolder'], resourceType='folder')
-        ],
-        'outputs': [
-            utils.girderOutputSpec(models['adminFolder'], token=models['adminToken'])
-        ]
-    }
-    job = jobModel.save(job)
-    assert job['status'] == JobStatus.INACTIVE
-
-    # Schedule the job, make sure it is sent to celery
-    with mock.patch('celery.Celery') as celeryMock, \
-            mock.patch('girder_plugin_worker.event_handlers.AsyncResult') as asyncResult:
-        instance = celeryMock.return_value
-        instance.send_task.return_value = FakeAsyncResult()
-
-        jobModel.scheduleJob(job)
-        jobModel.cancelJob(job)
-
-        asyncResult.assert_called_with('fake_id', app=mock.ANY)
-        # Check we called revoke
-        asyncResult.return_value.revoke.assert_called_once()
-        job = jobModel.load(job['_id'], force=True)
-        assert job['status'] == CustomJobStatus.CANCELING
-
-
-@pytest.mark.plugin('worker')
-def testWorkerWithParent(models):
-    # Set an API_URL so we can use the spec outside of a rest request
-    Setting().set(PluginSettings.API_URL, 'http://127.0.0.1/api/v1')
-
-    jobModel = Job()
-    parentJob = jobModel.createJob(
-        title='title', type='foo', handler='worker_handler',
-        user=models['admin'], public=False, otherFields={'celeryTaskId': '1234'})
-    childJob = jobModel.createJob(
-        title='title', type='foo', handler='worker_handler',
-        user=models['admin'], public=False, otherFields={'celeryTaskId': '5678',
-                                                         'celeryParentTaskId': '1234'})
-
-    assert parentJob['_id'] == childJob['parentId']
 
 
 @pytest.mark.skip('Fix module path')

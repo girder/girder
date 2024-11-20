@@ -85,10 +85,10 @@ class DockerResource(Resource):
         cli_model = as_model(cli_item.xml)
 
         batchParams = _getBatchParams(params, cli_model)
+
         if len(batchParams):
             job = rest_slicer_cli.batchCLIJob(cli_item, params, user, cli_model.title)
         else:
-            token = Token().createToken(user=user)
             job = cliSubHandler(cli_item, cli_model, params, user, token)
             job = job.job
         return job
@@ -100,15 +100,23 @@ class DockerResource(Resource):
         .modelParam('jobId', 'The job to re-run', Job, level=AccessType.READ)
     )
     def rerunCli(self, item, job, params):
-        # TODO support batch mode here
+        user = self.getCurrentUser()
+        token = Token().createToken(user=user)
+        cli_item = CLIItem(item)
         cli_model = as_model(cli_item.xml)
 
-        user = self.getCurrentUser()
         newParams = job.get('_original_params', {})
         newParams.update(params)
 
-        token = Token().createToken(user=user)
-        return cliSubHandler(CLIItem(item), cli_model, newParams, user, token).job
+        batch_params = _getBatchParams(params, cli_model)
+
+        if len(batch_params):
+            job = rest_slicer_cli.batchCLIJob(cli_item, newParams, user, cli_model.title)
+        else:
+            job = cliSubHandler(cli_item, cli_model, params, user, token)
+            job = job.job
+
+        return job
 
     @access.user
     @describeRoute(
