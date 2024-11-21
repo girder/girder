@@ -351,9 +351,6 @@ var App = View.extend({
         Backbone.history.fragment = null;
         eventStream.close();
 
-        // May need to show or hide side nav based on user
-        this.render();
-
         if (getCurrentUser()) {
             eventStream.open();
             router.navigate(route, { trigger: true });
