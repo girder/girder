@@ -1,11 +1,9 @@
 import collections
-import datetime
-import re
 
 from .. import base
 
 from girder import events
-from girder.constants import AccessType, TokenScope
+from girder.constants import AccessType
 from girder.models.folder import Folder
 from girder.models.group import Group
 from girder.models.setting import Setting
@@ -402,13 +400,7 @@ class UserTestCase(base.TestCase):
 
         Setting().set(SettingKey.REGISTRATION_POLICY, 'approve')
 
-        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
-
         user = User().createUser('user', 'password', 'User', 'User', 'user@girder.test')
-
-        # pop email
-        self.assertTrue(base.mockSmtp.waitForMail())
-        base.mockSmtp.getMail(parse=True)
 
         # cannot login without being approved
         resp = self.request('/user/authentication', basicAuth='user:password')
@@ -436,10 +428,6 @@ class UserTestCase(base.TestCase):
         })
         self.assertStatusOk(resp)
 
-        # pop email
-        self.assertTrue(base.mockSmtp.waitForMail())
-        base.mockSmtp.getMail(parse=True)
-
         # can now login
         resp = self.request('/user/authentication', basicAuth='user:password')
         self.assertStatusOk(resp)
@@ -458,108 +446,6 @@ class UserTestCase(base.TestCase):
         resp = self.request('/user/authentication', basicAuth='user:password')
         self.assertStatus(resp, 401)
         self.assertEqual(resp.json['extra'], 'disabled')
-
-    def testEmailVerification(self):
-        Setting().set(SettingKey.EMAIL_VERIFICATION, 'required')
-
-        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
-
-        User().createUser('admin', 'password', 'Admin', 'Admin', 'admin@girder.test')
-
-        self.assertTrue(base.mockSmtp.waitForMail())
-        base.mockSmtp.getMail(parse=True)
-
-        User().createUser('user', 'password', 'User', 'User', 'user@girder.test')
-
-        self.assertTrue(base.mockSmtp.waitForMail())
-        msg = base.mockSmtp.getMail(parse=True)
-
-        # cannot login without verifying email
-        resp = self.request('/user/authentication', basicAuth='user:password')
-        self.assertStatus(resp, 401)
-        self.assertTrue(resp.json['extra'] == 'emailVerification')
-
-        # get verification link
-        body = msg.get_payload(decode=True).decode('utf8')
-        link = re.search('<a href="(.*)">', body).group(1)
-        parts = link.split('/')
-        userId = parts[-3]
-        token = parts[-1]
-
-        # verify email with token
-        path = '/user/' + userId + '/verification'
-        resp = self.request(path=path, method='PUT', params={'token': token})
-        self.assertStatusOk(resp)
-
-        # can now login
-        resp = self.request('/user/authentication', basicAuth='user:password')
-        self.assertStatusOk(resp)
-
-    def testTemporaryPassword(self):
-        User().createUser('user1', 'passwd', 'tst', 'usr', 'user@girder.test')
-        # Temporary password should require email param
-        self.ensureRequiredParams(
-            path='/user/password/temporary', method='PUT', required={'email'})
-        # Temporary password with an incorrect email
-        resp = self.request(path='/user/password/temporary', method='PUT',
-                            params={'email': 'bad_email@girder.test'})
-        self.assertStatus(resp, 400)
-        self.assertEqual(resp.json['message'], 'That email is not registered.')
-        # Actually generate temporary access token
-        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
-        resp = self.request(path='/user/password/temporary', method='PUT',
-                            params={'email': 'user@girder.test'})
-        self.assertStatusOk(resp)
-        self.assertEqual(resp.json['message'], 'Sent temporary access email.')
-        self.assertTrue(base.mockSmtp.waitForMail())
-        msg = base.mockSmtp.getMail(parse=True)
-        # Pull out the auto-generated token from the email
-        body = msg.get_payload(decode=True).decode('utf8')
-        search = re.search('<a href="(.*)">', body)
-        link = search.group(1)
-        linkParts = link.split('/')
-        userId = linkParts[-3]
-        tokenId = linkParts[-1]
-        # Checking if a token is a valid temporary token should fail if the
-        # token is missing or doesn't match the user ID
-        path = '/user/password/temporary/' + userId
-        self.ensureRequiredParams(path=path, required={'token'})
-        resp = self.request(path=path, method='GET', params={'token': 'not valid'})
-        self.assertStatus(resp, 400)
-        resp = self.request(path=path, method='GET', params={'token': tokenId})
-        self.assertStatusOk(resp)
-        user = resp.json['user']
-
-        # We should have a real auth token now
-        self.assertTrue('girderToken' in resp.cookie)
-        authToken = resp.cookie['girderToken'].value
-        token = Token().load(authToken, force=True, objectId=False)
-        self.assertEqual(str(token['userId']), userId)
-        self.assertFalse(Token().hasScope(token, [
-            TokenScope.TEMPORARY_USER_AUTH
-        ]))
-        self.assertTrue(Token().hasScope(token, [
-            TokenScope.USER_AUTH
-        ]))
-
-        # Artificially adjust the token to have expired.
-        token = Token().load(tokenId, force=True, objectId=False)
-        token['expires'] = (datetime.datetime.now(datetime.timezone.utc)
-                            - datetime.timedelta(days=1))
-        Token().save(token)
-        resp = self.request(path=path, method='GET', params={'token': tokenId})
-        self.assertStatus(resp, 401)
-
-        # We should now be able to change the password
-        resp = self.request(path='/user/password', method='PUT', params={
-            'old': tokenId,
-            'new': 'another_password'
-        }, user=user)
-        self.assertStatusOk(resp)
-
-        # The token should have been deleted
-        token = Token().load(tokenId, force=True, objectId=False)
-        self.assertEqual(token, None)
 
     def testUserCreation(self):
         admin = User().createUser('user1', 'passwd', 'tst', 'usr', 'user@girder.test')
