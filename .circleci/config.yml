@@ -23,11 +23,13 @@ commands:
       - run:
           name: start mongo
           command: |
-            docker run --rm -d -p 27017:27017 mongo:4.0 bash -c "mkdir /dev/shm/mongo && mongod --nojournal --dbpath=/dev/shm/mongo --noauth --bind_ip_all"
+            docker run -d -p 27017:27017 mongo:4.0 bash -c "mkdir /dev/shm/mongo && mongod --nojournal --dbpath=/dev/shm/mongo --noauth --bind_ip_all"
+          no_output_timeout: 1h
       - run:
           name: start rabbitmq
           command: |
-            docker run --rm -d -p 5672:5672 rabbitmq
+            docker run -d -p 5672:5672 rabbitmq
+          no_output_timeout: 1h
       - run:
           name: install nodejs
           command: |
