@@ -10,26 +10,32 @@ executors:
   py3-mongo:
     docker:
       - image: girder/girder_test:latest
-      # Use the oldest supported MongoDB
-      # This is equivalent to the deprecated circleci/mongo:<version>-ram image
-      - image: mongo:3.6
-        command: bash -c "mkdir /dev/shm/mongo && mongod --storageEngine ephemeralForTest --nojournal --dbpath=/dev/shm/mongo --noauth --bind_ip_all"
-      - image: rabbitmq  # used by slicer-cli-web integration tests
     working_directory: /home/circleci/project
   machine:
     machine:
-      image: ubuntu-2004:202111-02
+      image: ubuntu-2204:current
     working_directory: /home/circleci/project
 
 commands:
+  prerequisites:
+    description: "Install prerequisites and run required background services"
+    steps:
+      - run:
+          name: start mongo
+          command: |
+            docker run --rm -d -p 27017:27017 mongo:4.0 bash -c "mkdir /dev/shm/mongo && mongod --nojournal --dbpath=/dev/shm/mongo --noauth --bind_ip_all"
+      - run:
+          name: start rabbitmq
+          command: |
+            docker run --rm -d -p 5672:5672 rabbitmq
+      - run:
+          name: install nodejs
+          command: |
+            curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+            sudo apt-get install -y nodejs
   install-girder:
     description: "Install Girder in a virtualenv and configure CTest"
     steps:
-      #- run:
-      #    name: Generate python environment checksum file
-      #    command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
-      #- restore_cache:
-      #    key: venv-py3.8-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - run:
           name: Create virtual environment (if necessary)
           command: if [ ! -d girder_env ]; then python3 -m venv girder_env; fi
@@ -46,14 +52,10 @@ commands:
             python3 -m pip install
             --upgrade
             --upgrade-strategy eager
-            --editable .[sftp,mount]
+            --editable '.[sftp,mount]'
             --editable clients/python
             --requirement requirements-dev.txt
           working_directory: girder
-      #- save_cache:
-      #    paths:
-      #      - girder_env
-      #    key: venv-py3.8-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
 
 jobs:
   server-lint-test:
@@ -65,22 +67,20 @@ jobs:
           name: Run server linting tests
           command: tox -e lint
           working_directory: girder
-      #- run:
-      #    name: Test public symbols
-      #    command: tox -e public_names
-      #    working_directory: girder
       - run:
           name: Test building docs
           command: tox -e docs
           working_directory: girder
 
   server-pytest-test:
-    executor: py3-mongo
+    # We need the machine executor here because of slicer_cli_web E2E tests that require docker
+    # with bind-mounted paths that don't work with docker-in-docker on CircleCI
+    executor: machine
     steps:
-      # slicer_cli_web tests using actual docker
-      - setup_remote_docker
+      - prerequisites
       - checkout:
           path: girder
+      - install-girder
       - run:
           name: Run pytest tests
           command: tox -e pytest_circleci
