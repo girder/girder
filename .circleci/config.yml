@@ -10,6 +10,10 @@ executors:
   py3-mongo:
     docker:
       - image: girder/girder_test:latest
+      # Use the oldest supported MongoDB
+      # This is equivalent to the deprecated circleci/mongo:<version>-ram image
+      - image: mongo:3.6
+        command: bash -c "mkdir /dev/shm/mongo && mongod --storageEngine ephemeralForTest --nojournal --dbpath=/dev/shm/mongo --noauth --bind_ip_all"
     working_directory: /home/circleci/project
   machine:
     machine:
