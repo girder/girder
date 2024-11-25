@@ -33,6 +33,12 @@ commands:
           command: |
             curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
             sudo apt-get install -y nodejs
+      - run:
+          name: install apt libraries for Girder
+          command: |
+            DEBIAN_FRONTEND=noninteractive sudo apt-get install -y \
+              libldap2-dev \
+              libsasl2-dev
   install-girder:
     description: "Install Girder in a virtualenv and configure CTest"
     steps:
