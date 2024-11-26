@@ -1,9 +1,3 @@
-# Test if mongod is present for tests that require it.
-find_program(MONGOD_EXECUTABLE mongod)
-if("${MONGOD_EXECUTABLE}" STREQUAL "MONGOD_EXECUTABLE-NOTFOUND")
-  set(MONGOD_EXECUTABLE "local mongod required")
-endif()
-
 if(RUN_CORE_TESTS)
   # These are performed approximately in the order listed.
   add_python_test(assetstore)
@@ -30,8 +24,7 @@ if(RUN_CORE_TESTS)
   # it to the integration group.
   add_python_test(system)
   set_property(TEST server_system PROPERTY LABELS girder_integration)
-  # Upload test uses mongo replicaset and a lot of resources, so we run it by itself
-  add_python_test(upload RUN_SERIAL RESOURCE_LOCKS replicaset REQUIRED_FILES "${MONGOD_EXECUTABLE}")
+  add_python_test(upload RUN_SERIAL)
   set_property(TEST server_upload PROPERTY LABELS girder_integration)
   add_python_test(user)
   add_python_test(setup_database)
