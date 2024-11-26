@@ -217,7 +217,7 @@ jobs:
           name: Install system dependencies for Girder plugins
           environment:
             DEBIAN_FRONTEND: noninteractive
-          command: sudo apt-get update && sudo apt-get install -y libldap2-dev libsasl2-dev
+          command: sudo apt-get update && sudo apt-get install -y libldap2-dev libsasl2-dev libfuse2
       - install-girder
       - run:
           name: Start mongod
