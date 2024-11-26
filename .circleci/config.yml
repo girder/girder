@@ -198,21 +198,6 @@ jobs:
           name: Allow access to /etc/fuse.conf by all users
           command: sudo chmod a+r /etc/fuse.conf
       - run:
-          name: Get rid of existing versions of MongoDB
-          command: >-
-            sudo rm --force /etc/apt/sources.list.d/*mongo*
-            &&
-            sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos
-            || true
-      - run:
-          name: Install MongoDB
-          command: |
-            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 656408E390CFB1F5
-            echo "deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu $(lsb_release -sc)/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org.list
-            sudo apt-get update
-            sudo apt-get install -y mongodb-org-server
-            sudo systemctl start mongod
-      - run:
           # The "d3" npm package (required by some Girder plugins) has an optional dependency of
           # "canvas", which requires "node-gyp" to build. node-gyp strictly requires Python 2
           # (https://www.npmjs.com/package/node-gyp), so install it first before switching to
@@ -230,8 +215,14 @@ jobs:
              pyenv global 3.8.12
       - run:
           name: Install system dependencies for Girder plugins
+          environment:
+            DEBIAN_FRONTEND: noninteractive
           command: sudo apt-get install -y libldap2-dev libsasl2-dev
       - install-girder
+      - run:
+          name: Start mongod
+          command: |
+            docker run -d -p 27017:27017 mongo:4.0 mongod --nojournal --noauth --bind_ip_all
       - run:
           name: Install and build @girder/core
           command: |
