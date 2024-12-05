@@ -2,6 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 import 'typeface-open-sans';
+import 'remixicon/fonts/remixicon.css';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap/js/alert';
 import '@girder/fontello/dist/css/animation.css';
@@ -204,6 +205,9 @@ var App = View.extend({
      */
     navigateTo: function (view, settings, opts) {
         this.globalNavView.deactivateAll();
+
+        // Header changes based on navigation
+        this.headerView.render();
 
         settings = settings || {};
         opts = opts || {};
