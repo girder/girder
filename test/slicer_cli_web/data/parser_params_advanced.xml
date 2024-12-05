@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<executable xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="https://github.com/commontk/CTK/blob/master/Libs/CommandLineModules/Core/Resources/ctkCmdLineModule.xsd">
+  <title>T</title>
+  <description>D</description>
+  <documentation-url>https://github.com</documentation-url>
+  <parameters advanced="true">
+    <label>P</label>
+    <description>PD</description>
+    <image reference="asd" type="label">
+      <label>test</label>
+      <description>testd</description>
+      <channel>output</channel>
+      <index>0</index>
+      <flag alias="ff" deprecatedalias="fi">i</flag>
+    </image>
+    <region coordinateSystem="lps" shapes="default,rectangle,polygon,multipolygon">
+      <label>region</label>
+      <channel>output</channel>
+      <description>ts</description>
+      <longflag alias="ff" deprecatedalias="ed">aa</longflag>
+      <default>0,1,2,3,4,5</default>
+    </region>
+    <file>
+      <label>f</label>
+      <description>file</description>
+      <channel>output</channel>
+      <index>2</index>
+      <reference parameter="a" role="b">adf</reference>
+    </file>
+  </parameters>
+</executable>

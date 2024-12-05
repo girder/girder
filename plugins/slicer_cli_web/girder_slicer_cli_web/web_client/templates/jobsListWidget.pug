@@ -1,0 +1,16 @@
+table.g-jobs-list-table
+  tbody
+    each job in jobs
+      - var title = job.title
+      - var created = new Date(job.created);
+      tr(data-job-id=job._id)
+        td.g-status-icon-container(status=job.status)
+          i(class=JobStatus.icon(job.status))
+        td
+          a(href=`${rootLink}/#job/${job._id}`, target='_blank', data-toggle='tooltip', title=created.toLocaleString())
+            = title
+        if job.paramFile && job.paramFile._id
+          td
+            a.s-param-file(
+              data-file-id=job.paramFile._id, data-toggle='tooltip', title='Show outputs')
+              i.icon-link-ext-alt

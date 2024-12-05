@@ -6,7 +6,7 @@ import shutil
 import unittest.mock
 
 from .plugin_registry import PluginRegistry
-from .utils import MockSmtpReceiver, serverContext
+from .utils import serverContext
 
 
 def _uid(node):
@@ -133,23 +133,16 @@ def boundServer(db, request):
 
 
 @pytest.fixture
-def smtp(db, server):
-    """
-    Provides a mock SMTP server for testing.
-    """
-    from girder.models.setting import Setting
-    from girder.settings import SettingKey
+def email_stdout(db):
+    old_env_val = os.environ.get('GIRDER_EMAIL_TO_CONSOLE')
+    os.environ['GIRDER_EMAIL_TO_CONSOLE'] = 'true'
 
-    receiver = MockSmtpReceiver()
-    receiver.start()
+    yield
 
-    host, port = receiver.address
-    Setting().set(SettingKey.SMTP_HOST, host)
-    Setting().set(SettingKey.SMTP_PORT, port)
-
-    yield receiver
-
-    receiver.stop()
+    if old_env_val is None:
+        del os.environ['GIRDER_EMAIL_TO_CONSOLE']
+    else:
+        os.environ['GIRDER_EMAIL_TO_CONSOLE'] = old_env_val
 
 
 @pytest.fixture
@@ -201,4 +194,4 @@ def fsAssetstore(db, request):
         shutil.rmtree(path)
 
 
-__all__ = ('admin', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'smtp')
+__all__ = ('admin', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'email_stdout')

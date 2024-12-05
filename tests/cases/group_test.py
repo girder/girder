@@ -242,7 +242,6 @@ class GroupTestCase(base.TestCase):
         self.assertEqual(len(list(Group().getMembers(privateGroup))), 1)
 
         # Invite user 1 to join the private group as member
-        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
         params = {
             'userId': self.users[1]['_id'],
             'level': AccessType.READ
@@ -259,9 +258,6 @@ class GroupTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]['_id'], str(self.users[1]['_id']))
-
-        # An email should have been sent
-        self.assertTrue(base.mockSmtp.waitForMail())
 
         # Reload user and group since they've changed in the database
         self.users[1] = User().load(self.users[1]['_id'], force=True)

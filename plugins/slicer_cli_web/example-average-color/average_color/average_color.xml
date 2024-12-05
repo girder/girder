@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Sample</category>
+  <title>Sample Algorithm - Image Processing</title>
+  <description>Calculate the average color of a whole slide image.</description>
+  <version>0.1.0</version>
+  <license>Apache 2.0</license>
+  <contributor>David Manthey (Kitware)</contributor>
+  <parameters>
+    <description>General parameters</description>
+    <label>IO</label>
+    <image>
+      <name>imageFile</name>
+      <index>0</index>
+      <description>Input image</description>
+      <label>Input image</label>
+      <channel>input</channel>
+    </image>
+    <string-enumeration>
+      <name>channel</name>
+      <longflag>channel</longflag>
+      <description>Which channel to compute</description>
+      <label>Channel to compute</label>
+      <default>all</default>
+      <element>all</element>
+      <element>red</element>
+      <element>green</element>
+      <element>blue</element>
+    </string-enumeration>
+    <float>
+      <name>average</name>
+      <longflag>average</longflag>
+      <label>Average color</label>
+      <description>The average color</description>
+      <channel>output</channel>
+      <default>0</default>
+    </float>
+    <file fileExtensions=".anot" reference="ImageFile">
+      <name>outputAnnotationFile</name>
+      <label>Output Annotation File</label>
+      <description>Output annotation file (*.anot)</description>
+      <channel>output</channel>
+      <index>1</index>
+    </file>
+  </parameters>
+</executable>

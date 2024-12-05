@@ -1,0 +1,63 @@
+extends ./widget.pug
+
+block input
+  .input-group
+    +input(title, type, id, value.join(','))
+    -
+      const allShapes = {rectangle: {icon: 'icon-check-empty', name: 'Rectangle', text: 'rectangular region'}, polygon: {icon: 'icon-draw-polygon', name: 'Polygon', text: 'polygon region'}, polyline: {icon: 'icon-pencil', name: 'Line', text: 'continuous line'}, line: {icon: 'icon-pencil', name: 'Line Segment', text: 'line segment'}, point: {icon: 'icon-circle', name: 'Point', text: 'point'}};
+      const keys = new Set(shapes ? shapes.split(',') : ['rectangle'])
+      if (keys.has('multipolygon')) {
+      keys.add('multi');
+      keys.add('polygon');
+      keys.delete('multipolygon');
+      }
+      if (keys.has('polygon')) {
+      keys.add('rectangle');
+      }
+      var buttons = Object.keys(allShapes).filter((k) => keys.has(k));
+      var submitActive = previousElement ? previousElement.find('.s-select-region-submit-button').hasClass('enabled') : undefined;
+    if buttons.length > 0
+      span.input-group-btn
+        button.btn.btn-default.s-select-region-button(
+            disabled=disableRegionSelect,
+            type='button', data-toggle='tooltip', data-placement='right',
+            shape=buttons[0], multi='false', parent-id=id,
+            title=`Draw a ${allShapes[buttons[0]].text} on the image`)
+          i(class=allShapes[buttons[0]].icon)
+        if buttons.length > 0
+          .btn-group.region-dropdown(role='group')
+            button.btn.btn-default.dropdown-toggle(type='button', data-toggle='dropdown', disabled=disableRegionSelect)
+              i.icon-down-dir
+            .dropdown-menu
+              for button in buttons
+                button.btn.btn-default.s-select-region-button(
+                    disabled=disableRegionSelect,
+                    type='button', data-toggle='tooltip', data-placement='right',
+                    shape=button, multi='false', parent-id=id,
+                    title=`Draw a ${allShapes[button].text} on the image`)
+                  i(class=allShapes[button].icon)
+                  = ` ${allShapes[button].name}`
+              if keys.has('multi')
+                for button in buttons
+                  button.btn.btn-default.s-select-region-button(
+                      disabled=disableRegionSelect,
+                      type='button', data-toggle='tooltip', data-placement='right',
+                      shape=button, multi='true', parent-id=id,
+                      title=`Add a ${allShapes[button].text} to the existing region`)
+                    span.fa-stack
+                      i(class=allShapes[button].icon)
+                      i.icon-plus.fa-cancel-cover
+                    = ` Add ${allShapes[button].name}`
+              button.btn.btn-default.s-select-region-clear-button(
+                  type='button', data-toggle='tooltip', data-placement='right',
+                  title='Clear the current region')
+                i.icon-cancel
+                |  Clear
+              if keys.has('submit') || keys.has('submiton') || keys.has('autosubmit') || keys.has('submitoff')
+                button.btn.btn-default.s-select-region-submit-button(
+                    class=(keys.has('submiton') && submitActive !== false) || keys.has('autosubmit') || ((keys.has('submit') || keys.has('submitoff')) && submitActive === true) ? 'active enabled' : '',
+                    type='button', data-toggle='tooltip', data-placement='right',
+                    can-toggle=keys.has('autosubmit') ? 'false' : 'true',
+                    title='Submit job when region is set')
+                  i.icon-ok
+                  |  Submit

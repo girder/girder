@@ -1,0 +1,830 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "required": [
+    "title",
+    "description"
+  ],
+  "definitions": {
+    "xyz": {
+      "type": "object",
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        }
+      }
+    },
+    "coordinateSystem": {
+      "type": "string",
+      "description": "Specifies the coordinate system. If unspecified, the executing module is free to interpret the coordinates in the most appropriate way. For more information about the different systems, see\n<a href=\"http://www.slicer.org/slicerWiki/index.php/Coordinate_systems\">Coordinate Systems</a>.<ul>  <li><b>ras</b> (Right, Anterior, Superior) coordinate system.</li>      <li><b>ijk</b> image coordinate system.</li><li><b>lps</b> (Left, Posterior, Superior) coordinate system.</li></ul>",
+      "enum": [
+        "lps",
+        "ijk",
+        "ras"
+      ]
+    },
+    "fileExtensions": {
+      "type": "string",
+      "pattern": "(?:(?:\\.[^,\\s]|[^,\\.\\s\\*])[^,\\s]*)(?:,\\s*(?:\\.[^,\\s]|[^,\\.\\s\\*])[^,\\s]*)*",
+      "description": "fileExtensions can contain a list of comma separated file extensions for optional use by the GUI."
+    },
+    "defaultPathMatch": {
+      "type": "string",
+      "description": "A regular expression that can be used to match a file, item, or folder total path to prepopulate a default value.  When used with Girder, this matches the resource path."
+    },
+    "defaultNameMatch": {
+      "type": "string",
+      "description": "A regular expression that can be used to match a file, item, or folder name to prepopulate a default value.  When used with Girder, this matches the resource name."
+    },
+    "defaultRelativePath": {
+      "type": "string",
+      "description": "A path expression that is relative to the resource path of a base item used to prepopulate a default value.  When used with Girder, this is relative to the base item."
+    },
+    "reference": {
+      "oneOf": [
+        {
+          "type": "string",
+          "description": " The attribute reference can mean different things based on the parameter type. If the parameter is a transform and the reference is transformable, then the transform hierarchy of the reference is manipulated such that the reference is under the transform. If the parameter is an image or a model, then the parameter is placed in subject hierarchy at the same level as the reference (note: not available in Slicer3). If the parameter is an image, reference will be used to initialize lookup table of the output image (note: not available in Slicer4)."
+        },
+        {
+          "type": "object",
+          "description": "A forward reference from the parameter to another parameter \"bar\" with the reference role \"foo\".",
+          "required": [
+            "value"
+          ],
+          "properties": {
+            "value": {
+              "type": "string"
+            },
+            "role": {
+              "type": "string"
+            },
+            "parameter": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "properties": {
+    "category": {
+      "type": "string",
+      "description": "Classifies the executable (e.g. Filtering, Segmentation). Category can be a dot separated string. Multiple categories can be given and should be separated by a semicolon."
+    },
+    "title": {
+      "type": "string",
+      "description": "A word or two describing the executable (e.g. Median Filter, Anisotropic Diffusion"
+    },
+    "description": {
+      "type": "string",
+      "description": "A long description of the executable. Any double quotes will be converted to single quotes."
+    },
+    "version": {
+      "type": "string",
+      "description": "The version of the command line executable. A suggested format is:\n\nmajor.minor.patch.build.status\n\nwhere status is\n\nvc: version controlled (pre-alpha), build can be a serial revision number, if any (like svn might have).\na: alpha\nb: beta\nrc: release candidate\nfcs: first customer ship"
+    },
+    "documentation-url": {
+      "type": "string",
+      "description": "The location of extended documentation for the executable, (e.g. http://www.na-mic.org/foo.html)."
+    },
+    "license": {
+      "type": "string",
+      "description": "The type of license or a url containing the license, (e.g. Berkeley, Apache, http://www.slicer.org/copyright/copyright.txt)."
+    },
+    "contributor": {
+      "type": "string",
+      "description": "The author(s) of the command line executable (e.g. Pieper, Jim Miller)."
+    },
+    "acknowledgements": {
+      "type": "string",
+      "description": " Acknowledgements for funding agency, employer, colleague, (e.g. This work is part of the National Alliance for Medical Image Computing NAMIC), funded by the National Institutes of Health through the NIH Roadmap for Medical Research, Grant U54 EB005149)."
+    },
+    "parameter_groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "Starts a group of parameters.",
+        "required": [
+          "label",
+          "description",
+          "parameters"
+        ],
+        "properties": {
+          "advanced": {
+            "type": "boolean"
+          },
+          "label": {
+            "type": "string",
+            "description": "A short string that summarizes a parameter group, (e.g. I/O, Diffusion)"
+          },
+          "description": {
+            "type": "string",
+            "description": "A short description of the parameter group, (e.g. Input/Output Parameters, Anisotropic Diffusion Parameters). Any double quotes will be converted to single quotes."
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "type",
+                "label",
+                "description"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "string",
+                    "boolean",
+                    "integer",
+                    "float",
+                    "double",
+                    "integer-vector",
+                    "float-vector",
+                    "double-vector",
+                    "string-vector",
+                    "integer-enumeration",
+                    "float-enumeration",
+                    "double-enumeration",
+                    "string-enumeration",
+                    "file",
+                    "directory",
+                    "image",
+                    "item",
+                    "geometry",
+                    "point",
+                    "pointfile",
+                    "region",
+                    "table",
+                    "transform"
+                  ]
+                },
+                "description": {
+                  "type": "string",
+                  "description": "A brief description of the parameter. Any double quotes will be converted to single quotes."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "A label for parameter (e.g. Dicom Directory, Conductance)."
+                },
+                "name": {
+                  "type": "string",
+                  "pattern": "[_a-zA-Z][_a-zA-Z0-9]*",
+                  "description": "required if longflag is not specified)\nThe name of a command line argument. If name is not specified, longflag will be used (e.g. conductance, numberOfIterations). The name must be usable as a C++ variable. For example, it CANNOT have spaces or special characters and must start with a letter."
+                },
+                "flag": {
+                  "description": "single character command line flag (e.g. s, W). Can provide \"alias\"'s (comma separated) if different flags can be used to activate the same parameter. Can provide \"deprecatedalias\"'s (comma separated) if different flags can be used to set the same parameter but the user should be notified of which \"updated\" flag to use. Parameters with flags are considered \"optional\" and do not have be specified or assigned. Parameters with flags allow one to override a default behavior.",
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "-?[a-zA-Z]"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "value"
+                      ],
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "pattern": "-?[a-zA-Z]"
+                        },
+                        "alias": {
+                          "type": "string"
+                        },
+                        "deprecatedalias": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "longflag": {
+                  "description": "A command line flag (e.g. spacing, Watcher). Can provide \"alias\"'s (comma separated) if different long flags can be used to activate the same parameter. Can provide \"deprecatedalias\"'s (comma separated) if different long flags can be used to set the same parameter but the user should be notified of which \"updated\" long flag to use. Parameters with flags are considered \"optional\" and do not have be specified or assigned. Parameters with flags allow one to override a default behavior.\nNote: apparently you can't use hyphens in the longflag, so things like --my-option are not allows. -gcs",
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "-?-?[_a-zA-Z][_a-zA-Z0-9]*"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "value"
+                      ],
+                      "properties": {
+                        "value": {
+                          "type": "string",
+                          "pattern": "-?-?[_a-zA-Z][_a-zA-Z0-9]*"
+                        },
+                        "alias": {
+                          "type": "string"
+                        },
+                        "deprecatedalias": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "index": {
+                  "type": "integer",
+                  "description": "An integer starting at 0, that specifies a command line argument that has no flags.\nNote: if you use index for, say, an image, the user must enter some input value into the GUI. If the user does not fill in a value, the plugin is not run at all. However, slicer will \"seem\" to run it, and no error message is given. -gcs",
+                  "minimum": 0
+                },
+                "channel": {
+                  "type": "string",
+                  "enum": [
+                    "input",
+                    "output"
+                  ]
+                },
+                "multiple": {
+                  "type": "boolean"
+                }
+              },
+              "anyOf": [
+                {
+                  "required": [
+                    "index"
+                  ]
+                },
+                {
+                  "required": [
+                    "longflag"
+                  ]
+                },
+                {
+                  "required": [
+                    "flag"
+                  ]
+                },
+                {
+                  "required": [
+                    "name",
+                    "channel"
+                  ],
+                  "properties": {
+                    "channel": {
+                      "type": "string",
+                      "enum": [
+                        "output"
+                      ]
+                    }
+                  }
+                }
+              ],
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "string"
+                      ]
+                    },
+                    "default": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "boolean"
+                      ]
+                    },
+                    "default": {
+                      "type": "boolean",
+                      "default": false
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "integer"
+                      ]
+                    },
+                    "default": {
+                      "type": "integer"
+                    },
+                    "constraints": {
+                      "type": "object",
+                      "description": "Encloses constraints on the value of a non-vector, non-enumerated parameter.",
+                      "properties": {
+                        "minimum": {
+                          "type": "integer",
+                          "description": "The minimum allowed value for the parameter. If not specified, the minimum is the smallest possible value for the parameter type."
+                        },
+                        "maximum": {
+                          "type": "integer",
+                          "description": "The maximum allowed value for the parameter. If not specified, the maximum is the largest possible value for the parameter type."
+                        },
+                        "step": {
+                          "type": "integer",
+                          "description": "The increment for the parameter."
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "float",
+                        "double"
+                      ]
+                    },
+                    "default": {
+                      "type": "number"
+                    },
+                    "constraints": {
+                      "type": "object",
+                      "description": "Encloses constraints on the value of a non-vector, non-enumerated parameter.",
+                      "properties": {
+                        "minimum": {
+                          "type": "integer",
+                          "description": "The minimum allowed value for the parameter. If not specified, the minimum is the smallest possible value for the parameter type."
+                        },
+                        "maximum": {
+                          "type": "integer",
+                          "description": "The maximum allowed value for the parameter. If not specified, the maximum is the largest possible value for the parameter type."
+                        },
+                        "step": {
+                          "type": "integer",
+                          "description": "The increment for the parameter."
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "string-vector"
+                      ]
+                    },
+                    "default": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "integer-vector"
+                      ]
+                    },
+                    "default": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "float-vector",
+                        "double-vector"
+                      ]
+                    },
+                    "default": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "enumeration"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "string-enumeration"
+                      ]
+                    },
+                    "default": {
+                      "type": "string"
+                    },
+                    "enumeration": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "enumeration"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "integer-enumeration"
+                      ]
+                    },
+                    "default": {
+                      "type": "integer"
+                    },
+                    "enumeration": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "enumeration"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "float-enumeration",
+                        "double-enumeration"
+                      ]
+                    },
+                    "default": {
+                      "type": "number"
+                    },
+                    "enumeration": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "description": "parameter can be used to specify rectangular ROIs. The format is X_center,Y_center,Z_center,X_radius,Y_Radius,Z_Radius or another comma-separated list of coordinates.",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "region"
+                      ]
+                    },
+                    "default": {
+                      "type": "string"
+                    },
+                    "coordinateSystem": {
+                      "$ref": "#/definitions/coordinateSystem"
+                    },
+                    "shapes": {
+                      "description": "An optional comma-separated list of region specifications that can accepted.  This can be any of 'default', 'rectangle', or 'polygon', where 'rectangle' specifies the region as left,top,width,height, and polygon specifies the region as x,y,x,y,...,[-1,-1,x,y,x,y,...].  Polygons must have at least four points so that their format, and, if they contain multiple areas or holes, each polygon is separated by a point of -1,-1.",
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "channel"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "image"
+                      ]
+                    },
+                    "default": {
+                      "type": "string"
+                    },
+                    "image_type": {
+                      "type": "string",
+                      "enum": [
+                        "scalar",
+                        "label",
+                        "tensor",
+                        "diffusion-weighted",
+                        "vector",
+                        "model"
+                      ]
+                    },
+                    "fileExtensions": {
+                      "$ref": "#/definitions/fileExtensions"
+                    },
+                    "defaultPathMatch": {
+                      "$ref": "#/definitions/defaultPathMatch"
+                    },
+                    "defaultNameMatch": {
+                      "$ref": "#/definitions/defaultNameMatch"
+                    },
+                    "defaultRelativePath": {
+                      "$ref": "#/definitions/defaultRelativePath"
+                    },
+                    "reference": {
+                      "$ref": "#/definitions/reference"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "channel"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "item"
+                      ]
+                    },
+                    "default": {
+                      "type": "string"
+                    },
+                    "item_type": {
+                      "type": "string",
+                      "enum": [
+                        "scalar",
+                        "label",
+                        "tensor",
+                        "diffusion-weighted",
+                        "vector",
+                        "model"
+                      ]
+                    },
+                    "fileExtensions": {
+                      "$ref": "#/definitions/fileExtensions"
+                    },
+                    "defaultPathMatch": {
+                      "$ref": "#/definitions/defaultPathMatch"
+                    },
+                    "defaultNameMatch": {
+                      "$ref": "#/definitions/defaultNameMatch"
+                    },
+                    "defaultRelativePath": {
+                      "$ref": "#/definitions/defaultRelativePath"
+                    },
+                    "reference": {
+                      "$ref": "#/definitions/reference"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "channel"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "point"
+                      ]
+                    },
+                    "default": {
+                      "$ref": "#/definitions/xyz"
+                    },
+                    "coordinateSystem": {
+                      "$ref": "#/definitions/coordinateSystem"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "channel"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "pointfile"
+                      ]
+                    },
+                    "default": {
+                      "type": "string"
+                    },
+                    "coordinateSystem": {
+                      "$ref": "#/definitions/coordinateSystem"
+                    },
+                    "fileExtensions": {
+                      "$ref": "#/definitions/fileExtensions"
+                    },
+                    "defaultPathMatch": {
+                      "$ref": "#/definitions/defaultPathMatch"
+                    },
+                    "defaultNameMatch": {
+                      "$ref": "#/definitions/defaultNameMatch"
+                    },
+                    "defaultRelativePath": {
+                      "$ref": "#/definitions/defaultRelativePath"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "channel"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "file"
+                      ]
+                    },
+                    "default": {
+                      "type": "string"
+                    },
+                    "fileExtensions": {
+                      "$ref": "#/definitions/fileExtensions"
+                    },
+                    "defaultPathMatch": {
+                      "$ref": "#/definitions/defaultPathMatch"
+                    },
+                    "defaultNameMatch": {
+                      "$ref": "#/definitions/defaultNameMatch"
+                    },
+                    "defaultRelativePath": {
+                      "$ref": "#/definitions/defaultRelativePath"
+                    },
+                    "reference": {
+                      "$ref": "#/definitions/reference"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "channel"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "directory"
+                      ]
+                    },
+                    "default": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "channel"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "table"
+                      ]
+                    },
+                    "table_type": {
+                      "type": "string",
+                      "enum": [
+                        "color"
+                      ]
+                    },
+                    "default": {
+                      "type": "string"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "channel"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "geometry"
+                      ]
+                    },
+                    "default": {
+                      "type": "string"
+                    },
+                    "geometry_type": {
+                      "type": "string",
+                      "enum": [
+                        "fiberbundle",
+                        "model"
+                      ]
+                    },
+                    "fileExtensions": {
+                      "type": "string",
+                      "description": "fileExtensions can contain a list of comma separated file extensions for optional use by the GUI.",
+                      "pattern": "(?:(?:\\.[^,\\s]|[^,\\.\\s\\*])[^,\\s]*)(?:,\\s*(?:\\.[^,\\s]|[^,\\.\\s\\*])[^,\\s]*)*",
+                      "default": ".tsv|.csv|.txt|.ctbl"
+                    },
+                    "defaultPathMatch": {
+                      "$ref": "#/definitions/fileExtensions"
+                    },
+                    "defaultNameMatch": {
+                      "$ref": "#/definitions/fileExtensions"
+                    },
+                    "defaultRelativePath": {
+                      "$ref": "#/definitions/defaultRelativePath"
+                    },
+                    "reference": {
+                      "$ref": "#/definitions/reference"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "channel"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "transform"
+                      ]
+                    },
+                    "transform_type": {
+                      "type": "string",
+                      "description": "If not specified then any transform is accepted (linear, non-linar, composite, ...). By specifying a type, accepted transforms can be limited to 'linear' = any linear transform; 'non-linear' = grid, displacement field; 'bspline' = b-spline transform.",
+                      "enum": [
+                        "linear",
+                        "nonlinear",
+                        "bspline"
+                      ]
+                    },
+                    "default": {
+                      "type": "string"
+                    },
+                    "fileExtensions": {
+                      "type": "string",
+                      "description": "fileExtensions can contain a list of comma separated file extensions for optional use by the GUI.",
+                      "pattern": "(?:(?:\\.[^,\\s]|[^,\\.\\s\\*])[^,\\s]*)(?:,\\s*(?:\\.[^,\\s]|[^,\\.\\s\\*])[^,\\s]*)*",
+                      "default": ".tfm,.h5,.hdf5,.mat,.txt"
+                    },
+                    "defaultPathMatch": {
+                      "$ref": "#/definitions/fileExtensions"
+                    },
+                    "defaultNameMatch": {
+                      "$ref": "#/definitions/fileExtensions"
+                    },
+                    "defaultRelativePath": {
+                      "$ref": "#/definitions/defaultRelativePath"
+                    },
+                    "reference": {
+                      "$ref": "#/definitions/reference"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

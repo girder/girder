@@ -1,0 +1,11 @@
+.btn-group.pull-right
+  button.btn.btn-sm.btn-primary.s-info-panel-submit Run Task
+
+.g-widget-metadata-header
+  i.icon-play
+  | Configure Task
+
+.s-widget-slicer-cli-run-container
+  .s-validation-alert.alert.alert-danger.hidden(role="alert")
+  each panel in panels
+    .s-panel(class=panel.type, id=panel.id)

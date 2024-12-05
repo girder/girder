@@ -1,3 +1,4 @@
+import email
 import os
 
 import pytest
@@ -17,9 +18,12 @@ class MailPlugin(GirderPlugin):
         )
 
 
-def testEmailAdmins(smtp):
-    assert smtp.isMailQueueEmpty()
+def _get_mail_from_stdout(text: str):
+    msg = text[text.find('MIME-Version:'):]
+    return email.message_from_string(msg)
 
+
+def testEmailAdmins(email_stdout, capsys):
     for i in range(2):
         # Create 2 admin users to test sending mail to admins
         User().createUser(
@@ -31,9 +35,7 @@ def testEmailAdmins(smtp):
 
     # Test sending email to admin users
     mail_utils.sendMailToAdmins('Notification', 'hello')
-    assert smtp.waitForMail()
-
-    message = smtp.getMail(parse=True)
+    message = _get_mail_from_stdout(capsys.readouterr().out)
     assert message['subject'] == 'Notification'
     assert message['content-type'] == 'text/html; charset="utf-8"'
     assert message['to'] == 'admin0@admin.com, admin1@admin.com'
@@ -41,11 +43,9 @@ def testEmailAdmins(smtp):
     assert message.get_payload(decode=True) == b'hello'
 
     # Test sending email to multiple recipients
-    assert smtp.isMailQueueEmpty()
     mail_utils.sendMail('Email alert', 'world', to=['a@abc.com', 'b@abc.com'])
-    assert smtp.waitForMail()
+    message = _get_mail_from_stdout(capsys.readouterr().out)
 
-    message = smtp.getMail(parse=True)
     assert message['subject'] == 'Email alert'
     assert message['to'] == 'a@abc.com, b@abc.com'
     assert message['from'] == 'a@girder.test'
@@ -69,18 +69,16 @@ def testPluginTemplates(server):
     assert val in content
 
 
-def testUnicodeEmail(smtp):
+def testUnicodeEmail(email_stdout, capsys):
     text = 'Contains unic\xf8de \u0420\u043e\u0441\u0441\u0438\u044f'
     mail_utils.sendMail(text, text, ['fake@fake.com'])
-    assert smtp.waitForMail()
-    message = smtp.getMail(parse=True)
+    message = _get_mail_from_stdout(capsys.readouterr().out)
     assert message.get_payload(decode=True) == text.encode('utf8')
 
 
-def testBcc(smtp):
+def testBcc(email_stdout, capsys):
     bcc = ['a@a.com', 'b@b.com']
     mail_utils.sendMail('hi', 'hi', ['first@a.com'], bcc=bcc)
-    assert smtp.waitForMail()
-    message = smtp.getMail(parse=True)
+    message = _get_mail_from_stdout(capsys.readouterr().out)
     assert message['To'] == 'first@a.com'
     assert message['Bcc'] == ', '.join(bcc)

@@ -342,42 +342,6 @@ class OauthTest(base.TestCase):
         self.assertStatus(resp, 400)
         self.assertTrue(resp.json['message'].startswith("You don't have a password."))
 
-        # Reset password for 'new' OAuth-only user should work
-        self.assertTrue(base.mockSmtp.isMailQueueEmpty())
-        resp = self.request(
-            '/user/password/temporary', method='PUT', params={
-                'email': providerInfo['accounts']['new']['user']['email']})
-        self.assertStatusOk(resp)
-        self.assertEqual(resp.json['message'], 'Sent temporary access email.')
-        self.assertTrue(base.mockSmtp.waitForMail())
-        msg = base.mockSmtp.getMail(parse=True)
-        # Pull out the auto-generated token from the email
-        body = msg.get_payload(decode=True).decode('utf8')
-        search = re.search('<a href="(.*)">', body)
-        link = search.group(1)
-        linkParts = link.split('/')
-        userId = linkParts[-3]
-        tokenId = linkParts[-1]
-        tempToken = Token().load(tokenId, force=True, objectId=False)
-        resp = self.request(
-            '/user/password/temporary/' + userId, method='GET', params={'token': tokenId})
-        self.assertStatusOk(resp)
-        self.assertEqual(resp.json['user']['login'], newUser['login'])
-        # We should now be able to change the password
-        resp = self.request(
-            '/user/password', method='PUT', user=resp.json['user'], params={
-                'old': tokenId,
-                'new': 'mypasswd'
-            })
-        self.assertStatusOk(resp)
-        # The temp token should get deleted on password change
-        token = Token().load(tempToken, force=True, objectId=False)
-        self.assertEqual(token, None)
-
-        # Password login for 'new' OAuth-only user should now succeed
-        resp = self.request('/user/authentication', basicAuth='%s:mypasswd' % newUser['login'])
-        self.assertStatusOk(resp)
-
         return existing, new
 
     @httmock.all_requests

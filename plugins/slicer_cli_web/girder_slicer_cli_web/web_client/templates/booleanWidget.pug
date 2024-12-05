@@ -1,0 +1,13 @@
+extends ./widget.pug
+
+block label
+
+block description
+
+block input
+  .checkbox
+    label.control-label(for=id)
+      input(name=title, type='checkbox', id=id, checked=!!value)
+      | #{title}
+  if description
+    .s-control-widget-description= description

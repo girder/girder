@@ -17,18 +17,37 @@ executors:
     working_directory: /home/circleci/project
   machine:
     machine:
-      image: ubuntu-2004:202111-02
+      image: ubuntu-2204:current
     working_directory: /home/circleci/project
 
 commands:
+  prerequisites:
+    description: "Install prerequisites and run required background services"
+    steps:
+      - run:
+          name: install nodejs
+          command: |
+            curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+      - run:
+          name: install apt libraries for Girder
+          command: |
+            DEBIAN_FRONTEND=noninteractive sudo apt-get install -y \
+              libldap2-dev \
+              libsasl2-dev
+      - run:
+          name: start mongo
+          command: |
+            docker run -d -p 27017:27017 mongo:4.0 mongod --nojournal --noauth --bind_ip_all
+          no_output_timeout: 1h
+      - run:
+          name: start rabbitmq
+          command: |
+            docker run -d -p 5672:5672 rabbitmq
+          no_output_timeout: 1h
   install-girder:
     description: "Install Girder in a virtualenv and configure CTest"
     steps:
-      #- run:
-      #    name: Generate python environment checksum file
-      #    command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
-      #- restore_cache:
-      #    key: venv-py3.8-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
       - run:
           name: Create virtual environment (if necessary)
           command: if [ ! -d girder_env ]; then python3 -m venv girder_env; fi
@@ -45,14 +64,10 @@ commands:
             python3 -m pip install
             --upgrade
             --upgrade-strategy eager
-            --editable .[sftp,mount]
+            --editable '.[sftp,mount]'
             --editable clients/python
             --requirement requirements-dev.txt
           working_directory: girder
-      #- save_cache:
-      #    paths:
-      #      - girder_env
-      #    key: venv-py3.8-{{ arch }}-{{ checksum "girder/py-env-checksum" }}
 
 jobs:
   server-lint-test:
@@ -64,23 +79,23 @@ jobs:
           name: Run server linting tests
           command: tox -e lint
           working_directory: girder
-      #- run:
-      #    name: Test public symbols
-      #    command: tox -e public_names
-      #    working_directory: girder
       - run:
           name: Test building docs
           command: tox -e docs
           working_directory: girder
 
   server-pytest-test:
-    executor: py3-mongo
+    # We need the machine executor here because of slicer_cli_web E2E tests that require docker
+    # with bind-mounted paths that don't work with docker-in-docker on CircleCI
+    executor: machine
     steps:
+      - prerequisites
       - checkout:
           path: girder
+      - install-girder
       - run:
           name: Run pytest tests
-          command: tox -e pytest_circleci
+          command: tox -e pytest_circleci -- -x
           working_directory: girder
       - store_test_results:
           path: girder/build/test/results
@@ -183,21 +198,6 @@ jobs:
           name: Allow access to /etc/fuse.conf by all users
           command: sudo chmod a+r /etc/fuse.conf
       - run:
-          name: Get rid of existing versions of MongoDB
-          command: >-
-            sudo rm --force /etc/apt/sources.list.d/*mongo*
-            &&
-            sudo apt-get remove mongodb-org mongodb-org-tools mongodb-org-shell mongodb-org-server mongodb-org-mongos
-            || true
-      - run:
-          name: Install MongoDB
-          command: |
-            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 656408E390CFB1F5
-            echo "deb [arch=amd64] http://repo.mongodb.org/apt/ubuntu $(lsb_release -sc)/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org.list
-            sudo apt-get update
-            sudo apt-get install -y mongodb-org-server
-            sudo systemctl start mongod
-      - run:
           # The "d3" npm package (required by some Girder plugins) has an optional dependency of
           # "canvas", which requires "node-gyp" to build. node-gyp strictly requires Python 2
           # (https://www.npmjs.com/package/node-gyp), so install it first before switching to
@@ -215,8 +215,14 @@ jobs:
              pyenv global 3.8.12
       - run:
           name: Install system dependencies for Girder plugins
-          command: sudo apt-get install -y libldap2-dev libsasl2-dev
+          environment:
+            DEBIAN_FRONTEND: noninteractive
+          command: sudo apt-get update && sudo apt-get install -y libldap2-dev libsasl2-dev libfuse2
       - install-girder
+      - run:
+          name: Start mongod
+          command: |
+            docker run -d -p 27017:27017 mongo:4.0 mongod --nojournal --noauth --bind_ip_all
       - run:
           name: Install and build @girder/core
           command: |

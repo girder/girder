@@ -22,7 +22,6 @@ from girder.models.file import File
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.settings import SettingKey
-from . import mock_smtp
 from . import mock_s3
 
 with warnings.catch_warnings():
@@ -31,7 +30,6 @@ with warnings.catch_warnings():
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 30000)
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 30001)
-mockSmtp = mock_smtp.MockSmtpReceiver()
 mockS3Server = None
 enabledPlugins = []
 usedDBs = {}
@@ -69,7 +67,6 @@ def startServer(mock=True, mockS3=False):
     # Tell CherryPy to throw exceptions in request handling code
     cherrypy.config.update({'request.throw_errors': True})
 
-    mockSmtp.start()
     if mockS3:
         global mockS3Server
         mockS3Server = mock_s3.startMockS3Server()
@@ -83,7 +80,6 @@ def stopServer():
     function in their tearDownModule() function.
     """
     cherrypy.engine.exit()
-    mockSmtp.stop()
     dropAllTestDatabases()
 
 
@@ -163,9 +159,7 @@ class TestCase(unittest.TestCase):
             self.assetstore = Assetstore().createFilesystemAssetstore(
                 name='Test', root=assetstorePath)
 
-        host, port = mockSmtp.address or ('localhost', 25)
-        Setting().set(SettingKey.SMTP_HOST, host)
-        Setting().set(SettingKey.SMTP_PORT, port)
+        os.environ['GIRDER_EMAIL_TO_CONSOLE'] = 'true'
         Setting().set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
 
         if os.environ.get('GIRDER_TEST_DATABASE_CONFIG'):
@@ -507,7 +501,6 @@ class TestCase(unittest.TestCase):
 
 def _sigintHandler(*args):
     print('Received SIGINT, shutting down mock SMTP server...')
-    mockSmtp.stop()
     sys.exit(1)
 
 
