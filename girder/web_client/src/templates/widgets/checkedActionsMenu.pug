@@ -9,10 +9,11 @@ li.g-checked-menu-header.dropdown-header(role="presentation")
     i.icon-plus-circled
     span.g-checked-picked-count #{pickedCount}
 if folderCount || itemCount
-  li
-    a.g-download-checked
-      i.icon-download
-      | Download checked resources
+  if showDownload
+    li
+      a.g-download-checked
+        i.icon-download
+        | Download checked resources
   li
     a.g-pick-checked
       i.icon-plus-circled
