@@ -47,6 +47,7 @@ var App = View.extend({
         this.bannerColor = settings.bannerColor || null;
         this.registrationPolicy = settings.registrationPolicy || null;
         this.enablePasswordLogin = _.has(settings, 'enablePasswordLogin') ? settings.enablePasswordLogin : true;
+        this.downloadShown = settings.downloadShown || 'all';
 
         if (settings.start === undefined || settings.start) {
             this.start();
@@ -336,6 +337,12 @@ var App = View.extend({
                 });
             }, options.timeout);
         }
+    },
+
+    showDownload: function () {
+        const user = getCurrentUser();
+        const isAdmin = !!(user && user.get('admin'));
+        return this.downloadShown === undefined || this.downloadShown === null || this.downloadShown === 'all' || (this.downloadShown === 'user' && user) || (this.downloadShown === 'admin' && isAdmin);
     },
 
     /**
