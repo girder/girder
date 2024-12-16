@@ -58,10 +58,11 @@
               </button>
               <div class="g-folder-actions-menu dropdown-menu pull-right htk-hidden p-1 bg-white absolute mt-2 min-w-48 right-0 rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 z-10">
                 if type === 'folder' || type === 'collection'
-                  <a class="g-download-folder text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md" href="#{model.downloadUrl()}">
-                    <i class="ri-download-line pr-2"></i>
-                    | Download #{type}
-                  </a>
+                  if (showDownload)
+                    <a class="g-download-folder text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md" href="#{model.downloadUrl()}">
+                      <i class="ri-download-line pr-2"></i>
+                      | Download #{type}
+                    </a>
                 if level >= AccessType.WRITE
                   <a class="g-create-subfolder text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
                     <i class="ri-folder-add-line pr-2"></i>

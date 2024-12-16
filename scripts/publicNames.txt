@@ -741,6 +741,7 @@ girder
             CORS_ALLOW_METHODS
             CORS_ALLOW_ORIGIN
             CORS_EXPOSE_HEADERS
+            DOWNLOAD_SHOWN
             EMAIL_FROM_ADDRESS
             EMAIL_HOST
             EMAIL_VERIFICATION

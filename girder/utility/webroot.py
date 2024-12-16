@@ -122,5 +122,6 @@ class Webroot(WebrootBase):
         self.vars['bannerColor'] = Setting().get(SettingKey.BANNER_COLOR)
         self.vars['registrationPolicy'] = Setting().get(SettingKey.REGISTRATION_POLICY)
         self.vars['enablePasswordLogin'] = Setting().get(SettingKey.ENABLE_PASSWORD_LOGIN)
+        self.vars['downloadShown'] = Setting().get(SettingKey.DOWNLOAD_SHOWN)
 
         return super()._renderHTML()

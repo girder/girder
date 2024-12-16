@@ -11,10 +11,11 @@
 </a>
 
 if folderCount || itemCount
-  <a class="g-download-checked text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
-    <i class="ri-download-line pr-2"></i>
-    | Download checked resources
-  </a>
+  if showDownload
+    <a class="g-download-checked text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
+      <i class="ri-download-line pr-2"></i>
+      | Download checked resources
+    </a>
   <a class="g-pick-checked text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
     <i class="ri-add-circle-line pr-2"></i>
     | Pick checked resources for Move or Copy
