@@ -744,6 +744,7 @@ girder
             CORS_ALLOW_ORIGIN
             CORS_EXPOSE_HEADERS
             DISABLE_ANONYMOUS_ACCESS
+            DOWNLOAD_SHOWN
             EMAIL_FROM_ADDRESS
             EMAIL_HOST
             EMAIL_VERIFICATION
