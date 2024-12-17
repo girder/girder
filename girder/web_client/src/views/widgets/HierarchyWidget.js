@@ -338,6 +338,10 @@ var HierarchyWidget = View.extend({
         this.folderCount = null;
         this.itemCount = null;
 
+        let baseParent = this.parentView;
+        while (baseParent && !baseParent.showDownload) {
+            baseParent = baseParent.parentView;
+        }
         this.$el.html(HierarchyWidgetTemplate({
             type: this.parentModel.resourceName,
             model: this.parentModel,
@@ -348,6 +352,7 @@ var HierarchyWidget = View.extend({
             showMetadata: this._showMetadata,
             checkboxes: this._checkboxes,
             capitalize: capitalize,
+            showDownload: baseParent && baseParent.showDownload ? baseParent.showDownload() : false,
             itemFilter: this._itemFilter
         }));
 
