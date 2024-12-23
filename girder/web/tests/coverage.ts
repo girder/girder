@@ -34,8 +34,26 @@ export const outputCoverageReport = async (page: Page) => {
       if (/plugin_static/.test(entry.url)) {
         const [plugin, filename] = entry.url.split('/').slice(-2);
 
-        converter = v8toIstanbul(
+        const pathsToCheck = [
           `../../plugins/${plugin}/girder_${plugin}/web_client/dist/${filename}`,
+          `../../plugins/${plugin}/girder_plugin_${plugin}/web_client/dist/${filename}`
+        ];
+
+        let path;
+        for (const p of pathsToCheck) {
+          try {
+            await fs.access(p);
+            path = p;
+            break;
+          } catch (e) {
+          }
+        }
+        if (!path) {
+          console.error(`Could not find path for ${entry.url}`);
+          continue;
+        }
+        converter = v8toIstanbul(
+          path,
           0,
           { source: entry.source ?? '' },
           (path) => path.includes('node_modules')
