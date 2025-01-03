@@ -187,7 +187,8 @@ def batchCLIJob(cliItem, params, user, cliTitle):
     # running concurrently.
     if not Setting().get('worker.api_url'):
         Setting().set('worker.api_url', getApiUrl())
-    # TODO we need to make this a celery task rather than a local job
+    # Note that this uses a local job to manage the sub-jobs, but all of the sub-jobs actually
+    # execute in the worker via `direct_docker_run.run.delay`.
     job = Job().createLocalJob(
         module='girder_slicer_cli_web.rest_slicer_cli',
         function='batchCLITask',
@@ -202,7 +203,6 @@ def batchCLIJob(cliItem, params, user, cliTitle):
         type='slicer_cli_web_batch#%s#%s' % (cliItem.image, cliItem.name),
         user=user,
         public=True,
-        asynchronous=True,
     )
     job['_original_params'] = params
     job['_original_name'] = cliItem.name
