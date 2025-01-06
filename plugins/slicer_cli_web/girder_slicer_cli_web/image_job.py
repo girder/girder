@@ -1,32 +1,14 @@
-# !/usr/bin/env python
-
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
+from base64 import b64encode
 import json
 import logging
 
 import docker
-from girder.models.folder import Folder
-from girder.models.user import User
+from girder_client import GirderClient, HttpError
 from girder_jobs.constants import JobStatus
 from girder_jobs.models.job import Job
 from girder_worker.app import app
 
-from .models import DockerImageError, DockerImageItem, DockerImageNotFoundError
+from .models import DockerImageError, DockerImageNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -115,8 +97,8 @@ def findLocalImage(client, name):
     return image.id
 
 
-@app.task()
-def ingest_from_docker(user_id, name_list, folder_id, pull: bool):
+@app.task(bind=True)
+def ingest_from_docker(self, name_list, token: str, folder_id, pull: bool):
     """
     Attempts to cache metadata on images in the pull list and load list.
     Images in the pull list are pulled first, then images in both lists are
@@ -130,9 +112,6 @@ def ingest_from_docker(user_id, name_list, folder_id, pull: bool):
     stage = 'initializing'
     try:
         print('Started to load Docker images')
-
-        user = User().load(user_id, force=True, exc=True)
-        baseFolder = Folder().load(folder_id, force=True, exc=True)
 
         errorState = False
 
@@ -162,7 +141,22 @@ def ingest_from_docker(user_id, name_list, folder_id, pull: bool):
         for name, cli_dict in images:
             docker_image = docker_client.images.get(name)
             stage = 'parsing'
-            DockerImageItem.saveImage(name, cli_dict, docker_image, user, baseFolder)
+            gc = GirderClient(apiUrl=self.request.apiUrl)
+            gc.token = token
+            for cli_name, spec in cli_dict.items():
+                try:
+                    # TODO JSON-only CLI spec support
+                    gc.post('slicer_cli_web/cli', data={
+                        'folder': folder_id,
+                        'name': cli_name,
+                        'image': docker_image,
+                        'replace': True,
+                        'spec': b64encode(spec['xml'].encode()),
+                    })
+                except HttpError as err:
+                    print(f'Error creating cli {cli_name}: {err}')
+                    print(err.responseText)
+                    raise
 
         if loadingError:
             errorState = True

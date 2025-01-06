@@ -271,7 +271,7 @@ def girderWorker(db):
         'celery', '-A', 'girder_worker.app', '--broker', broker,
         '--result-backend', backend, 'worker', '--concurrency=1'],
         close_fds=True, env=env)
-    yield True
+    yield proc
     proc.terminate()
     proc.wait()
     Setting().unset(WorkerSettings.BROKER)
@@ -279,7 +279,7 @@ def girderWorker(db):
 
 
 @pytest.fixture
-def smallDocker(boundServer, admin, folder):
+def smallDocker(boundServer, girderWorker, admin, folder):
     resp = boundServer.request(
         path='/slicer_cli_web/docker_image', user=admin, method='PUT',
         params={

@@ -320,9 +320,9 @@ class DockerResource(Resource):
                 'celeryTaskName': 'girder_slicer_cli_web.image_job.ingest_from_docker',
             },
             kwargs={
-                'user_id': str(self.getCurrentUser()['_id']),
                 'name_list': nameList,
                 'folder_id': str(baseFolder['_id'] if isinstance(baseFolder, dict) else baseFolder),
+                'token': str(self.getCurrentToken()['_id']),
                 'pull': pull,
             }
         )
