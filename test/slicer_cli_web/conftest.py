@@ -280,6 +280,8 @@ def girderWorker(db):
 
 @pytest.fixture
 def smallDocker(boundServer, girderWorker, admin, folder):
+    Setting().set(WorkerSettings.API_URL, f'http://localhost:{boundServer.boundPort}/api/v1')
+
     resp = boundServer.request(
         path='/slicer_cli_web/docker_image', user=admin, method='PUT',
         params={
@@ -301,3 +303,4 @@ def smallDocker(boundServer, girderWorker, admin, folder):
             'name': json.dumps(['girder/slicer_cli_web:small']),
             'delete_from_local_repo': False,
         })
+    Setting().unset(WorkerSettings.API_URL)
