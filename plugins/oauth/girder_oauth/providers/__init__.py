@@ -7,6 +7,7 @@ from .linkedin import LinkedIn
 from .bitbucket import Bitbucket
 from .microsoft import Microsoft
 from .box import Box
+from .cilogon import CILogon
 
 
 def addProvider(provider):
@@ -23,3 +24,4 @@ addProvider(LinkedIn)
 addProvider(Bitbucket)
 addProvider(Microsoft)
 addProvider(Box)
+addProvider(CILogon)
