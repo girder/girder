@@ -139,19 +139,19 @@ def ingest_from_docker(self, name_list, token: str, folder_id, pull: bool):
         stage = 'metadata'
         images, loadingError = loadMetadata(docker_client, pullList, loadList, notExistSet)
         for name, cli_dict in images:
-            docker_image = docker_client.images.get(name)
             stage = 'parsing'
             gc = GirderClient(apiUrl=self.request.apiUrl)
             gc.token = token
             for cli_name, spec in cli_dict.items():
                 try:
-                    # TODO JSON-only CLI spec support
+                    desc_type = spec.get('desc-type', 'xml')
                     gc.post('slicer_cli_web/cli', data={
                         'folder': folder_id,
                         'name': cli_name,
-                        'image': docker_image,
+                        'image': name,
                         'replace': True,
-                        'spec': b64encode(spec['xml'].encode()),
+                        'desc_type': desc_type,
+                        'spec': b64encode(spec[desc_type].encode()),
                     })
                 except HttpError as err:
                     print(f'Error creating cli {cli_name}: {err}')

@@ -288,10 +288,12 @@ class DockerResource(Resource):
         .param('image', 'The docker image identifier.')
         .param('name', 'The name of the item to create or replace.')
         .param('replace', 'Whether to replace an existing item with this name.', dataType='boolean')
-        .param('spec', 'Base64-encoded XML spec of the CLI.')
+        .param('desc_type', 'The type of the description (xml, json, or yaml).', required=True)
+        .param('spec', 'Base64-encoded XML/JSON/YML spec of the CLI.')
         .errorResponse('You are not a system administrator.', 403)
     )
-    def createOrReplaceCli(self, folder: dict, image: str, name: str, replace: bool, spec: str):
+    def createOrReplaceCli(self, folder: dict, image: str, name: str,
+                           replace: bool, spec: str, desc_type: str):
         try:
             spec = b64decode(spec).decode()
         except ValueError:
@@ -300,12 +302,21 @@ class DockerResource(Resource):
         item = Item().createItem(
             name, creator=self.getCurrentUser(), folder=folder, reuseExisting=replace
         )
+        if desc_type == 'xml':
+            spec = parser._parse_xml_desc(item, self.getCurrentUser(), spec)
+        elif desc_type == 'json':
+            spec = parser.parse_json_desc(item, {'json': spec}, self.getCurrentUser())
+        elif desc_type == 'yaml':
+            spec = parser.parse_yaml_desc(item, {'yaml': spec}, self.getCurrentUser())
+        else:
+            raise RestException(f'Invalid description type: {desc_type}')
+
         metadata = dict(
             slicerCLIType='task',
             type='Unknown',  # TODO does "type" matter behaviorally? If so get it from the client
             digest=None,  # TODO should we support this?
             image=image,
-            **parser._parse_xml_desc(item, self.getCurrentUser(), spec)
+            **spec
         )
         return Item().setMetadata(item, metadata)
 
