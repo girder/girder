@@ -24,7 +24,7 @@ from girder_jobs.models.job import Job
 from . import TOKEN_SCOPE_MANAGE_TASKS, rest_slicer_cli
 from .cli_utils import as_model, get_cli_parameters
 from .config import PluginSettings
-from .models import CLIItem, DockerImageItem, DockerImageNotFoundError, parser
+from .models import CLIItem, DockerImageItem, parser
 from .prepare_task import FOLDER_SUFFIX
 
 
@@ -208,34 +208,19 @@ class DockerResource(Resource):
             raise RestException('Some docker images could not be removed. %s' % (rest))
         self.deleteImageEndpoints(removed)
 
-        try:
-            if deleteImage:
-                self._deleteDockerImages(removed)
-        except DockerImageNotFoundError as err:
-            raise RestException('Invalid docker image name. ' + str(err))
+        if deleteImage:
+            self._deleteDockerImages(removed)
 
     def _deleteDockerImages(self, removed):
         """
-        Creates an asynchronous job to delete the docker images listed in name
+        Creates a job to delete the docker images listed in name
         from the local machine
         :param removed:A list of docker image names
         :type removed: list of strings
         """
-        job = Job().createLocalJob(
-            module='girder_slicer_cli_web.image_job',
-
-            function='deleteImage',
-            kwargs={
-                'deleteList': removed
-            },
-            title='Deleting Docker Images',
-            user=self.getCurrentUser(),
-            type=self.jobType,
-            public=True,
-            asynchronous=True
-        )
-
-        Job().scheduleJob(job)
+        # TODO For the moment, this is a no-op. We need a robust solution for lifecycle management
+        # of docker images on the workers, i.e. one that will work across an arbitrary number
+        # of worker machines.
 
     def parseImageNameList(self, param):
         """
@@ -303,10 +288,12 @@ class DockerResource(Resource):
         .param('image', 'The docker image identifier.')
         .param('name', 'The name of the item to create or replace.')
         .param('replace', 'Whether to replace an existing item with this name.', dataType='boolean')
-        .param('spec', 'Base64-encoded XML spec of the CLI.')
+        .param('desc_type', 'The type of the description (xml, json, or yaml).', required=True)
+        .param('spec', 'Base64-encoded XML/JSON/YML spec of the CLI.')
         .errorResponse('You are not a system administrator.', 403)
     )
-    def createOrReplaceCli(self, folder: dict, image: str, name: str, replace: bool, spec: str):
+    def createOrReplaceCli(self, folder: dict, image: str, name: str,
+                           replace: bool, spec: str, desc_type: str):
         try:
             spec = b64decode(spec).decode()
         except ValueError:
@@ -315,30 +302,40 @@ class DockerResource(Resource):
         item = Item().createItem(
             name, creator=self.getCurrentUser(), folder=folder, reuseExisting=replace
         )
+        if desc_type == 'xml':
+            spec = parser._parse_xml_desc(item, self.getCurrentUser(), spec)
+        elif desc_type == 'json':
+            spec = parser.parse_json_desc(item, {'json': spec}, self.getCurrentUser())
+        elif desc_type == 'yaml':
+            spec = parser.parse_yaml_desc(item, {'yaml': spec}, self.getCurrentUser())
+        else:
+            raise RestException(f'Invalid description type: {desc_type}')
+
         metadata = dict(
             slicerCLIType='task',
             type='Unknown',  # TODO does "type" matter behaviorally? If so get it from the client
             digest=None,  # TODO should we support this?
             image=image,
-            **parser._parse_xml_desc(item, self.getCurrentUser(), spec)
+            **spec
         )
         return Item().setMetadata(item, metadata)
 
     def _createPutImageJob(self, nameList, baseFolder, pull=False):
-        # TODO convert this to a celery job rather than local job.
-        job = Job().createLocalJob(
-            module='girder_slicer_cli_web.image_job',
-            function='jobPullAndLoad',
-            kwargs={
-                'nameList': nameList,
-                'folder': baseFolder['_id'] if isinstance(baseFolder, dict) else baseFolder,
-                'pull': pull,
-            },
-            title='Pulling and caching docker images',
+        job = Job().createJob(
+            title='Pulling and ingesting Slicer CLI Web docker tasks',
             type=self.jobType,
+            handler='worker_handler',
             user=self.getCurrentUser(),
             public=True,
-            asynchronous=True
+            otherFields={
+                'celeryTaskName': 'girder_slicer_cli_web.image_job.ingest_from_docker',
+            },
+            kwargs={
+                'name_list': nameList,
+                'folder_id': str(baseFolder['_id'] if isinstance(baseFolder, dict) else baseFolder),
+                'token': str(self.getCurrentToken()['_id']),
+                'pull': pull,
+            }
         )
         Job().scheduleJob(job)
         return job

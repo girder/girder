@@ -1,32 +1,14 @@
-# !/usr/bin/env python
-
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
-
+from base64 import b64encode
 import json
 import logging
 
 import docker
-from girder.constants import AccessType
-from girder.models.folder import Folder
-from girder.models.user import User
+from girder_client import GirderClient, HttpError
 from girder_jobs.constants import JobStatus
 from girder_jobs.models.job import Job
+from girder_worker.app import app
 
-from .models import DockerImageError, DockerImageItem, DockerImageNotFoundError
+from .models import DockerImageError, DockerImageNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +97,8 @@ def findLocalImage(client, name):
     return image.id
 
 
-def jobPullAndLoad(job):
+@app.task(bind=True)
+def ingest_from_docker(self, name_list, token: str, folder_id, pull: bool):
     """
     Attempts to cache metadata on images in the pull list and load list.
     Images in the pull list are pulled first, then images in both lists are
@@ -128,36 +111,22 @@ def jobPullAndLoad(job):
     """
     stage = 'initializing'
     try:
-        job = Job().updateJob(
-            job,
-            log='Started to Load Docker images\n',
-            status=JobStatus.RUNNING,
-        )
-        user = User().load(job['userId'], level=AccessType.READ)
-        baseFolder = Folder().load(
-            job['kwargs']['folder'], user=user, level=AccessType.WRITE, exc=True)
-
-        loadList = job['kwargs']['nameList']
+        print('Started to load Docker images')
 
         errorState = False
 
         notExistSet = set()
         try:
             docker_client = docker.from_env(version='auto')
-
         except docker.errors.DockerException as err:
-            logger.exception('Could not create the docker client')
-            job = Job().updateJob(
-                job,
-                log='Failed to create the Docker Client\n' + str(err) + '\n',
-            )
+            print(f'Could not create the docker client: {err}')
             raise DockerImageError('Could not create the docker client')
 
         pullList = [
-            name for name in loadList
-            if not findLocalImage(docker_client, name)
-            or str(job['kwargs'].get('pull')).lower() == 'true']
-        loadList = [name for name in loadList if name not in pullList]
+            name for name in name_list
+            if pull or not findLocalImage(docker_client, name)
+        ]
+        loadList = [name for name in name_list if name not in pullList]
 
         try:
             stage = 'pulling'
@@ -165,39 +134,43 @@ def jobPullAndLoad(job):
         except DockerImageNotFoundError as err:
             errorState = True
             notExistSet = set(err.imageName)
-            job = Job().updateJob(
-                job,
-                log='FAILURE: Could not find the following images\n' + '\n'.join(
-                    notExistSet) + '\n',
-            )
+            print('FAILURE: Could not find the following images\n' + '\n'.join(notExistSet))
+
         stage = 'metadata'
-        images, loadingError = loadMetadata(job, docker_client, pullList,
-                                            loadList, notExistSet)
+        images, loadingError = loadMetadata(docker_client, pullList, loadList, notExistSet)
         for name, cli_dict in images:
-            docker_image = docker_client.images.get(name)
             stage = 'parsing'
-            DockerImageItem.saveImage(name, cli_dict, docker_image, user, baseFolder)
-        if errorState is False and loadingError is False:
-            newStatus = JobStatus.SUCCESS
-        else:
-            newStatus = JobStatus.ERROR
-        job = Job().updateJob(
-            job,
-            log='Finished caching Docker image data\n',
-            status=newStatus,
-            notify=True,
-            progressMessage='Completed caching docker images'
-        )
-    except Exception as err:
-        logger.exception('Error with job with %s', stage)
-        job = Job().updateJob(
-            job,
-            log='Error with job with %s\n %s\n' % (stage, err),
-            status=JobStatus.ERROR,
-        )
+            gc = GirderClient(apiUrl=self.request.apiUrl)
+            gc.token = token
+            for cli_name, spec in cli_dict.items():
+                try:
+                    desc_type = spec.get('desc-type', 'xml')
+                    gc.post('slicer_cli_web/cli', data={
+                        'folder': folder_id,
+                        'name': cli_name,
+                        'image': name,
+                        'replace': True,
+                        'desc_type': desc_type,
+                        'spec': b64encode(spec[desc_type].encode()),
+                    })
+                except HttpError as err:
+                    print(f'Error creating cli {cli_name}: {err}')
+                    print(err.responseText)
+                    raise
+
+        if loadingError:
+            errorState = True
+
+        print('Finished caching Docker image data')
+    except Exception:
+        print(f'Error during stage {stage}:')
+        raise
+
+    if errorState:
+        raise DockerImageError('Error occurred during image loading (see previous output)')
 
 
-def loadMetadata(job, docker_client, pullList, loadList, notExistSet):
+def loadMetadata(docker_client, pullList, loadList, notExistSet):
     """
     Attempt to query preexisting images and pulled images for cli data.
     Cli data for each image is stored and returned as a DockerCache Object
@@ -220,42 +193,24 @@ def loadMetadata(job, docker_client, pullList, loadList, notExistSet):
     images = []
     for name in pullList:
         if name not in notExistSet:
-            job = Job().updateJob(
-                job,
-                log='Image %s was pulled successfully \n' % name,
-
-            )
+            print(f'Image {name} was pulled successfully')
 
             try:
-                cli_dict = getCliData(name, docker_client, job)
+                cli_dict = getCliData(name, docker_client)
                 images.append((name, cli_dict))
-                job = Job().updateJob(
-                    job,
-                    log='Got pulled image %s metadata \n' % name
-
-                )
+                print(f'Got pulled image {name} metadata')
             except DockerImageError as err:
-                job = Job().updateJob(
-                    job,
-                    log='FAILURE: Error with recently pulled image %s\n%s\n' % (name, err),
-                )
+                print(f'FAILURE: Error with recently pulled image {name}\n{err}')
                 errorState = True
 
     for name in loadList:
         # create dictionary and load to database
         try:
-            cli_dict = getCliData(name, docker_client, job)
+            cli_dict = getCliData(name, docker_client)
             images.append((name, cli_dict))
-            job = Job().updateJob(
-                job,
-                log='Loaded metadata from pre-existing local image %s\n' % name
-            )
+            print(f'Loaded metadata from pre-existing local image {name}')
         except DockerImageError as err:
-            job = Job().updateJob(
-                job,
-                log='FAILURE: Error with recently loading pre-existing image %s\n%s\n' % (
-                    name, err),
-            )
+            print(f'FAILURE: Error with recently loading pre-existing image {name}\n{err}')
             errorState = True
     return images, errorState
 
@@ -295,7 +250,7 @@ def getDockerOutput(imgName, command, client):
     return logs
 
 
-def getCliData(name, client, job):
+def getCliData(name, client):
     try:
         cli_dict = getDockerOutput(name, '--list_cli', client)
         # contains nested dict
@@ -305,9 +260,7 @@ def getCliData(name, client, job):
                 cli_dict = cli_dict.decode('utf8')
             cli_dict = json.loads(cli_dict)
         except Exception:
-            job = Job().updateJob(
-                job,
-                log='Failed to parse cli list.  Output of list_cli was\n%r\n' % cli_dict)
+            print('Failed to parse cli list.  Output of list_cli was\n%r' % cli_dict)
             raise
         for key, info in cli_dict.items():
             desc_type = info.get('desc-type', 'xml')
@@ -317,14 +270,11 @@ def getCliData(name, client, job):
                 cli_desc = cli_desc.decode('utf8')
 
             cli_dict[key][desc_type] = cli_desc
-            job = Job().updateJob(
-                job,
-                log='Got image %s, cli %s metadata\n' % (name, key),
-            )
+            print(f'Got image {name}, cli {key} metadata')
         return cli_dict
     except Exception as err:
-        logger.exception('Error getting %s cli data from image', name)
-        raise DockerImageError('Error getting %s cli data from image ' % (name) + str(err))
+        logger.exception(f'Error getting {name} cli data from image')
+        raise DockerImageError(f'Error getting {name} cli data from image: {err}')
 
 
 def pullDockerImage(client, names):

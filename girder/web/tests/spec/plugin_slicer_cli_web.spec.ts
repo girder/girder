@@ -41,6 +41,7 @@ async function createCliItem(page) {
             folder: folderId,
             image: 'girder/slicer_cli_web_test:latest',
             name: 'Slicer CLI Web Test',
+            desc_type: 'xml',
             spec: base64data,
             replace: false,
         },

@@ -22,4 +22,7 @@ class SlicerCLIWebWorkerPlugin(GirderWorkerPluginABC):
         self.app = app
 
     def task_imports(self):
-        return ['girder_slicer_cli_web.girder_worker_plugin.direct_docker_run']
+        return [
+            'girder_slicer_cli_web.girder_worker_plugin.direct_docker_run',
+            'girder_slicer_cli_web.image_job',
+        ]
