@@ -62,7 +62,7 @@ class CILogon(ProviderBase):
             response = requests.post(token_url, data=data)
 
         if response.status_code != 200:
-            raise Exception('Error acquiring token: %s' % \
+            raise Exception('Error acquiring token: %s' %
                             response.json().get('error_description', 'Unknown error'))
 
         return response.json()
