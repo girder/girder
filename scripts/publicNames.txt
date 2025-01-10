@@ -1214,6 +1214,13 @@ plugins
                         getToken
                         getUrl
                         getUser
+                cilogon
+                    CILogon
+                        getClientIdSetting
+                        getClientSecretSetting
+                        getToken
+                        getUrl
+                        getUser
             rest
                 OAuth
                     callback
