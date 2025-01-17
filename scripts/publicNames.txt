@@ -1178,6 +1178,13 @@ plugins
                         getToken
                         getUrl
                         getUser
+                cilogon
+                    CILogon
+                        getClientIdSetting
+                        getClientSecretSetting
+                        getToken
+                        getUrl
+                        getUser
                 github
                     GitHub
                         getClientIdSetting
@@ -1209,13 +1216,6 @@ plugins
                         getUser
                 microsoft
                     Microsoft
-                        getClientIdSetting
-                        getClientSecretSetting
-                        getToken
-                        getUrl
-                        getUser
-                cilogon
-                    CILogon
                         getClientIdSetting
                         getClientSecretSetting
                         getToken
