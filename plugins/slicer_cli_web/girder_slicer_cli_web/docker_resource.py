@@ -119,7 +119,7 @@ class DockerResource(Resource):
         return job
 
     @access.user
-    @describeRoute(
+    @autoDescribeRoute(
         Description('Lookup a datalist parameter on a CLI task')
         .modelParam('id', 'The slicer CLI item task', Item, level=AccessType.READ)
         .param('key', 'The parameter name to look up')
