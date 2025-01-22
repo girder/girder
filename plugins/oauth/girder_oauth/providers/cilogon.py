@@ -87,8 +87,8 @@ class CILogon(ProviderBase):
         if not email:
             raise RestException('CILogon user has no registered email address.', code=502)
 
-        firstName = user_data.get('firstname', '')
-        lastName = user_data.get('lastname', '')
+        firstName = user_data.get('given_name', '')
+        lastName = user_data.get('family_name', '')
 
         user = self._createOrReuseUser(oauthId, email, firstName, lastName)
         return user
