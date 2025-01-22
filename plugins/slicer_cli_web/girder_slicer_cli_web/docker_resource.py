@@ -73,15 +73,35 @@ class DockerResource(Resource):
         self.route('POST', ('cli', ':id', 'rerun'), self.rerunCli)
         self.route('POST', ('cli', ':id', 'datalist', ':key'), self.datalistHandler)
 
+        self.route('POST', (':image', ':name', 'run'), self.runCliByName)
+
     @access.user
     @autoDescribeRoute(
         Description('Run a Slicer CLI job.')
         .modelParam('id', 'The slicer CLI task item', Item, level=AccessType.READ)
     )
     def runCli(self, item, params):
+        cli_item = CLIItem(item)
+        return self._runCli(cli_item, params)
+
+    @access.user
+    @autoDescribeRoute(
+        Description('Run a Slicer CLI job by name.')
+        .deprecated()
+        .param('image', 'The name of the docker image', paramType='path')
+        .param('name', 'The name of the CLI item', paramType='path')
+    )
+    def runCliByName(self, image, name, params):
+        cli_item = CLIItem.findByName(image, name, self.getCurrentUser())
+        if cli_item is None:
+            raise RestException(f'No such CLI ({image} / {name})')
+
+        return self._runCli(cli_item, params)
+
+    def _runCli(self, cli_item, params):
         user = self.getCurrentUser()
         token = Token().createToken(user=user)
-        cli_item = CLIItem(item)
+
         cli_model = as_model(cli_item.xml)
 
         batchParams = _getBatchParams(params, cli_model)
@@ -364,34 +384,6 @@ class DockerResource(Resource):
         for imageName in list(imageList):
             for undoFunction in self.currentEndpoints.pop(imageName, {}).values():
                 undoFunction()
-
-    def _generateAllItemEndPoints(self):
-        # sort by name and creation date desc
-        items = sorted(CLIItem.findAllItems(), key=lambda x: (x.restPath, x.item['created']),
-                       reverse=True)
-
-        seen = set()
-        for item in items:
-            # default if not seen yet
-            rest_slicer_cli.genRESTEndPointsForSlicerCLIsForItem(
-                self, item, item.restPath not in seen
-            )
-            seen.add(item.restPath)
-
-    def addRestEndpoints(self, event):
-        """
-        Determines if the job event being triggered is due to the caching of
-        new docker images or deleting a docker image off the local machine.  If
-        a new image is being loaded all old rest endpoints are deleted and
-        endpoints for all cached docker images are regenerated.
-
-        :param event: An event dictionary
-        """
-        job = event.info['job']
-
-        if job['type'] == self.jobType and job['status'] == JobStatus.SUCCESS:
-            self.deleteImageEndpoints()
-            self._generateAllItemEndPoints()
 
     def _dump(self, item, details=False):
         r = {
