@@ -1,18 +1,4 @@
-###############################################################################
-#  Copyright Kitware Inc.
-#
-#  Licensed under the Apache License, Version 2.0 ( the "License" );
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-###############################################################################
+import re
 
 from girder.constants import AccessType
 from girder.models.file import File
@@ -46,7 +32,6 @@ class CLIItem:
             self.xml = self.xml.encode('utf8')
 
         self.restBasePath = self.image.replace(':', '_').replace('/', '_').replace('@', '_')
-        self.restPath = '%s/%s' % (self.restBasePath, self.name)
 
     def __str__(self):
         return 'CLIItem %s, image: %s, id: %s' % (self.name, self.image, self._id)
@@ -55,6 +40,20 @@ class CLIItem:
     def find(itemId, user):
         itemModel = Item()
         item = itemModel.load(itemId, user=user, level=AccessType.READ)
+        if not item:
+            return None
+        return CLIItem(item)
+
+    @staticmethod
+    def findByName(image, name, user):
+        image_regex = re.compile(re.escape(image).replace('_', '[_@:/]'))
+        item = Item().findWithPermissions({
+            'meta.image': {'$regex': image_regex},
+            'name': name,
+        }, user=user, level=AccessType.READ)
+
+        item = next(item, None)
+
         if not item:
             return None
         return CLIItem(item)
