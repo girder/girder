@@ -13,9 +13,7 @@ class CILogon(ProviderBase):
     _AUTH_SCOPES = ['openid', 'email', 'profile']
     _API_USER_URL = 'https://cilogon.org/oauth2/userinfo'
 
-    @classmethod
-    def _authority(cls):
-        return 'https://cilogon.org'
+    _AUTHORITY = 'https://cilogon.org'
 
     def getClientIdSetting(self):
         return Setting().get(PluginSettings.CILOGON_CLIENT_ID)
