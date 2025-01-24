@@ -12,10 +12,8 @@ import requests
 class CILogon(ProviderBase):
     _AUTH_SCOPES = ['openid', 'email', 'profile']
     _API_USER_URL = 'https://cilogon.org/oauth2/userinfo'
+    _AUTHORITY = 'https://cilogon.org'
 
-    @classmethod
-    def _authority(cls):
-        return 'https://cilogon.org'
 
     def getClientIdSetting(self):
         return Setting().get(PluginSettings.CILOGON_CLIENT_ID)
@@ -32,7 +30,7 @@ class CILogon(ProviderBase):
         redirectUri = '/'.join((getApiUrl(), 'oauth', 'cilogon', 'callback'))
 
         url = (
-            f'{cls._authority()}/authorize'
+            f'{cls._AUTHORITY}/authorize'
             f'?client_id={clientId}'
             f'&response_type=code'
             f'&scope={" ".join(cls._AUTH_SCOPES)}'
@@ -49,7 +47,7 @@ class CILogon(ProviderBase):
         if not clientId or not clientSecret or not redirectUri:
             raise Exception('CILogon settings are incomplete.')
 
-        token_url = f'{self._authority()}/oauth2/token'
+        token_url = f'{self._AUTHORITY}/oauth2/token'
         data = {
             'grant_type': 'authorization_code',
             'code': code,
