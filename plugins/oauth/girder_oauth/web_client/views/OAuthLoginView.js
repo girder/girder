@@ -94,7 +94,7 @@ var OAuthLoginView = View.extend({
             class: 'g-oauth-button-box'
         },
         cilogon: {
-            icon: 'box',
+            icon: 'cilogon',
             class: 'g-oauth-button-box'
         }
     }
