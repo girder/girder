@@ -14,7 +14,6 @@ class CILogon(ProviderBase):
     _API_USER_URL = 'https://cilogon.org/oauth2/userinfo'
     _AUTHORITY = 'https://cilogon.org'
 
-
     def getClientIdSetting(self):
         return Setting().get(PluginSettings.CILOGON_CLIENT_ID)
 
