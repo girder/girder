@@ -123,7 +123,7 @@ var ConfigView = View.extend({
         }, {
             id: 'cilogon',
             name: 'CILogon',
-            icon: 'box-brand',
+            icon: 'cilogon',
             hasAuthorizedOrigins: false,
             takesTenantId: false,
             instructions: 'Client IDs and secret keys are managed through the CILogon ' +
