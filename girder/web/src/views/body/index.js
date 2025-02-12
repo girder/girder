@@ -1,5 +1,5 @@
 import AdminView from './AdminView';
-import AssetstoresView from './AssetstoresView';
+import * as AssetstoresView from './AssetstoresView';
 import CollectionView from './CollectionView';
 import CollectionsView from './CollectionsView';
 import FilesystemImportView from './FilesystemImportView';
