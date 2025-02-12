@@ -69,7 +69,7 @@ setup(
         'girder': [
             'girder>=5.0.0a2',
             'girder-jobs>=5.0.0a2',
-            'girder-worker[girder]>=5',
+            'girder-worker[girder]>=5.0.0a4',
         ],
         'worker': [
             'docker>=2.6.0',
