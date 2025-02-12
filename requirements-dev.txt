@@ -22,6 +22,7 @@
 -e plugins/thumbnails
 -e plugins/user_quota
 -e plugins/virtual_folders
+-e plugins/import_tracker
 
 # External dependencies
 configparser
