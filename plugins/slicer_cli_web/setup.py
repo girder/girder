@@ -73,7 +73,7 @@ setup(
         ],
         'worker': [
             'docker>=2.6.0',
-            'girder-worker[worker]>=5',
+            'girder-worker[worker]>=5.0.0a4',
         ],
         'client': [
             'click',
