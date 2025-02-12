@@ -293,7 +293,7 @@ class DockerResource(Resource):
         """
         self.requireParams(('name',), params)
         nameList = self.parseImageNameList(params['name'])
-        folder = params.get('folder', PluginSettings.get_task_folder())
+        folder = params.get('folder') or PluginSettings.get_task_folder()
         if not folder:
             raise RestException('no upload folder given or defined by default')
         return self._createPutImageJob(nameList, folder, params.get('pull', None))
