@@ -1007,6 +1007,31 @@ plugins
                     MARKDOWN
                     SUBHEADER
                     WELCOME_TEXT
+    import_tracker
+        girder_import_tracker
+            GirderPlugin
+                CLIENT_SOURCE_PATH
+                DISPLAY_NAME
+                load
+            models
+                AssetstoreImport
+                    createAssetstoreImport
+                    initialize
+                    markEnded
+                    validate
+                ImportTrackerCancelError
+            rest
+                getImport
+                getImports
+                listAllImports
+                listImports
+                moveFolder
+                processCursor
+            utils
+                moveFile
+                moveFolder
+            wrapImportData
+            wrapShouldImportFile
     item_licenses
         girder_item_licenses
             ItemLicensesPlugin
