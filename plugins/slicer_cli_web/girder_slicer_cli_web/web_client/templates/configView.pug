@@ -35,7 +35,7 @@ form#g-slicer-cli-web-upload-form(role="form")
   .form-group
     label(for="g-slicer-cli-web-image") Docker Image
     input#g-slicer-cli-web-image.form-control.input-sm(
-        name="name", pattern=".+(:|@).+[,.+(:|@).+]*",
+        name="name", pattern="[^:@]+[:@][^:@]+(,[^:@]+[:@][^:@]+)*",
         type="text", required,
         placeholder="A name (image:tag) or a list of names (image:tag,image:tag) of the docker images to be loaded")
   .form-group
