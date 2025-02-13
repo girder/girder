@@ -97,8 +97,17 @@ def findLocalImage(client, name):
     return image.id
 
 
+def _split_image_and_version(image_name: str) -> tuple[str, str]:
+    """
+    Splits a docker image name into its name and version (tag or digest).
+    """
+    if ':' in image_name.split('/')[-1]:
+        return image_name.rsplit(':', 1)
+    return image_name.rsplit('@', 1)
+
+
 @app.task(bind=True)
-def ingest_from_docker(self, name_list, token: str, folder_id, pull: bool):
+def ingest_from_docker(self, name_list, token: str, folder_id, pull: bool):  # noqa: C901
     """
     Attempts to cache metadata on images in the pull list and load list.
     Images in the pull list are pulled first, then images in both lists are
@@ -138,15 +147,65 @@ def ingest_from_docker(self, name_list, token: str, folder_id, pull: bool):
 
         stage = 'metadata'
         images, loadingError = loadMetadata(docker_client, pullList, loadList, notExistSet)
+        gc = GirderClient(apiUrl=self.request.apiUrl)
+        gc.token = token
+
         for name, cli_dict in images:
             stage = 'parsing'
-            gc = GirderClient(apiUrl=self.request.apiUrl)
-            gc.token = token
+
+            docker_image = docker_client.images.get(name)
+            tag_metadata = docker_image.labels.copy()
+
+            if 'description' in tag_metadata:
+                description = tag_metadata['description']
+                del tag_metadata['description']
+            else:
+                description = 'Slicer CLI generated docker image tag folder'
+
+            tag_metadata = {k.replace('.', '_'): v for k, v in tag_metadata.items()}
+            if 'Author' in docker_image.attrs:
+                tag_metadata['author'] = docker_image.attrs['Author']
+
+            digest = None
+            if docker_image.attrs.get('RepoDigests', []):
+                digest = docker_image.attrs['RepoDigests'][0]
+
+            tag_metadata['digest'] = digest
+            tag_metadata['slicerCLIType'] = 'tag'
+
+            image_name, tag_name = _split_image_and_version(name)
+
+            try:
+                image_folder = gc.post('folder', data={
+                    'name': image_name,
+                    'parentId': folder_id,
+                    'reuseExisting': True,
+                    'description': 'Slicer CLI generated docker image folder',
+                    'metadata': json.dumps(dict(slicerCLIType='image')),
+                })
+            except HttpError as err:
+                print(f'Error creating image folder {image_name}: {err}')
+                print(err.responseText)
+                raise
+
+            try:
+                tag_folder = gc.post('folder', data={
+                    'name': tag_name,
+                    'parentId': image_folder['_id'],
+                    'reuseExisting': True,
+                    'description': description,
+                    'metadata': json.dumps(tag_metadata),
+                })
+            except HttpError as err:
+                print(f'Error creating tag folder {tag_name}: {err}')
+                print(err.responseText)
+                raise
+
             for cli_name, spec in cli_dict.items():
                 try:
                     desc_type = spec.get('desc-type', 'xml')
                     gc.post('slicer_cli_web/cli', data={
-                        'folder': folder_id,
+                        'folder': tag_folder['_id'],
                         'name': cli_name,
                         'image': name,
                         'replace': True,
