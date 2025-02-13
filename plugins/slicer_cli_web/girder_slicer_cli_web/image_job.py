@@ -107,7 +107,7 @@ def _split_image_and_version(image_name: str) -> tuple[str, str]:
 
 
 @app.task(bind=True)
-def ingest_from_docker(self, name_list, token: str, folder_id, pull: bool):
+def ingest_from_docker(self, name_list, token: str, folder_id, pull: bool):  # noqa: C901
     """
     Attempts to cache metadata on images in the pull list and load list.
     Images in the pull list are pulled first, then images in both lists are
