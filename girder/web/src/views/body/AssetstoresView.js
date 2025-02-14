@@ -214,7 +214,9 @@ var AssetstoresView = View.extend({
             this.render();
         }, this);
         editAssetstoreWidget.render();
-    }
+    },
+
+    assetstoreImportViewMap,
 }, {
     import: function (assetstoreId) {
         var assetstore = new AssetstoreModel({ _id: assetstoreId });
@@ -231,5 +233,4 @@ var AssetstoresView = View.extend({
     }
 });
 
-export { assetstoreImportViewMap };
 export default AssetstoresView;
