@@ -31,7 +31,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     the S3 server where the files are stored.
     """
 
-    CHUNK_LEN = 1024 * 1024 * 32  # Chunk size for uploading
+    CHUNK_LEN = 1024 * 1024 * 64  # Chunk size for uploading
     HMAC_TTL = 120  # Number of seconds each signed message is valid
 
     @staticmethod
@@ -361,31 +361,17 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         file['s3Key'] = upload['s3']['key']
 
         if upload['s3']['chunked']:
-            if upload['received'] > 0:
-                # We proxied the data to S3
-                parts = self.client.list_parts(
-                    Bucket=self.assetstore['bucket'], Key=file['s3Key'],
-                    UploadId=upload['s3']['uploadId'])
-                parts = [{
-                    'ETag': part['ETag'],
-                    'PartNumber': part['PartNumber']
-                } for part in parts.get('Parts', [])]
-                self.client.complete_multipart_upload(
-                    Bucket=self.assetstore['bucket'], Key=file['s3Key'],
-                    UploadId=upload['s3']['uploadId'], MultipartUpload={'Parts': parts})
-            else:
-                url = self._generatePresignedUrl(
-                    ClientMethod='complete_multipart_upload', Params={
-                        'Bucket': self.assetstore['bucket'],
-                        'Key': upload['s3']['key'],
-                        'UploadId': upload['s3']['uploadId']
-                    })
-                file['s3FinalizeRequest'] = {
-                    'method': 'POST',
-                    'url': url,
-                    'headers': {'Content-Type': 'text/plain;charset=UTF-8'}
-                }
-                file['additionalFinalizeKeys'] = ('s3FinalizeRequest',)
+            parts = self.client.list_parts(
+                Bucket=self.assetstore['bucket'], Key=file['s3Key'],
+                UploadId=upload['s3']['uploadId'])
+            parts = [{
+                'ETag': part['ETag'],
+                'PartNumber': part['PartNumber']
+            } for part in parts.get('Parts', [])]
+            self.client.complete_multipart_upload(
+                Bucket=self.assetstore['bucket'], Key=file['s3Key'],
+                UploadId=upload['s3']['uploadId'], MultipartUpload={'Parts': parts})
+
         return file
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,
