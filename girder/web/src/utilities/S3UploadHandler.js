@@ -251,51 +251,11 @@ prototype._finalizeMultiChunkUpload = function () {
         },
         error: null
     }).done((resp) => {
-        // Create the XML document that will be the request body to S3
-        var doc = document.implementation.createDocument(null, null, null);
-        var root = doc.createElement('CompleteMultipartUpload');
-
-        _.each(this.eTagList, (etag, partNumber) => {
-            var partEl = doc.createElement('Part');
-            var partNumberEl = doc.createElement('PartNumber');
-            var etagEl = doc.createElement('ETag');
-
-            partNumberEl.appendChild(doc.createTextNode(partNumber));
-            etagEl.appendChild(doc.createTextNode(etag));
-            partEl.appendChild(partNumberEl);
-            partEl.appendChild(etagEl);
-            root.appendChild(partEl);
-        });
-
-        var req = resp.s3FinalizeRequest;
-        var xhr = new XMLHttpRequest();
-
-        xhr.open(req.method, req.url);
-
-        _.each(req.headers, (v, k) => {
-            xhr.setRequestHeader(k, v);
-        });
-
-        xhr.onload = () => {
-            if (xhr.status === 200) {
-                delete resp.s3FinalizeRequest;
-                this.trigger('g:upload.complete', resp);
-            } else {
-                this.trigger('g:upload.error', {
-                    message: 'Error occurred uploading to S3 (' + xhr.status + ').'
-                });
-            }
-        };
-
-        xhr.send(new window.XMLSerializer().serializeToString(root));
+        this.trigger('g:upload.complete', resp);
     }).fail((resp) => {
-        var msg;
-
-        if (resp.status === 0) {
-            msg = 'Could not connect to the server.';
-        } else {
-            msg = 'Upload error during finalize, check console.';
-        }
+        const msg = resp.status === 0
+            ? 'Could not connect to the server.'
+            : 'Upload error during finalize, check console.';
         this.trigger('g:upload.error', {
             message: msg
         });

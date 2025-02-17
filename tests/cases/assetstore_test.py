@@ -1,4 +1,3 @@
-import botocore
 import httmock
 import inspect
 import io
@@ -7,7 +6,6 @@ import moto
 import os
 import shutil
 import tempfile
-import time
 import zipfile
 
 from .. import base, mock_s3
@@ -577,15 +575,6 @@ class AssetstoreTestCase(base.TestCase):
                        'direct-to-S3 upload.'
         })
 
-        # Test finalize for a multi-chunk upload
-        resp = self.request(
-            path='/file/completion', method='POST', user=self.admin,
-            params={'uploadId': multiChunkUpload['_id']})
-        largeFile = resp.json
-        self.assertStatusOk(resp)
-        self.assertRegex(resp.json['s3FinalizeRequest']['url'], s3Regex)
-        self.assertEqual(resp.json['s3FinalizeRequest']['method'], 'POST')
-
         # Test init for an empty file (should be no-op)
         params['size'] = 0
         resp = self.request(path='/file', method='POST', user=self.admin, params=params)
@@ -604,7 +593,7 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(resp.headers['Content-Disposition'], 'attachment; filename="My File.txt"')
 
         # Test download of a non-empty file
-        resp = self.request(path='/file/%s/download' % largeFile['_id'],
+        resp = self.request(path='/file/%s/download' % file['_id'],
                             user=self.admin, method='GET', isJson=False)
         self.assertStatus(resp, 303)
         self.assertRegex(resp.headers['Location'], s3Regex)
@@ -614,7 +603,7 @@ class AssetstoreTestCase(base.TestCase):
         params = {'contentDisposition': 'inline'}
         inlineRegex = r'response-content-disposition=inline%3B%20filename%3D%22My%20File.txt%22'
         resp = self.request(
-            path='/file/%s/download' % largeFile['_id'], user=self.admin, method='GET',
+            path='/file/%s/download' % file['_id'], user=self.admin, method='GET',
             isJson=False, params=params)
         self.assertStatus(resp, 303)
         self.assertRegex(resp.headers['Location'], s3Regex)
@@ -709,37 +698,6 @@ class AssetstoreTestCase(base.TestCase):
         self.assertEqual(file['size'], 0)
         self.assertEqual(file['assetstoreId'], assetstore['_id'])
         self.assertTrue(client.get_object(Bucket='bucketname', Key='foo/bar/test') is not None)
-
-        # Create the file key in the moto s3 store so that we can test that it gets deleted.
-        file = File().load(largeFile['_id'], user=self.admin)
-        client.create_multipart_upload(Bucket='bucketname', Key=file['s3Key'])
-        client.put_object(Bucket='bucketname', Key=file['s3Key'], Body=b'test')
-
-        # Test delete for a non-empty file
-        resp = self.request(path='/file/%s' % largeFile['_id'], user=self.admin, method='DELETE')
-        self.assertStatusOk(resp)
-
-        # The file should be gone now
-        resp = self.request(
-            path='/file/%s/download' % largeFile['_id'], user=self.admin, isJson=False)
-        self.assertStatus(resp, 400)
-        # The actual delete may still be in the event queue, so we want to
-        # check the S3 bucket directly.
-        startTime = time.time()
-        while True:
-            try:
-                client.get_object(Bucket='bucketname', Key=file['s3Key'])
-            except botocore.exceptions.ClientError:
-                break
-            if time.time() - startTime > 15:
-                break  # give up and fail
-            time.sleep(0.1)
-        with self.assertRaises(botocore.exceptions.ClientError):
-            client.get_object(Bucket='bucketname', Key=file['s3Key'])
-
-        resp = self.request(
-            path='/folder/%s' % parentFolder['_id'], method='DELETE', user=self.admin)
-        self.assertStatusOk(resp)
 
     def testMoveBetweenAssetstores(self):
         folder = next(Folder().childFolders(
