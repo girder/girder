@@ -105,6 +105,9 @@ autocompletion and jump-to-definition for symbols under the ``girder`` namespace
     }
 
 
+Testing
+^^^^^^^
+
 Plugins are now also responsible for testing their own web client code. If your plugin was relying
 on any of the old testing infrastructure, those tests will no longer work. We may publish our
 Playwright-based front-end testing utilities as a separate package in the future, but as of 5.0,
