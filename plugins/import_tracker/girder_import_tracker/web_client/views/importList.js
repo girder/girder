@@ -1,17 +1,17 @@
-import $ from 'jquery';
 import moment from 'moment';
-
-import PaginateWidget from '@girder/core/views/widgets/PaginateWidget';
-import Collection from '@girder/core/collections/Collection';
-
-import AssetstoreModel from '@girder/core/models/AssetstoreModel';
-import { SORT_DESC } from '@girder/core/constants';
-import View from '@girder/core/views/View';
-import router from '@girder/core/router';
-import { restRequest } from '@girder/core/rest';
 
 import importListTemplate from '../templates/importList.pug';
 import '../stylesheets/importList.styl';
+
+const $ = girder.$;
+const PaginateWidget = girder.views.widgets.PaginateWidget;
+const Collection = girder.collections.Collection;
+
+const AssetstoreModel = girder.models.AssetstoreModel;
+const { SORT_DESC } = girder.constants;
+const View = girder.views.View;
+const router = girder.router;
+const { restRequest } = girder.rest;
 
 var importList = View.extend({
     events: {

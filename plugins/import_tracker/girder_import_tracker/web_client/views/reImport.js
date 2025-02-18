@@ -1,10 +1,10 @@
-import AssetstoreModel from '@girder/core/models/AssetstoreModel';
-import View from '@girder/core/views/View';
-import { AssetstoreType } from '@girder/core/constants';
+const AssetstoreModel = girder.models.AssetstoreModel;
+const View = girder.views.View;
+const { AssetstoreType } = girder.constants;
 
-import router from '@girder/core/router';
-import events from '@girder/core/events';
-import { restRequest } from '@girder/core/rest';
+const router = girder.router;
+const events = girder.events;
+const { restRequest } = girder.rest;
 
 const goBack = (assetstoreId, message) => {
     events.trigger('g:alert', {

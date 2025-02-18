@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 
 from girder_jobs.constants import JobStatus
 from girder_jobs.models.job import Job
@@ -168,7 +169,6 @@ def wrapShouldImportFile():
 
 class GirderPlugin(plugin.GirderPlugin):
     DISPLAY_NAME = 'import_tracker'
-    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         plugin.getPlugin('jobs').load(info)
@@ -183,3 +183,11 @@ class GirderPlugin(plugin.GirderPlugin):
         wrapImportData(info['apiRoot'].assetstore)
 
         info['apiRoot'].folder.route('PUT', (':id', 'move'), moveFolder)
+        plugin.registerPluginStaticContent(
+            plugin='import-tracker',
+            css=['style.css'],
+            js=['girder-plugin-import-tracker.umd.js'],
+            staticDir=Path(__file__).parent / 'web_client' / 'dist',
+            tree=info['serverRoot']
+        )
+

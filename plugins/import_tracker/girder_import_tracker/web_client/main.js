@@ -1,17 +1,3 @@
-import $ from 'jquery';
-
-import AssetstoreView from '@girder/core/views/body/AssetstoresView';
-import FilesystemImportView from '@girder/core/views/body/FilesystemImportView';
-import S3ImportView from '@girder/core/views/body/S3ImportView';
-
-import CollectionModel from '@girder/core/models/CollectionModel';
-import FolderModel from '@girder/core/models/FolderModel';
-import UserModel from '@girder/core/models/UserModel';
-
-import { wrap } from '@girder/core/utilities/PluginUtils';
-import events from '@girder/core/events';
-import router from '@girder/core/router';
-
 import importDataButton from './templates/assetstoreButtonsExtension.pug';
 import importListView from './views/importList';
 import reImportView from './views/reImport';
@@ -19,6 +5,15 @@ import excludeExistingInput from './templates/excludeExistingInput.pug';
 
 // import modules for side effects
 import './JobStatus';
+
+const $ = girder.$;
+const { AssetstoreView, FilesystemImportView, S3ImportView } = girder.views.body;
+const { CollectionModel, FolderModel, UserModel } = girder.models;
+
+const { wrap } = girder.utilities.PluginUtils;
+const events = girder.events;
+const router = girder.router;
+
 
 // Inject button to navigate to imports page in each assetstore in view
 wrap(AssetstoreView, 'render', function (render) {
