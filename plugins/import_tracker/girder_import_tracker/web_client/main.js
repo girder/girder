@@ -7,7 +7,7 @@ import excludeExistingInput from './templates/excludeExistingInput.pug';
 import './JobStatus';
 
 const $ = girder.$;
-const { AssetstoreView, FilesystemImportView, S3ImportView } = girder.views.body;
+const { AssetstoresView, FilesystemImportView, S3ImportView } = girder.views.body;
 const { CollectionModel, FolderModel, UserModel } = girder.models;
 
 const { wrap } = girder.utilities.PluginUtils;
@@ -16,7 +16,7 @@ const router = girder.router;
 
 
 // Inject button to navigate to imports page in each assetstore in view
-wrap(AssetstoreView, 'render', function (render) {
+wrap(AssetstoresView, 'render', function (render) {
     // Call the underlying render function that we are wrapping
     render.call(this);
     // defer adding buttons so optional plugins can render first.
