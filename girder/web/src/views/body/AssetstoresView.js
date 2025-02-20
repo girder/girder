@@ -17,9 +17,7 @@ import AssetstoresTemplate from '@girder/core/templates/body/assetstores.pug';
 
 import '@girder/core/stylesheets/body/assetstores.styl';
 
-import 'as-jqplot/dist/jquery.jqplot.js';
-import 'as-jqplot/dist/jquery.jqplot.css'; // jquery.jqplot.min.css
-import 'as-jqplot/dist/plugins/jqplot.pieRenderer.js';
+import ApexCharts from 'apexcharts';
 
 /**
  * This private data structure is a dynamic way to map assetstore types to the views
@@ -68,7 +66,7 @@ var AssetstoresView = View.extend({
 
     _destroyPlots: function () {
         for (const plot of this.plots) {
-            plot.data('jqplot').destroy();
+            plot.destroy();
         }
         this.plots = [];
     },
@@ -116,32 +114,32 @@ var AssetstoresView = View.extend({
             ['Used (' + formatSize(used) + ')', used],
             ['Free (' + formatSize(capacity.free) + ')', capacity.free]
         ];
-        var plot = $(el).jqplot([data], {
-            seriesDefaults: {
-                renderer: $.jqplot.PieRenderer,
-                rendererOptions: {
-                    sliceMargin: 2,
-                    shadow: false,
-                    highlightMouseOver: false,
-                    showDataLabels: true,
-                    padding: 5,
-                    startAngle: 180
+        var plot = new ApexCharts(el, {
+            series: data.map(d => d[1]),
+            chart: {
+                type: 'pie',
+                animations: { enabled: false }
+            },
+            labels: data.map(d => d[0]),
+            plotOptions: {
+                pie: {
+                    startAngle: -90,
+                    endAngle: 270,
+                    expandOnClick: false,
+                    dataLabels: {
+                        enabled: true
+                    }
                 }
             },
-            legend: {
-                show: true,
-                location: 'e',
-                background: 'transparent',
-                border: 'none'
+            dataLabels: {
+                style: {
+                  colors: ['#000', '#000']
+                },
+                dropShadow: {enabled: false},
             },
-            grid: {
-                background: 'transparent',
-                border: 'none',
-                borderWidth: 0,
-                shadow: false
-            },
-            gridPadding: { top: 10, right: 10, bottom: 10, left: 10 }
+            legend: { position: 'right' }
         });
+        plot.render();
         this.plots.push(plot);
     },
 
