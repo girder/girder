@@ -151,5 +151,5 @@ router.route('assetstore/all_unique_imports', 'importsPage', function () {
 // Setup router for re-import view
 router.route('assetstore/:id/re-import/:prev', 'assetstoreImport', function (assetstoreId, importId) {
     events.trigger('g:navigateTo', reImportView, { assetstoreId, importId });
-    AssetstoreView.import(assetstoreId);
+    AssetstoresView.import(assetstoreId);
 });
