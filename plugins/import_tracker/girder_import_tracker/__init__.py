@@ -190,4 +190,3 @@ class GirderPlugin(plugin.GirderPlugin):
             staticDir=Path(__file__).parent / 'web_client' / 'dist',
             tree=info['serverRoot']
         )
-

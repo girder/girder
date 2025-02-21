@@ -14,7 +14,6 @@ const { wrap } = girder.utilities.PluginUtils;
 const events = girder.events;
 const router = girder.router;
 
-
 // Inject button to navigate to imports page in each assetstore in view
 wrap(AssetstoresView, 'render', function (render) {
     // Call the underlying render function that we are wrapping

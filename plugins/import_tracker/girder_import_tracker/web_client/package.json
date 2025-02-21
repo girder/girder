@@ -32,7 +32,13 @@
     },
     "eslintConfig": {
         "extends": "@girder",
-        "root": true
+        "root": true,
+        "ignorePatterns": [
+            "dist/**"
+        ],
+        "globals": {
+            "girder": "readonly"
+        }
     },
     "pugLintConfig": {
         "extends": "@girder/pug-lint-config"
