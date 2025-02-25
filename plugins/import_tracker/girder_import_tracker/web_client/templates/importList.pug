@@ -1,0 +1,101 @@
+.it-controls
+  if !unique
+    if !assetstoreId
+      a.g-view-imports.btn.btn-sm.btn-primary(href='#assetstore/all_unique_imports')
+        i.icon-link-ext
+        | View unique past Imports
+    else
+      a.g-view-imports.btn.btn-sm.btn-primary(href=`#assetstore/${assetstoreId}/unique_imports`)
+        i.icon-link-ext
+        | View unique past Imports
+  else
+    if !assetstoreId
+      a.g-view-imports.btn.btn-sm.btn-primary(href='#assetstore/all_imports')
+        i.icon-link-ext
+        | View all past Imports
+    else
+      a.g-view-imports.btn.btn-sm.btn-primary(href=`#assetstore/${assetstoreId}/imports`)
+        i.icon-link-ext
+        | View all past Imports
+table.g-imports-list-table
+  -
+    var anyRegex = false;
+    var anyLeafed = false;
+    var anyImportPath = false;
+    var anyNoProgress = false;
+    var otherParams = [];
+    var showCount = false;
+  for _import in imports
+    if _import.get('params').fileIncludeRegex || _import.get('params').fileExcludeRegex
+      - anyRegex = True
+    if _import.get('params').leafFoldersAsItems && _import.get('params').leafFoldersAsItems !== 'false'
+      - anyLeafed = true
+    if !_import.get('params').progress
+      - anyNoProgress = true
+    - Object.keys(_import.get('params')).forEach((key) => { if (['importPath', 'destinationId', 'leafFoldersAsItems', 'progress', 'fileIncludeRegex', 'fileExcludeRegex'].indexOf(key) < 0 && otherParams.indexOf(key) < 0) { otherParams.push(key); } });
+    if _import.get('_count')
+      - showCount = true
+    if _import.get('params').importPath
+      - anyImportPath = true
+  thead
+    tr
+      th Actions
+      if showCount
+        th Repeats
+      th Started
+      th Ended
+      th Assetstore Name
+      if anyImportPath
+        th Import Path
+      //- th Destination Type
+      th Destination Path
+      if anyLeafed
+        th Leafed Folders
+      if anyNoProgress
+        th Progress
+      if anyRegex
+        th File Include Regex
+        th File Exclude Regex
+      for key in otherParams
+        th= key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())
+  tbody
+    each _import, i in imports
+      tr
+        td
+          if assetstores.includes(_import.get('assetstoreId'))
+            .g-imports-buttons
+              button.re-import-btn.btn.btn-sm.btn-success(index=i, disabled=(_import.get('_destinationPath') == 'does not exist'))
+                i.icon-cw
+                |  Re-Import
+              button.re-import-edit-btn.btn.btn-sm.btn-primary(index=i, data-toggle='tooltip', title='Edit Import Parameters')
+                i.icon-pencil
+        if showCount
+          td(data-id=_import.get('_count'), data-toggle='tooltip', title=_import.get('_count') !== 1 ? `Imported ${_import.get('_count')} times` : 'Imported once')
+            span= _import.get('_count')
+        td(data-id=_import.get('started'), data-toggle='tooltip', title=_import.get('started'))
+          span= moment(_import.get('started')).format('YYYY-MM-DD HH:mm:ss.SSS')
+        td(data-id=_import.get('ended'), data-toggle='tooltip', title=_import.get('ended') || '')
+          span= _import.get('ended') ? moment(_import.get('ended')).format('YYYY-MM-DD HH:mm:ss.SSS') : ''
+        td(data-id=_import.get('_assetstoreName'), data-toggle='tooltip', title=_import.get('_assetstoreName'))
+          span= _import.get('_assetstoreName')
+        if anyImportPath
+          td(data-id=_import.get('params').importPath, data-toggle='tooltip', title=_import.get('params').importPath)
+            span= (_import.get('params').importPath || '').replaceAll(/(?!^)\//g, '/\u00AD')
+        td(data-id=_import.get('params').destinationId, data-toggle='tooltip', title=_import.get('_destinationPath') + '\n' + _import.get('params').destinationId)
+          span= (_import.get('_destinationPath') || '').replaceAll(/(?!^)\//g, '/\u00AD')
+        if anyLeafed
+          td
+            span= _import.get('params').leafFoldersAsItems
+        if anyNoProgress
+          td
+            span= _import.get('params').progress
+        if anyRegex
+          td
+            span= _import.get('params').fileIncludeRegex
+          td
+            span= _import.get('params').fileExcludeRegex
+        for key in otherParams
+          td
+            span= _import.get('params')[key]
+
+.g-imports-pagination

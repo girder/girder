@@ -24,6 +24,7 @@
 -e plugins/virtual_folders
 -e plugins/worker
 -e plugins/slicer_cli_web
+-e plugins/import_tracker
 
 # External dependencies
 configparser
