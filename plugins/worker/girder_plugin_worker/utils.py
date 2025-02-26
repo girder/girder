@@ -21,22 +21,7 @@ from girder.api.rest import getApiUrl
 from girder.exceptions import FilePathException
 from girder.models.file import File
 from girder.models.setting import Setting
-from girder.utility import setting_utilities
 from girder_jobs.models.job import Job
-
-
-@setting_utilities.validator({
-    PluginSettings.BROKER,
-    PluginSettings.BACKEND
-})
-def validateSettings(doc):
-    """
-    Handle plugin-specific system settings. Right now we don't do any
-    validation for the broker or backend URL settings, but we do reinitialize
-    the celery app object with the new values.
-    """
-    global _celeryapp
-    _celeryapp = None
 
 
 def getWorkerApiUrl():

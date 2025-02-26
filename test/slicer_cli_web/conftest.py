@@ -89,10 +89,11 @@ def girderWorker(db):
     """
     broker = 'amqp://guest@127.0.0.1'
     backend = 'rpc://guest@127.0.0.1'
-    Setting().set(WorkerSettings.BROKER, broker)
-    Setting().set(WorkerSettings.BACKEND, backend)
+
     env = os.environ.copy()
     env['C_FORCE_ROOT'] = 'true'
+    env['GIRDER_WORKER_BROKER'] = broker
+    env['GIRDER_WORKER_BACKEND'] = backend
     proc = subprocess.Popen([
         'celery', '-A', 'girder_worker.app', '--broker', broker,
         '--result-backend', backend, 'worker', '--concurrency=1'],
@@ -100,8 +101,6 @@ def girderWorker(db):
     yield proc
     proc.terminate()
     proc.wait()
-    Setting().unset(WorkerSettings.BROKER)
-    Setting().unset(WorkerSettings.BACKEND)
 
 
 @pytest.fixture
