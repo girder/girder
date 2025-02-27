@@ -1,5 +1,5 @@
 import io
-import json
+import os
 from unittest import mock
 import pytest
 
@@ -12,15 +12,11 @@ from girder_jobs.constants import JobStatus
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
 from girder_plugin_worker.constants import PluginSettings
-from girder_plugin_worker import celery, utils
-
-
-def tearDownModule():
-    celery._celeryapp = None
+from girder_plugin_worker import utils
+from girder_worker.app import app
 
 
 def local_job(job):
-
     Job().updateJob(job, log='job running', status=JobStatus.RUNNING)
     Job().updateJob(job, log='job ran', status=JobStatus.SUCCESS)
 
@@ -52,16 +48,9 @@ def models(fsAssetstore, admin, user):
 @pytest.mark.plugin('worker')
 def testWorker(server, models):
     # Test the settings
-    resp = server.request('/system/setting', method='PUT', params={
-        'list': json.dumps([{
-            'key': PluginSettings.BROKER,
-            'value': 'amqp://guest@broker.com'
-        }, {
-            'key': PluginSettings.BACKEND,
-            'value': 'rpc://guest@backend.com'
-        }])
-    }, user=models['admin'])
-    assertStatusOk(resp)
+    os.environ['GIRDER_SETTING_WORKER_API_URL'] = 'http://localhost:8080/api/v1'
+    os.environ['GIRDER_WORKER_BROKER'] = 'amqp://guest@broker.com'
+    os.environ['GIRDER_WORKER_BACKEND'] = 'rpc://guest@backend.com'
 
     # Create a job to be handled by the worker plugin
     jobModel = Job()
@@ -82,21 +71,13 @@ def testWorker(server, models):
     assert job['status'] == JobStatus.INACTIVE
 
     # Schedule the job, make sure it is sent to celery
-    with mock.patch('celery.Celery') as celeryMock:
-        instance = celeryMock.return_value
-        instance.send_task.return_value = FakeAsyncResult()
+    with mock.patch.object(app, 'send_task') as sendTask:
+        sendTask.return_value = FakeAsyncResult()
 
         jobModel.scheduleJob(job)
 
         # Make sure we sent the job to celery
-        assert len(celeryMock.mock_calls) == 2
-        assert celeryMock.mock_calls[0][1] == ('girder_worker',)
-        assert celeryMock.mock_calls[0][2] == {
-            'broker': 'amqp://guest@broker.com',
-            'backend': 'rpc://guest@backend.com'
-        }
-
-        sendTaskCalls = celeryMock.return_value.send_task.mock_calls
+        sendTaskCalls = sendTask.mock_calls
 
         assert len(sendTaskCalls) == 1
         assert sendTaskCalls[0][1] == (
@@ -110,6 +91,10 @@ def testWorker(server, models):
         assert job['celeryTaskId'] == 'fake_id'
         assert job['status'] == JobStatus.QUEUED
 
+    del os.environ['GIRDER_SETTING_WORKER_API_URL']
+    del os.environ['GIRDER_WORKER_BROKER']
+    del os.environ['GIRDER_WORKER_BACKEND']
+
 
 @pytest.mark.plugin('worker')
 def testWorkerDifferentTask(server, models):
@@ -121,16 +106,8 @@ def testWorkerDifferentTask(server, models):
     assertStatus(resp, 400)
     assert resp.json['message'] == 'API URL must start with http:// or https://.'
 
-    resp = server.request('/system/setting', method='PUT', params={
-        'list': json.dumps([{
-            'key': PluginSettings.BROKER,
-            'value': 'amqp://guest@broker.com'
-        }, {
-            'key': PluginSettings.BACKEND,
-            'value': 'rpc://guest@backend.com'
-        }])
-    }, user=models['admin'])
-    assertStatusOk(resp)
+    os.environ['GIRDER_WORKER_BROKER'] = 'amqp://guest@broker.com'
+    os.environ['GIRDER_WORKER_BACKEND'] = 'rpc://guest@backend.com'
 
     # Create a job to be handled by the worker plugin
     jobModel = Job()
@@ -154,7 +131,6 @@ def testWorkerDifferentTask(server, models):
     job = jobModel.save(job)
 
     # Schedule the job, make sure it is sent to celery
-    app = celery.getCeleryApp()
     with mock.patch.object(app, 'send_task') as sendTask:
         sendTask.return_value = FakeAsyncResult()
 
@@ -166,6 +142,9 @@ def testWorkerDifferentTask(server, models):
             'some_other.task', job['args'], job['kwargs'])
         assert 'queue' in sendTaskCalls[0][2]
         assert sendTaskCalls[0][2]['queue'] == 'my_other_q'
+
+    del os.environ['GIRDER_WORKER_BROKER']
+    del os.environ['GIRDER_WORKER_BACKEND']
 
 
 @pytest.mark.skip('Fix module path')

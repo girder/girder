@@ -232,6 +232,18 @@ Check `this page <https://devguide.python.org/versions/>`_ to see the current st
 Python version support. Note that this means we will feel free to use newer language features in
 core as soon as they are available in the oldest supported version.
 
+Changes to celery configuration in Worker plugin
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+As we move to using celery in a more normal way, we now configure the celery app via the same code
+path in both Girder server and the celery worker. Because we need to support deployment topologies
+where the workers cannot communicate directly with the database, we cannot store celery
+configuration in the mongo database. Instead, celery connectivity is now always configured via the
+following environment variables:
+
+* ``GIRDER_WORKER_BROKER``: The URL of the message broker to use for celery
+* ``GIRDER_WORKER_BACKEND``: The URL of the result backend to use for celery
+
 Switch to HttpOnly cookies in core web client
 +++++++++++++++++++++++++++++++++++++++++++++
 

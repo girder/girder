@@ -16,12 +16,6 @@ var ConfigView = View.extend({
                 key: 'worker.api_url',
                 value: this.$('#g-worker-api-url').val().trim()
             }, {
-                key: 'worker.broker',
-                value: this.$('#g-worker-broker').val().trim()
-            }, {
-                key: 'worker.backend',
-                value: this.$('#g-worker-backend').val().trim()
-            }, {
                 key: 'worker.direct_path',
                 value: this.$('#g-worker-direct-path').is(':checked')
             }]);
@@ -39,16 +33,12 @@ var ConfigView = View.extend({
             data: {
                 list: JSON.stringify([
                     'worker.api_url',
-                    'worker.broker',
-                    'worker.backend',
                     'worker.direct_path'
                 ])
             }
         }).done((resp) => {
             this.render();
             this.$('#g-worker-api-url').val(resp['worker.api_url']);
-            this.$('#g-worker-broker').val(resp['worker.broker']);
-            this.$('#g-worker-backend').val(resp['worker.backend']);
             this.$('#g-worker-direct-path').prop('checked', resp['worker.direct_path']);
         });
     },
