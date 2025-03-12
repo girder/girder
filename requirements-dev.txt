@@ -27,7 +27,6 @@
 -e plugins/import_tracker
 
 # External dependencies
-configparser
 coverage
 httmock
 mongomock

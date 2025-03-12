@@ -1,3 +1,4 @@
+import os
 import sys
 
 import traceback as tb
@@ -17,7 +18,6 @@ from celery.signals import (
 
 from girder_client import GirderClient
 
-import girder_worker
 from girder_worker import logger
 from girder_worker.context import get_context
 from girder_worker.entrypoint import discover_tasks
@@ -222,7 +222,7 @@ register('girder_io', jsonpickle.encode, jsonpickle.decode,
          content_encoding='utf-8')
 
 app = Celery(
-    main=girder_worker.config.get('celery', 'app_main'),
+    main=os.environ.get('GIRDER_WORKER_CELERY_APP_MAIN', 'app_main'),
     task_cls='girder_worker.task:Task')
 
 discover_tasks(app)

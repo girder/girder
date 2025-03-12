@@ -14,13 +14,17 @@ class StdOutHandler(logging.Handler):
         sys.stdout.write(self.format(record) + os.linesep)
 
 
-def setupLogger(config):
-    level = getattr(logging, config.get('logging', 'level').upper())
+def setupLogger():
+    try:
+        level = getattr(logging, os.environ.get('GIRDER_WORKER_LOGGING_LEVEL', 'info').upper())
+    except Exception:
+        level = logging.INFO
     logger = logging.getLogger('girder_worker')
     logger.setLevel(level)
 
     handler = StdOutHandler()
-    formatter = logging.Formatter(config.get('logging', 'format'))
+    formatter = logging.Formatter(os.environ.get(
+        'GIRDER_WORKER_LOGGING_FORMAT', '[%%(asctime)s] %%(levelname)s: %%(message)s'))
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
