@@ -79,7 +79,6 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'girder-worker = girder_worker.__main__:main',
-            'girder-worker-config = girder_worker.configure:main'
         ],
         'girder_worker_plugins': [
             'docker = girder_worker.docker:DockerPlugin [docker]'
