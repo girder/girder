@@ -123,6 +123,16 @@ which used to be run on the background thread, should now convert their event ha
 celery tasks or otherwise asynchronous methods if there's any risk of the handler taking more
 than 1-2 seconds to complete.
 
+S3 assetstore adapter API protocol change
++++++++++++++++++++++++++++++++++++++++++
+
+Previously, clients wanting to upload directly to an S3 assetstore using presigned URLs were
+responsible for performing the multipart finalization step for uploads that were too large to
+be sent in a single chunk. In Girder 5, the finalization step is now always performed by the server.
+Clients will no longer receive a presigned URL to perform the step, and they are no longer
+responsible for maintaining their own parts list. Uploads to S3 proxied through Girder will not
+require changes, and Girder's web client has already been updated to accommodate this change.
+
 Dynamic route configuration system removed
 ++++++++++++++++++++++++++++++++++++++++++
 
