@@ -548,12 +548,18 @@ class Describe(Resource):
         urlParts = getUrlParts(apiUrl)
         host = urlParts.netloc
         basePath = urlParts.path
+        brandName = Setting().get(SettingKey.BRAND_NAME) or 'Girder'
 
         return {
             'swagger': SWAGGER_VERSION,
             'info': {
-                'title': 'Girder REST API',
-                'version': VERSION['release']
+                'title': f'{brandName} REST API',
+                'version': VERSION['release'],
+                'description':
+                    'Below you will find the list of all of the resource '
+                    f'types exposed by the {brandName} RESTful Web API. '
+                    'Click any of the resource links to open up a list of '
+                    'all available endpoints related to each resource type.',
             },
             'host': host,
             'basePath': basePath,
