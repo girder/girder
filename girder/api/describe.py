@@ -550,6 +550,8 @@ class Describe(Resource):
         basePath = urlParts.path
         brandName = Setting().get(SettingKey.BRAND_NAME) or 'Girder'
 
+        paths['/user/authentication']['get']['security'] = [{'basicAuth': []}]
+
         return {
             'swagger': SWAGGER_VERSION,
             'info': {
@@ -571,7 +573,10 @@ class Describe(Resource):
                     'type': 'apiKey',
                     'in': 'header',
                     'name': 'Girder-Token',
-                }
+                },
+                'basicAuth': {
+                    'type': 'basic',
+                },
             },
             'security': [{'Girder-Token': []}],
         }
