@@ -25,10 +25,13 @@ with open('README.md') as readme_file:
 
 
 setup(
-    name='import_tracker',
+    name='girder-import-tracker',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
-    setup_requires=['setuptools_scm'],
-    description='A Girder plugin for data import tracking in HistomicsUI',
+    setup_requires=[
+        'setuptools-scm',
+        'setuptools-git',
+    ],
+    description='A Girder plugin for data import tracking',
     long_description=readme,
     long_description_content_type='text/markdown',
     author='Kitware, Inc.',
