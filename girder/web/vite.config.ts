@@ -68,7 +68,7 @@ export default defineConfig({
     }
   },
   build: {
-    sourcemap: true,
+    sourcemap: !process.env.SKIP_SOURCE_MAPS,
     outDir,
     ...buildOpts,
   },
