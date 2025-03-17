@@ -18,18 +18,7 @@
           defaultModelRendering: 'model',
           validatorUrl: null,
           defaultModelsExpandDepth: -1,
-          deepLinking: true,
-          onComplete: function() {
-            var cookieParams = document.cookie.split(';').map(function (m) {
-              return m.replace(/^\s+/, '').replace(/\s+$/, '');
-            });
-            cookieParams.forEach(function (val) {
-              var arr = val.split('=');
-              if (arr[0] === 'girderToken') {
-                swaggerUi.preauthorizeApiKey('Girder-Token', arr[1]);
-              }
-            });
-          }
+          deepLinking: true
         });
       })();
     </script>
