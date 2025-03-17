@@ -3,7 +3,7 @@ set -e
 
 pushd girder/web
 npm ci
-npm run build
+SKIP_SOURCE_MAPS=true npm run build
 popd
 
 python .circleci/build_plugins.py plugins/
