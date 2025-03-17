@@ -262,6 +262,17 @@ Due to deprecated behavior in Python 3.12, Girder now uses timezone-aware dateti
 If your code relied on the old behavior of naive datetimes, you may need to update it to
 handle timezone-aware datetimes.
 
+Removal of girder-worker command
+++++++++++++++++++++++++++++++++
+
+The ``girder-worker`` command has been removed because it didn't have the full configuration
+powers of the underlying ``celery worker`` command. Instead, run ``celery worker`` directly:
+
+.. code-block:: bash
+
+    celery -A girder_worker.app worker
+
+
 2.x |ra| 3.x
 ------------
 
