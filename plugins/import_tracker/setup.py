@@ -1,5 +1,5 @@
 import os
-
+import re
 from setuptools import find_packages, setup
 
 
@@ -13,8 +13,11 @@ def prerelease_local_scheme(version):
     """
     from setuptools_scm.version import get_local_node_and_date
 
-    if 'CIRCLE_BRANCH' in os.environ and \
-       os.environ['CIRCLE_BRANCH'] in {'master', 'main'}:
+    # this regex allows us to publish pypi packages from master, our LTS maintenance branches, and
+    # our next major version integration branches
+    pattern = r'master|[0-9]+\.x-maintenance|v[0-9]+-integration'
+
+    if re.match(pattern, os.getenv('CIRCLE_BRANCH', '')):
         return ''
     else:
         return get_local_node_and_date(version)
