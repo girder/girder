@@ -1,4 +1,5 @@
 import { resolve } from 'path';
+
 import { defineConfig } from 'vite';
 import { compileClient } from 'pug';
 

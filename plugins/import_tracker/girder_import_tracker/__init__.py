@@ -186,7 +186,7 @@ class GirderPlugin(plugin.GirderPlugin):
         plugin.registerPluginStaticContent(
             plugin='import-tracker',
             css=['style.css'],
-            js=['girder-plugin-import-tracker.umd.js'],
+            js=['girder-plugin-import-tracker.umd.cjs'],
             staticDir=Path(__file__).parent / 'web_client' / 'dist',
             tree=info['serverRoot']
         )
