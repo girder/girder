@@ -20,6 +20,6 @@ for directory in "${PUBLISHED_PYTHON_PACKAGES[@]}"; do
     pushd "$directory"
     rm -fr dist
     python -m build
-    twine upload --skip-existing dist/*
+    twine upload --verbose --skip-existing dist/*
     popd
 done
