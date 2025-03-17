@@ -1,5 +1,3 @@
-import moment from 'moment';
-
 import importListTemplate from '../templates/importList.pug';
 import '../stylesheets/importList.styl';
 
@@ -9,6 +7,7 @@ const Collection = girder.collections.Collection;
 
 const AssetstoreModel = girder.models.AssetstoreModel;
 const { SORT_DESC } = girder.constants;
+const moment = girder.moment;
 const View = girder.views.View;
 const router = girder.router;
 const { restRequest } = girder.rest;
