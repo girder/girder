@@ -31,9 +31,12 @@ import PaginateWidget from './PaginateWidget';
 import PluginConfigBreadcrumbWidget from './PluginConfigBreadcrumbWidget';
 import RootSelectorWidget from './RootSelectorWidget';
 import SearchFieldWidget from './SearchFieldWidget';
+import SearchPaginateWidget from './SearchPaginateWidget';
+import SortCollectionWidget from './SortCollectionWidget';
 import TaskProgressWidget from './TaskProgressWidget';
 import TimelineWidget from './TimelineWidget';
 import UploadWidget from './UploadWidget';
+import UserOtpManagementWidget from './UserOtpManagementWidget';
 
 export {
     AccessWidget,
@@ -69,7 +72,10 @@ export {
     PluginConfigBreadcrumbWidget,
     RootSelectorWidget,
     SearchFieldWidget,
+    SearchPaginateWidget,
+    SortCollectionWidget,
     TaskProgressWidget,
     TimelineWidget,
-    UploadWidget
+    UploadWidget,
+    UserOtpManagementWidget
 };
