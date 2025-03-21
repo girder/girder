@@ -27,6 +27,7 @@ class _MockDistribution:
         meta.provides_extras = ()
         meta.license_file = None
         meta.license_files = None
+        meta.license_expression = None
         meta.install_requires = []
         meta.extras_require = {}
         pkgInfo = io.StringIO()
