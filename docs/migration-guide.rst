@@ -202,6 +202,15 @@ via the config file alone. Now, the caching modules are configured via environme
 Config keys prefixed by ``cache.global.`` are used to configure the global dogpile cache, and
 keys prefixed by ``cache.request.`` are used to configure the request cache.
 
+CherryPy specific settings are now passed via environment variables as well. List of settings that
+can be configured:
+
+* ``GIRDER_HOST`` corresponds to ``server.socket_host``
+* ``GIRDER_PORT`` corresponds to ``server.socket_port``
+* ``GIRDER_THREAD_POOL`` corresponds to ``server.thread_pool``
+* ``GIRDER_MONGO_URI`` corresponds to ``database.uri``
+* ``GIRDER_MONGO_REPLICA_SET`` corresponds to ``database.replica_set``
+
 WSGI app for production deployments
 +++++++++++++++++++++++++++++++++++
 
