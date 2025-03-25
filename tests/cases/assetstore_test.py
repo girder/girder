@@ -22,9 +22,11 @@ from girder.utility import assetstore_utilities
 from girder.utility.progress import ProgressContext
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams
 from girder.utility import path as path_util
+from girder_worker.app import app
 
 
 def setUpModule():
+    app.conf.task_always_eager = True
     base.startServer()
 
 
