@@ -34,6 +34,7 @@ installReqs = [
     'click-plugins',
     'dogpile.cache',
     'filelock',
+    'girder-worker>=5.0.0a5',
     'jsonschema',
     'Mako',
     'passlib [bcrypt,totp]',
@@ -95,6 +96,9 @@ setup(
             'mount = girder.cli.mount:main',
             'shell = girder.cli.shell:main',
             'sftpd = girder.cli.sftpd:main',
-        ]
+        ],
+        'girder_worker_plugins': [
+            'girder_local = girder.worker_plugin:CoreWorkerPlugin',
+        ],
     }
 )
