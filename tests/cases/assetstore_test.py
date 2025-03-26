@@ -27,6 +27,7 @@ from girder_worker.app import app
 
 def setUpModule():
     app.conf.task_always_eager = True
+    app.conf.task_eager_propagates = True
     base.startServer()
 
 

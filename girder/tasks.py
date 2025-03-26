@@ -14,7 +14,7 @@ def importDataTask(
     leafFoldersAsItems: bool
 ):
     with ProgressContext(progress, user=user, title='Importing data') as ctx:
-        return Assetstore().importData(
+        Assetstore().importData(
             assetstore, parent=parent, parentType=parentType, params=params,
             progress=ctx, user=user, leafFoldersAsItems=leafFoldersAsItems,
         )
