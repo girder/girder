@@ -140,7 +140,8 @@ class Assetstore(Resource):
                 'fileExcludeRegex': fileExcludeRegex,
                 'importPath': importPath,
                 **extraParams
-            }, progress=progress, user=user, leafFoldersAsItems=leafFoldersAsItems)
+            }, progress=progress, user=user, leafFoldersAsItems=leafFoldersAsItems,
+            girder_job_title=f'Import data from assetstore {assetstore["name"]}')
 
     @access.admin
     @autoDescribeRoute(
