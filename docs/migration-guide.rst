@@ -123,6 +123,20 @@ which used to be run on the background thread, should now convert their event ha
 celery tasks or otherwise asynchronous methods if there's any risk of the handler taking more
 than 1-2 seconds to complete.
 
+New deployment requirement: local worker
+++++++++++++++++++++++++++++++++++++++++
+
+With the removal of the events daemon, tasks that can take longer than 1-2 seconds to complete
+should now be run as celery tasks. Girder core operations that previously used the events daemon
+have been converted to celery tasks, and ones that require direct access to the database or the
+local filesystem now get sent to a celery queue called ``local``. In order to have these tasks
+run, deployments must now run an additional process to server the ``local`` queue. The command
+to run the local worker is:
+
+.. code-block:: bash
+
+    celery -A girder_worker.app worker -Q local
+
 Dynamic route configuration system removed
 ++++++++++++++++++++++++++++++++++++++++++
 
