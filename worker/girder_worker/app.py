@@ -150,13 +150,10 @@ def gw_task_success(sender=None, **rest):
         return
 
     try:
-
-        if not is_revoked(sender):
-            _update_status(sender, JobStatus.SUCCESS)
-
-        # For tasks revoked directly
-        else:
+        if is_revoked(sender):
             _update_status(sender, JobStatus.CANCELED)
+        else:
+            _update_status(sender, JobStatus.SUCCESS)
     except AttributeError:
         pass
     except StateTransitionException:

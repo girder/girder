@@ -19,6 +19,28 @@ services:
       - ".:/girder"
       - assetstore:/assetstore
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_FEATURE_FLAGS=
+    ports:
+      - ${DOCKER_RABBITMQ_PORT-5672}:5672
+      - ${DOCKER_RABBITMQ_CONSOLE_PORT-15672}:15672
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq/mnesia
+
+  localworker:
+    build: .
+    depends_on:
+      - mongodb
+    entrypoint: celery -A girder_worker.app worker -Q local
+    environment:
+      - GIRDER_WORKER_BROKER=amqp://rabbitmq:5672
+      - GIRDER_WORKER_BACKEND=rpc://rabbitmq:5672
+      - GIRDER_MONGO_URI=mongodb://mongodb:27017/girder
+      - C_FORCE_ROOT=1
+
 volumes:
   mongodb_data:
   assetstore:
+  rabbitmq:

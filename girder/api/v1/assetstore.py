@@ -6,8 +6,8 @@ from girder.exceptions import RestException
 from girder.api import access
 from girder.models.assetstore import Assetstore as AssetstoreModel
 from girder.models.file import File
+from girder.tasks import importDataTask
 from girder.utility.model_importer import ModelImporter
-from girder.utility.progress import ProgressContext
 from girder.utility.s3_assetstore_adapter import DEFAULT_REGION
 
 
@@ -133,14 +133,15 @@ class Assetstore(Resource):
         # Capture any additional parameters passed to route
         extraParams = kwargs.get('params', {})
 
-        with ProgressContext(progress, user=user, title='Importing data') as ctx:
-            return self._model.importData(
-                assetstore, parent=parent, parentType=destinationType, params={
-                    'fileIncludeRegex': fileIncludeRegex,
-                    'fileExcludeRegex': fileExcludeRegex,
-                    'importPath': importPath,
-                    **extraParams
-                }, progress=ctx, user=user, leafFoldersAsItems=leafFoldersAsItems)
+        # Run the import data task on the local celery queue since it can take a long time
+        importDataTask.delay(
+            assetstore, parent=parent, parentType=destinationType, params={
+                'fileIncludeRegex': fileIncludeRegex,
+                'fileExcludeRegex': fileExcludeRegex,
+                'importPath': importPath,
+                **extraParams
+            }, progress=progress, user=user, leafFoldersAsItems=leafFoldersAsItems,
+            girder_job_title=f'Import data from assetstore {assetstore["name"]}')
 
     @access.admin
     @autoDescribeRoute(
