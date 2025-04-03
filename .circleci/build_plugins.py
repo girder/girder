@@ -14,7 +14,7 @@ for plugin_dir in plugins_dir.iterdir():
         for web_client_dir in search_dirs:
             if web_client_dir.exists() and (web_client_dir / 'package-lock.json').exists():
                 subprocess.run(
-                    'npm ci && npm run build',
+                    'npm ci && SKIP_SOURCE_MAPS=true npm run build',
                     check=True,
                     shell=True,
                     stdout=sys.stdout,

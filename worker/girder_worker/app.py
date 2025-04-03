@@ -1,3 +1,4 @@
+import os
 import sys
 
 import traceback as tb
@@ -17,7 +18,6 @@ from celery.signals import (
 
 from girder_client import GirderClient
 
-import girder_worker
 from girder_worker import logger
 from girder_worker.context import get_context
 from girder_worker.entrypoint import discover_tasks
@@ -150,13 +150,10 @@ def gw_task_success(sender=None, **rest):
         return
 
     try:
-
-        if not is_revoked(sender):
-            _update_status(sender, JobStatus.SUCCESS)
-
-        # For tasks revoked directly
-        else:
+        if is_revoked(sender):
             _update_status(sender, JobStatus.CANCELED)
+        else:
+            _update_status(sender, JobStatus.SUCCESS)
     except AttributeError:
         pass
     except StateTransitionException:
@@ -222,7 +219,7 @@ register('girder_io', jsonpickle.encode, jsonpickle.decode,
          content_encoding='utf-8')
 
 app = Celery(
-    main=girder_worker.config.get('celery', 'app_main'),
+    main=os.environ.get('GIRDER_WORKER_CELERY_APP_MAIN', 'app_main'),
     task_cls='girder_worker.task:Task')
 
 discover_tasks(app)

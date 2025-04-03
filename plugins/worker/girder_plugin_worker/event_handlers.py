@@ -4,29 +4,15 @@ from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 from girder_jobs.constants import JobStatus
 from girder_jobs.models.job import Job
+from girder_worker.app import app
 
 from celery.result import AsyncResult
 
-from .celery import getCeleryApp
 from .constants import PluginSettings
 from .status import CustomJobStatus
 from .utils import getWorkerApiUrl, jobInfoSpec
 
 logger = logging.getLogger(__name__)
-
-
-@setting_utilities.validator({
-    PluginSettings.BROKER,
-    PluginSettings.BACKEND
-})
-def validateSettings(doc):
-    """
-    Handle plugin-specific system settings. Right now we don't do any
-    validation for the broker or backend URL settings, but we do reinitialize
-    the celery app object with the new values.
-    """
-    global _celeryapp
-    _celeryapp = None
 
 
 @setting_utilities.validator({
@@ -75,7 +61,7 @@ def schedule(event):
         Job().updateJob(job, status=JobStatus.QUEUED)
 
         # Send the task to celery
-        asyncResult = getCeleryApp().send_task(
+        asyncResult = app.send_task(
             task, job['args'], job['kwargs'], queue=job.get('celeryQueue'), headers={
                 'jobInfoSpec': jobInfoSpec(job, job.get('token', None)),
                 'apiUrl': getWorkerApiUrl()
@@ -123,7 +109,7 @@ def cancel(event):
 
         if should_revoke:
             # Send the revoke request.
-            asyncResult = AsyncResult(celeryTaskId, app=getCeleryApp())
+            asyncResult = AsyncResult(celeryTaskId, app=app)
             asyncResult.revoke()
 
 

@@ -4,8 +4,7 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import TokenScope
 from girder.api.rest import Resource
-
-from ..celery import getCeleryApp
+from girder_worker.app import app
 
 
 class Worker(Resource):
@@ -20,7 +19,6 @@ class Worker(Resource):
     )
     @access.user(scope=TokenScope.DATA_READ)
     def getWorkerStatus(self):
-        app = getCeleryApp()
         result = {}
         conn = app.connection_for_read()
         try:

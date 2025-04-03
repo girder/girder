@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 import shutil
 import socket
@@ -33,7 +34,7 @@ from girder_worker.docker.transforms import (
 from girder_worker.utils import _walk_obj
 
 
-BLACKLISTED_DOCKER_RUN_ARGS = ['tty', 'detach']
+BLACKLISTED_DOCKER_RUN_ARGS = ['tty', 'detach', 'volumes']
 
 
 def _pull_image(image):
@@ -365,6 +366,28 @@ class DockerTask(Task):
             shutil.rmtree(v.host_path)
 
 
+def _add_environment_kargs(run_kwargs):
+    envkey = 'GIRDER_WORKER_DOCKER_RUN_OPTIONS'
+    if envkey not in os.environ:
+        return
+    try:
+        opts = json.loads(os.environ[envkey])
+        extra_run_kwargs = {k: v for k, v in opts.items() if k not in BLACKLISTED_DOCKER_RUN_ARGS}
+        run_kwargs.update(extra_run_kwargs)
+        if 'volumes' in opts:
+            if isinstance(opts['volumes'], list):
+                opts['volumes'] = {
+                    v.split(':')[0]: {
+                        'bind': v.split(':')[1],
+                        'mode': (v + ':ro').split(':')[2]}
+                    for v in opts['volumes']}
+            if 'volumes' not in run_kwargs:
+                run_kwargs['volumes'] = {}
+            run_kwargs['volumes'].update(opts['volumes'])
+    except Exception:
+        logger.exception(f'Failed to parse {envkey}')
+
+
 def _docker_run(task, image, pull_image=True, entrypoint=None, container_args=None,
                 volumes=None, remove_container=True, stream_connectors=None, **kwargs):
     volumes = volumes or {}
@@ -383,6 +406,7 @@ def _docker_run(task, image, pull_image=True, entrypoint=None, container_args=No
         'volumes': volumes,
         'detach': True
     }
+    _add_environment_kargs(run_kwargs)
 
     # Allow run args to be overridden,filter out any we don't want to override
     extra_run_kwargs = {k: v for k, v in kwargs.items() if k not in BLACKLISTED_DOCKER_RUN_ARGS}

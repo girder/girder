@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@girder/fontello": "^3.1.20",
-    "as-jqplot": "~1.0.8",
+    "apexcharts": "^4.5.0",
     "backbone": "~1.4.0",
     "bootstrap": "~3.4.1",
     "bootstrap-switch": "~3.3.4",

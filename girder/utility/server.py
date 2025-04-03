@@ -40,6 +40,7 @@ def create_app(mode: str) -> dict:
     mimetypes.add_type('application/vnd.ms-fontobject', '.eot')
     mimetypes.add_type('application/x-font-ttf', '.ttf')
     mimetypes.add_type('application/font-woff', '.woff')
+    mimetypes.add_type('text/javascript', '.cjs')
 
     curConfig.update(appconf)
     curConfig['server'] = {'mode': mode}

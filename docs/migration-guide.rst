@@ -123,6 +123,20 @@ which used to be run on the background thread, should now convert their event ha
 celery tasks or otherwise asynchronous methods if there's any risk of the handler taking more
 than 1-2 seconds to complete.
 
+New deployment requirement: local worker
+++++++++++++++++++++++++++++++++++++++++
+
+With the removal of the events daemon, tasks that can take longer than 1-2 seconds to complete
+should now be run as celery tasks. Girder core operations that previously used the events daemon
+have been converted to celery tasks, and ones that require direct access to the database or the
+local filesystem now get sent to a celery queue called ``local``. In order to have these tasks
+run, deployments must now run an additional process to server the ``local`` queue. The command
+to run the local worker is:
+
+.. code-block:: bash
+
+    celery -A girder_worker.app worker -Q local
+
 S3 assetstore adapter API protocol change
 +++++++++++++++++++++++++++++++++++++++++
 
@@ -212,6 +226,15 @@ via the config file alone. Now, the caching modules are configured via environme
 Config keys prefixed by ``cache.global.`` are used to configure the global dogpile cache, and
 keys prefixed by ``cache.request.`` are used to configure the request cache.
 
+CherryPy specific settings are now passed via environment variables as well. List of settings that
+can be configured:
+
+* ``GIRDER_HOST`` corresponds to ``server.socket_host``
+* ``GIRDER_PORT`` corresponds to ``server.socket_port``
+* ``GIRDER_THREAD_POOL`` corresponds to ``server.thread_pool``
+* ``GIRDER_MONGO_URI`` corresponds to ``database.uri``
+* ``GIRDER_MONGO_REPLICA_SET`` corresponds to ``database.replica_set``
+
 WSGI app for production deployments
 +++++++++++++++++++++++++++++++++++
 
@@ -242,6 +265,18 @@ Check `this page <https://devguide.python.org/versions/>`_ to see the current st
 Python version support. Note that this means we will feel free to use newer language features in
 core as soon as they are available in the oldest supported version.
 
+Changes to celery configuration in Worker plugin
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+As we move to using celery in a more normal way, we now configure the celery app via the same code
+path in both Girder server and the celery worker. Because we need to support deployment topologies
+where the workers cannot communicate directly with the database, we cannot store celery
+configuration in the mongo database. Instead, celery connectivity is now always configured via the
+following environment variables:
+
+* ``GIRDER_WORKER_BROKER``: The URL of the message broker to use for celery
+* ``GIRDER_WORKER_BACKEND``: The URL of the result backend to use for celery
+
 Switch to HttpOnly cookies in core web client
 +++++++++++++++++++++++++++++++++++++++++++++
 
@@ -259,6 +294,17 @@ Timezone aware datetime objects
 Due to deprecated behavior in Python 3.12, Girder now uses timezone-aware datetime objects.
 If your code relied on the old behavior of naive datetimes, you may need to update it to
 handle timezone-aware datetimes.
+
+Removal of girder-worker command
+++++++++++++++++++++++++++++++++
+
+The ``girder-worker`` command has been removed because it didn't have the full configuration
+powers of the underlying ``celery worker`` command. Instead, run ``celery worker`` directly:
+
+.. code-block:: bash
+
+    celery -A girder_worker.app worker
+
 
 2.x |ra| 3.x
 ------------

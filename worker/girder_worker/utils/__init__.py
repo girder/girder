@@ -147,12 +147,16 @@ def is_revoked(task):
     """
     Utility function to check if a task has been revoked.
 
+    Eager tasks are never considered revoked.
+
     :param task: The task.
     :type task: celery.app.task.Task
     :return: True, if this task is in the revoked list for this worker, False
             otherwise.
     :rtype: bool
     """
+    if task.request.is_eager:
+        return False
     return task.request.id in _revoked_tasks(task)
 
 

@@ -66,6 +66,7 @@ commands:
             --upgrade-strategy eager
             --editable '.[sftp,mount]'
             --editable clients/python
+            --editable ./worker
             --requirement requirements-dev.txt
           working_directory: girder
 

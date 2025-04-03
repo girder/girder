@@ -22,7 +22,7 @@ export default defineConfig({
     pugPlugin(),
   ],
   build: {
-    sourcemap: true,
+    sourcemap: !process.env.SKIP_SOURCE_MAPS,
     lib: {
       entry: resolve(__dirname, 'main.js'),
       name: 'GirderPluginWorker',
