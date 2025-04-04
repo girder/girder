@@ -237,14 +237,19 @@ class Description:
             param['_upper'] = upper
 
         if paramType == 'body':
-            param['schema'] = {
-                '$ref': '#/definitions/%s' % dataType
-            }
+            if format is None:
+                param['schema'] = {
+                    '$ref': '#/definitions/%s' % dataType
+                }
+            else:
+                param['schema'] = {
+                    'type': dataType,
+                    'format': format,
+                }
         else:
             param['type'] = dataType
-
-        if format is not None:
-            param['format'] = format
+            if format is not None:
+                param['format'] = format
 
         if enum:
             param['enum'] = enum
@@ -469,6 +474,8 @@ class Describe(Resource):
                     if param.get('in', '') == 'formData' and 'consumes' not in method:
                         method['consumes'] = [
                             'multipart/form-data', 'application/x-www-form-urlencoded']
+                    if param.get('default') == ():
+                        param['default'] = bson.json_util.dumps(param['default'])
                 for param in (method.get('parameters', []) + list(
                         method.get('responses', {}).values())):
                     if 'schema' not in param:
@@ -476,10 +483,9 @@ class Describe(Resource):
                     schema = param['schema']
                     schema = schema.get('items', schema)
                     defin = schema.get('$ref', '').split('#/definitions/')
-                    if len(defin) == 2 and defin[1] not in definitions:
-                        definitions[defin[1]] = {
-                            'type': defin[1] if defin[1] in
-                            {'string', 'boolean', 'integer', 'number'} else 'object'}
+                    if (len(defin) == 2 and defin[1] not in definitions
+                            and defin[1] not in {'string', 'boolean', 'integer', 'number'}):
+                        definitions[defin[1]] = {'type': 'object'}
 
     @access.public
     def listResources(self, params):

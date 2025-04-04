@@ -142,7 +142,7 @@ class DockerResource(Resource):
     @autoDescribeRoute(
         Description('Lookup a datalist parameter on a CLI task')
         .modelParam('id', 'The slicer CLI item task', Item, level=AccessType.READ)
-        .param('key', 'The parameter name to look up')
+        .param('key', 'The parameter name to look up', paramType='path')
         .deprecated()
     )
     def datalistHandler(self, item, key, params):
