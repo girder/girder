@@ -100,7 +100,7 @@ def testMoveSubfolderToUser(server, admin, hierarchy):
     assertNodeSize(hierarchy.collections[0], Collection, 1)
 
 
-def testDeleteFolderUpdatesSize(server, admin, hierarchy):
+def testDeleteFolderUpdatesSize(server, admin, hierarchy, eagerWorkerTasks):
     resp = server.request(
         path='/folder/%s' % hierarchy.folders[1]['_id'], method='DELETE', user=admin)
     assertStatusOk(resp)

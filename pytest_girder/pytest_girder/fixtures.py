@@ -98,6 +98,19 @@ def _getPluginsFromMarker(request, registry):
 
 
 @pytest.fixture
+def eagerWorkerTasks():
+    from girder_worker.app import app
+
+    app.conf.task_always_eager = True
+    app.conf.task_eager_propagates = True
+
+    yield
+
+    app.conf.task_always_eager = False
+    app.conf.task_eager_propagates = False
+
+
+@pytest.fixture
 def server(db, request):
     """
     Require a CherryPy embedded server.
@@ -194,4 +207,13 @@ def fsAssetstore(db, request):
         shutil.rmtree(path)
 
 
-__all__ = ('admin', 'db', 'fsAssetstore', 'server', 'boundServer', 'user', 'email_stdout')
+__all__ = (
+    'admin',
+    'db',
+    'fsAssetstore',
+    'server',
+    'boundServer',
+    'user',
+    'email_stdout',
+    'eagerWorkerTasks',
+)
