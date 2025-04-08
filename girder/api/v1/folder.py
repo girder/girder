@@ -360,7 +360,7 @@ class Folder(Resource):
         else:
             parent = None
 
-        copyFolderTask.delay(folder, parentType, parent, name, description, public, progress)
+        copyFolderTask.delay(folder, parentType, parent, name, description, public, progress, user)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
