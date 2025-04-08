@@ -7,7 +7,8 @@ from girder_jobs.models.job import Job
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.upload import Upload
-from girder.utility.progress import ProgressContext, setResponseTimeLimit
+from girder.utility.progress import ProgressContext
+from girder_worker.app import app
 
 from .models import ImportTrackerCancelError
 
@@ -22,10 +23,10 @@ def moveFile(file, folder, user, assetstore, progress, job):
     job = Job().updateJob(job, log=f'{time.strftime("%Y-%m-%d %H:%M:%S")} - {message}')
     progress.update(message=message)
 
-    setResponseTimeLimit(86400)
     return Upload().moveFileToAssetstore(file, user, assetstore, progress=progress)
 
 
+@app.task(queue='local')
 def moveFolder(user, folder, assetstore, ignoreImported, progress):
     """
     Move a folder to a different assetstore.

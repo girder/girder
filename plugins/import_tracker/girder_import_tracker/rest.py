@@ -126,4 +126,4 @@ def getImport(self, assetstoreImport):
 )
 def moveFolder(self, folder, assetstore, ignoreImported, progress):
     user = self.getCurrentUser()
-    return utils.moveFolder(user, folder, assetstore, ignoreImported, progress)
+    utils.moveFolder.delay(user, folder, assetstore, ignoreImported, progress)

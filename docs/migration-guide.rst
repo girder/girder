@@ -137,6 +137,13 @@ to run the local worker is:
 
     celery -A girder_worker.app worker -Q local
 
+Removal of ``setResponseTimeLimit`` function
+++++++++++++++++++++++++++++++++++++++++++++
+
+The ``girder.utility.progress.setResponseTimeLimit`` function was removed because it violated the
+WSGI contract, and any operation that can take more than a few seconds to complete should be
+converted to a celery task that runs on the ``local`` queue or an alternative queue.
+
 S3 assetstore adapter API protocol change
 +++++++++++++++++++++++++++++++++++++++++
 

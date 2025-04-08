@@ -15,7 +15,6 @@ from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
-from girder.utility.progress import setResponseTimeLimit
 from girder_jobs.constants import JobStatus
 from girder_jobs.models.job import Job
 
@@ -502,7 +501,6 @@ def genHandlerToRunDockerCLI(cliItem):  # noqa C901
             @access.user
             @describeRoute(datalistDesc)
             def datalistHandler(resource, params):
-                setResponseTimeLimit(86400)
                 user = resource.getCurrentUser()
                 currentItem = CLIItem.find(itemId, user)
                 if not currentItem:
