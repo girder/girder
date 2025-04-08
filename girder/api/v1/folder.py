@@ -375,7 +375,12 @@ class Folder(Resource):
         .errorResponse('Write access was denied on the folder.', 403)
     )
     def deleteContents(self, folder, progress):
-        deleteFolderTask.delay(folder, progress=progress, user=self.getCurrentUser())
+        deleteFolderTask.delay(
+            folder,
+            progress=progress,
+            user=self.getCurrentUser(),
+            contentsOnly=True,
+        )
         return {'message': f'Mark folder {folder["name"]} contents for deletion.'}
 
     @access.user(scope=TokenScope.DATA_WRITE)
