@@ -834,7 +834,6 @@ girder
             ProgressContext
                 update
             noProgress
-            setResponseTimeLimit
         random
         s3_assetstore_adapter
             BUF_LEN

@@ -9,7 +9,7 @@ from girder import events
 from girder.constants import AccessType
 from girder.exceptions import ValidationException, GirderException
 from girder.utility.model_importer import ModelImporter
-from girder.utility.progress import noProgress, setResponseTimeLimit
+from girder.utility.progress import noProgress
 
 
 class Folder(AccessControlledModel):
@@ -335,14 +335,12 @@ class Folder(AccessControlledModel):
         """
         from .item import Item
 
-        setResponseTimeLimit()
         # Delete all child items
         itemModel = Item()
         items = itemModel.find({
             'folderId': folder['_id']
         })
         for item in items:
-            setResponseTimeLimit()
             itemModel.remove(item, progress=progress, **kwargs)
             if progress:
                 progress.update(increment=1, message='Deleted item %s' % item['name'])
@@ -753,7 +751,6 @@ class Folder(AccessControlledModel):
                             folders.
         :returns: the new folder document.
         """
-        setResponseTimeLimit()
         if parentType is None:
             parentType = srcFolder['parentCollection']
         parentType = parentType.lower()
@@ -813,7 +810,6 @@ class Folder(AccessControlledModel):
         # copy items
         itemModel = Item()
         for item in self.childItems(folder=srcFolder):
-            setResponseTimeLimit()
             itemModel.copyItem(item, creator, folder=newFolder)
             if progress:
                 progress.update(increment=1, message='Copied item ' + item['name'])

@@ -145,6 +145,11 @@ class TestCase(unittest.TestCase):
         :param assetstoreType: if 's3', use that assetstore.
             For any other value, use a filesystem assetstore.
         """
+        from girder_worker.app import app
+
+        app.conf.task_always_eager = True
+        app.conf.task_eager_propagates = True
+
         self.assetstoreType = assetstoreType
         dropTestDatabase(dropModels=dropModels)
         assetstoreName = os.environ.get('GIRDER_TEST_ASSETSTORE', 'test')

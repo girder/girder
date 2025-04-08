@@ -675,8 +675,7 @@ class FolderTestCase(base.TestCase):
             user=self.admin)
         self.assertStatusOk(resp)
         # Check our new folder information
-        newFolder = resp.json
-        self.assertEqual(newFolder['name'], 'Main Folder (1)')
+        newFolder = Folder().findOne({'name': 'Main Folder (1)'})
         self.assertEqual(newFolder['size'], size)
 
         # Check the copied item inside the new folder
@@ -727,8 +726,8 @@ class FolderTestCase(base.TestCase):
             user=self.admin, params={'public': 'original', 'progress': True})
         self.assertStatusOk(resp)
         # Check our new folder name
-        newSubFolder = resp.json
-        self.assertEqual(newSubFolder['name'], 'Sub Folder (1)')
+        self.assertIsNotNone(Folder().findOne({'name': 'Sub Folder (1)'}))
+
         # Test that a bogus parentType throws an error
         resp = self.request(
             path='/folder/%s/copy' % subFolder['_id'], method='POST',
