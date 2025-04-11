@@ -11,6 +11,7 @@ __license__ = 'Apache 2.0'
 import diskcache
 import getpass
 import glob
+import hashlib
 import io
 import json
 import logging
@@ -1159,13 +1160,72 @@ class GirderClient:
         path = 'file/%s/download' % fileId
         return self.sendRestRequest('get', path, stream=True, jsonResp=False)
 
-    def downloadFile(self, fileId, path, created=None):
+    def _skipDownload(self, fileId, path, skip):
+        """
+        Check if we should skip a file before downloading.
+
+        :param fileId: The ID of the Girder file to download.
+        :param path: The path of the local file.
+        :param skip: Determines granularity of skipping ('path', 'size', or 'hash', or None).
+
+        :returns: True if we should skip the download, False otherwise.
+        """
+        if skip not in ['path', 'size', 'hash']:
+            return False
+
+        # 'path', 'size', 'hash' all require the file to exist
+        if not os.path.exists(path):
+            return False
+
+        if skip == 'path':
+            print(f'Skipping file {path} [path already exists]')
+            return True
+
+        # 'size', 'hash' require the file to be the same size
+        fileObj = self.getFile(fileId)
+        local_size = os.stat(path).st_size
+        if local_size != fileObj['size']:
+            return False
+
+        if skip == 'size':
+            print(f'Skipping file {path} [matching sizes ({local_size} == {fileObj["size"]})]')
+            return True
+
+        # 'hash' case
+        sha512_hash = fileObj.get('sha512')
+        if not sha512_hash:
+            try:
+                obj = self.post(f'file/{fileId}/hashsum')
+            except Exception as e:
+                print(f'  Unable to generate hash: {e}')
+                return False
+
+            if 'sha512' not in obj:
+                return False
+            sha512_hash = obj['sha512']
+
+        # calculate sha512 hash of local file
+        local_sha512_hash = hashlib.sha512()
+        with open(path, 'rb') as f:
+            for chunk in iter(lambda: f.read(4096), b''):
+                local_sha512_hash.update(chunk)
+
+        if local_sha512_hash.hexdigest() != sha512_hash:
+            return False
+
+        print(f'Skipping file {path} [matching hash ({sha512_hash} == {sha512_hash})]')
+        return True
+
+    def downloadFile(self, fileId, path, created=None, skip=None):
         """
         Download a file to the given local path or file-like object.
 
         :param fileId: The ID of the Girder file to download.
         :param path: The path to write the file to, or a file-like object.
         """
+        if self._skipDownload(fileId, path, skip):
+            return
+
         fileObj = self.getFile(fileId)
         created = created or fileObj['created']
         cacheKey = '\n'.join([self.urlBase, fileId, created])
@@ -1227,7 +1287,7 @@ class GirderClient:
 
         return req.iter_content(chunk_size=chunkSize)
 
-    def downloadItem(self, itemId, dest, name=None):
+    def downloadItem(self, itemId, dest, name=None, skip=None):
         """
         Download an item from Girder into a local folder. Each file in the
         item will be placed into the directory specified by the dest parameter.
@@ -1257,7 +1317,8 @@ class GirderClient:
                     self.downloadFile(
                         files[0]['_id'],
                         os.path.join(dest, self.transformFilename(name)),
-                        created=files[0]['created'])
+                        created=files[0]['created'],
+                        skip=skip)
                     break
                 else:
                     dest = os.path.join(dest, self.transformFilename(name))
@@ -1267,14 +1328,15 @@ class GirderClient:
                 self.downloadFile(
                     file['_id'],
                     os.path.join(dest, self.transformFilename(file['name'])),
-                    created=file['created'])
+                    created=file['created'],
+                    skip=skip)
 
             first = False
             offset += len(files)
             if len(files) < DEFAULT_PAGE_LIMIT:
                 break
 
-    def downloadFolderRecursive(self, folderId, dest, sync=False):
+    def downloadFolderRecursive(self, folderId, dest, sync=False, skip=None):
         """
         Download a folder recursively from Girder into a local directory.
 
@@ -1300,7 +1362,7 @@ class GirderClient:
                 local = os.path.join(dest, self.transformFilename(folder['name']))
                 os.makedirs(local, exist_ok=True)
 
-                self.downloadFolderRecursive(folder['_id'], local, sync=sync)
+                self.downloadFolderRecursive(folder['_id'], local, sync=sync, skip=skip)
 
             offset += len(folders)
             if len(folders) < DEFAULT_PAGE_LIMIT:
@@ -1321,13 +1383,13 @@ class GirderClient:
                 if (sync and _id in self.localMetadata
                         and item['updated'] == self.localMetadata[_id]['updated']):
                     continue
-                self.downloadItem(item['_id'], dest, name=item['name'])
+                self.downloadItem(item['_id'], dest, name=item['name'], skip=skip)
 
             offset += len(items)
             if len(items) < DEFAULT_PAGE_LIMIT:
                 break
 
-    def downloadResource(self, resourceId, dest, resourceType='folder', sync=False):
+    def downloadResource(self, resourceId, dest, resourceType='folder', sync=False, skip=None):
         """
         Download a collection, user, or folder recursively from Girder into a local directory.
 
@@ -1344,7 +1406,7 @@ class GirderClient:
         :type sync: bool
         """
         if resourceType == 'folder':
-            self.downloadFolderRecursive(resourceId, dest, sync)
+            self.downloadFolderRecursive(resourceId, dest, sync, skip=skip)
         elif resourceType in ('collection', 'user'):
             offset = 0
             resourceId = self._checkResourcePath(resourceId)
@@ -1360,7 +1422,7 @@ class GirderClient:
                     local = os.path.join(dest, self.transformFilename(folder['name']))
                     os.makedirs(local, exist_ok=True)
 
-                    self.downloadFolderRecursive(folder['_id'], local, sync=sync)
+                    self.downloadFolderRecursive(folder['_id'], local, sync=sync, skip=skip)
 
                 offset += len(folders)
                 if len(folders) < DEFAULT_PAGE_LIMIT:
