@@ -1166,7 +1166,7 @@ class GirderClient:
 
         :param fileId: The ID of the Girder file to download.
         :param path: The path of the local file.
-        :param skip: Determines granularity of skipping ('path', 'size', or 'hash', or None).
+        :param skip: Granularity of skipping ('path', 'size', 'hash', or None).
 
         :returns: True if we should skip the download, False otherwise.
         """
@@ -1222,6 +1222,8 @@ class GirderClient:
 
         :param fileId: The ID of the Girder file to download.
         :param path: The path to write the file to, or a file-like object.
+        :param created: The created timestamp of the file. If None, defaults to Girder file.
+        :param skip: Granularity of download skipping ('path', 'size', 'hash', or None).
         """
         if self._skipDownload(fileId, path, skip):
             return
@@ -1299,6 +1301,7 @@ class GirderClient:
         :param dest: The destination directory to write the item into.
         :param name: If the item name is known in advance, you may pass it here
             which will save a lookup to the server.
+        :param skip: Granularity of download skipping ('path', 'size', 'hash', or None).
         """
         if name is None:
             item = self.get('item/' + itemId)
@@ -1347,6 +1350,8 @@ class GirderClient:
         :param sync: If True, check if item exists in local metadata
             cache and skip download provided that metadata is identical.
         :type sync: bool
+        :param skip: Granularity of download skipping ('path', 'size', 'hash', or None).
+        :type skip: str
         """
         offset = 0
         folderId = self._checkResourcePath(folderId)
@@ -1404,6 +1409,8 @@ class GirderClient:
         :param sync: If True, check if items exist in local metadata
             cache and skip download if the metadata is identical.
         :type sync: bool
+        :param skip: Granularity of download skipping ('path', 'size', 'hash', or None).
+        :type skip: str
         """
         if resourceType == 'folder':
             self.downloadFolderRecursive(resourceId, dest, sync, skip=skip)
