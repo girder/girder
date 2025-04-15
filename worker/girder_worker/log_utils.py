@@ -24,7 +24,7 @@ def setupLogger():
 
     handler = StdOutHandler()
     formatter = logging.Formatter(os.environ.get(
-        'GIRDER_WORKER_LOGGING_FORMAT', '[%%(asctime)s] %%(levelname)s: %%(message)s'))
+        'GIRDER_WORKER_LOGGING_FORMAT', '[%(asctime)s] %(levelname)s: %(message)s'))
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
