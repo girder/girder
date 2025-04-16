@@ -2,6 +2,7 @@ import $ from 'jquery';
 import _ from 'underscore';
 import Backbone from 'backbone';
 import 'typeface-open-sans';
+import 'remixicon/fonts/remixicon.css';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap/js/alert';
 import '@girder/fontello/dist/css/animation.css';
@@ -47,6 +48,7 @@ var App = View.extend({
         this.bannerColor = settings.bannerColor || null;
         this.registrationPolicy = settings.registrationPolicy || null;
         this.enablePasswordLogin = _.has(settings, 'enablePasswordLogin') ? settings.enablePasswordLogin : true;
+        this.downloadShown = settings.downloadShown || 'all';
 
         if (settings.start === undefined || settings.start) {
             this.start();
@@ -205,6 +207,9 @@ var App = View.extend({
     navigateTo: function (view, settings, opts) {
         this.globalNavView.deactivateAll();
 
+        // Header changes based on navigation
+        this.headerView.render();
+
         settings = settings || {};
         opts = opts || {};
 
@@ -336,6 +341,12 @@ var App = View.extend({
                 });
             }, options.timeout);
         }
+    },
+
+    showDownload: function () {
+        const user = getCurrentUser();
+        const isAdmin = !!(user && user.get('admin'));
+        return this.downloadShown === undefined || this.downloadShown === null || this.downloadShown === 'all' || (this.downloadShown === 'user' && user) || (this.downloadShown === 'admin' && isAdmin);
     },
 
     /**

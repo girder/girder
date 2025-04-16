@@ -2,11 +2,15 @@
  * Place global styles in this file.
  */
 
+html
+  font-size initial
+
 body
   // Override the default font from Bootstrap
-  font-family "Open Sans", sans-serif !important
+  font-family "Open Sans", sans-serif
   padding 0
   word-wrap break-word
+  font-size initial
 
 i
   -webkit-font-smoothing antialiased
@@ -14,6 +18,12 @@ i
 a
   cursor pointer
   text-decoration none !important
+
+a:hover
+  color unset
+
+a:focus
+  color initial
 
 .g-clear-both
   clear both
