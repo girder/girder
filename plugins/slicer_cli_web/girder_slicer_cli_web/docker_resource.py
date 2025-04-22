@@ -479,11 +479,13 @@ class DockerResource(Resource):
             if not name and not path:
                 return doc
             pattern = re.compile('(?=^' + re.escape(new_path) + ').*' + (path or ''))
+        timeout = 10
+        starttime = time.time()
         try:
             for doc in model.findWithPermissions(
                     {'name': {'$regex': name}} if name else {},
                     sort=[('updated', SortDir.DESCENDING), ('created', SortDir.DESCENDING)],
-                    user=user, level=AccessType.READ, timeout=10000):
+                    user=user, level=AccessType.READ, timeout=timeout * 1000):
                 try:
                     resourcePath = path_util.getResourcePath(type, doc, user=user)
                     if not pattern or pattern.search(resourcePath):
@@ -493,6 +495,8 @@ class DockerResource(Resource):
                         return doc
                 except (AccessException, TypeError):
                     pass
+                if time.time() - starttime > timeout:
+                    return None
         except pymongo.errors.ExecutionTimeout:
             return None
         return None

@@ -338,7 +338,7 @@ jobs:
           path: girder
       - run:
           name: Install tox
-          command: pip install tox
+          command: pip install --user tox
       - run:
           name: Publish Python packages
           command: tox -e publish
