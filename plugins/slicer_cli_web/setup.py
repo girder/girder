@@ -29,11 +29,10 @@ with open('README.rst') as f:
 # perform the install
 setup(
     name='girder-slicer-cli-web',
-    use_scm_version={
-        'local_scheme': prerelease_local_scheme,
-        'fallback_version': '0.0.0'},
+    use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
     setup_requires=[
         'setuptools-scm',
+        'setuptools-git',
     ],
     description='A girder plugin for exposing slicer CLIs over the web',
     long_description=readme,
