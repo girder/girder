@@ -24,15 +24,7 @@ RUN apt-get update \
     cmake \
     automake \
     nodejs \
-  # Note: universal-ctags is installed for use in the public_names CI job.
-  && git clone "https://github.com/universal-ctags/ctags.git" "./ctags" \
-  && cd ./ctags \
-  && ./autogen.sh \
-  && ./configure \
-  && make \
-  && make install \
-  && cd .. \
-  && rm -rf ./ctags \
+    universal-ctags \
   && pip3 install --no-cache --upgrade \
     pip \
     setuptools \
