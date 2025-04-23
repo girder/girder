@@ -2,6 +2,7 @@ import filelock
 from hashlib import sha512
 import io
 import logging
+import mimetypes
 import os
 import psutil
 import shutil
@@ -334,6 +335,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                      path, item['_id'], self.assetstore['_id'])
         stat = os.stat(path)
         name = name or os.path.basename(path)
+        mimeType = mimeType or mimetypes.guess_type(name)[0]
 
         file = File().createFile(
             name=name, creator=user, item=item, reuseExisting=True, assetstore=self.assetstore,
