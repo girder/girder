@@ -30,7 +30,7 @@ def temp_files():
     os.rmdir(temp_dir)
 
 
-def test_mimetype_guessing(server, admin, fsAssetstore, temp_files):
+def test_mimetype_guessing(server, admin, fsAssetstore, temp_files, eagerWorkerTasks):
     """Test that the assetstore correctly guesses the mimetype of files."""
     # Upload files
 
