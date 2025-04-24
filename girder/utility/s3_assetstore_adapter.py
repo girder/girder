@@ -461,8 +461,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
                 name = obj['Prefix'].rstrip('/').rsplit('/', 1)[-1]
                 # If there is already an item with the folder's name, append
-                # '/'.  This is what S3 does internally, allowing a folder and
-                # file to have the same name once stripped of the right /.
+                # '/'.  This is how S3 presents the names, allowing a folder
+                # and file to have the same name once stripped of the right /.
                 if parentType == 'folder' and Item().findOne({
                     'folderId': parent['_id'],
                     'name': self.safeName(name),
