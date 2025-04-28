@@ -2,7 +2,7 @@ from os.path import basename
 
 import pytest
 
-from girder_slicer_cli_web.girder_worker_plugin.direct_docker_run import (
+from slicer_cli_web.girder_worker_plugin.direct_docker_run import (
     TEMP_VOLUME_DIRECT_MOUNT_PREFIX,
     DirectGirderFileIdToVolume,
     run,
@@ -23,7 +23,7 @@ def test_direct_docker_run(mocker, server, adminToken, file):
     from girder.models.file import File
 
     docker_run_mock = mocker.patch(
-        'girder_slicer_cli_web.girder_worker_plugin.direct_docker_run._docker_run')
+        'slicer_cli_web.girder_worker_plugin.direct_docker_run._docker_run')
     docker_run_mock.return_value = []
 
     gc_mock = MockedGirderClient()

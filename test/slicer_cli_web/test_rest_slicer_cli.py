@@ -10,8 +10,8 @@ from girder.models.folder import Folder
 from girder.models.item import Item
 from pytest_girder.assertions import assertStatusOk
 
-from girder_slicer_cli_web import docker_resource, rest_slicer_cli
-from girder_slicer_cli_web.models import CLIItem
+from slicer_cli_web import docker_resource, rest_slicer_cli
+from slicer_cli_web.models import CLIItem
 
 
 @pytest.fixture
