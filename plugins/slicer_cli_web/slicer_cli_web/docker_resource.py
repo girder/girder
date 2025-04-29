@@ -348,7 +348,7 @@ class DockerResource(Resource):
             user=self.getCurrentUser(),
             public=True,
             otherFields={
-                'celeryTaskName': 'girder_slicer_cli_web.image_job.ingest_from_docker',
+                'celeryTaskName': 'slicer_cli_web.image_job.ingest_from_docker',
             },
             kwargs={
                 'name_list': nameList,

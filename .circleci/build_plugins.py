@@ -8,7 +8,8 @@ for plugin_dir in plugins_dir.iterdir():
     if plugin_dir.is_dir():
         search_dirs = [
             plugin_dir / f'girder_{plugin_dir.name}' / 'web_client',
-            plugin_dir / f'girder_plugin_{plugin_dir.name}' / 'web_client'
+            plugin_dir / f'girder_plugin_{plugin_dir.name}' / 'web_client',
+            plugin_dir / plugin_dir.name / 'web_client',
         ]
 
         for web_client_dir in search_dirs:

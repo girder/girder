@@ -2,7 +2,7 @@ from unittest import mock
 
 import pytest
 
-from girder_slicer_cli_web.girder_worker_plugin.cli_progress import CLIProgressCLIWriter
+from slicer_cli_web.girder_worker_plugin.cli_progress import CLIProgressCLIWriter
 
 
 @pytest.mark.plugin('slicer_cli_web')

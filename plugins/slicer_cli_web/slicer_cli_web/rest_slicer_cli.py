@@ -189,7 +189,7 @@ def batchCLIJob(cliItem, params, user, cliTitle):
     # Note that this uses a local job to manage the sub-jobs, but all of the sub-jobs actually
     # execute in the worker via `direct_docker_run.run.delay`.
     job = Job().createLocalJob(
-        module='girder_slicer_cli_web.rest_slicer_cli',
+        module='slicer_cli_web.rest_slicer_cli',
         function='batchCLITask',
         kwargs={
             'cliItemId': str(cliItem._id),

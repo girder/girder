@@ -81,13 +81,13 @@ setup(
     },
     entry_points={
         'girder.plugin': [
-            'slicer_cli_web = girder_slicer_cli_web.girder_plugin:SlicerCLIWebPlugin'
+            'slicer_cli_web = slicer_cli_web.girder_plugin:SlicerCLIWebPlugin'
         ],
         'girder_worker_plugins': [
-            'slicer_cli_web = girder_slicer_cli_web.girder_worker_plugin:SlicerCLIWebWorkerPlugin'
+            'slicer_cli_web = slicer_cli_web.girder_worker_plugin:SlicerCLIWebWorkerPlugin'
         ],
         'console_scripts': [
-            'upload-slicer-cli-task = girder_slicer_cli_web.upload_slicer_cli_task:upload_slicer_cli_task'  # noqa: E501
+            'upload-slicer-cli-task = slicer_cli_web.upload_slicer_cli_task:upload_slicer_cli_task'  # noqa: E501
         ]
     },
     python_requires='>=3.8',

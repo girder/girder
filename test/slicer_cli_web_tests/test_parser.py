@@ -4,7 +4,7 @@ import re
 
 import pytest
 
-from girder_slicer_cli_web.models.parser import parse_json_desc, parse_xml_desc, parse_yaml_desc
+from slicer_cli_web.models.parser import parse_json_desc, parse_xml_desc, parse_yaml_desc
 
 
 def read_file(name):
