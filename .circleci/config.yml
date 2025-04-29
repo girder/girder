@@ -5,15 +5,15 @@ executors:
   py3:
     docker:
       # This image uses the newest version of many dependencies
-      - image: girder/girder_test:py38-node16
+      - image: girder/girder_test:py39-node20
     working_directory: /home/circleci/project
   py3-mongo:
     docker:
-      - image: girder/girder_test:latest
+      - image: girder/girder_test:py39-node20
       # Use the oldest supported MongoDB
       # This is equivalent to the deprecated circleci/mongo:<version>-ram image
-      - image: mongo:3.6
-        command: bash -c "mkdir /dev/shm/mongo && mongod --storageEngine ephemeralForTest --nojournal --dbpath=/dev/shm/mongo --noauth --bind_ip_all"
+      - image: mongo:5.0
+        command: bash -c "mongod --noauth --bind_ip_all"
     working_directory: /home/circleci/project
   machine:
     machine:
@@ -48,6 +48,11 @@ commands:
   install-girder:
     description: "Install Girder in a virtualenv and configure CTest"
     steps:
+      - run:
+          name: Generate python environment checksum file
+          command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
+      - restore_cache:
+          key: venv-py3.9-{{ arch }}-{{ checksum "girder/py-env-checksum" }}-5
       - run:
           name: Create virtual environment (if necessary)
           command: if [ ! -d girder_env ]; then python3 -m venv girder_env; fi
@@ -130,7 +135,7 @@ jobs:
             --exclude-regex '^server_pytest_core$'
           environment:
             TEST_GROUP: python
-            PYTHON_VERSION: 3.8
+            PYTHON_VERSION: 3.9
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
           working_directory: girder_build
       - persist_to_workspace:
@@ -186,14 +191,14 @@ jobs:
       - checkout:
           path: girder
       - run:
-          name: Install NodeJS 16
+          name: Install NodeJS 20
           # CircleCI resets the Bash environment between every step, so any steps using node or npm
           # must first:
           #   source $NVM_DIR/nvm.sh
           command: |
             source $NVM_DIR/nvm.sh
-            nvm install v16
-            nvm alias default v16
+            nvm install v20
+            nvm alias default v20
             NODE_DIR=$(dirname $(which node))
             echo "export PATH=$NODE_DIR:\$PATH" >> $BASH_ENV
       - run:
@@ -215,10 +220,11 @@ jobs:
           name: Allow Boto to work with Python 3
           command: sudo rm --force /etc/boto.cfg
       - run:
-          name: Set up Python 3.8
+          name: Set up Python 3.9
           command: |
-             pyenv install 3.8.12 || true
-             pyenv global 3.8.12
+             pyenv install --list
+             pyenv install 3.9.7 || true
+             pyenv global 3.9.7
       - run:
           name: Install system dependencies for Girder plugins
           environment:
@@ -244,7 +250,7 @@ jobs:
           command: >-
             cmake
             ../girder
-            -DPYTHON_VERSION=3.8
+            -DPYTHON_VERSION=3.9
             -DPYTHON_EXECUTABLE=$CIRCLE_WORKING_DIRECTORY/girder_env/bin/python
           working_directory: girder_build
       - run:
@@ -293,7 +299,7 @@ jobs:
 
   dockers:
     machine:
-        image: ubuntu-2004:202111-02
+        image: ubuntu-2204:current
     steps:
       - checkout
       - run:
@@ -304,11 +310,11 @@ jobs:
           name: Build the Girder test docker
           command: |
             cd .circleci
-            docker build --force-rm -t girder/girder_test:py38-node16 .
+            docker build --force-rm -t girder/girder_test:py39-node20 .
 
   publish-dockers:
     machine:
-        image: ubuntu-2004:202111-02
+        image: ubuntu-2204:current
     steps:
       - checkout
       - run:
@@ -319,7 +325,7 @@ jobs:
           name: Build the Girder test docker
           command: |
             cd .circleci
-            docker build --force-rm -t girder/girder_test:py38-node16 .
+            docker build --force-rm -t girder/girder_test:py39-node20 .
       - run:
           name: Publish the images to Docker Hub
           command: |
@@ -333,11 +339,11 @@ jobs:
               docker tag girder/girder:latest "girder/girder:${CIRCLE_TAG}-py3"
               docker push "girder/girder:${CIRCLE_TAG}-py3"
               fi
-              docker push girder/girder_test:py38-node16
+              docker push girder/girder_test:py39-node20
 
   publish:
     docker:
-      - image: girder/girder_test:py38-node16
+      - image: girder/girder_test:py39-node20
     working_directory: ~/project
     steps:
       - checkout:

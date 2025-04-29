@@ -1,7 +1,8 @@
 import distutils
 from contextlib import contextmanager
+import email.parser
 import io
-from pkg_resources import iter_entry_points
+import importlib.metadata
 from tempfile import gettempdir
 import unittest.mock
 
@@ -12,6 +13,10 @@ class _MockDistribution:
         self.version = version
         self.location = location or gettempdir()
         self._metadata = self._generateMetadata(name, version, description, url)
+
+    @property
+    def metadata(self):
+        return self._meta.__dict__
 
     def get_metadata(self, *args, **kwargs):
         return self._metadata
@@ -32,7 +37,9 @@ class _MockDistribution:
         meta.extras_require = {}
         pkgInfo = io.StringIO()
         meta.write_pkg_file(pkgInfo)
-        return pkgInfo.getvalue()
+        self._meta = meta
+        pkgInfo.seek(0)
+        return {k: v for k, v in email.parser.Parser().parse(pkgInfo).items()}
 
 
 class _MockEntryPoint:
@@ -66,9 +73,22 @@ class PluginRegistry:
     def registerEntrypoint(self, entryPoint):
         self._plugins.append(entryPoint)
 
-    def _iter_entry_points(self, *args, **kwargs):
+    def _listPluginEntryPoints(self, *args, **kwargs):
         if self._include_installed_plugins:
-            yield from iter_entry_points(*args, **kwargs)
+            kwargs = kwargs.copy()
+            kwargs['group'] = 'girder.plugin'
+            if len(args):
+                kwargs['group'] = args[0]
+                if len(args) > 1:
+                    kwargs['name'] = args[1]
+            if hasattr(importlib.metadata.entry_points(), 'select'):
+                yield from importlib.metadata.entry_points().select(**kwargs)
+            else:
+                for epk in importlib.metadata.entry_points():
+                    for ep in importlib.metadata.entry_points()[epk]:
+                        if (ep.group == kwargs['group']
+                                and ep.name == kwargs.get('name', ep.name)):
+                            yield ep
         yield from self._plugins
 
     @contextmanager
@@ -77,7 +97,8 @@ class PluginRegistry:
 
         try:
             with unittest.mock.patch.object(
-                    plugin, 'iter_entry_points', side_effect=self._iter_entry_points) as mock_:
+                    plugin, '_listPluginEntryPoints',
+                    side_effect=self._listPluginEntryPoints) as mock_:
                 yield mock_
         finally:
             plugin._pluginRegistry = None

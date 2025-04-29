@@ -2,15 +2,14 @@
 This module defines functions for registering, loading, and querying girder plugins.
 """
 
+import hashlib
+import importlib.metadata
+import importlib.resources
+import logging
 from collections import OrderedDict
 from dataclasses import dataclass
-import distutils.dist
 from functools import wraps
-import hashlib
-import io
-import logging
 from pathlib import Path
-from pkg_resources import iter_entry_points
 from typing import List, OrderedDict as OrderedDictType
 
 from girder import __version__
@@ -129,7 +128,9 @@ class GirderPlugin(metaclass=_PluginMeta):
     def __init__(self, entrypoint):
         self._name = entrypoint.name
         self._loaded = False
-        self._dist = entrypoint.dist
+        self._dist = (
+            entrypoint.dist if hasattr(entrypoint, 'dist') else
+            importlib.metadata.distribution(entrypoint.value.split(':')[0].split('.')[0]))
         self._metadata = _readPackageMetadata(self._dist)
 
     @property
@@ -145,17 +146,17 @@ class GirderPlugin(metaclass=_PluginMeta):
     @property
     def description(self):
         """Return the plugin description defaulting to the classes docstring."""
-        return self._metadata.description
+        return self._metadata.get('description', self._metadata.get('Summary', ''))
 
     @property
     def url(self):
         """Return a url reference to the plugin (usually a readthedocs page)."""
-        return self._metadata.url
+        return self._metadata.get('url', self._metadata.get('Home-page', ''))
 
     @property
     def version(self):
         """Return the version of the plugin automatically determined from setup.py."""
-        return self._metadata.version
+        return self._dist.version
 
     @property
     def loaded(self):
@@ -168,10 +169,13 @@ class GirderPlugin(metaclass=_PluginMeta):
 
 def _readPackageMetadata(distribution):
     """Get a metadata object associated with a python package."""
-    metadata_string = distribution.get_metadata(distribution.PKG_INFO)
-    metadata = distutils.dist.DistributionMetadata()
-    metadata.read_pkg_file(io.StringIO(metadata_string))
-    return metadata
+    return distribution.metadata
+
+
+def _listPluginEntryPoints():
+    if hasattr(importlib.metadata.entry_points(), 'select'):
+        return importlib.metadata.entry_points().select(group=_NAMESPACE)
+    return importlib.metadata.entry_points().get(_NAMESPACE, [])
 
 
 def _getPluginRegistry():
@@ -186,7 +190,7 @@ def _getPluginRegistry():
         return _pluginRegistry
 
     _pluginRegistry = {}
-    for entryPoint in iter_entry_points(_NAMESPACE):
+    for entryPoint in _listPluginEntryPoints():
         pluginClass = entryPoint.load()
         plugin = pluginClass(entryPoint)
         _pluginRegistry[plugin.name] = plugin
