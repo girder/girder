@@ -31,7 +31,8 @@ installReqs = [
     'filelock',
     'jsonschema',
     'Mako',
-    'passlib [bcrypt,totp]',
+    'passlib[bcrypt,totp]',
+    'packaging',
     'pymongo>=4',
     'PyYAML',
     'psutil',
@@ -72,7 +73,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     packages=find_packages(
         exclude=('girder.test', 'tests.*', 'tests', '*.plugin_tests.*', '*.plugin_tests')
     ),
