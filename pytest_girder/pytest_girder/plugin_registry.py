@@ -1,7 +1,7 @@
 import distutils
 from contextlib import contextmanager
 import io
-from pkg_resources import iter_entry_points
+import importlib.metadata
 from tempfile import gettempdir
 import unittest.mock
 
@@ -67,7 +67,12 @@ class PluginRegistry:
 
     def _iter_entry_points(self, *args, **kwargs):
         if self._include_installed_plugins:
-            yield from iter_entry_points(*args, **kwargs)
+            if len(args):
+                kwargs = kwargs.copy()
+                kwargs['group'] = args[0]
+                if len(args) > 1:
+                    kwargs['name'] = args[1]
+            yield from importlib.metadata.entry_points().get(**kwargs)
         yield from self._plugins
 
     @contextmanager

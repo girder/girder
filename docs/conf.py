@@ -1,21 +1,26 @@
-import pkg_resources
+import importlib.metadata
 
 from sphinx.domains.python import PythonDomain
 
 # needs_sphinx = '1.6'
 
+
+def _get_package_imports(package_name):
+    """Get all required imports for a package."""
+    reqs = importlib.metadata.requires(package_name) or []
+    imports = set()
+    for req in reqs:
+        name = req.split('[')[0].split('>')[0].split('<')[0].split('=')[0].split(
+            ';')[0].strip().replace('-', '_')
+        if name:
+            imports.add(name.lower())
+    return imports
+
+
 # Get package imports and version
-# The 'girder' and "girder_client" packages must be installed at this point
-_girder_package = pkg_resources.get_distribution('girder')
-_girder_client_package = pkg_resources.get_distribution('girder_client')
+_girder_package = importlib.metadata.distribution('girder')
 _girder_version = _girder_package.version
-_girder_imports = {
-    _requirement.project_name.lower()
-    for _package in [_girder_package, _girder_client_package]
-    for _requirement in _package.requires(_package.extras)
-}
-# Add importable module names that are different from package names
-_girder_imports |= {
+_girder_imports = _get_package_imports('girder') | _get_package_imports('girder_client') | {
     'botocore',
     'bson',
     'dateutil',

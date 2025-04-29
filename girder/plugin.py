@@ -2,16 +2,16 @@
 This module defines functions for registering, loading, and querying girder plugins.
 """
 
-import distutils.dist
-from functools import wraps
-import io
+import importlib.metadata
+import importlib.resources
 import json
 import os
-from pkg_resources import iter_entry_points, resource_filename
+import pathlib
+import sys
+from functools import wraps
 
 from girder import logprint
 from girder.exceptions import GirderException
-
 
 _NAMESPACE = 'girder.plugin'
 _pluginRegistry = None
@@ -108,10 +108,10 @@ class GirderPlugin(metaclass=_PluginMeta):
         if self.CLIENT_SOURCE_PATH is None:
             return {}
 
-        packageJsonFile = resource_filename(
-            self.__module__,
-            os.path.join(self.CLIENT_SOURCE_PATH, 'package.json')
-        )
+        packageJsonFile = (
+            pathlib.Path(importlib.util.find_spec(
+                sys.modules.get(type(self).__module__).__package__).origin).parent
+            / self.CLIENT_SOURCE_PATH / 'package.json')
         if not os.path.isfile(packageJsonFile):
             raise Exception('Invalid web client path provided: %s' % packageJsonFile)
 
@@ -157,10 +157,7 @@ class GirderPlugin(metaclass=_PluginMeta):
 
 def _readPackageMetadata(distribution):
     """Get a metadata object associated with a python package."""
-    metadata_string = distribution.get_metadata(distribution.PKG_INFO)
-    metadata = distutils.dist.DistributionMetadata()
-    metadata.read_pkg_file(io.StringIO(metadata_string))
-    return metadata
+    return distribution.metadata
 
 
 def _getPluginRegistry():
@@ -175,7 +172,7 @@ def _getPluginRegistry():
         return _pluginRegistry
 
     _pluginRegistry = {}
-    for entryPoint in iter_entry_points(_NAMESPACE):
+    for entryPoint in importlib.metadata.entry_points().get(_NAMESPACE):
         pluginClass = entryPoint.load()
         plugin = pluginClass(entryPoint)
         _pluginRegistry[plugin.name] = plugin
