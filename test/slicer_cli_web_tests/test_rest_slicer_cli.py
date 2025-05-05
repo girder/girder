@@ -3,11 +3,13 @@ import json
 import os
 import time
 
+import cherrypy
 import pytest
 from girder.api import rest
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.item import Item
+from girder.models.token import Token
 from pytest_girder.assertions import assertStatusOk
 
 from slicer_cli_web import docker_resource, rest_slicer_cli
@@ -20,6 +22,7 @@ def handlerFunc(server, admin, folder, file):
     # testing outside of a request for the actual handler.
     server.request('/system/version')
     rest.setCurrentUser(admin)
+    cherrypy.request.params['token'] = Token().createToken(admin)['_id']
 
     xmlpath = os.path.join(os.path.dirname(__file__), 'data', 'ExampleSpec.xml')
 
@@ -40,6 +43,7 @@ def handlerRerunFuncs(server, admin, folder, file):
     # testing outside of a request for the actual handler.
     server.request('/system/version')
     rest.setCurrentUser(admin)
+    cherrypy.request.params['token'] = Token().createToken(admin)['_id']
 
     xmlpath = os.path.join(os.path.dirname(__file__), 'data', 'ExampleSpec.xml')
 

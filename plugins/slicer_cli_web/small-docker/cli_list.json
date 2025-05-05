@@ -28,5 +28,9 @@
   "ExampleProgress": {
     "type": "python",
     "desc-type": "json"
+  },
+  "ExampleSubJob": {
+    "type": "python",
+    "desc-type": "json"
   }
 }
