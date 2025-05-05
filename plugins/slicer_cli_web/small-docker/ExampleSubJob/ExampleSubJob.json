@@ -1,0 +1,57 @@
+{
+  "$schema": "../../slicer_cli_web/models/schema.json",
+  "category": "Example",
+  "title": "Simple SubJob Example",
+  "description": "simple progress report example trigged as a sub-job",
+  "version": "0.1.0",
+  "license": "Apache 2.0",
+  "parameter_groups": [
+    {
+      "label": "Params",
+      "description": "",
+      "parameters": [
+        {
+          "type": "integer",
+          "name": "Rounds",
+          "longflag": "count",
+          "label": "count",
+          "channel": "input",
+          "description": "number of rounds",
+          "default": 10
+        },
+        {
+          "type": "double",
+          "name": "Sleep",
+          "longflag": "sleep",
+          "label": "sleep",
+          "channel": "input",
+          "default": 1,
+          "description": "number of seconds to sleep"
+        }
+      ]
+    },
+    {
+      "advanced": true,
+      "label": "Girder API URL and Key",
+      "description": "A Girder API URL and token for Girder client",
+      "parameters": [
+        {
+          "type": "string",
+          "name": "girderApiUrl",
+          "longflag": "api-url",
+          "label": "Girder API URL",
+          "description": "A Girder API URL (e.g., https://girder.example.com:443/api/v1)",
+          "default": ""
+        },
+        {
+          "type": "string",
+          "name": "girderToken",
+          "longflag": "girder-token",
+          "label": "Girder Token",
+          "description": "A Girder token",
+          "default": ""
+        }
+      ]
+    }
+  ]
+}
