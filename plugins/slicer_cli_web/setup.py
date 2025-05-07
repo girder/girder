@@ -59,24 +59,22 @@ setup(
     packages=find_packages(exclude=['tests', 'test.*']),
     zip_safe=False,
     install_requires=[
+        'girder>=5.0.0a2',
+        'girder-jobs>=5.0.0a2',
+        'girder-worker>=5.0.0a4',
+        'girder-client',
         'ctk_cli',
         'jinja2',
         'jsonschema',
         'pyyaml',
     ],
     extras_require={
-        'girder': [
-            'girder>=5.0.0a2',
-            'girder-jobs>=5.0.0a2',
-            'girder-worker[girder]>=5.0.0a4',
-        ],
+        'girder': [],  # preserved for backward compatibility
         'worker': [
             'docker>=2.6.0',
-            'girder-worker[worker]>=5.0.0a4',
         ],
         'client': [
             'click',
-            'girder-client',
         ]
     },
     entry_points={
