@@ -69,6 +69,11 @@ commands:
             --editable ./worker
             --requirement requirements-dev.txt
           working_directory: girder
+  build-plugins:
+    steps:
+      - run:
+          name: Install and build all plugins
+          command: python girder/.circleci/build_plugins.py girder/plugins
 
 jobs:
   server-lint-test:
@@ -94,6 +99,7 @@ jobs:
       - checkout:
           path: girder
       - install-girder
+      - build-plugins
       - run:
           name: Run pytest tests
           command: tox -e pytest_circleci -- -x
@@ -111,6 +117,7 @@ jobs:
       - checkout:
           path: girder
       - install-girder
+      - build-plugins
       - run:
           name: Create Girder build directory
           command: mkdir girder_build
@@ -157,9 +164,7 @@ jobs:
             npm ci
             npm run build
           working_directory: girder/girder/web
-      - run:
-          name: Install and build all plugins
-          command: python girder/.circleci/build_plugins.py girder/plugins
+      - build-plugins
       - run:
           name: Install playwright browser dependencies
           command: npm run install-browsers
@@ -220,6 +225,7 @@ jobs:
             DEBIAN_FRONTEND: noninteractive
           command: sudo apt-get update && sudo apt-get install -y libldap2-dev libsasl2-dev libfuse2
       - install-girder
+      - build-plugins
       - run:
           name: Start mongod
           command: |
