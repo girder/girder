@@ -1,6 +1,5 @@
 import pkg_resources
 
-import sphinx_rtd_theme
 from sphinx.domains.python import PythonDomain
 
 # needs_sphinx = '1.6'
@@ -34,7 +33,6 @@ release = _girder_version
 version = '.'.join(release.split('.')[:2])
 
 html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_favicon = 'favicon.ico'
 
 latex_documents = [

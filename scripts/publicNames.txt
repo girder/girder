@@ -1179,6 +1179,13 @@ plugins
                         getToken
                         getUrl
                         getUser
+                cilogon
+                    CILogon
+                        getClientIdSetting
+                        getClientSecretSetting
+                        getToken
+                        getUrl
+                        getUser
                 github
                     GitHub
                         getClientIdSetting
@@ -1225,6 +1232,8 @@ plugins
                     BITBUCKET_CLIENT_SECRET
                     BOX_CLIENT_ID
                     BOX_CLIENT_SECRET
+                    CILOGON_CLIENT_ID
+                    CILOGON_CLIENT_SECRET
                     GITHUB_CLIENT_ID
                     GITHUB_CLIENT_SECRET
                     GLOBUS_CLIENT_ID
