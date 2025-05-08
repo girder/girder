@@ -22,7 +22,8 @@ var EditApiKeyWidget = View.extend({
             var fields = {
                 name: this.$('#g-api-key-name').val(),
                 tokenDuration: this.$('#g-api-key-token-duration').val(),
-                scope: null
+                scope: null,
+                targetUserId: this.targetUserId
             };
 
             if (this._getSelectedScopeMode() === 'custom') {
@@ -52,6 +53,7 @@ var EditApiKeyWidget = View.extend({
     initialize: function (settings) {
         this.model = settings.model || null;
         this.scopeInfo = null;
+        this.targetUserId = settings.parentView.model.id;
         this._shouldRender = false;
 
         restRequest({

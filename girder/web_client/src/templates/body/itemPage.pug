@@ -5,28 +5,30 @@
     if (accessLevel >= AccessType.WRITE)
       button.g-upload-into-item.btn.btn-sm.btn-success(title="Upload files into item")
         i.icon-upload
-    .btn-group
-      button.g-item-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
-          data-toggle="dropdown", title="Item actions")
-        i.icon-doc-text-inv
-        |  Actions
-        i.icon-down-dir
-      ul.g-item-actions-menu.dropdown-menu.pull-right(role="menu")
-        li(role="presentation")
-          a.g-download-item(role="menuitem", href=item.downloadUrl())
-            i.icon-download
-            | Download item
-        if (accessLevel >= AccessType.WRITE)
-          li.divider(role="presentation")
-          li(role="presentation")
-            a.g-edit-item(role="menuitem")
-              i.icon-edit
-              | Edit item
-          li.divider(role="presentation")
-          li(role="presentation")
-            a.g-delete-item(role="menuitem")
-              i.icon-trash
-              | Delete item
+    if showDownload || accessLevel >= AccessType.WRITE
+      .btn-group
+        button.g-item-actions-button.btn.btn-sm.btn-default.dropdown-toggle(
+            data-toggle="dropdown", title="Item actions")
+          i.icon-doc-text-inv
+          |  Actions
+          i.icon-down-dir
+        ul.g-item-actions-menu.dropdown-menu.pull-right(role="menu")
+          if (showDownload)
+            li(role="presentation")
+              a.g-download-item(role="menuitem", href=item.downloadUrl())
+                i.icon-download
+                | Download item
+          if (accessLevel >= AccessType.WRITE)
+            li.divider(role="presentation")
+            li(role="presentation")
+              a.g-edit-item(role="menuitem")
+                i.icon-edit
+                | Edit item
+            li.divider(role="presentation")
+            li(role="presentation")
+              a.g-delete-item(role="menuitem")
+                i.icon-trash
+                | Delete item
 
   .g-item-name.g-body-title= item.name()
 

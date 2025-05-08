@@ -27,7 +27,7 @@ installReqs = [
     'CherryPy',
     'click',
     'click-plugins',
-    'dogpile.cache',
+    'dogpile.cache<1.4',
     'filelock',
     'jsonschema',
     'Mako',

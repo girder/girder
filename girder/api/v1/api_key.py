@@ -48,13 +48,15 @@ class ApiKey(Resource):
                'key will last.', required=False)
         .param('active', 'Whether the key is currently active.', required=False,
                dataType='boolean', default=True)
+        .modelParam('targetUserId', 'Id of user to apply the key to', model=User, paramType='query',
+                    level=AccessType.ADMIN, destName='targetUser', required=False)
         .errorResponse()
     )
-    def createKey(self, name, scope, tokenDuration, active):
+    def createKey(self, name, scope, tokenDuration, active, targetUser):
         if Setting().get(SettingKey.API_KEYS):
             return ApiKeyModel().createApiKey(
-                user=self.getCurrentUser(), name=name, scope=scope, days=tokenDuration,
-                active=active)
+                user=targetUser or self.getCurrentUser(),
+                name=name, scope=scope, days=tokenDuration, active=active)
         else:
             raise RestException('API key functionality is disabled on this instance.')
 
