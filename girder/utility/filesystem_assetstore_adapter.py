@@ -37,6 +37,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
     :param assetstore: The assetstore to act on.
     :type assetstore: dict
     """
+    initialized = False
 
     @staticmethod
     def validateInfo(doc):
@@ -95,6 +96,10 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # happens to existing assetstores that no longer can access their temp
         # directories.
         self.tempDir = os.path.join(self.assetstore['root'], 'temp')
+
+        if FilesystemAssetstoreAdapter.initialized:
+            return
+
         try:
             mkdir(self.tempDir)
         except OSError:
@@ -103,6 +108,15 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         if not os.access(self.assetstore['root'], os.W_OK):
             self.unavailable = True
             logger.error('Could not write to assetstore root: %s', self.assetstore['root'])
+
+        unavailable = False
+        try:
+            unavailable = getattr(self, 'unavailable')
+        except AttributeError:
+            pass
+        finally:
+            if not unavailable:
+                FilesystemAssetstoreAdapter.initialized = True
 
     def capacityInfo(self):
         """
