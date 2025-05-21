@@ -58,14 +58,14 @@ class WebrootBase:
         # replace all non-alphanumeric characters with "\0uXXXX" unicode escaping:
         # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Unicode_escape_sequences
         return re.sub(
-            r'[^a-zA-Z0-9]',
-            lambda match: '\\u%04X' % ord(match.group()),
-            string
+            r"[^a-zA-Z0-9]", lambda match: "\\u%04X" % ord(match.group()), string
         )
 
     def _renderHTML(self):
         if self._templateLookup is None:
-            self._templateLookup = mako.lookup.TemplateLookup(directories=self._templateDirs)
+            self._templateLookup = mako.lookup.TemplateLookup(
+                directories=self._templateDirs
+            )
 
         template = self._templateLookup.get_template(self.templateFilename)
         return template.render(js=self._escapeJavascript, json=json.dumps, **self.vars)
