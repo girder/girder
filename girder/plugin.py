@@ -6,6 +6,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 import distutils.dist
 from functools import wraps
+import hashlib
 import io
 import logging
 from pathlib import Path
@@ -38,18 +39,38 @@ def registerPluginStaticContent(plugin: str, css: List[str], js: List[str], stat
     from girder.utility.server import _errorDefault
 
     if plugin not in _pluginStaticContent:
-        tree.mount(None, f'/plugin_static/{plugin}', {
-            '/': {
-                'tools.staticdir.on': True,
-                'tools.staticdir.dir': str(staticDir),
-                'request.show_tracebacks': False,
-                'response.headers.server': f'Girder {__version__}',
-                'error_page.default': _errorDefault
-            }
-        })
+        tree.mount(
+            None,
+            f'/plugin_static/{plugin}',
+            {
+                '/': {
+                    'tools.staticdir.on': True,
+                    'tools.staticdir.dir': str(staticDir),
+                    'request.show_tracebacks': False,
+                    'response.headers.server': f'Girder {__version__}',
+                    'error_page.default': _errorDefault,
+                }
+            },
+        )
+
+        def cache_bust_url(filename: str) -> str:
+            filename = filename.lstrip('/')
+
+            if '?' in filename:
+                # For now, we assume this means the plugin is managing its own cache busting
+                return f'/plugin_static/{plugin}/{filename}'
+
+            hash_md5 = hashlib.md5()
+
+            with (staticDir / filename).open('rb') as f:
+                for chunk in iter(lambda: f.read(4096), b''):
+                    hash_md5.update(chunk)
+
+            return f'/plugin_static/{plugin}/{filename}?h={hash_md5.hexdigest()[:10]}'
+
         _pluginStaticContent[plugin] = PluginStaticContent(
-            css=[f'/plugin_static/{plugin}/{f.lstrip("/")}' for f in css],
-            js=[f'/plugin_static/{plugin}/{f.lstrip("/")}' for f in js],
+            css=[cache_bust_url(f) for f in css],
+            js=[cache_bust_url(f) for f in js],
         )
 
 

@@ -13,7 +13,7 @@ const router = girder.router;
 const events = girder.events;
 const { restRequest } = girder.rest;
 const { defineFlags, formatDate, DATE_SECOND, _whenAll } = girder.misc;
-const eventStream = girder.utilities.EventStream;
+const eventStream = girder.utilities.eventStream;
 const { getCurrentUser } = girder.auth;
 const { SORT_DESC } = girder.constants;
 

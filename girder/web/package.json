@@ -34,7 +34,7 @@
     "install-browsers": "playwright install --with-deps"
   },
   "dependencies": {
-    "@girder/fontello": "^3.1.20",
+    "@girder/fontello": "^5.0.0-a7",
     "apexcharts": "^4.5.0",
     "backbone": "~1.4.0",
     "bootstrap": "~3.4.1",
@@ -81,6 +81,6 @@
     "vite": "^4.3.5",
     "vite-plugin-dts": "^2.3.0",
     "vite-plugin-static-copy": "^0.16.0",
-    "vue-tsc": "^1.6.4"
+    "vue-tsc": "^2.2.10"
   }
 }

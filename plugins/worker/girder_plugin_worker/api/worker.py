@@ -1,3 +1,5 @@
+import logging
+
 import celery
 
 from girder.api import access
@@ -5,6 +7,8 @@ from girder.api.describe import Description, autoDescribeRoute
 from girder.constants import TokenScope
 from girder.api.rest import Resource
 from girder_worker.app import app
+
+logger = logging.getLogger(__name__)
 
 
 class Worker(Resource):
@@ -24,6 +28,7 @@ class Worker(Resource):
         try:
             conn.ensure_connection(max_retries=1)
         except celery.exceptions.OperationalError:
+            logger.exception(f'Broker ({app.conf.broker_url}) is inaccessible.')
             return -1
 
         status = app.control.inspect()

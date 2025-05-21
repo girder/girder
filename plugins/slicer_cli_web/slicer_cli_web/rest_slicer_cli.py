@@ -189,7 +189,7 @@ def batchCLIJob(cliItem, params, user, cliTitle):
     # Note that this uses a local job to manage the sub-jobs, but all of the sub-jobs actually
     # execute in the worker via `direct_docker_run.run.delay`.
     job = Job().createLocalJob(
-        module='girder_slicer_cli_web.rest_slicer_cli',
+        module='slicer_cli_web.rest_slicer_cli',
         function='batchCLITask',
         kwargs={
             'cliItemId': str(cliItem._id),
@@ -462,10 +462,20 @@ def genHandlerToRunDockerCLI(cliItem):  # noqa C901
         Job().save(jobRecord)
         return job
 
-    @access.user
+    @access.token
     @describeRoute(handlerDesc)
     def cliHandler(resource, params):
         user = resource.getCurrentUser()
+        token = resource.getCurrentToken()
+        try:
+            from girder_jobs.constants import REST_CREATE_JOB_TOKEN_SCOPE
+
+            if (user is None and token and token.get('access', {})
+                    and len(token['access'].get('users', [])) == 1):
+                Token().requireScope(token, REST_CREATE_JOB_TOKEN_SCOPE)
+                user = User().load(id=token['access']['users'][0]['id'], force=True)
+        except Exception:
+            pass
         currentItem = CLIItem.find(itemId, user)
         if not currentItem:
             raise RestException('Invalid CLI Item id (%s).' % (itemId))

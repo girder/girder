@@ -6,7 +6,7 @@ import '../stylesheets/jobDetailsWidget.styl';
 const { restRequest } = girder.rest;
 const TimelineWidget = girder.views.widgets.TimelineWidget;
 const View = girder.views.View;
-const eventStream = girder.utilities.EventStream;
+const eventStream = girder.utilities.eventStream;
 const { formatDate, DATE_SECOND } = girder.misc;
 const events = girder.events;
 const { _ } = girder;

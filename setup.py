@@ -32,7 +32,7 @@ installReqs = [
     'CherryPy',
     'click',
     'click-plugins',
-    'dogpile.cache',
+    'dogpile.cache<1.4',
     'filelock',
     'girder-worker>=5.0.0a5',
     'jsonschema',

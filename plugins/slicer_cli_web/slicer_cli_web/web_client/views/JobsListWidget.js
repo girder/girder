@@ -6,7 +6,7 @@ const $ = girder.$;
 const _ = girder._;
 const View = girder.views.View;
 const { SORT_DESC } = girder.constants;
-const eventStream = girder.eventStream;
+const eventStream = girder.utilities.eventStream;
 const restRequest = girder.rest.restRequest;
 
 // cache parameter file models
