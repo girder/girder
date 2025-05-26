@@ -872,7 +872,7 @@ class FileTestCase(base.TestCase):
         Assetstore().remove(Assetstore().getCurrent())
         assetstore = Assetstore().createS3Assetstore(
             name='test', bucket='bname', accessKeyId='access', secret='secret',
-            prefix='test', serverSideEncryption=True)
+            prefix='test', serverSideEncryption=True, useAcceleratedEndpoint=False)
         self.assetstore = assetstore
 
         # Initialize the upload
@@ -888,6 +888,7 @@ class FileTestCase(base.TestCase):
 
         self.assertFalse(resp.json['s3']['chunked'])
         uploadId = resp.json['_id']
+        self.assertFalse('s3-accelerate' in resp.json['s3']['request']['url'])
 
         # Send the first chunk, we should get a 400
         resp = self.request(
@@ -1091,6 +1092,21 @@ class FileTestCase(base.TestCase):
 
         with httmock.HTTMock(s3_range_mock):
             self._testFileContext(file, chunk1 + chunk2)
+
+        self.assetstore['useAcceleratedEndpoint'] = True
+        self.assetstore = Assetstore().save(self.assetstore)
+        initRequests = []
+
+        resp = self.request(
+            path='/file', method='POST', user=self.user, params={
+                'parentType': 'folder',
+                'parentId': self.privateFolder['_id'],
+                'name': 'hello.txt',
+                'size': len(chunk1) + len(chunk2),
+                'mimeType': 'text/plain'
+            })
+        self.assertStatusOk(resp)
+        self.assertTrue('s3-accelerate' in resp.json['s3']['request']['url'])
 
     def testLinkFile(self):
         params = {
