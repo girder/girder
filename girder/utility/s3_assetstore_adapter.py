@@ -111,7 +111,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             self.connectParams = makeBotoConnectParams(
                 self.assetstore['accessKeyId'], self.assetstore['secret'],
                 self.assetstore['service'], self.assetstore.get('region'),
-                self.assetstore.get('inferCredentials'))
+                self.assetstore.get('inferCredentials'),
+                self.assetstore.get('useAcceleratedEndpoint'))
             self.client = S3AssetstoreAdapter._s3Client(self.connectParams)
 
     def _getRequestHeaders(self, upload):
@@ -627,7 +628,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         return False
 
 
-def makeBotoConnectParams(accessKeyId, secret, service=None, region=None, inferCredentials=False):
+def makeBotoConnectParams(accessKeyId, secret, service=None, region=None, inferCredentials=False,
+                          useAcceleratedEndpoint=False):
     """
     Create a dictionary of values to pass to the boto connect_s3 function.
 
@@ -664,6 +666,9 @@ def makeBotoConnectParams(accessKeyId, secret, service=None, region=None, inferC
         if not service.startswith('http://') and not service.startswith('https://'):
             service = 'https://' + service
         params['endpoint_url'] = service
+
+    if useAcceleratedEndpoint:
+        params['config'].s3 = {'use_accelerate_endpoint': True}
 
     return params
 
