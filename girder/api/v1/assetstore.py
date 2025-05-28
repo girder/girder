@@ -131,7 +131,8 @@ class Assetstore(Resource):
             destinationId, user=user, level=AccessType.ADMIN, exc=True)
 
         # Capture any additional parameters passed to route
-        extraParams = kwargs.get('params', {})
+        extraParams = dict(kwargs)
+        extraParams.update(kwargs.get('params', {}))
 
         # Run the import data task on the local celery queue since it can take a long time
         importDataTask.delay(
