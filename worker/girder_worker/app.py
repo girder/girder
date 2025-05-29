@@ -49,7 +49,7 @@ def girder_before_task_publish(sender=None, body=None, exchange=None,
 
     try:
         context = get_context()
-        if 'jobInfoSpec' not in headers:
+        if 'jobInfoSpec' not in headers and not headers.get('girder_job_disable'):
             job = context.create_task_job(
                 Task.girder_job_defaults(), sender=sender, body=body, exchange=exchange,
                 routing_key=routing_key, headers=headers, properties=properties, declare=declare,

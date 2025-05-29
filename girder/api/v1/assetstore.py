@@ -142,7 +142,7 @@ class Assetstore(Resource):
                 'importPath': importPath,
                 **extraParams
             }, progress=progress, user=user, leafFoldersAsItems=leafFoldersAsItems,
-            girder_job_title=f'Import data from assetstore {assetstore["name"]}')
+            girder_job_disable=True)
 
     @access.admin
     @autoDescribeRoute(
