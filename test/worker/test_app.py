@@ -25,7 +25,8 @@ RESERVED_OPTIONS = [
     ('girder_job_type', 'GIRDER_JOB_TYPE'),
     ('girder_job_public', 'GIRDER_JOB_PUBLIC'),
     ('girder_job_handler', 'GIRDER_JOB_HANDLER'),
-    ('girder_job_other_fields', 'GIRDER_JOB_OTHER_FIELDS')
+    ('girder_job_other_fields', 'GIRDER_JOB_OTHER_FIELDS'),
+    ('girder_job_disable', 'GIRDER_JOB_DISABLE'),
 ]
 
 
