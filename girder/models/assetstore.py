@@ -1,6 +1,7 @@
 import datetime
 
 from .model_base import Model
+from girder import events
 from girder.constants import AssetstoreType, SortDir
 from girder.exceptions import ValidationException, GirderException, NoAssetstoreAdapter
 from girder.utility import assetstore_utilities
@@ -150,12 +151,55 @@ class Assetstore(Model):
 
         return current
 
-    def importData(self, assetstore, parent, parentType, params, progress,
-                   user, **kwargs):
+    def importData(self, assetstore, parent, parentType, params, progress, user, **kwargs):
         """
         Calls the importData method of the underlying assetstore adapter.
         """
+        pre_event = events.trigger('assetstore_import.before', {
+            'assetstore': assetstore,
+            'parent': parent,
+            'parentType': parentType,
+            'params': params,
+            'progress': progress,
+            'user': user,
+            'kwargs': kwargs
+        })
+        if pre_event.defaultPrevented:
+            return pre_event.responses[-1]
+
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        return adapter.importData(
-            parent=parent, parentType=parentType, params=params,
-            progress=progress, user=user, **kwargs)
+        try:
+            result = adapter.importData(
+                parent=parent, parentType=parentType, params=params,
+                progress=progress, user=user, **kwargs)
+        except Exception as e:
+            err_event = events.trigger('assetstore_import.error', {
+                'assetstore': assetstore,
+                'parent': parent,
+                'parentType': parentType,
+                'params': params,
+                'progress': progress,
+                'user': user,
+                'kwargs': kwargs,
+                'exception': e,
+                'pre_event': pre_event,
+            })
+            if err_event.defaultPrevented:
+                return err_event.responses[-1]
+            else:
+                raise e
+
+        post_event = events.trigger('assetstore_import.after', {
+            'assetstore': assetstore,
+            'parent': parent,
+            'parentType': parentType,
+            'params': params,
+            'progress': progress,
+            'user': user,
+            'kwargs': kwargs,
+            'pre_event': pre_event,
+        })
+        if post_event.responses:
+            return post_event.responses[-1]
+        else:
+            return result
