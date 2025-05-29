@@ -27,6 +27,7 @@ with open('README.rst') as f:
     readme = f.read()
 
 installReqs = [
+    'asgiref',
     'boto3',
     'botocore',
     'CherryPy',
