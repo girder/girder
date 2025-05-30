@@ -63,6 +63,9 @@ setup(
     entry_points={
         'girder.plugin': [
             'import_tracker = girder_import_tracker:GirderPlugin'
-        ]
+        ],
+        'girder_worker_plugins': [
+            'import_tracker = girder_import_tracker.girder_worker_plugin:ImportTrackerWorkerPlugin'
+        ],
     }
 )

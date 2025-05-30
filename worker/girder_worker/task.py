@@ -48,7 +48,8 @@ class Task(celery.Task):
         'girder_client_token',
         'girder_api_url',
         'girder_result_hooks',
-        'girder_client_session_kwargs']
+        'girder_client_session_kwargs',
+    ]
 
     # These keys will be available in the 'properties' dictionary inside
     # girder_before_task_publish() but will not be passed along in the message
@@ -58,7 +59,9 @@ class Task(celery.Task):
         'girder_job_type',
         'girder_job_public',
         'girder_job_handler',
-        'girder_job_other_fields']
+        'girder_job_other_fields',
+        'girder_job_disable',
+    ]
 
     def AsyncResult(self, task_id, **kwargs):
         return GirderAsyncResult(task_id, backend=self.backend,
