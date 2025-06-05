@@ -11,7 +11,7 @@ import requests
 
 from girder import events, logger
 from girder.api.rest import setContentDisposition
-from girder.exceptions import GirderException, ValidationException
+from girder.exceptions import GirderException, RestException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
@@ -113,6 +113,17 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 self.assetstore['service'], self.assetstore.get('region'),
                 self.assetstore.get('inferCredentials'))
             self.client = S3AssetstoreAdapter._s3Client(self.connectParams)
+            if self.assetstore.get('allowS3AcceleratedTransfer', False):
+                acceleratedConnectParams = self.connectParams.copy()
+                acceleratedConnectParams['config'].s3 = {'use_accelerate_endpoint': True}
+                self.acceleratedClient = S3AssetstoreAdapter._s3Client(acceleratedConnectParams)
+
+    def _getClient(self, useAcceleratedTransfer):
+        if useAcceleratedTransfer:
+            if not self.assetstore.get('allowS3AcceleratedTransfer'):
+                raise RestException('Accelerated transfer is not allowed on this assetstore.')
+            return self.acceleratedClient
+        return self.client
 
     def _getRequestHeaders(self, upload):
         headers = {
@@ -134,8 +145,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         See https://gist.github.com/gleicon/2b8acb9f9c0f22753eaac227ff997b34
         """
-        url = self.client.generate_presigned_url(*args, **kwargs)
-        if getattr(self.client, '_useGoogleAccessId', False):
+        client = self._getClient(kwargs.pop('useS3TransferAcceleration', False))
+        url = client.generate_presigned_url(*args, **kwargs)
+        if getattr(client, '_useGoogleAccessId', False):
             awskey, gskey = 'AWSAccessKeyId', 'GoogleAccessId'
             parsed = urllib.parse.urlparse(url)
             if awskey in urllib.parse.parse_qs(parsed.query):
@@ -147,7 +159,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     parsed[5]))
         return url
 
-    def initUpload(self, upload):
+    @staticmethod
+    def _getS3TransferAccelerationParam(extraParameters):
+        return isinstance(extraParameters, dict) \
+            and extraParameters.get('use_S3_transfer_acceleration', False)
+
+    def initUpload(self, upload, uploadExtraParameters):
         """
         Build the request required to initiate an authorized upload to S3.
         """
@@ -195,10 +212,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             method = 'put_object'
             params['ContentLength'] = upload['size']
 
-        requestInfo['url'] = self._generatePresignedUrl(ClientMethod=method, Params=params)
+        useS3TransferAcceleration = self._getS3TransferAccelerationParam(uploadExtraParameters)
+
+        requestInfo['url'] = self._generatePresignedUrl(
+            ClientMethod=method, Params=params, useS3TransferAcceleration=useS3TransferAcceleration)
         return upload
 
-    def uploadChunk(self, upload, chunk):
+    def uploadChunk(self, upload, chunk, uploadExtraParameters):
         """
         Rather than processing actual bytes of the chunk, this will generate
         the signature required to upload the chunk. Clients that do not support
@@ -209,12 +229,14 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             and S3 upload ID. If a normal chunk file-like object is passed,
             we will send the data to S3.
         """
-        if isinstance(chunk, str):
-            return self._clientUploadChunk(upload, chunk)
-        else:
-            return self._proxiedUploadChunk(upload, chunk)
+        useS3TransferAcceleration = self._getS3TransferAccelerationParam(uploadExtraParameters)
 
-    def _clientUploadChunk(self, upload, chunk):
+        if isinstance(chunk, str):
+            return self._clientUploadChunk(upload, chunk, useS3TransferAcceleration)
+        else:
+            return self._proxiedUploadChunk(upload, chunk, useS3TransferAcceleration)
+
+    def _clientUploadChunk(self, upload, chunk, useS3TransferAcceleration):
         """
         Clients that support direct-to-S3 upload behavior will go through this
         method by sending a normally-encoded form string as the chunk parameter,
@@ -238,7 +260,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             'ContentLength': length,
             'UploadId': info['s3UploadId'],
             'PartNumber': info['partNumber']
-        })
+        }, useS3TransferAcceleration=useS3TransferAcceleration)
 
         upload['s3']['uploadId'] = info['s3UploadId']
         upload['s3']['partNumber'] = info['partNumber']
@@ -249,7 +271,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         return upload
 
-    def _proxiedUploadChunk(self, upload, chunk):
+    def _proxiedUploadChunk(self, upload, chunk, useS3TransferAcceleration):
         """
         Clients that do not support direct-to-S3 upload behavior will go through
         this method by sending the chunk data as they normally would for other
@@ -285,7 +307,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 'ContentLength': size,
                 'UploadId': upload['s3']['uploadId'],
                 'PartNumber': upload['s3']['partNumber']
-            })
+            }, useS3TransferAcceleration=useS3TransferAcceleration)
 
             resp = requests.request(method='PUT', url=url, data=chunk, headers=headers)
             if resp.status_code not in (200, 201):
@@ -405,7 +427,11 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         if contentDisposition == 'inline' and not file.get('imported'):
             params['ResponseContentDisposition'] = 'inline; filename="%s"' % file['name']
 
-        url = self._generatePresignedUrl(ClientMethod='get_object', Params=params)
+        useS3TransferAcceleration = self._getS3TransferAccelerationParam(extraParameters)
+
+        url = self._generatePresignedUrl(
+            ClientMethod='get_object', Params=params,
+            useS3TransferAcceleration=useS3TransferAcceleration)
 
         if headers:
             raise cherrypy.HTTPRedirect(url)
