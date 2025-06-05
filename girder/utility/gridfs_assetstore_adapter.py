@@ -111,7 +111,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
             self.chunkColl = 'Failed to configure'
             self.unavailable = True
 
-    def initUpload(self, upload):
+    def initUpload(self, upload, uploadExtraParameters):
         """
         Creates a UUID that will be used to uniquely link each chunk to
         """
@@ -119,7 +119,7 @@ class GridFsAssetstoreAdapter(AbstractAssetstoreAdapter):
         upload['sha512state'] = _hash_state.serializeHex(sha512())
         return upload
 
-    def uploadChunk(self, upload, chunk):
+    def uploadChunk(self, upload, chunk, uploadExtraParameters):
         """
         Stores the uploaded chunk in fixed-sized pieces in the chunks
         collection of this assetstore's database.

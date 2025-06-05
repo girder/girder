@@ -73,12 +73,14 @@ class File(Resource):
                required=False)
         .param('assetstoreId', 'Direct the upload to a specific assetstore (admin-only).',
                required=False)
+        .jsonParam('uploadExtraParameters', 'Arbitrary data to send along with the upload request.',
+                   required=False)
         .errorResponse()
         .errorResponse('Write access was denied on the parent folder.', 403)
         .errorResponse('Failed to create upload.', 500)
     )
     def initUpload(self, parentType, parentId, name, size, mimeType, linkUrl, reference,
-                   assetstoreId):
+                   assetstoreId, uploadExtraParameters):
         """
         Before any bytes of the actual file are sent, a request should be made
         to initialize the upload. This creates the temporary record of the
@@ -120,7 +122,8 @@ class File(Resource):
                 # version upgrade.
                 upload = Upload().createUpload(
                     user=user, name=name, parentType=parentType, parent=parent, size=size,
-                    mimeType=mimeType, reference=reference, assetstore=assetstore)
+                    mimeType=mimeType, reference=reference, assetstore=assetstore,
+                    uploadExtraParameters=uploadExtraParameters)
             except OSError as exc:
                 if exc.errno == errno.EACCES:
                     raise GirderException(
@@ -128,7 +131,9 @@ class File(Resource):
                 raise
             if upload['size'] > 0:
                 if chunk:
-                    return Upload().handleChunk(upload, chunk, filter=True, user=user)
+                    return Upload().handleChunk(
+                        upload, chunk, filter=True, user=user,
+                        uploadExtraParameters=uploadExtraParameters)
 
                 return upload
             else:
@@ -195,13 +200,15 @@ class File(Resource):
         .modelParam('uploadId', paramType='formData', model=Upload)
         .param('offset', 'Offset of the chunk in the file.', dataType='integer',
                paramType='query', required=False, default=0)
+        .jsonParam('uploadExtraParameters', 'Arbitrary data to send along with the upload request.',
+                   required=False)
         .errorResponse(('ID was invalid.',
                         'Received too many bytes.',
                         'Chunk is smaller than the minimum size.'))
         .errorResponse('You are not the user who initiated the upload.', 403)
         .errorResponse('Failed to store upload.', 500)
     )
-    def readChunk(self, upload, offset, params):
+    def readChunk(self, upload, offset, uploadExtraParameters, params):
         """
         After the temporary upload record has been created (see initUpload),
         the bytes themselves should be passed up in ordered chunks. The user
@@ -231,7 +238,8 @@ class File(Resource):
                 'Server has received %s bytes, but client sent offset %s.' % (
                     upload['received'], offset))
         try:
-            return Upload().handleChunk(upload, chunk, filter=True, user=user)
+            return Upload().handleChunk(
+                upload, chunk, filter=True, user=user, uploadExtraParameters=uploadExtraParameters)
         except OSError as exc:
             if exc.errno == errno.EACCES:
                 raise Exception('Failed to store upload.')
@@ -254,8 +262,8 @@ class File(Resource):
         .param('contentDisposition', 'Specify the Content-Disposition response '
                'header disposition-type value.', required=False,
                enum=['inline', 'attachment'], default='attachment')
-        .param('extraParameters', 'Arbitrary data to send along with the download request.',
-               required=False)
+        .jsonParam('extraParameters', 'Arbitrary data to send along with the download request.',
+                   required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Read access was denied on the parent folder.', 403)
     )

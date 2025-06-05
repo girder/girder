@@ -126,7 +126,8 @@ fieldsMap[AssetstoreType.S3] = {
             region: this.$('#g-edit-s3-region').val(),
             readOnly: this.$('#g-edit-s3-readonly').is(':checked'),
             inferCredentials: this.$('#g-edit-s3-infercredentials').is(':checked'),
-            serverSideEncryption: this.$('#g-edit-s3-sse').is(':checked')
+            serverSideEncryption: this.$('#g-edit-s3-sse').is(':checked'),
+            allowS3AcceleratedTransfer: this.$('#g-edit-s3-accelerated-endpoint').is(':checked')
         };
     },
     set: function () {
@@ -142,6 +143,8 @@ fieldsMap[AssetstoreType.S3] = {
             (this.model.get('inferCredentials') ? 'checked' : undefined));
         this.$('#g-edit-s3-sse').attr('checked',
             (this.model.get('serverSideEncryption') ? 'checked' : undefined));
+        this.$('#g-edit-s3-accelerated-endpoint').attr('checked',
+            (this.model.get('allowS3AcceleratedTransfer') ? 'checked' : undefined));
     }
 };
 

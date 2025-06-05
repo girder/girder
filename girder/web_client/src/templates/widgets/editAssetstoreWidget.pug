@@ -60,6 +60,10 @@
               label
                 input#g-edit-s3-sse(type="checkbox")
                 | Server side encryption
+            .checkbox
+              label
+                input#g-edit-s3-accelerated-endpoint(type="checkbox")
+                | Allow S3 accelerated endpoint
         if assetstore.get('hasFiles')
           div
             i.icon-attention
