@@ -3,15 +3,15 @@
 Deployment
 ==========
 
-Girder exposes a well-behaved WSGI application at ``girder.wsgi:app``, so it can be deployed behind
-any WSGI server. There are many servers and managed cloud offerings that will run WSGI applications,
-and we won't attempt to enumerate them all. We like ``gunicorn``, so we provide an example of a
+Girder exposes a well-behaved ASGI application at ``girder.asgi:app``, so it can be deployed behind
+any ASGI server. There are many servers and managed cloud offerings that will run ASGI applications,
+and we won't attempt to enumerate them all. We like ``uvicorn``, so we provide an example of a
 simple invocation that serves Girder: ::
 
-    gunicorn girder.wsgi:app --bind=localhost:8080 --workers=4 --preload
+    uvicorn girder.asgi:app
 
 Because deployment requirements are very specific to each application, we consider configuration
-and tuning of the WSGI server to be out of scope of Girder's documentation.
+and tuning of the ASGI server to be out of scope of Girder's documentation.
 
 A note on reverse proxy configuration
 -------------------------------------
@@ -30,7 +30,10 @@ to work properly behind nginx:
         proxy_set_header X-Forwarded-Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_pass http://localhost:8080/;
-        # Must set the following for SSE notifications to work
+        # Must set the following for WebSocket connections to work
+        # TODO verify that this works
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
         proxy_buffering off;
         proxy_cache off;
         proxy_set_header Connection '';

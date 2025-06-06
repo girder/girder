@@ -48,7 +48,6 @@ def create_app(mode: str) -> dict:
     logging.basicConfig(stream=sys.stdout, level=os.environ.get('LOGLEVEL', 'INFO'))
 
     logger.info('Running in mode: %s', curConfig['server']['mode'])
-    cherrypy.config['engine.autoreload.on'] = mode == ServerMode.DEVELOPMENT
     cherrypy.config.update({
         'log.screen': False,
         'log.access_file': '',
