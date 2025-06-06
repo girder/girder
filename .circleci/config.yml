@@ -238,6 +238,10 @@ jobs:
           command: |
             docker run -d -p 27017:27017 mongo:4.0 mongod --nojournal --noauth --bind_ip_all
       - run:
+          name: Start redis
+          command: |
+            docker run -d -p 6379:6379 redis
+      - run:
           name: Install and build @girder/core
           command: |
             npm ci
