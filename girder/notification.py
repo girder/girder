@@ -11,7 +11,7 @@ from girder.constants import TokenScope
 from girder.models.token import Token
 
 
-@functools.cache
+@functools.lru_cache(maxsize=1)
 def _redis_client() -> aioredis.Redis:
     url = os.environ.get('GIRDER_NOTIFICATION_REDIS_URL', 'redis://localhost:6379')
     return aioredis.Redis.from_url(url)
