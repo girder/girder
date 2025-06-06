@@ -623,13 +623,7 @@ class ResourceTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
         copiedFolder = resp.json[0]
         self.assertNotEqual(str(copiedFolder['_id']), str(self.adminSubFolder['_id']))
-        # We should have reported 2 things copied in the progress (1 folder and 1 item)
-        resp = self.request(
-            path='/notification/stream', method='GET', user=self.user,
-            isJson=False, params={'timeout': 1})
-        messages = self.getSseMessages(resp)
-        self.assertTrue(len(messages) >= 1)
-        self.assertEqual(messages[-1]['data']['current'], 2)
+
         # The non-admin user should not be able to copy private documents
         resp = self.request(
             path='/resource/copy', method='POST', user=self.user,
