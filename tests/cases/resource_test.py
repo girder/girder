@@ -7,7 +7,6 @@ import zipfile
 
 from .. import base
 
-from girder.models.notification import Notification, ProgressState
 from girder.models.collection import Collection
 from girder.models.item import Item
 from girder.models.folder import Folder
@@ -229,17 +228,6 @@ class ResourceTestCase(base.TestCase):
                 'progress': True
             }, isJson=False)
         self.assertStatusOk(resp)
-        # Make sure progress record exists and that it is set to expire soon
-        notifs = list(Notification().get(self.admin))
-        self.assertEqual(len(notifs), 1)
-        self.assertEqual(notifs[0]['type'], 'progress')
-        self.assertEqual(notifs[0]['data']['state'], ProgressState.SUCCESS)
-        self.assertEqual(notifs[0]['data']['title'], 'Deleting resources')
-        self.assertEqual(notifs[0]['data']['message'], 'Done')
-        self.assertEqual(notifs[0]['data']['total'], 6)
-        self.assertEqual(notifs[0]['data']['current'], 6)
-        self.assertTrue(notifs[0]['expires'] < datetime.datetime.now(datetime.timezone.utc)
-                        + datetime.timedelta(minutes=1))
         # Test deletes using a body on the request
         resourceList = {
             'item': [str(self.items[1]['_id'])]

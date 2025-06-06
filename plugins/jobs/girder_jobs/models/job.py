@@ -260,10 +260,7 @@ class Job(AccessControlledModel):
             deserialized_kwargs = job['kwargs']
             job['kwargs'] = json_util.dumps(job['kwargs'])
 
-            Notification().createNotification(
-                type='job_created', data=job, user=user,
-                expires=datetime.datetime.now(datetime.timezone.utc)
-                + datetime.timedelta(seconds=30))
+            Notification(type='job_created', data=job, user=user).flush()
 
             job['kwargs'] = deserialized_kwargs
 
@@ -429,21 +426,18 @@ class Job(AccessControlledModel):
         elif log:
             updates['$push']['log'] = log
         if notify and user:
-            expires = now + datetime.timedelta(seconds=30)
-            Notification().createNotification(
+            Notification(
                 type='job_log', data={
                     '_id': job['_id'],
                     'overwrite': overwrite,
                     'text': log
-                }, user=user, expires=expires)
+                }, user=user).flush()
 
     def _createUpdateStatusNotification(self, now, user, job):
-        expires = now + datetime.timedelta(seconds=30)
         filtered = self.filter(job, user)
         filtered.pop('kwargs', None)
         filtered.pop('log', None)
-        Notification().createNotification(
-            type='job_status', data=filtered, user=user, expires=expires)
+        Notification(type='job_status', data=filtered, user=user).flush()
 
     def _updateStatus(self, job, status, now, query, updates):
         """Helper for updating job progress information."""
@@ -482,16 +476,12 @@ class Job(AccessControlledModel):
 
         if job['progress'] is None:
             if notify and job['userId']:
-                notification = self._createProgressNotification(
-                    job, total, current, state, message)
-                notificationId = notification['_id']
-            else:
-                notificationId = None
+                notification = self._createProgressNotification(job, total, current, state, message)
+
             job['progress'] = {
                 'message': message,
                 'total': total,
                 'current': current,
-                'notificationId': notificationId
             }
             updates['$set']['progress'] = job['progress']
         else:
@@ -512,22 +502,19 @@ class Job(AccessControlledModel):
                     nid = notification['_id']
                     job['progress']['notificationId'] = nid
                     updates['$set']['progress.notificationId'] = nid
-                else:
-                    notification = Notification().load(job['progress']['notificationId'])
 
-                Notification().updateProgress(
+                Notification.updateProgress(
                     notification, state=state,
                     message=job['progress']['message'],
                     current=job['progress']['current'],
                     total=job['progress']['total'])
 
     def _createProgressNotification(self, job, total, current, state, message,
-                                    user=None):
+                                    user=None) -> Notification:
         if not user:
             user = User().load(job['userId'], force=True)
-        # TODO support channel-based notifications for jobs. For
-        # right now we'll just go through the user.
-        return Notification().initProgress(
+
+        return Notification.initProgress(
             user, job['title'], total, state=state, current=current,
             message=message, estimateTime=False, resource=job, resourceName=self.name)
 

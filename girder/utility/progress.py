@@ -1,8 +1,7 @@
-import datetime
 import time
 
-from girder.models.notification import Notification, ProgressState
 from girder.exceptions import ValidationException, RestException
+from girder.models.notification import Notification, ProgressState
 
 
 class ProgressContext:
@@ -28,20 +27,15 @@ class ProgressContext:
     def __init__(self, on, interval=0.5, **kwargs):
         self.on = on
         self.interval = interval
+        self._lastFlush = time.time()
 
         if on:
-            self._lastSave = time.time()
-            self.progress = Notification().initProgress(**kwargs)
+            self.progress = Notification.initProgress(**kwargs)
 
     def __enter__(self):
         return self
 
     def __exit__(self, excType, excValue, traceback):
-        """
-        Once the context is exited, the progress is marked for deletion 30
-        seconds in the future, which should give all listeners time to poll and
-        receive the final state of the progress record before it is deleted.
-        """
         if not self.on:
             return
 
@@ -54,30 +48,25 @@ class ProgressContext:
             if isinstance(excValue, (ValidationException, RestException)):
                 message = 'Error: ' + str(excValue)
 
-        Notification().updateProgress(
-            self.progress, state=state, message=message,
-            expires=datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=30)
-        )
+        self.progress.updateProgress(state=state, message=message)
 
-    def update(self, force=False, **kwargs):
+    def update(self, force: bool=False, increment: int=None, **kwargs):
         """
         Update the underlying progress record. This will only actually save
         to the database if at least self.interval seconds have passed since
         the last time the record was written to the database. Accepts the
         same kwargs as Notification.updateProgress.
 
-        :param force: Whether we should force the write to the database. Use
-            only in cases where progress may be indeterminate for a long time.
-        :type force: bool
+        :param force: Whether we should force flushing the message, even if the minimum interval
+            has not passed.
+        :param increment: The amount to increment the current progress by.
         """
-        # Extend the response timeout, even if we aren't reporting the progress
         if not self.on:
             return
-        save = (time.time() - self._lastSave > self.interval) or force
-        self.progress = Notification().updateProgress(self.progress, save, **kwargs)
 
-        if save:
-            self._lastSave = time.time()
+        if (time.time() - self._lastFlush > self.interval) or force:
+            self._lastFlush = time.time()
+            self.progress.updateProgress(increment=increment, **kwargs)
 
 
-noProgress = ProgressContext(False)
+noProgress = ProgressContext(on=False)
