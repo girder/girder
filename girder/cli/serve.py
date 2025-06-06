@@ -1,39 +1,38 @@
 import os
 import tempfile
 
-import cherrypy
 import click
 import uvicorn
 
 from girder.constants import ServerMode
 from girder.models.assetstore import Assetstore
 from girder.models.file import File
+from girder.utility import config
+
+_default_db_url = os.environ.get('GIRDER_MONGO_URI', 'mongodb://localhost:27017/girder')
+_default_mode = os.environ.get('GIRDER_SERVER_MODE', ServerMode.DEVELOPMENT)
 
 
 @click.command(name='serve', short_help='Run the Girder server.', help='Run the Girder server.')
-@click.option('--dev', default=False, is_flag=True, help='Alias for --mode=development')
 @click.option('--mode', type=click.Choice([
     ServerMode.PRODUCTION,
     ServerMode.DEVELOPMENT,
     ServerMode.TESTING
-    ]), default=ServerMode.DEVELOPMENT, show_default=True, help='Specify the server mode')
-@click.option('-d', '--database', default=cherrypy.config['database']['uri'],
+    ]), default=_default_mode, show_default=True, help='Specify the server mode')
+@click.option('-d', '--database', default=_default_db_url,
               show_default=True, help='The database URI to connect to')
-@click.option('-H', '--host', default=cherrypy.config['server.socket_host'],
+@click.option('-H', '--host', default='127.0.0.1',
               show_default=True, help='The interface to bind to')
-@click.option('-p', '--port', type=int, default=cherrypy.config['server.socket_port'],
+@click.option('-p', '--port', type=int, default=8080,
               show_default=True, help='The port to bind to')
 @click.option('--with-temp-assetstore', default=False, is_flag=True,
               help='Create a temporary assetstore for this server instance')
-def main(dev: bool, mode: str, database: str, host: str, port: int, with_temp_assetstore: bool):
-    if dev and mode:
-        raise click.ClickException('Conflict between --dev and --mode')
-    if dev:
-        mode = ServerMode.DEVELOPMENT
-
+def main(mode: str, database: str, host: str, port: int, with_temp_assetstore: bool):
+    # Must set these in env when using `reload=True`, due to uvicorn's use of subprocesses
     os.environ['GIRDER_SERVER_MODE'] = mode
-    reload = mode == ServerMode.DEVELOPMENT
-    cherrypy.config['database']['uri'] = database
+    os.environ['GIRDER_MONGO_URI'] = database
+    config.getConfig()['server'] = {'mode': mode}
+    config.getConfig()['database']['uri'] = database
 
     if with_temp_assetstore:
         with tempfile.TemporaryDirectory() as tempdir:
@@ -42,7 +41,7 @@ def main(dev: bool, mode: str, database: str, host: str, port: int, with_temp_as
                 root=tempdir,
             )
             try:
-                uvicorn.run('girder.asgi:app', host=host, port=port, reload=reload)
+                uvicorn.run('girder.asgi:app', host=host, port=port, reload=True)
             finally:
                 # Delete all files in the assetstore
                 File().removeWithQuery({
@@ -50,4 +49,4 @@ def main(dev: bool, mode: str, database: str, host: str, port: int, with_temp_as
                 })
                 Assetstore().remove(assetstore)
     else:
-        uvicorn.run('girder.asgi:app', host=host, port=port, reload=reload)
+        uvicorn.run('girder.asgi:app', host=host, port=port, reload=True)
