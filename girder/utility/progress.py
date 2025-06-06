@@ -50,7 +50,7 @@ class ProgressContext:
 
         self.progress.updateProgress(state=state, message=message)
 
-    def update(self, force: bool=False, increment: int=None, **kwargs):
+    def update(self, force: bool = False, increment: int = None, **kwargs):
         """
         Update the underlying progress record. This will only actually save
         to the database if at least self.interval seconds have passed since

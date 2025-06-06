@@ -23,16 +23,17 @@ class UserNotificationsSocket(WebSocketEndpoint):
     async def on_connect(self, websocket):
         token_id = websocket.query_params.get('token')
         if not token_id:
-            await websocket.close(code=3000, reason="Token is required")
+            await websocket.close(code=3000, reason='Token is required')
             return
 
         token = Token().load(token_id, force=True, objectId=False)
-        if (token is None
+        if (
+            token is None
             or token['expires'] < datetime.datetime.now(datetime.timezone.utc)
             or 'userId' not in token
             or not Token().hasScope(token, TokenScope.USER_AUTH)
         ):
-            await websocket.close(code=3000, reason="Invalid token")
+            await websocket.close(code=3000, reason='Invalid token')
             return
 
         await websocket.accept()
@@ -46,8 +47,8 @@ class UserNotificationsSocket(WebSocketEndpoint):
     async def listen_and_forward(self, websocket: WebSocket):
         try:
             async for message in self.pubsub.listen():
-                if message["type"] == "message":
-                    await websocket.send_text(message["data"].decode())
+                if message['type'] == 'message':
+                    await websocket.send_text(message['data'].decode())
         except asyncio.CancelledError:
             pass
         finally:
@@ -55,6 +56,6 @@ class UserNotificationsSocket(WebSocketEndpoint):
             await self.pubsub.close()
 
     async def on_disconnect(self, websocket, close_code):
-        if hasattr(self, "listen_task"):
+        if hasattr(self, 'listen_task'):
             self.listen_task.cancel()
             await self.listen_task

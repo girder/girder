@@ -7,6 +7,6 @@ from girder.notification import UserNotificationsSocket
 
 
 app = Starlette(routes=[
-    WebSocketRoute("/notifications/me", UserNotificationsSocket),
-    Mount("/", app=WSGIMiddleware(wsgi_app)),
+    WebSocketRoute('/notifications/me', UserNotificationsSocket),
+    Mount('/', app=WSGIMiddleware(wsgi_app)),
 ])

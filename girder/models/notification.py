@@ -94,7 +94,7 @@ class Notification:
 
         return cls('progress', payload, user)
 
-    def updateProgress(self, *, increment: int=None, **kwargs):
+    def updateProgress(self, *, increment: int = None, **kwargs):
         """
         Send a progress update message to any listeners of this notification.
 
