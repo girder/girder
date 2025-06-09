@@ -1,5 +1,5 @@
 from girder import events
-from girder.models.notification import ProgressState
+from girder.notification import ProgressState
 
 JOB_HANDLER_LOCAL = 'jobs._local'
 

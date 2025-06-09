@@ -1,7 +1,7 @@
 import time
 
 from girder.exceptions import ValidationException, RestException
-from girder.models.notification import Notification, ProgressState
+from girder.notification import Notification, ProgressState
 
 
 class ProgressContext:

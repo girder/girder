@@ -5,9 +5,9 @@ from girder import events
 from girder.constants import AccessType, SortDir
 from girder.exceptions import ValidationException
 from girder.models.model_base import AccessControlledModel
-from girder.models.notification import Notification
 from girder.models.token import Token
 from girder.models.user import User
+from girder.notification import Notification
 
 from ..constants import JobStatus, JOB_HANDLER_LOCAL
 
