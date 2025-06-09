@@ -1,8 +1,11 @@
 import functools
-import os
 import json
+import logging
+import os
 
 import redis
+
+logger = logging.getLogger(__name__)
 
 
 @functools.lru_cache
@@ -43,7 +46,12 @@ class Notification:
         self._user = user
 
     def flush(self):
-        _redis_client().publish(f'user_{self._user["_id"]}', json.dumps(self._payload, default=str))
+        msg = json.dumps(self._payload, default=str)
+
+        try:
+            _redis_client().publish(f'user_{self._user["_id"]}', msg)
+        except redis.RedisError:
+            logger.exception('Error flushing notification to redis')
 
     @classmethod
     def initProgress(cls, user, title, total=0, state=ProgressState.ACTIVE,
