@@ -185,7 +185,7 @@ class GirderUploadToFolder(GirderClientResultTransform):
         self.folder_id = _id
         self.upload_kwargs = upload_kwargs or {}
         self.delete_file = delete_file
-        self.must_exist = True
+        self.must_exist = must_exist
 
     def _repr_model_(self):
         return f"{self.__class__.__name__}('{self.folder_id}')"
