@@ -113,6 +113,10 @@
             label
               input#g-new-s3-sse(type="checkbox")
               | Server side encryption
+          .checkbox
+            label
+              input#g-new-s3-accelerated-endpoint(type="checkbox")
+              | Allow S3 accelerated endpoint
 
           p#g-new-s3-error.g-validation-failed-message
           input.g-new-assetstore-submit.btn.btn-sm.btn-primary(type="submit", value="Create")
