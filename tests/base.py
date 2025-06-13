@@ -307,12 +307,6 @@ class TestCase(unittest.TestCase):
         self.assertEqual('Parameter "%s" is required.' % param, response.json.get('message', ''))
         self.assertStatus(response, 400)
 
-    def getSseMessages(self, resp):
-        messages = self.getBody(resp).strip().split('\n\n')
-        if not messages or messages == ['']:
-            return ()
-        return [json.loads(m.replace('data: ', '')) for m in messages]
-
     def uploadFile(self, name, contents, user, parent, parentType='folder',
                    mimeType=None):
         """
