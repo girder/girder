@@ -4,6 +4,7 @@ import functools
 import json
 import logging
 import os
+import time
 
 import redis
 import redis.asyncio as aioredis
@@ -88,7 +89,7 @@ class UserNotificationsSocket(WebSocketEndpoint):
 
 
 class Notification:
-    def __init__(self, type: str, data: dict, user: dict):
+    def __init__(self, type: str, data: dict, user: dict, **payload):
         """
         Create a notification for a specific user's notification channel.
 
@@ -99,6 +100,7 @@ class Notification:
         self._payload = {
             'type': type,
             'data': data,
+            **payload,
         }
         self._user = user
 
@@ -145,19 +147,17 @@ class Notification:
             associated with. This must at a minimum include the id of the resource.
         :param resourceName: the type of resource the notification is associated with.
         """
-        payload = {
+        data = {
             'title': title,
             'total': total,
             'current': current,
             'state': state,
             'message': message,
-            # TODO remove this from the payload, handle time estimation separately as before
-            'estimateTime': estimateTime,
             'resource': resource,
-            'resourceName': resourceName
+            'resourceName': resourceName,
         }
 
-        return cls('progress', payload, user)
+        return cls('progress', data, user, estimateTime=estimateTime, startTime=time.time())
 
     def updateProgress(self, *, increment: int = None, **kwargs):
         """
@@ -170,5 +170,13 @@ class Notification:
             self._payload['data']['current'] += increment
 
         self._payload['data'].update(kwargs)
+
+        current, total = self._payload['data']['current'], self._payload['data']['total']
+
+        if self._payload['estimateTime'] and total > 0 and current > 0:
+            self._payload['updatedTime'] = time.time()
+            self._payload['estimatedTotalTime'] = (
+                total * (self._payload['updatedTime'] - self._payload['startTime']) / current
+            )
 
         self.flush()
