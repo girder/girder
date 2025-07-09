@@ -69,9 +69,6 @@ var SystemConfigurationView = View.extend({
                 this.$('#g-settings-error-message').text(resp.responseJSON.message);
             });
         },
-        'click #g-core-banner-default-color': function () {
-            this.$('#g-core-banner-color').val(this.defaults['core.banner_color']);
-        }
     },
 
     initialize: function () {
