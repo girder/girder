@@ -306,7 +306,11 @@ class Folder(Resource):
         .errorResponse('Admin access was denied for the folder.', 403)
     )
     def deleteFolder(self, folder, progress):
-        deleteFolderTask.delay(folder, progress=progress, user=self.getCurrentUser())
+        deleteFolderTask.delay(
+            folderId=str(folder['_id']),
+            progress=progress,
+            userId=str(self.getCurrentUser()['_id']),
+        )
         return {'message': f'Marked folder {folder["name"]} for deletion'}
 
     @access.user(scope=TokenScope.DATA_WRITE)
@@ -360,7 +364,16 @@ class Folder(Resource):
         else:
             parent = None
 
-        copyFolderTask.delay(folder, parentType, parent, name, description, public, progress, user)
+        copyFolderTask.delay(
+            folderId=str(folder['_id']),
+            parentType=parentType,
+            parentId=str(parent['_id']) if parent else None,
+            name=name,
+            description=description,
+            public=public,
+            progress=progress,
+            userId=str(user['_id']),
+        )
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
@@ -376,9 +389,9 @@ class Folder(Resource):
     )
     def deleteContents(self, folder, progress):
         deleteFolderTask.delay(
-            folder,
+            folderId=str(folder['_id']),
             progress=progress,
-            user=self.getCurrentUser(),
+            userId=str(self.getCurrentUser()['_id']),
             contentsOnly=True,
         )
         return {'message': f'Mark folder {folder["name"]} contents for deletion.'}
