@@ -349,16 +349,12 @@ class AssetstoreTestCase(base.TestCase):
             self.assertEqual(len(invalidFiles), 1)
             self.assertEqual(invalidFiles[0]['reason'], 'missing')
             self.assertEqual(invalidFiles[0]['file']['_id'], fakeImport['_id'])
-            self.assertEqual(p.progress['data']['current'], 2)
-            self.assertEqual(p.progress['data']['total'], 2)
 
             invalidFiles = list(adapter.findInvalidFiles(progress=p))
             self.assertEqual(len(invalidFiles), 2)
             for invalidFile in invalidFiles:
                 self.assertEqual(invalidFile['reason'], 'missing')
                 self.assertIn(invalidFile['file']['_id'], (fakeImport['_id'], fake['_id']))
-            self.assertEqual(p.progress['data']['current'], 3)
-            self.assertEqual(p.progress['data']['total'], 3)
 
     def testDeleteAssetstore(self):
         resp = self.request(path='/assetstore', method='GET', user=self.admin)
@@ -856,14 +852,6 @@ class AssetstoreTestCase(base.TestCase):
                 user=self.admin, params=params)
             self.assertStatusOk(resp)
             self.assertEqual(resp.json['assetstoreId'], alternate_assetstore['_id'])
-
-            resp = self.request(
-                path='/notification/stream', method='GET', user=self.admin,
-                isJson=False, params={'timeout': 1})
-            messages = self.getSseMessages(resp)
-            self.assertEqual(len(messages), 1)
-            self.assertEqual(messages[0]['type'], 'progress')
-            self.assertEqual(messages[0]['data']['current'], size)
 
             # Test moving imported file
 

@@ -15,6 +15,10 @@ services:
     depends_on:
       - mongodb
     command: --host 0.0.0.0 --database mongodb://mongodb:27017/girder
+    environment:
+      - GIRDER_WORKER_BROKER=amqp://rabbitmq:5672
+      - GIRDER_WORKER_BACKEND=rpc://rabbitmq:5672
+      - GIRDER_NOTIFICATION_REDIS_URL=redis://redis:6379
     volumes:
       - ".:/girder"
       - assetstore:/assetstore
@@ -29,6 +33,13 @@ services:
     volumes:
       - rabbitmq:/var/lib/rabbitmq/mnesia
 
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
   localworker:
     build: .
     depends_on:
@@ -38,9 +49,11 @@ services:
       - GIRDER_WORKER_BROKER=amqp://rabbitmq:5672
       - GIRDER_WORKER_BACKEND=rpc://rabbitmq:5672
       - GIRDER_MONGO_URI=mongodb://mongodb:27017/girder
+      - GIRDER_NOTIFICATION_REDIS_URL=redis://redis:6379
       - C_FORCE_ROOT=1
 
 volumes:
   mongodb_data:
   assetstore:
   rabbitmq:
+  redis_data:

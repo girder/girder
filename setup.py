@@ -44,7 +44,11 @@ installReqs = [
     'pyOpenSSL',
     'python-dateutil',
     'pytz',
+    'redis',
     'requests',
+    'starlette',
+    'uvicorn',
+    'websockets',
 ]
 
 extrasReqs = {
