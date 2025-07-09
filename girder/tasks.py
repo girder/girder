@@ -1,20 +1,24 @@
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.folder import Folder
+from girder.models.user import User
 from girder.utility.progress import ProgressContext
 from girder_worker.app import app
 
 
 @app.task(queue='local')
 def importDataTask(
-    assetstore: dict,
-    parent: dict,
+    assetstoreId: str,
+    parentId: str,
     parentType: str,
     params: dict,
     progress: bool,
-    user: dict,
+    userId: str,
     leafFoldersAsItems: bool
 ):
+    user = User().load(userId, force=True)
+    assetstore = Assetstore().load(assetstoreId)
+    parent = Folder().load(parentId, force=True)
     with ProgressContext(progress, user=user, title='Importing data') as ctx:
         Assetstore().importData(
             assetstore, parent=parent, parentType=parentType, params=params,

@@ -136,13 +136,20 @@ class Assetstore(Resource):
 
         # Run the import data task on the local celery queue since it can take a long time
         importDataTask.delay(
-            assetstore, parent=parent, parentType=destinationType, params={
+            assetstoreId=str(assetstore['_id']),
+            parentId=str(parent['_id']),
+            parentType=destinationType,
+            params={
                 'fileIncludeRegex': fileIncludeRegex,
                 'fileExcludeRegex': fileExcludeRegex,
                 'importPath': importPath,
                 **extraParams
-            }, progress=progress, user=user, leafFoldersAsItems=leafFoldersAsItems,
-            girder_job_disable=True)
+            },
+            progress=progress,
+            userId=str(user['_id']),
+            leafFoldersAsItems=leafFoldersAsItems,
+            girder_job_disable=True,
+        )
 
     @access.admin
     @autoDescribeRoute(
