@@ -24,7 +24,7 @@ class Job(Resource):
         self.route('GET', ('typeandstatus', 'all',), self.allJobsTypesAndStatuses)
         self.route('GET', ('typeandstatus',), self.jobsTypesAndStatuses)
 
-    @access.public
+    @access.public(scope=constants.REST_LIST_JOB_TOKEN_SCOPE)
     @filtermodel(model=JobModel)
     @autoDescribeRoute(
         Description('List jobs for a given user.')
@@ -87,7 +87,7 @@ class Job(Resource):
         }
         return self._model.createJob(**params)
 
-    @access.admin
+    @access.user(scope=constants.REST_LIST_JOB_TOKEN_SCOPE)
     @filtermodel(model=JobModel)
     @autoDescribeRoute(
         Description('List all jobs.')
@@ -175,7 +175,7 @@ class Job(Resource):
     def deleteJob(self, job):
         self._model.remove(job)
 
-    @access.admin
+    @access.user(scope=constants.REST_LIST_JOB_TOKEN_SCOPE)
     @autoDescribeRoute(
         Description('Get types and statuses of all jobs')
         .errorResponse('Admin access was denied for the job.', 403)
@@ -183,7 +183,7 @@ class Job(Resource):
     def allJobsTypesAndStatuses(self):
         return self._model.getAllTypesAndStatuses(user='all')
 
-    @access.user
+    @access.user(scope=constants.REST_LIST_JOB_TOKEN_SCOPE)
     @autoDescribeRoute(
         Description('Get types and statuses of jobs of current user')
     )
