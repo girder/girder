@@ -132,7 +132,7 @@ class Model(metaclass=_ModelSingleton):
                     textIdx, weights=self._textIndex,
                     default_language=self._textLanguage)
             except pymongo.errors.OperationFailure:
-                logger.warning('WARNING: Text search not enabled.')
+                logger.exception('Error: text search not enabled.')
 
         self._connected = True
 
