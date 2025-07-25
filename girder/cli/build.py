@@ -1,9 +1,9 @@
+import importlib.resources
 import json
 import os
-from pkg_resources import resource_filename
-from subprocess import check_call
 import shutil
 import sys
+from subprocess import check_call
 
 import click
 
@@ -12,8 +12,7 @@ from girder.constants import STATIC_ROOT_DIR, ServerMode
 from girder.plugin import allPlugins, getPlugin
 from girder.utility import server
 
-
-_GIRDER_BUILD_ASSETS_PATH = os.path.realpath(resource_filename('girder', 'web_client'))
+_GIRDER_BUILD_ASSETS_PATH = str(importlib.resources.files('girder') / 'web_client')
 
 
 @click.command(name='build', help='Build web client static assets.')
