@@ -108,9 +108,18 @@ class GirderPlugin(metaclass=_PluginMeta):
         if self.CLIENT_SOURCE_PATH is None:
             return {}
 
-        packageJsonFile = (
-            importlib.resources.files(self.__module__)
-            / self.CLIENT_SOURCE_PATH / 'package.json')
+        module = self.__module__
+        while True:
+            try:
+                packageJsonFile = (
+                    importlib.resources.files(module)
+                    / self.CLIENT_SOURCE_PATH / 'package.json')
+                break
+            except Exception:
+                if '.' in module:
+                    module = module.rsplit('.', 1)[0]
+                else:
+                    raise
         if not os.path.isfile(packageJsonFile):
             raise Exception('Invalid web client path provided: %s' % packageJsonFile)
 
