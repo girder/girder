@@ -195,7 +195,11 @@ class Collection(Resource):
         .errorResponse('Admin permission denied on the collection.', 403)
     )
     def deleteCollection(self, collection, progress):
-        deleteCollectionTask.delay(collection, progress=progress, user=self.getCurrentUser())
+        deleteCollectionTask.delay(
+            collectionId=str(collection['_id']),
+            progress=progress,
+            userId=str(self.getCurrentUser()['_id']),
+        )
         return {'message': f'Marked collection {collection["name"]} for deletion.'}
 
     @access.user(scope=TokenScope.DATA_WRITE)

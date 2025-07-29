@@ -1,9 +1,4 @@
-from pkg_resources import get_distribution, DistributionNotFound
-try:
-    __version__ = get_distribution(__name__).version
-except DistributionNotFound:
-    # package is not installed
-    pass
+import importlib.metadata
 
 import time
 
@@ -16,6 +11,12 @@ from requests import HTTPError
 # messages are sent to Girder, creating an infinite loop.
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+try:
+    __version__ = importlib.metadata.version(__name__)
+except importlib.metadata.PackageNotFoundError:
+    # package is not installed
+    pass
 
 
 def _walk_obj(obj, func, leaf_condition=None):
