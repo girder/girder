@@ -51,7 +51,7 @@ def _getParamDefaultVal(param):
         return None
     elif param.isExternalType():
         return None
-    elif param.typ == 'float' or param.typ == 'integer':
+    elif param.typ in {'float', 'double', 'integer'}:
         return 0
     else:
         raise Exception(

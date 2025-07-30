@@ -120,6 +120,11 @@ class CLIParameter(ctk_cli.module.CLIParameter):
             except ValueError as e:
                 ctk_cli.module.logger.warning('Could not parse default value of <%s> (%s): %s' % (
                     ctk_cli.module._tag(elementTree), self.name, e))
+        elif (self.typ not in {'float', 'integer', 'boolean'} and
+                not self.isVector() and not self.isExternalType() and
+                self.channel != 'output'):
+            ctk_cli.module.logger.warning(
+                'No <default> provided for element of type <%s>', self.typ)
 
         if self.typ.endswith('-enumeration'):
             try:
