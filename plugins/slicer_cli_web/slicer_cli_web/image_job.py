@@ -327,6 +327,13 @@ def getCliData(name, client):
             if isinstance(cli_desc, bytes):
                 cli_desc = cli_desc.decode('utf8')
 
+            # For --xml, strip text before the first < and after the last >
+            if desc_type == 'xml':
+                cli_desc = '<' + cli_desc.split('<', 1)[1].rsplit('>', 1)[0] + '>'
+            # For --json, strip text before the first { and after the last }
+            elif desc_type == 'json':
+                cli_desc = '{' + cli_desc.split('{', 1)[1].rsplit('}', 1)[0] + '}'
+
             cli_dict[key][desc_type] = cli_desc
             print(f'Got image {name}, cli {key} metadata')
         return cli_dict

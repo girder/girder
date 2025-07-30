@@ -63,7 +63,7 @@ def CLIListEntrypoint(cli_list_spec_file=None, cwd=None):
         formatter_class=_MultilineHelpFormatter
     )
 
-    # add --cli_list
+    # add --list_cli
     cmdparser.add_argument(
         '--list_cli',
         action=_make_print_cli_list_spec_action(cli_list_spec_file),
