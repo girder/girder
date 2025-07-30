@@ -68,7 +68,7 @@ const ItemSelectorWidget = BrowserWidget.extend({
                 settings.input = {
                     label: 'Item name',
                     validate: (val) => {
-                        if (val && val.trim()) {
+                        if ((val && val.trim()) || (!val && !this.model.required)) {
                             return $.Deferred().resolve().promise();
                         }
                         return $.Deferred().reject('Specify an item name').promise();
@@ -263,14 +263,22 @@ const ItemSelectorWidget = BrowserWidget.extend({
                 });
                 break;
             case 'new-file':
-                this.model.set({
-                    path: this._path(),
-                    parent: model,
-                    value: new ItemModel({
-                        name: fileName,
-                        folderId: model.id
-                    })
-                });
+                if (!fileName) {
+                    this.model.set({
+                        path: this._path(),
+                        parent: model,
+                        value: null
+                    });
+                } else {
+                    this.model.set({
+                        path: this._path(),
+                        parent: model,
+                        value: new ItemModel({
+                            name: fileName,
+                            folderId: model.id
+                        })
+                    });
+                }
                 break;
             case 'multi':
                 if (fileName.trim() === '') {
