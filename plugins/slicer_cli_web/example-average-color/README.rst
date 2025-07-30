@@ -3,18 +3,18 @@ average color of a large image.
 
 To build, use docker in this directory::
 
-    docker build --force-rm -t girder/slicer_cli_web:average_color .
+    docker build --force-rm -t girder/slicer_cli_web:example-average-color .
 
 To run, you'll need an image that can be read by the large_image library.
 You can run this as a command line, mounting a directory for input and output,
 like so::
 
-    docker run --rm -t -v /local/image/path:/input:ro -v /local/output/path:/output --rm -it girder/slicer_cli_web:average_color average_color /input/sample_image.svs /output/annotation.json --returnparameterfile /output/results.txt --channel=red
+    docker run --rm -t -v /local/image/path:/input:ro -v /local/output/path:/output --rm -it girder/slicer_cli_web:example-average-color average_color /input/sample_image.svs /output/metadata.json --returnparameterfile /output/results.txt --channel=red
 
 You can also enumerate available algorithms::
 
-    docker run --rm -t girder/slicer_cli_web:average_color --list_cli
+    docker run --rm -t girder/slicer_cli_web:example-average-color --list_cli
 
 And get help for the one available algorithm::
 
-    docker run --rm -t girder/slicer_cli_web:average_color average_color --help
+    docker run --rm -t girder/slicer_cli_web:example-average-color average_color --help

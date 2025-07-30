@@ -29,16 +29,15 @@
     </string-enumeration>
     <float>
       <name>average</name>
-      <longflag>average</longflag>
       <label>Average color</label>
       <description>The average color</description>
       <channel>output</channel>
       <default>0</default>
     </float>
-    <file fileExtensions=".anot" reference="ImageFile">
-      <name>outputAnnotationFile</name>
-      <label>Output Annotation File</label>
-      <description>Output annotation file (*.anot)</description>
+    <file fileExtensions=".json" reference="imageFile">
+      <name>outputItemMetadata</name>
+      <label>Output Metadata File</label>
+      <description>Output metadata file (*.json)</description>
       <channel>output</channel>
       <index>1</index>
     </file>

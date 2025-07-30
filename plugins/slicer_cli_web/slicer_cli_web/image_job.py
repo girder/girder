@@ -1,5 +1,6 @@
 from base64 import b64encode
 import json
+import time
 import logging
 
 import docker
@@ -234,8 +235,6 @@ def loadMetadata(docker_client, pullList, loadList, notExistSet):
     Attempt to query preexisting images and pulled images for cli data.
     Cli data for each image is stored and returned as a DockerCache Object
 
-    :param Job(): Singleton JobModel used to update job status
-    :param job: The current job being executed
     :param docker_client: An instance of the Docker python client
     :param pullList: The list of images that the job attempted to pull
     :param loadList: The list of images to be queried that were already on the
@@ -328,6 +327,13 @@ def getCliData(name, client):
             if isinstance(cli_desc, bytes):
                 cli_desc = cli_desc.decode('utf8')
 
+            # For --xml, strip text before the first < and after the last >
+            if desc_type == 'xml':
+                cli_desc = '<' + cli_desc.split('<', 1)[1].rsplit('>', 1)[0] + '>'
+            # For --json, strip text before the first { and after the last }
+            elif desc_type == 'json':
+                cli_desc = '{' + cli_desc.split('{', 1)[1].rsplit('}', 1)[0] + '}'
+
             cli_dict[key][desc_type] = cli_desc
             print(f'Got image {name}, cli {key} metadata')
         return cli_dict
@@ -341,14 +347,49 @@ def pullDockerImage(client, names):
     Attempt to pull the docker images listed in names. Failure results in a
     DockerImageNotFoundError being raised
 
-    :params client: The docker python client
-    :params names: A list of docker images to be pulled from the Dockerhub
+    :param client: The docker python client
+    :param names: A list of docker images to be pulled from the Dockerhub
     """
     imgNotExistList = []
     for name in names:
         try:
             logger.info('Pulling %s image', name)
-            client.images.pull(name)
+            lastlog = time.time()
+            stats = {}
+            for line in client.api.pull(name, stream=True, decode=True):
+                try:
+                    line.update(line.get('progressDetail', {}))
+                    if 'id' not in line or ('total' not in line and line['id'] not in stats):
+                        continue
+                    stats.setdefault(line['id'], line).update(line)
+                    if time.time() - lastlog >= 10:
+                        total = sum(record['total'] for record in stats.values())
+                        downloaded = sum(
+                            record['total'] for record in stats.values()
+                            if record['status'] != 'Downloading')
+                        downloaded += sum(
+                            record['current'] for record in stats.values()
+                            if record['status'] == 'Downloading')
+                        extracted = sum(
+                            record['total'] for record in stats.values()
+                            if record['status'] == 'Pull complete')
+                        extracted += sum(
+                            record['current'] for record in stats.values()
+                            if record['status'] == 'Extracting')
+                        if total:
+                            msg = f'Pulling {name} image: '
+                            if downloaded < total:
+                                val = downloaded
+                                msg += 'downloaded '
+                            else:
+                                val = extracted
+                                msg += 'extracted '
+                            msg += f'{val}/{total} ({val * 100 / total:4.2f}%)'
+                            logger.info(msg)
+                        lastlog = time.time()
+                except Exception:
+                    # Don't fail if the log code has an issue
+                    pass
             # some invalid image names will not be pulled but the pull method
             # will not throw an exception so the only way to confirm if a pull
             # succeeded is to attempt a docker inspect on the image

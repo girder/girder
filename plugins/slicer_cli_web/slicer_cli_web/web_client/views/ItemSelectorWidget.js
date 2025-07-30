@@ -68,7 +68,7 @@ const ItemSelectorWidget = BrowserWidget.extend({
                 settings.input = {
                     label: 'Item name',
                     validate: (val) => {
-                        if (val && val.trim()) {
+                        if ((val && val.trim()) || (!val && !this.model.required)) {
                             return $.Deferred().resolve().promise();
                         }
                         return $.Deferred().reject('Specify an item name').promise();
@@ -118,7 +118,7 @@ const ItemSelectorWidget = BrowserWidget.extend({
             this.$('.g-item-list-entry').each((index, item) => {
                 if (this.$(item)) {
                     item = this.$(item);
-                    const link = item.find('.g-item-list-link[href]').filter((idx, l) => { console.log(idx, l); return $(l).find('i.icon-doc-text-inv').length; });
+                    const link = item.find('.g-item-list-link[href]').filter((idx, l) => $(l).find('i.icon-doc-text-inv').length);
                     const text = link.text();
                     if (text.match(regEx) || reg === '') {
                         this.$(item).addClass('g-selected');
@@ -263,14 +263,22 @@ const ItemSelectorWidget = BrowserWidget.extend({
                 });
                 break;
             case 'new-file':
-                this.model.set({
-                    path: this._path(),
-                    parent: model,
-                    value: new ItemModel({
-                        name: fileName,
-                        folderId: model.id
-                    })
-                });
+                if (!fileName) {
+                    this.model.set({
+                        path: this._path(),
+                        parent: model,
+                        value: null
+                    });
+                } else {
+                    this.model.set({
+                        path: this._path(),
+                        parent: model,
+                        value: new ItemModel({
+                            name: fileName,
+                            folderId: model.id
+                        })
+                    });
+                }
                 break;
             case 'multi':
                 if (fileName.trim() === '') {
