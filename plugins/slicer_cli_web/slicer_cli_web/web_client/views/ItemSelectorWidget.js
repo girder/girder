@@ -118,7 +118,7 @@ const ItemSelectorWidget = BrowserWidget.extend({
             this.$('.g-item-list-entry').each((index, item) => {
                 if (this.$(item)) {
                     item = this.$(item);
-                    const link = item.find('.g-item-list-link[href]').filter((idx, l) => { console.log(idx, l); return $(l).find('i.icon-doc-text-inv').length; });
+                    const link = item.find('.g-item-list-link[href]').filter((idx, l) => $(l).find('i.icon-doc-text-inv').length);
                     const text = link.text();
                     if (text.match(regEx) || reg === '') {
                         this.$(item).addClass('g-selected');
