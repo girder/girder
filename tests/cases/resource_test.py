@@ -7,7 +7,6 @@ import zipfile
 
 from .. import base
 
-from girder.models.notification import Notification, ProgressState
 from girder.models.collection import Collection
 from girder.models.item import Item
 from girder.models.folder import Folder
@@ -229,17 +228,6 @@ class ResourceTestCase(base.TestCase):
                 'progress': True
             }, isJson=False)
         self.assertStatusOk(resp)
-        # Make sure progress record exists and that it is set to expire soon
-        notifs = list(Notification().get(self.admin))
-        self.assertEqual(len(notifs), 1)
-        self.assertEqual(notifs[0]['type'], 'progress')
-        self.assertEqual(notifs[0]['data']['state'], ProgressState.SUCCESS)
-        self.assertEqual(notifs[0]['data']['title'], 'Deleting resources')
-        self.assertEqual(notifs[0]['data']['message'], 'Done')
-        self.assertEqual(notifs[0]['data']['total'], 6)
-        self.assertEqual(notifs[0]['data']['current'], 6)
-        self.assertTrue(notifs[0]['expires'] < datetime.datetime.now(datetime.timezone.utc)
-                        + datetime.timedelta(minutes=1))
         # Test deletes using a body on the request
         resourceList = {
             'item': [str(self.items[1]['_id'])]
@@ -635,13 +623,7 @@ class ResourceTestCase(base.TestCase):
         self.assertEqual(len(resp.json), 1)
         copiedFolder = resp.json[0]
         self.assertNotEqual(str(copiedFolder['_id']), str(self.adminSubFolder['_id']))
-        # We should have reported 2 things copied in the progress (1 folder and 1 item)
-        resp = self.request(
-            path='/notification/stream', method='GET', user=self.user,
-            isJson=False, params={'timeout': 1})
-        messages = self.getSseMessages(resp)
-        self.assertTrue(len(messages) >= 1)
-        self.assertEqual(messages[-1]['data']['current'], 2)
+
         # The non-admin user should not be able to copy private documents
         resp = self.request(
             path='/resource/copy', method='POST', user=self.user,

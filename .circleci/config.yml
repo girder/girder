@@ -14,6 +14,8 @@ executors:
       # This is equivalent to the deprecated circleci/mongo:<version>-ram image
       - image: mongo:5.0
         command: bash -c "mongod --noauth --bind_ip_all"
+      - image: redis
+        command: redis-server --bind 0.0.0.0
     working_directory: /home/circleci/project
   machine:
     machine:
@@ -44,6 +46,11 @@ commands:
           name: start rabbitmq
           command: |
             docker run -d -p 5672:5672 rabbitmq
+          no_output_timeout: 1h
+      - run:
+          name: start redis
+          command: |
+            docker run -d -p 6379:6379 redis
           no_output_timeout: 1h
   install-girder:
     description: "Install Girder in a virtualenv and configure CTest"
@@ -236,6 +243,10 @@ jobs:
           name: Start mongod
           command: |
             docker run -d -p 27017:27017 mongo:4.0 mongod --nojournal --noauth --bind_ip_all
+      - run:
+          name: Start redis
+          command: |
+            docker run -d -p 6379:6379 redis
       - run:
           name: Install and build @girder/core
           command: |

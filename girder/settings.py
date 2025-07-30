@@ -31,7 +31,6 @@ class SettingKey:
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
     EMAIL_HOST = 'core.email_host'
     EMAIL_VERIFICATION = 'core.email_verification'
-    ENABLE_NOTIFICATION_STREAM = 'core.enable_notification_stream'
     ENABLE_PASSWORD_LOGIN = 'core.enable_password_login'
     FILEHANDLE_MAX_SIZE = 'core.filehandle_max_size'
     GIRDER_MOUNT_INFORMATION = 'core.girder_mount_information'
@@ -82,7 +81,6 @@ class SettingDefault:
         SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',
         # SettingKey.EMAIL_HOST is provided by a function
         SettingKey.EMAIL_VERIFICATION: 'disabled',
-        SettingKey.ENABLE_NOTIFICATION_STREAM: True,
         SettingKey.ENABLE_PASSWORD_LOGIN: True,
         SettingKey.FILEHANDLE_MAX_SIZE: 1024 * 1024 * 16,
         SettingKey.GIRDER_MOUNT_INFORMATION: None,
@@ -264,12 +262,6 @@ class SettingValidator:
         if doc['value'] not in ('required', 'optional', 'disabled'):
             raise ValidationException(
                 'Email verification must be "required", "optional", or "disabled".', 'value')
-
-    @staticmethod
-    @setting_utilities.validator(SettingKey.ENABLE_NOTIFICATION_STREAM)
-    def _validateEnableNotificationStream(doc):
-        if not isinstance(doc['value'], bool):
-            raise ValidationException('Enable notification stream option must be boolean.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.ENABLE_PASSWORD_LOGIN)

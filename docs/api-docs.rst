@@ -130,12 +130,6 @@ Upload
 .. automodule:: girder.models.upload
    :members:
 
-Notification
-~~~~~~~~~~~~
-
-.. automodule:: girder.models.notification
-    :members:
-
 Web API Endpoints
 ^^^^^^^^^^^^^^^^^
 

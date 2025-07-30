@@ -65,7 +65,7 @@ def createImportRecord(event: events.Event):
         'destinationType': info['parentType'],
         'importPath': path,
         'leafFoldersAsItems': str(info['params'].get('leafFoldersAsItems', False)).lower(),
-        'progress': str(info['progress']).lower(),
+        'progress': str(info['progress'].on).lower(),
         **info['params']
     }
 
