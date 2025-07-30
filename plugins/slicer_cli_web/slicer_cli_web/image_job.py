@@ -338,6 +338,7 @@ def getCliData(name, client):
             print(f'Got image {name}, cli {key} metadata')
         return cli_dict
     except Exception as err:
+        print(f'Error getting {name} cli data from image: {err}')
         logger.exception(f'Error getting {name} cli data from image')
         raise DockerImageError(f'Error getting {name} cli data from image: {err}')
 
@@ -353,7 +354,7 @@ def pullDockerImage(client, names):
     imgNotExistList = []
     for name in names:
         try:
-            logger.info('Pulling %s image', name)
+            print(f'Pulling {name} image')
             lastlog = time.time()
             stats = {}
             for line in client.api.pull(name, stream=True, decode=True):
@@ -385,7 +386,7 @@ def pullDockerImage(client, names):
                                 val = extracted
                                 msg += 'extracted '
                             msg += f'{val}/{total} ({val * 100 / total:4.2f}%)'
-                            logger.info(msg)
+                            print(msg)
                         lastlog = time.time()
                 except Exception:
                     # Don't fail if the log code has an issue
