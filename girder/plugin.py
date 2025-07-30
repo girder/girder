@@ -146,7 +146,7 @@ class GirderPlugin(metaclass=_PluginMeta):
     @property
     def description(self):
         """Return the plugin description defaulting to the classes docstring."""
-        return self._metadata.get('description', self._metadata.get('Summary', ''))
+        return self._metadata.get('Summary', self._metadata.get('description', ''))
 
     @property
     def url(self):
