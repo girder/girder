@@ -6,6 +6,7 @@ JOB_HANDLER_LOCAL = 'jobs._local'
 
 # Scope used allow RESTful creation of girder job models
 REST_CREATE_JOB_TOKEN_SCOPE = 'jobs.rest.create_job'
+REST_LIST_JOB_TOKEN_SCOPE = 'jobs.rest.list_job'
 
 
 # integer enum describing job states. Note, no order is implied.

@@ -272,9 +272,9 @@ class Item(Resource):
                'header disposition-type value, only applied for single file '
                'items.', required=False, enum=['inline', 'attachment'],
                default='attachment')
-        .param('extraParameters', 'Arbitrary data to send along with the '
-               'download request, only applied for single file '
-               'items.', required=False)
+        .jsonParam('extraParameters', 'Arbitrary data to send along with the '
+                   'download request, only applied for single file '
+                   'items.', required=False)
         # single file items could produce other types, too.
         .produces(['application/zip', 'application/octet-stream'])
         .errorResponse('ID was invalid.')

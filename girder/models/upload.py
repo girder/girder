@@ -109,7 +109,7 @@ class Upload(Model):
 
         return doc
 
-    def handleChunk(self, upload, chunk, filter=False, user=None):
+    def handleChunk(self, upload, chunk, filter=False, user=None, uploadExtraParameters=None):
         """
         When a chunk is uploaded, this should be called to process the chunk.
         If this is the final chunk of the upload, this method will finalize
@@ -129,6 +129,9 @@ class Upload(Model):
         :type filter: bool
         :param user: The current user. Only affects behavior if filter=True.
         :type user: dict or None
+        :param uploadExtraParameters: A dict of parameters that will be given to the assetstore
+            adapter for customization of the upload request.
+        :type uploadExtraParameters: Optional[dict]
         """
         from .assetstore import Assetstore
         from .file import File
@@ -137,7 +140,7 @@ class Upload(Model):
         assetstore = Assetstore().load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
 
-        upload = adapter.uploadChunk(upload, chunk)
+        upload = adapter.uploadChunk(upload, chunk, uploadExtraParameters)
         if '_id' in upload or upload['received'] != upload['size']:
             upload = self.save(upload)
 
@@ -324,12 +327,12 @@ class Upload(Model):
             }
         if reference is not None:
             upload['reference'] = reference
-        upload = adapter.initUpload(upload)
+        upload = adapter.initUpload(upload, uploadExtraParameters=None)
         return self.save(upload)
 
     def createUpload(self, user, name, parentType, parent, size, mimeType=None,
                      reference=None, assetstore=None, attachParent=False,
-                     save=True):
+                     save=True, uploadExtraParameters=None):
         """
         Creates a new upload record, and creates its temporary file
         that the chunks will be written into. Chunks should then be sent
@@ -397,7 +400,7 @@ class Upload(Model):
         else:
             upload['userId'] = None
 
-        upload = adapter.initUpload(upload)
+        upload = adapter.initUpload(upload, uploadExtraParameters)
         if save:
             upload = self.save(upload)
         return upload

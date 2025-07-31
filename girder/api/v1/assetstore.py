@@ -79,12 +79,15 @@ class Assetstore(Resource):
                'ignore accessKeyId and secret.', dataType='boolean', required=False)
         .param('serverSideEncryption', 'Whether to use S3 SSE to encrypt the objects uploaded to '
                'this bucket (for S3 type).', dataType='boolean', required=False, default=False)
+        .param('allowS3AcceleratedTransfer', 'Whether to allow clients to requests a data '
+               'transfer using S3 transfer acceleration.', dataType='boolean', required=False,
+               default=False)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
     def createAssetstore(self, name, type, root, perms, bucket,
                          prefix, accessKeyId, secret, service, readOnly, region, inferCredentials,
-                         serverSideEncryption):
+                         serverSideEncryption, allowS3AcceleratedTransfer):
         if type == AssetstoreType.FILESYSTEM:
             self.requireParams({'root': root})
             return self._model.createFilesystemAssetstore(
@@ -94,7 +97,8 @@ class Assetstore(Resource):
             return self._model.createS3Assetstore(
                 name=name, bucket=bucket, prefix=prefix, secret=secret,
                 accessKeyId=accessKeyId, service=service, readOnly=readOnly, region=region,
-                inferCredentials=inferCredentials, serverSideEncryption=serverSideEncryption)
+                inferCredentials=inferCredentials, serverSideEncryption=serverSideEncryption,
+                allowS3AcceleratedTransfer=allowS3AcceleratedTransfer)
         else:
             raise RestException('Invalid type parameter')
 
@@ -180,12 +184,16 @@ class Assetstore(Resource):
                'ignore accessKeyId and secret.', dataType='boolean', required=False)
         .param('serverSideEncryption', 'Whether to use S3 SSE to encrypt the objects uploaded to '
                'this bucket (for S3 type).', dataType='boolean', required=False, default=False)
+        .param('allowS3AcceleratedTransfer', 'Whether to allow clients to requests a data '
+               'transfer using S3 transfer acceleration.', dataType='boolean', required=False,
+               default=False)
         .errorResponse()
         .errorResponse('You are not an administrator.', 403)
     )
     def updateAssetstore(self, assetstore, name, root, perms,
                          bucket, prefix, accessKeyId, secret, service, readOnly, region, current,
-                         inferCredentials, serverSideEncryption, params):
+                         inferCredentials, serverSideEncryption, allowS3AcceleratedTransfer,
+                         params):
         assetstore['name'] = name
         assetstore['current'] = current
 
@@ -206,6 +214,7 @@ class Assetstore(Resource):
             assetstore['region'] = region
             assetstore['inferCredentials'] = inferCredentials
             assetstore['serverSideEncryption'] = serverSideEncryption
+            assetstore['allowS3AcceleratedTransfer'] = allowS3AcceleratedTransfer
             if readOnly is not None:
                 assetstore['readOnly'] = readOnly
         else:
