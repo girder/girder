@@ -496,7 +496,7 @@ class Job(AccessControlledModel):
                 updates['$set']['progress.message'] = message
 
             if notify and user:
-                if job['progress']['notificationId'] is None:
+                if job['progress'].get('notificationId') is None:
                     notification = self._createProgressNotification(
                         job, total, current, state, message, user)
                     nid = notification['_id']
