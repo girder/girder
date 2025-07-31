@@ -118,8 +118,7 @@ class Notification:
                      resourceName=None) -> 'Notification':
         """
         Create a "progress" type notification that can be updated anytime there
-        is progress on some task. Progress records that are not updated for more
-        than one hour will be deleted. It is the caller's responsibility to call `flush`
+        is progress on some task. It is the caller's responsibility to call `flush`
         on the returned object to actually send the notification.
 
         :param user: the user associated with this notification.  If this is

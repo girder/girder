@@ -475,9 +475,6 @@ class Job(AccessControlledModel):
             total = float(total)
 
         if job['progress'] is None:
-            if notify and job['userId']:
-                notification = self._createProgressNotification(job, total, current, state, message)
-
             job['progress'] = {
                 'message': message,
                 'total': total,
@@ -495,28 +492,18 @@ class Job(AccessControlledModel):
                 job['progress']['message'] = message
                 updates['$set']['progress.message'] = message
 
-            if notify and user:
-                if job['progress'].get('notificationId') is None:
-                    notification = self._createProgressNotification(
-                        job, total, current, state, message, user)
-                    nid = notification['_id']
-                    job['progress']['notificationId'] = nid
-                    updates['$set']['progress.notificationId'] = nid
-
-                Notification.updateProgress(
-                    notification, state=state,
-                    message=job['progress']['message'],
-                    current=job['progress']['current'],
-                    total=job['progress']['total'])
-
-    def _createProgressNotification(self, job, total, current, state, message,
-                                    user=None) -> Notification:
-        if not user:
-            user = User().load(job['userId'], force=True)
-
-        return Notification.initProgress(
-            user, job['title'], total, state=state, current=current,
-            message=message, estimateTime=False, resource=job, resourceName=self.name)
+        if notify and (user or job.get('userId')):
+            Notification.initProgress(
+                user=(user or User().load(job['userId'], force=True)),
+                title=job['title'],
+                total=job['progress']['total'],
+                state=state,
+                current=job['progress']['current'],
+                message=job['progress']['message'],
+                resource=job,
+                resourceName=self.name,
+                estimateTime=False,
+            ).flush()
 
     def filter(self, doc, user=None, additionalKeys=None):
         """
