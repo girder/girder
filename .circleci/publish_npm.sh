@@ -18,6 +18,7 @@ for directory in "${PUBLISHED_NPM_PACKAGES[@]}"; do
   pushd "$directory"
   # Trying to set the auth token via 'npm_config_' environment variables does not work
   echo '//registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN}' > ./.npmrc
+  npm ci
   npm version --allow-same-version --no-git-tag-version "$GIT_VERSION"
   npm publish --access public
   rm --interactive=never ./.npmrc
