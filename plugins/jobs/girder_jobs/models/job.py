@@ -503,6 +503,7 @@ class Job(AccessControlledModel):
                 resource=job,
                 resourceName=self.name,
                 estimateTime=False,
+                _id=str(job['_id']),
             ).flush()
 
     def filter(self, doc, user=None, additionalKeys=None):
