@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import time
+import uuid
 
 import redis
 import redis.asyncio as aioredis
@@ -115,7 +116,7 @@ class Notification:
     @classmethod
     def initProgress(cls, user, title, total=0, state=ProgressState.ACTIVE,
                      current=0, message='', estimateTime=True, resource=None,
-                     resourceName=None) -> 'Notification':
+                     resourceName=None, _id=None) -> 'Notification':
         """
         Create a "progress" type notification that can be updated anytime there
         is progress on some task. It is the caller's responsibility to call `flush`
@@ -145,7 +146,14 @@ class Notification:
         :param resource: a partial or complete resource that the notification is
             associated with. This must at a minimum include the id of the resource.
         :param resourceName: the type of resource the notification is associated with.
+        :param _id: the unique ID of this progress stream. If not provided, a random UUID will
+            be used. Only pass this if you need to update the same progress stream from multiple
+            request contexts or task contexts, where it's not possible to reuse the same
+            instance of this class.
         """
+        if _id is None:
+            _id = str(uuid.uuid4())
+
         data = {
             'title': title,
             'total': total,
@@ -156,7 +164,9 @@ class Notification:
             'resourceName': resourceName,
         }
 
-        return cls('progress', data, user, estimateTime=estimateTime, startTime=time.time())
+        return cls(
+            'progress', data, user, estimateTime=estimateTime, startTime=time.time(), _id=_id
+        )
 
     def updateProgress(self, *, increment: int = None, **kwargs):
         """
