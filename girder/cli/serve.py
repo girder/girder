@@ -35,7 +35,14 @@ def main(mode: str, database: str, host: str, port: int, with_temp_assetstore: b
     config.getConfig()['database']['uri'] = database
 
     def _run_app():
-        uvicorn.run('girder.asgi:app', host=host, port=port, reload=True, server_header=False)
+        uvicorn.run(
+            'girder.asgi:app',
+            host=host,
+            port=port,
+            reload=True,
+            server_header=False,
+            date_header=False,
+        )
 
     if with_temp_assetstore:
         with tempfile.TemporaryDirectory() as tempdir:
