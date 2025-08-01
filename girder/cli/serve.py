@@ -34,6 +34,9 @@ def main(mode: str, database: str, host: str, port: int, with_temp_assetstore: b
     config.getConfig()['server'] = {'mode': mode}
     config.getConfig()['database']['uri'] = database
 
+    def _run_app():
+        uvicorn.run('girder.asgi:app', host=host, port=port, reload=True, server_header=False)
+
     if with_temp_assetstore:
         with tempfile.TemporaryDirectory() as tempdir:
             assetstore = Assetstore().createFilesystemAssetstore(
@@ -41,7 +44,7 @@ def main(mode: str, database: str, host: str, port: int, with_temp_assetstore: b
                 root=tempdir,
             )
             try:
-                uvicorn.run('girder.asgi:app', host=host, port=port, reload=True)
+                _run_app()
             finally:
                 # Delete all files in the assetstore
                 File().removeWithQuery({
@@ -49,4 +52,4 @@ def main(mode: str, database: str, host: str, port: int, with_temp_assetstore: b
                 })
                 Assetstore().remove(assetstore)
     else:
-        uvicorn.run('girder.asgi:app', host=host, port=port, reload=True)
+        _run_app()
