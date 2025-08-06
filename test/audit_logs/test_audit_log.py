@@ -136,11 +136,3 @@ def testCleanupScript(server, freshLog, args, expected, admin):
     result = CliRunner().invoke(cleanup.cleanup, args)
     assert result.exit_code == 0
     assert result.output == 'Deleted %d log entries.\n' % expected
-
-
-@pytest.mark.plugin('audit_logs')
-def testDisableLoggingOnNotificationEndpoints(server, user, freshLog):
-    server.request('/user/me')
-    server.request('/notification', user=user)
-    server.request('/notification/stream', params={'timeout': 0}, user=user, isJson=False)
-    assert Record().find().count() == 1

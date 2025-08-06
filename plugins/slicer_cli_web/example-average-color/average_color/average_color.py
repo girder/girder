@@ -3,7 +3,10 @@ import pprint
 
 import large_image
 import numpy
-from ctk_cli import CLIArgumentParser
+from ctk_cli import CLIArgumentParser  # noqa I004
+
+# imported for side effects - prevents spurious warnings
+from slicer_cli_web import ctk_cli_adjustment  # noqa
 
 
 def main(args):
@@ -24,9 +27,9 @@ def main(args):
         mean = numpy.mean(tile['tile'], axis=(0, 1))
         tileMeans.append(mean)
         tileWeights.append(tile['width'] * tile['height'])
-        print('x: %d  y: %d  w: %d  h: %d  mag: %g  color: %g %g %g' % (
+        print('x: %d  y: %d  w: %d  h: %d  mag: %g  color: %s' % (
             tile['x'], tile['y'], tile['width'], tile['height'],
-            tile['magnification'], mean[0], mean[1], mean[2]))
+            tile['magnification'], ' '.join(f'{val:g}' for val in mean)))
     mean = numpy.average(tileMeans, axis=0, weights=tileWeights)
 
     channels = ['red', 'green', 'blue']
@@ -36,11 +39,15 @@ def main(args):
         average = float(numpy.average(mean))
 
     print('Average: %g' % average)
-    sampleAnnotation = {'average': average}
-    open(args.outputAnnotationFile, 'w').write(json.dumps(sampleAnnotation))
+    sampleMetadata = {
+        'Average Color': average,
+        'Average Color By Band': [float(val) for val in mean],
+    }
+    open(args.outputItemMetadata, 'w').write(json.dumps(sampleMetadata))
 
-    with open(args.returnParameterFile, 'w') as f:
-        f.write('average = %s\n' % average)
+    if args.returnParameterFile:
+        with open(args.returnParameterFile, 'w') as f:
+            f.write('average = %s\n' % average)
 
 
 if __name__ == '__main__':

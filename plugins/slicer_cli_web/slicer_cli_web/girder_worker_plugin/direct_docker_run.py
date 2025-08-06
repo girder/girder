@@ -1,3 +1,4 @@
+import os
 from os import R_OK, access
 from os.path import abspath, basename, isfile, join
 
@@ -23,6 +24,24 @@ def _get_basename(filename, direct_path):
 TEMP_VOLUME_DIRECT_MOUNT_PREFIX = '/mnt/girder_direct_worker'
 
 
+def _adjust_docker_path(path):
+    try:
+        import docker
+
+        container_id = os.uname().nodename
+        client = docker.from_env(version='auto')
+        container = client.containers.get(container_id)
+        container_path = os.path.realpath(path)
+        for mount in container.attrs['Mounts']:
+            if mount['Type'] == 'bind':
+                dst = os.path.realpath(mount['Destination'])
+                if container_path.startswith(dst + os.sep) or container_path == dst:
+                    rel = os.path.relpath(container_path, dst)
+                    return os.path.normpath(os.path.join(mount['Source'], rel))
+    except Exception:
+        return path
+
+
 class DirectGirderFileIdToVolume(GirderFileIdToVolume):
     def __init__(self, _id, filename=None, direct_file_path=None, **kwargs):
         superc = super()
@@ -38,6 +57,7 @@ class DirectGirderFileIdToVolume(GirderFileIdToVolume):
         path = abspath(self._direct_file_path)
         if isfile(path) and access(path, R_OK):
             self._direct_container_path = join(TEMP_VOLUME_DIRECT_MOUNT_PREFIX, self._filename)
+            path = _adjust_docker_path(path)
             return BindMountVolume(path, self._direct_container_path, mode='ro')
         return None
 

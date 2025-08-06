@@ -22,7 +22,6 @@ table.g-imports-list-table
     var anyRegex = false;
     var anyLeafed = false;
     var anyImportPath = false;
-    var anyNoProgress = false;
     var otherParams = [];
     var showCount = false;
   for _import in imports
@@ -30,9 +29,7 @@ table.g-imports-list-table
       - anyRegex = True
     if _import.get('params').leafFoldersAsItems && _import.get('params').leafFoldersAsItems !== 'false'
       - anyLeafed = true
-    if !_import.get('params').progress
-      - anyNoProgress = true
-    - Object.keys(_import.get('params')).forEach((key) => { if (['importPath', 'destinationId', 'leafFoldersAsItems', 'progress', 'fileIncludeRegex', 'fileExcludeRegex'].indexOf(key) < 0 && otherParams.indexOf(key) < 0) { otherParams.push(key); } });
+    - Object.keys(_import.get('params')).forEach((key) => { if (['importPath', 'destinationId', 'leafFoldersAsItems', 'progress', 'fileIncludeRegex', 'fileExcludeRegex', 'params'].indexOf(key) < 0 && otherParams.indexOf(key) < 0) { otherParams.push(key); } });
     if _import.get('_count')
       - showCount = true
     if _import.get('params').importPath
@@ -51,8 +48,6 @@ table.g-imports-list-table
       th Destination Path
       if anyLeafed
         th Leafed Folders
-      if anyNoProgress
-        th Progress
       if anyRegex
         th File Include Regex
         th File Exclude Regex
@@ -86,9 +81,6 @@ table.g-imports-list-table
         if anyLeafed
           td
             span= _import.get('params').leafFoldersAsItems
-        if anyNoProgress
-          td
-            span= _import.get('params').progress
         if anyRegex
           td
             span= _import.get('params').fileIncludeRegex

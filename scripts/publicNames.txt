@@ -265,14 +265,6 @@ girder
                     rootpath
                     setMetadata
                     updateItem
-            notification
-                DEFAULT_STREAM_TIMEOUT
-                MAX_POLL_INTERVAL
-                MIN_POLL_INTERVAL
-                Notification
-                    listNotifications
-                    stream
-                sseMessage
             resource
                 Resource
                     copyResources
@@ -601,14 +593,6 @@ girder
                 update
                 validate
                 validateKeys
-        notification
-            Notification
-                createNotification
-                get
-                initProgress
-                initialize
-                updateProgress
-                validate
             ProgressState
                 ACTIVE
                 ERROR
@@ -1069,6 +1053,7 @@ plugins
                     validTransitions
                     valid_transitions
                 REST_CREATE_JOB_TOKEN_SCOPE
+                REST_LIST_JOB_TOKEN_SCOPE
             job_rest
                 Job
                     allJobsTypesAndStatuses

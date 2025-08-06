@@ -570,8 +570,8 @@ class Describe(Resource):
                     'all available endpoints related to each resource type. '
                     '\n\nFor endpoints that require authentication, a Girder '
                     'token is required. This can be obtained via POST '
-                    '/api_key/token using an API key, or from GET '
-                    '/usr/authentication. The latter endpoint can be '
+                    '`/api_key/token` using an API key, or from GET '
+                    '`/user/authentication`. The latter endpoint can be '
                     'authenticated via Basic Auth, if enabled in the system.',
             },
             'host': host,

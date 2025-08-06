@@ -202,9 +202,9 @@ class JobsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 0)
 
-        # User 1, as non site admin, should encounter http 403 (Forbidden)
+        # User 1, as non site admin, should still get an answer
         resp = self.request('/job/all', user=self.users[1])
-        self.assertStatus(resp, 403)
+        self.assertStatusOk(resp)
 
         # Not authenticated user should encounter http 401 (unauthorized)
         resp = self.request('/job/all')
@@ -234,83 +234,6 @@ class JobsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['_some_other_field'], 'foo')
         self.assertTrue('created' not in resp.json)
-
-    def testJobProgressAndNotifications(self):
-        job = self.jobModel.createJob(title='a job', type='t', user=self.users[1], public=True)
-
-        path = '/job/%s' % job['_id']
-        resp = self.request(path)
-        self.assertEqual(resp.json['progress'], None)
-        self.assertEqual(resp.json['timestamps'], [])
-
-        resp = self.request(path, method='PUT', user=self.users[1], params={
-            'progressTotal': 100,
-            'progressCurrent': 3,
-            'progressMessage': 'Started',
-            'notify': 'false',
-            'status': JobStatus.QUEUED
-        })
-        self.assertStatusOk(resp)
-        self.assertEqual(resp.json['progress'], {
-            'total': 100,
-            'current': 3,
-            'message': 'Started',
-            'notificationId': None
-        })
-
-        # The status update should make it so we now have a timestamp
-        self.assertEqual(len(resp.json['timestamps']), 1)
-        self.assertEqual(resp.json['timestamps'][0]['status'], JobStatus.QUEUED)
-        self.assertIn('time', resp.json['timestamps'][0])
-
-        # If the status does not change on update, no timestamp should be added
-        resp = self.request(path, method='PUT', user=self.users[1], params={
-            'status': JobStatus.QUEUED
-        })
-        self.assertStatusOk(resp)
-        self.assertEqual(len(resp.json['timestamps']), 1)
-        self.assertEqual(resp.json['timestamps'][0]['status'], JobStatus.QUEUED)
-
-        # We passed notify=false, so we should only have the job creation notification
-        resp = self.request(path='/notification/stream', method='GET',
-                            user=self.users[1], isJson=False,
-                            params={'timeout': 0})
-        messages = self.getSseMessages(resp)
-        self.assertEqual(len(messages), 1)
-
-        # Update progress with notify=true (the default)
-        resp = self.request(path, method='PUT', user=self.users[1], params={
-            'progressCurrent': 50,
-            'progressMessage': 'Something bad happened',
-            'status': JobStatus.ERROR
-        })
-        self.assertStatusOk(resp)
-        self.assertNotEqual(resp.json['progress']['notificationId'], None)
-
-        # We should now see three notifications (job created + job status + progress)
-        resp = self.request(path='/notification/stream', method='GET',
-                            user=self.users[1], isJson=False,
-                            params={'timeout': 0})
-        messages = self.getSseMessages(resp)
-        job = self.jobModel.load(job['_id'], force=True)
-        self.assertEqual(len(messages), 3)
-        creationNotify = messages[0]
-        progressNotify = messages[1]
-        statusNotify = messages[2]
-
-        self.assertEqual(creationNotify['type'], 'job_created')
-        self.assertEqual(creationNotify['data']['_id'], str(job['_id']))
-        self.assertEqual(statusNotify['type'], 'job_status')
-        self.assertEqual(statusNotify['data']['_id'], str(job['_id']))
-        self.assertEqual(int(statusNotify['data']['status']), JobStatus.ERROR)
-        self.assertNotIn('kwargs', statusNotify['data'])
-        self.assertNotIn('log', statusNotify['data'])
-
-        self.assertEqual(progressNotify['type'], 'progress')
-        self.assertEqual(progressNotify['data']['title'], job['title'])
-        self.assertEqual(progressNotify['data']['current'], float(50))
-        self.assertEqual(progressNotify['data']['state'], 'error')
-        self.assertEqual(progressNotify['_id'], str(job['progress']['notificationId']))
 
     def testDotsInKwargs(self):
         kwargs = {
@@ -446,9 +369,9 @@ class JobsTestCase(base.TestCase):
         self.jobModel.createJob(title='anonymous job', type='t5')
         self.jobModel.createJob(title='anonymous public job', type='t6', public=True)
 
-        # User 1, as non site admin, should encounter http 403 (Forbidden)
+        # User 1, as non site admin, should get an answer
         resp = self.request('/job/typeandstatus/all', user=self.users[1])
-        self.assertStatus(resp, 403)
+        self.assertStatusOk(resp)
 
         # Admin user gets all types and statuses
         resp = self.request('/job/typeandstatus/all', user=self.users[0])

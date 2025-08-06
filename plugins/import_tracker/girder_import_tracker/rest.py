@@ -49,10 +49,27 @@ def getImports(query=None, user=None, unique=False, limit=None, offset=None, sor
         cursor = AssetstoreImport().collection.aggregate([
             {'$match': query or {}},
             {'$sort': {k: v for k, v in sort}},
+            {'$addFields': {
+                'normalizedParams': {'$arrayToObject': {'$filter': {
+                    'input': {'$objectToArray': '$params'},
+                    'as': 'field',
+                    'cond': {'$and': [{
+                        '$not': {'$or': [
+                            {'$eq': ['$$field.k', 'params']},
+                            {'$eq': ['$$field.k', 'progress']}
+                        ]},
+                    }, {
+                        '$not': {'$or': [
+                            {'$eq': ['$$field.v', None]},
+                            {'$eq': ['$$field.v', '']}
+                        ]},
+                    }]}
+                }}},
+            }},
             {'$group': {
                 '_id': {
                     'assetstoreId': '$assetstoreId',
-                    'params': '$params'
+                    'params': '$normalizedParams'
                 },
                 '_count': {'$sum': 1},
                 'started': {'$first': '$started'},

@@ -218,7 +218,7 @@ class Resource(BaseResource):
                     model.remove(doc, progress=ctx)
                     if progress:
                         current += subtotal
-                        if ctx.progress['data']['current'] != current:
+                        if ctx.progress._payload['data']['current'] != current:
                             ctx.update(current=current, message='Deleted ' + kind)
 
     def _getResource(self, id, type):

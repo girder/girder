@@ -132,7 +132,11 @@ class Model(metaclass=_ModelSingleton):
                     textIdx, weights=self._textIndex,
                     default_language=self._textLanguage)
             except pymongo.errors.OperationFailure:
-                logger.warning('WARNING: Text search not enabled.')
+                try:
+                    # Some mongoDB providers don't support default_language (DocumentDB)
+                    self.collection.create_index(textIdx, weights=self._textIndex)
+                except pymongo.errors.OperationFailure:
+                    logger.exception('Error: text search not enabled.')
 
         self._connected = True
 

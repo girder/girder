@@ -1,10 +1,10 @@
-from pkg_resources import DistributionNotFound, get_distribution
+import importlib.metadata
 
 from . import log_utils
 
 try:
-    __version__ = get_distribution(__name__).version
-except DistributionNotFound:
+    __version__ = importlib.metadata.version(__name__)
+except importlib.metadata.PackageNotFoundError:
     # package is not installed
     pass
 

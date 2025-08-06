@@ -33,7 +33,6 @@ var SystemConfigurationView = View.extend({
                     [
                         'core.api_keys',
                         'core.enable_password_login',
-                        'core.enable_notification_stream'
                     ],
                     key
                 )) { // booleans via checkboxes
@@ -69,9 +68,6 @@ var SystemConfigurationView = View.extend({
                 this.$('#g-settings-error-message').text(resp.responseJSON.message);
             });
         },
-        'click #g-core-banner-default-color': function () {
-            this.$('#g-core-banner-color').val(this.defaults['core.banner_color']);
-        }
     },
 
     initialize: function () {
@@ -96,7 +92,6 @@ var SystemConfigurationView = View.extend({
             'core.smtp.username',
             'core.smtp.password',
             'core.upload_minimum_chunk_size',
-            'core.enable_notification_stream',
             'core.cors.allow_origin',
             'core.cors.allow_methods',
             'core.cors.allow_headers',

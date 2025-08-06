@@ -114,12 +114,17 @@ class CLIParameter(ctk_cli.module.CLIParameter):
         if self.index is not None:
             self.index = int(self.index)
 
-        if self.default:
+        if self.default is not None:
             try:
                 self.default = self.parseValue(self.default)
             except ValueError as e:
                 ctk_cli.module.logger.warning('Could not parse default value of <%s> (%s): %s' % (
                     ctk_cli.module._tag(elementTree), self.name, e))
+        elif (self.typ not in {'float', 'integer', 'boolean'}
+                and not self.isVector() and not self.isExternalType()
+                and self.channel != 'output'):
+            ctk_cli.module.logger.warning(
+                'No <default> provided for element of type <%s> (%s)', self.typ, self.name)
 
         if self.typ.endswith('-enumeration'):
             try:
@@ -153,6 +158,26 @@ def _ctkCliParse(cls, elementTree):  # noqa
 
 ctk_cli.module.CLIParameters.parse = _ctkCliParse
 
+_orig_CLIModule_init = ctk_cli.CLIModule.__init__
+
+
+def _CLIModule_init(self, path=None, env=None, stream=None):
+    ret = _orig_CLIModule_init(self, path, env, stream)
+    indices = set()
+    for param in self.parameters():
+        if param.index is not None:
+            idx = int(param.index)
+            if idx in indices:
+                ctk_cli.module.logger.warning('Parameter index %d used multiple times', idx)
+            indices.add(idx)
+    if len(indices) and (min(indices) < 0 or max(indices) >= len(indices)):
+        ctk_cli.module.logger.warning('Parameter indices are not continuous from 0 upwards')
+
+    return ret
+
+
+ctk_cli.CLIModule.__init__ = _CLIModule_init
 CLIModule = ctk_cli.CLIModule
+
 
 __all__ = ['CLIModule']

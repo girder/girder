@@ -88,7 +88,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         :param contentDisposition: Content-Disposition response header
             disposition-type value.
         :type contentDisposition: str or None
-        :type extraParameters: str or None
+        :type extraParameters: dict or None
         """
         events.trigger('model.file.download.request', info={
             'file': file,

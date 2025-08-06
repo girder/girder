@@ -121,7 +121,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             'total': None
         }
 
-    def initUpload(self, upload):
+    def initUpload(self, upload, uploadExtraParameters):
         """
         Generates a temporary file and sets its location in the upload document
         as tempFile. This is the file that the chunks will be appended to.
@@ -132,7 +132,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         upload['sha512state'] = _hash_state.serializeHex(sha512())
         return upload
 
-    def uploadChunk(self, upload, chunk):
+    def uploadChunk(self, upload, chunk, uploadExtraParameters):
         """
         Appends the chunk into the temporary file.
         """

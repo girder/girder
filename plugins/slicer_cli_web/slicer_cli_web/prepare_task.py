@@ -191,7 +191,8 @@ def _add_optional_output_param(param, args, user, result_hooks, reference, templ
     ref = reference.copy()
     ref['identifier'] = param.identifier()
     result_hooks.append(GirderUploadVolumePathToFolder(
-        path, folder, upload_kwargs={'reference': json.dumps(ref)}))
+        path, folder, must_exist=False,
+        upload_kwargs={'reference': json.dumps(ref)}))
 
     return container_args
 

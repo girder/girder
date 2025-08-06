@@ -31,7 +31,8 @@
     "build-only": "vite build",
     "build-lib": "BUILD_LIB=true vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
-    "install-browsers": "playwright install --with-deps"
+    "install-browsers": "playwright install --with-deps",
+    "prepublishOnly": "npm run build-lib"
   },
   "dependencies": {
     "@girder/fontello": "^5.0.0-a7",

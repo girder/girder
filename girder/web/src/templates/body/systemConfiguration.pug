@@ -1,40 +1,48 @@
 .g-body-title System configuration
+.g-body-subtitle
+  p
+    | Note: all settings other than those referencing data in the database should be set as
+    | environment variables in the execution environment.
 form.g-settings-form(role="form")
   .g-settings-form-container
     h4 Instance Branding
     .form-group
       label(for="g-core-brand-name") Brand Name
       input#g-core-brand-name.form-control.input-sm(
+          disabled=true,
           type="text", value=settings['core.brand_name'] || '',
           title="The brand name of the application.")
     .form-group
       label(for="g-core-contact-email-address") Contact email address
       input#g-core-contact-email-address.form-control.input-sm(
+          disabled=true,
           type="text", value=settings['core.contact_email_address'] || '',
           title="The contact email address for users to obtain support with this instance.")
     .form-group
       label(for="g-core-banner-color") Banner Color
       #g-core-banner-color-container
         input#g-core-banner-color.form-control.input-sm(
+            disabled=true,
             type="color", value=settings['core.banner_color'],
             title="The banner color of the application.")
-        button#g-core-banner-default-color.form-control.input-sm(
-            type="button", title="Default color") default
   .form-group
     label(for="g-core-privacy-notice") Privacy Notice Link
     input#g-core-privacy-notice.form-control.input-sm(
+        disabled=true,
         type="text", value=settings['core.privacy_notice'] || '',
         title="The privacy notice link.")
   .form-group
     label(for="g-core-cookie-lifetime") Cookie duration (days)
     input#g-core-cookie-lifetime.form-control.input-sm(
+        disabled=true,
         type="text", value=settings['core.cookie_lifetime'] || '',
         title="How long users will stay logged in.")
   .g-settings-form-container
     h4 Administrative Policy
     .form-group
       label(for="g-core-registration-policy") Registration policy
-      select#g-core-registration-policy.form-control.input-sm
+      select#g-core-registration-policy.form-control.input-sm(
+          disabled=true)
         option(value="open",
             selected=(settings['core.registration_policy'] === "open")) Open registration
         option(value="closed",
@@ -43,7 +51,8 @@ form.g-settings-form(role="form")
             selected=(settings['core.registration_policy'] === "approve")) Admin approval required
     .form-group
       label(for="g-core-email-verification") Email verification
-      select#g-core-email-verification.form-control.input-sm
+      select#g-core-email-verification.form-control.input-sm(
+          disabled=true)
         option(value="required",
             selected=(settings['core.email_verification'] === "required")) Required
         option(value="optional",
@@ -52,7 +61,8 @@ form.g-settings-form(role="form")
             selected=(settings['core.email_verification'] === "disabled")) Disabled
     .form-group
       label(for="g-core-add-to-group-policy") Allow members to be directly added to groups
-      select#g-core-add-to-group-policy.form-control.input-sm
+      select#g-core-add-to-group-policy.form-control.input-sm(
+          disabled=true)
         option(value="never",
             selected=(settings['core.add_to_group_policy'] === "never"))
           | No, members must be invited and accept invitations
@@ -73,13 +83,15 @@ form.g-settings-form(role="form")
       p.
         Allow additional users and groups to create collections.
       input.g-setting-switch(type="checkbox",
-          checked="checked", data-size="mini", data-on-color="primary")
+          checked="checked", data-size="mini", data-on-color="primary",
+          disabled=true)
       .access-widget-container
       textarea#g-core-collection-create-policy.hide
         = JSON.stringify(settings['core.collection_create_policy'])
     .form-group
       label(for="g-core-user-default-folders") Create default folders for new users
-      select#g-core-user-default-folders.form-control.input-sm
+      select#g-core-user-default-folders.form-control.input-sm(
+          disabled=true)
         option(value="none",
             selected=(settings['core.user_default_folders'] === "none")) No
         option(value="public_private",
@@ -87,24 +99,28 @@ form.g-settings-form(role="form")
     .form-group
       .checkbox
         label(for="g-core-api-keys")
-          input#g-core-api-keys(type="checkbox", checked=settings['core.api_keys'])
+          input#g-core-api-keys(type="checkbox", checked=settings['core.api_keys'],
+              disabled=true)
           | Enable API keys
     .form-group
       .checkbox
         label(for="g-core-enable-password-login")
           input#g-core-enable-password-login(
-              type="checkbox", checked=settings['core.enable_password_login'])
+              type="checkbox", checked=settings['core.enable_password_login'],
+              disabled=true)
           | Enable password login
   .g-settings-form-container
     h4 Email Creation
     .form-group
       label(for="g-core-email-from-address") Email from address
       input#g-core-email-from-address.form-control.input-sm(
+          disabled=true,
           type="text", value=settings['core.email_from_address'] || '',
           title="The email address the system will use when sending emails.")
     .form-group
       label(for="g-core-email-host") Email host
       input#g-core-email-host.form-control.input-sm(
+          disabled=true,
           type="text", value=settings['core.email_host'] || '',
           title="The host email server that is shown as a link in the footer of emails.")
   .g-settings-form-container
@@ -112,16 +128,19 @@ form.g-settings-form(role="form")
     .form-group
       label(for="g-core-smtp-host") SMTP host
       input#g-core-smtp-host.form-control.input-sm(
+          disabled=true,
           type="text", value=settings['core.smtp_host'] || '',
           title="The hostname of the SMTP server used to send emails.")
     .form-group
       label(for="g-core-smtp-port") SMTP port
       input#g-core-smtp-port.form-control.input-sm(
+          disabled=true,
           type="text", value=settings['core.smtp.port'] || '',
           title="The port number of the SMTP server used to send emails.")
     .form-group
       label(for="g-core-smtp-encryption") SMTP encryption
-      select#g-core-smtp-encryption.form-control.input-sm
+      select#g-core-smtp-encryption.form-control.input-sm(
+          disabled=true)
         option(value="none",
             selected=(settings['core.smtp.encryption'] === "none")) None
         option(value="starttls",
@@ -131,11 +150,13 @@ form.g-settings-form(role="form")
     .form-group
       label(for="g-core-smtp-username") SMTP username
       input#g-core-smtp-username.form-control.input-sm(
+          disabled=true,
           type="text", value=settings['core.smtp.username'] || '',
           title="The username, if any, used to authenticate to the SMTP server used to send emails.")
     .form-group
       label(for="g-core-smtp-password") SMTP password
       input#g-core-smtp-password.form-control.input-sm(
+          disabled=true,
           type="password", value=settings['core.smtp.password'] || '',
           title="The password, if any, used to authenticate to the SMTP server used to send emails.")
 
@@ -153,6 +174,7 @@ form.g-settings-form(role="form")
           .form-group
             label(for="g-core-server-root") Server root URL
             input#g-core-server-root.form-control.input-sm(
+                disabled=true,
                 type="text", value=settings['core.server_root'] || '',
                 placeholder='Detect automatically')
           .form-group
@@ -160,17 +182,9 @@ form.g-settings-form(role="form")
             br
             span This applies to Filesystem assetstores.
             input#g-core-upload-minimum-chunk-size.form-control.input-sm(
+                disabled=true,
                 type="text", value=settings['core.upload_minimum_chunk_size'] || '',
                 title="For large files, the minimum size of all but the last chunk.")
-          .form-group
-            label Server Notification Stream
-            br
-            span Disabling this may improve server performance with many concurrent web client users.
-            .checkbox
-              label(for="g-core-enable-notification-stream")
-                input#g-core-enable-notification-stream(
-                type="checkbox", checked=(settings['core.enable_notification_stream']))
-                | Enabled
           .g-settings-form-container
             h4 CORS
             p.
@@ -180,17 +194,20 @@ form.g-settings-form(role="form")
             .form-group
               label(for="g-core-cors-allow-origin") CORS Allowed Origins
               input#g-core-cors-allow-origin.form-control.input-sm(
+                  disabled=true,
                   type="text", value=settings['core.cors.allow_origin'] || '',
                   title="A comma-separated list of allowed base URLs that can make cross-site requests. This may include *.")
             .form-group
               label(for="g-core-cors-allow-methods") CORS Allowed Methods
               input#g-core-cors-allow-methods.form-control.input-sm(
+                  disabled=true,
                   type="text", value=settings['core.cors.allow_methods'] || '',
                   placeholder="Default: allow all methods",
                   title="A comma-separated list of allowed methods")
             .form-group
               label(for="g-core-cors-allow-headers") CORS Allowed Headers
               input#g-core-cors-allow-headers.form-control.input-sm(
+                  disabled=true,
                   type="text", value=settings['core.cors.allow_headers'] || '',
                   title="A comma-separated list of allowed headers.")
   p

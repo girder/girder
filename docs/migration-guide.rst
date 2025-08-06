@@ -137,6 +137,56 @@ to run the local worker is:
 
     celery -A girder_worker.app worker -Q local
 
+Overhaul of notifications system switch from WSGI to ASGI
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+In prior versions of Girder, notifications were a model in the Mongo database and were sent to
+the client by querying that mongo collection for documents using a timestamp threshold. Clients
+would use simple polling or long-polling using Server-Sent Events (SSE), but this was problematic
+under WSGI because those long polling threads exhausted the server's thread pool with low
+utilization.
+
+In Girder 5, we've resolved this by moving from a WSGI app to an ASGI app, and using proper async
+behavior for the notification system. Internally, this is handled using redis pub/sub, and clients
+now use websockets to subscribe to notifications. On the web client side, this should not require
+any changes, assuming your client code was using the girder ``events`` module to handle async
+notifications. If you were using a custom client with the ``/notification/stream`` API endpoint,
+you will need do update your client to subscribe to the websocket channel instead, which is at
+the path ``/notifications/me?token=<girder_auth_token>``.
+
+One behavioral change to note is that events are no longer queried based on a timestamp threshold,
+but rather are sent to the client as they are received in pub/sub style. This means that the client
+will only receive these events if they are listening on the channel. Under the previous
+implementation, it was possible for clients to receive the same event multiple times, but that
+should no longer be the case -- clients should receive any given notification at most once.
+
+On the server side, if you were using the ``Notification`` Mongo model, you will need to change your
+code to use the new API, as that model has been removed entirely. Instead, use the new
+``girder.notification`` module to send notifications to the client. Example code change:
+
+Before:
+
+.. code-block:: python
+
+    from girder.models.notification import Notification
+
+    Notification().createNotification(
+        type='my_notification_type', data={...}, user=user,
+        expires=now(timezone.utc) + timedelta(seconds=30)
+    )
+
+After:
+
+.. code-block:: python
+
+    from girder.notification import Notification
+
+    Notification(type='my_notification_type', data={...}, user=user).flush()
+
+Note that the notification won't actually be sent on the channel until you call ``flush()`` on it.
+For progress notifications, please use the existing ``ProgressContext`` class, which has the same
+API as before. It has been internally updated to use the new async notification system.
+
 Removal of ``setResponseTimeLimit`` function
 ++++++++++++++++++++++++++++++++++++++++++++
 
