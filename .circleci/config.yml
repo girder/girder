@@ -40,7 +40,7 @@ commands:
       - run:
           name: start mongo
           command: |
-            docker run -d -p 27017:27017 mongo:4.0 mongod --nojournal --noauth --bind_ip_all
+            docker run --rm -d -p 127.0.0.1:27017:27017 mongo:latest bash -c "mongod --noauth --bind_ip_all"
           no_output_timeout: 1h
       - run:
           name: start rabbitmq
@@ -242,7 +242,7 @@ jobs:
       - run:
           name: Start mongod
           command: |
-            docker run -d -p 27017:27017 mongo:4.0 mongod --nojournal --noauth --bind_ip_all
+            docker run --rm -d -p 127.0.0.1:27017:27017 mongo:latest bash -c "mongod --noauth --bind_ip_all"
       - run:
           name: Start redis
           command: |
