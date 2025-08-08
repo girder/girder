@@ -154,7 +154,7 @@ class AbstractAssetstoreAdapter:
             'total': None
         }
 
-    def initUpload(self, upload):
+    def initUpload(self, upload, uploadExtraParameters):
         """
         This must be called before any chunks are uploaded to do any
         additional behavior and optionally augment the upload document. The
@@ -166,7 +166,7 @@ class AbstractAssetstoreAdapter:
         """
         return upload
 
-    def uploadChunk(self, upload, chunk):
+    def uploadChunk(self, upload, chunk, uploadExtraParameters):
         """
         Call this method to process each chunk of an upload.
 
@@ -174,6 +174,9 @@ class AbstractAssetstoreAdapter:
         :type upload: dict
         :param chunk: The file object representing the chunk that was uploaded.
         :type chunk: file
+        :param uploadExtraParameters: A dict of parameters that will be given to the assetstore
+            adapter for customization of the upload request.
+        :type uploadExtraParameters: Optional[dict]
         :returns: Must return the upload document with any optional changes.
         """
         raise NotImplementedError('Must override processChunk in %s.' %
@@ -272,7 +275,7 @@ class AbstractAssetstoreAdapter:
         :param contentDisposition: Value for Content-Disposition response
             header disposition-type value.
         :type contentDisposition: str or None
-        :type extraParameters: str or None
+        :type extraParameters: dict or None
         """
         raise NotImplementedError('Must override downloadFile in %s.' %
                                   self.__class__.__name__)

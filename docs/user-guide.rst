@@ -16,7 +16,7 @@ Document Conventions
 
 This User Guide is written for end-users of Girder, rather than developers. If you
 have suggestions or questions about this documentation, feel free to contact us through our
-`Discourse discussion forum <https://discourse.girder.org>`_,
+`Github Discussions forum <https://github.com/orgs/girder/discussions>`_,
 `on GitHub <https://github.com/girder/girder>`_, or `through Kitware support <mailto:kitware@kitware.com>`_.
 
 Girder specific entities will be ``formatted like this``.

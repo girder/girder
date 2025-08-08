@@ -332,7 +332,7 @@ respectively.
 Removed insecure sha512 password hashing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The ``core.hash_alg`` and ``core.bcrypt_rounds`` configuration parameters were also removed.
-Password hashing now always occurs with 12-round bcrypt. Please reach out to us on Discourse if you
+Password hashing now always occurs with 12-round bcrypt. Please reach out to us on `Github Discussions <https://github.com/orgs/girder/discussions>`_` if you
 have existing databases with sha512 passwords or believe you need to configure bcrypt to use
 additional rounds.
 
@@ -358,7 +358,7 @@ Removed or moved plugins
 Many plugins were either deleted from the main repository, or moved to other repositories. Plugins
 are no longer installable via a ``[plugins]`` extra when installing the ``girder`` Python package;
 rather, all are installed by ``pip install girder-[plugin_name]``. If you were depending on a plugin
-that was deleted altogether, please reach out to us on Discourse for discussion of a path forward.
+that was deleted altogether, please reach out to us on `Github Discussions <https://github.com/orgs/girder/discussions>`_ for discussion of a path forward.
 
 The following plugins were **deleted**:
 

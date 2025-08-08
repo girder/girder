@@ -445,8 +445,10 @@ class QuotaTestCase(base.TestCase):
         self._setPolicy({'fileSizeQuota': None},
                         'user', self.user, self.admin)
         # useDefaultQuota can be True, False, None, yes, no, 0, 1.
-        valdict = {None: True, True: True, 'true': True, 1: True, 'True': True,
-                   False: False, 'false': False, 0: False, 'False': False}
+        # 0 and 1 are included because True and False as keys map to 0 and 1
+        # directly
+        valdict = {None: True, True: True, 'true': True, 'True': True,
+                   False: False, 'false': False, 'False': False}
         for val in valdict:
             self._setPolicy({'useQuotaDefault': val},
                             'user', self.user, self.admin,

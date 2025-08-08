@@ -473,6 +473,11 @@ class Folder(AccessControlledModel):
         :type reuseExisting: bool
         :returns: The folder document that was created.
         """
+        # We strip the name as part of validation, so if we ask to reuse the
+        # folder name and it has leading or trailing whitespace, our check may
+        # pass that it doesn't exist and then fail later when we create the
+        # folder because it exists.  Strip it to start.
+        name = name.strip()
         if reuseExisting:
             existing = self.findOne({
                 'parentId': parent['_id'],

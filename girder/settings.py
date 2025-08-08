@@ -26,6 +26,7 @@ class SettingKey:
     CORS_ALLOW_METHODS = 'core.cors.allow_methods'
     CORS_ALLOW_ORIGIN = 'core.cors.allow_origin'
     CORS_EXPOSE_HEADERS = 'core.cors.expose_headers'
+    DOWNLOAD_SHOWN = 'core.download_shown'
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
     EMAIL_HOST = 'core.email_host'
     EMAIL_VERIFICATION = 'core.email_verification'
@@ -73,6 +74,7 @@ class SettingDefault:
         SettingKey.CORS_ALLOW_METHODS: 'GET, POST, PUT, HEAD, DELETE',
         SettingKey.CORS_ALLOW_ORIGIN: '',
         SettingKey.CORS_EXPOSE_HEADERS: 'Girder-Total-Count, Content-Disposition',
+        SettingKey.DOWNLOAD_SHOWN: 'all',
         # An apache server using reverse proxy would also need
         #  X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
         #  X-Forwarded-Host, Remote-Addr
@@ -228,6 +230,14 @@ class SettingValidator:
     def _validateCorsExposeHeaders(doc):
         if not isinstance(doc['value'], str):
             raise ValidationException('CORS exposed headers must be a string', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.DOWNLOAD_SHOWN)
+    def _validateDownloadShown(doc):
+        doc['value'] = doc['value'].lower()
+        if doc['value'] not in ('all', 'user', 'admin', 'none'):
+            raise ValidationException(
+                'Download shown be "all", "user", "admin", or "nonde".', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.EMAIL_FROM_ADDRESS)

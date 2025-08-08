@@ -202,9 +202,9 @@ class JobsTestCase(base.TestCase):
         self.assertStatusOk(resp)
         self.assertEqual(len(resp.json), 0)
 
-        # User 1, as non site admin, should encounter http 403 (Forbidden)
+        # User 1, as non site admin, should still get an answer
         resp = self.request('/job/all', user=self.users[1])
-        self.assertStatus(resp, 403)
+        self.assertStatusOk(resp)
 
         # Not authenticated user should encounter http 401 (unauthorized)
         resp = self.request('/job/all')
@@ -446,9 +446,9 @@ class JobsTestCase(base.TestCase):
         self.jobModel.createJob(title='anonymous job', type='t5')
         self.jobModel.createJob(title='anonymous public job', type='t6', public=True)
 
-        # User 1, as non site admin, should encounter http 403 (Forbidden)
+        # User 1, as non site admin, should get an answer
         resp = self.request('/job/typeandstatus/all', user=self.users[1])
-        self.assertStatus(resp, 403)
+        self.assertStatusOk(resp)
 
         # Admin user gets all types and statuses
         resp = self.request('/job/typeandstatus/all', user=self.users[0])

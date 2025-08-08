@@ -1,7 +1,7 @@
 Girder: a data management platform
 ==================================
 
-|build-status| |license-badge| |discourse-badge| |codecov-badge| |github-badge|
+|build-status| |license-badge| |codecov-badge| |github-badge|
 
 .. |build-status| image:: https://circleci.com/gh/girder/girder.png?style=shield
     :target: https://circleci.com/gh/girder/girder
@@ -19,17 +19,12 @@ Girder: a data management platform
     :target: https://github.com/girder/girder
     :alt: GitHub
 
-.. |discourse-badge| image:: https://img.shields.io/badge/discourse-forum-blue.svg
-   :target: https://discourse.girder.org
-   :alt: Discourse
-
 
 What is Girder?
 ---------------
 
-Girder is a free and open source web-based **data management platform** developed by
-`Kitware <http://www.kitware.com/>`_ as part of the
-`Resonant data and analytics ecosystem <http://resonant.kitware.com/>`_. What does
+Girder is a free and open source web-based **data management platform**, developed by
+`Kitware <http://www.kitware.com/>`_. What does
 that mean? Girder is both a standalone application and a platform for building new web
 services. It's meant to enable quick and easy construction of web applications
 that have some or all of the following requirements:

@@ -1,21 +1,21 @@
-import pkg_resources
+import importlib.metadata
+import importlib.resources
 
-import sphinx_rtd_theme
+import packaging.requirements
 from sphinx.domains.python import PythonDomain
 
 # needs_sphinx = '1.6'
 
+
 # Get package imports and version
-# The 'girder' and "girder_client" packages must be installed at this point
-_girder_package = pkg_resources.get_distribution('girder')
-_girder_client_package = pkg_resources.get_distribution('girder_client')
+_girder_package = importlib.metadata.distribution('girder')
+_girder_client_package = importlib.metadata.distribution('girder_client')
 _girder_version = _girder_package.version
 _girder_imports = {
-    _requirement.project_name.lower()
+    packaging.requirements.Requirement(_requirement).name.lower()
     for _package in [_girder_package, _girder_client_package]
-    for _requirement in _package.requires(_package.extras)
+    for _requirement in _package.requires
 }
-# Add importable module names that are different from package names
 _girder_imports |= {
     'botocore',
     'bson',
@@ -34,7 +34,6 @@ release = _girder_version
 version = '.'.join(release.split('.')[:2])
 
 html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_favicon = 'favicon.ico'
 
 latex_documents = [

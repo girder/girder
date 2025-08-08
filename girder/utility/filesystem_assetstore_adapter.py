@@ -1,6 +1,7 @@
 import filelock
 from hashlib import sha512
 import io
+import mimetypes
 import os
 import psutil
 import shutil
@@ -120,7 +121,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             'total': None
         }
 
-    def initUpload(self, upload):
+    def initUpload(self, upload, uploadExtraParameters):
         """
         Generates a temporary file and sets its location in the upload document
         as tempFile. This is the file that the chunks will be appended to.
@@ -131,7 +132,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         upload['sha512state'] = _hash_state.serializeHex(sha512())
         return upload
 
-    def uploadChunk(self, upload, chunk):
+    def uploadChunk(self, upload, chunk, uploadExtraParameters):
         """
         Appends the chunk into the temporary file.
         """
@@ -334,6 +335,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
                      path, item['_id'], self.assetstore['_id'])
         stat = os.stat(path)
         name = name or os.path.basename(path)
+        mimeType = mimeType or mimetypes.guess_type(name)[0]
 
         file = File().createFile(
             name=name, creator=user, item=item, reuseExisting=True, assetstore=self.assetstore,
