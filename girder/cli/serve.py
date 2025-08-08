@@ -42,6 +42,7 @@ def main(mode: str, database: str, host: str, port: int, with_temp_assetstore: b
             reload=True,
             server_header=False,
             date_header=False,
+            log_level='warning',
         )
 
     if with_temp_assetstore:
