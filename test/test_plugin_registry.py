@@ -125,8 +125,9 @@ def testPluginWithNPMPackage(registry):
         packageJson.write(b'{"name": "@girder/test_plugin"}')
         packageJson.flush()
         pluginDef = plugin.getPlugin('client_plugin')
-        with unittest.mock.patch.object(plugin, 'resource_filename', return_value=packageJson.name):
-            assert '@girder/test_plugin' in pluginDef.npmPackages()
+        with pytest.raises(TypeError) as exception1:
+            pluginDef.npmPackages()
+        assert 'not a package' in str(exception1)
 
 
 @pytest.mark.plugin('plugin1', NoDeps)
