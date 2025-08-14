@@ -57,7 +57,7 @@ def registerPluginStaticContent(plugin: str, css: List[str], js: List[str], stat
 
             if '?' in filename:
                 # For now, we assume this means the plugin is managing its own cache busting
-                return f'/plugin_static/{plugin}/{filename}'
+                return f'plugin_static/{plugin}/{filename}'
 
             hash_md5 = hashlib.md5()
 
@@ -65,7 +65,7 @@ def registerPluginStaticContent(plugin: str, css: List[str], js: List[str], stat
                 for chunk in iter(lambda: f.read(4096), b''):
                     hash_md5.update(chunk)
 
-            return f'/plugin_static/{plugin}/{filename}?h={hash_md5.hexdigest()[:10]}'
+            return f'plugin_static/{plugin}/{filename}?h={hash_md5.hexdigest()[:10]}'
 
         _pluginStaticContent[plugin] = PluginStaticContent(
             css=[cache_bust_url(f) for f in css],

@@ -29,7 +29,7 @@ commands:
       - run:
           name: install nodejs
           command: |
-            curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+            curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
             sudo apt-get install -y nodejs
       - run:
           name: install apt libraries for Girder
