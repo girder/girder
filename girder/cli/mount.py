@@ -1,4 +1,4 @@
-#!/usrbin/env python3
+#!/usr/bin/env python3
 
 import errno
 import functools
@@ -16,17 +16,19 @@ import click
 import fuse
 
 import girder
-from girder import events, logger, logprint
+from girder import events
 from girder.exceptions import AccessException, FilePathException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.settings import SettingKey
-from girder.utility import config
 from girder.utility import path as path_util
 from girder.utility.model_importer import ModelImporter
 from girder.utility.server import configureServer
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 
 def _hashkey_first(funcname, *args, **kwargs):
@@ -137,7 +139,7 @@ class ServerFuse(fuse.Operations):
         :param path: path within the fuse (e.g., '', '/user', '/user/<name>',
             etc.).
         """
-        logger.debug('-> %s %s %s', op, path, repr(args))
+        logger.info('-> %s %s %s', op, path, repr(args))
         try:
             ret = getattr(self, op)(path, *args, **kwargs)
             return ret
@@ -551,11 +553,11 @@ class FUSELogError(fuse.FUSE):
         RuntimeError exception.
         """
         try:
-            logger.debug('Mounting %s\n' % mountpoint)
+            logger.debug('Mounting %s\n', mountpoint)
             super().__init__(operations, mountpoint, *args, **kwargs)
-            logger.debug('Mounted %s\n' % mountpoint)
+            logger.debug('Mounted %s\n', mountpoint)
         except RuntimeError:
-            logprint.error(
+            logger.error(
                 'Failed to mount FUSE.  Does the mountpoint (%r) exist and is '
                 'it empty?  Does the user have permission to create FUSE '
                 'mounts?  It could be another FUSE mount issue, too.' % (
@@ -625,16 +627,20 @@ def unmountServer(path, lazy=False, quiet=False):
     '-q', '--quiet', is_flag=True, default=False,
     help='Suppress Girder startup information or unmount output.')
 @click.option('-v', '--verbose', count=True)
-def main(path, database, fuseOptions, unmount, lazy, plugins, quiet, verbose):
+@click.option(
+    '--log-file', '--log',
+    help='Send logs to a file; this will slow things down but can be done in '
+    'background mode.')
+def main(path, database, fuseOptions, unmount, lazy, plugins, quiet, verbose, log_file):
     if unmount or lazy:
         result = unmountServer(path, lazy, quiet)
         sys.exit(result)
     mountServer(path=path, database=database, fuseOptions=fuseOptions,
-                quiet=quiet, verbose=verbose, plugins=plugins)
+                quiet=quiet, verbose=verbose, plugins=plugins, log_file=log_file)
 
 
 def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
-                plugins=None):
+                plugins=None, log_file=None):
     """
     Perform the mount.
 
@@ -649,15 +655,16 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
     :param verbose: if not zero, log to stderr instead of the girder logs.
     :param plugins: an optional list of plugins to enable.  If None, use the
         plugins that are configured.
+    :param log_file: if set, log to a file rather than stdout.  Ignored if
+        quiet is true.
     """
-    if quiet or verbose:
-        curConfig = config.getConfig()
-        curConfig.setdefault('logging', {})['log_quiet'] = True
-        curConfig.setdefault('logging', {})['log_level'] = 'FATAL'
-        girder._attachFileLogHandlers()
-        if verbose:
-            logger.setLevel(max(1, logging.ERROR - verbose * 10))
-            logger.addHandler(logging.StreamHandler())
+    if not quiet:
+        logger.setLevel(max(1, logging.ERROR - verbose * 10))
+        if not log_file:
+            logger.addHandler(logging.StreamHandler(sys.stdout))
+        else:
+            logger.addHandler(logging.handlers.RotatingFileHandler(
+                log_file, maxBytes=10 * 1024 ** 2, backupCount=6))
     if database and '://' in database:
         cherrypy.config['database']['uri'] = database
     if plugins is not None:
@@ -690,7 +697,7 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
             else:
                 key, value = opt, True
             if key in ('ro', 'rw') and options.get(key) != value:
-                logprint.warning('Ignoring the %s=%r option' % (key, value))
+                logger.warning('Ignoring the %s=%r option' % (key, value))
                 continue
             options[key] = value
     opClass = ServerFuse(stat=os.stat(path), options=options)
