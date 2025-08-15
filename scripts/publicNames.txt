@@ -342,6 +342,7 @@ girder
                 readdir
                 release
                 use_ns
+            logger
             main
             mountServer
             unmountServer
