@@ -659,7 +659,7 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
     if plugins is not None:
         plugins = plugins.split(',')
 
-    app_info = create_app(ServerMode.DEVELOPMENT)
+    app_info = create_app(os.environ.get('GIRDER_SERVER_MODE', ServerMode.DEVELOPMENT))
     plugin._loadPlugins(app_info, names=plugins)
 
     options = {
