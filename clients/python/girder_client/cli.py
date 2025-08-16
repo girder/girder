@@ -290,16 +290,21 @@ _short_help = 'Download files from Girder'
     _short_help, _common_help.replace('LOCAL_FOLDER', 'LOCAL_FOLDER (default: ".")')))
 @_CommonParameters(additional_parent_types=[
     'collection', 'user', 'item', 'file'], path_default='.')
+@click.option('--skip', type=click.Choice(['path', 'size', 'hash'], case_sensitive=False),
+              default=None, help='Conditionally skip downloading files. '
+              'Specify which type of check to perform. ("path": skip if file path exists, '
+              '"size": skip if file size is the same, "hash": skip if file hash is the same). '
+              '[default: None]')
 @click.pass_obj
-def _download(gc, parent_type, parent_id, local_folder):
+def _download(gc, parent_type, parent_id, local_folder, skip):
     if parent_type == 'auto':
         parent_type = _lookup_parent_type(gc, parent_id)
     if parent_type == 'item':
-        gc.downloadItem(parent_id, local_folder)
+        gc.downloadItem(parent_id, local_folder, skip=skip)
     elif parent_type == 'file':
-        gc.downloadFile(parent_id, local_folder)
+        gc.downloadFile(parent_id, local_folder, skip=skip)
     else:
-        gc.downloadResource(parent_id, local_folder, parent_type)
+        gc.downloadResource(parent_id, local_folder, parent_type, skip=skip)
 
 
 _short_help = 'Synchronize local folder with remote Girder folder'
