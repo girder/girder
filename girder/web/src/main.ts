@@ -23,7 +23,7 @@ const apiRoot = import.meta.env.VITE_API_ROOT ?? '/api/v1';
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.type = 'text/css';
-    link.href = new URL(href, origin).href;
+    link.href = new URL(href, window.location.href).href;
     document.head.appendChild(link);
   });
 
@@ -34,7 +34,7 @@ const apiRoot = import.meta.env.VITE_API_ROOT ?? '/api/v1';
     await new Promise<void>((resolve) => {
       const script = document.createElement('script');
       script.type = 'text/javascript';
-      script.src = new URL(href, origin).href;
+      script.src = new URL(href, window.location.href).href;
       document.head.appendChild(script);
       script.addEventListener('load', function() {
         resolve();
