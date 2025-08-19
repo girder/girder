@@ -439,14 +439,12 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             raise cherrypy.HTTPRedirect(url)
         else:
             headers = {}
-            if offset or endByte is not None:
-                if endByte is None or endByte > file['size']:
-                    endByte = file['size']
+            offset = offset or 0
+            if endByte is None or endByte > file['size']:
+                endByte = file['size']
+            # only send the range header if we aren't asking for the whole file
+            if offset or endByte != file['size']:
                 headers = {'Range': 'bytes=%d-%d' % (offset, endByte - 1)}
-            else:
-                offset = 0
-                if endByte is None or endByte > file['size']:
-                    endByte = file['size']
             # Our request can get interrupted for several reasons.  If it does
             # we will typically get some form of IOError.  In this case, we
             # want to retry it up to a point.
@@ -477,6 +475,8 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     except IOError as exc:
                         retries += 1
                         if halt or retries >= maxRetriesWithoutData:
+                            # Downstream handlers (notably fuse.py) fail if the
+                            # exception does not have an errno set.
                             if not hasattr(exc, 'errno'):
                                 exc.errno = errno.EIO
                             raise
