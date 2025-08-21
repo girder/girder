@@ -1,4 +1,4 @@
-#!/usrbin/env python3
+#!/usr/bin/env python3
 
 import errno
 import functools
@@ -28,6 +28,9 @@ from girder.utility.model_importer import ModelImporter
 from girder.utility.server import create_app
 
 logger = logging.getLogger(__name__)
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 
 def _hashkey_first(funcname, *args, **kwargs):
@@ -138,7 +141,7 @@ class ServerFuse(fuse.Operations):
         :param path: path within the fuse (e.g., '', '/user', '/user/<name>',
             etc.).
         """
-        logger.debug('-> %s %s %s', op, path, repr(args))
+        logger.info('-> %s %s %s', op, path, repr(args))
         try:
             ret = getattr(self, op)(path, *args, **kwargs)
             return ret
@@ -625,16 +628,20 @@ def unmountServer(path, lazy=False, quiet=False):
     '-q', '--quiet', is_flag=True, default=False,
     help='Suppress Girder startup information or unmount output.')
 @click.option('-v', '--verbose', count=True)
-def main(path, database, fuseOptions, unmount, lazy, plugins, quiet, verbose):
+@click.option(
+    '--log-file', '--log',
+    help='Send logs to a file; this will slow things down but can be done in '
+    'background mode.')
+def main(path, database, fuseOptions, unmount, lazy, plugins, quiet, verbose, log_file):
     if unmount or lazy:
         result = unmountServer(path, lazy, quiet)
         sys.exit(result)
     mountServer(path=path, database=database, fuseOptions=fuseOptions,
-                quiet=quiet, verbose=verbose, plugins=plugins)
+                quiet=quiet, verbose=verbose, plugins=plugins, log_file=log_file)
 
 
 def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
-                plugins=None):
+                plugins=None, log_file=None):
     """
     Perform the mount.
 
@@ -649,17 +656,22 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
     :param verbose: if not zero, log to stderr instead of the girder logs.
     :param plugins: an optional list of plugins to enable.  If None, use the
         plugins that are configured.
+    :param log_file: if set, log to a file rather than stdout.  Ignored if
+        quiet is true.
     """
-    if verbose:
-        logger.setLevel(max(1, logging.ERROR - verbose * 10))
     if not quiet:
-        logger.addHandler(logging.StreamHandler())
+        logger.setLevel(max(1, logging.ERROR - verbose * 10))
+        if not log_file:
+            logger.addHandler(logging.StreamHandler(sys.stdout))
+        else:
+            logger.addHandler(logging.handlers.RotatingFileHandler(
+                log_file, maxBytes=10 * 1024 ** 2, backupCount=6))
     if database and '://' in database:
         cherrypy.config['database']['uri'] = database
     if plugins is not None:
         plugins = plugins.split(',')
 
-    app_info = create_app(ServerMode.DEVELOPMENT)
+    app_info = create_app(os.environ.get('GIRDER_SERVER_MODE', ServerMode.DEVELOPMENT))
     plugin._loadPlugins(app_info, names=plugins)
 
     options = {

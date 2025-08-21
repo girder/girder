@@ -1,6 +1,8 @@
 import datetime
+import errno
 import json
 import logging
+import os
 import re
 import urllib.parse
 import uuid
@@ -396,7 +398,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         return file
 
-    def downloadFile(self, file, offset=0, headers=True, endByte=None,
+    def downloadFile(self, file, offset=0, headers=True, endByte=None,  # noqa
                      contentDisposition=None, extraParameters=None, **kwargs):
         """
         When downloading a single file with HTTP, we redirect to S3. Otherwise,
@@ -429,16 +431,50 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             raise cherrypy.HTTPRedirect(url)
         else:
             headers = {}
-            if offset or endByte is not None:
-                if endByte is None or endByte > file['size']:
-                    endByte = file['size']
+            offset = offset or 0
+            if endByte is None or endByte > file['size']:
+                endByte = file['size']
+            # only send the range header if we aren't asking for the whole file
+            if offset or endByte != file['size']:
                 headers = {'Range': 'bytes=%d-%d' % (offset, endByte - 1)}
+            # Our request can get interrupted for several reasons.  If it does
+            # we will typically get some form of IOError.  In this case, we
+            # want to retry it up to a point.
+            envval = os.environ.get('GIRDER_S3_DOWNLOAD_RETRIES')
+            maxRetriesWithoutData = int(envval) if str(envval).isdigit() else 3
 
             def stream():
-                pipe = requests.get(url, stream=True, headers=headers)
-                for chunk in pipe.iter_content(chunk_size=BUF_LEN):
-                    if chunk:
-                        yield chunk
+                streamOffset = offset
+                retries = 0
+                halt = False
+                while streamOffset < endByte and not halt:
+                    try:
+                        pipe = requests.get(url, stream=True, headers=headers)
+                        for chunk in pipe.iter_content(chunk_size=BUF_LEN):
+                            if chunk:
+                                streamOffset += len(chunk)
+                                try:
+                                    yield chunk
+                                    # If we actually got any data, reset our
+                                    # retry count
+                                    retries = 0
+                                except Exception:
+                                    # if the exception occurred because of the
+                                    # consumer, just stop
+                                    halt = True
+                                    raise
+                        halt = True
+                    except OSError as exc:
+                        retries += 1
+                        if halt or retries >= maxRetriesWithoutData:
+                            # Downstream handlers (notably fuse.py) fail if the
+                            # exception does not have an errno set.
+                            if not hasattr(exc, 'errno'):
+                                exc.errno = errno.EIO
+                            raise
+                        headers['Range'] = 'bytes=%d-%d' % (streamOffset, endByte - 1)
+                    except Exception:
+                        raise
             return stream
 
     def importData(self, parent, parentType, params, progress,
