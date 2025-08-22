@@ -41,7 +41,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     packages=find_packages(),
     zip_safe=False,
     install_requires=['girder>=3'],

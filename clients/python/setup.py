@@ -52,7 +52,7 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3'
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     packages=find_packages(exclude=('tests.*', 'tests')),
     install_requires=install_reqs,
     zip_safe=False,
