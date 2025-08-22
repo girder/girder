@@ -36,7 +36,7 @@ setup(
     classifiers=[
         'Framework :: Pytest'
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     packages=find_packages(),
     install_requires=[
         'girder>=3',

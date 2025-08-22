@@ -44,10 +44,13 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     include_package_data=True,
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder>=3'],
+    install_requires=[
+        'girder>=5.0.0a5',
+        'girder-jobs>=5.0.0a5',
+    ],
     entry_points={
         'girder.plugin': [
             'worker = girder_plugin_worker:WorkerPlugin'
