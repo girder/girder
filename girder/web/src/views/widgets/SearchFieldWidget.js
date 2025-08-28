@@ -181,7 +181,7 @@ var SearchFieldWidget = View.extend({
         });
 
         this.$('.g-search-mode-choose').popover({
-            trigger: 'manual',
+            trigger: 'focus',
             viewport: {
                 selector: 'body',
                 padding: 10
