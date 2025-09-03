@@ -160,7 +160,7 @@ var SystemConfigurationView = View.extend({
     _covertCollectionCreationPolicy: function () {
         // get collection creation policy from AccessWidget and format the result properly
         var settingValue = null;
-        if (this.$('.g-setting-switch').bootstrapSwitch('state')) {
+        if (this.$('.g-setting-switch').bootstrapSwitch('state') && this.accessWidget) {
             settingValue = { open: this.$('.g-setting-switch').bootstrapSwitch('state') };
             var accessList = this.accessWidget.getAccessList();
             _.each(_.keys(accessList), (key) => {

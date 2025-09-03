@@ -83,8 +83,7 @@ form.g-settings-form(role="form")
       p.
         Allow additional users and groups to create collections.
       input.g-setting-switch(type="checkbox",
-          checked="checked", data-size="mini", data-on-color="primary",
-          disabled=true)
+          checked="checked", data-size="mini", data-on-color="primary")
       .access-widget-container
       textarea#g-core-collection-create-policy.hide
         = JSON.stringify(settings['core.collection_create_policy'])
