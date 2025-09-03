@@ -459,6 +459,10 @@ class ApiDocs(WebrootBase):
 
     def _renderHTML(self):
         self.vars['brandName'] = Setting().get(SettingKey.BRAND_NAME)
+        urlRoot = (os.environ.get('GIRDER_URL_ROOT') or '').rstrip('/')
+        if not urlRoot.startswith('.') and ':' not in urlRoot:
+            urlRoot = '/' + urlRoot
+        self.vars['urlRoot'] = urlRoot
         return super()._renderHTML()
 
 
