@@ -23,7 +23,7 @@ dynamic = ["version"]
 
 [project.urls]
 Documentation = "http://girder.readthedocs.org/en/latest/python-client.html"
-
+Source = "https://github.com/girder/girder/clients/python"
 [project.scripts]
 girder-cli = "girder_client.cli:main"
 girder-client = "girder_client.cli:main"
