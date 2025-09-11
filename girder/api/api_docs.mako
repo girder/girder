@@ -12,7 +12,7 @@
     <script type="text/javascript">
       (function () {
         var swaggerUi = new window.SwaggerUIBundle({
-          url: '/api/v1/describe',
+          url: '${urlRoot}/api/v1/describe',
           dom_id: '#swagger-ui-container',
           docExpansion: 'none',
           defaultModelRendering: 'model',

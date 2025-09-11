@@ -53,3 +53,21 @@ And under the containing ``server`` block, make sure to add the following rule:
     server {
         client_max_body_size 500M;
     }
+
+Alternate Root URL
+------------------
+
+To proxy girder to something other than the root of the url, set the ``GIRDER_URL_ROOT`` environment variable (e.g., ``GIRDER_URL_ROOT=girder``) and apply the appropriate rule to proxy to that location:
+
+.. code-block:: nginx
+
+  location /girder/ {
+    proxy_set_header Host $proxy_host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_pass http://localhost:8080/;
+  }
+
+

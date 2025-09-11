@@ -12,6 +12,21 @@ from girder.constants import ServerMode
 
 logger = logging.getLogger(__name__)
 
+
+class RootHandler:
+    @cherrypy.expose
+    def index(*args, **kwargs):
+        path = os.path.join(
+            os.getenv(
+                'GIRDER_STATIC_ROOT_DIR',
+                constants.STATIC_ROOT_DIR),
+            'index.html')
+        with open(path) as f:
+            content = f.read()
+        modified_content = content.replace('root=""', f'root="{os.getenv("GIRDER_URL_ROOT")}"')
+        return modified_content
+
+
 with open(os.path.join(os.path.dirname(__file__), 'error.mako')) as f:
     _errorTemplate = f.read()
 
@@ -65,16 +80,20 @@ def create_app(mode: str) -> dict:
 
     info = dict(config=appconf, serverRoot=tree, apiRoot=apiRoot.v1)
 
+    custom_root = os.getenv('GIRDER_URL_ROOT')
+    custom_root = None if not custom_root or custom_root == '/' else custom_root
+    static_opts = {
+        'tools.staticdir.on': True,
+        'tools.staticdir.dir': os.getenv('GIRDER_STATIC_ROOT_DIR', constants.STATIC_ROOT_DIR),
+        'request.show_tracebacks': appconf['/']['request.show_tracebacks'],
+        'response.headers.server': f'Girder {__version__}',
+        'error_page.default': _errorDefault
+    }
+    if not custom_root:
+        static_opts['tools.staticdir.index'] = 'index.html'
     # Mount static files
-    tree.mount(None, '', {
-        '/': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.index': 'index.html',
-            'tools.staticdir.dir': os.getenv('GIRDER_STATIC_ROOT_DIR', constants.STATIC_ROOT_DIR),
-            'request.show_tracebacks': appconf['/']['request.show_tracebacks'],
-            'response.headers.server': f'Girder {__version__}',
-            'error_page.default': _errorDefault
-        }
+    tree.mount(RootHandler if custom_root else None, '', {
+        '/': static_opts
     })
 
     # Mount the web API
