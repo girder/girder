@@ -1,7 +1,9 @@
-from base64 import b64encode
+import concurrent.futures
 import json
-import time
 import logging
+import os
+import time
+from base64 import b64encode
 
 import docker
 from girder_client import GirderClient, HttpError
@@ -343,6 +345,54 @@ def getCliData(name, client):
         raise DockerImageError(f'Error getting {name} cli data from image: {err}')
 
 
+def pullOneDockerImage(client, name):
+    try:
+        print(f'Pulling {name} image')
+        lastlog = time.time()
+        stats = {}
+        for line in client.api.pull(name, stream=True, decode=True):
+            try:
+                line.update(line.get('progressDetail', {}))
+                if 'id' not in line or ('total' not in line and line['id'] not in stats):
+                    continue
+                stats.setdefault(line['id'], line).update(line)
+                if time.time() - lastlog >= 10:
+                    total = sum(record['total'] for record in stats.values())
+                    downloaded = sum(
+                        record['total'] for record in stats.values()
+                        if record['status'] != 'Downloading')
+                    downloaded += sum(
+                        record['current'] for record in stats.values()
+                        if record['status'] == 'Downloading')
+                    extracted = sum(
+                        record['total'] for record in stats.values()
+                        if record['status'] == 'Pull complete')
+                    extracted += sum(
+                        record['current'] for record in stats.values()
+                        if record['status'] == 'Extracting')
+                    if total:
+                        msg = f'Pulling {name} image: '
+                        if downloaded < total:
+                            val = downloaded
+                            msg += 'downloaded '
+                        else:
+                            val = extracted
+                            msg += 'extracted '
+                        msg += f'{val}/{total} ({val * 100 / total:4.2f}%)'
+                        print(msg)
+                    lastlog = time.time()
+            except Exception:
+                # Don't fail if the log code has an issue
+                pass
+        # some invalid image names will not be pulled but the pull method
+        # will not throw an exception so the only way to confirm if a pull
+        # succeeded is to attempt a docker inspect on the image
+        client.images.get(name)
+        return name, True
+    except Exception:
+        return name, False
+
+
 def pullDockerImage(client, names):
     """
     Attempt to pull the docker images listed in names. Failure results in a
@@ -352,51 +402,12 @@ def pullDockerImage(client, names):
     :param names: A list of docker images to be pulled from the Dockerhub
     """
     imgNotExistList = []
-    for name in names:
-        try:
-            print(f'Pulling {name} image')
-            lastlog = time.time()
-            stats = {}
-            for line in client.api.pull(name, stream=True, decode=True):
-                try:
-                    line.update(line.get('progressDetail', {}))
-                    if 'id' not in line or ('total' not in line and line['id'] not in stats):
-                        continue
-                    stats.setdefault(line['id'], line).update(line)
-                    if time.time() - lastlog >= 10:
-                        total = sum(record['total'] for record in stats.values())
-                        downloaded = sum(
-                            record['total'] for record in stats.values()
-                            if record['status'] != 'Downloading')
-                        downloaded += sum(
-                            record['current'] for record in stats.values()
-                            if record['status'] == 'Downloading')
-                        extracted = sum(
-                            record['total'] for record in stats.values()
-                            if record['status'] == 'Pull complete')
-                        extracted += sum(
-                            record['current'] for record in stats.values()
-                            if record['status'] == 'Extracting')
-                        if total:
-                            msg = f'Pulling {name} image: '
-                            if downloaded < total:
-                                val = downloaded
-                                msg += 'downloaded '
-                            else:
-                                val = extracted
-                                msg += 'extracted '
-                            msg += f'{val}/{total} ({val * 100 / total:4.2f}%)'
-                            print(msg)
-                        lastlog = time.time()
-                except Exception:
-                    # Don't fail if the log code has an issue
-                    pass
-            # some invalid image names will not be pulled but the pull method
-            # will not throw an exception so the only way to confirm if a pull
-            # succeeded is to attempt a docker inspect on the image
-            client.images.get(name)
-        except Exception:
-            imgNotExistList.append(name)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()) as pool:
+        futures = [pool.submit(pullOneDockerImage, client, name) for name in names]
+        for f in concurrent.futures.as_completed(futures):
+            name, success = f.result()
+            if not success:
+                imgNotExistList.append(name)
     if len(imgNotExistList) != 0:
         raise DockerImageNotFoundError('Could not find multiple images ',
                                        image_name=imgNotExistList)
