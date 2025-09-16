@@ -308,8 +308,10 @@ const ControlWidget = View.extend({
         };
         let modelType = 'folder'; // folder type by default, other types if necessary
         let modelId = null;
-        // If it is an item it will have a folderId associated with it as a parent item
+        // If it is an item it will have a folderId associated with it as a parent itema
+        // eslint-disable-next-line no-empty
         if (!resource.get) {
+            // intentionally empty
         } else if (resource.get('itemId')) {
             modelId = resource.get('itemId');
             modelType = 'item';
