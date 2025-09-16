@@ -23,7 +23,7 @@ const WidgetCollection = Backbone.Collection.extend({
                     break;
                 case 'multi':
                 case 'new-file':
-                    if (m && m.value && m.value()) {
+                    if (m && m.value && m.value() && m.value().get) {
                         params[m.id + '_folder'] = m.value().get('folderId');
                         params[m.id] = m.value().get('name');
                     }

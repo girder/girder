@@ -424,6 +424,7 @@ def genHandlerToRunDockerCLI(cliItem):  # noqa C901
             'HH': time.strftime('%H', now),
             'MM': time.strftime('%M', now),
             'SS': time.strftime('%S', now),
+            'user': user['login'] if user else '',
         }
 
         sub_index_params, sub_opt_params = index_params, opt_params

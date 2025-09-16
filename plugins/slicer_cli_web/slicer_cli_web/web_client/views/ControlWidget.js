@@ -309,7 +309,8 @@ const ControlWidget = View.extend({
         let modelType = 'folder'; // folder type by default, other types if necessary
         let modelId = null;
         // If it is an item it will have a folderId associated with it as a parent item
-        if (resource.get('itemId')) {
+        if (!resource.get) {
+        } else if (resource.get('itemId')) {
             modelId = resource.get('itemId');
             modelType = 'item';
         } else if (resource.get('folderId')) {

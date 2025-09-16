@@ -26,3 +26,13 @@ if __name__ == '__main__':
             'Rounds': args.count,
             'Sleep': args.sleep
         })
+    print('jobs')
+    try:
+        print(len(list(gc.listResource('job'))))
+    except Exception:
+        print('Cannot get list of jobs')
+    print('all jobs')
+    try:
+        print(len(list(gc.listResource('job/all'))))
+    except Exception:
+        print('Cannot get list of jobs')

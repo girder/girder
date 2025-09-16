@@ -185,6 +185,7 @@ The following template values are handled identically for all parameters:
 - ``{{task}}``: the internal task name (this usually doesn't have spaces in it)
 - ``{{image}}``: the tag of the Docker image used for the task
 - ``{{now}}``: the local time the job started in the form yyyymmdd-HHMMSS.  You can use ``yyyy``, ``mm``, ``dd``, ``HH``, ``MM``, ``SS`` for the four digit year, and two digit month, day, 24-hour, minute, and second.
+- ``{{user}}``: the login name of the current user.
 - ``{{parameter_<name of cli parameter>}}``: any parameter that isn't templated can be referenced by its name.  For instance, in Example1 in the small-docker cli in this repo, ``{{parameter_stringChoice}}`` would get replaced by the value passed to the stringChoice parameter.
 - ``{{parameter_<name of cli parameter>_base}}`` is the same as the previous item except that if the right-most part of the parameter looks like a file extension, it is removed.  This can be used to get the base name of file parameters.
 

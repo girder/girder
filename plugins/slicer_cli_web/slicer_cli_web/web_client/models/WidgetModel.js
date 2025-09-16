@@ -226,7 +226,7 @@ const WidgetModel = Backbone.Model.extend({
      * the model on the server.
      */
     _validateGirderModel(model) {
-        if (!model.value || !model.value.get('name')) {
+        if (!model.value || (model.value.get && !model.value.get('name'))) {
             if (!this.get('required')) {
                 return;
             }
@@ -235,6 +235,9 @@ const WidgetModel = Backbone.Model.extend({
 
         switch (this.get('type')) {
             case 'new-file':
+                if (!model.value.get) {
+                    break;
+                }
                 if (!model.parent || model.parent.resourceName !== 'folder') {
                     return 'Invalid parent model';
                 }
