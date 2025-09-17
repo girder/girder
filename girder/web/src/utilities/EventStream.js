@@ -3,6 +3,15 @@ import Backbone from 'backbone';
 
 import { getCurrentToken } from '@girder/core/auth';
 
+const appElement = document.getElementById('app');
+let apiRoot = (appElement && appElement.getAttribute('root')) || '';
+apiRoot += (apiRoot.endsWith('/') ? '' : '/') + 'api/v1';
+if (!apiRoot.startsWith('/') && apiRoot.indexOf(':') < 0) {
+    apiRoot = '/' + apiRoot;
+}
+let notifyRoot = apiRoot.endsWith('/api/v1') ? apiRoot.slice(0, -6) : apiRoot;
+notifyRoot = notifyRoot.endsWith('/') ? notifyRoot.slice(0, -1) : notifyRoot;
+
 /**
  * The EventStream is an abstraction for server-sent events / long-polling via a
  * per-user event channel endpoint using a WebSocket. When events are
@@ -68,8 +77,7 @@ EventStream.prototype._start = function () {
         console.warn('EventStream should be stopped');
         return;
     }
-
-    this._websocket = new WebSocket(`/notifications/me?token=${getCurrentToken()}`);
+    this._websocket = new WebSocket(`${notifyRoot}/notifications/me?token=${getCurrentToken()}`);
     this._websocket.onmessage = this._onMessage;
     this._websocket.onerror = this._onError;
 
