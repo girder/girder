@@ -1,6 +1,6 @@
 import os
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 def prerelease_local_scheme(version):
@@ -18,43 +18,7 @@ def prerelease_local_scheme(version):
         return get_local_node_and_date(version)
 
 
-install_reqs = [
-    'click>=6.7',
-    'diskcache',
-    'requests>=2.4.2',
-    'requests_toolbelt',
-]
-with open('README.rst') as f:
-    readme = f.read()
-
 # perform the install
 setup(
-    name='girder-client',
     use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
-    setup_requires=[
-        'setuptools-scm',
-    ],
-    description='Python client for interacting with Girder servers',
-    long_description=readme,
-    author='Kitware, Inc.',
-    author_email='kitware@kitware.com',
-    url='http://girder.readthedocs.org/en/latest/python-client.html',
-    license='Apache 2.0',
-    classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 3'
-    ],
-    python_requires='>=3.8',
-    packages=find_packages(exclude=('tests.*', 'tests')),
-    install_requires=install_reqs,
-    zip_safe=False,
-    entry_points={
-        'console_scripts': [
-            'girder-cli = girder_client.cli:main',
-            'girder-client = girder_client.cli:main'
-        ]
-    }
 )

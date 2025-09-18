@@ -1,0 +1,42 @@
+[project]
+name = "girder-client"
+description = "Python client for interacting with Girder servers"
+readme = "README.rst"
+authors = [
+    {name="Kitware, Inc.", email="kitware@kitware.com"},
+]
+license = "Apache-2.0"
+requires-python = ">=3.8"
+dependencies = [
+    "click>=6.7",
+    "diskcache",
+    "requests>=2.4.2",
+    "requests_toolbelt",
+]
+classifiers=[
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+dynamic = ["version"]
+
+[project.urls]
+Documentation = "http://girder.readthedocs.org/en/latest/python-client.html"
+Source = "https://github.com/girder/girder/clients/python"
+[project.scripts]
+girder-cli = "girder_client.cli:main"
+girder-client = "girder_client.cli:main"
+
+[build-system]
+requires = [
+    "setuptools>=77.0.0",
+    "setuptools-scm[simple]>=8.0.1",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+exclude = [
+    "tests.*",
+    "tests",
+]
