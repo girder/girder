@@ -174,6 +174,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             return upload
 
         uid = uuid.uuid4().hex
+        # Ad blockers may block requests to AWS with a path containing /ad/
+        while 'ad' in [uid[0:2], uid[2:4]]:
+            uid = uuid.uuid4().hex
         key = '/'.join(filter(
             None, (self.assetstore.get('prefix', ''), uid[:2], uid[2:4], uid)))
         path = '/%s/%s' % (self.assetstore['bucket'], key)
