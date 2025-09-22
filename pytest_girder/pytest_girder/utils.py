@@ -306,6 +306,17 @@ def serverContext(plugins=None, bindPort=False):
     from girder.utility.server import setup as setupServer
     from girder.constants import ServerMode
 
+    # As of cheroot 11.0.0, the cheroot server creates a non-daemon thread that
+    # prevents pytest from shutting down in some instances.  Make the code
+    # within that thread just return None so that it doesn't stop pytest from
+    # stopping.
+    try:
+        import cheroot
+
+        cheroot.server.HTTPServer._serve_unservicable = lambda: None
+    except Exception:
+        pass
+
     girder.events.daemon = girder.events.AsyncEventsThread()
 
     if plugins is None:
