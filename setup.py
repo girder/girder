@@ -24,6 +24,8 @@ with open('README.rst') as f:
 installReqs = [
     'boto3',
     'botocore',
+    # Pinned because of issue https://github.com/cherrypy/cheroot/issues/769
+    'cheroot<11',
     'CherryPy',
     'click',
     'click-plugins',
