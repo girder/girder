@@ -39,7 +39,7 @@ def main(mode: str, database: str, host: str, port: int, with_temp_assetstore: b
             'girder.asgi:app',
             host=host,
             port=port,
-            reload=True,
+            reload=mode != ServerMode.PRODUCTION,
             server_header=False,
             date_header=False,
             log_level='warning',
