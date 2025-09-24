@@ -43,7 +43,6 @@ setup(
     license='Apache 2.0',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
-        'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.9',
