@@ -57,7 +57,6 @@ package we are going to create.
       classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
-        'License :: OSI Approved :: Apache Software License'
       ],
       include_package_data=True,
       packages=find_packages(exclude=['plugin_tests']),
