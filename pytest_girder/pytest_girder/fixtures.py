@@ -64,12 +64,12 @@ def db(request):
 
     # Use faster password hashing to avoid unnecessary testing bottlenecks. Any test case
     # that creates a user goes through the password hashing process, so we avoid actual bcrypt.
-    originalCryptContext = User()._cryptContext
-    User()._cryptContext = originalCryptContext.copy(schemes=['plaintext'])
+    originalCryptContextScheme = User()._cryptContext.scheme
+    User()._cryptContext.scheme = 'plaintext'
 
     yield connection
 
-    User()._cryptContext = originalCryptContext
+    User()._cryptContext.scheme = originalCryptContextScheme
 
     if not keepDb:
         connection.drop_database(dbName)

@@ -15,7 +15,7 @@ from girder.settings import SettingKey
 def setUpModule():
     base.startServer()
 
-    User()._cryptContext.update(schemes=['plaintext'])
+    User()._cryptContext.scheme = 'plaintext'
 
 
 def tearDownModule():
