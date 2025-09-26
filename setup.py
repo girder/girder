@@ -22,6 +22,8 @@ with open('README.rst') as f:
     readme = f.read()
 
 installReqs = [
+    # Pin bcrypt until passlib is updated
+    'bcrypt<5',
     'boto3',
     'botocore',
     # Pinned because of issue https://github.com/cherrypy/cheroot/issues/769
