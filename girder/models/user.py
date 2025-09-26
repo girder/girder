@@ -3,7 +3,9 @@ import logging
 import os
 import re
 from passlib.context import CryptContext
-from passlib.totp import TOTP, TokenError
+import time
+
+import pyotp
 
 from .model_base import AccessControlledModel
 from .setting import Setting
@@ -45,12 +47,6 @@ class User(AccessControlledModel):
         self.exposeFields(level=AccessType.ADMIN, fields=(
             'size', 'email', 'groups', 'groupInvites', 'status',
             'emailVerified'))
-
-        # To ensure compatibility with authenticator apps, other defaults shouldn't be changed
-        self._TotpFactory = TOTP.using(
-            # An application secret could be set here, if it existed
-            wallet=None
-        )
 
         self._cryptContext = CryptContext(
             schemes=['bcrypt']
@@ -191,8 +187,9 @@ class User(AccessControlledModel):
 
         # Handle OTP token concatenation
         if otpToken is True and self.hasOtpEnabled(user):
-            # Assume the last (typically 6) characters are the OTP, so split at that point
-            otpTokenLength = self._TotpFactory.digits
+            # Get a random TOTP to check the default number of digits
+            # Assume the last characters are the OTP, so split at that point
+            otpTokenLength = pyotp.TOTP(pyotp.random_base32()).digits
             otpToken = password[-otpTokenLength:]
             password = password[:-otpTokenLength]
 
@@ -329,11 +326,10 @@ class User(AccessControlledModel):
         :return: The new OTP keys, each in KeyUriFormat.
         :rtype: dict
         """
-        totp = self._TotpFactory.new()
-
+        otpKey = pyotp.random_base32()
         user['otp'] = {
             'enabled': False,
-            'totp': totp.to_dict()
+            'totp': {'v': 1, 'type': 'totp', 'key': otpKey},
         }
 
         # Use the brand name as the OTP issuer if it's non-default (since that's prettier and more
@@ -352,7 +348,8 @@ class User(AccessControlledModel):
         otpIssuer = brandName if brandName != defaultBrandName else serverHostname
 
         return {
-            'totpUri': totp.to_uri(label=user['login'], issuer=otpIssuer)
+            'totpUri': pyotp.TOTP(otpKey).provisioning_uri(
+                name=user['login'], issuer_name=otpIssuer)
         }
 
     def hasOtpEnabled(self, user):
@@ -364,17 +361,25 @@ class User(AccessControlledModel):
         # The last successfully-authenticated key (which is blacklisted from reuse)
         lastCounter = rateLimitBuffer.get(lastCounterKey) or None
 
-        try:
-            totpMatch = self._TotpFactory.verify(
-                otpToken, user['otp']['totp'], last_counter=lastCounter)
-        except TokenError as e:
-            raise AccessException('One-time password validation failed: %s' % e)
+        totp = pyotp.TOTP(user['otp']['totp']['key'])
+        nextCounter = int(time.time() // totp.interval)
+        # We seem to need a valid_window greater than zero -- in testing,
+        # Duo shows the otp that pyotp seems to want in the _next_ window; a
+        # value of 1 matches the default from the old passlib code
+        totpMatch = totp.verify(otpToken, valid_window=1)
+        if not totpMatch:
+            msg = 'One-time password validation failed: Token did not match'
+            raise AccessException(msg)
+        if lastCounter is not None and nextCounter <= lastCounter:
+            msg = ('One-time password validation failed: '
+                   'Token has already been used, please wait for another.')
+            raise AccessException(msg)
 
         # The totpMatch.cache_seconds tells us prospectively how long the counter needs to be cached
         # for, but dogpile.cache expiration times work retrospectively (on "get"), so there's no
         # point to using it (over-caching just wastes cache resources, but does not impact
         # "totp.verify" security)
-        rateLimitBuffer.set(lastCounterKey, totpMatch.counter)
+        rateLimitBuffer.set(lastCounterKey, nextCounter)
 
     def createUser(self, login, password, firstName, lastName, email,
                    admin=False, public=True):

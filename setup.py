@@ -41,6 +41,7 @@ installReqs = [
     'PyYAML',
     'psutil',
     'pyOpenSSL',
+    'pyotp',
     'python-dateutil',
     'pytz',
     'requests',
