@@ -2,9 +2,9 @@ import datetime
 import logging
 import os
 import re
-from passlib.context import CryptContext
 import time
 
+import bcrypt
 import pyotp
 
 from .model_base import AccessControlledModel
@@ -17,10 +17,19 @@ from girder.utility import config, mail_utils
 from girder.utility._cache import rateLimitBuffer
 
 
-# If logging is at DEBUG level, passlib with fail because of
-#  https://github.com/pyca/bcrypt/issues/684
-# Asking passlib to only log errors resolves this.
-logging.getLogger('passlib').setLevel(logging.ERROR)
+class _CryptContext():
+    def __init__(self):
+        self.scheme = 'bcrypt'
+
+    def verify(self, password: str, salt: str) -> bool:
+        if self.scheme == 'plaintext':
+            return password == salt
+        return bcrypt.checkpw(password.encode(), salt.encode())
+
+    def hash(self, password: str) -> str:
+        if self.scheme == 'plaintext':
+            return password
+        return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
 class User(AccessControlledModel):
@@ -48,9 +57,7 @@ class User(AccessControlledModel):
             'size', 'email', 'groups', 'groupInvites', 'status',
             'emailVerified'))
 
-        self._cryptContext = CryptContext(
-            schemes=['bcrypt']
-        )
+        self._cryptContext = _CryptContext()
 
         events.bind('model.user.save.created',
                     CoreEventHandler.USER_SELF_ACCESS, self._grantSelfAccess)

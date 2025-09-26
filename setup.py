@@ -22,8 +22,7 @@ with open('README.rst') as f:
     readme = f.read()
 
 installReqs = [
-    # Pin bcrypt until passlib is updated
-    'bcrypt<5',
+    'bcrypt',
     'boto3',
     'botocore',
     # Pinned because of issue https://github.com/cherrypy/cheroot/issues/769
@@ -35,7 +34,6 @@ installReqs = [
     'filelock',
     'jsonschema',
     'Mako',
-    'passlib[bcrypt,totp]',
     'packaging',
     'pymongo>=4',
     'PyYAML',
