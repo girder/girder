@@ -22,6 +22,7 @@ with open('README.rst') as f:
     readme = f.read()
 
 installReqs = [
+    'bcrypt',
     'boto3',
     'botocore',
     # Pinned because of issue https://github.com/cherrypy/cheroot/issues/769
@@ -33,12 +34,12 @@ installReqs = [
     'filelock',
     'jsonschema',
     'Mako',
-    'passlib[bcrypt,totp]',
     'packaging',
     'pymongo>=4',
     'PyYAML',
     'psutil',
     'pyOpenSSL',
+    'pyotp',
     'python-dateutil',
     'pytz',
     'requests',
