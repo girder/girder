@@ -39,12 +39,10 @@ def testHasOtpEnabled(user):
 
 
 def _tokenFromTotpUri(totpUri, valid=True):
-    # Create an external TOTP instance
-    from passlib.totp import TOTP
-    totp = TOTP.from_uri(totpUri)
-
+    import pyotp
+    totp = pyotp.parse_uri(totpUri)
     # Generate a valid token
-    otpToken = totp.generate().token
+    otpToken = totp.now()
 
     if not valid:
         # Increment the token by 1 to invalidate it
