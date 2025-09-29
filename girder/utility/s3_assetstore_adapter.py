@@ -10,6 +10,7 @@ import uuid
 import boto3
 import botocore
 import cherrypy
+import pymongo
 import requests
 
 from girder import events
@@ -108,6 +109,19 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                     'Unable to write into bucket "%s".' % doc['bucket'], 'bucket')
 
         return doc
+
+    @staticmethod
+    def fileIndexFields():
+        """
+        S3 documents should have an index on their relpath field for efficient
+        deletion.
+        """
+        return [
+            ([
+                ('assetstoreId', pymongo.ASCENDING),
+                ('relpath', pymongo.ASCENDING),
+            ], {}),
+        ]
 
     def __init__(self, assetstore):
         super().__init__(assetstore)
