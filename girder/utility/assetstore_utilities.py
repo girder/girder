@@ -60,11 +60,13 @@ def removeAssetstoreAdapter(storeType):
 
 def fileIndexFields():
     """
-    This will return a set of all required index fields from all of the
-    different assetstore types.
+    This will return a unique list of all required index fields from all of
+    the different assetstore types.
     """
-    return list(set(
-        FilesystemAssetstoreAdapter.fileIndexFields()
-        + GridFsAssetstoreAdapter.fileIndexFields()
-        + S3AssetstoreAdapter.fileIndexFields()
-    ))
+    indices = (FilesystemAssetstoreAdapter.fileIndexFields()
+               + GridFsAssetstoreAdapter.fileIndexFields()
+               + S3AssetstoreAdapter.fileIndexFields())
+    for idx in range(len(indices) - 1, -1):
+        if indices[idx] in indices[: idx - 1]:
+            indices[idx:idx + 1] = []
+    return indices
