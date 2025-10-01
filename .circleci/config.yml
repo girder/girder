@@ -369,11 +369,11 @@ jobs:
       - run:
           name: Install tox
           command: pip install tox
-      - deploy:
+      - run:
           name: Publish Python packages
           command: tox -e publish
           working_directory: girder
-      # - deploy:
+      # - run:
       #     name: Publish Ansible role
       #     command: tox -e release_ansible
       #     working_directory: girder
@@ -383,7 +383,7 @@ jobs:
     steps:
       - checkout:
           path: girder
-      - deploy:
+      - run:
           name: Publish npm packages
           command: npm run publish-all
           working_directory: girder

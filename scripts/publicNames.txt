@@ -360,6 +360,7 @@ girder
                 readdir
                 release
                 use_ns
+            logger
             main
             mountServer
             unmountServer
@@ -902,6 +903,7 @@ girder
                 cancelUpload
                 deleteFile
                 downloadFile
+                fileIndexFields
                 fileUpdated
                 finalizeUpload
                 importData

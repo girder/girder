@@ -42,7 +42,7 @@ COPY . /girder/
 
 # Build girder wheel file, and install it
 RUN python3 setup.py bdist_wheel \
- && cd dist && python3 -m pip install --no-cache-dir girder && cd .. \
+ && cd dist && python3 -m pip install --no-cache-dir `ls *.whl` && cd .. \
  && rm -rf build dist
 
 RUN girder build && \

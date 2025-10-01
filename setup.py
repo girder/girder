@@ -22,8 +22,11 @@ with open('README.rst') as f:
     readme = f.read()
 
 installReqs = [
+    'bcrypt',
     'boto3',
     'botocore',
+    # Pinned because of issue https://github.com/cherrypy/cheroot/issues/769
+    'cheroot<11',
     'CherryPy',
     'click',
     'click-plugins',
@@ -31,12 +34,12 @@ installReqs = [
     'filelock',
     'jsonschema',
     'Mako',
-    'passlib[bcrypt,totp]',
     'packaging',
     'pymongo>=4',
     'PyYAML',
     'psutil',
     'pyOpenSSL',
+    'pyotp',
     'python-dateutil',
     'pytz',
     'requests',
@@ -68,7 +71,6 @@ setup(
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
-        'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
