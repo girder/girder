@@ -13,9 +13,13 @@ each group in groups
   .g-group-list-entry.g-top-level-list-entry(public=(group.get('public') ? "true" : "false"))
     .g-group-right-column
       .g-group-created
-        i.icon-clock
-        | Created on
-        span.g-group-created-date  #{formatDate(group.get('created'), DATE_DAY)}
+        .g-large-screen
+          i.icon-clock
+          | Created on
+          span.g-group-created-date  #{formatDate(group.get('created'), DATE_DAY)}
+        .g-small-screen
+          i.icon-clock
+          span.g-group-created-date  #{formatDate(group.get('created'), DATE_YYMMDD)}
     .g-list-public-status-icon
       if group.get('public')
         i.icon-globe(title="Public group")
@@ -25,6 +29,8 @@ each group in groups
       .g-group-title
         a.g-group-link(g-group-cid=group.cid)
           b= group.name()
+        span.g-text-fade(public=(group.get('public') ? 'true' : 'false'))
       .g-group-subtitle
         span.g-group-description= group.get('description')
+        span.g-text-fade(public=(group.get('public') ? 'true' : 'false'))
     .g-clear-right

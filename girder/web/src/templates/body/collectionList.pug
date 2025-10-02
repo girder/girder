@@ -13,14 +13,22 @@ each collection in collections
   .g-collection-list-entry.g-top-level-list-entry(public=(collection.get('public') ? "true" : "false"))
     .g-collection-right-column
       .g-collection-created
-        i.icon-clock
-        | Created on
-        span.g-collection-created-date  #{formatDate(collection.get('created'), DATE_MINUTE)}
+        .g-large-screen
+          i.icon-clock
+          | Created on
+          span.g-collection-created-date  #{formatDate(collection.get('created'), DATE_MINUTE)}
+        .g-small-screen
+          i.icon-clock
+          span.g-collection-created-date  #{formatDate(collection.get('created'), DATE_YYMMDD)}
       if collection.has('size')
         .g-space-used
-          i.icon-floppy
-          | Currently using
-          span.g-user-space-used  #{formatSize(collection.get('size'))}
+          .g-large-screen
+            i.icon-floppy
+            | Currently using
+            span.g-user-space-used  #{formatSize(collection.get('size'))}
+          .g-small-screen
+            i.icon-floppy
+            span.g-user-space-used  #{formatSize(collection.get('size'))}
     .g-list-public-status-icon
       if collection.get('public')
         i.icon-globe(title="Public collection")
