@@ -45,6 +45,7 @@ services:
     depends_on:
       - mongodb
     entrypoint: celery -A girder_worker.app worker -Q local
+    working_dir: /girder
     environment:
       - GIRDER_WORKER_BROKER=amqp://rabbitmq:5672
       - GIRDER_WORKER_BACKEND=rpc://rabbitmq:5672
