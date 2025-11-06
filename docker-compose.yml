@@ -1,4 +1,4 @@
-version: '3.8'
+# This docker compose setup is exclusively intended to be used as a development environment
 
 services:
   mongodb:
@@ -20,7 +20,8 @@ services:
       - GIRDER_WORKER_BACKEND=rpc://rabbitmq:5672
       - GIRDER_NOTIFICATION_REDIS_URL=redis://redis:6379
     volumes:
-      - ".:/girder"
+      - .:/girder # Map local Girder files to the container
+      - /girder/girder/web/dist # but exclude the built web client files.
       - assetstore:/assetstore
 
   rabbitmq:
