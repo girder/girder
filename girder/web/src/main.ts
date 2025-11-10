@@ -1,4 +1,5 @@
 import { girder } from '.';
+import './stylesheets/body/htk.css';
 
 declare global {
   interface Window {
@@ -44,7 +45,7 @@ let apiRoot = import.meta.env.VITE_API_ROOT;
       script.type = 'text/javascript';
       script.src = new URL(href, window.location.href).href;
       document.head.appendChild(script);
-      script.addEventListener('load', function() {
+      script.addEventListener('load', function () {
         resolve();
       });
     });

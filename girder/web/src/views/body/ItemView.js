@@ -110,6 +110,10 @@ var ItemView = View.extend({
         // Fetch the access level asynchronously and render once we have
         // it. TODO: load the page and adjust only the action menu once
         // the access level is fetched.
+        let baseParent = this.parentView;
+        while (baseParent && !baseParent.showDownload) {
+            baseParent = baseParent.parentView;
+        }
         this.model.getAccessLevel((accessLevel) => {
             this.accessLevel = accessLevel;
             this.$el.html(ItemPageTemplate({
@@ -119,6 +123,7 @@ var ItemView = View.extend({
                 formatSize: formatSize,
                 formatDate: formatDate,
                 renderMarkdown: renderMarkdown,
+                showDownload: baseParent && baseParent.showDownload ? baseParent.showDownload() : false,
                 DATE_SECOND: DATE_SECOND
             }));
 
