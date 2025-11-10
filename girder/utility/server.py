@@ -66,7 +66,8 @@ def create_app(mode: str) -> dict:
     cherrypy.config.update({
         'log.screen': False,
         'log.access_file': '',
-        'log.error_file': ''
+        'log.error_file': '',
+        'engine.autoreload.on': curConfig['server']['mode'] == ServerMode.DEVELOPMENT,
     })
 
     _setupCache(curConfig)

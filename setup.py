@@ -31,7 +31,7 @@ installReqs = [
     'boto3',
     'botocore',
     # Pinned because of issue https://github.com/cherrypy/cheroot/issues/769
-    'cheroot<11',
+    'cheroot!=11.0.0,!=11.1.1',
     'CherryPy',
     'click',
     'click-plugins',
