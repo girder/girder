@@ -13,9 +13,6 @@ interface StaticFilesSpec {
 }
 
 let apiRoot = import.meta.env.VITE_API_ROOT;
-let pluginRoot = import.meta.env.VITE_GIRDER_PLUGIN_ROOT;
-//  Set from the --base option of Vite during build
-let baseURL = import.meta.env.BASE_URL;
 
 (async () => {
   if (!apiRoot) {
@@ -33,13 +30,8 @@ let baseURL = import.meta.env.BASE_URL;
   // The plugin root defaults to root location of the api
   // That is correct for most deployments but if girder is being served from a different base path compared to the api
   // then the plugin root must be modified to match the api location
-  if (!pluginRoot) {
-    // We need a true api root without any base path if it isn't / or file names
-    const rootPath = window.location.pathname;
-    // apiRoot could be a full http URL or a relative path, need a URL for new URL() below
-    const baseAppLocation = baseURL === '/' ? rootPath : rootPath.replace(baseURL, '');
-    pluginRoot = apiRoot.indexOf(':') >= 0 ? apiRoot.replace(/\/api\/v1\/?$/, '') : baseAppLocation;
-  }
+  const pluginRoot = apiRoot.indexOf(':') >= 0 ? apiRoot.replace(/\/api\/v1\/?$/, '') : window.location.origin + apiRoot.replace(/\/api\/v1\/?$/, '');
+
 
 
   staticFiles.css.forEach((href) => {
