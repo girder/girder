@@ -14,6 +14,8 @@ interface StaticFilesSpec {
 
 let apiRoot = import.meta.env.VITE_API_ROOT;
 let pluginRoot = import.meta.env.VITE_GIRDER_PLUGIN_ROOT;
+//  Set from the --base option of Vite during build
+let baseURL = import.meta.env.BASE_URL;
 
 (async () => {
   if (!apiRoot) {
@@ -28,18 +30,15 @@ let pluginRoot = import.meta.env.VITE_GIRDER_PLUGIN_ROOT;
   const staticFilesResp = await fetch(`${apiRoot}/system/plugin_static_files`);
   const staticFiles: StaticFilesSpec = await staticFilesResp.json();
 
-  // The plugin root defaults to the location of the client app
+  // The plugin root defaults to root location of the api
   // That is correct for most deployments but if girder is being served from a different base path compared to the api
-  // then the plugin root must be set explicitly via an environment variable at build time.
+  // then the plugin root must be modified to match the api location
   if (!pluginRoot) {
-    // Check and see if the api root matches the location of the client app
-    const appElement = document.getElementById('app');
-    const baseApiPath = (appElement && appElement.getAttribute('root')) || '';
-    const baseAppPath = window.location.href.replace(window.location.origin, '');
-    if (baseAppPath.includes(baseApiPath)) {
-      // Adjust the plugin root to use the same base path as the api root
-      pluginRoot = window.location.origin + baseApiPath;
-    }
+    // We need a true api root without any base path if it isn't / or file names
+    const rootPath = window.location.pathname;
+    // apiRoot could be a full http URL or a relative path, need a URL for new URL() below
+    const baseAppLocation = baseURL === '/' ? rootPath : rootPath.replace(baseURL, '');
+    pluginRoot = apiRoot.indexOf(':') >= 0 ? apiRoot.replace(/\/api\/v1\/?$/, '') : baseAppLocation;
   }
 
 
