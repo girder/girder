@@ -32,8 +32,6 @@ let apiRoot = import.meta.env.VITE_API_ROOT;
   // then the plugin root must be modified to match the api location
   const pluginRoot = apiRoot.indexOf(':') >= 0 ? apiRoot.replace(/\/api\/v1\/?$/, '') : window.location.origin + apiRoot.replace(/\/api\/v1\/?$/, '');
 
-
-
   staticFiles.css.forEach((href) => {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
