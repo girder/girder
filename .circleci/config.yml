@@ -28,31 +28,37 @@ commands:
           name: Generate python environment checksum file
           command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
       - restore_cache:
-          key: venv-py3.9-{{ arch }}-{{ checksum "girder/py-env-checksum" }}-5
+          key: venv-py3.9-{{ arch }}-{{ checksum "girder/py-env-checksum" }}-6
       - run:
           name: Create virtual environment (if necessary)
-          command: if [ ! -d girder_env ]; then python3 -m venv girder_env; fi
+          command: |
+            if [ ! -d girder_env ]; then
+              python3 -m venv --without-pip girder_env
+            fi
+            source girder_env/bin/activate
+            python3 -m ensurepip --upgrade
       - run:
           name: Activate virtual environment
           command: echo ". $CIRCLE_WORKING_DIRECTORY/girder_env/bin/activate" >> $BASH_ENV
       - run:
           name: Upgrade Python toolchain
-          command: python3 -m pip install --upgrade pip setuptools
+          command: |
+            python3 -m pip install --upgrade pip setuptools
       - run:
           name: Install Girder
           # Since the virtual env is cached, attempt to upgrade everything
-          command: >-
-            python3 -m pip install
-            --upgrade
-            --upgrade-strategy eager
-            --editable .[sftp,mount]
-            --editable clients/python
+          command: |
+            python3 -m pip install \
+            --upgrade \
+            --upgrade-strategy eager \
+            --editable .[sftp,mount] \
+            --editable clients/python \
             --requirement requirements-dev.txt
           working_directory: girder
       - save_cache:
           paths:
             - girder_env
-          key: venv-py3.9-{{ arch }}-{{ checksum "girder/py-env-checksum" }}-5
+          key: venv-py3.9-{{ arch }}-{{ checksum "girder/py-env-checksum" }}-6
 
 jobs:
   server-lint-test:
