@@ -30,7 +30,8 @@ let apiRoot = import.meta.env.VITE_API_ROOT;
   // The plugin root defaults to root location of the api
   // That is correct for most deployments but if girder is being served from a different base path compared to the api
   // then the plugin root must be modified to match the api location
-  const pluginRoot = apiRoot.indexOf(':') >= 0 ? apiRoot.replace(/\/api\/v1\/?$/, '') : window.location.origin + apiRoot.replace(/\/api\/v1\/?$/, '');
+  const pluginRoot = apiRoot.indexOf(':') >= 0 ? apiRoot.replace(/\/api\/v1\/?$/, '/') : window.location.origin + apiRoot.replace(/\/api\/v1\/?$/, '/');
+  console.log(apiRoot, window.location.origin, window.location.href, pluginRoot);
 
   staticFiles.css.forEach((href) => {
     const link = document.createElement('link');
