@@ -31,9 +31,8 @@ to work properly behind nginx:
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_pass http://localhost:8080/;
         # Must set the following for WebSocket connections to work
-        # TODO verify that this works
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
+        proxy_set_header Connection $connection_upgrade;
         proxy_buffering off;
         proxy_cache off;
         proxy_set_header Connection '';
@@ -45,6 +44,15 @@ to work properly behind nginx:
         # but is necessary to support streaming requests
         proxy_request_buffering off;
     }
+
+And under the ``http`` block add the following to ensure that websockets can connect:
+
+.. code-block:: nginx
+
+  map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+  }
 
 And under the containing ``server`` block, make sure to add the following rule:
 
@@ -67,6 +75,9 @@ To proxy girder to something other than the root of the url, set the ``GIRDER_UR
     proxy_set_header X-Forwarded-Host $host;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_http_version 1.1;
     proxy_pass http://localhost:8080/;
   }
 

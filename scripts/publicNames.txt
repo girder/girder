@@ -830,6 +830,7 @@ girder
                 cancelUpload
                 deleteFile
                 downloadFile
+                fileIndexFields
                 fileUpdated
                 finalizeUpload
                 importData

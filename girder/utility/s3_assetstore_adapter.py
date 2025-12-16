@@ -10,6 +10,7 @@ import uuid
 import boto3
 import botocore
 import cherrypy
+import pymongo
 import requests
 
 from girder import events
@@ -109,6 +110,19 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
         return doc
 
+    @staticmethod
+    def fileIndexFields():
+        """
+        S3 documents should have an index on their relpath field for efficient
+        deletion.
+        """
+        return [
+            ([
+                ('assetstoreId', pymongo.ASCENDING),
+                ('relpath', pymongo.ASCENDING),
+            ], {}),
+        ]
+
     def __init__(self, assetstore):
         super().__init__(assetstore)
         if all(k in self.assetstore for k in ('accessKeyId', 'secret', 'service')):
@@ -176,6 +190,9 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             return upload
 
         uid = uuid.uuid4().hex
+        # Ad blockers may block requests to AWS with a path containing /ad/
+        while 'ad' in [uid[0:2], uid[2:4]]:
+            uid = uuid.uuid4().hex
         key = '/'.join(filter(
             None, (self.assetstore.get('prefix', ''), uid[:2], uid[2:4], uid)))
         path = '/%s/%s' % (self.assetstore['bucket'], key)

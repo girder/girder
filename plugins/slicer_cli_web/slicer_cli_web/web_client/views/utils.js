@@ -1,11 +1,8 @@
 const $ = girder.$;
+const { getApiRoot } = girder.rest;
 
 export function showJobSuccessAlert(job) {
-    let root = '/static/built';
-    try {
-        root = __webpack_public_path__ || root; // eslint-disable-line
-    } catch (err) { }
-    root = root.replace(/\/$/, '').replace(/\/[^/]+$/, '').replace(/\/[^/]+$/, '');
+    const root = getApiRoot().replace(/\/$/, '').replace(/\/[^/]+$/, '').replace(/\/[^/]+$/, '');
     // manual alert since the default doesn't support HTML body
     const el = $(`
       <div class="alert alert-dismissable alert-success">

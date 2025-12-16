@@ -7,7 +7,7 @@ const _ = girder._;
 const View = girder.views.View;
 const { SORT_DESC } = girder.constants;
 const eventStream = girder.utilities.eventStream;
-const restRequest = girder.rest.restRequest;
+const { restRequest, getApiRoot } = girder.rest;
 
 // cache parameter file models
 const paramFiles = {};
@@ -51,11 +51,7 @@ const JobsListWidget = View.extend({
             this._paramFile(job);
             return _.extend({paramFile: paramFiles[job.id]}, job.attributes);
         });
-        let root = '/static/built';
-        try {
-            root = __webpack_public_path__ || root; // eslint-disable-line
-        } catch (err) { }
-        root = root.replace(/\/$/, '').replace(/\/[^/]+$/, '').replace(/\/[^/]+$/, '');
+        const root = getApiRoot().replace(/\/$/, '').replace(/\/[^/]+$/, '').replace(/\/[^/]+$/, '');
 
         this.$el.html(jobListWidget({
             jobs,
