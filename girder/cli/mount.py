@@ -16,7 +16,7 @@ import click
 import fuse
 
 import girder
-from girder import events
+from girder import events, LogFormatter
 from girder.exceptions import AccessException, FilePathException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
@@ -663,8 +663,11 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
         if not log_file:
             logger.addHandler(logging.StreamHandler(sys.stdout))
         else:
-            logger.addHandler(logging.handlers.RotatingFileHandler(
-                log_file, maxBytes=10 * 1024 ** 2, backupCount=6))
+            rotatingFileHandler = logging.handlers.RotatingFileHandler(
+                log_file, maxBytes=10 * 1024 ** 2, backupCount=6)
+            rotatingFileHandler.setFormatter(
+                LogFormatter('[%(asctime)s] %(levelname)s: %(message)s'))
+            logger.addHandler(rotatingFileHandler)
     if database and '://' in database:
         cherrypy.config['database']['uri'] = database
     if plugins is not None:
