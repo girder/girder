@@ -94,7 +94,7 @@ def _loadWorkerConfig():  # noqa
         _commandQueue = CommandQueue()
         _commandQueue.start()
     if not isinstance(_workerConfig, dict):
-        _workerConfig = {'active': 0, 'start': datetime.datetime.utcnow()}
+        _workerConfig = {'active': 0, 'start': datetime.datetime.now(datetime.timezone.utc)}
         # We ask for all workers to stop when we first load a config file
         if config.get('initial-stop') is not False:
             stopAll = True

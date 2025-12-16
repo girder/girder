@@ -88,7 +88,8 @@ class SlicerCLIWebPlugin(GirderPlugin):
                 # existence
                 820, 821, 822, 823, 824,
             ]},
-            'updated': {'$lt': datetime.datetime.utcnow() - datetime.timedelta(days=7)}
+            'updated': {'$lt': datetime.datetime.now(datetime.timezone.utc)
+                        - datetime.timedelta(days=7)}
         }, force=True):
             try:
                 Job().updateJob(job, log='Canceled stale job.', status=JobStatus.CANCELED)
