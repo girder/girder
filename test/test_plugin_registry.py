@@ -192,7 +192,7 @@ def testLoadPluginsWithDeps(registry, caplog):
         assert pluginDefinition.loaded is True
         pluginDefinition._testLoadMock.assert_called_once()
 
-    # Since plugin1 is the dependant, it must be loaded first
+    # Since plugin1 is the dependent, it must be loaded first
     assert 'Loaded plugin "plugin1"' in caplog.text
     assert 'Loaded plugin "plugin2"' in caplog.text
     assert caplog.text.index('"plugin1"') < caplog.text.index('"plugin2"')

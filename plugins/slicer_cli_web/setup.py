@@ -48,11 +48,6 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11',
-        'Programming Language :: Python :: 3.12',
-        'Programming Language :: Python :: 3.13',
     ],
     include_package_data=True,
     packages=find_packages(exclude=['tests', 'test.*']),
@@ -92,5 +87,5 @@ setup(
             'upload-slicer-cli-task = slicer_cli_web.upload_slicer_cli_task:upload_slicer_cli_task'  # noqa: E501
         ]
     },
-    python_requires='>=3.9',
+    python_requires='>=3.10',
 )

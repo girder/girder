@@ -92,7 +92,7 @@ def cancel(event):
         if celeryTaskId is None:
             msg = ("Unable to cancel Celery task. Job '%s' doesn't have a Celery task id."
                    % job['_id'])
-            logger.warn(msg)
+            logger.warning(msg)
             return
 
         should_revoke = False

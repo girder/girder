@@ -13,7 +13,7 @@ class GirderFileIdAllowDirect(GirderClientTransform):
     GW_DIRECT_PATHS environment variable is set.
 
     WARNING: if a direct path is used, the task MUST NOT modify the file.  It
-    is the resposibility of the user of this transform to ensure tasks treat
+    is the responsibility of the user of this transform to ensure tasks treat
     files as read-only.
 
     To use this transform from Girder, it should be called via something like:

@@ -208,7 +208,7 @@ Running the client end-to-end tests
 
 Girder's web client test suite are setup as end-to-end tests that make use of an actual server
 and database. To run them, make sure you are within your Girder virtual environment, and make sure
-`mongod` is running locally on port 27017. You'll also need to make sure you've built all the plugin
+``mongod`` is running locally on port 27017. You'll also need to make sure you've built all the plugin
 web client code, which can be done with:
 
 .. code-block:: bash

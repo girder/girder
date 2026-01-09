@@ -36,7 +36,7 @@ let apiRoot = import.meta.env.VITE_API_ROOT;
   });
 
   // Since plugin JS files may implicitly depend on each other at import time, we can't load
-  // them in parallel. They already come to us in topoligically sorted order, so we can safely
+  // them in parallel. They already come to us in topologically sorted order, so we can safely
   // load them one after the other.
   for (const href of staticFiles.js) {
     await new Promise<void>((resolve) => {

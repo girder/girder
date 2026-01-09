@@ -1,4 +1,4 @@
-FROM cimg/python:3.9
+FROM cimg/python:3.10
 LABEL maintainer="Kitware, Inc. <kitware@kitware.com>"
 
 # Don't use "sudo"

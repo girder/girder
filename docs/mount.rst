@@ -32,4 +32,3 @@ There are some additional python dependencies to use the Girder mount command.
 These can be installed via: ::
 
   $ pip install -e .[mount]
-
