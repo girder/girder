@@ -55,15 +55,10 @@ setuptools.setup(
     url='https://github.com/girder/girder_worker',
     license='Apache 2.0',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.9',
-        'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11',
-        'Programming Language :: Python :: 3.12',
-        'Programming Language :: Python :: 3.13',
     ],
     packages=setuptools.find_packages(
         exclude=('tests.*', 'tests')
@@ -73,7 +68,7 @@ setuptools.setup(
         'install': CustomInstall
     },
     install_requires=install_reqs,
-    python_requires='>=3.9',
+    python_requires='>=3.10',
     zip_safe=False,
     entry_points={
         'girder_worker_plugins': [

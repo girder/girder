@@ -36,14 +36,14 @@ setup(
     maintainer_email='kitware@kitware.com',
     license='Apache 2.0',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
     ],
     include_package_data=True,
-    python_requires='>=3.9',
+    python_requires='>=3.10',
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
     install_requires=[

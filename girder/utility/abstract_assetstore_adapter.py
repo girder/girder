@@ -463,10 +463,10 @@ class AbstractAssetstoreAdapter:
     def safeName(self, name):
         """
         Girder strips item and folder names of whitespace.  If we have a name
-        that will be affected, repalce the leading and trailing whitespace with
+        that will be affected, replace the leading and trailing whitespace with
         underscores.
 
-        :param name: The name to possibily modify.
+        :param name: The name to possibly modify.
         :type name: str
         :returns: a name that will not be altered by strip.
         :rtype: str

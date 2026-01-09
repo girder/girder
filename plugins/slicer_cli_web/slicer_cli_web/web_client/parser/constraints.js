@@ -3,7 +3,7 @@ import convert from './convert';
 const $ = girder.$;
 
 /**
- * Parse a `contraints` tag.
+ * Parse a `constraints` tag.
  */
 export default function constraints(type, constraintsTag) {
     const $c = $(constraintsTag);

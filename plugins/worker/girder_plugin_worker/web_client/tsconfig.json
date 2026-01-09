@@ -3,6 +3,5 @@
     "exclude": ["./dist/**/*"],
     "compilerOptions": {
       "allowJs": true,
-      "outDir": "./dist",
-    }
+      "outDir": "./dist"}
 }

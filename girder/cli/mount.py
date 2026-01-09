@@ -549,7 +549,7 @@ class ServerFuse(fuse.Operations):
 
 
 class FUSELogError(fuse.FUSE):
-    def __init__(self, operations, mountpoint, *args, **kwargs):
+    def __init__(self, operations, mountpoint, *args, **kwargs):  # noqa: B042
         """
         This wraps fuse.FUSE so that errors are logged rather than raising a
         RuntimeError exception.

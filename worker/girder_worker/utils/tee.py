@@ -6,7 +6,7 @@ def tee_stdout(cls):
 
     This function is intended to decorate a class that subclasses the
     Tee object. It assigns the _set_stream and _get_stream methods on
-    the cls in such a way that the class's write() method will recieve
+    the cls in such a way that the class's write() method will receive
     data passed to sys.stdout.
     """
     def _set_stdout(stream):
@@ -35,7 +35,7 @@ def tee_stderr(cls):
 
     This function is intended to decorate a class that subclasses the
     Tee object. It assigns the _set_stream and _get_stream methods on
-    the cls in such a way that the class's write() method will recieve
+    the cls in such a way that the class's write() method will receive
     data passed to sys.stderr.
     """
     def _set_stderr(stream):
