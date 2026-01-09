@@ -3,8 +3,6 @@ $emptyBorder=1px solid transparent
 $minHeight=500px
 
 .g-global-nav-main
-  box-shadow inset 0 -35px 45px -10px #fff
-  background-image linear-gradient(to left, #f4f4f4 0, #fff 7px)
   min-height $minHeight - 12px
   padding 15px 0 20px 6px
 
@@ -22,12 +20,10 @@ ul.g-global-nav
   padding-left 0
 
   >li
-    border $emptyBorder
     list-style-type none
     text-decoration none
 
   >li:hover:not(.g-active)
-    background-color #fafafa
     .g-nav-link
       position relative
       color #222
@@ -37,11 +33,6 @@ ul.g-global-nav
   >li.g-active
     pointer-events none
     cursor default
-    background-color white
-    border-top $navLinkBorder
-    border-bottom $navLinkBorder
-    border-left $navLinkBorder
-    box-shadow -1px 1px 3px rgba(0, 0, 0, 0.05)
     .g-nav-link
       color black
     i
@@ -55,19 +46,9 @@ ul.g-global-nav
 
   ul.g-global-nav
     width 100%
-    border-bottom $navLinkBorder
     >li
       display inline-block
       padding 4px 5px
-      border $emptyBorder
-    >li.g-active
-      box-shadow none
-      border-bottom $emptyBorder
-      border-left $navLinkBorder
-      border-right $navLinkBorder
-      border-top $navLinkBorder
-    >li:not(.g-active)
-      background-color #f1f1f1
 
 @media (min-width 721px)
   ul.g-global-nav
@@ -79,11 +60,8 @@ ul.g-global-nav
         top -1px
         bottom -1px
         right -1px
-        background-color #ffcc00
 
 @media (max-width 720px)
   .g-global-nav-main
     padding 0
-    box-shadow none
-    background-image none
     min-height 0

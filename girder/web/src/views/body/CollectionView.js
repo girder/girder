@@ -87,7 +87,8 @@ var CollectionView = View.extend({
         this.$el.html(CollectionPageTemplate({
             collection: this.model,
             AccessType: AccessType,
-            renderMarkdown: renderMarkdown
+            renderMarkdown: renderMarkdown,
+            showDownload: this.parentView.showDownload()
         }));
 
         if (!this.hierarchyWidget) {

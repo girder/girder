@@ -288,10 +288,10 @@ var HierarchyWidget = View.extend({
                     this.$('.g-hierarachy-paginated-bar').addClass('g-hierarchy-sticky');
                     this.$('.g-hierarchy-breadcrumb-bar').css({ top: 0 });
                     this.$('.g-hierarachy-paginated-bar').css({ bottom: 0 });
-                    this.$('.g-hierarachy-paginated-bar').removeClass('hidden');
+                    this.$('.g-hierarachy-paginated-bar').removeClass('htk-hidden');
                 } else {
                     // We remove the bar if the current folder doesn't have more than one page, keep the sticky breadcrumb though
-                    this.$('.g-hierarachy-paginated-bar').addClass('hidden');
+                    this.$('.g-hierarachy-paginated-bar').addClass('htk-hidden');
                 }
             });
             // Only emitted when there is more than one page of data
@@ -338,6 +338,10 @@ var HierarchyWidget = View.extend({
         this.folderCount = null;
         this.itemCount = null;
 
+        let baseParent = this.parentView;
+        while (baseParent && !baseParent.showDownload) {
+            baseParent = baseParent.parentView;
+        }
         this.$el.html(HierarchyWidgetTemplate({
             type: this.parentModel.resourceName,
             model: this.parentModel,
@@ -348,15 +352,16 @@ var HierarchyWidget = View.extend({
             showMetadata: this._showMetadata,
             checkboxes: this._checkboxes,
             capitalize: capitalize,
+            showDownload: baseParent && baseParent.showDownload ? baseParent.showDownload() : false,
             itemFilter: this._itemFilter
         }));
 
-        if (this.$('.g-folder-actions-menu>li>a').length === 0) {
-            // Disable the actions button if actions list is empty
-            this.$('.g-folder-actions-button').girderEnable(false);
-        }
+        // if (this.$('.g-folder-actions-menu>a').length === 0) {
+        //     // Disable the actions button if actions list is empty
+        //     this.$('.g-folder-actions-button').girderEnable(false);
+        // }
 
-        this.breadcrumbView.setElement(this.$('.g-hierarchy-breadcrumb-bar>ol')).render();
+        this.breadcrumbView.setElement(this.$('.g-hierarchy-breadcrumb-bar')).render();
         this.checkedMenuWidget.dropdownToggle = this.$('.g-checked-actions-button');
         this.checkedMenuWidget.setElement(this.$('.g-checked-actions-menu')).render();
         this.folderListView.setElement(this.$('.g-folder-list-container')).render();
@@ -416,6 +421,14 @@ var HierarchyWidget = View.extend({
      */
     upOneLevel: function () {
         this.breadcrumbs.pop();
+        if (this.breadcrumbs.length === 0) {
+            if (this.parentModel.resourceName === 'collection') {
+                router.navigate('collections', { trigger: true });
+            } else if (this.parentModel.resourceName === 'user') {
+                router.navigate('users', { trigger: true });
+            }
+            return;
+        }
         this.setCurrentModel(this.breadcrumbs[this.breadcrumbs.length - 1]);
     },
 
