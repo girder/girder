@@ -8,7 +8,7 @@ import router from '@girder/core/router';
 import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
 import View from '@girder/core/views/View';
 import { cancelRestRequests } from '@girder/core/rest';
-import { formatDate, DATE_DAY } from '@girder/core/misc';
+import { formatDate, DATE_DAY, DATE_YYMMDD } from '@girder/core/misc';
 import { getCurrentUser } from '@girder/core/auth';
 
 import GroupListTemplate from '@girder/core/templates/body/groupList.pug';
@@ -58,7 +58,8 @@ var GroupsView = View.extend({
             groups: this.collection.toArray(),
             getCurrentUser: getCurrentUser,
             formatDate: formatDate,
-            DATE_DAY: DATE_DAY
+            DATE_DAY: DATE_DAY,
+            DATE_YYMMDD: DATE_YYMMDD
         }));
 
         this.paginateWidget.setElement(this.$('.g-group-pagination')).render();
