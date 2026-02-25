@@ -45,6 +45,7 @@ setup(
     install_requires=[
         'girder>=3',
         'pydicom>=2',
+        'setuptools>65,<82; python_version=="3.9"',
     ],
     entry_points={
         'girder.plugin': [

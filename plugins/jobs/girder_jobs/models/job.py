@@ -22,8 +22,13 @@ class Job(AccessControlledModel):
             ('type', SortDir.ASCENDING),
             ('status', SortDir.ASCENDING)
         )
-        self.ensureIndices([(compoundSearchIndex, {}),
-                            'created', 'parentId', 'celeryTaskId'])
+        self.ensureIndices([
+            (compoundSearchIndex, {}),
+            'created', 'parentId', 'celeryTaskId',
+            'type', 'status',
+            ((('type', SortDir.ASCENDING), ('userId', SortDir.ASCENDING)), {}),
+            ((('status', SortDir.ASCENDING), ('userId', SortDir.ASCENDING)), {}),
+        ])
 
         self.exposeFields(level=AccessType.READ, fields={
             'title', 'type', 'created', 'interval', 'when', 'status',
