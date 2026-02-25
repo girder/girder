@@ -30,4 +30,15 @@ RUN apt-get update \
     setuptools \
     tox
 
+ENV NODE_VERSION=14
+
+RUN mkdir 777 /.nvm && \
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | NVM_DIR=/.nvm bash && \
+    . /.nvm/nvm.sh && \
+    npm config set fetch-timeout 600000 && \
+    npm cache clean --force && \
+    ln -s $(dirname `which npm`) /usr/local/node
+
+ENV PATH="/usr/local/node:$PATH"
+
 USER circleci
