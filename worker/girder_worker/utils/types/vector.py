@@ -10,8 +10,8 @@ class Vector(Base):
     #: The class of the elements of the vector
     elementClass = None
 
-    #: A list seperator for serialization
-    seperator = ','
+    #: A list separator for serialization
+    separator = ','
 
     def __init__(self, *args, **kwargs):
         if self.paramType is None:  # pragma: nocover
@@ -38,6 +38,6 @@ class Vector(Base):
 
     def deserialize(self, value):
         if isinstance(value, str):
-            value = value.split(self.seperator)
+            value = value.split(self.separator)
 
         return [self.element.deserialize(v) for v in value]

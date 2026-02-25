@@ -44,7 +44,7 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     include_package_data=True,
-    python_requires='>=3.9',
+    python_requires='>=3.10',
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
     install_requires=[

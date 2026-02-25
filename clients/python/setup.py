@@ -51,7 +51,7 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3'
     ],
-    python_requires='>=3.9',
+    python_requires='>=3.10',
     packages=find_packages(exclude=('tests.*', 'tests')),
     install_requires=install_reqs,
     zip_safe=False,

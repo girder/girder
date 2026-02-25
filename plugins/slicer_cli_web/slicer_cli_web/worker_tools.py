@@ -130,7 +130,7 @@ def _startWorker():
 
 def _stopWorker(idx):
     """
-    Stop a worker absed on its index
+    Stop a worker based on its index
     """
     cmd = _workerConfig['workers'][idx]['stop']
     _workerConfig['started'] -= {idx}
@@ -169,7 +169,7 @@ def _stopAllWorkers():
 
 def _manageWorkers(event=None):
     """
-    Handle an event that requires us to check on worker managerment.
+    Handle an event that requires us to check on worker management.
     """
     if _workerConfig is None:
         _loadWorkerConfig()

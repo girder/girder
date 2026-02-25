@@ -36,7 +36,7 @@ class AuthenticationError(RuntimeError):
 
 
 class IncorrectUploadLengthError(RuntimeError):
-    def __init__(self, message, upload=None):
+    def __init__(self, message, upload=None):  # noqa: B042
         super().__init__(message)
         self.upload = upload
 
@@ -49,7 +49,7 @@ class HttpError(requests.HTTPError):
     such as requests.Response.raise_for_status.
     """
 
-    def __init__(self, status, text, url, method, response=None):
+    def __init__(self, status, text, url, method, response=None):  # noqa: B042
         super().__init__('HTTP error %s: %s %s' % (status, method, url), response=response)
         self.status = status
         self.responseText = text
@@ -61,7 +61,7 @@ class HttpError(requests.HTTPError):
 
 
 class IncompleteResponseError(requests.RequestException):
-    def __init__(self, message, expected, received, response=None):
+    def __init__(self, message, expected, received, response=None):  # noqa: B042
         super().__init__('%s (%d of %d bytes received)' % (
             message, received, expected
         ), response=response)

@@ -80,5 +80,3 @@ To proxy girder to something other than the root of the url, set the ``GIRDER_UR
     proxy_http_version 1.1;
     proxy_pass http://localhost:8080/;
   }
-
-

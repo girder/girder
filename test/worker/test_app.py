@@ -266,7 +266,7 @@ def test_Task___call___transforms_or_passes_through_arguments(arguments, transfo
 
 
 # Note: We have to add 'FIXME' as an argument to task(...) and
-# mock_call to avoid the same TypeError as observed in the prevous
+# mock_call to avoid the same TypeError as observed in the previous
 # test.
 @pytest.mark.parametrize('kwargs,transformed', [
     ({'k': 1}, {'k': 1}),  # noqa E202

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.folder import Folder
@@ -78,7 +76,7 @@ def deleteCollectionTask(
 def copyFolderTask(
     folderId: str,
     parentType: str,
-    parentId: Optional[str],
+    parentId: str | None,
     name: str,
     description: str,
     public: bool,

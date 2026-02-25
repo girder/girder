@@ -10,7 +10,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from functools import wraps
 from pathlib import Path
-from typing import List, OrderedDict as OrderedDictType
+from collections import OrderedDict as OrderedDictType
 
 from girder import __version__
 from girder.exceptions import GirderException
@@ -20,8 +20,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PluginStaticContent:
-    css: List[str]
-    js: List[str]
+    css: list[str]
+    js: list[str]
 
 
 _NAMESPACE = 'girder.plugin'
@@ -34,7 +34,7 @@ def getPluginStaticContent():
     return _pluginStaticContent
 
 
-def registerPluginStaticContent(plugin: str, css: List[str], js: List[str], staticDir: Path, tree):
+def registerPluginStaticContent(plugin: str, css: list[str], js: list[str], staticDir: Path, tree):
     from girder.utility.server import _errorDefault
 
     if plugin not in _pluginStaticContent:

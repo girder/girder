@@ -11,7 +11,7 @@ class AccessException(GirderBaseException):
     Represents denial of access to a resource.
     """
 
-    def __init__(self, message, extra=None):
+    def __init__(self, message, extra=None):  # noqa: B042
         self.message = message
         self.extra = extra
 
@@ -29,7 +29,7 @@ class GirderException(GirderBaseException):
     'girder.model.assetstore.no-current-assetstore'.
     """
 
-    def __init__(self, message, identifier=None):
+    def __init__(self, message, identifier=None):  # noqa: B042
         self.identifier = identifier
         self.message = message
 
@@ -43,7 +43,7 @@ class NoAssetstoreAdapter(GirderException):
 
     identifier = 'girder.utility.assetstore.no-adapter'
 
-    def __init__(self, message='No assetstore adapter'):
+    def __init__(self, message='No assetstore adapter'):  # noqa: B042
         super().__init__(message, self.identifier)
 
 
@@ -54,7 +54,7 @@ class ValidationException(GirderBaseException):
     in the model during a REST request, it will respond as a 400 status.
     """
 
-    def __init__(self, message, field=None):
+    def __init__(self, message, field=None):  # noqa: B042
         self.field = field
         self.message = message
 
@@ -78,7 +78,7 @@ class RestException(GirderBaseException):
     should use status 400, which is the default.
     """
 
-    def __init__(self, message, code=400, extra=None):
+    def __init__(self, message, code=400, extra=None):  # noqa: B042
         self.code = code
         self.extra = extra
         self.message = message

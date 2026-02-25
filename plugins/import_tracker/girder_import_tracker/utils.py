@@ -35,7 +35,7 @@ def moveFolder(user, folder, assetstore, ignoreImported, progress):
     :param folder: the folder to move.
     :param assetstore: the target assetstore.
     :param ignoreImported: if True, do not move imported files.
-    :param progress: a boolean specifying if prgress should be reported.
+    :param progress: a boolean specifying if progress should be reported.
     """
     job = Job().createJob(
         title='Move folder "%s" to assetstore "%s"' % (

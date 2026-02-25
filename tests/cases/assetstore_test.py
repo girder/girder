@@ -737,7 +737,7 @@ class AssetstoreTestCase(base.TestCase):
             self.assertEqual(resp.json['assetstoreId'], fs_assetstore['_id'])
             uploadedFiles = [resp.json]
 
-            # Upload it again targetting a different assetstore
+            # Upload it again targeting a different assetstore
             params['assetstoreId'] = alternate_assetstore['_id']
             resp = self.request(
                 path='/file', method='POST', user=self.admin, params=params)

@@ -43,7 +43,7 @@ class Task(celery.Task):
         }
 
     # These keys will be removed from apply_async's kwargs or options and
-    # transfered into the headers of the message.
+    # transferred into the headers of the message.
     reserved_headers = [
         'girder_client_token',
         'girder_api_url',

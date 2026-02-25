@@ -5,7 +5,6 @@ from dataclasses import dataclass
 import io
 import json
 import socket
-from typing import Optional
 import urllib.parse
 
 
@@ -195,7 +194,7 @@ class ServerFixture:
     request = staticmethod(request)
     uploadFile = staticmethod(uploadFile)
     serverRoot: cherrypy._cptree.Tree
-    boundPort: Optional[int] = None
+    boundPort: int | None = None
 
     def __getattr__(self, name):
         return getattr(self.serverRoot, name)

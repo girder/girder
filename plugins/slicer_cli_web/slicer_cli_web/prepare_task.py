@@ -133,7 +133,7 @@ def _processTemplates(value, param=None, templateParams=None):
             logger.info('Replaced templated parameter %s with %s.', value, newvalue)
             return newvalue
     except Exception:
-        logger.exception('Failed to repalce templated parameter %r', value)
+        logger.exception('Failed to replace templated parameter %r', value)
     return value
 
 

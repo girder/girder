@@ -549,7 +549,7 @@ class ServerFuse(fuse.Operations):
 
 
 class FUSELogError(fuse.FUSE):
-    def __init__(self, operations, mountpoint, *args, **kwargs):
+    def __init__(self, operations, mountpoint, *args, **kwargs):  # noqa: B042
         """
         This wraps fuse.FUSE so that errors are logged rather than raising a
         RuntimeError exception.
@@ -664,8 +664,11 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
         if not log_file:
             logger.addHandler(logging.StreamHandler(sys.stdout))
         else:
-            logger.addHandler(logging.handlers.RotatingFileHandler(
-                log_file, maxBytes=10 * 1024 ** 2, backupCount=6))
+            rotatingFileHandler = logging.handlers.RotatingFileHandler(
+                log_file, maxBytes=10 * 1024 ** 2, backupCount=6)
+            rotatingFileHandler.setFormatter(
+                LogFormatter('[%(asctime)s] %(levelname)s: %(message)s'))
+            logger.addHandler(rotatingFileHandler)
     if database and '://' in database:
         cherrypy.config['database']['uri'] = database
     if plugins is not None:
