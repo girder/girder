@@ -434,7 +434,14 @@ class Job(AccessControlledModel):
         if overwrite:
             updates['$set']['log'] = [log]
         elif log:
-            updates['$push']['log'] = log
+            # This crudely assumes that the log messages size are vaguely
+            # similar and keeps only the end of the log as it grows large.  It
+            # can be wrong for a variety of reasons, but is better than not
+            # truncating it.
+            if not len(updates['$push']):
+                updates['$push']['log'] = {'$each': [log], '$slice': -((4 * 1024 ** 2) // len(log))}
+            else:
+                updates['$push']['log'] = log
         if notify and user:
             expires = now + datetime.timedelta(seconds=30)
             Notification().createNotification(
