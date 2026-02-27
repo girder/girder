@@ -666,8 +666,6 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
         else:
             rotatingFileHandler = logging.handlers.RotatingFileHandler(
                 log_file, maxBytes=10 * 1024 ** 2, backupCount=6)
-            rotatingFileHandler.setFormatter(
-                LogFormatter('[%(asctime)s] %(levelname)s: %(message)s'))
             logger.addHandler(rotatingFileHandler)
     if database and '://' in database:
         cherrypy.config['database']['uri'] = database
