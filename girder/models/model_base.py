@@ -197,13 +197,26 @@ class Model(metaclass=_ModelSingleton):
 
     def _createIndex(self, index):
         if isinstance(index, (list, tuple)):
+            keys, opts = index[0], index[1]
+            if isinstance(keys, str):
+                keys = [(keys, pymongo.ASCENDING)]
+            if 'background' not in opts:
+                opts = opts.copy()
+                opts['background'] = True
             try:
-                self.collection.create_index(index[0], **index[1])
-            except pymongo.errors.OperationFailure:
-                self.collection.drop_index(index[0])
-                self.collection.create_index(index[0], **index[1])
+                self.collection.create_index(keys, **opts)
+            except pymongo.errors.OperationFailure as e:
+                code_name = e.details.get('codeName') if hasattr(e, 'details') else None
+                if code_name in ('IndexOptionsConflict', 'IndexKeySpecsConflict'):
+                    for idx in self.collection.list_indexes():
+                        if list(idx['key'].items()) == keys:
+                            self.collection.drop_index(idx['name'])
+                            break
+                    self.collection.create_index(keys, **opts)
+                else:
+                    raise
         else:
-            self.collection.create_index(index)
+            self.collection.create_index(index, background=True)
 
     def ensureTextIndex(self, index, language='english'):
         """
