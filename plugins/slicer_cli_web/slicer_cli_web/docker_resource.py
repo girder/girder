@@ -117,7 +117,7 @@ class DockerResource(Resource):
     @autoDescribeRoute(
         Description('Re-run a Slicer CLI job.')
         .modelParam('id', 'The slicer CLI item task', Item, level=AccessType.READ)
-        .modelParam('jobId', 'The job to re-run', Job, level=AccessType.READ)
+        .modelParam('jobId', 'The job to re-run', Job, level=AccessType.READ, paramType='query')
     )
     def rerunCli(self, item, job, params):
         user = self.getCurrentUser()
