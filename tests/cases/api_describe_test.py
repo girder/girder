@@ -142,7 +142,7 @@ class ApiDescribeTestCase(base.TestCase):
         self.assertEqual(resp.json['swagger'], describe.SWAGGER_VERSION)
         self.assertEqual(resp.json['info']['version'], VERSION['release'])
         self.assertIn('/group', resp.json['paths'])
-        self.assertIn({'name': 'group'}, resp.json['tags'])
+        self.assertTrue(any(t.get('name') == 'group' for t in resp.json['tags']))
         self.assertHasKeys(
             resp.json['paths']['/group'], ('get', 'post'))
         self.assertHasKeys(
