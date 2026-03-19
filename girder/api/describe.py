@@ -97,6 +97,8 @@ class Description:
             self._responses['200'] = {
                 'description': 'Success'
             }
+        if not any(str(k).startswith('4') for k in self._responses):
+            self.errorResponse()
         if self._responseClass is not None:
             schema = {
                 '$ref': '#/definitions/%s' % self._responseClass
@@ -250,6 +252,14 @@ class Description:
         if default is not None:
             param['default'] = default
 
+        for p in self._params:
+            if p['name'] == param['name'] and p['in'] == param['in']:
+                if p.get('default') != param.get('default') or p.get('enum') != param.get('enum'):
+                    logprint.warning('parameter %r similar but different from %r', param, p)
+                p['required'] = p['required'] and param['required']
+                if param['description'] not in p['description']:
+                    p['description'] += '\n\n' + param['description']
+                return self
         self._params.append(param)
         return self
 
@@ -420,7 +430,8 @@ class Description:
             reason = '\n\n'.join(reason)
 
         if code in self._responses:
-            self._responses[code]['description'] += '\n\n' + reason
+            if reason not in self._responses[code]['description']:
+                self._responses[code]['description'] += '\n\n' + reason
         else:
             self._responses[code] = {
                 'description': reason
@@ -525,7 +536,8 @@ class Describe(Resource):
 
             # Tag Object
             tags.append({
-                'name': tag
+                'name': tag,
+                'description': f'{tag} resource',
             })
 
             for route, methods in docs.routes[resource].items():
@@ -558,7 +570,11 @@ class Describe(Resource):
             'swagger': SWAGGER_VERSION,
             'info': {
                 'title': 'Girder REST API',
-                'version': VERSION['release']
+                'version': VERSION['release'],
+                'license': {
+                    'name': 'Apache-2.0',
+                    'url': 'https://www.apache.org/licenses/LICENSE-2.0.txt',
+                },
             },
             'host': host,
             'basePath': basePath,
