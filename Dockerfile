@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -qy \
 RUN curl -LJ https://github.com/krallin/tini/releases/download/v0.19.0/tini -o /sbin/tini && \
     chmod +x /sbin/tini
 
-RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -qy nodejs
 
 RUN mkdir /girder
