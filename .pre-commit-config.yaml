@@ -46,7 +46,7 @@ repos:
         files: README.rst
         name: rst-linter of README.rst
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
       - id: codespell
         args:
@@ -64,20 +64,20 @@ repos:
         args:
           - --py310-plus
           - --keep-percent-format
-# - repo: https://github.com/pre-commit/mirrors-autopep8
-#   rev: v2.0.4
-#   hooks:
-#     - id: autopep8
-# - repo: https://github.com/PyCQA/flake8
-#   rev: 6.1.0
-#   hooks:
-#     - id: flake8
-# # - repo: https://github.com/pycqa/isort
-# #   rev: 5.12.0
-# #   hooks:
-# #     - id: isort
-# #       name: isort (python)
-# - repo: https://github.com/asottile/yesqa
-#   rev: v1.5.0
-#   hooks:
-#     - id: yesqa
+  - repo: https://github.com/pre-commit/mirrors-autopep8
+    rev: v2.0.4
+    hooks:
+      - id: autopep8
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.3.0
+    hooks:
+      - id: flake8
+  - repo: https://github.com/pycqa/isort
+    rev: 8.0.1
+    hooks:
+      - id: isort
+        name: isort (python)
+#   - repo: https://github.com/asottile/yesqa
+#     rev: v1.5.0
+#     hooks:
+#       - id: yesqa
