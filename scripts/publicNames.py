@@ -38,7 +38,7 @@ def addFileSymbols(filePath, symbolTree):
     fileTags = subprocess.check_output([
         'ctags',
         '-f', '-',
-        '--languages=python',
+        '--languages=+Python',
         '--python-kinds=%s' % ''.join([
             # Skip imported symbols
             '-i',
