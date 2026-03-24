@@ -1,5 +1,7 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 
+import getPort from 'get-port';
+
 import { expect, test } from '@playwright/test';
 
 import { outputCoverageReport, startCoverage } from './coverage';
@@ -40,9 +42,10 @@ const startServer = async (port: number) => {
 
 export const setupServer = () => {
   let serverProcess: ChildProcessWithoutNullStreams;
-  const port = Math.floor(Math.random() * 10000 + 40000); // TODO better port range
+  let port: number;
 
   test.beforeAll(async () => {
+    port = await getPort();
     serverProcess = await startServer(port);
   });
 
@@ -79,7 +82,9 @@ export const setupServer = () => {
 
   test.beforeEach(async ({ page }) => {
     await startCoverage(page);
-    await page.goto(`http://localhost:${port}/`);
+    if (port !== null) {
+      await page.goto(`http://localhost:${port}/`);
+    }
     await expect(page.getByRole('link', { name: 'About' })).toBeVisible();
   });
 
