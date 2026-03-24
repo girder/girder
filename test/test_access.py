@@ -1,13 +1,12 @@
 import pytest
 
-from girder.api.rest import loadmodel, Resource
 from girder.api import access
+from girder.api.rest import Resource, loadmodel
 from girder.constants import AccessType, TokenScope
-from girder.models.user import User
 from girder.models.token import Token
+from girder.models.user import User
 from girder.settings import SettingKey
 from pytest_girder.assertions import assertStatus, assertStatusOk
-
 
 CUSTOM_SCOPE = 'Some.Exclusive.Scope'
 

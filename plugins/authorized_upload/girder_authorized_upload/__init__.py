@@ -1,8 +1,9 @@
 import os
 from pathlib import Path
 
-from bson.objectid import ObjectId
 from bson.errors import InvalidId
+from bson.objectid import ObjectId
+
 from girder import events
 from girder.api import access
 from girder.api.rest import getCurrentToken, setCurrentUser

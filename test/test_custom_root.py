@@ -1,16 +1,16 @@
 import os
 import urllib.parse
-import pytest
 
-from pytest_girder.assertions import assertStatus, assertStatusOk
-from pytest_girder.utils import getResponseBody
+import pytest
 
 from girder.api import access
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import boundHandler, rawResponse, Resource, setResponseHeader
+from girder.api.rest import Resource, boundHandler, rawResponse, setResponseHeader
 from girder.constants import TokenScope
-from girder.utility.server import staticFile
 from girder.plugin import GirderPlugin
+from girder.utility.server import staticFile
+from pytest_girder.assertions import assertStatus, assertStatusOk
+from pytest_girder.utils import getResponseBody
 
 
 @access.user(scope=TokenScope.ANONYMOUS_SESSION)

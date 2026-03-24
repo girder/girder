@@ -5,14 +5,15 @@ import subprocess
 import time
 
 import pytest
+from girder_jobs.constants import JobStatus
+from girder_jobs.models.job import Job
+from girder_plugin_worker.constants import PluginSettings as WorkerSettings
+
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.upload import Upload
-from girder_jobs.constants import JobStatus
-from girder_jobs.models.job import Job
-from girder_plugin_worker.constants import PluginSettings as WorkerSettings
 
 
 @pytest.fixture

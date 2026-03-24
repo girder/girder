@@ -1,7 +1,7 @@
-from tests import base
-from girder.models.setting import Setting
-
 from girder_google_analytics.settings import PluginSettings
+
+from girder.models.setting import Setting
+from tests import base
 
 
 def setUpModule():

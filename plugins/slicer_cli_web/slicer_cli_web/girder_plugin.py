@@ -19,11 +19,12 @@ import json
 import logging
 from pathlib import Path
 
+from girder_jobs.constants import JobStatus
+from girder_jobs.models.job import Job
+
 from girder import events
 from girder.constants import AccessType, TokenScope
 from girder.plugin import GirderPlugin, getPlugin, registerPluginStaticContent
-from girder_jobs.constants import JobStatus
-from girder_jobs.models.job import Job
 
 from . import TOKEN_SCOPE_MANAGE_TASKS
 from .docker_resource import DockerResource

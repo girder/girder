@@ -1,13 +1,13 @@
 """This module contains utility methods for parsing girder path strings."""
 
 import re
-from ..constants import AccessType
-from ..exceptions import AccessException, GirderException, ValidationException
-from ..exceptions import ResourcePathNotFound
-from .model_importer import ModelImporter
+
 from girder.models.collection import Collection
 from girder.models.user import User
 
+from ..constants import AccessType
+from ..exceptions import AccessException, GirderException, ResourcePathNotFound, ValidationException
+from .model_importer import ModelImporter
 
 # Expose the ResourcePathNotFound exception as its original name
 NotFoundException = ResourcePathNotFound

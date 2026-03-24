@@ -2,6 +2,8 @@ import hashlib
 import io
 import time
 
+import girder_hashsum_download as hashsum_download
+
 from girder.exceptions import ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
@@ -9,8 +11,6 @@ from girder.models.setting import Setting
 from girder.models.upload import Upload
 from girder.models.user import User
 from tests import base
-
-import girder_hashsum_download as hashsum_download
 
 
 def setUpModule():

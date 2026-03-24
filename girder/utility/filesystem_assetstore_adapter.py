@@ -1,22 +1,24 @@
-import filelock
-from hashlib import sha512
 import io
 import logging
 import mimetypes
 import os
-import psutil
 import shutil
 import stat
 import tempfile
+from hashlib import sha512
+
+import filelock
+import psutil
 
 from girder import events
 from girder.api.rest import setResponseHeader
-from girder.exceptions import ValidationException, GirderException
+from girder.exceptions import GirderException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.upload import Upload
 from girder.utility import mkdir, progress
+
 from . import _hash_state
 from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 

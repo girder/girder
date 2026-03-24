@@ -1,11 +1,13 @@
-import cherrypy
 import datetime
 import logging
 import urllib.parse
+
+import cherrypy
+
 from girder import auditLogger
+from girder.api.rest import getCurrentUser
 from girder.constants import SortDir
 from girder.models.model_base import Model
-from girder.api.rest import getCurrentUser
 from girder.plugin import GirderPlugin
 
 

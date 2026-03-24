@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import argparse
-import boto3
 import errno
 import logging
 import os
@@ -8,9 +7,11 @@ import socket
 import threading
 import time
 
-import moto.server
+import boto3
 import moto.s3
-from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
+import moto.server
+
+from girder.utility.s3_assetstore_adapter import S3AssetstoreAdapter, makeBotoConnectParams
 
 _startPort = 31100
 _maxTries = 100

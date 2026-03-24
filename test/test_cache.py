@@ -4,7 +4,7 @@ import pytest
 
 from girder.models.setting import Setting
 from girder.settings import SettingKey
-from girder.utility._cache import cache, requestCache, _setupCache
+from girder.utility._cache import _setupCache, cache, requestCache
 from girder.utility.config import getConfig
 
 

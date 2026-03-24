@@ -6,33 +6,24 @@ import socket
 import sys
 import threading
 import time
+
 try:
     import docker
-    from docker.errors import DockerException, APIError, InvalidVersion
+    from docker.errors import APIError, DockerException, InvalidVersion
     from girder_worker.docker import nvidia
     from requests.exceptions import ReadTimeout
 except ImportError:
     # These imports will not be available on the girder side.
     pass
-from girder_worker.app import app, Task
 from girder_worker import logger
+from girder_worker.app import Task, app
 from girder_worker.docker import utils
+from girder_worker.docker.io import (FDReadStreamConnector, FDStreamConnector,
+                                     FDWriteStreamConnector, FileDescriptorReader, StdStreamWriter)
 from girder_worker.docker.stream_adapter import DockerStreamPushAdapter
-from girder_worker.docker.io import (
-    FileDescriptorReader,
-    FDWriteStreamConnector,
-    FDReadStreamConnector,
-    FDStreamConnector,
-    StdStreamWriter
-)
-from girder_worker.docker.transforms import (
-    ContainerStdErr,
-    ContainerStdOut,
-    _TemporaryVolumeBase,
-    TemporaryVolume
-)
+from girder_worker.docker.transforms import (ContainerStdErr, ContainerStdOut, TemporaryVolume,
+                                             _TemporaryVolumeBase)
 from girder_worker.utils import _walk_obj
-
 
 BLACKLISTED_DOCKER_RUN_ARGS = ['tty', 'detach', 'volumes']
 

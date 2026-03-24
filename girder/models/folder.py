@@ -4,12 +4,14 @@ import json
 import os
 
 from bson.objectid import ObjectId
-from .model_base import AccessControlledModel
+
 from girder import events
 from girder.constants import AccessType
-from girder.exceptions import ValidationException, GirderException
+from girder.exceptions import GirderException, ValidationException
 from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import noProgress
+
+from .model_base import AccessControlledModel
 
 
 class Folder(AccessControlledModel):

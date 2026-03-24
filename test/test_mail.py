@@ -5,9 +5,9 @@ import pytest
 
 from girder.models.setting import Setting
 from girder.models.user import User
-from girder.utility import mail_utils
 from girder.plugin import GirderPlugin
 from girder.settings import SettingKey
+from girder.utility import mail_utils
 
 
 class MailPlugin(GirderPlugin):

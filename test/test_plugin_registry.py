@@ -2,11 +2,11 @@ import logging
 import unittest.mock
 
 import pytest
-from pytest_girder.plugin_registry import PluginRegistry
 
 from girder import plugin
 from girder.exceptions import GirderException
 from girder.plugin import GirderPlugin
+from pytest_girder.plugin_registry import PluginRegistry
 
 
 @pytest.fixture

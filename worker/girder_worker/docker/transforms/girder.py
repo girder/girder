@@ -1,14 +1,13 @@
 import errno
 import os
 import shutil
+
 from girder_worker.utils.transform import Transform
-from girder_worker.utils.transforms.girder_io import (
-    GirderUploadJobArtifact,
-    GirderClientTransform,
-    GirderUploadToFolder,
-    GirderUploadToItem
-)
-from . import TemporaryVolume, Connect, NamedOutputPipe, _maybe_transform
+from girder_worker.utils.transforms.girder_io import (GirderClientTransform,
+                                                      GirderUploadJobArtifact, GirderUploadToFolder,
+                                                      GirderUploadToItem)
+
+from . import Connect, NamedOutputPipe, TemporaryVolume, _maybe_transform
 
 
 def setPermissions(path, dirmode=0o777, filemode=0o644):
@@ -77,9 +76,7 @@ class GirderFileIdToStream(GirderClientTransform):
         self.file_id = _id
 
     def transform(self, **kwargs):
-        from girder_worker.docker.io.girder import (
-            GirderFileStreamReader
-        )
+        from girder_worker.docker.io.girder import GirderFileStreamReader
         return GirderFileStreamReader(self.gc, self.file_id)
 
 

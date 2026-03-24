@@ -4,6 +4,7 @@ from girder.constants import AccessType, TokenScope
 from girder.exceptions import AccessException
 from girder.settings import SettingKey
 from girder.utility import genToken
+
 from .model_base import AccessControlledModel
 
 

@@ -14,7 +14,6 @@ And events should be fired by calling:
 
 import contextlib
 import logging
-
 from collections import OrderedDict
 
 logger = logging.getLogger(__name__)

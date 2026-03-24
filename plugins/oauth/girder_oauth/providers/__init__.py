@@ -1,13 +1,13 @@
 import collections
 
-from .google import Google
-from .globus import Globus
-from .github import GitHub
-from .linkedin import LinkedIn
 from .bitbucket import Bitbucket
-from .microsoft import Microsoft
 from .box import Box
 from .cilogon import CILogon
+from .github import GitHub
+from .globus import Globus
+from .google import Google
+from .linkedin import LinkedIn
+from .microsoft import Microsoft
 
 
 def addProvider(provider):

@@ -1,11 +1,12 @@
 import base64
-import cherrypy
 import contextlib
-from dataclasses import dataclass
 import io
 import json
 import socket
 import urllib.parse
+from dataclasses import dataclass
+
+import cherrypy
 
 
 def getResponseBody(response, text=True):
@@ -204,8 +205,8 @@ class ServerFixture:
 def serverContext(plugins=None, bindPort=False) -> ServerFixture:
     from girder import plugin
     from girder.api import docs
-    from girder.utility.server import create_app
     from girder.constants import ServerMode
+    from girder.utility.server import create_app
 
     if plugins is None:
         # By default, pass "[]" to "plugins", disabling any installed plugins

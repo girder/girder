@@ -1,7 +1,7 @@
 import pytest
 
-from girder.models.item import Item
 from girder.models.folder import Folder
+from girder.models.item import Item
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
 

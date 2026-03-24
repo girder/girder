@@ -1,17 +1,19 @@
 import base64
-import cherrypy
 import datetime
 
-from ..describe import Description, autoDescribeRoute
+import cherrypy
+
 from girder.api import access
 from girder.api.rest import Resource, filtermodel, setCurrentUser
 from girder.constants import AccessType, TokenScope
-from girder.exceptions import RestException, AccessException
+from girder.exceptions import AccessException, RestException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User as UserModel
 from girder.settings import SettingKey
 from girder.utility import mail_utils
+
+from ..describe import Description, autoDescribeRoute
 
 
 class User(Resource):

@@ -10,16 +10,16 @@ Examples:
     girder audit-logs-report -f 57557fac8d777f68be8f3f49
 
 """
-import click
 import csv
-import dateutil.parser
 import sys
 
+import click
+import dateutil.parser
 from bson.objectid import ObjectId
-
-from girder.models.item import Item
-from girder.models.folder import Folder
 from girder_audit_logs import Record
+
+from girder.models.folder import Folder
+from girder.models.item import Item
 
 
 def index_folder(folderId):

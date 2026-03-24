@@ -1,15 +1,14 @@
-import boto3
-import httmock
 import io
 import json
-import moto
 import os
 import shutil
 import urllib.parse
 import zipfile
-
 from hashlib import sha512
-from .. import base, mock_s3
+
+import boto3
+import httmock
+import moto
 
 from girder import events
 from girder.exceptions import AccessException, GirderException
@@ -21,7 +20,9 @@ from girder.models.setting import Setting
 from girder.models.user import User
 from girder.settings import SettingKey
 from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
-from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
+from girder.utility.s3_assetstore_adapter import S3AssetstoreAdapter, makeBotoConnectParams
+
+from .. import base, mock_s3
 
 # The latest moto/boto/botocore requires dummy credentials to function.  It is unclear if
 # this is a bug or intended behavior.

@@ -1,8 +1,8 @@
-import girder_client
-from unittest import mock
 import os
-import pytest
+from unittest import mock
 
+import girder_client
+import pytest
 from girder_worker_utils.transforms.contrib import girder_io
 
 

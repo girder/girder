@@ -8,6 +8,9 @@ import time
 import cherrypy
 import pymongo
 from bson.objectid import ObjectId
+from girder_jobs.constants import JobStatus
+from girder_jobs.models.job import Job
+
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException, boundHandler, getApiUrl, getCurrentToken
@@ -16,8 +19,6 @@ from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
-from girder_jobs.constants import JobStatus
-from girder_jobs.models.job import Job
 
 from .cli_utils import (as_model, generate_description, get_cli_parameters, is_on_girder,
                         return_parameter_file_name)

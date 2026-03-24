@@ -4,7 +4,6 @@ import pprint
 import large_image
 import numpy
 from ctk_cli import CLIArgumentParser  # noqa I004
-
 # imported for side effects - prevents spurious warnings
 from slicer_cli_web import ctk_cli_adjustment  # noqa
 

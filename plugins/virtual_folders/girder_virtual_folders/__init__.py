@@ -1,11 +1,13 @@
-import cherrypy
 import json
+
+import cherrypy
 from bson import json_util
+
 from girder import events
 from girder.api import access, rest
 from girder.api.v1.folder import Folder as FolderResource
-from girder.constants import AccessType, TokenScope, SortDir
-from girder.exceptions import ValidationException, RestException
+from girder.constants import AccessType, SortDir, TokenScope
+from girder.exceptions import RestException, ValidationException
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.plugin import GirderPlugin

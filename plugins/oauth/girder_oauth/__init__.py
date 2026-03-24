@@ -6,7 +6,7 @@ from girder.exceptions import ValidationException
 from girder.models.user import User
 from girder.plugin import GirderPlugin, registerPluginStaticContent
 
-from . import rest, providers
+from . import providers, rest
 
 
 def checkOauthUser(event):

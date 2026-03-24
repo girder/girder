@@ -2,9 +2,9 @@ import mimetypes
 import os
 import shutil
 import tempfile
+from urllib.parse import urlencode
 
 from girder_client import GirderClient
-from urllib.parse import urlencode
 
 from ..transform import ResultTransform, Transform
 

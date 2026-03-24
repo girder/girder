@@ -1,19 +1,19 @@
 import io
 import os
 from unittest import mock
+
 import pytest
+from girder_jobs.constants import JobStatus
+from girder_jobs.models.job import Job
+from girder_plugin_worker import utils
+from girder_plugin_worker.constants import PluginSettings
+from girder_worker.app import app
 
 from girder.models.folder import Folder
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.upload import Upload
-from girder_jobs.models.job import Job
-from girder_jobs.constants import JobStatus
 from pytest_girder.assertions import assertStatus, assertStatusOk
-
-from girder_plugin_worker.constants import PluginSettings
-from girder_plugin_worker import utils
-from girder_worker.app import app
 
 
 def local_job(job):

@@ -1,16 +1,19 @@
-import cherrypy
 import datetime
 import logging
 import os
 
-from .model_base import Model, AccessControlledModel
+import cherrypy
+
 from girder import auditLogger, events
 from girder.constants import AccessType, CoreEventHandler
 from girder.exceptions import FilePathException, ValidationException
 from girder.models.setting import Setting
 from girder.settings import SettingKey
-from girder.utility import acl_mixin, path as path_util
+from girder.utility import acl_mixin
+from girder.utility import path as path_util
 from girder.utility.model_importer import ModelImporter
+
+from .model_base import AccessControlledModel, Model
 
 logger = logging.getLogger(__name__)
 

@@ -3,6 +3,7 @@ import logging
 import os
 
 import jinja2
+
 from girder.api.rest import RestException
 from girder.constants import AccessType
 from girder.exceptions import FilePathException
@@ -21,10 +22,10 @@ logger = logging.getLogger(__name__)
 
 
 def _to_file_volume(param, model):
+    from girder_plugin_worker.constants import PluginSettings
     from girder_worker.docker.transforms.girder import (GirderFileIdToVolume,
                                                         GirderFolderIdToVolume,
                                                         GirderItemIdToVolume)
-    from girder_plugin_worker.constants import PluginSettings
 
     from .girder_worker_plugin.direct_docker_run import DirectGirderFileIdToVolume
 

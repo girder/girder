@@ -14,12 +14,14 @@
 #  limitations under the License.
 ###############################################################################
 
-from .constants import PluginSettings
+from girder_jobs.models.job import Job
+
 from girder.api.rest import getApiUrl
 from girder.exceptions import FilePathException
 from girder.models.file import File
 from girder.models.setting import Setting
-from girder_jobs.models.job import Job
+
+from .constants import PluginSettings
 
 
 def getWorkerApiUrl():

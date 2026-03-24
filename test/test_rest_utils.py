@@ -1,13 +1,14 @@
 import datetime
 import json
+
 import pytest
 import pytz
 
+import girder.events
 from girder.api import rest
 from girder.exceptions import GirderException
-from girder.settings import SettingKey
 from girder.models.setting import Setting
-import girder.events
+from girder.settings import SettingKey
 
 date = datetime.datetime.now()
 

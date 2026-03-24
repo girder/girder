@@ -1,12 +1,8 @@
 from os.path import basename
 
 import pytest
-
-from slicer_cli_web.girder_worker_plugin.direct_docker_run import (
-    TEMP_VOLUME_DIRECT_MOUNT_PREFIX,
-    DirectGirderFileIdToVolume,
-    run,
-)
+from slicer_cli_web.girder_worker_plugin.direct_docker_run import (TEMP_VOLUME_DIRECT_MOUNT_PREFIX,
+                                                                   DirectGirderFileIdToVolume, run)
 
 
 class MockedGirderClient:

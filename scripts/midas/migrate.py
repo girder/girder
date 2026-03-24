@@ -22,19 +22,20 @@ multiple runs of the script will generate the same password for a given user.
 Large migrations are difficult and take a while. Failures are to be expected.
 """
 
-from functools import wraps
-from joblib import Parallel, delayed
-import girder_client
 import logging
 import os
-import pydas
 import random
-import requests
 import sqlite3
 import string
 import tempfile
 import threading
 import time
+from functools import wraps
+
+import girder_client
+import pydas
+import requests
+from joblib import Parallel, delayed
 
 # Configuration
 

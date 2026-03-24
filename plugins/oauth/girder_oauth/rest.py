@@ -1,16 +1,17 @@
-import cherrypy
 import datetime
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+
+import cherrypy
 
 from girder import events
-from girder.constants import AccessType
-from girder.exceptions import RestException
+from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource
-from girder.api import access
+from girder.constants import AccessType
+from girder.exceptions import RestException
 from girder.models.setting import Setting
-from girder.models.user import User
 from girder.models.token import Token
+from girder.models.user import User
 
 from . import providers
 from .settings import PluginSettings

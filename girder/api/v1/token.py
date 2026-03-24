@@ -1,8 +1,9 @@
-from ..rest import Resource
-from ..describe import Description, autoDescribeRoute
 from girder.api import access
 from girder.constants import TokenScope
 from girder.models.token import Token as TokenModel
+
+from ..describe import Description, autoDescribeRoute
+from ..rest import Resource
 
 
 class Token(Resource):

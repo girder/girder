@@ -3,7 +3,6 @@ from ..exceptions import NoAssetstoreAdapter
 from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
 from .s3_assetstore_adapter import S3AssetstoreAdapter
 
-
 _assetstoreTable = {
     AssetstoreType.FILESYSTEM: FilesystemAssetstoreAdapter,
     AssetstoreType.S3: S3AssetstoreAdapter

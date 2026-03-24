@@ -1,10 +1,10 @@
-import os
-import errno
-import stat
 import abc
-import urllib
+import errno
+import os
 import ssl
+import stat
 import sys
+import urllib
 from http import client as httplib
 
 

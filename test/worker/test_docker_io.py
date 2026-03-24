@@ -1,23 +1,15 @@
 import itertools
-from unittest import mock
 import os
-import pytest
-
-from girder_worker.docker.io import (
-    ChunkedTransferEncodingStreamWriter,
-    FDReadStreamConnector,
-    FDWriteStreamConnector,
-    FileDescriptorReader,
-    FileDescriptorWriter,
-    NamedPipe,
-    NamedPipeReader,
-    NamedPipeWriter,
-    StdStreamWriter
-)
-
-from girder_worker.docker.io.girder import GirderFileStreamReader
-from girder_client import GirderClient
 from http import client as httplib
+from unittest import mock
+
+import pytest
+from girder_client import GirderClient
+from girder_worker.docker.io import (ChunkedTransferEncodingStreamWriter, FDReadStreamConnector,
+                                     FDWriteStreamConnector, FileDescriptorReader,
+                                     FileDescriptorWriter, NamedPipe, NamedPipeReader,
+                                     NamedPipeWriter, StdStreamWriter)
+from girder_worker.docker.io.girder import GirderFileStreamReader
 
 
 def test_FDWriteStreamConnector_fileno_same_as_output_fileno(istream, ostream):

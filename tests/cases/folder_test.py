@@ -1,12 +1,12 @@
 import json
 
-from .. import base
-
 from girder import events
 from girder.constants import AccessType, SortDir
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.user import User
+
+from .. import base
 
 
 def setUpModule():

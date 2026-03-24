@@ -6,9 +6,10 @@ def create_task_job(job_defaults, sender=None, body=None,
                     properties=None, declare=None, retry_policy=None,
                     **kwargs):
 
-    from girder.utility.model_importer import ModelImporter
-    from girder.api.rest import getCurrentUser
     from girder_plugin_worker import utils
+
+    from girder.api.rest import getCurrentUser
+    from girder.utility.model_importer import ModelImporter
 
     job_model = ModelImporter.model('job', 'jobs')
 
@@ -49,8 +50,8 @@ def attach_girder_api_url(sender=None, body=None, exchange=None,
 def attach_girder_client_token(sender=None, body=None, exchange=None,
                                routing_key=None, headers=None, properties=None,
                                declare=None, retry_policy=None, **kwargs):
-    from girder.utility.model_importer import ModelImporter
     from girder.api.rest import getCurrentUser
+    from girder.utility.model_importer import ModelImporter
     token_model = ModelImporter.model('token')
     scope = 'jobs.rest.create_job'
     try:
