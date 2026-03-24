@@ -3,9 +3,8 @@ from pathlib import Path
 
 from girder import events
 from girder.api import access
-from girder.api.describe import autoDescribeRoute, Description
-from girder.api.rest import (
-    filtermodel, setRawResponse, setResponseHeader, setContentDisposition)
+from girder.api.describe import Description, autoDescribeRoute
+from girder.api.rest import filtermodel, setContentDisposition, setRawResponse, setResponseHeader
 from girder.api.v1.file import File
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
@@ -15,7 +14,6 @@ from girder.plugin import GirderPlugin, registerPluginStaticContent
 from girder.utility.progress import ProgressContext, noProgress
 
 from .settings import PluginSettings
-
 
 SUPPORTED_ALGORITHMS = {'sha512'}
 _CHUNK_LEN = 65536

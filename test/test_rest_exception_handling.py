@@ -1,7 +1,8 @@
-import cherrypy
 import contextlib
-import pytest
 import unittest.mock
+
+import cherrypy
+import pytest
 
 from girder import config
 from girder.api import access

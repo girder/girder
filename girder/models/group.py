@@ -1,9 +1,10 @@
 import datetime
 
-from .model_base import AccessControlledModel
 from girder import events
 from girder.constants import AccessType, CoreEventHandler
 from girder.exceptions import ValidationException
+
+from .model_base import AccessControlledModel
 
 
 class Group(AccessControlledModel):
@@ -232,6 +233,7 @@ class Group(AccessControlledModel):
         deny that request, thereby deleting it.
         """
         from .user import User
+
         # Remove group membership for this user.
         if 'groups' in user and group['_id'] in user['groups']:
             user['groups'].remove(group['_id'])

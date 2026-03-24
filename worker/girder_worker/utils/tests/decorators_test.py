@@ -1,7 +1,5 @@
 import pytest
-
-from girder_worker_utils import decorators
-from girder_worker_utils import types
+from girder_worker_utils import decorators, types
 from girder_worker_utils.decorators import argument
 
 

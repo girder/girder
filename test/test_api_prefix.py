@@ -1,10 +1,10 @@
 import pytest
-from pytest_girder.assertions import assertStatusOk
 
 from girder.api import access
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource, Prefix
+from girder.api.rest import Prefix, Resource
 from girder.plugin import GirderPlugin
+from pytest_girder.assertions import assertStatusOk
 
 
 class Resourceful(Resource):

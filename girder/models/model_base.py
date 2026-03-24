@@ -3,18 +3,19 @@ import functools
 import itertools
 import logging
 import os
-import pymongo
 import re
+from datetime import timezone
 
-from bson.objectid import ObjectId
+import pymongo
 from bson.codec_options import CodecOptions
 from bson.errors import InvalidId
-from datetime import timezone
+from bson.objectid import ObjectId
 from pymongo.errors import WriteError
-from girder import events, auditLogger
-from girder.constants import AccessType, CoreEventHandler, ACCESS_FLAGS, TEXT_SCORE_SORT_MAX
-from girder.models import getDbConnection
+
+from girder import auditLogger, events
+from girder.constants import ACCESS_FLAGS, TEXT_SCORE_SORT_MAX, AccessType, CoreEventHandler
 from girder.exceptions import AccessException, ValidationException
+from girder.models import getDbConnection
 
 # pymongo3 complains about extra kwargs to find(), so we must filter them.
 _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
@@ -1246,8 +1247,8 @@ class AccessControlledModel(Model):
         :type doc: dict
         :returns: A dict containing `users` and `groups` keys.
         """
-        from .user import User
         from .group import Group
+        from .user import User
 
         acList = {
             'users': doc.get('access', {}).get('users', []),

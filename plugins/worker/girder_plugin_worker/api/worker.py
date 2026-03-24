@@ -1,12 +1,12 @@
 import logging
 
 import celery
+from girder_worker.app import app
 
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
-from girder.constants import TokenScope
 from girder.api.rest import Resource
-from girder_worker.app import app
+from girder.constants import TokenScope
 
 logger = logging.getLogger(__name__)
 

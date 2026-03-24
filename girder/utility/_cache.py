@@ -10,8 +10,8 @@ def _setupCache(curConfig: dict):
     Cache backends are forcibly replaced because Girder initially configures
     the regions with the null backends.
     """
-    from girder.settings import SettingKey
     from girder.models.setting import Setting
+    from girder.settings import SettingKey
 
     if Setting().get(SettingKey.CACHE_ENABLED):
         # Replace existing backend. This is necessary

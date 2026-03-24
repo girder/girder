@@ -4,9 +4,9 @@ import ldap
 
 from girder import events
 from girder.api import access
-from girder.api.describe import autoDescribeRoute, Description
+from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import boundHandler
-from girder.exceptions import ValidationException, RestException
+from girder.exceptions import RestException, ValidationException
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.plugin import GirderPlugin, registerPluginStaticContent

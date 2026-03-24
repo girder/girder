@@ -1,6 +1,7 @@
-from .external_data_core_test import ExternalDataCoreTest
-import os
 import hashlib
+import os
+
+from .external_data_core_test import ExternalDataCoreTest
 
 
 class ExternalDataPluginTest(ExternalDataCoreTest):

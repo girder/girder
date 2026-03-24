@@ -1,12 +1,13 @@
-from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
-from girder.utility import ziputil
-from girder.constants import AccessType, TokenScope, SortDir
-from girder.exceptions import RestException
 from girder.api import access
+from girder.constants import AccessType, SortDir, TokenScope
+from girder.exceptions import RestException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item as ItemModel
+from girder.utility import ziputil
+
+from ..describe import Description, autoDescribeRoute
+from ..rest import Resource, filtermodel, setContentDisposition, setResponseHeader
 
 
 class Item(Resource):

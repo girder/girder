@@ -1,14 +1,15 @@
-import cherrypy
 import logging
-import mako
 import mimetypes
 import os
 import sys
 
+import cherrypy
+import mako
+
 from girder import __version__, constants
+from girder.constants import ServerMode
 from girder.utility import config
 from girder.utility._cache import _setupCache
-from girder.constants import ServerMode
 
 logger = logging.getLogger(__name__)
 

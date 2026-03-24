@@ -4,7 +4,6 @@ import uuid
 
 import docker
 from docker.errors import DockerException
-
 from girder_worker import logger
 
 

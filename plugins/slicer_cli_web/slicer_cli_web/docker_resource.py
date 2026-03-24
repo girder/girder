@@ -7,6 +7,9 @@ import time
 from base64 import b64decode
 
 import pymongo
+from girder_jobs.constants import JobStatus
+from girder_jobs.models.job import Job
+
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute, describeRoute
 from girder.api.rest import filtermodel, setRawResponse, setResponseHeader
@@ -18,8 +21,6 @@ from girder.models.item import Item
 from girder.models.token import Token
 from girder.utility import path as path_util
 from girder.utility.model_importer import ModelImporter
-from girder_jobs.constants import JobStatus
-from girder_jobs.models.job import Job
 
 from . import TOKEN_SCOPE_MANAGE_TASKS, rest_slicer_cli
 from .cli_utils import as_model, get_cli_parameters

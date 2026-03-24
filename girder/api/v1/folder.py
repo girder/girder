@@ -1,13 +1,14 @@
-from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
-from girder.constants import AccessType, TokenScope, SortDir
+from girder.constants import AccessType, SortDir, TokenScope
 from girder.exceptions import RestException
 from girder.models.folder import Folder as FolderModel
 from girder.tasks import copyFolderTask, deleteFolderTask
 from girder.utility import ziputil
 from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
+
+from ..describe import Description, autoDescribeRoute
+from ..rest import Resource, filtermodel, setContentDisposition, setResponseHeader
 
 
 class Folder(Resource):

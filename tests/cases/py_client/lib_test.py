@@ -1,19 +1,20 @@
-import girder
-import girder_client
+import hashlib
 import io
 import json
 import os
-import requests
 import shutil
-import hashlib
-import httmock
 import unittest.mock
 
+import girder_client
+import httmock
+import requests
+
+import girder
 from girder import config, events
+from girder.models.collection import Collection
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
-from girder.models.collection import Collection
 from girder.models.upload import Upload
 from girder.models.user import User
 from tests import base

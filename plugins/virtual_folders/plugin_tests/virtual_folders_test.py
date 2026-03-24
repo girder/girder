@@ -1,11 +1,11 @@
 import json
 
-from tests import base
 from girder.constants import AccessType, SortDir
 from girder.exceptions import ValidationException
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.user import User
+from tests import base
 
 
 def setUpModule():

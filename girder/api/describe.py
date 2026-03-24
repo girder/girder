@@ -1,26 +1,27 @@
-import bson.json_util
-import dateutil.parser
-from functools import wraps
 import inspect
-import jsonschema
-import os
-import cherrypy
-from collections import OrderedDict
 import logging
+import os
+from collections import OrderedDict
+from functools import wraps
+from inspect import Parameter, signature
+
+import bson.json_util
+import cherrypy
+import dateutil.parser
+import jsonschema
 
 from girder import constants
-from girder.api.rest import getCurrentUser, getBodyJson
-from girder.constants import SortDir, VERSION
+from girder.api.rest import getBodyJson, getCurrentUser
+from girder.constants import VERSION, SortDir
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 from girder.settings import SettingKey
 from girder.utility import toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
-from . import docs, access
-from .rest import Resource, getApiUrl, getUrlParts
 
-from inspect import signature, Parameter
+from . import access, docs
+from .rest import Resource, getApiUrl, getUrlParts
 
 SWAGGER_VERSION = '2.0'
 logger = logging.getLogger(__name__)

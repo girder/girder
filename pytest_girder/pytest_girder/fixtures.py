@@ -1,9 +1,10 @@
 import hashlib
-import mongomock
 import os
-import pytest
 import shutil
 import unittest.mock
+
+import mongomock
+import pytest
 
 from .plugin_registry import PluginRegistry
 from .utils import serverContext
@@ -37,8 +38,7 @@ def db(request):
     created/destroyed based on the URI provided with the --mongo-uri option and tear-down
     behavior is modified by the --keep-db option.
     """
-    from girder.models import _dbClients, getDbConnection, pymongo
-    from girder.models import model_base
+    from girder.models import _dbClients, getDbConnection, model_base, pymongo
     from girder.models.user import User
 
     mockDb = request.config.getoption('--mock-db')

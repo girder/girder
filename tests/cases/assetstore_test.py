@@ -1,27 +1,29 @@
-import httmock
 import inspect
 import io
 import json
-import moto
 import os
 import shutil
 import tempfile
 import zipfile
 
-from .. import base, mock_s3
+import httmock
+import moto
+
 from girder import events
-from girder.constants import AssetstoreType, ROOT_DIR
+from girder.constants import ROOT_DIR, AssetstoreType
+from girder.exceptions import GirderException
 from girder.models.assetstore import Assetstore
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
-from girder.exceptions import GirderException
 from girder.models.upload import Upload
 from girder.models.user import User
 from girder.utility import assetstore_utilities
+from girder.utility import path as path_util
 from girder.utility.progress import ProgressContext
 from girder.utility.s3_assetstore_adapter import makeBotoConnectParams
-from girder.utility import path as path_util
+
+from .. import base, mock_s3
 
 
 def setUpModule():

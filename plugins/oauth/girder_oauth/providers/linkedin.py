@@ -4,8 +4,8 @@ from girder.api.rest import getApiUrl
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 
-from .base import ProviderBase
 from ..settings import PluginSettings
+from .base import ProviderBase
 
 
 class LinkedIn(ProviderBase):

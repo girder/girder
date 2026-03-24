@@ -4,8 +4,9 @@ This script is for deleting old audit log entries from the database. Example inv
     girder audit-logs-cleanup --days=30 --types=rest.request
 """
 
-import click
 import datetime
+
+import click
 from girder_audit_logs import Record
 
 

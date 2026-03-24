@@ -1,5 +1,4 @@
 import pytest
-
 from girder_jobs import constants
 
 

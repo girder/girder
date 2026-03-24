@@ -1,13 +1,14 @@
 import logging
 from pathlib import Path
 
-from girder import events
-from girder.constants import AccessType
-from girder.plugin import getPlugin, GirderPlugin, registerPluginStaticContent
 from girder_jobs.models.job import Job
 
-from .api.worker import Worker
+from girder import events
+from girder.constants import AccessType
+from girder.plugin import GirderPlugin, getPlugin, registerPluginStaticContent
+
 from . import event_handlers
+from .api.worker import Worker
 
 logger = logging.getLogger(__name__)
 

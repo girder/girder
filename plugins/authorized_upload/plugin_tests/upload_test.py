@@ -1,3 +1,5 @@
+from girder_authorized_upload.constants import TOKEN_SCOPE_AUTHORIZED_UPLOAD
+
 from girder.models.folder import Folder
 from girder.models.setting import Setting
 from girder.models.token import Token
@@ -5,8 +7,6 @@ from girder.models.upload import Upload
 from girder.models.user import User
 from girder.settings import SettingKey
 from tests import base
-
-from girder_authorized_upload.constants import TOKEN_SCOPE_AUTHORIZED_UPLOAD
 
 
 def setUpModule():

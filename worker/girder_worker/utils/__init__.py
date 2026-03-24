@@ -1,15 +1,14 @@
 import importlib.metadata
-
 import time
 
-from .tee import Tee, tee_stderr, tee_stdout
-
 import requests
-from requests import HTTPError
-
 # Disable urllib3 warnings about certificate validation. As they are printed in the console, the
 # messages are sent to Girder, creating an infinite loop.
 import urllib3
+from requests import HTTPError
+
+from .tee import Tee, tee_stderr, tee_stdout
+
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 try:

@@ -1,9 +1,8 @@
 import os
+from unittest import mock
 
 import girder_client
-from unittest import mock
 import pytest
-
 from girder_worker_utils.transforms import girder_io
 
 DIR_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fake_dir')

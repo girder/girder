@@ -3,7 +3,8 @@ import json
 import os
 import tempfile
 
-from tests import base
+from girder_user_quota.settings import PluginSettings
+
 from girder.constants import AssetstoreType
 from girder.exceptions import ValidationException
 from girder.models.assetstore import Assetstore
@@ -13,8 +14,7 @@ from girder.models.setting import Setting
 from girder.models.user import User
 from girder.settings import SettingKey
 from girder.utility.system import formatSize
-
-from girder_user_quota.settings import PluginSettings
+from tests import base
 
 
 def setUpModule():

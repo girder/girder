@@ -1,6 +1,6 @@
 import pytest
 
-from girder.plugin import getPlugin, GirderPlugin
+from girder.plugin import GirderPlugin, getPlugin
 from pytest_girder.assertions import assertStatusOk
 
 

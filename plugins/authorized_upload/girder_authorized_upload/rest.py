@@ -1,6 +1,6 @@
 from girder.api import access
-from girder.api.describe import describeRoute, Description
-from girder.api.rest import loadmodel, Resource
+from girder.api.describe import Description, describeRoute
+from girder.api.rest import Resource, loadmodel
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting

@@ -2,9 +2,10 @@ import logging
 import os
 import re
 import smtplib
-
 from email.mime.text import MIMEText
+
 from mako.lookup import TemplateLookup
+
 from girder import events
 from girder.constants import PACKAGE_DIR
 from girder.settings import SettingKey

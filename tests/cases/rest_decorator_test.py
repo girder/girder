@@ -1,12 +1,14 @@
 import json
 import os
-import requests
 import unittest
 
-from .. import base
+import requests
+
 from girder import config
 from girder.api.rest import endpoint
 from girder.models.user import User
+
+from .. import base
 
 
 def setUpModule():

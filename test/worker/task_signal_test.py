@@ -1,12 +1,9 @@
-from girder_worker.app import (
-    girder_before_task_publish,
-    gw_task_failure,
-    gw_task_prerun,
-    gw_task_success)
-
-from girder_worker.utils import BUILTIN_CELERY_TASKS
 from unittest import mock
+
 import pytest
+from girder_worker.app import (girder_before_task_publish, gw_task_failure, gw_task_prerun,
+                               gw_task_success)
+from girder_worker.utils import BUILTIN_CELERY_TASKS
 
 
 @pytest.mark.parametrize('name', BUILTIN_CELERY_TASKS)

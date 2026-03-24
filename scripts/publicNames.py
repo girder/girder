@@ -1,7 +1,7 @@
 import collections
 import os
-import subprocess
 import re
+import subprocess
 
 
 def Tree():

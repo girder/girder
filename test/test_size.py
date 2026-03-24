@@ -1,4 +1,5 @@
 import collections
+
 import pytest
 
 from girder.models.collection import Collection

@@ -1,39 +1,20 @@
 import os
 import sys
-
 import traceback as tb
 from distutils.version import LooseVersion
 
+import jsonpickle
 from celery import Celery, __version__
-
-from celery.signals import (
-    before_task_publish,
-    task_failure,
-    task_postrun,
-    task_prerun,
-    task_revoked,
-    task_success,
-    worker_ready)
-
-
+from celery.signals import (before_task_publish, task_failure, task_postrun, task_prerun,
+                            task_revoked, task_success, worker_ready)
 from girder_client import GirderClient
-
 from girder_worker import logger
 from girder_worker.context import get_context
 from girder_worker.entrypoint import discover_tasks
 from girder_worker.task import Task
-from girder_worker.utils import (
-    JobSpecNotFound,
-    JobStatus,
-    StateTransitionException,
-    _job_manager,
-    _update_status,
-    is_builtin_celery_task,
-    is_revoked
-)
+from girder_worker.utils import (JobSpecNotFound, JobStatus, StateTransitionException, _job_manager,
+                                 _update_status, is_builtin_celery_task, is_revoked)
 from girder_worker.utils.transform import ResultTransform
-
-import jsonpickle
 from kombu.serialization import register
 
 

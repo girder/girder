@@ -1,6 +1,8 @@
-from girder.utility import _hash_state
 import hashlib
+
 import pytest
+
+from girder.utility import _hash_state
 
 
 @pytest.fixture

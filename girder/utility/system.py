@@ -1,9 +1,10 @@
-import cherrypy
 import os
-import psutil
 import socket
 import threading
 import time
+
+import cherrypy
+import psutil
 
 import girder
 from girder.models import getDbConnection

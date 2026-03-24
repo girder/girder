@@ -7,10 +7,10 @@ import importlib.metadata
 import importlib.resources
 import logging
 from collections import OrderedDict
+from collections import OrderedDict as OrderedDictType
 from dataclasses import dataclass
 from functools import wraps
 from pathlib import Path
-from collections import OrderedDict as OrderedDictType
 
 from girder import __version__
 from girder.exceptions import GirderException

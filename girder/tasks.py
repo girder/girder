@@ -1,10 +1,11 @@
+from girder_worker.app import app
+
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.user import User
 from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
-from girder_worker.app import app
 
 
 @app.task(queue='local')

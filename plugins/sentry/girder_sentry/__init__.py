@@ -1,8 +1,9 @@
 from pathlib import Path
 
 import sentry_sdk
-from girder.plugin import GirderPlugin, registerPluginStaticContent
+
 from girder.models.setting import Setting
+from girder.plugin import GirderPlugin, registerPluginStaticContent
 
 from . import rest
 from .settings import PluginSettings

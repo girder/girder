@@ -1,36 +1,36 @@
-import html
-import cherrypy
 import collections
 import datetime
-from functools import wraps
+import fnmatch
+import html
 import inspect
 import json
 import logging
 import posixpath
-import pymongo
-import pymongo.command_cursor
 import sys
 import traceback
 import types
 import unicodedata
 import urllib.parse
 import uuid
-import fnmatch
+from functools import wraps
 
+import cherrypy
+import pymongo
+import pymongo.command_cursor
 from dogpile.cache.util import kwarg_function_key_generator
 
-from . import docs
 from girder import auditLogger, events
-from girder.constants import TokenScope, SortDir, ServerMode
-from girder.exceptions import AccessException, GirderException, ValidationException, RestException
+from girder.constants import ServerMode, SortDir, TokenScope
+from girder.exceptions import AccessException, GirderException, RestException, ValidationException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
 from girder.settings import SettingKey
-from girder.utility import toBool, config, JsonEncoder, optionalArgumentDecorator
+from girder.utility import JsonEncoder, config, optionalArgumentDecorator, toBool
 from girder.utility._cache import requestCache
 from girder.utility.model_importer import ModelImporter
 
+from . import docs
 
 # Arbitrary buffer length for stream-reading request bodies
 READ_BUFFER_LEN = 65536

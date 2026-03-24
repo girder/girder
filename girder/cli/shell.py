@@ -1,7 +1,8 @@
-import click
-import girder
 import sys
 
+import click
+
+import girder
 from girder import constants, plugin
 from girder.utility.server import create_app
 

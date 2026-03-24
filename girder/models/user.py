@@ -6,14 +6,15 @@ import time
 import bcrypt
 import pyotp
 
-from .model_base import AccessControlledModel
-from .setting import Setting
 from girder import events
 from girder.constants import AccessType, CoreEventHandler, TokenScope
 from girder.exceptions import AccessException, ValidationException
 from girder.settings import SettingKey
 from girder.utility import mail_utils
 from girder.utility._cache import rateLimitBuffer
+
+from .model_base import AccessControlledModel
+from .setting import Setting
 
 _password_regex = re.compile(os.getenv('GIRDER_PASSWORD_REGEX', r'.{6}.*'))
 _password_valid_description = os.getenv(

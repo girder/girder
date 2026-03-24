@@ -1,12 +1,12 @@
 import logging
 
-from girder.exceptions import ValidationException
-from girder.utility import setting_utilities
+from celery.result import AsyncResult
 from girder_jobs.constants import JobStatus
 from girder_jobs.models.job import Job
 from girder_worker.app import app
 
-from celery.result import AsyncResult
+from girder.exceptions import ValidationException
+from girder.utility import setting_utilities
 
 from .constants import PluginSettings
 from .status import CustomJobStatus

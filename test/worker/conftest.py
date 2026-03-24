@@ -1,6 +1,7 @@
 import io
-import pytest
 import random
+
+import pytest
 
 
 @pytest.fixture

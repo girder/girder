@@ -1,8 +1,8 @@
 import cherrypy
 
 from . import describe
-from .v1 import api_key, assetstore, file, collection, folder, group, item, \
-    resource, system, token, user
+from .v1 import (api_key, assetstore, collection, file, folder, group, item, resource, system,
+                 token, user)
 
 
 class ApiDocs:

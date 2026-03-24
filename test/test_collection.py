@@ -1,5 +1,6 @@
-import pytest
 import json
+
+import pytest
 
 from girder.models.collection import Collection
 from pytest_girder.assertions import assertStatusOk

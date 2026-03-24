@@ -1,7 +1,7 @@
 import json
 
-from .. import base
 from bson.objectid import ObjectId
+
 from girder.constants import AccessType
 from girder.models.collection import Collection
 from girder.models.folder import Folder
@@ -9,6 +9,8 @@ from girder.models.group import Group
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.settings import SettingKey
+
+from .. import base
 
 
 def setUpModule():

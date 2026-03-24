@@ -1,9 +1,8 @@
 from importlib import import_module
+
 import celery
 from girder_worker.utils import decorators
-
 from stevedore import extension
-
 
 #: Defines the namespace used for plugin entrypoints
 NAMESPACE = 'girder_worker_plugins'

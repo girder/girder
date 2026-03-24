@@ -3,12 +3,12 @@ import time
 from bson.objectid import ObjectId
 from girder_jobs.constants import JobStatus
 from girder_jobs.models.job import Job
+from girder_worker.app import app
 
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.upload import Upload
 from girder.utility.progress import ProgressContext
-from girder_worker.app import app
 
 from .models import ImportTrackerCancelError
 

@@ -1,6 +1,6 @@
 import time
 
-from girder.exceptions import ValidationException, RestException
+from girder.exceptions import RestException, ValidationException
 from girder.notification import Notification, ProgressState
 
 

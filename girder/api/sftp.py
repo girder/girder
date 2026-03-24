@@ -1,17 +1,18 @@
-from functools import wraps
 import logging
-import paramiko
 import socketserver
 import stat
 import time
+from functools import wraps
 
-from girder.exceptions import AccessException, ValidationException, ResourcePathNotFound
+import paramiko
+
+from girder.exceptions import AccessException, ResourcePathNotFound, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.user import User
-from girder.utility.path import lookUpPath
 from girder.utility.model_importer import ModelImporter
+from girder.utility.path import lookUpPath
 
 MAX_BUF_LEN = 10 * 1024 * 1024
 logger = logging.getLogger(__name__)

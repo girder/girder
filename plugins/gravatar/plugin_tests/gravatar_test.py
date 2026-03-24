@@ -1,10 +1,10 @@
 import hashlib
 
-from tests import base
+from girder_gravatar import PluginSettings
+
 from girder.models.setting import Setting
 from girder.models.user import User
-
-from girder_gravatar import PluginSettings
+from tests import base
 
 
 def setUpModule():

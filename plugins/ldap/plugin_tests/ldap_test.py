@@ -1,13 +1,12 @@
 import unittest.mock
 
 import ldap
+from girder_ldap.settings import PluginSettings
 
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.models.user import User
 from tests import base
-
-from girder_ldap.settings import PluginSettings
 
 
 def setUpModule():

@@ -6,11 +6,12 @@ import threading
 import time
 
 import yaml
+from girder_jobs.constants import JobStatus
+from girder_jobs.models.job import Job
+
 from girder import events
 from girder.models.file import File
 from girder.models.item import Item
-from girder_jobs.constants import JobStatus
-from girder_jobs.models.job import Job
 
 from .config import PluginSettings
 

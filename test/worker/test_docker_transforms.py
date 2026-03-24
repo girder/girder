@@ -1,54 +1,27 @@
 import json
-from unittest import mock
 import os
+from unittest import mock
+
 import pytest
-
 from bson.objectid import ObjectId
-from girder_worker.utils.transform import Transform
-
-from girder_worker.app import Task
-from girder_worker.utils import JobManager
 from girder_client import GirderClient
-
-from girder_worker.docker.io import (
-    ChunkedTransferEncodingStreamWriter,
-    FDReadStreamConnector,
-    FDWriteStreamConnector,
-    NamedPipeReader,
-    NamedPipeWriter,
-    StdStreamWriter
-)
-
-from girder_worker.docker.io.girder import (
-    GirderFileStreamReader
-)
-
-
-from girder_worker.docker.transforms import (
-    ChunkedTransferEncodingStream,
-    Connect,
-    ContainerStdErr,
-    ContainerStdOut,
-    HostStdErr,
-    HostStdOut,
-    NamedInputPipe,
-    NamedOutputPipe,
-    NamedPipeBase,
-    TEMP_VOLUME_MOUNT_PREFIX,
-    TemporaryVolume,
-    BindMountVolume,
-    VolumePath,
-    _maybe_transform
-)
-
-from girder_worker.docker.transforms.girder import (
-    ProgressPipe,
-    GirderFileIdToStream,
-    GirderFileIdToVolume,
-    GirderFolderIdToVolume,
-    GirderUploadVolumePathToItem,
-    GirderUploadVolumePathJobArtifact
-)
+from girder_worker.app import Task
+from girder_worker.docker.io import (ChunkedTransferEncodingStreamWriter, FDReadStreamConnector,
+                                     FDWriteStreamConnector, NamedPipeReader, NamedPipeWriter,
+                                     StdStreamWriter)
+from girder_worker.docker.io.girder import GirderFileStreamReader
+from girder_worker.docker.transforms import (TEMP_VOLUME_MOUNT_PREFIX, BindMountVolume,
+                                             ChunkedTransferEncodingStream, Connect,
+                                             ContainerStdErr, ContainerStdOut, HostStdErr,
+                                             HostStdOut, NamedInputPipe, NamedOutputPipe,
+                                             NamedPipeBase, TemporaryVolume, VolumePath,
+                                             _maybe_transform)
+from girder_worker.docker.transforms.girder import (GirderFileIdToStream, GirderFileIdToVolume,
+                                                    GirderFolderIdToVolume,
+                                                    GirderUploadVolumePathJobArtifact,
+                                                    GirderUploadVolumePathToItem, ProgressPipe)
+from girder_worker.utils import JobManager
+from girder_worker.utils.transform import Transform
 
 BOGUS_HOST_PATH = '/bogus/volume/host_path'
 BOGUS_CONTAINER_PATH = '/bogus/volume/container_path'
