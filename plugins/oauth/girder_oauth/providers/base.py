@@ -139,8 +139,10 @@ class ProviderBase:
         setId = not user
 
         # Existing users using OAuth2 for the first time will not have an ID
+        # We check the lower-case email, as Girder users cast emails to
+        # lower-case
         if not user:
-            user = User().findOne({'email': email})
+            user = User().findOne({'email': email.lower()})
 
         dirty = False
         # Create the user if it's still not found
@@ -162,8 +164,8 @@ class ProviderBase:
                 user['oauth'] = [user['oauth']]
                 dirty = True
             # Update user data from provider
-            if email != user['email']:
-                user['email'] = email
+            if email.lower() != user['email']:
+                user['email'] = email.lower()
                 dirty = True
             # Don't set names to empty string
             if firstName != user['firstName'] and firstName:
