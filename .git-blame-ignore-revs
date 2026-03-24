@@ -1,0 +1,9 @@
+# This file contains a list of commits that are not likely what
+# you are looking for in `git blame`. You can set this file as
+# a default ignore file for blame by running the following
+# command.
+#
+# $ git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Apply isort
+39b76f1c626266beb4f8f31e3ee5caad4834fea7
