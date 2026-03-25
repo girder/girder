@@ -7,14 +7,11 @@ import reports from 'istanbul-reports';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default async (_config: PlaywrightTestConfig) => {
-  console.log("Teardown");
-
   // Merge all the coverage data files into one coverage map
   const coverageMap = libCoverage.createCoverageMap({});
   const files = await fs.readdir('coverage/data');
-  console.log(files);
+  console.log(`Found coverage files: ${files.length}`)
   for (const file of files) {
-    console.log(file);
     coverageMap.merge(JSON.parse((await fs.readFile(`coverage/data/${file}`)).toString()));
   }
 
