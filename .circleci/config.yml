@@ -344,7 +344,7 @@ jobs:
       - run:
           name: Build the Girder docker
           command: |
-            docker build --force-rm -t girder/girder .
+            docker build --force-rm -t girder/girder:3-latest .
       - run:
           name: Build the Girder test docker
           command: |
@@ -354,9 +354,9 @@ jobs:
           name: Publish the images to Docker Hub
           command: |
               echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-              docker push girder/girder:latest
-              docker tag girder/girder:latest girder/girder:latest-py3
-              docker push girder/girder:latest-py3
+              docker push girder/girder:3-latest
+              docker tag girder/girder:3-latest girder/girder:3-latest-py3
+              docker push girder/girder:3-latest-py3
               if [[ $CIRCLE_TAG =~ ^v.*$ ]]; then
               docker tag girder/girder:latest "girder/girder:$CIRCLE_TAG"
               docker push "girder/girder:$CIRCLE_TAG"
@@ -449,7 +449,7 @@ workflows:
             tags:
               only: /^v[0-9]+.*/
             branches:
-              only: master
+              only: 3.x-maintenance
       - publish-release:
           requires:
             - server-lint-test
@@ -469,5 +469,4 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only:
-                - master
+              only: 3.x-maintenance
