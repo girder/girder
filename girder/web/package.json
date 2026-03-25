@@ -47,7 +47,7 @@
     "moment-timezone": "^0.5.27",
     "qrcode": "~1.4.4",
     "remarkable": "~2.0.0",
-    "typeface-open-sans": "^0.0.75",
+    "typeface-open-sans": "^1.1.13",
     "underscore": "~1.13.6",
     "url-otpauth": "~2.0.0",
     "vue": "^3.2.47"
@@ -73,7 +73,7 @@
     "playwright": "^1.55.0",
     "playwright-test-coverage": "^1.2.12",
     "pug": "^3.0.2",
-    "stylus": "^0.54.5",
+    "stylus": "^0.64.0",
     "typescript": "^5.0.4",
     "v8-to-istanbul": "^9.1.0",
     "vite": "^8.0.0",

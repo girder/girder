@@ -36,5 +36,15 @@ export default defineConfig({
       name: 'GirderPluginItemLicenses',
       fileName: 'girder-plugin-item-licenses',
     },
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            return 'style.css';
+          }
+          return '[name].[ext]';
+        },
+      },
+    },
   },
 });

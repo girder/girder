@@ -29,5 +29,15 @@ export default defineConfig({
       name: 'GirderPluginSlicerCLIWeb',
       fileName: 'girder-plugin-slicer-cli-web',
     },
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            return 'style.css';
+          }
+          return '[name].[ext]';
+        },
+      },
+    },
   },
 });

@@ -36,5 +36,15 @@ export default defineConfig({
       name: 'GirderPluginTerms',
       fileName: 'girder-plugin-terms',
     },
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            return 'style.css';
+          }
+          return '[name].[ext]';
+        },
+      },
+    },
   },
 });
