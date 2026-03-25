@@ -1,68 +1,28 @@
-import cherrypy
+import logging
 import os
 
-import girder
-from girder.constants import PACKAGE_DIR
+import cherrypy
 
-
-def _mergeConfig(filename):
-    """
-    Load `filename` into the cherrypy config.
-    Also, handle global options by putting them in the root.
-    """
-    cherrypy._cpconfig.merge(cherrypy.config, filename)
-    # When in Sphinx, cherrypy may be mocked and returning None
-    global_config = cherrypy.config.pop('global', {}) or {}
-
-    for option, value in global_config.items():
-        cherrypy.config[option] = value
-
-
-def _loadConfigsByPrecedent():
-    """
-    Load configuration in reverse order of precedent.
-    """
-    # TODO: Deprecated, remove in a later version
-    def _printConfigurationWarning():
-        girder.logprint.warning(
-            'Detected girder.local.cfg, this location is no longer supported.\n'
-            'For supported locations, see '
-            'https://girder.readthedocs.io/en/stable/configuration.html#configuration')
-
-    if os.path.exists(os.path.join(PACKAGE_DIR, 'conf', 'girder.local.cfg')):
-        # This can't use logprint since configuration is loaded before initialization.
-        # Note this also won't be displayed when starting other services that don't start a CherryPy
-        # server such as girder mount or girder sftpd.
-        cherrypy.engine.subscribe('start', _printConfigurationWarning)
-
-    configPaths = [os.path.join(PACKAGE_DIR, 'conf', 'girder.dist.cfg'),
-                   os.path.join('/etc', 'girder.cfg'),
-                   os.path.join(os.path.expanduser('~'), '.girder', 'girder.cfg')]
-
-    if 'GIRDER_CONFIG' in os.environ:
-        configPaths.append(os.environ['GIRDER_CONFIG'])
-
-    for curConfigPath in configPaths:
-        if os.path.exists(curConfigPath):
-            _mergeConfig(curConfigPath)
+logger = logging.getLogger(__name__)
 
 
 def loadConfig():
+    # Calling this has the side effect of populating the cherrypy.config object with
+    # values from the environment. It is called at import time of the girder package.
+    cherrypy.config['server.socket_host'] = os.getenv('GIRDER_HOST', '127.0.0.1')
+    cherrypy.config['server.socket_port'] = int(os.getenv('GIRDER_PORT', 8080))
+    cherrypy.config['server.thread_pool'] = int(os.getenv('GIRDER_THREAD_POOL', 100))
+    cherrypy.config['tools.proxy.on'] = True
 
-    _loadConfigsByPrecedent()
-
-    if 'GIRDER_PORT' in os.environ:
-        port = int(os.environ['GIRDER_PORT'])
-        cherrypy.config['server.socket_port'] = port
-
-    if 'GIRDER_MONGO_URI' in os.environ:
-        if 'database' not in cherrypy.config:
-            cherrypy.config['database'] = {}
-        cherrypy.config['database']['uri'] = os.getenv('GIRDER_MONGO_URI')
+    if 'database' not in cherrypy.config:
+        cherrypy.config['database'] = {}
 
     if 'GIRDER_TEST_DB' in os.environ:
-        cherrypy.config['database']['uri'] =\
-            os.environ['GIRDER_TEST_DB'].replace('.', '_')
+        cherrypy.config['database']['uri'] = os.environ['GIRDER_TEST_DB'].replace('.', '_')
+    else:
+        cherrypy.config['database']['uri'] = os.getenv(
+            'GIRDER_MONGO_URI', 'mongodb://localhost:27017/girder')
+        cherrypy.config['database']['replica_set'] = os.getenv('GIRDER_MONGO_REPLICA_SET')
 
 
 def getConfig():

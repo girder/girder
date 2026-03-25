@@ -1,27 +1,30 @@
-import bson.json_util
-import dateutil.parser
-from functools import wraps
 import inspect
-import jsonschema
+import logging
 import os
-import cherrypy
 from collections import OrderedDict
+from functools import wraps
+from inspect import Parameter, signature
 
-from girder import constants, logprint
-from girder.api.rest import getCurrentUser, getBodyJson
-from girder.constants import SortDir, VERSION
+import bson.json_util
+import cherrypy
+import dateutil.parser
+import jsonschema
+
+from girder import constants
+from girder.api.rest import getBodyJson, getCurrentUser
+from girder.constants import VERSION, SortDir
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 from girder.settings import SettingKey
-from girder.utility import config, toBool
+from girder.utility import toBool
 from girder.utility.model_importer import ModelImporter
 from girder.utility.webroot import WebrootBase
-from . import docs, access
+
+from . import access, docs
 from .rest import Resource, getApiUrl, getUrlParts
 
-from inspect import signature, Parameter
-
 SWAGGER_VERSION = '2.0'
+logger = logging.getLogger(__name__)
 
 
 def _walkTree(node, path=()):
@@ -171,7 +174,7 @@ class Description:
         # by a schema added using addModel(...), we don't know for sure as we
         # don't know the resource name here to look it up.
         elif paramType != 'body':
-            logprint.warning(
+            logger.warning(
                 'WARNING: Invalid dataType "%s" specified for parameter names "%s"' %
                 (dataType, name))
 
@@ -181,7 +184,7 @@ class Description:
         if paramType != 'body' and dataType not in (
                 'string', 'number', 'integer', 'long', 'boolean', 'array', 'file', 'float',
                 'double', 'date', 'dateTime'):
-            logprint.warning(
+            logger.warning(
                 'WARNING: Invalid dataType "%s" specified for parameter "%s"' % (dataType, name))
 
         if paramType == 'form':
@@ -237,14 +240,19 @@ class Description:
             param['_upper'] = upper
 
         if paramType == 'body':
-            param['schema'] = {
-                '$ref': '#/definitions/%s' % dataType
-            }
+            if format is None:
+                param['schema'] = {
+                    '$ref': '#/definitions/%s' % dataType
+                }
+            else:
+                param['schema'] = {
+                    'type': dataType,
+                    'format': format,
+                }
         else:
             param['type'] = dataType
-
-        if format is not None:
-            param['format'] = format
+            if format is not None:
+                param['format'] = format
 
         if enum:
             param['enum'] = enum
@@ -255,7 +263,7 @@ class Description:
         for p in self._params:
             if p['name'] == param['name'] and p['in'] == param['in']:
                 if p.get('default') != param.get('default') or p.get('enum') != param.get('enum'):
-                    logprint.warning('parameter %r similar but different from %r', param, p)
+                    logger.warning('parameter %r similar but different from %r', param, p)
                 p['required'] = p['required'] and param['required']
                 if param['description'] not in p['description']:
                     p['description'] += '\n\n' + param['description']
@@ -458,18 +466,15 @@ class ApiDocs(WebrootBase):
 
     def __init__(self, templatePath=None):
         if not templatePath:
-            templatePath = os.path.join(constants.PACKAGE_DIR,
-                                        'api', 'api_docs.mako')
+            templatePath = os.path.join(constants.PACKAGE_DIR, 'api', 'api_docs.mako')
         super().__init__(templatePath)
 
-        curConfig = config.getConfig()
-        self.vars['mode'] = curConfig['server'].get('mode', '')
-
     def _renderHTML(self):
-        from girder.utility import server
-        self.vars['apiRoot'] = server.getApiRoot()
-        self.vars['staticPublicPath'] = server.getStaticPublicPath()
         self.vars['brandName'] = Setting().get(SettingKey.BRAND_NAME)
+        urlRoot = (os.environ.get('GIRDER_URL_ROOT') or '').rstrip('/')
+        if not urlRoot.startswith('.') and ':' not in urlRoot and urlRoot:
+            urlRoot = '/' + urlRoot
+        self.vars['urlRoot'] = urlRoot
         return super()._renderHTML()
 
 
@@ -485,6 +490,8 @@ class Describe(Resource):
                     if param.get('in', '') == 'formData' and 'consumes' not in method:
                         method['consumes'] = [
                             'multipart/form-data', 'application/x-www-form-urlencoded']
+                    if param.get('default') == ():
+                        param['default'] = bson.json_util.dumps(param['default'])
                 for param in (method.get('parameters', []) + list(
                         method.get('responses', {}).values())):
                     if 'schema' not in param:
@@ -565,12 +572,25 @@ class Describe(Resource):
         urlParts = getUrlParts(apiUrl)
         host = urlParts.netloc
         basePath = urlParts.path
+        brandName = Setting().get(SettingKey.BRAND_NAME) or 'Girder'
+
+        paths['/user/authentication']['get']['security'] = [{'basicAuth': []}]
 
         return {
             'swagger': SWAGGER_VERSION,
             'info': {
-                'title': 'Girder REST API',
+                'title': f'{brandName} REST API',
                 'version': VERSION['release'],
+                'description':
+                    'Below you will find the list of all of the resource '
+                    f'types exposed by the {brandName} RESTful Web API. '
+                    'Click any of the resource links to open up a list of '
+                    'all available endpoints related to each resource type. '
+                    '\n\nFor endpoints that require authentication, a Girder '
+                    'token is required. This can be obtained via POST '
+                    '`/api_key/token` using an API key, or from GET '
+                    '`/user/authentication`. The latter endpoint can be '
+                    'authenticated via Basic Auth, if enabled in the system.',
                 'license': {
                     'name': 'Apache-2.0',
                     'url': 'https://www.apache.org/licenses/LICENSE-2.0.txt',
@@ -586,7 +606,10 @@ class Describe(Resource):
                     'type': 'apiKey',
                     'in': 'header',
                     'name': 'Girder-Token',
-                }
+                },
+                'basicAuth': {
+                    'type': 'basic',
+                },
             },
             'security': [{'Girder-Token': []}],
         }

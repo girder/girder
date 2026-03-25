@@ -1,16 +1,32 @@
-import cherrypy
-import mako
+import logging
 import mimetypes
 import os
+import sys
 
-import girder.events
-from girder import constants, logprint, __version__, logStdoutStderr, _setupCache
-from girder.models.setting import Setting
-from girder import plugin
-from girder.settings import SettingKey
-from girder.utility import config
+import cherrypy
+import mako
+
+from girder import __version__, constants
 from girder.constants import ServerMode
-from . import webroot
+from girder.utility import config
+from girder.utility._cache import _setupCache
+
+logger = logging.getLogger(__name__)
+
+
+class RootHandler:
+    @cherrypy.expose
+    def index(*args, **kwargs):
+        path = os.path.join(
+            os.getenv(
+                'GIRDER_STATIC_ROOT_DIR',
+                constants.STATIC_ROOT_DIR),
+            'index.html')
+        with open(path) as f:
+            content = f.read()
+        modified_content = content.replace('root=""', f'root="{os.getenv("GIRDER_URL_ROOT")}"')
+        return modified_content
+
 
 with open(os.path.join(os.path.dirname(__file__), 'error.mako')) as f:
     _errorTemplate = f.read()
@@ -24,29 +40,8 @@ def _errorDefault(status, message, *args, **kwargs):
     return mako.template.Template(_errorTemplate).render(status=status, message=message)
 
 
-def getApiRoot():
-    return config.getConfig()['server']['api_root']
-
-
-def getStaticPublicPath():
-    return config.getConfig()['server']['static_public_path']
-
-
-def configureServer(mode=None, plugins=None, curConfig=None):
-    """
-    Function to setup the cherrypy server. It configures it, but does
-    not actually start it.
-
-    :param mode: The server mode to start in.
-    :type mode: string
-    :param plugins: If you wish to start the server with a custom set of
-        plugins, pass this as a list of plugins to load. Otherwise,
-        all installed plugins will be loaded.
-    :param curConfig: The configuration dictionary to update.
-    """
-    if curConfig is None:
-        curConfig = config.getConfig()
-
+def create_app(mode: str) -> dict:
+    curConfig = config.getConfig()
     appconf = {
         '/': {
             'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
@@ -57,125 +52,56 @@ def configureServer(mode=None, plugins=None, curConfig=None):
         }
     }
     # Add MIME types for serving Fontello files from staticdir;
-    # these may be missing or incorrect in the OS
+    # these may be missing or incorrect in the OS. This is idempotent.
     mimetypes.add_type('application/vnd.ms-fontobject', '.eot')
     mimetypes.add_type('application/x-font-ttf', '.ttf')
     mimetypes.add_type('application/font-woff', '.woff')
+    mimetypes.add_type('text/javascript', '.cjs')
 
     curConfig.update(appconf)
-    if mode:
-        curConfig['server']['mode'] = mode
+    curConfig['server'] = {'mode': mode}
 
-    logprint.info('Running in mode: ' + curConfig['server']['mode'])
-    cherrypy.config['engine.autoreload.on'] = curConfig['server']['mode'] == ServerMode.DEVELOPMENT
+    logging.basicConfig(stream=sys.stdout, level=os.environ.get('LOGLEVEL', 'INFO'))
 
-    _setupCache()
+    logger.info('Running in mode: %s', curConfig['server']['mode'])
+    cherrypy.config.update({
+        'log.screen': False,
+        'log.access_file': '',
+        'log.error_file': '',
+        'engine.autoreload.on': curConfig['server']['mode'] == ServerMode.DEVELOPMENT,
+    })
+
+    _setupCache(curConfig)
 
     # Don't import this until after the configs have been read; some module
     # initialization code requires the configuration to be set up.
-    from girder.api import api_main
+    from girder.api.api_main import buildApi
 
-    root = webroot.Webroot()
-    api_main.addApiToNode(root)
+    apiRoot = buildApi()
+    tree = cherrypy._cptree.Tree()
 
-    girder.events.setupDaemon()
-    cherrypy.engine.subscribe('start', girder.events.daemon.start)
-    cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
+    info = dict(config=appconf, serverRoot=tree, apiRoot=apiRoot.v1)
 
-    routeTable = loadRouteTable()
-    info = {
-        'config': appconf,
-        'serverRoot': root,
-        'serverRootPath': routeTable[constants.GIRDER_ROUTE_ID],
-        'apiRoot': root.api.v1,
+    custom_root = os.getenv('GIRDER_URL_ROOT')
+    custom_root = None if not custom_root or custom_root == '/' else custom_root
+    static_opts = {
+        'tools.staticdir.on': True,
+        'tools.staticdir.dir': os.getenv('GIRDER_STATIC_ROOT_DIR', constants.STATIC_ROOT_DIR),
+        'request.show_tracebacks': appconf['/']['request.show_tracebacks'],
+        'response.headers.server': f'Girder {__version__}',
+        'error_page.default': _errorDefault
     }
-
-    plugin._loadPlugins(info, plugins)
-    root, appconf = info['serverRoot'], info['config']
-
-    return root, appconf
-
-
-def loadRouteTable(reconcileRoutes=False):
-    """
-    Retrieves the route table from Girder and reconciles the state of it with the current
-    application state.
-
-    Reconciliation ensures that every enabled plugin has a route by assigning default routes for
-    plugins that have none, such as newly-enabled plugins.
-
-    :returns: The non empty routes (as a dict of name -> route) to be mounted by CherryPy
-              during Girder's setup phase.
-    """
-    pluginWebroots = plugin.getPluginWebroots()
-    routeTable = Setting().get(SettingKey.ROUTE_TABLE)
-
-    def reconcileRouteTable(routeTable):
-        hasChanged = False
-
-        # Migration for the removed static root setting
-        if 'core_static_root' in routeTable:
-            del routeTable['core_static_root']
-            hasChanged = True
-
-        for name in pluginWebroots.keys():
-            if name not in routeTable:
-                routeTable[name] = os.path.join('/', name)
-                hasChanged = True
-
-        if hasChanged:
-            Setting().set(SettingKey.ROUTE_TABLE, routeTable)
-
-        return routeTable
-
-    if reconcileRoutes:
-        routeTable = reconcileRouteTable(routeTable)
-
-    return {name: route for (name, route) in routeTable.items() if route}
-
-
-def setup(mode=None, plugins=None, curConfig=None):
-    """
-    Configure and mount the Girder server and plugins under the
-    appropriate routes.
-
-    See ROUTE_TABLE setting.
-
-    :param mode: The server mode to start in.
-    :type mode: string
-    :param plugins: List of plugins to enable.
-    :param curConfig: The config object to update.
-    """
-    logStdoutStderr()
-
-    pluginWebroots = plugin.getPluginWebroots()
-    girderWebroot, appconf = configureServer(mode, plugins, curConfig)
-    routeTable = loadRouteTable(reconcileRoutes=True)
-
-    # Mount Girder
-    application = cherrypy.tree.mount(
-        girderWebroot, str(routeTable[constants.GIRDER_ROUTE_ID]), appconf)
-
+    if not custom_root:
+        static_opts['tools.staticdir.index'] = 'index.html'
     # Mount static files
-    cherrypy.tree.mount(None, '/static',
-                        {'/':
-                         {'tools.staticdir.on': True,
-                          'tools.staticdir.dir': os.path.join(constants.STATIC_ROOT_DIR),
-                          'request.show_tracebacks': appconf['/']['request.show_tracebacks'],
-                          'response.headers.server': 'Girder %s' % __version__,
-                          'error_page.default': _errorDefault}})
+    tree.mount(RootHandler if custom_root else None, '', {
+        '/': static_opts
+    })
 
-    if routeTable[constants.GIRDER_ROUTE_ID] != '/':
-        # Mount API (special case)
-        # The API is always mounted at /api AND at api relative to the Girder root
-        cherrypy.tree.mount(girderWebroot.api, '/api', appconf)
+    # Mount the web API
+    tree.mount(apiRoot, '/api', appconf)
 
-    # Mount everything else in the routeTable
-    for name, route in routeTable.items():
-        if name != constants.GIRDER_ROUTE_ID and name in pluginWebroots:
-            cherrypy.tree.mount(pluginWebroots[name], route, appconf)
-
-    return application
+    return info
 
 
 class _StaticFileRoute:

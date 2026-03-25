@@ -1,11 +1,11 @@
 /* eslint-disable import/first */
 
-import router from '@girder/core/router';
-import events from '@girder/core/events';
-
 import JobModel from './models/JobModel';
 import JobDetailsWidget from './views/JobDetailsWidget';
 import JobListWidget from './views/JobListWidget';
+
+const router = girder.router;
+const events = girder.events;
 
 router.route('job/:id', 'jobView', function (id) {
     var job = new JobModel({ _id: id }).once('g:fetched', function () {

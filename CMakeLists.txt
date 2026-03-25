@@ -14,7 +14,6 @@ set(PYTHON_VERSION "3.8" CACHE STRING "Python version used for testing")
 
 find_package(PythonInterp ${PYTHON_VERSION} REQUIRED)
 
-option(BUILD_JAVASCRIPT_TESTS "Build Javascript tests" ON)
 option(RUN_CORE_TESTS "Whether to run the core tests" ON)
 set(TEST_PLUGINS "" CACHE STRING "List of plugins to test. Leave empty to test all plugins")
 
@@ -24,6 +23,5 @@ if(BUILD_TESTING)
   include(tests/TestData.cmake)
   include(tests/TestCommon.cmake)
   include(tests/PythonTests.cmake)
-  include(tests/JavascriptTests.cmake)
   add_subdirectory(tests)
 endif()

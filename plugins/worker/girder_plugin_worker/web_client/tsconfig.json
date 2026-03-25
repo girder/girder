@@ -1,0 +1,7 @@
+{
+    "include": ["./vite-env.d.ts", "./**/*"],
+    "exclude": ["./dist/**/*"],
+    "compilerOptions": {
+      "allowJs": true,
+      "outDir": "./dist"}
+}

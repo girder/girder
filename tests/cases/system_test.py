@@ -1,13 +1,10 @@
 import json
-import os
 import time
-import unittest.mock
 
-from .. import base
 from girder.api import access
 from girder.api.describe import describeRoute
-from girder.api.rest import getApiUrl, loadmodel, Resource
-from girder.constants import AccessType, registerAccessFlag, ROOT_DIR, VERSION
+from girder.api.rest import Resource, getApiUrl, loadmodel
+from girder.constants import VERSION, AccessType, registerAccessFlag
 from girder.exceptions import AccessException, ValidationException
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -18,6 +15,8 @@ from girder.models.setting import Setting
 from girder.models.user import User
 from girder.settings import SettingDefault, SettingKey
 from girder.utility import config
+
+from .. import base
 
 
 class TestEndpoints(Resource):
@@ -36,7 +35,7 @@ class TestEndpoints(Resource):
 
 def setUpModule():
     testServer = base.startServer()
-    testServer.root.api.v1.test_endpoints = TestEndpoints()
+    testServer.apps['/api'].root.v1.test_endpoints = TestEndpoints()
 
 
 def tearDownModule():
@@ -163,6 +162,7 @@ class SystemTestCase(base.TestCase):
             SettingKey.SMTP_HOST: '',
             SettingKey.SMTP_PASSWORD: {},
             SettingKey.SMTP_USERNAME: {},
+            SettingKey.COOKIE_DOMAIN: {},
             SettingKey.CORS_ALLOW_ORIGIN: {},
             SettingKey.CORS_ALLOW_METHODS: {},
             SettingKey.CORS_ALLOW_HEADERS: {},
@@ -292,111 +292,6 @@ class SystemTestCase(base.TestCase):
 
         self.assertEqual(
             0, User().load(user['_id'], force=True)['size'])
-
-    def testLogRoute(self):
-        logRoot = os.path.join(ROOT_DIR, 'tests', 'cases', 'dummylogs')
-        config.getConfig()['logging'] = {'log_root': logRoot}
-
-        resp = self.request(path='/system/log', user=self.users[1], params={
-            'log': 'error',
-            'bytes': 0
-        })
-        self.assertStatus(resp, 403)
-
-        resp = self.request(path='/system/log', user=self.users[0], params={
-            'log': 'error',
-            'bytes': 0
-        }, isJson=False)
-        self.assertStatusOk(resp)
-        self.assertEqual(
-            self.getBody(resp),
-            '=== Last 12 bytes of %s/error.log: ===\n\nHello world\n' % logRoot)
-
-        resp = self.request(path='/system/log', user=self.users[0], params={
-            'log': 'error',
-            'bytes': 6
-        }, isJson=False)
-        self.assertStatusOk(resp)
-        self.assertEqual(
-            self.getBody(resp),
-            '=== Last 6 bytes of %s/error.log: ===\n\nworld\n' % logRoot)
-
-        resp = self.request(path='/system/log', user=self.users[0], params={
-            'log': 'error',
-            'bytes': 18
-        }, isJson=False)
-        self.assertStatusOk(resp)
-        self.assertEqual(
-            self.getBody(resp),
-            '=== Last 18 bytes of %s/error.log: ===\n\nmonde\nHello world\n' % logRoot)
-
-        resp = self.request(path='/system/log', user=self.users[0], params={
-            'log': 'info',
-            'bytes': 6
-        }, isJson=False)
-        self.assertStatusOk(resp)
-        self.assertEqual(
-            self.getBody(resp),
-            '=== Last 0 bytes of %s/info.log: ===\n\n' % logRoot)
-
-        del config.getConfig()['logging']
-
-    def testLogLevel(self):
-        from girder import logger, _attachFileLogHandlers
-        _attachFileLogHandlers()
-        for handler in logger.handlers:
-            if handler._girderLogHandler == 'info':
-                handler.emit = unittest.mock.MagicMock()
-                infoEmit = handler.emit
-            elif handler._girderLogHandler == 'error':
-                handler.emit = unittest.mock.MagicMock()
-                errorEmit = handler.emit
-        # We should be an info level
-        resp = self.request(path='/system/log/level', user=self.users[0])
-        self.assertStatusOk(resp)
-        self.assertEqual(resp.json, 'DEBUG')
-        levels = [{
-            'level': 'INFO',
-            'debug': (0, 0),
-            'info': (1, 0),
-            'error': (0, 1),
-        }, {
-            'level': 'ERROR',
-            'debug': (0, 0),
-            'info': (0, 0),
-            'error': (0, 1),
-        }, {
-            'level': 'CRITICAL',
-            'debug': (0, 0),
-            'info': (0, 0),
-            'error': (0, 0),
-        }, {
-            'level': 'DEBUG',
-            'debug': (1, 0),
-            'info': (1, 0),
-            'error': (0, 1),
-        }]
-        for levelTest in levels:
-            resp = self.request(
-                method='PUT', path='/system/log/level', user=self.users[0],
-                params={'level': levelTest['level']})
-            self.assertStatusOk(resp)
-            self.assertEqual(resp.json, levelTest['level'])
-            resp = self.request(path='/system/log/level', user=self.users[0])
-            self.assertStatusOk(resp)
-            self.assertEqual(resp.json, levelTest['level'])
-            for level in ('debug', 'info', 'error'):
-                infoCount, errorCount = infoEmit.call_count, errorEmit.call_count
-                getattr(logger, level)('log entry %s %s' % (
-                    levelTest['level'], level))
-                self.assertEqual(infoEmit.call_count, infoCount + levelTest[level][0])
-                self.assertEqual(errorEmit.call_count, errorCount + levelTest[level][1])
-        # Try to set a bad log level
-        resp = self.request(
-            method='PUT', path='/system/log/level', user=self.users[0],
-            params={'level': 'NOSUCHLEVEL'})
-        self.assertStatus(resp, 400)
-        self.assertIn('Invalid value for level', resp.json['message'])
 
     def testAccessFlags(self):
         resp = self.request('/system/access_flag')

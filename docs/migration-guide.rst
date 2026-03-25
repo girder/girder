@@ -8,6 +8,361 @@ between major versions of Girder. Major version bumps contain breaking changes
 to the Girder core library, which are enumerated in this guide along with
 instructions on how to update your plugin code to work in the newer version.
 
+3.x |ra| 5.x
+------------
+
+Major version 5 contains significant breaking changes on many fronts. The central theme of these
+changes is to bring Girder into compliance with the principles of the
+`12-factor app <https://12factor.net/>`_ to enhance its portability to various managed runtimes,
+and in turn its ease of scalability. We chose to skip major version 4 due to a name collision with
+Kitware's Django-based stack, which we had originally called Girder 4, but now refer to as Resonant
+to distinguish it from this software.
+
+The following are the breaking (or otherwise major) changes, ranked roughly in order of how
+disruptive they are to downstream plugins:
+
+Front-end build system changes
+++++++++++++++++++++++++++++++
+
+The largest change to Girder in version 5 is a complete overhaul of the front-end build system. Most
+notably for users and plugin developers, the ``girder build`` command no longer exists, and Girder
+itself will no longer manage the building of its plugins' web client bundles. Rather, each plugin is
+responsible for building its own web client plugin code and exposing it via the following mechanism:
+
+.. code-block:: python
+
+    from pathlib import Path
+
+    from girder.plugin import GirderPlugin, registerPluginStaticContent
+
+    class Foo(GirderPlugin):
+        DISPLAY_NAME = 'Foo'
+
+        def load(self, info):
+            registerPluginStaticContent(
+                plugin='foo',
+                css=['/style.css'],
+                js=['/girder-plugin-foo.umd.cjs'],
+                staticDir=Path(__file__).parent / 'web_client' / 'dist',
+                tree=info['serverRoot'],
+            )
+
+Whatever files are passed into the ``js`` and ``css`` lists will be included in the core web client
+after it loads. The ``staticDir`` argument should point to the directory containing the built web
+client code, i.e. the filenames passed into the ``js`` and ``css`` lists are relative to this local
+path. The ``tree`` argument should be the ``serverRoot`` object passed into the ``load`` method.
+
+Changes within front-end plugin code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There is a mechanical conversion that will need to be performed on all front-end plugin code when
+moving to Girder 5: rather than static ``import`` of symbols from ``@girder/core``
+in your JavaScript/TypeScript code, you will instead rely on the presence of the ``girder`` symbol
+in the global scope (``window.girder``) at runtime. Each import from ``@girder/core`` should be
+changed as in the following examples:
+
+Before:
+
+.. code-block:: javascript
+
+    import router from '@girder/core/router';
+    import events from '@girder/core/events';
+    import { exposePluginConfig } from '@girder/core/utilities/PluginUtils';
+
+    import FrontPageView from '@girder/core/views/body/FrontPageView';
+    import { renderMarkdown } from '@girder/core/misc';
+    import { restRequest, getApiRoot } from '@girder/core/rest';
+    import { wrap } from '@girder/core/utilities/PluginUtils';
+
+After:
+
+.. code-block:: javascript
+
+    const router = girder.router;
+    const events = girder.events;
+    const { exposePluginConfig } = girder.utilities.PluginUtils;
+
+    const FrontPageView = girder.views.body.FrontPageView;
+    const { renderMarkdown } = girder.misc;
+    const { restRequest, getApiRoot } = girder.rest;
+    const { wrap } = girder.utilities.PluginUtils;
+
+
+Static tooling
+^^^^^^^^^^^^^^
+
+If you are using vite as your plugin build tool, you can add the following to your ``vite-env.d.ts``
+file to make TypeScript aware of the ``girder`` symbol, which enables things like IDE
+autocompletion and jump-to-definition for symbols under the ``girder`` namespace.
+
+.. code-block:: typescript
+
+    /// <reference types="vite/client" />
+    import { type Girder } from '@girder/core';
+
+    declare global {
+      const girder: Girder;
+    }
+
+
+Testing
+^^^^^^^
+
+Plugins are now also responsible for testing their own web client code. If your plugin was relying
+on any of the old testing infrastructure, those tests will no longer work. We may publish our
+Playwright-based front-end testing utilities as a separate package in the future, but as of 5.0,
+it is not exposed to downstreams.
+
+Removal of the events daemon
+++++++++++++++++++++++++++++
+
+The ``girder.events.daemon`` symbol has been removed, as the use of a background thread violated
+the WSGI contract and tightly coupled Girder to a multi-threaded server model. The main impact of
+this change is that any downstream users listening to the core ``"data.process"`` event,
+which used to be run on the background thread, should now convert their event handlers to be
+celery tasks or otherwise asynchronous methods if there's any risk of the handler taking more
+than 1-2 seconds to complete.
+
+New deployment requirement: local worker
+++++++++++++++++++++++++++++++++++++++++
+
+With the removal of the events daemon, tasks that can take longer than 1-2 seconds to complete
+should now be run as celery tasks. Girder core operations that previously used the events daemon
+have been converted to celery tasks, and ones that require direct access to the database or the
+local filesystem now get sent to a celery queue called ``local``. In order to have these tasks
+run, deployments must now run an additional process to server the ``local`` queue. The command
+to run the local worker is:
+
+.. code-block:: bash
+
+    celery -A girder_worker.app worker -Q local
+
+Overhaul of notifications system switch from WSGI to ASGI
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+In prior versions of Girder, notifications were a model in the Mongo database and were sent to
+the client by querying that mongo collection for documents using a timestamp threshold. Clients
+would use simple polling or long-polling using Server-Sent Events (SSE), but this was problematic
+under WSGI because those long polling threads exhausted the server's thread pool with low
+utilization.
+
+In Girder 5, we've resolved this by moving from a WSGI app to an ASGI app, and using proper async
+behavior for the notification system. Internally, this is handled using redis pub/sub, and clients
+now use websockets to subscribe to notifications. On the web client side, this should not require
+any changes, assuming your client code was using the girder ``events`` module to handle async
+notifications. If you were using a custom client with the ``/notification/stream`` API endpoint,
+you will need do update your client to subscribe to the websocket channel instead, which is at
+the path ``/notifications/me?token=<girder_auth_token>``.
+
+One behavioral change to note is that events are no longer queried based on a timestamp threshold,
+but rather are sent to the client as they are received in pub/sub style. This means that the client
+will only receive these events if they are listening on the channel. Under the previous
+implementation, it was possible for clients to receive the same event multiple times, but that
+should no longer be the case -- clients should receive any given notification at most once.
+
+On the server side, if you were using the ``Notification`` Mongo model, you will need to change your
+code to use the new API, as that model has been removed entirely. Instead, use the new
+``girder.notification`` module to send notifications to the client. Example code change:
+
+Before:
+
+.. code-block:: python
+
+    from girder.models.notification import Notification
+
+    Notification().createNotification(
+        type='my_notification_type', data={...}, user=user,
+        expires=now(timezone.utc) + timedelta(seconds=30)
+    )
+
+After:
+
+.. code-block:: python
+
+    from girder.notification import Notification
+
+    Notification(type='my_notification_type', data={...}, user=user).flush()
+
+Note that the notification won't actually be sent on the channel until you call ``flush()`` on it.
+For progress notifications, please use the existing ``ProgressContext`` class, which has the same
+API as before. It has been internally updated to use the new async notification system.
+
+Removal of ``setResponseTimeLimit`` function
+++++++++++++++++++++++++++++++++++++++++++++
+
+The ``girder.utility.progress.setResponseTimeLimit`` function was removed because it violated the
+WSGI contract, and any operation that can take more than a few seconds to complete should be
+converted to a celery task that runs on the ``local`` queue or an alternative queue.
+
+S3 assetstore adapter API protocol change
++++++++++++++++++++++++++++++++++++++++++
+
+Previously, clients wanting to upload directly to an S3 assetstore using presigned URLs were
+responsible for performing the multipart finalization step for uploads that were too large to
+be sent in a single chunk. In Girder 5, the finalization step is now always performed by the server.
+Clients will no longer receive a presigned URL to perform the step, and they are no longer
+responsible for maintaining their own parts list. Uploads to S3 proxied through Girder will not
+require changes, and Girder's web client has already been updated to accommodate this change.
+
+Dynamic route configuration system removed
+++++++++++++++++++++++++++++++++++++++++++
+
+The server-side route table infrastructure that allowed dynamically updating URL paths from which
+webroots would be served has been removed. URL routing should be known at startup time, and not
+changed dynamically. This means that the ``girder.plugin.registerPluginWebroot`` function has been
+removed.
+
+The main challenge this presents is specifically for use cases where downstreams need to serve
+the core Girder front-end application from a base path other than the server root (``/``), since
+with the 5.0 front-end build changes, the front-end application is bundled in and built with a
+static base of ``/``. For this specific use case, one strategy that's supported is to build the
+core front-end application with a different base path, and then configure your server to serve
+the modified front-end client from the desired path on the filesystem.
+
+Example
+^^^^^^^
+
+In your plugin initialization function, add the following:
+
+.. code-block:: python
+
+    core_girder = info['serverRoot'].apps['']
+    core_girder.script_name = '/new_root'
+    info['serverRoot'].mount(core_girder, '/new_root', core_girder.config)
+    del info['serverRoot'].apps['']
+    # Mount your own app under `info['serverRoot']` if you want
+
+Then, build the core front-end application with the desired base path:
+
+.. code-block:: bash
+
+    git clone git@github.com:girder/girder.git
+    cd girder/girder/web
+    npx vite build --base=/new_root/
+    export GIRDER_STATIC_ROOT_DIR=$(pwd)/dist
+
+With that variable set in your environment, the Girder core web client will now be served under
+``/new_root/`` rather than ``/``.
+
+Logging changes
++++++++++++++++
+
+Girder's logging system was overhauled to adhere to
+`12-factor logging principles <https://12factor.net/logs>`_. Use standard idiomatic Python
+logging everywhere now, e.g.:
+
+.. code-block:: python
+
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info('My message')
+
+The ``girder.logprint`` function was removed, and Girder will no longer write log messages to local
+files on the server's filesystem. Additionally, the API endpoints for fetching logs and log info
+were removed. Instead, logs are now written to standard output and it is up to the deployment
+environment to direct them as needed. There are a huge variety of tools and strategies for log
+management, so precise recommendations on log handlers are out of scope for Girder itself.
+
+Config files removed
+++++++++++++++++++++
+
+The ``girder.local.cfg`` and ``girder.dist.cfg`` files are no longer used. Instead, all settings
+should be passed in through the environment, or as command-line overrides in the case of using
+``girder serve`` in development. Everything that was able to be controlled by the config file can
+now be controlled by environment variables; see the
+:ref:`configuration documentation <configuration_via_env>` for specifics on how to set these.
+
+A notable change here is the configuration of the caching modules, which was previously done
+via the config file alone. Now, the caching modules are configured via environment variables. e.g.
+
+.. code-block:: bash
+
+    GIRDER_SETTING_CORE_CACHE_ENABLED=true
+    GIRDER_SETTING_CORE_CACHE_CONFIG='{"cache.global.backend": "dogpile.cache.redis", "cache.global.expiration_time": 7200}'
+
+Config keys prefixed by ``cache.global.`` are used to configure the global dogpile cache, and
+keys prefixed by ``cache.request.`` are used to configure the request cache.
+
+CherryPy specific settings are now passed via environment variables as well. List of settings that
+can be configured:
+
+* ``GIRDER_HOST`` corresponds to ``server.socket_host``
+* ``GIRDER_PORT`` corresponds to ``server.socket_port``
+* ``GIRDER_THREAD_POOL`` corresponds to ``server.thread_pool``
+* ``GIRDER_MONGO_URI`` corresponds to ``database.uri``
+* ``GIRDER_MONGO_REPLICA_SET`` corresponds to ``database.replica_set``
+
+WSGI app for production deployments
++++++++++++++++++++++++++++++++++++
+
+Through load testing (as well as production usage), we discovered that cherrypy's built-in server
+is not suitable for production use. It is not as performant as a dedicated WSGI server, and some
+fraction of requests fail ungracefully under moderate load. As such, the ``girder serve`` command
+is now only suitable for development and testing.
+
+For production deployments, Girder now exposes a well-behaved WSGI app at ``girder.wsgi:app``.
+Use a WSGI server such as gunicorn or uwsgi to serve in production. See
+the :ref:`deployment documentation <deployment>` for an example gunicorn invocation.
+
+Removal of the GridFS assetstore type
++++++++++++++++++++++++++++++++++++++
+
+When we originally created the GridFS assetstore, it seemed like a reasonable blob storage solution.
+However, in 2024, it is no longer a recommended solution for Girder. We have removed the GridFS
+assetstore adapter type from the core codebase. If you are using GridFS, we recommend migrating your
+data to a Filesystem or S3 assetstore type and deleting your GridFS assetstore prior to upgrading
+to major version 5. There are many offerings in the cloud that support either the S3 or filesystem
+assetstore adapter in a scalable way.
+
+Python version support
+++++++++++++++++++++++
+
+Girder will now only maintain support for CPython versions that have not reached their end-of-life.
+Check `this page <https://devguide.python.org/versions/>`_ to see the current status of upstream
+Python version support. Note that this means we will feel free to use newer language features in
+core as soon as they are available in the oldest supported version.
+
+Changes to celery configuration in Worker plugin
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+As we move to using celery in a more normal way, we now configure the celery app via the same code
+path in both Girder server and the celery worker. Because we need to support deployment topologies
+where the workers cannot communicate directly with the database, we cannot store celery
+configuration in the mongo database. Instead, celery connectivity is now always configured via the
+following environment variables:
+
+* ``GIRDER_WORKER_BROKER``: The URL of the message broker to use for celery
+* ``GIRDER_WORKER_BACKEND``: The URL of the result backend to use for celery
+
+Switch to HttpOnly cookies in core web client
++++++++++++++++++++++++++++++++++++++++++++++
+
+The ``auth.cookie`` symbol has been removed from the core web client. Cookies sent by the server
+will now be set with the ``HttpOnly`` flag. This means that the cookies will no longer be
+accessible to JavaScript, which is a security best practice. If you were relying on the
+``auth.cookie`` symbol in your plugin, you should now use the ``auth.token`` symbol instead.
+
+Note that cookies will still be sent and will still work for read-only endpoints that have
+set the ``cookie=True`` property on their ``@access`` decorator.
+
+Timezone aware datetime objects
++++++++++++++++++++++++++++++++
+
+Due to deprecated behavior in Python 3.12, Girder now uses timezone-aware datetime objects.
+If your code relied on the old behavior of naive datetimes, you may need to update it to
+handle timezone-aware datetimes.
+
+Removal of girder-worker command
+++++++++++++++++++++++++++++++++
+
+The ``girder-worker`` command has been removed because it didn't have the full configuration
+powers of the underlying ``celery worker`` command. Instead, run ``celery worker`` directly:
+
+.. code-block:: bash
+
+    celery -A girder_worker.app worker
+
+
 2.x |ra| 3.x
 ------------
 

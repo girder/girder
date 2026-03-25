@@ -1,14 +1,13 @@
-import $ from 'jquery';
-
-import GroupCollection from '@girder/core/collections/GroupCollection';
-import PluginConfigBreadcrumbWidget from '@girder/core/views/widgets/PluginConfigBreadcrumbWidget';
-import router from '@girder/core/router';
-import View from '@girder/core/views/View';
-import events from '@girder/core/events';
-import { restRequest } from '@girder/core/rest';
-
 import ConfigViewTemplate from '../templates/configView.pug';
 import '../stylesheets/configView.styl';
+
+const $ = girder.$;
+const GroupCollection = girder.collections.GroupCollection;
+const PluginConfigBreadcrumbWidget = girder.views.widgets.PluginConfigBreadcrumbWidget;
+const router = girder.router;
+const events = girder.events;
+const View = girder.views.View;
+const { restRequest } = girder.rest;
 
 var ConfigView = View.extend({
     events: {

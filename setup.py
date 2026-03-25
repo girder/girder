@@ -1,6 +1,7 @@
 import os
+import re
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 
 def prerelease_local_scheme(version):
@@ -12,7 +13,11 @@ def prerelease_local_scheme(version):
     """
     from setuptools_scm.version import get_local_node_and_date
 
-    if os.getenv('CIRCLE_BRANCH') == 'master':
+    # this regex allows us to publish pypi packages from master, our LTS maintenance branches, and
+    # our next major version integration branches
+    pattern = r'master|[0-9]+\.x-maintenance|v[0-9]+-integration'
+
+    if re.match(pattern, os.getenv('CIRCLE_BRANCH', '')):
         return ''
     else:
         return get_local_node_and_date(version)
@@ -32,6 +37,7 @@ installReqs = [
     'click-plugins',
     'dogpile.cache<1.4',
     'filelock',
+    'girder-worker>=5.0.0a5',
     'jsonschema',
     'Mako',
     'packaging',
@@ -42,7 +48,11 @@ installReqs = [
     'pyotp',
     'python-dateutil',
     'pytz',
+    'redis',
     'requests',
+    'starlette',
+    'uvicorn',
+    'websockets',
 ]
 
 extrasReqs = {
@@ -75,10 +85,8 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
     ],
-    python_requires='>=3.9',
-    packages=find_packages(
-        exclude=('girder.test', 'tests.*', 'tests', '*.plugin_tests.*', '*.plugin_tests')
-    ),
+    python_requires='>=3.10',
+    packages=['girder'],
     include_package_data=True,
     install_requires=installReqs,
     extras_require=extrasReqs,
@@ -95,7 +103,9 @@ setup(
             'mount = girder.cli.mount:main',
             'shell = girder.cli.shell:main',
             'sftpd = girder.cli.sftpd:main',
-            'build = girder.cli.build:main'
-        ]
+        ],
+        'girder_worker_plugins': [
+            'girder_local = girder.worker_plugin:CoreWorkerPlugin',
+        ],
     }
 )

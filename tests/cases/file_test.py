@@ -1,19 +1,17 @@
-import boto3
-import httmock
 import io
 import json
-import moto
 import os
 import shutil
 import urllib.parse
 import zipfile
-
 from hashlib import sha512
-from .. import base, mock_s3
+
+import boto3
+import httmock
+import moto
 
 from girder import events
-from girder.models import getDbConnection
-from girder.exceptions import AccessException, GirderException, FilePathException
+from girder.exceptions import AccessException, GirderException
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -21,9 +19,10 @@ from girder.models.folder import Folder
 from girder.models.setting import Setting
 from girder.models.user import User
 from girder.settings import SettingKey
-from girder.utility import gridfs_assetstore_adapter
 from girder.utility.filesystem_assetstore_adapter import DEFAULT_PERMS
-from girder.utility.s3_assetstore_adapter import makeBotoConnectParams, S3AssetstoreAdapter
+from girder.utility.s3_assetstore_adapter import S3AssetstoreAdapter, makeBotoConnectParams
+
+from .. import base, mock_s3
 
 # The latest moto/boto/botocore requires dummy credentials to function.  It is unclear if
 # this is a bug or intended behavior.
@@ -811,59 +810,6 @@ class FileTestCase(base.TestCase):
             '%93%81%20%F0%9F%98%83'
         self._testDownloadFile(file, chunk1 + chunk2, testval)
 
-    def testGridFsAssetstore(self):
-        """
-        Test usage of the GridFS assetstore type.
-        """
-        # Must also lower GridFS's internal chunk size to support our small chunks
-        gridfs_assetstore_adapter.CHUNK_SIZE, old = 6, gridfs_assetstore_adapter.CHUNK_SIZE
-
-        # Clear any old DB data
-        base.dropGridFSDatabase('girder_test_file_assetstore')
-        # Clear the assetstore database
-        conn = getDbConnection()
-        conn.drop_database('girder_test_file_assetstore')
-
-        Assetstore().remove(Assetstore().getCurrent())
-        assetstore = Assetstore().createGridFsAssetstore(
-            name='Test', db='girder_test_file_assetstore')
-        self.assetstore = assetstore
-
-        chunkColl = conn['girder_test_file_assetstore']['chunk']
-
-        # Upload the two-chunk file
-        file = self._testUploadFile('helloWorld1.txt')
-        hash = sha512(chunkData).hexdigest()
-        file = File().load(file['_id'], force=True)
-        self.assertEqual(hash, file['sha512'])
-
-        # The file should have no local path
-        self.assertRaises(FilePathException, File().getLocalFilePath, file)
-
-        # We should have two chunks in the database
-        self.assertEqual(chunkColl.find({'uuid': file['chunkUuid']}).count(), 2)
-
-        self._testDownloadFile(file, chunk1 + chunk2)
-
-        # Reset chunk size so the large file testing isn't horribly slow
-        gridfs_assetstore_adapter.CHUNK_SIZE = old
-
-        self._testDownloadFolder()
-        self._testDownloadCollection()
-
-        # Delete the file, make sure chunks are gone from database
-        self._testDeleteFile(file)
-        self.assertEqual(chunkColl.find({'uuid': file['chunkUuid']}).count(), 0)
-
-        empty = self._testEmptyUpload('empty.txt')
-        self.assertEqual(sha512().hexdigest(), empty['sha512'])
-        self._testDownloadFile(empty, '')
-        self._testDeleteFile(empty)
-
-        # Test copying a file
-        copyTestFile = self._testUploadFile('helloWorld1.txt')
-        self._testCopyFile(copyTestFile)
-
     @moto.mock_s3
     def testS3Assetstore(self):
         botoParams = makeBotoConnectParams('access', 'secret')
@@ -1035,7 +981,7 @@ class FileTestCase(base.TestCase):
 
         uploadId = resp.json['_id']
 
-        # Because we are moking http requests, and moto insists that there be
+        # Because we are mocking http requests, and moto insists that there be
         # uploaded parts, this is failing.  See line 409 of moto/s3/models.py.
         # We bypass this.
         from moto.utilities.utils import md5_hash

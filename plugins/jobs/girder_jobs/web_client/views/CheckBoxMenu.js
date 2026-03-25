@@ -1,9 +1,8 @@
-import _ from 'underscore';
-
-import View from '@girder/core/views/View';
-
 import JobCheckBoxMenuTemplate from '../templates/jobCheckBoxMenu.pug';
 import JobCheckBoxContentTemplate from '../templates/jobCheckBoxContent.pug';
+
+const View = girder.views.View;
+const { _ } = girder;
 
 var CheckBoxMenu = View.extend({
     events: {

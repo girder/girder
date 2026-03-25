@@ -1,6 +1,7 @@
 import datetime
 import errno
 import json
+import logging
 import os
 import re
 import urllib.parse
@@ -12,7 +13,7 @@ import cherrypy
 import pymongo
 import requests
 
-from girder import events, logger
+from girder import events
 from girder.api.rest import setContentDisposition
 from girder.exceptions import GirderException, RestException, ValidationException
 from girder.models.file import File
@@ -23,6 +24,7 @@ from .abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 BUF_LEN = 65536  # Buffer size for download stream
 DEFAULT_REGION = 'us-east-1'
+logger = logging.getLogger(__name__)
 
 
 class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
@@ -32,7 +34,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
     the S3 server where the files are stored.
     """
 
-    CHUNK_LEN = 1024 * 1024 * 32  # Chunk size for uploading
+    CHUNK_LEN = 1024 * 1024 * 64  # Chunk size for uploading
     HMAC_TTL = 120  # Number of seconds each signed message is valid
 
     @staticmethod
@@ -330,8 +332,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
             resp = requests.request(method='PUT', url=url, data=chunk, headers=headers)
             if resp.status_code not in (200, 201):
-                logger.error('S3 multipart upload failure %d (uploadId=%s):\n%s' % (
-                    resp.status_code, upload['_id'], resp.text))
+                logger.error(
+                    'S3 multipart upload failure %d (uploadId=%s): %s',
+                    resp.status_code, upload['_id'], resp.text
+                )
                 raise GirderException('Upload failed (bad gateway)')
 
             upload['received'] += size
@@ -345,8 +349,10 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                 method=reqInfo['method'], url=reqInfo['url'], data=chunk,
                 headers=dict(reqInfo['headers'], **{'Content-Length': str(size)}))
             if resp.status_code not in (200, 201):
-                logger.error('S3 upload failure %d (uploadId=%s):\n%s' % (
-                    resp.status_code, upload['_id'], resp.text))
+                logger.error(
+                    'S3 upload failure %d (uploadId=%s): %s',
+                    resp.status_code, upload['_id'], resp.text
+                )
                 raise GirderException('Upload failed (bad gateway)')
 
             upload['received'] = size
@@ -396,31 +402,17 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
         file['s3Key'] = upload['s3']['key']
 
         if upload['s3']['chunked']:
-            if upload['received'] > 0:
-                # We proxied the data to S3
-                parts = self.client.list_parts(
-                    Bucket=self.assetstore['bucket'], Key=file['s3Key'],
-                    UploadId=upload['s3']['uploadId'])
-                parts = [{
-                    'ETag': part['ETag'],
-                    'PartNumber': part['PartNumber']
-                } for part in parts.get('Parts', [])]
-                self.client.complete_multipart_upload(
-                    Bucket=self.assetstore['bucket'], Key=file['s3Key'],
-                    UploadId=upload['s3']['uploadId'], MultipartUpload={'Parts': parts})
-            else:
-                url = self._generatePresignedUrl(
-                    ClientMethod='complete_multipart_upload', Params={
-                        'Bucket': self.assetstore['bucket'],
-                        'Key': upload['s3']['key'],
-                        'UploadId': upload['s3']['uploadId']
-                    })
-                file['s3FinalizeRequest'] = {
-                    'method': 'POST',
-                    'url': url,
-                    'headers': {'Content-Type': 'text/plain;charset=UTF-8'}
-                }
-                file['additionalFinalizeKeys'] = ('s3FinalizeRequest',)
+            parts = self.client.list_parts(
+                Bucket=self.assetstore['bucket'], Key=file['s3Key'],
+                UploadId=upload['s3']['uploadId'])
+            parts = [{
+                'ETag': part['ETag'],
+                'PartNumber': part['PartNumber']
+            } for part in parts.get('Parts', [])]
+            self.client.complete_multipart_upload(
+                Bucket=self.assetstore['bucket'], Key=file['s3Key'],
+                UploadId=upload['s3']['uploadId'], MultipartUpload={'Parts': parts})
+
         return file
 
     def downloadFile(self, file, offset=0, headers=True, endByte=None,  # noqa
@@ -489,7 +481,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                                     halt = True
                                     raise
                         halt = True
-                    except IOError as exc:
+                    except OSError as exc:
                         retries += 1
                         if halt or retries >= maxRetriesWithoutData:
                             # Downstream handlers (notably fuse.py) fail if the
@@ -506,7 +498,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
                    user, force_recursive=True, **kwargs):
         importPath = params.get('importPath', '').strip().lstrip('/')
         bucket = self.assetstore['bucket']
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
         paginator = self.client.get_paginator('list_objects')
         pageIterator = paginator.paginate(Bucket=bucket, Prefix=importPath, Delimiter='/')
         for resp in pageIterator:
@@ -573,9 +565,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
 
     def deleteFile(self, file):
         """
-        We want to queue up files to be deleted asynchronously since it requires
-        an external HTTP request per file in order to delete them, and we don't
-        want to wait on that.
+        Delete files from S3.
 
         Files that were imported as pre-existing data will not actually be
         deleted from S3, only their references in Girder will be deleted.
@@ -587,11 +577,7 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             }
             matching = File().find(q, limit=2, fields=[])
             if matching.count(True) == 1:
-                events.daemon.trigger(info={
-                    'client': self.client,
-                    'bucket': self.assetstore['bucket'],
-                    'key': file['s3Key']
-                }, callback=_deleteFileImpl)
+                self.client.delete_object(Bucket=self.assetstore['bucket'], Key=file['s3Key'])
 
     def fileUpdated(self, file):
         """
@@ -745,7 +731,3 @@ def makeBotoConnectParams(accessKeyId, secret, service=None, region=None, inferC
         params['endpoint_url'] = service
 
     return params
-
-
-def _deleteFileImpl(event):
-    event.info['client'].delete_object(Bucket=event.info['bucket'], Key=event.info['key'])

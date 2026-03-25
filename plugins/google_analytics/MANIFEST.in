@@ -1,0 +1,3 @@
+prune girder_google_analytics/web_client
+include girder_google_analytics/web_client/dist/girder-plugin-google-analytics.umd.cjs
+include girder_google_analytics/web_client/dist/style.css

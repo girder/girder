@@ -1,16 +1,21 @@
-import cherrypy
 import datetime
+import logging
 import os
 
-from .model_base import Model, AccessControlledModel
-import girder
+import cherrypy
+
 from girder import auditLogger, events
 from girder.constants import AccessType, CoreEventHandler
 from girder.exceptions import FilePathException, ValidationException
 from girder.models.setting import Setting
 from girder.settings import SettingKey
-from girder.utility import acl_mixin, path as path_util
+from girder.utility import acl_mixin
+from girder.utility import path as path_util
 from girder.utility.model_importer import ModelImporter
+
+from .model_base import AccessControlledModel, Model
+
+logger = logging.getLogger(__name__)
 
 
 class File(acl_mixin.AccessControlMixin, Model):
@@ -62,8 +67,8 @@ class File(acl_mixin.AccessControlMixin, Model):
                 if file.get('size') is not None:
                     self.propagateSizeChange(item, -file['size'], updateItemSize)
             else:
-                girder.logger.warning('Broken reference in file %s: no item %s exists' %
-                                      (file['_id'], file['itemId']))
+                logger.warning(
+                    'Broken reference in file %s: no item %s exists', file['_id'], file['itemId'])
 
         super().remove(file)
 
@@ -228,7 +233,7 @@ class File(acl_mixin.AccessControlMixin, Model):
             file = existing
         else:
             file = {
-                'created': datetime.datetime.utcnow(),
+                'created': datetime.datetime.now(datetime.timezone.utc),
                 'itemId': item['_id'],
                 'assetstoreId': None,
                 'name': name
@@ -322,7 +327,7 @@ class File(acl_mixin.AccessControlMixin, Model):
                 return existing
 
         file = {
-            'created': datetime.datetime.utcnow(),
+            'created': datetime.datetime.now(datetime.timezone.utc),
             'creatorId': creator['_id'],
             'assetstoreId': assetstore['_id'],
             'name': name,
@@ -366,7 +371,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         or MIME type. This causes the updated stamp to change, and also alerts
         the underlying assetstore adapter that file information has changed.
         """
-        file['updated'] = datetime.datetime.utcnow()
+        file['updated'] = datetime.datetime.now(datetime.timezone.utc)
         file = self.save(file)
 
         if file.get('assetstoreId'):
@@ -402,7 +407,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         file = srcFile.copy()
         # Immediately delete the original id so that we get a new one.
         del file['_id']
-        file['copied'] = datetime.datetime.utcnow()
+        file['copied'] = datetime.datetime.now(datetime.timezone.utc)
         file['copierId'] = creator['_id']
         if item:
             file['itemId'] = item['_id']

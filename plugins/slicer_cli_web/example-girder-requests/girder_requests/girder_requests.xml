@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Sample</category>
+  <title>Girder Client - Fetch Annotation</title>
+  <description>Summarize annotations associated with a whole slide image.</description>
+  <version>0.1.0</version>
+  <license>Apache 2.0</license>
+  <contributor>David Manthey (Kitware)</contributor>
+  <parameters>
+    <description>General parameters</description>
+    <label>IO</label>
+    <string>
+      <name>imageId</name>
+      <index>0</index>
+      <label>imageId</label>
+      <description>An image ID</description>
+    </string>
+  </parameters>
+  <parameters advanced="true">
+    <label>Girder API URL and Key</label>
+    <description>A Girder API URL and token for Girder client</description>
+    <string>
+      <name>girderApiUrl</name>
+      <longflag>api-url</longflag>
+      <label>Girder API URL</label>
+      <description>A Girder API URL (e.g., https://girder.example.com:443/api/v1)</description>
+      <default></default>
+    </string>
+    <string>
+      <name>girderToken</name>
+      <longflag>girder-token</longflag>
+      <label>Girder Token</label>
+      <description>A Girder token</description>
+      <default></default>
+    </string>
+  </parameters>
+</executable>

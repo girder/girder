@@ -1,10 +1,11 @@
-import boto3
 import io
 import json
 import os
 import re
-import requests
 import threading
+
+import boto3
+import requests
 
 from girder import events
 from girder.models.assetstore import Assetstore
@@ -15,8 +16,6 @@ from girder.models.user import User
 from girder.utility import assetstore_utilities
 
 from .. import base
-from .. import mongo_replicaset
-
 
 Chunk1, Chunk2 = ('hello ', 'world')
 
@@ -364,59 +363,6 @@ class UploadTestCase(base.TestCase):
         fullPath1 = adapter.fullPath(files[0])
         self.assertEqual(fullPath0, fullPath1)
         self.assertTrue(os.path.exists(fullPath1))
-
-    def testGridFSAssetstoreUpload(self):
-        # Clear any old DB data
-        base.dropGridFSDatabase('girder_test_upload_assetstore')
-        # Clear the assetstore database and create a GridFS assetstore
-        Assetstore().remove(Assetstore().getCurrent())
-        assetstore = Assetstore().createGridFsAssetstore(
-            name='Test', db='girder_test_upload_assetstore')
-        self.assetstore = assetstore
-        self._testUpload()
-
-    # disable an intermittently failing test - 2022-02-23
-    def XtestGridFSReplicaSetAssetstoreUpload(self):
-        verbose = 0
-        if 'REPLICASET' in os.environ.get('EXTRADEBUG', '').split():
-            verbose = 2
-        # Starting the replica sets takes time (~25 seconds)
-        rscfg = mongo_replicaset.makeConfig()
-        mongo_replicaset.startMongoReplicaSet(rscfg, verbose=verbose)
-        # Clear the assetstore database and create a GridFS assetstore
-        Assetstore().remove(Assetstore().getCurrent())
-        # When the mongo connection to one of the replica sets goes down, it
-        # takes twice the socket timeout for us to reconnect and get on with
-        # an upload.  We can override the default timeout by passing it as a
-        # mongodb uri parameter.
-        assetstore = Assetstore().createGridFsAssetstore(
-            name='Test', db='girder_assetstore_rs_upload_test',
-            mongohost='mongodb://127.0.0.1:27070,127.0.0.1:27071,'
-            '127.0.0.1:27072/?socketTimeoutMS=5000&connectTimeoutMS=2500',
-            replicaset='replicaset')
-        self.assetstore = assetstore
-        self._testUpload()
-        # Test having the primary replica set going offline and then uploading
-        # again.  If the current primary goes offline, it seems to take mongo
-        # 30 seconds to elect a new primary.  If we step down the current
-        # primary before pausing it, then the new election will happen in 20
-        # seconds.
-        mongo_replicaset.stepDownMongoReplicaSet(rscfg, 0)
-        mongo_replicaset.waitForRSStatus(
-            rscfg,
-            mongo_replicaset.getMongoClient(rscfg, 0),
-            status=[2, (1, 2), (1, 2)],
-            verbose=verbose)
-        mongo_replicaset.pauseMongoReplicaSet(rscfg, [True], verbose=verbose)
-        self._uploadFile('rs_upload_1')
-        # Have a different member of the replica set go offline and the first
-        # come back.  This takes a long time, so I am disabling it
-        #  mongo_replicaset.pauseMongoReplicaSet(rscfg, [False, True], verbose=verbose)
-        #  self._uploadFile('rs_upload_2')
-        # Have the set come back online and upload once more
-        mongo_replicaset.pauseMongoReplicaSet(rscfg, [False, False], verbose=verbose)
-        self._uploadFile('rs_upload_3')
-        mongo_replicaset.stopMongoReplicaSet(rscfg)
 
     def testS3AssetstoreUpload(self):
         # Clear the assetstore database and create an S3 assetstore

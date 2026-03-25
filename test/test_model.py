@@ -1,7 +1,7 @@
 import pytest
 
-from girder.models.model_base import AccessControlledModel, Model, AccessType
 from girder.models.group import Group
+from girder.models.model_base import AccessControlledModel, AccessType, Model
 from girder.models.user import User
 from girder.utility import acl_mixin, model_importer
 

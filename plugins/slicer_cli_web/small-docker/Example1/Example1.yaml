@@ -1,0 +1,259 @@
+category: Developer Tools
+title: Example 1 - Execution Model Tour
+description: Shows one of each type of parameter that slicer_cli_web can handle.
+version: 0.1.0.$Revision$(alpha)
+documentation-url: http://wiki.slicer.org/slicerWiki/index.php/Documentation/Nightly/Modules/ExecutionModelTour
+license: ''
+contributor: Daniel Blezek (GE), Bill Lorensen (GE)
+acknowledgements: This work is part of the National Alliance for Medical Image Computing
+  (NAMIC), funded by the National Institutes of Health through the NIH Roadmap for
+  Medical Research, Grant U54 EB005149.  It has been modified for slicer_cli_web.
+parameter_groups:
+- description: Variations on scalar parameters
+  label: Scalar Parameters
+  parameters:
+  - type: integer
+    name: integerVariable
+    flag: -i
+    longflag: --integer
+    description: An integer without constraints
+    label: Integer Parameter
+    default: 30
+  - type: double
+    name: doubleVariable
+    flag: -d
+    longflag: --double
+    description: A double with constraints
+    label: Double Parameter
+    default: 30.0
+    constraints:
+      minimum: 0.0
+      maximum: 1000.0
+      step: 10.0
+  - type: region
+    shapes: rectangle,polygon,polyline,point,multi,submitoff
+    name: region
+    label: Analysis ROI
+    longflag: region
+    description: Region of interest where analysis is performed.  This is either -1,-1,-1,-1
+      for the whole image, or a four-element vector in the format "left, top, width,
+      height", or a list of four or more x,y vertices to specify a polygon.
+    default: -1,-1,-1,-1
+- advanced: true
+  description: Parameters that are advanced
+  label: Advanced Parameters
+  parameters:
+  - type: integer
+    name: advancedIntegerVariable
+    longflag: --advinteger
+    description: An integer without constraints
+    label: Advanced Integer Parameter
+    default: 35
+- description: Variations on vector parameters
+  label: Vector Parameters
+  parameters:
+  - type: float-vector
+    name: floatVector
+    flag: f
+    description: A vector of floats
+    label: Float Vector Parameter
+    default:
+    - 1.3
+    - 2.0
+    - -14.0
+  - type: string-vector
+    name: stringVector
+    longflag: string_vector
+    description: A vector of strings
+    label: String Vector Parameter
+    default:
+    - foo
+    - bar
+    - foobar
+- description: Variations on enumeration parameters
+  label: Enumeration Parameters
+  parameters:
+  - type: string-enumeration
+    name: stringChoice
+    flag: e
+    longflag: enumeration
+    description: An enumeration of strings
+    label: String Enumeration Parameter
+    default: Bill
+    enumeration:
+    - Ron
+    - Eric
+    - Bill
+    - Ross
+    - Steve
+    - Will
+  - type: string
+    datalist: '{"stringWithOptions": "__datalist__", "arg0": "skip", "arg1": "skip",
+      "arg1_folder": "skip"}'
+    name: stringWithOptions
+    longflag: string_with_options
+    description: A string with options that are listed from the CLI itself
+    label: String With Options
+    default: ''
+- advanced: true
+  description: A Girder API URL and token for Girder client
+  label: Girder API URL and Key
+  parameters:
+  - type: string
+    name: girderApiUrl
+    longflag: api-url
+    label: Girder API URL
+    description: A Girder API URL (e.g., https://girder.example.com:443/api/v1)
+    default: ''
+  - type: string
+    name: girderToken
+    longflag: girder-token
+    label: Girder Token
+    description: A Girder token
+    default: ''
+- description: Variations on boolean parameters
+  label: Boolean Parameters
+  parameters:
+  - type: boolean
+    name: boolean1
+    longflag: boolean1
+    description: A boolean default true
+    label: Boolean Default true
+    default: true
+  - type: boolean
+    name: boolean2
+    longflag: boolean2
+    description: A boolean default false
+    label: Boolean Default false
+    default: false
+  - type: boolean
+    name: boolean3
+    longflag: boolean3
+    description: A boolean with no default, should be defaulting to false
+    label: Boolean No Default
+- description: Parameters that describe files and directories.
+  label: File, Directory and Image Parameters
+  parameters:
+  - type: file
+    fileExtensions: .png,.jpg,.jpeg,.bmp,.tif,.tiff,.gipl,.dcm,.dicom,.nhdr,.nrrd,.mhd,.mha,.mask,.hdr,.nii,.nii.gz,.hdr.gz,.pic,.lsm,.spr,.vtk,.vtkp,.vtki,.stl,.csv,.txt,.xml,.html
+    defaultNameMatch: \.png$
+    defaultPathMatch: ^\/user\/.*\/[Ii]mages\/.*\.png$
+    name: file1
+    longflag: file1
+    description: An input file
+    label: Input file
+    channel: input
+  - type: file
+    fileExtensions: .png
+    reference: _girder_id_
+    defaultNameMatch: \.png$
+    defaultPathMatch: ^\/user\/.*\/[Ii]mages\/.*\.png$
+    defaultRelativePath: ..
+    name: file2
+    longflag: file2
+    description: Another input file
+    label: Input file 2
+    channel: input
+  - type: file
+    fileExtensions: .png,.jpg,.jpeg,.bmp,.tif,.tiff,.gipl,.dcm,.dicom,.nhdr,.nrrd,.mhd,.mha,.mask,.hdr,.nii,.nii.gz,.hdr.gz,.pic,.lsm,.spr,.vtk,.vtkp,.vtki,.stl,.csv,.txt,.xml,.html
+    multiple: true
+    name: files
+    longflag: files
+    description: Multiple input files
+    label: Input files
+    channel: input
+  - type: directory
+    name: directory1
+    longflag: directory1
+    description: An input directory. If no default is specified, the current directory
+      is used,
+    label: Input directory
+    channel: input
+  - type: image
+    name: image1
+    longflag: image1
+    description: An input image
+    label: Input image
+    channel: input
+  - type: image
+    name: image2
+    longflag: image2
+    description: An output image
+    label: Output image
+    channel: output
+  - type: item
+    name: item1
+    longflag: item1
+    description: An input item
+    label: Input item
+    channel: input
+- description: Variations on parameters that use index rather than flags.
+  label: Index Parameters
+  parameters:
+  - type: image
+    name: arg0
+    channel: input
+    index: 0
+    description: First index argument is an image
+    label: First index argument
+  - type: image
+    name: arg1
+    channel: output
+    index: 1
+    description: Second index argument is an image
+    label: Second index argument
+- description: Simple outputs
+  label: Simple return types
+  parameters:
+  - type: integer
+    name: anintegerreturn
+    label: An integer return value
+    channel: output
+    default: 5
+    description: An example of an integer return type
+  - type: boolean
+    name: abooleanreturn
+    label: A boolean return value
+    channel: output
+    default: false
+    description: An example of a boolean return type
+  - type: float
+    name: afloatreturn
+    label: A floating point return value
+    channel: output
+    default: 7.0
+    description: An example of a float return type
+  - type: double
+    name: adoublereturn
+    label: A double point return value
+    channel: output
+    default: 14.0
+    description: An example of a double return type
+  - type: string
+    name: astringreturn
+    label: A string return value
+    channel: output
+    default: Hello
+    description: An example of a string return type
+  - type: integer-vector
+    name: anintegervectorreturn
+    label: An integer vector return value
+    channel: output
+    default:
+    - 1
+    - 2
+    - 3
+    description: An example of an integer vector return type
+  - type: string-enumeration
+    name: astringchoicereturn
+    channel: output
+    description: An enumeration of strings as a return type
+    label: A string enumeration return value
+    default: Bill
+    enumeration:
+    - Ron
+    - Eric
+    - Bill
+    - Ross
+    - Steve
+    - Will

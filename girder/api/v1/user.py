@@ -1,17 +1,19 @@
 import base64
-import cherrypy
 import datetime
 
-from ..describe import Description, autoDescribeRoute
+import cherrypy
+
 from girder.api import access
 from girder.api.rest import Resource, filtermodel, setCurrentUser
 from girder.constants import AccessType, TokenScope
-from girder.exceptions import RestException, AccessException
+from girder.exceptions import AccessException, RestException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User as UserModel
 from girder.settings import SettingKey
 from girder.utility import mail_utils
+
+from ..describe import Description, autoDescribeRoute
 
 
 class User(Resource):
@@ -327,7 +329,7 @@ class User(Resource):
     def checkTemporaryPassword(self, user, token):
         token = Token().load(
             token, user=user, level=AccessType.ADMIN, objectId=False, exc=True)
-        delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
+        delta = (token['expires'] - datetime.datetime.now(datetime.timezone.utc)).total_seconds()
         hasScope = Token().hasScope(token, TokenScope.TEMPORARY_USER_AUTH)
 
         if token.get('userId') != user['_id'] or delta <= 0 or not hasScope:
@@ -425,7 +427,7 @@ class User(Resource):
     def verifyEmail(self, user, token):
         token = Token().load(
             token, user=user, level=AccessType.ADMIN, objectId=False, exc=True)
-        delta = (token['expires'] - datetime.datetime.utcnow()).total_seconds()
+        delta = (token['expires'] - datetime.datetime.now(datetime.timezone.utc)).total_seconds()
         hasScope = Token().hasScope(token, TokenScope.EMAIL_VERIFICATION)
 
         if token.get('userId') != user['_id'] or delta <= 0 or not hasScope:

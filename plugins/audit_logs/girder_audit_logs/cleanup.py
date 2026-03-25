@@ -4,8 +4,9 @@ This script is for deleting old audit log entries from the database. Example inv
     girder audit-logs-cleanup --days=30 --types=rest.request
 """
 
-import click
 import datetime
+
+import click
 from girder_audit_logs import Record
 
 
@@ -14,7 +15,11 @@ from girder_audit_logs import Record
 @click.option('--types', help='Which record types to remove as a comma separated list. If not '
               'provided, removes all record types.')
 def cleanup(days, types):
-    filter = {'when': {'$lt': datetime.datetime.utcnow() - datetime.timedelta(days=days)}}
+    filter = {
+        'when': {
+            '$lt': datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=days)
+        }
+    }
 
     if types:
         filter['type'] = {'$in': types.split(',')}

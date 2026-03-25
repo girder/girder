@@ -1,25 +1,23 @@
-import Backbone from 'backbone';
-
-import { renderMarkdown } from '@girder/core/misc';
-import router from '@girder/core/router';
-import View from '@girder/core/views/View';
-
 import TermsAcceptanceTemplate from '../templates/termsAcceptance.pug';
 import '../stylesheets/termsAcceptance.styl';
 
+const Backbone = girder.Backbone;
+const { renderMarkdown } = girder.misc;
+const View = girder.views.View;
+const router = girder.router;
+
 const TermsAcceptanceView = View.extend({
     events: {
-        'click #g-terms-accept': function (event) {
+        'click #g-terms-accept': async function (event) {
             const buttons = this.$('button');
             buttons.girderEnable(false);
 
-            this.model.currentUserSetAcceptTerms()
-                // This is never expected to fail, but use "always" for safety
-                .always(() => {
-                    buttons.girderEnable(true);
-                    // Re-route to the current page, without reloading the DOM
-                    Backbone.history.loadUrl(Backbone.history.getHash());
-                });
+            await this.model.currentUserSetAcceptTerms();
+
+            buttons.girderEnable(true);
+
+            // Re-route to the current page, without reloading the DOM
+            Backbone.history.loadUrl(Backbone.history.getHash());
         },
         'click #g-terms-reject': function (event) {
             // Route to home page

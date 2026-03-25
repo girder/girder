@@ -1,0 +1,184 @@
+{
+  "name": "@girder/slicer_cli_web",
+  "version": "1.0.0",
+  "description": "A girder plugin for exposing slicer CLIs over the web",
+  "bugs": {
+    "url": "https://github.com/girder/slicer_cli_web/issues"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/girder/slicer_cli_web.git"
+  },
+  "main": "./index.js",
+  "type": "module",
+  "dependencies": {
+    "bootstrap-colorpicker": "^3.4.0",
+    "bootstrap-slider": "^10.6.2",
+    "tinycolor2": "~1.4.1"
+  },
+  "eslintConfig": {
+    "extends": "@girder",
+    "rules": {
+      "for-direction": "error",
+      "getter-return": "error",
+      "multiline-ternary": [
+        "error",
+        "always-multiline"
+      ],
+      "no-alert": "error",
+      "switch-colon-spacing": "error",
+      "object-curly-spacing": "off",
+      "import/exports-last": "error",
+      "promise/no-native": "error",
+      "promise/no-return-in-finally": "error",
+      "promise/no-return-wrap": "error"
+    },
+    "root": true,
+    "globals": {
+      "girder": "writable"
+    }
+  },
+  "eslintIgnore": [
+    "**/node_modules/",
+    "**/dist/"
+  ],
+  "pugLintConfig": {
+    "extends": "@girder/pug-lint-config",
+    "excludeFiles": [
+      "**/node_modules/"
+    ]
+  },
+  "stylintrc": {
+    "blocks": false,
+    "brackets": {
+      "expect": "never",
+      "error": true
+    },
+    "colons": {
+      "expect": "never",
+      "error": true
+    },
+    "colors": false,
+    "commaSpace": {
+      "expect": "always",
+      "error": true
+    },
+    "commentSpace": {
+      "expect": "always",
+      "error": true
+    },
+    "cssLiteral": {
+      "expect": "never",
+      "error": true
+    },
+    "depthLimit": false,
+    "efficient": {
+      "expect": "always",
+      "error": true
+    },
+    "exclude": [
+      "**/node_modules/**"
+    ],
+    "extendPref": "@extend",
+    "globalDupe": false,
+    "groupOutputByFile": {
+      "expect": true,
+      "error": true
+    },
+    "indentPref": {
+      "expect": 2,
+      "error": true
+    },
+    "leadingZero": {
+      "expect": "always",
+      "error": true
+    },
+    "maxErrors": false,
+    "maxWarnings": false,
+    "mixed": false,
+    "mixins": [],
+    "namingConvention": false,
+    "namingConventionStrict": false,
+    "none": {
+      "expect": "always",
+      "error": true
+    },
+    "noImportant": false,
+    "parenSpace": {
+      "expect": "never",
+      "error": true
+    },
+    "placeholders": false,
+    "prefixVarsWithDollar": {
+      "expect": "always",
+      "error": true
+    },
+    "quotePref": {
+      "expect": "double",
+      "error": true
+    },
+    "reporterOptions": {
+      "columns": [
+        "lineData",
+        "severity",
+        "description",
+        "rule"
+      ],
+      "columnSplitter": "  ",
+      "showHeaders": false,
+      "truncate": true
+    },
+    "semicolons": {
+      "expect": "never",
+      "error": true
+    },
+    "sortOrder": false,
+    "stackedProperties": {
+      "expect": "never",
+      "error": true
+    },
+    "trailingWhitespace": {
+      "expect": "never",
+      "error": true
+    },
+    "universal": {
+      "expect": "never",
+      "error": true
+    },
+    "valid": {
+      "expect": true,
+      "error": true
+    },
+    "zeroUnits": {
+      "expect": "never",
+      "error": true
+    },
+    "zIndexNormalize": {
+      "expect": 5,
+      "error": true
+    }
+  },
+  "devDependencies": {
+    "@girder/eslint-config": "^3.0.2",
+    "@girder/pug-lint-config": "^3.0.2",
+    "eslint": "^6.5.1",
+    "eslint-config-semistandard": "^15.0.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-backbone": "^2.1.1",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-node": "^10.0.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.1",
+    "pug": "^3.0.3",
+    "pug-lint": "^2.6.0",
+    "stylint": "^2.0.0",
+    "stylus": "^0.63.0",
+    "vite": "^5.3.1"
+  },
+  "scripts": {
+    "build": "vite build",
+    "watch": "vite build --watch",
+    "lint": "eslint --cache --fix . && pug-lint . && stylint"
+  }
+}

@@ -1,5 +1,4 @@
 import base64
-import cherrypy
 import io
 import json
 import logging
@@ -11,19 +10,21 @@ import unittest
 import urllib.parse
 import warnings
 
-from girder.utility._cache import cache, requestCache
-from girder.utility.server import setup as setupServer
-from girder.constants import AccessType, ROOT_DIR, ServerMode
+import cherrypy
+
+from girder import plugin
+from girder.constants import ROOT_DIR, AccessType, ServerMode
 from girder.models import getDbConnection
-from girder.models.model_base import _modelSingletons
 from girder.models.assetstore import Assetstore
 from girder.models.file import File
+from girder.models.model_base import _modelSingletons
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.settings import SettingKey
-from . import mock_smtp
+from girder.utility._cache import cache, requestCache
+from girder.utility.server import create_app
+
 from . import mock_s3
-from . import mongo_replicaset
 
 with warnings.catch_warnings():
     warnings.filterwarnings('ignore', 'setup_database.*')
@@ -31,7 +32,6 @@ with warnings.catch_warnings():
 
 local = cherrypy.lib.httputil.Host('127.0.0.1', 30000)
 remote = cherrypy.lib.httputil.Host('127.0.0.1', 30001)
-mockSmtp = mock_smtp.MockSmtpReceiver()
 mockS3Server = None
 enabledPlugins = []
 usedDBs = {}
@@ -46,8 +46,10 @@ def startServer(mock=True, mockS3=False):
     dbName = cherrypy.config['database']['uri'].split('/')[-1]
     usedDBs[dbName] = True
 
-    # By default, this passes "[]" to "plugins", disabling any installed plugins
-    server = setupServer(mode=ServerMode.TESTING, plugins=enabledPlugins)
+    app_info = create_app(mode=ServerMode.TESTING)
+    plugin._loadPlugins(app_info, enabledPlugins)
+
+    cherrypy.tree = app_info['serverRoot']
 
     if mock:
         cherrypy.server.unsubscribe()
@@ -67,12 +69,11 @@ def startServer(mock=True, mockS3=False):
     # Tell CherryPy to throw exceptions in request handling code
     cherrypy.config.update({'request.throw_errors': True})
 
-    mockSmtp.start()
     if mockS3:
         global mockS3Server
         mockS3Server = mock_s3.startMockS3Server()
 
-    return server
+    return cherrypy.tree
 
 
 def stopServer():
@@ -81,7 +82,6 @@ def stopServer():
     function in their tearDownModule() function.
     """
     cherrypy.engine.exit()
-    mockSmtp.stop()
     dropAllTestDatabases()
 
 
@@ -122,19 +122,6 @@ def dropTestDatabase(dropModels=True):
     requestCache.invalidate()
 
 
-def dropGridFSDatabase(dbName):
-    """
-    Clear all contents from a gridFS database used as an assetstore.
-    :param dbName: the name of the database to drop.
-    """
-    db_connection = getDbConnection()
-    if dbName in db_connection.list_database_names():
-        if dbName not in usedDBs and 'newdb' in os.environ.get('EXTRADEBUG', '').split():
-            raise Exception('Warning: database %s already exists' % dbName)
-        db_connection.drop_database(dbName)
-    usedDBs[dbName] = True
-
-
 def dropFsAssetstore(path):
     """
     Delete all of the files in a filesystem assetstore.  This unlinks the path,
@@ -157,30 +144,20 @@ class TestCase(unittest.TestCase):
         We want to start with a clean database each time, so we drop the test
         database before each test. We then add an assetstore so the file model
         can be used without 500 errors.
-        :param assetstoreType: if 'gridfs' or 's3', use that assetstore.
-            'gridfsrs' uses a GridFS assetstore with a replicaset. For any other value, use
-            a filesystem assetstore.
+        :param assetstoreType: if 's3', use that assetstore.
+            For any other value, use a filesystem assetstore.
         """
+        from girder_worker.app import app
+
+        app.conf.task_always_eager = True
+        app.conf.task_eager_propagates = True
+
         self.assetstoreType = assetstoreType
         dropTestDatabase(dropModels=dropModels)
         assetstoreName = os.environ.get('GIRDER_TEST_ASSETSTORE', 'test')
         assetstorePath = os.path.join(
             ROOT_DIR, 'tests', 'assetstore', assetstoreName)
-        if assetstoreType == 'gridfs':
-            # Name this as '_auto' to prevent conflict with assetstores created
-            # within test methods
-            gridfsDbName = 'girder_test_%s_assetstore_auto' % assetstoreName.replace('.', '_')
-            dropGridFSDatabase(gridfsDbName)
-            self.assetstore = Assetstore().createGridFsAssetstore(name='Test', db=gridfsDbName)
-        elif assetstoreType == 'gridfsrs':
-            gridfsDbName = 'girder_test_%s_rs_assetstore_auto' % assetstoreName
-            self.replicaSetConfig = mongo_replicaset.makeConfig()
-            mongo_replicaset.startMongoReplicaSet(self.replicaSetConfig)
-            self.assetstore = Assetstore().createGridFsAssetstore(
-                name='Test', db=gridfsDbName,
-                mongohost='mongodb://127.0.0.1:27070,127.0.0.1:27071,'
-                '127.0.0.1:27072', replicaset='replicaset')
-        elif assetstoreType == 's3':
+        if assetstoreType == 's3':
             self.assetstore = Assetstore().createS3Assetstore(
                 name='Test', bucket='bucketname', accessKeyId='test',
                 secret='test', service=mockS3Server.service)
@@ -189,9 +166,7 @@ class TestCase(unittest.TestCase):
             self.assetstore = Assetstore().createFilesystemAssetstore(
                 name='Test', root=assetstorePath)
 
-        host, port = mockSmtp.address or ('localhost', 25)
-        Setting().set(SettingKey.SMTP_HOST, host)
-        Setting().set(SettingKey.SMTP_PORT, port)
+        os.environ['GIRDER_EMAIL_TO_CONSOLE'] = 'true'
         Setting().set(SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE, 0)
 
         if os.environ.get('GIRDER_TEST_DATABASE_CONFIG'):
@@ -201,10 +176,6 @@ class TestCase(unittest.TestCase):
         """
         Stop any services that we started just for this test.
         """
-        # If "self.setUp" is overridden, "self.assetstoreType" may not be set
-        if getattr(self, 'assetstoreType', None) == 'gridfsrs':
-            mongo_replicaset.stopMongoReplicaSet(self.replicaSetConfig)
-
         # Invalidate cache regions which persist across tests
         cache.invalidate()
         requestCache.invalidate()
@@ -338,12 +309,6 @@ class TestCase(unittest.TestCase):
         self.assertEqual('Parameter "%s" is required.' % param, response.json.get('message', ''))
         self.assertStatus(response, 400)
 
-    def getSseMessages(self, resp):
-        messages = self.getBody(resp).strip().split('\n\n')
-        if not messages or messages == ['']:
-            return ()
-        return [json.loads(m.replace('data: ', '')) for m in messages]
-
     def uploadFile(self, name, contents, user, parent, parentType='folder',
                    mimeType=None):
         """
@@ -432,7 +397,7 @@ class TestCase(unittest.TestCase):
                 prefix='/api/v1', isJson=True, basicAuth=None, body=None,
                 type=None, exception=False, cookie=None, token=None,
                 additionalHeaders=None, useHttps=False,
-                authHeader='Authorization', appPrefix=''):
+                authHeader='Authorization', appPrefix='/api'):
         """
         Make an HTTP request.
 
@@ -537,7 +502,6 @@ class TestCase(unittest.TestCase):
 
 def _sigintHandler(*args):
     print('Received SIGINT, shutting down mock SMTP server...')
-    mockSmtp.stop()
     sys.exit(1)
 
 

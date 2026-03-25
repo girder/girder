@@ -298,20 +298,14 @@ convenience function for that:
 Logging a Message
 ^^^^^^^^^^^^^^^^^
 
-Girder application servers maintain an error log and an information log and expose
-a utility module for sending events to them. Any 500 error that occurs during
-execution of a request will automatically be logged in the error log with a
-full stack trace. Also, any 403 error (meaning a user who is logged in but
-requests access to a resource that they don't have permission to access) will also be logged
-automatically. All log messages automatically include a timestamp, so there
-is no need to add your own.
+Girder uses standard Pythonic and 12-factor app logging practices, e.g.::
 
-If you want to log your own custom error or info messages outside of those default
-behaviors, use the following examples:
 
 .. code-block:: python
 
-    from girder import logger
+    import logging
+
+    logger = logging.getLogger(__name__)
 
     try:
         ...
@@ -320,8 +314,7 @@ behaviors, use the following examples:
         # and remote IP address. Should only be called from within an exception handler.
         logger.exception('A descriptive message')
 
-    # Will log a message to the info log.
-    logger.info('Test')
+    logger.info('This is an info message')
 
 Adding Automated Tests with CTest
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -526,23 +519,23 @@ to python files in a plugin's ``utils`` directory for a given test:
 Mounting a custom application
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Normally, the root node (``/``) of the server will serve up the Girder web client.
-A plugin may contain an entire application separate from the default Girder
-web client. This plugin may be written in a way which enables administrators
-to mount the application at a configured endpoint, including the option of
-replacing the root node with the plugin application.
+The info object passed to plugins' ``load`` method contains a ``serverRoot`` object that is the
+`CherryPy tree object <https://docs.cherrypy.dev/en/latest/pkg/cherrypy._cptree.html#cherrypy._cptree.Tree>`_
+that will be served by the server, either via ``girder serve`` in development, or via the
+``girder.wsgi:app`` object with your own WSGI server in production. You can mount your own
+applications here using the ``mount`` method, or delete the default Girder application if you wish.
+Note that if you wish to server Girder's default SPA from a place other than the root path ``/``,
+you'll need to rebuild the SPA with a different ``base`` value before it will serve properly. Doing
+this is out of scope of these docs, since there are many different ways to serve static content,
+but the command to build the SPA with a different base looks as follows:
 
-To achieve this, you simply have to register your own root and configure your routes
-as you wish. In your plugin's ``load`` method, you would follow this convention:
+.. code-block:: bash
 
-.. code-block:: python
+    cd <path_to_girder_source_tree>/girder/web
+    npx vite build --base=/new_root/
 
-    from girder.plugin import registerPluginWebroot
-    registerPluginWebroot(CustomAppRoot(), info['name'])
-
-This will register your ``CustomAppRoot`` with Girder so that it can then be mounted
-wherever an Administrator specifies using the Server Configuration Panel. See
-:ref:`Managing Routes <managing-routes>`.
+That assumes that you've moved the SPA (``info['serverRoot'].apps['']``) to be served out of
+``/new_root`` instead of ``''``.
 
 Supporting web browser operations where custom headers cannot be set
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

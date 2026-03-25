@@ -1,18 +1,20 @@
-import cherrypy
 import errno
 
-from ..describe import Description, autoDescribeRoute, describeRoute
-from ..rest import Resource, filtermodel
-from ...constants import AccessType, TokenScope
+import cherrypy
+
+from girder.api import access
 from girder.exceptions import AccessException, GirderException, RestException
 from girder.models.assetstore import Assetstore
 from girder.models.file import File as FileModel
 from girder.models.item import Item
 from girder.models.upload import Upload
-from girder.api import access
 from girder.utility import RequestBodyStream
 from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
+
+from ...constants import AccessType, TokenScope
+from ..describe import Description, autoDescribeRoute, describeRoute
+from ..rest import Resource, filtermodel
 
 
 class File(Resource):

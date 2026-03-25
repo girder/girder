@@ -1,116 +1,12 @@
 import base64
-import cherrypy
 import contextlib
-import email
-import errno
 import io
 import json
-import os
-import queue
 import socket
-import threading
-import time
 import urllib.parse
+from dataclasses import dataclass
 
-_startPort = 31000
-_maxTries = 100
-
-
-class MockSmtpReceiver:
-    def __init__(self):
-        self.address = None
-        self.smtp = None
-        self.thread = None
-
-    def start(self):
-        """
-        Start the mock SMTP server. Attempt to bind to any port within the
-        range specified by _startPort and _maxTries.  Bias it with the pid of
-        the current process so as to reduce potential conflicts with parallel
-        tests that are started nearly simultaneously.
-        """
-        # These imports are not at module level because the smtpd package was
-        # removed from Python 3.12.  By having them within the class, tests
-        # that do not require the smtp mocks can still use the pytest girder
-        # fixtures.
-        import smtpd
-
-        class MockSmtpServer(smtpd.SMTPServer):
-            mailQueue = queue.Queue()
-
-            def process_message(self, peer, mailfrom, rcpttos, data, **kwargs):
-                self.mailQueue.put(data)
-
-        for porttry in range(_maxTries):
-            port = _startPort + ((porttry + os.getpid()) % _maxTries)
-            try:
-                self.address = ('localhost', port)
-                self.smtp = MockSmtpServer(self.address, None)
-                break
-            except OSError as e:
-                if e.errno != errno.EADDRINUSE:
-                    raise
-        else:
-            raise Exception('Could not bind to any port for Mock SMTP server')
-
-        self.thread = threading.Thread(target=self.loop)
-        self.thread.start()
-
-    def loop(self):
-        # See comment in start about import scoping
-        import asyncore
-
-        """
-        Instead of calling asyncore.loop directly, wrap it with a small
-        timeout.  This prevents using 100% cpu and still allows a graceful exit.
-        """
-        while len(asyncore.socket_map):
-            asyncore.loop(timeout=0.5, use_poll=True)
-
-    def stop(self):
-        """Stop the mock STMP server"""
-        self.smtp.close()
-        self.thread.join()
-
-    def getMail(self, parse=False):
-        """
-        Return the message at the front of the queue.
-        Raises Queue.Empty exception if there are no messages.
-
-        :param parse: Whether to parse the email into an email.message.Message
-            object. If False, just returns the raw email string.
-        :type parse: bool
-        """
-        msg = self.smtp.mailQueue.get(block=False)
-
-        if parse:
-            if isinstance(msg, bytes):
-                return email.message_from_bytes(msg)
-            else:
-                return email.message_from_string(msg)
-        else:
-            return msg
-
-    def isMailQueueEmpty(self):
-        """Return whether or not the mail queue is empty"""
-        return self.smtp.mailQueue.empty()
-
-    def waitForMail(self, timeout=10):
-        """
-        Waits for mail to appear on the queue. Returns "True" as soon as the
-        queue is not empty, or "False" if the timeout was reached before any
-        mail appears.
-
-        :param timeout: Timeout in seconds.
-        :type timeout: float
-        """
-        startTime = time.time()
-        while True:
-            if not self.isMailQueueEmpty():
-                return True
-            if time.time() > startTime + timeout:
-                return False
-            time.sleep(0.1)
+import cherrypy
 
 
 def getResponseBody(response, text=True):
@@ -137,7 +33,7 @@ def request(path='/', method='GET', params=None, user=None,
             prefix='/api/v1', isJson=True, basicAuth=None, body=None,
             type=None, exception=False, cookie=None, token=None,
             additionalHeaders=None, useHttps=False,
-            authHeader='Authorization', appPrefix=''):
+            authHeader='Authorization', appPrefix='/api'):
     """
     Make an HTTP request.
 
@@ -294,44 +190,51 @@ def _findFreePort():
         return sock.getsockname()[1]
 
 
-@contextlib.contextmanager
-def serverContext(plugins=None, bindPort=False):
-    # The event daemon cannot be restarted since it is a threading.Thread
-    # object, however all references to girder.events.daemon are a singular
-    # global daemon due to its side effect on import. We have to hack around
-    # this by creating a unique event daemon each time we startup the server
-    # and assigning it to the global.
-    import girder.events
-    from girder.api import docs
-    from girder.utility.server import setup as setupServer
-    from girder.constants import ServerMode
+@dataclass
+class ServerFixture:
+    request = staticmethod(request)
+    uploadFile = staticmethod(uploadFile)
+    serverRoot: cherrypy._cptree.Tree
+    boundPort: int | None = None
 
-    girder.events.daemon = girder.events.AsyncEventsThread()
+    def __getattr__(self, name):
+        return getattr(self.serverRoot, name)
+
+
+@contextlib.contextmanager
+def serverContext(plugins=None, bindPort=False) -> ServerFixture:
+    from girder import plugin
+    from girder.api import docs
+    from girder.constants import ServerMode
+    from girder.utility.server import create_app
 
     if plugins is None:
         # By default, pass "[]" to "plugins", disabling any installed plugins
         plugins = []
-    server = setupServer(mode=ServerMode.TESTING, plugins=plugins)
-    server.request = request
-    server.uploadFile = uploadFile
+    app_info = create_app(mode=ServerMode.TESTING)
+    plugin._loadPlugins(app_info, plugins)
+
+    server_fixture = ServerFixture(serverRoot=app_info['serverRoot'])
+
+    cherrypy.tree = app_info['serverRoot']
     cherrypy.server.unsubscribe()
     if bindPort:
         cherrypy.server.subscribe()
         port = _findFreePort()
         cherrypy.config['server.socket_port'] = port
-        server.boundPort = port
+        server_fixture.boundPort = port
         # This is needed if cherrypy started once on another port
         cherrypy.server.socket_port = port
-    cherrypy.config.update({'environment': 'embedded',
-                            'log.screen': False,
-                            'request.throw_errors': True})
+    cherrypy.config.update({
+        'environment': 'embedded',
+        'log.screen': False,
+        'request.throw_errors': True
+    })
     cherrypy.engine.start()
 
     try:
-        yield server
+        yield server_fixture
     finally:
-        cherrypy.engine.unsubscribe('start', girder.events.daemon.start)
-        cherrypy.engine.unsubscribe('stop', girder.events.daemon.stop)
         cherrypy.engine.stop()
         cherrypy.engine.exit()
         cherrypy.tree.apps = {}

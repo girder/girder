@@ -1,18 +1,16 @@
-import _ from 'underscore';
-import $ from 'jquery';
 import {
     parse,
     View as VegaView
 } from 'vega-lib/build/vega';
-import moment from 'moment';
-
-import View from '@girder/core/views/View';
 
 import JobStatus from '../JobStatus';
 import JobsGraphWidgetTemplate from '../templates/jobsGraphWidget.pug';
 
 import timingHistoryChartConfig from './timingHistoryChartConfig';
 import timeChartConfig from './timeChartConfig';
+
+const View = girder.views.View;
+const { _, $, moment } = girder;
 
 const JobGraphWidget = View.extend({
     events: {

@@ -1,10 +1,9 @@
+import re
 from collections import OrderedDict
 
 import cherrypy
 from bson import ObjectId
-import re
 
-from girder.constants import GIRDER_ROUTE_ID
 from girder.exceptions import ValidationException
 from girder.utility import setting_utilities
 
@@ -19,9 +18,12 @@ class SettingKey:
     API_KEYS = 'core.api_keys'
     BANNER_COLOR = 'core.banner_color'
     BRAND_NAME = 'core.brand_name'
+    CACHE_ENABLED = 'core.cache.enabled'
+    CACHE_CONFIG = 'core.cache_config'
     COLLECTION_CREATE_POLICY = 'core.collection_create_policy'
     CONTACT_EMAIL_ADDRESS = 'core.contact_email_address'
     COOKIE_LIFETIME = 'core.cookie_lifetime'
+    COOKIE_DOMAIN = 'core.cookie_domain'
     CORS_ALLOW_HEADERS = 'core.cors.allow_headers'
     CORS_ALLOW_METHODS = 'core.cors.allow_methods'
     CORS_ALLOW_ORIGIN = 'core.cors.allow_origin'
@@ -29,14 +31,11 @@ class SettingKey:
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
     EMAIL_HOST = 'core.email_host'
     EMAIL_VERIFICATION = 'core.email_verification'
-    ENABLE_NOTIFICATION_STREAM = 'core.enable_notification_stream'
     ENABLE_PASSWORD_LOGIN = 'core.enable_password_login'
     FILEHANDLE_MAX_SIZE = 'core.filehandle_max_size'
     GIRDER_MOUNT_INFORMATION = 'core.girder_mount_information'
-    HTTP_ONLY_COOKIES = 'core.http_only_cookies'
     PRIVACY_NOTICE = 'core.privacy_notice'
     REGISTRATION_POLICY = 'core.registration_policy'
-    ROUTE_TABLE = 'core.route_table'
     SERVER_ROOT = 'core.server_root'
     SMTP_ENCRYPTION = 'core.smtp.encryption'
     SMTP_HOST = 'core.smtp_host'
@@ -58,6 +57,8 @@ class SettingDefault:
         SettingKey.API_KEYS: True,
         SettingKey.BANNER_COLOR: '#3F3B3B',
         SettingKey.BRAND_NAME: 'Girder',
+        SettingKey.CACHE_ENABLED: False,
+        SettingKey.CACHE_CONFIG: {},
         SettingKey.COLLECTION_CREATE_POLICY: {
             'open': False,
             'groups': [],
@@ -65,6 +66,7 @@ class SettingDefault:
         },
         SettingKey.CONTACT_EMAIL_ADDRESS: 'kitware@kitware.com',
         SettingKey.COOKIE_LIFETIME: 180,
+        SettingKey.COOKIE_DOMAIN: '',
         # These headers are necessary to allow the web server to work with just
         # changes to the CORS origin
         SettingKey.CORS_ALLOW_HEADERS:
@@ -79,14 +81,11 @@ class SettingDefault:
         SettingKey.EMAIL_FROM_ADDRESS: 'Girder <no-reply@girder.org>',
         # SettingKey.EMAIL_HOST is provided by a function
         SettingKey.EMAIL_VERIFICATION: 'disabled',
-        SettingKey.ENABLE_NOTIFICATION_STREAM: True,
         SettingKey.ENABLE_PASSWORD_LOGIN: True,
         SettingKey.FILEHANDLE_MAX_SIZE: 1024 * 1024 * 16,
         SettingKey.GIRDER_MOUNT_INFORMATION: None,
-        SettingKey.HTTP_ONLY_COOKIES: False,  # TODO This will go away in next major version
         SettingKey.PRIVACY_NOTICE: 'https://www.kitware.com/privacy',
         SettingKey.REGISTRATION_POLICY: 'open',
-        # SettingKey.ROUTE_TABLE is provided by a function
         SettingKey.SERVER_ROOT: '',
         SettingKey.SMTP_ENCRYPTION: 'none',
         SettingKey.SMTP_HOST: 'localhost',
@@ -105,13 +104,6 @@ class SettingDefault:
             if cherrypy.request.local.port != 80:
                 host += ':%d' % cherrypy.request.local.port
             return host
-
-    @staticmethod
-    @setting_utilities.default(SettingKey.ROUTE_TABLE)
-    def _defaultRouteTable():
-        return {
-            GIRDER_ROUTE_ID: '/'
-        }
 
 
 class SettingValidator:
@@ -143,6 +135,18 @@ class SettingValidator:
     def _validateBrandName(doc):
         if not doc['value']:
             raise ValidationException('The brand name may not be empty', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.CACHE_ENABLED)
+    def _validateCacheEnabled(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException('Cache enabled setting must be boolean.', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.CACHE_CONFIG)
+    def _validateCacheConfig(doc):
+        if not isinstance(doc['value'], dict):
+            raise ValidationException('Cache config must be a JSON object.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.COLLECTION_CREATE_POLICY)
@@ -184,6 +188,12 @@ class SettingValidator:
         except ValueError:
             pass  # We want to raise the ValidationException
         raise ValidationException('Cookie lifetime must be a number > 0.0.', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.COOKIE_DOMAIN)
+    def _validateCookieDomain(doc):
+        if not isinstance(doc['value'], str):
+            raise ValidationException('Cookie domain must be a string', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.CORS_ALLOW_HEADERS)
@@ -254,12 +264,6 @@ class SettingValidator:
                 'Email verification must be "required", "optional", or "disabled".', 'value')
 
     @staticmethod
-    @setting_utilities.validator(SettingKey.ENABLE_NOTIFICATION_STREAM)
-    def _validateEnableNotificationStream(doc):
-        if not isinstance(doc['value'], bool):
-            raise ValidationException('Enable notification stream option must be boolean.', 'value')
-
-    @staticmethod
     @setting_utilities.validator(SettingKey.ENABLE_PASSWORD_LOGIN)
     def _validateEnablePasswordLogin(doc):
         if not isinstance(doc['value'], bool):
@@ -286,12 +290,6 @@ class SettingValidator:
                 'Girder mount information must be a dict with the "path" key.', 'value')
 
     @staticmethod
-    @setting_utilities.validator(SettingKey.HTTP_ONLY_COOKIES)
-    def _validateHttpOnlyCookies(doc):
-        if not isinstance(doc['value'], bool):
-            raise ValidationException('HTTP only cookies setting must be boolean.', 'value')
-
-    @staticmethod
     @setting_utilities.validator(SettingKey.PRIVACY_NOTICE)
     def _validatePrivacyNotice(doc):
         if not doc['value']:
@@ -304,20 +302,6 @@ class SettingValidator:
         if doc['value'] not in ('open', 'closed', 'approve'):
             raise ValidationException(
                 'Registration policy must be "open", "closed", or "approve".', 'value')
-
-    @staticmethod
-    @setting_utilities.validator(SettingKey.ROUTE_TABLE)
-    def _validateRouteTable(doc):
-        nonEmptyRoutes = [route for route in doc['value'].values() if route]
-        if GIRDER_ROUTE_ID not in doc['value'] or not doc['value'][GIRDER_ROUTE_ID]:
-            raise ValidationException('Girder root must be routable.', 'value')
-
-        for key in doc['value']:
-            if (doc['value'][key] and not doc['value'][key].startswith('/')):
-                raise ValidationException('Routes must begin with a forward slash.', 'value')
-
-        if len(nonEmptyRoutes) > len(set(nonEmptyRoutes)):
-            raise ValidationException('Routes must be unique.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.SERVER_ROOT)

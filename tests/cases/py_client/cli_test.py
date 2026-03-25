@@ -1,22 +1,23 @@
 import contextlib
-import girder_client.cli
-from http.client import HTTPConnection
 import io
 import logging
 import os
-import requests
 import shutil
 import sys
-import urllib.parse
-import httmock
 import unittest.mock
+import urllib.parse
+from http.client import HTTPConnection
+
+import girder_client.cli
+import httmock
+import requests
+from girder_client.cli import GirderCli
 
 from girder import config
 from girder.models.api_key import ApiKey
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.user import User
-from girder_client.cli import GirderCli
 from tests import base
 
 os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')

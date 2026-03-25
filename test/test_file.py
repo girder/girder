@@ -1,9 +1,10 @@
 import io
 
+import pytest
+
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.upload import Upload
-import pytest
 from pytest_girder.assertions import assertStatus
 from pytest_girder.utils import uploadFile
 

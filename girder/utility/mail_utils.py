@@ -1,13 +1,16 @@
+import logging
 import os
 import re
 import smtplib
-
 from email.mime.text import MIMEText
+
 from mako.lookup import TemplateLookup
+
 from girder import events
-from girder import logger
 from girder.constants import PACKAGE_DIR
 from girder.settings import SettingKey
+
+logger = logging.getLogger(__name__)
 
 
 def validateEmailAddress(address):
@@ -147,6 +150,11 @@ class _SMTPConnection:
 def _submitEmail(msg, recipients):
     from girder.models.setting import Setting
 
+    if os.environ.get('GIRDER_EMAIL_TO_CONSOLE'):
+        print('Redirecting email to console:')
+        print(msg.as_string())
+        return
+
     setting = Setting()
     smtp = _SMTPConnection(
         host=setting.get(SettingKey.SMTP_HOST),
@@ -171,16 +179,9 @@ def _sendmail(event):
 events.bind('_sendmail', 'core.email', _sendmail)
 
 
-def sendMailSync(subject, text, to, bcc=None):
-    """Send an email synchronously."""
-    msg, recipients = _createMessage(subject, text, to, bcc)
-
-    _submitEmail(msg, recipients)
-
-
 def sendMail(subject, text, to, bcc=None):
     """
-    Send an email asynchronously.
+    Send an email.
 
     :param subject: The subject line of the email.
     :type subject: str
@@ -193,14 +194,14 @@ def sendMail(subject, text, to, bcc=None):
     """
     msg, recipients = _createMessage(subject, text, to, bcc)
 
-    events.daemon.trigger('_sendmail', info={
+    events.trigger('_sendmail', info={
         'message': msg,
         'recipients': recipients
     })
 
 
 def sendMailToAdmins(subject, text):
-    """Send an email asynchronously to site admins."""
+    """Send an email to site admins."""
     from girder.models.user import User
 
     to = [u['email'] for u in User().getAdmins()]
@@ -208,6 +209,6 @@ def sendMailToAdmins(subject, text):
 
 
 def sendMailIndividually(subject, text, to):
-    """Send emails asynchronously to all recipients individually."""
+    """Send emails to all recipients individually."""
     for address in to:
         sendMail(address, subject, text)

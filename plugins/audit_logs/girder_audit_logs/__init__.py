@@ -1,11 +1,13 @@
-import cherrypy
 import datetime
 import logging
 import urllib.parse
+
+import cherrypy
+
 from girder import auditLogger
+from girder.api.rest import getCurrentUser
 from girder.constants import SortDir
 from girder.models.model_base import Model
-from girder.api.rest import getCurrentUser
 from girder.plugin import GirderPlugin
 
 
@@ -43,7 +45,7 @@ class _AuditLogDatabaseHandler(logging.Handler):
             'details': record.details,
             'ip': cherrypy.request.remote.ip,
             'userId': user and user['_id'],
-            'when': datetime.datetime.utcnow()
+            'when': datetime.datetime.now(datetime.timezone.utc)
         }, triggerEvents=False)
 
 

@@ -1,8 +1,3 @@
-import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
-import View from '@girder/core/views/View';
-
-import '@girder/core/utilities/jquery/girderEnable';
-import '@girder/core/utilities/jquery/girderModal';
 
 import ThumbnailModel from '../models/ThumbnailModel';
 
@@ -10,6 +5,9 @@ import CreateThumbnailViewDialogTemplate from '../templates/createThumbnailViewD
 import CreateThumbnailViewTargetDescriptionTemplate from '../templates/createThumbnailViewTargetDescription.pug';
 
 import '../stylesheets/createThumbnailView.styl';
+
+const View = girder.views.View;
+const SearchFieldWidget = girder.views.widgets.SearchFieldWidget;
 
 /**
  * A dialog for creating thumbnails from a specific file.

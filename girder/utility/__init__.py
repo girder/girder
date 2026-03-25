@@ -1,24 +1,27 @@
-import cherrypy
 import datetime
-import dateutil.parser
 import errno
-from functools import wraps
 import json
+import logging
 import os
-import pytz
 import re
 import string
+from functools import wraps
+
+import cherrypy
+import dateutil.parser
+import pytz
 
 import girder
 import girder.events
+
+logger = logging.getLogger(__name__)
 
 try:
     from random import SystemRandom
     random = SystemRandom()
     random.random()  # potentially raises NotImplementedError
 except NotImplementedError:
-    girder.logprint.warning(
-        'WARNING: using non-cryptographically secure PRNG.')
+    logger.warning('WARNING: using non-cryptographically secure PRNG.')
     import random
 
 

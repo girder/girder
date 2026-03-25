@@ -1,7 +1,8 @@
-from .. import base
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.utility import setting_utilities
+
+from .. import base
 
 
 def setUpModule():

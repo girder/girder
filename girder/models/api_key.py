@@ -1,10 +1,11 @@
 import datetime
 
-from .model_base import AccessControlledModel
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import ValidationException
 from girder.settings import SettingKey
 from girder.utility import genToken
+
+from .model_base import AccessControlledModel
 
 
 class ApiKey(AccessControlledModel):
@@ -92,7 +93,7 @@ class ApiKey(AccessControlledModel):
         :returns: The API key document that was created.
         """
         apiKey = {
-            'created': datetime.datetime.utcnow(),
+            'created': datetime.datetime.now(datetime.timezone.utc),
             'lastUse': None,
             'tokenDuration': days,
             'name': name,
@@ -131,7 +132,7 @@ class ApiKey(AccessControlledModel):
         user = User().load(apiKey['userId'], force=True)
 
         # Mark last used stamp
-        apiKey['lastUse'] = datetime.datetime.utcnow()
+        apiKey['lastUse'] = datetime.datetime.now(datetime.timezone.utc)
         apiKey = self.save(apiKey)
         token = Token().createToken(user=user, days=days, scope=apiKey['scope'], apiKey=apiKey)
         return (user, token)

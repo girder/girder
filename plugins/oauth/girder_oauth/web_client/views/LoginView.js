@@ -1,7 +1,7 @@
-import LoginView from '@girder/core/views/layout/LoginView';
-import { wrap } from '@girder/core/utilities/PluginUtils';
-
 import OAuthLoginView from './OAuthLoginView';
+
+const LoginView = girder.views.layout.LoginView;
+const { wrap } = girder.utilities.PluginUtils;
 
 wrap(LoginView, 'render', function (render) {
     render.call(this);

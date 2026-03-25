@@ -1,21 +1,43 @@
 {
-    "name": "@girder/hashsum_download",
+    "name": "@girder/girder-plugin-hashsum-download",
     "version": "0.0.0",
-    "description": "Allows download of a file by its hashsum.",
+    "description": "Allows download of a file by its cryptographic checksum.",
     "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#hashsum-download",
     "bugs": {
-        "url": "https://github.com/girder/girder/issues"
+      "url": "https://github.com/girder/girder/issues"
     },
     "license": "Apache-2.0",
     "repository": {
-        "type": "git",
-        "url": "https://github.com/girder/girder.git"
+      "type": "git",
+      "url": "git+https://github.com/girder/girder.git"
     },
-    "peerDependencies": {
-        "@girder/core": "*"
+    "type": "module",
+    "files": [
+      "dist",
+      "package.json"
+    ],
+    "main": "./dist/girder-plugin-hashsum-download.umd.cjs",
+    "module": "./dist/girder-plugin-hashsum-download.js",
+    "exports": {
+      ".": {
+        "import": "./dist/girder-plugin-hashsum-download.js",
+        "require": "./dist/girder-plugin-hashsum-download.umd.cjs"
+      },
+      "./style.css": "./dist/style.css",
+      "./package.json": "./package.json"
     },
-    "girderPlugin": {
-        "name": "hashsum_download",
-        "main": "./main.js"
+    "scripts": {
+      "build": "vite build",
+      "dev": "vite build --watch"
+    },
+    "author": "",
+    "dependencies": {
+      "@girder/core": "file:../../../../girder/web"
+    },
+    "devDependencies": {
+      "pug": "^3.0.2",
+      "stylus": "^0.59.0",
+      "vite": "^4.3.9",
+      "vite-plugin-istanbul": "^4.1.0"
     }
-}
+  }

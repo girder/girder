@@ -11,7 +11,6 @@ node_modules/
 __pycache__
 .eslintcache
 /npm-debug.log
-.vagrant
 *.py[cod]
 **/*.retry
 
@@ -22,3 +21,6 @@ __pycache__
 .vscode/
 .*.swo
 .*.swp
+
+# Generated during CI
+/py-env-checksum

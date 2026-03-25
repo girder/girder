@@ -76,13 +76,6 @@ clients
                     sendRestRequest
                 main
 girder
-    LogFormatter
-        format
-        formatException
-    LogLevelFilter
-        filter
-    StreamToLogger
-        write
     api
         access
             admin
@@ -93,7 +86,7 @@ girder
             ApiDocs
                 GET
                 exposed
-            addApiToNode
+            buildApi
         describe
             ApiDocs
             Describe
@@ -114,9 +107,11 @@ girder
             SWAGGER_VERSION
             autoDescribeRoute
             describeRoute
+            logger
         docs
             addModel
             addRouteDocs
+            logger
             models
             removeRouteDocs
             routes
@@ -168,6 +163,7 @@ girder
             getUrlParts
             iterBody
             loadmodel
+            logger
             rawResponse
             requireAdmin
             setContentDisposition
@@ -179,6 +175,7 @@ girder
             SftpServer
                 allow_reuse_address
                 shutdown_request
+            logger
         v1
             api_key
                 ApiKey
@@ -272,14 +269,6 @@ girder
                     rootpath
                     setMetadata
                     updateItem
-            notification
-                DEFAULT_STREAM_TIMEOUT
-                MAX_POLL_INTERVAL
-                MIN_POLL_INTERVAL
-                Notification
-                    listNotifications
-                    stream
-                sseMessage
             resource
                 Resource
                     copyResources
@@ -301,17 +290,17 @@ girder
                     getAccessFlags
                     getCollectionCreationPolicyAccess
                     getConfigurationOption
-                    getLog
-                    getLogLevel
                     getPartialUploads
+                    getPluginStaticFiles
                     getPlugins
+                    getPublicSettings
                     getSetting
                     getVersion
-                    setLogLevel
                     setSetting
                     systemConsistencyCheck
                     systemStatus
                     unsetSetting
+                logger
             token
                 Token
                     currentSession
@@ -339,10 +328,11 @@ girder
                     sendVerificationEmail
                     updateUser
                     verifyEmail
+    asgi
+        app
+        lifespan
     auditLogger
     cli
-        build
-            main
         main
         mount
             FUSELogError
@@ -368,6 +358,7 @@ girder
             main
         sftpd
             DEFAULT_PORT
+            logger
             main
         shell
             main
@@ -382,7 +373,6 @@ girder
             validate
         AssetstoreType
             FILESYSTEM
-            GRIDFS
             S3
         CoreEventHandler
             ACCESS_CONTROL_CLEANUP
@@ -390,14 +380,8 @@ girder
             GROUP_CREATOR_ACCESS
             USER_DEFAULT_FOLDERS
             USER_SELF_ACCESS
-            WEBROOT_SETTING_CHANGE
-        GIRDER_ROUTE_ID
-        LOG_BACKUP_COUNT
-        LOG_ROOT
-        MAX_LOG_SIZE
         PACKAGE_DIR
         ROOT_DIR
-        STATIC_PREFIX
         STATIC_ROOT_DIR
         ServerMode
             DEVELOPMENT
@@ -407,16 +391,6 @@ girder
             ASCENDING
             DESCENDING
         TEXT_SCORE_SORT_MAX
-        TerminalColor
-            ENDC
-            ERROR
-            INFO
-            SUCCESS
-            WARNING
-            error
-            info
-            success
-            warning
         TokenScope
             ANONYMOUS_SESSION
             ASSETSTORES_READ
@@ -437,22 +411,13 @@ girder
         VERSION
         registerAccessFlag
     events
-        AsyncEventsThread
-            run
-            stop
-            trigger
         Event
             addResponse
             preventDefault
             stopPropagation
-        ForegroundEventsDaemon
-            start
-            stop
-            trigger
         bind
         bound
-        daemon
-        setupDaemon
+        logger
         trigger
         unbind
         unbindAll
@@ -467,10 +432,6 @@ girder
         ResourcePathNotFound
         RestException
         ValidationException
-    getLogPaths
-    logStdoutStderr
-    logger
-    logprint
     models
         api_key
             ApiKey
@@ -484,7 +445,6 @@ girder
             Assetstore
                 addComputedInfo
                 createFilesystemAssetstore
-                createGridFsAssetstore
                 createS3Assetstore
                 getCurrent
                 importData
@@ -526,6 +486,7 @@ girder
                 updateFile
                 updateSize
                 validate
+            logger
         folder
             Folder
                 childFolders
@@ -594,6 +555,8 @@ girder
                 updateItem
                 updateSize
                 validate
+            logger
+        logger
         model_base
             AccessControlledModel
                 copyAccessPolicies
@@ -639,20 +602,7 @@ girder
                 update
                 validate
                 validateKeys
-        notification
-            Notification
-                createNotification
-                get
-                initProgress
-                initialize
-                updateProgress
-                validate
-            ProgressState
-                ACTIVE
-                ERROR
-                QUEUED
-                SUCCESS
-                isComplete
+            logger
         setting
             Setting
                 get
@@ -662,6 +612,7 @@ girder
                 set
                 unset
                 validate
+            logger
         token
             Token
                 addScope
@@ -687,6 +638,7 @@ girder
                 untrackedUploads
                 uploadFromFile
                 validate
+            logger
         user
             User
                 adminApprovalRequired
@@ -710,23 +662,39 @@ girder
                 validate
                 verifyLogin
                 verifyOtp
+    notification
+        Notification
+            flush
+            initProgress
+            updateProgress
+        ProgressState
+            ACTIVE
+            ERROR
+            QUEUED
+            SUCCESS
+            isComplete
+        UserNotificationsSocket
+            listen_and_forward
+            on_connect
+            on_disconnect
+        logger
     plugin
         GirderPlugin
-            CLIENT_SOURCE_PATH
             DISPLAY_NAME
             description
             displayName
             load
             loaded
             name
-            npmPackages
             url
             version
+        PluginStaticContent
         allPlugins
         getPlugin
-        getPluginWebroots
+        getPluginStaticContent
         loadedPlugins
-        registerPluginWebroot
+        logger
+        registerPluginStaticContent
     settings
         SettingDefault
             defaults
@@ -735,8 +703,11 @@ girder
             API_KEYS
             BANNER_COLOR
             BRAND_NAME
+            CACHE_CONFIG
+            CACHE_ENABLED
             COLLECTION_CREATE_POLICY
             CONTACT_EMAIL_ADDRESS
+            COOKIE_DOMAIN
             COOKIE_LIFETIME
             CORS_ALLOW_HEADERS
             CORS_ALLOW_METHODS
@@ -745,14 +716,11 @@ girder
             EMAIL_FROM_ADDRESS
             EMAIL_HOST
             EMAIL_VERIFICATION
-            ENABLE_NOTIFICATION_STREAM
             ENABLE_PASSWORD_LOGIN
             FILEHANDLE_MAX_SIZE
             GIRDER_MOUNT_INFORMATION
-            HTTP_ONLY_COOKIES
             PRIVACY_NOTICE
             REGISTRATION_POLICY
-            ROUTE_TABLE
             SERVER_ROOT
             SMTP_ENCRYPTION
             SMTP_HOST
@@ -762,6 +730,11 @@ girder
             UPLOAD_MINIMUM_CHUNK_SIZE
             USER_DEFAULT_FOLDERS
         SettingValidator
+    tasks
+        copyFolderTask
+        deleteCollectionTask
+        deleteFolderTask
+        importDataTask
     utility
         JsonEncoder
             default
@@ -826,6 +799,7 @@ girder
             getConfig
             getServerMode
             loadConfig
+            logger
         filesystem_assetstore_adapter
             BUF_SIZE
             DEFAULT_PERMS
@@ -845,28 +819,16 @@ girder
                 requestOffset
                 uploadChunk
                 validateInfo
+            logger
         genToken
-        gridfs_assetstore_adapter
-            CHUNK_SIZE
-            GridFsAssetstoreAdapter
-                cancelUpload
-                deleteFile
-                downloadFile
-                fileIndexFields
-                finalizeUpload
-                initUpload
-                requestOffset
-                uploadChunk
-                validateInfo
-            RECENT_CONNECTION_CACHE_MAX_SIZE
-            RECENT_CONNECTION_CACHE_TIME
+        logger
         mail_utils
             addTemplateDirectory
             getEmailUrlPrefix
+            logger
             renderTemplate
             sendMail
             sendMailIndividually
-            sendMailSync
             sendMailToAdmins
             validateEmailAddress
         mkdir
@@ -891,7 +853,6 @@ girder
             ProgressContext
                 update
             noProgress
-            setResponseTimeLimit
         random
         s3_assetstore_adapter
             BUF_LEN
@@ -911,17 +872,16 @@ girder
                 untrackedUploads
                 uploadChunk
                 validateInfo
+            logger
             makeBotoConnectParams
         search
             addSearchMode
             getSearchModeHandler
             removeSearchMode
         server
-            configureServer
-            getApiRoot
-            getStaticPublicPath
-            loadRouteTable
-            setup
+            RootHandler
+                index
+            logger
             staticFile
         setting_utilities
             default
@@ -938,7 +898,6 @@ girder
             getStatus
         toBool
         webroot
-            Webroot
             WebrootBase
                 DELETE
                 GET
@@ -960,6 +919,12 @@ girder
                 dataDescriptor
                 fileHeader
             zlib
+    worker_plugin
+        CoreWorkerPlugin
+            task_imports
+    wsgi
+        app
+        info
 plugins
     audit_logs
         girder_audit_logs
@@ -978,7 +943,6 @@ plugins
     authorized_upload
         girder_authorized_upload
             AuthorizedUploadPlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             constants
@@ -989,23 +953,12 @@ plugins
     autojoin
         girder_autojoin
             AutojoinPlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             settings
                 PluginSettings
                     AUTOJOIN
             userCreated
-    dicom_viewer
-        girder_dicom_viewer
-            DicomItem
-                makeDicomItem
-            DicomViewerPlugin
-                CLIENT_SOURCE_PATH
-                DISPLAY_NAME
-                load
-            dicomSubstringSearchHandler
-            event_helper
     download_statistics
         girder_download_statistics
             DownloadStatisticsPlugin
@@ -1014,7 +967,6 @@ plugins
     google_analytics
         girder_google_analytics
             GoogleAnalyticsPlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             rest
@@ -1026,7 +978,6 @@ plugins
     gravatar
         girder_gravatar
             GravatarPlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             computeBaseUrl
@@ -1041,9 +992,7 @@ plugins
                 downloadKeyFile
                 downloadWithHash
                 getByHash
-                supportedAlgorithms
             HashsumDownloadPlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             SUPPORTED_ALGORITHMS
@@ -1053,7 +1002,6 @@ plugins
     homepage
         girder_homepage
             HomepagePlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             constants
@@ -1069,10 +1017,36 @@ plugins
                     MARKDOWN
                     SUBHEADER
                     WELCOME_TEXT
+    import_tracker
+        girder_import_tracker
+            GirderPlugin
+                DISPLAY_NAME
+                load
+            girder_worker_plugin
+                ImportTrackerWorkerPlugin
+                createImportRecord
+                finalizeImportRecord
+                wrapShouldImportFile
+            models
+                AssetstoreImport
+                    createAssetstoreImport
+                    initialize
+                    markEnded
+                    validate
+                ImportTrackerCancelError
+            rest
+                getImport
+                getImports
+                listAllImports
+                listImports
+                moveFolder
+                processCursor
+            utils
+                moveFile
+                moveFolder
     item_licenses
         girder_item_licenses
             ItemLicensesPlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             postItemAfter
@@ -1089,7 +1063,6 @@ plugins
     jobs
         girder_jobs
             JobsPlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             constants
@@ -1142,7 +1115,6 @@ plugins
     ldap
         girder_ldap
             LDAPPlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             settings
@@ -1152,7 +1124,6 @@ plugins
     oauth
         girder_oauth
             OAuthPlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             checkOauthUser
@@ -1252,14 +1223,12 @@ plugins
     readme
         girder_readme
             ReadmePlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             rest
     sentry
         girder_sentry
             SentryPlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             rest
@@ -1268,10 +1237,197 @@ plugins
                 PluginSettings
                     BACKEND_DSN
                     FRONTEND_DSN
+    slicer_cli_web
+        example-average-color
+            average_color
+                average_color
+                    main
+            cli_list
+                processCLI
+        example-girder-requests
+            cli_list
+                processCLI
+            girder_requests
+                girder_requests
+                    main
+        slicer_cli_web
+            TOKEN_SCOPE_MANAGE_TASKS
+            cli_list_entrypoint
+                CLIListEntrypoint
+                logger
+            cli_utils
+                SLICER_SUPPORTED_TYPES
+                SLICER_TYPE_TO_GIRDER_MODEL_MAP
+                as_model
+                generate_description
+                get_cli_parameters
+                is_girder_api
+                is_on_girder
+                return_parameter_file_name
+            config
+                PluginSettings
+                    SLICER_CLI_WEB_TASK_FOLDER
+                    SLICER_CLI_WEB_WORKER_CONFIG_ITEM
+                    get_task_folder
+                    get_worker_config_item
+                    has_task_folder
+                    has_worker_config_item
+                validateFolder
+                validateItem
+            ctk_cli_adjustment
+                CLIModule
+                CLIParameter
+                    EXTERNAL_TYPES
+                    TYPES
+                    parse
+            docker_resource
+                DockerResource
+                    createOrReplaceCli
+                    datalistHandler
+                    deleteImage
+                    deleteImageEndpoints
+                    deleteItem
+                    getDockerImages
+                    getItem
+                    getItemXML
+                    getItems
+                    getMatchingResource
+                    jobType
+                    parseImageNameList
+                    rerunCli
+                    runCli
+                    runCliByName
+                    setImages
+                    storeEndpoints
+                cliSubHandler
+            girder_plugin
+                SlicerCLIWebPlugin
+                    DISPLAY_NAME
+                    load
+                logger
+            girder_worker_plugin
+                SlicerCLIWebWorkerPlugin
+                    task_imports
+                cli_progress
+                    CLIProgressCLIWriter
+                        close
+                        forward
+                        write
+                direct_docker_run
+                    DirectDockerTask
+                    DirectGirderFileIdToVolume
+                        resolve_direct_file_path
+                        transform
+                    GirderApiUrl
+                        transform
+                    GirderToken
+                        transform
+                    TEMP_VOLUME_DIRECT_MOUNT_PREFIX
+                    run
+            image_job
+                deleteImage
+                findLocalImage
+                getCliData
+                getDockerOutput
+                ingest_from_docker
+                loadMetadata
+                logger
+                pullDockerImage
+                pullOneDockerImage
+            models
+                docker_image
+                    CLIItem
+                        find
+                        findAllItems
+                        findByName
+                    DockerImageItem
+                        find
+                        findAllImages
+                        getCLIs
+                        prepare
+                        removeImages
+                        saveImage
+                exceptions
+                    DockerImageError
+                    DockerImageNotFoundError
+                json_to_xml
+                    json_to_xml
+                parser
+                    json_schema
+                    parse_json_desc
+                    parse_xml_desc
+                    parse_yaml_desc
+            prepare_task
+                FOLDER_SUFFIX
+                OPENAPI_DIRECT_TYPES
+                logger
+                prepare_task
+            rest_slicer_cli
+                batchCLIJob
+                batchCLITask
+                batchCLITaskProcess
+                genHandlerToReRunDockerCLI
+                genHandlerToRunDockerCLI
+                genRESTEndPointsForSlicerCLIsForItem
+                logger
+                stringifyParam
+            upload_slicer_cli_task
+                upload_cli
+                upload_slicer_cli_task
+            worker_tools
+                CommandQueue
+                    add
+                    run
+                    stop
+                logger
+                start
+        small-docker
+            Example1
+                Example1
+                    main
+                    parser
+            Example2
+                Example2
+                    json_spec_file
+                    main
+                    yaml_spec_file
+            Example3
+                Example3
+                    main
+            ExampleProgress
+                ExampleProgress
+                    args
+                    json_spec_file
+                    parser
+                progress_helper
+                    ProgressHelper
+                        message
+                        name
+                        progress
+            ExampleSubJob
+                ExampleSubJob
+                    args
+                    gc
+                    json_spec_file
+                    parser
+            cli_list
+                processCLI
+        utils
+            xmltojson
+                args
+                cast
+                copylabels
+                data
+                enumer
+                group
+                paramgroups
+                params
+                parser
+                represent_dict_order
+                result
     terms
         girder_terms
             TermsPlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             acceptCollectionTerms
@@ -1279,7 +1435,6 @@ plugins
     thumbnails
         girder_thumbnails
             ThumbnailsPlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             removeThumbnailLink
@@ -1297,7 +1452,6 @@ plugins
     user_quota
         girder_user_quota
             UserQuotaPlugin
-                CLIENT_SOURCE_PATH
                 DISPLAY_NAME
                 load
             quota
@@ -1311,6 +1465,7 @@ plugins
                     setCollectionQuota
                     setUserQuota
                 ValidateSizeQuota
+                logger
             settings
                 PluginSettings
                     DEFAULT_COLLECTION_QUOTA
@@ -1320,6 +1475,49 @@ plugins
             VirtualFoldersPlugin
                 DISPLAY_NAME
                 load
+    worker
+        girder_plugin_worker
+            WorkerPlugin
+                DISPLAY_NAME
+                load
+            api
+                worker
+                    Worker
+                        getWorkerStatus
+                    logger
+            constants
+                DOCKER_DATA_VOLUME
+                DOCKER_SCRIPTS_VOLUME
+                PluginSettings
+                    API_URL
+                    DIRECT_PATH
+            event_handlers
+                attachJobInfoSpec
+                attachParentJob
+                cancel
+                logger
+                schedule
+                validTransitions
+                validateApiUrl
+                validateJobStatus
+            logger
+            status
+                CustomJobStatus
+                    CANCELING
+                    CONVERTING_INPUT
+                    CONVERTING_OUTPUT
+                    FETCHING_INPUT
+                    PUSHING_OUTPUT
+                    isValid
+                    validTransitionsCelery
+                    validTransitionsWorker
+                    valid_celery_transitions
+                    valid_worker_transitions
+            utils
+                getWorkerApiUrl
+                girderInputSpec
+                girderOutputSpec
+                jobInfoSpec
 pytest_girder
     pytest_girder
         assertions
@@ -1329,9 +1527,10 @@ pytest_girder
             admin
             boundServer
             db
+            eagerWorkerTasks
+            email_stdout
             fsAssetstore
             server
-            smtp
             user
         plugin
             pytest_addoption
@@ -1342,20 +1541,13 @@ pytest_girder
                 registerEntrypoint
                 registerTestPlugin
         utils
-            MockSmtpReceiver
-                getMail
-                isMailQueueEmpty
-                loop
-                start
-                    MockSmtpServer
-                        mailQueue
-                        process_message
-                stop
-                waitForMail
+            ServerFixture
+                boundPort
+                request
+                uploadFile
             buildHeaders
             getResponseBody
             request
-            serverContext
             uploadFile
         web_client
             runWebClientTest

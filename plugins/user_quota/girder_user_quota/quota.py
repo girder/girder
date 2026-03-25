@@ -1,10 +1,12 @@
-from bson.objectid import ObjectId, InvalidId
-from girder import logger
+import logging
+
+from bson.objectid import InvalidId, ObjectId
+
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource
 from girder.constants import AccessType
-from girder.exceptions import GirderException, ValidationException, RestException
+from girder.exceptions import GirderException, RestException, ValidationException
 from girder.models.assetstore import Assetstore
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -18,8 +20,8 @@ from girder.utility.system import formatSize
 
 from .settings import PluginSettings
 
-
 QUOTA_FIELD = 'quota'
+logger = logging.getLogger(__name__)
 
 
 def ValidateSizeQuota(value):

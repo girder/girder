@@ -2,34 +2,75 @@
 This module defines functions for registering, loading, and querying girder plugins.
 """
 
+import hashlib
 import importlib.metadata
 import importlib.resources
-import json
-import os
+import logging
+from collections import OrderedDict
+from collections import OrderedDict as OrderedDictType
+from dataclasses import dataclass
 from functools import wraps
+from pathlib import Path
 
-from girder import logprint
+from girder import __version__
 from girder.exceptions import GirderException
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class PluginStaticContent:
+    css: list[str]
+    js: list[str]
+
 
 _NAMESPACE = 'girder.plugin'
 _pluginRegistry = None
 _pluginLoadOrder = []
-_pluginWebroots = {}
+_pluginStaticContent: OrderedDictType[str, PluginStaticContent] = OrderedDict()
 
 
-def getPluginWebroots():
-    global _pluginWebroots
-    return _pluginWebroots
+def getPluginStaticContent():
+    return _pluginStaticContent
 
 
-def registerPluginWebroot(webroot, name):
-    """
-    Adds a webroot to the global registry for plugins based on
-    the plugin name.
-    """
-    global _pluginWebroots
+def registerPluginStaticContent(plugin: str, css: list[str], js: list[str], staticDir: Path, tree):
+    from girder.utility.server import _errorDefault
 
-    _pluginWebroots[name] = webroot
+    if plugin not in _pluginStaticContent:
+        tree.mount(
+            None,
+            f'/plugin_static/{plugin}',
+            {
+                '/': {
+                    'tools.staticdir.on': True,
+                    'tools.staticdir.dir': str(staticDir),
+                    'request.show_tracebacks': False,
+                    'response.headers.server': f'Girder {__version__}',
+                    'error_page.default': _errorDefault,
+                }
+            },
+        )
+
+        def cache_bust_url(filename: str) -> str:
+            filename = filename.lstrip('/')
+
+            if '?' in filename:
+                # For now, we assume this means the plugin is managing its own cache busting
+                return f'plugin_static/{plugin}/{filename}'
+
+            hash_md5 = hashlib.md5()
+
+            with (staticDir / filename).open('rb') as f:
+                for chunk in iter(lambda: f.read(4096), b''):
+                    hash_md5.update(chunk)
+
+            return f'plugin_static/{plugin}/{filename}?h={hash_md5.hexdigest()[:10]}'
+
+        _pluginStaticContent[plugin] = PluginStaticContent(
+            css=[cache_bust_url(f) for f in css],
+            js=[cache_bust_url(f) for f in js],
+        )
 
 
 class _PluginMeta(type):
@@ -57,7 +98,7 @@ class _PluginMeta(type):
 
                 self._loaded = True
                 _pluginLoadOrder.append(self.name)
-                logprint.success('Loaded plugin "%s"' % self.name)
+                logger.info('Loaded plugin "%s"', self.name)
 
             return self._return
 
@@ -84,12 +125,6 @@ class GirderPlugin(metaclass=_PluginMeta):
     #: used internally, this name can be an arbitrary string.
     DISPLAY_NAME = None
 
-    #: The path of the plugin's web client source code.  This path is given relative to the python
-    #: package.  This property is used to link the web client source into the staging area while
-    #: building in development mode.  When this value is `None` it indicates there is no web client
-    #: component.
-    CLIENT_SOURCE_PATH = None
-
     def __init__(self, entrypoint):
         self._name = entrypoint.name
         self._loaded = False
@@ -97,37 +132,6 @@ class GirderPlugin(metaclass=_PluginMeta):
             entrypoint.dist if hasattr(entrypoint, 'dist') else
             importlib.metadata.distribution(entrypoint.value.split(':')[0].split('.')[0]))
         self._metadata = _readPackageMetadata(self._dist)
-
-    def npmPackages(self):
-        """Return a dictionary of npm packages -> versions for building the plugin client.
-
-        By default, this dictionary will be assembled from the CLIENT_SOURCE_PATH property by
-        inspecting the package.json file in the indicated directory.  Plugins can override this
-        method customize the behavior for advanced usage.
-        """
-        if self.CLIENT_SOURCE_PATH is None:
-            return {}
-
-        module = self.__module__
-        while True:
-            try:
-                packageJsonFile = (
-                    importlib.resources.files(module)
-                    / self.CLIENT_SOURCE_PATH / 'package.json')
-                break
-            except Exception:
-                if '.' in module:
-                    module = module.rsplit('.', 1)[0]
-                else:
-                    raise
-        if not os.path.isfile(packageJsonFile):
-            raise Exception('Invalid web client path provided: %s' % packageJsonFile)
-
-        with open(packageJsonFile) as f:
-            packageJson = json.load(f)
-            packageName = packageJson['name']
-
-        return {packageName: 'file:%s' % os.path.dirname(packageJsonFile)}
 
     @property
     def name(self):

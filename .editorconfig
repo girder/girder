@@ -26,9 +26,6 @@ indent_size = 2
 indent_size = 4
 max_line_length = 100
 
-[{*.rb,Vagrantfile}]
-indent_size = 2
-
 [{*.sh,*.bat}]
 indent_size = 4
 

@@ -1,7 +1,7 @@
 import os
+
 import requests
 
-from .. import base
 from girder import config
 from girder.api import access
 from girder.api.describe import Description, describeRoute
@@ -9,6 +9,8 @@ from girder.api.rest import Resource
 from girder.exceptions import GirderException, RestException
 from girder.models.setting import Setting
 from girder.settings import SettingDefault, SettingKey
+
+from .. import base
 
 testServer = None
 
@@ -99,7 +101,7 @@ class RoutesTestCase(base.TestCase):
         self.assertRaises(RestException, dummy.handleRoute, 'DUMMY', ('guid', 'dummy'), {})
 
     def testCORS(self):
-        testServer.root.api.v1.dummy = DummyResource()
+        testServer.apps['/api'].root.v1.dummy = DummyResource()
 
         # When no origin header is passed, we shouldn't receive CORS headers
         resp = self.request(path='/dummy/test')

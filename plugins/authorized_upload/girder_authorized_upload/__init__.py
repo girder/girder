@@ -1,14 +1,16 @@
 import os
+from pathlib import Path
 
-from bson.objectid import ObjectId
 from bson.errors import InvalidId
+from bson.objectid import ObjectId
+
 from girder import events
 from girder.api import access
 from girder.api.rest import getCurrentToken, setCurrentUser
 from girder.models.item import Item
 from girder.models.token import Token
 from girder.models.user import User
-from girder.plugin import GirderPlugin
+from girder.plugin import GirderPlugin, registerPluginStaticContent
 from girder.utility import mail_utils
 
 from .constants import TOKEN_SCOPE_AUTHORIZED_UPLOAD
@@ -103,7 +105,6 @@ def _uploadComplete(event):
 
 class AuthorizedUploadPlugin(GirderPlugin):
     DISPLAY_NAME = 'Authorized Uploads'
-    CLIENT_SOURCE_PATH = 'web_client'
 
     def load(self, info):
         name = 'authorized_upload'
@@ -118,3 +119,11 @@ class AuthorizedUploadPlugin(GirderPlugin):
         events.bind('model.file.finalizeUpload.after', name, _uploadComplete)
 
         info['apiRoot'].authorized_upload = AuthorizedUpload()
+
+        registerPluginStaticContent(
+            plugin='authorized_upload',
+            css=['/style.css'],
+            js=['/girder-plugin-authorized-upload.umd.cjs'],
+            staticDir=Path(__file__).parent / 'web_client' / 'dist',
+            tree=info['serverRoot'],
+        )

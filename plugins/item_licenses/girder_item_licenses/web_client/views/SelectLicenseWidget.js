@@ -1,6 +1,6 @@
-import View from '@girder/core/views/View';
-
 import SelectLicenseWidgetTemplate from '../templates/selectLicenseWidget.pug';
+
+const View = girder.views.View;
 
 /**
  * Widget that allows user to select a license.

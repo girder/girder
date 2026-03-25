@@ -52,26 +52,6 @@ If there is a match, the user is added to the group with the specified access
 level.
 
 
-DICOM Viewer
-------------
-`PyPI package <https://pypi.org/project/girder-dicom-viewer/>`__: ``girder-dicom-viewer``
-
-The DICOM Viewer plugin adds support for previewing DICOM files when viewing
-an item in girder. If multiple DICOM files are present in a single item, they
-are presented as multiple slices. The DICOM image is shown as well as a table
-of DICOM tags. The window center and width can be changed by the user. Controls
-allow the user to step through slices, auto-level the window, auto-zoom, or
-playback the slices at different speeds.
-
-This plugin parses the DICOM tags when files are uploaded and stores them in
-the MongoDB database for quick retrieval. This is mostly used to sort multiple
-images by series and instance.
-
-.. figure:: images/dicom-viewer.png
-
-    DICOM imagery from: https://wiki.cancerimagingarchive.net/display/Public/RIDER+NEURO+MRI
-
-
 Download Statistics
 -------------------
 `PyPI package <https://pypi.org/project/girder-download-statistics/>`__: ``girder-download-statistics``

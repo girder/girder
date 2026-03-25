@@ -6,11 +6,11 @@ import re
 import cherrypy
 from cherrypy._cpreqbody import Part
 
-from girder.api.rest import setResponseHeader, setContentDisposition
-from girder.exceptions import GirderException, ValidationException, FilePathException
+from girder.api.rest import setContentDisposition, setResponseHeader
+from girder.exceptions import FilePathException, GirderException, ValidationException
 from girder.models.setting import Setting
 from girder.settings import SettingKey
-from girder.utility import progress, RequestBodyStream
+from girder.utility import RequestBodyStream, progress
 
 
 class FileHandle:
@@ -463,10 +463,10 @@ class AbstractAssetstoreAdapter:
     def safeName(self, name):
         """
         Girder strips item and folder names of whitespace.  If we have a name
-        that will be affected, repalce the leading and trailing whitespace with
+        that will be affected, replace the leading and trailing whitespace with
         underscores.
 
-        :param name: The name to possibily modify.
+        :param name: The name to possibly modify.
         :type name: str
         :returns: a name that will not be altered by strip.
         :rtype: str

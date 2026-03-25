@@ -1,7 +1,7 @@
 import collections
 import os
-import subprocess
 import re
+import subprocess
 
 
 def Tree():
@@ -15,6 +15,7 @@ EXCLUDE_DIRS = [
     # Exclude plugin tests
     'plugin_tests',
     '\\.egg/',
+    '\\.eggs/',
     'node_modules/']
 
 IGNORE_FILES = ['setup.py']
@@ -37,7 +38,7 @@ def addFileSymbols(filePath, symbolTree):
     fileTags = subprocess.check_output([
         'ctags',
         '-f', '-',
-        '--languages=python',
+        '--languages=+Python',
         '--python-kinds=%s' % ''.join([
             # Skip imported symbols
             '-i',

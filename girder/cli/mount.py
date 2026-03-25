@@ -15,8 +15,8 @@ import cherrypy
 import click
 import fuse
 
-import girder
-from girder import events, LogFormatter
+from girder import events, plugin
+from girder.constants import ServerMode
 from girder.exceptions import AccessException, FilePathException, ValidationException
 from girder.models.file import File
 from girder.models.folder import Folder
@@ -25,7 +25,9 @@ from girder.models.setting import Setting
 from girder.settings import SettingKey
 from girder.utility import path as path_util
 from girder.utility.model_importer import ModelImporter
-from girder.utility.server import configureServer
+from girder.utility.server import create_app
+
+logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -547,7 +549,7 @@ class ServerFuse(fuse.Operations):
 
 
 class FUSELogError(fuse.FUSE):
-    def __init__(self, operations, mountpoint, *args, **kwargs):
+    def __init__(self, operations, mountpoint, *args, **kwargs):  # noqa: B042
         """
         This wraps fuse.FUSE so that errors are logged rather than raising a
         RuntimeError exception.
@@ -560,8 +562,7 @@ class FUSELogError(fuse.FUSE):
             logger.error(
                 'Failed to mount FUSE.  Does the mountpoint (%r) exist and is '
                 'it empty?  Does the user have permission to create FUSE '
-                'mounts?  It could be another FUSE mount issue, too.' % (
-                    mountpoint, ))
+                'mounts?  It could be another FUSE mount issue, too.', mountpoint)
             Setting().unset(SettingKey.GIRDER_MOUNT_INFORMATION)
 
 
@@ -665,15 +666,14 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
         else:
             rotatingFileHandler = logging.handlers.RotatingFileHandler(
                 log_file, maxBytes=10 * 1024 ** 2, backupCount=6)
-            rotatingFileHandler.setFormatter(
-                LogFormatter('[%(asctime)s] %(levelname)s: %(message)s'))
             logger.addHandler(rotatingFileHandler)
     if database and '://' in database:
         cherrypy.config['database']['uri'] = database
     if plugins is not None:
         plugins = plugins.split(',')
-    webroot, appconf = configureServer(plugins=plugins)
-    girder._setupCache()
+
+    app_info = create_app(os.environ.get('GIRDER_SERVER_MODE', ServerMode.DEVELOPMENT))
+    plugin._loadPlugins(app_info, names=plugins)
 
     options = {
         # By default, we run in the background so the mount command returns
@@ -700,7 +700,7 @@ def mountServer(path, database=None, fuseOptions=None, quiet=False, verbose=0,
             else:
                 key, value = opt, True
             if key in ('ro', 'rw') and options.get(key) != value:
-                logger.warning('Ignoring the %s=%r option' % (key, value))
+                logger.warning('Ignoring the %s=%r option', key, value)
                 continue
             options[key] = value
     opClass = ServerFuse(stat=os.stat(path), options=options)

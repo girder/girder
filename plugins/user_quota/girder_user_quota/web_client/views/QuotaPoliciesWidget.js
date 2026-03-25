@@ -1,15 +1,14 @@
-import $ from 'jquery';
-import _ from 'underscore';
-
-import View from '@girder/core/views/View';
-import { formatSize } from '@girder/core/misc';
-import { getCurrentUser } from '@girder/core/auth';
-import { handleOpen, handleClose } from '@girder/core/dialog';
-import '@girder/core/utilities/jquery/girderEnable';
-import '@girder/core/utilities/jquery/girderModal';
+import ApexCharts from 'apexcharts';
 
 import { valueAndUnitsToSize, sizeToValueAndUnits } from '../utilities/Conversions';
 import QuotaPoliciesWidgetTemplate from '../templates/quotaPoliciesWidget.pug';
+
+const $ = girder.$;
+const _ = girder._;
+const View = girder.views.View;
+const { getCurrentUser } = girder.auth;
+const { formatSize } = girder.misc;
+const { handleOpen, handleClose } = girder.dialog;
 
 var QuotaPoliciesWidget = View.extend({
     events: {
@@ -51,7 +50,7 @@ var QuotaPoliciesWidget = View.extend({
 
     _destroyPlots: function () {
         for (const plot of this.plots) {
-            plot.data('jqplot').destroy();
+            plot.destroy();
         }
         this.plots = [];
     },
@@ -80,32 +79,32 @@ var QuotaPoliciesWidget = View.extend({
             ['Used (' + formatSize(used) + ')', used],
             ['Free (' + formatSize(free) + ')', free]
         ];
-        var plot = $(el).jqplot([data], {
-            seriesDefaults: {
-                renderer: $.jqplot.PieRenderer,
-                rendererOptions: {
-                    sliceMargin: 2,
-                    shadow: false,
-                    highlightMouseOver: false,
-                    showDataLabels: true,
-                    padding: 5,
-                    startAngle: 180
+        var plot = new ApexCharts(document.querySelector(el), {
+            series: data.map(d => d[1]),
+            chart: {
+                type: 'pie',
+                animations: { enabled: false }
+            },
+            labels: data.map(d => d[0]),
+            plotOptions: {
+                pie: {
+                    startAngle: -90,
+                    endAngle: 270,
+                    expandOnClick: false,
+                    dataLabels: {
+                        enabled: true,
+                    }
                 }
             },
-            legend: {
-                show: true,
-                location: 'e',
-                background: 'transparent',
-                border: 'none'
+            dataLabels: {
+                style: {
+                  colors: ['#000', '#000']
+                },
+                dropShadow: {enabled: false},
             },
-            grid: {
-                background: 'transparent',
-                border: 'none',
-                borderWidth: 0,
-                shadow: false
-            },
-            gridPadding: { top: 10, right: 10, bottom: 10, left: 10 }
+            legend: { position: 'right' }
         });
+        plot.render();
         this.plots.push(plot);
     },
 

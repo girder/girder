@@ -1,8 +1,10 @@
 import datetime
 import json
 import os
+import tempfile
 
-from tests import base
+from girder_user_quota.settings import PluginSettings
+
 from girder.constants import AssetstoreType
 from girder.exceptions import ValidationException
 from girder.models.assetstore import Assetstore
@@ -12,8 +14,7 @@ from girder.models.setting import Setting
 from girder.models.user import User
 from girder.settings import SettingKey
 from girder.utility.system import formatSize
-
-from girder_user_quota.settings import PluginSettings
+from tests import base
 
 
 def setUpModule():
@@ -352,36 +353,36 @@ class QuotaTestCase(base.TestCase):
         """
         # We want three assetstores for testing, one of which is unreachable.
         # We already have one, which is the current assetstore.
-        base.dropGridFSDatabase('girder_test_user_quota_assetstore')
-        params = {
-            'name': 'Non-current Store',
-            'type': AssetstoreType.GRIDFS,
-            'db': 'girder_test_user_quota_assetstore'
-        }
-        resp = self.request(path='/assetstore', method='POST', user=self.admin,
-                            params=params)
-        self.assertStatusOk(resp)
+        with tempfile.TemporaryDirectory() as root:
+            params = {
+                'name': 'Non-current Store',
+                'type': AssetstoreType.FILESYSTEM,
+                'root': root,
+            }
+            resp = self.request(path='/assetstore', method='POST', user=self.admin,
+                                params=params)
+            self.assertStatusOk(resp)
 
-        # Create a broken assetstore. (Must bypass validation since it should
-        # not let us create an assetstore in a broken state).
-        Assetstore().save({
-            'name': 'Broken Store',
-            'type': AssetstoreType.FILESYSTEM,
-            'root': '/dev/null',
-            'created': datetime.datetime.utcnow()
-        }, validate=False)
+            # Create a broken assetstore. (Must bypass validation since it should
+            # not let us create an assetstore in a broken state).
+            Assetstore().save({
+                'name': 'Broken Store',
+                'type': AssetstoreType.FILESYSTEM,
+                'root': '/dev/null',
+                'created': datetime.datetime.now(datetime.timezone.utc)
+            }, validate=False)
 
-        # Now get the assetstores and save their ids for later
-        resp = self.request(path='/assetstore', method='GET', user=self.admin,
-                            params={'sort': 'created'})
-        self.assertStatusOk(resp)
-        assetstores = resp.json
-        self.assertEqual(len(assetstores), 3)
-        self.currentAssetstore = assetstores[0]
-        self.alternateAssetstore = assetstores[1]
-        self.brokenAssetstore = assetstores[2]
-        self._testAssetstores('user', self.user, self.admin)
-        self._testAssetstores('collection', self.collection, self.admin)
+            # Now get the assetstores and save their ids for later
+            resp = self.request(path='/assetstore', method='GET', user=self.admin,
+                                params={'sort': 'created'})
+            self.assertStatusOk(resp)
+            assetstores = resp.json
+            self.assertEqual(len(assetstores), 3)
+            self.currentAssetstore = assetstores[0]
+            self.alternateAssetstore = assetstores[1]
+            self.brokenAssetstore = assetstores[2]
+            self._testAssetstores('user', self.user, self.admin)
+            self._testAssetstores('collection', self.collection, self.admin)
 
     def testQuotaPolicy(self):
         """
@@ -445,14 +446,21 @@ class QuotaTestCase(base.TestCase):
         self._setPolicy({'fileSizeQuota': None},
                         'user', self.user, self.admin)
         # useDefaultQuota can be True, False, None, yes, no, 0, 1.
-        # 0 and 1 are included because True and False as keys map to 0 and 1
-        # directly
-        valdict = {None: True, True: True, 'true': True, 'True': True,
-                   False: False, 'false': False, 'False': False}
-        for val in valdict:
-            self._setPolicy({'useQuotaDefault': val},
+        values = [
+            (None, True),
+            (True, True),
+            ('true', True),
+            (1, True),
+            ('True', True),
+            (False, False),
+            ('false', False),
+            (0, False),
+            ('False', False),
+        ]
+        for in_val, out_val in values:
+            self._setPolicy({'useQuotaDefault': in_val},
                             'user', self.user, self.admin,
-                            results={'useQuotaDefault': valdict[val]})
+                            results={'useQuotaDefault': out_val})
         self._setPolicy({'useQuotaDefault': 'not_a_boolean'}, 'user',
                         self.user, self.admin, error='Invalid useQuotaDefault')
         # the resource default values behave like fileSizeQuota

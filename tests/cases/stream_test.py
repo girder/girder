@@ -1,11 +1,13 @@
 import os
-import requests
 import time
 
-from .. import base
+import requests
+
 from girder import config
 from girder.api import access
 from girder.api.rest import Resource, iterBody
+
+from .. import base
 
 _chunks = []
 os.environ['GIRDER_PORT'] = os.environ.get('GIRDER_TEST_PORT', '20200')
@@ -14,7 +16,7 @@ config.loadConfig()  # Must reload config to pickup correct port
 
 def setUpModule():
     server = base.startServer(mock=False)
-    server.root.api.v1.stream_test = StreamTestResource()
+    server.apps['/api'].root.v1.stream_test = StreamTestResource()
 
 
 def tearDownModule():

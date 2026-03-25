@@ -1,9 +1,9 @@
 /* eslint-disable import/first */
 
-import router from '@girder/core/router';
-import events from '@girder/core/events';
-import FolderModel from '@girder/core/models/FolderModel';
-import { Layout } from '@girder/core/constants';
+const router = girder.router;
+const events = girder.events;
+const FolderModel = girder.models.FolderModel;
+const Layout = girder.constants.Layout;
 
 import AuthorizeUploadView from './views/AuthorizeUploadView';
 import AuthorizedUploadView from './views/AuthorizedUploadView';

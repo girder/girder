@@ -1,12 +1,14 @@
-from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
-from girder.constants import AccessType, TokenScope, SortDir
+from girder.constants import AccessType, SortDir, TokenScope
 from girder.exceptions import RestException
 from girder.models.folder import Folder as FolderModel
+from girder.tasks import copyFolderTask, deleteFolderTask
 from girder.utility import ziputil
 from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
+
+from ..describe import Description, autoDescribeRoute
+from ..rest import Resource, filtermodel, setContentDisposition, setResponseHeader
 
 
 class Folder(Resource):
@@ -305,14 +307,12 @@ class Folder(Resource):
         .errorResponse('Admin access was denied for the folder.', 403)
     )
     def deleteFolder(self, folder, progress):
-        with ProgressContext(progress, user=self.getCurrentUser(),
-                             title='Deleting folder %s' % folder['name'],
-                             message='Calculating folder size...') as ctx:
-            # Don't do the subtree count if we weren't asked for progress
-            if progress:
-                ctx.update(total=self._model.subtreeCount(folder))
-            self._model.remove(folder, progress=ctx)
-        return {'message': 'Deleted folder %s.' % folder['name']}
+        deleteFolderTask.delay(
+            folderId=str(folder['_id']),
+            progress=progress,
+            userId=str(self.getCurrentUser()['_id']),
+        )
+        return {'message': f'Marked folder {folder["name"]} for deletion'}
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model=FolderModel)
@@ -337,7 +337,6 @@ class Folder(Resource):
     @filtermodel(model=FolderModel)
     @autoDescribeRoute(
         Description('Copy a folder.')
-        .responseClass('Folder')
         .modelParam('id', 'The ID of the original folder.', model=FolderModel,
                     level=AccessType.READ)
         .param('parentType', "Type of the new folder's parent", required=False,
@@ -366,15 +365,16 @@ class Folder(Resource):
         else:
             parent = None
 
-        with ProgressContext(progress, user=self.getCurrentUser(),
-                             title='Copying folder %s' % folder['name'],
-                             message='Calculating folder size...') as ctx:
-            # Don't do the subtree count if we weren't asked for progress
-            if progress:
-                ctx.update(total=self._model.subtreeCount(folder))
-            return self._model.copyFolder(
-                folder, creator=user, name=name, parentType=parentType,
-                parent=parent, description=description, public=public, progress=ctx)
+        copyFolderTask.delay(
+            folderId=str(folder['_id']),
+            parentType=parentType,
+            parentId=str(parent['_id']) if parent else None,
+            name=name,
+            description=description,
+            public=public,
+            progress=progress,
+            userId=str(user['_id']),
+        )
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
@@ -389,14 +389,13 @@ class Folder(Resource):
         .errorResponse('Write access was denied on the folder.', 403)
     )
     def deleteContents(self, folder, progress):
-        with ProgressContext(progress, user=self.getCurrentUser(),
-                             title='Clearing folder %s' % folder['name'],
-                             message='Calculating folder size...') as ctx:
-            # Don't do the subtree count if we weren't asked for progress
-            if progress:
-                ctx.update(total=self._model.subtreeCount(folder) - 1)
-            self._model.clean(folder, progress=ctx)
-        return {'message': 'Cleaned folder %s.' % folder['name']}
+        deleteFolderTask.delay(
+            folderId=str(folder['_id']),
+            progress=progress,
+            userId=str(self.getCurrentUser()['_id']),
+            contentsOnly=True,
+        )
+        return {'message': f'Mark folder {folder["name"]} contents for deletion.'}
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(FolderModel)

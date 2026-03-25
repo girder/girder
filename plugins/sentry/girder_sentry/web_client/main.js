@@ -1,8 +1,8 @@
-import events from '@girder/core/events';
-import { restRequest } from '@girder/core/rest';
 import { init as sentryInit } from '@sentry/browser';
-
 import './routes';
+
+const events = girder.events;
+const { restRequest } = girder.rest;
 
 events.on('g:appload.after', function () {
     restRequest({

@@ -1,14 +1,16 @@
-from ..describe import Description, autoDescribeRoute
-from ..rest import Resource as BaseResource, setResponseHeader, setContentDisposition
+from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
-from girder.api import access
 from girder.utility import parseTimestamp
-from girder.utility.search import getSearchModeHandler
-from girder.utility import ziputil
 from girder.utility import path as path_util
+from girder.utility import ziputil
 from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
+from girder.utility.search import getSearchModeHandler
+
+from ..describe import Description, autoDescribeRoute
+from ..rest import Resource as BaseResource
+from ..rest import setContentDisposition, setResponseHeader
 
 # Plugins can modify this set to allow other types to be searched
 allowedSearchTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
@@ -218,7 +220,7 @@ class Resource(BaseResource):
                     model.remove(doc, progress=ctx)
                     if progress:
                         current += subtotal
-                        if ctx.progress['data']['current'] != current:
+                        if ctx.progress._payload['data']['current'] != current:
                             ctx.update(current=current, message='Deleted ' + kind)
 
     def _getResource(self, id, type):

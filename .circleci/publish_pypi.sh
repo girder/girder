@@ -1,17 +1,25 @@
 #!/bin/bash
 set -e
 
-# Build and publish sdist's for all Python packages in this repo
+pushd girder/web
+npm ci
+SKIP_SOURCE_MAPS=true npm run build
+popd
+
+python .circleci/build_plugins.py plugins/
+
+# Build and publish all Python packages in this repo
 readonly PUBLISHED_PYTHON_PACKAGES=(
   .
   plugins/*
   pytest_girder
   clients/python
+  worker
 )
 for directory in "${PUBLISHED_PYTHON_PACKAGES[@]}"; do
     pushd "$directory"
     rm -fr dist
-    python setup.py sdist
+    python -m build
+    twine upload --verbose --skip-existing dist/*
     popd
-    twine upload --skip-existing "$directory/dist/*"
 done

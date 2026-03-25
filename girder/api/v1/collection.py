@@ -1,11 +1,13 @@
-from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
 from girder.constants import AccessType, TokenScope
-from girder.models.collection import Collection as CollectionModel
 from girder.exceptions import AccessException
+from girder.models.collection import Collection as CollectionModel
+from girder.tasks import deleteCollectionTask
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
+
+from ..describe import Description, autoDescribeRoute
+from ..rest import Resource, filtermodel, setContentDisposition, setResponseHeader
 
 
 class Collection(Resource):
@@ -188,12 +190,18 @@ class Collection(Resource):
     @autoDescribeRoute(
         Description('Delete a collection by ID.')
         .modelParam('id', model=CollectionModel, level=AccessType.ADMIN)
+        .param('progress', 'Whether to record progress on the deletion.', dataType='boolean',
+               default=False, required=False)
         .errorResponse('ID was invalid.')
         .errorResponse('Admin permission denied on the collection.', 403)
     )
-    def deleteCollection(self, collection):
-        self._model.remove(collection)
-        return {'message': 'Deleted collection %s.' % collection['name']}
+    def deleteCollection(self, collection, progress):
+        deleteCollectionTask.delay(
+            collectionId=str(collection['_id']),
+            progress=progress,
+            userId=str(self.getCurrentUser()['_id']),
+        )
+        return {'message': f'Marked collection {collection["name"]} for deletion.'}
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model=CollectionModel)

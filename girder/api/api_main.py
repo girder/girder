@@ -1,8 +1,8 @@
 import cherrypy
 
 from . import describe
-from .v1 import api_key, assetstore, file, collection, folder, group, item, \
-    resource, system, token, user, notification
+from .v1 import (api_key, assetstore, collection, file, folder, group, item, resource, system,
+                 token, user)
 
 
 class ApiDocs:
@@ -14,11 +14,11 @@ class ApiDocs:
         raise cherrypy.HTTPRedirect(cherrypy.url() + '/v1')
 
 
-def addApiToNode(node):
-    node.api = ApiDocs()
-    _addV1ToNode(node.api)
+def buildApi():
+    api = ApiDocs()
+    _addV1ToNode(api)
 
-    return node
+    return api
 
 
 def _addV1ToNode(node):
@@ -32,7 +32,6 @@ def _addV1ToNode(node):
     node.v1.folder = folder.Folder()
     node.v1.group = group.Group()
     node.v1.item = item.Item()
-    node.v1.notification = notification.Notification()
     node.v1.resource = resource.Resource()
     node.v1.system = system.System()
     node.v1.token = token.Token()

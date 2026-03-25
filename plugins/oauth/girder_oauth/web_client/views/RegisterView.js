@@ -1,8 +1,8 @@
-import RegisterView from '@girder/core/views/layout/RegisterView';
-import { getCurrentUser } from '@girder/core/auth';
-import { wrap } from '@girder/core/utilities/PluginUtils';
-
 import OAuthLoginView from './OAuthLoginView';
+
+const RegisterView = girder.views.layout.RegisterView;
+const { getCurrentUser } = girder.auth;
+const { wrap } = girder.utilities.PluginUtils;
 
 /**
  * We want to add some additional stuff to the login view when it is shown.

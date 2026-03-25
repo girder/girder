@@ -5,9 +5,6 @@ import re
 import cherrypy
 import mako
 
-from girder import constants
-from girder.models.setting import Setting
-from girder.settings import SettingKey
 from girder.utility import config
 
 
@@ -87,40 +84,3 @@ class WebrootBase:
 
     def PUT(self, **params):
         raise cherrypy.HTTPError(405)
-
-
-class Webroot(WebrootBase):
-    """
-    The webroot endpoint simply serves the main index HTML file.
-    """
-
-    def __init__(self, templatePath=None):
-        if not templatePath:
-            templatePath = os.path.join(constants.PACKAGE_DIR, 'utility', 'webroot.mako')
-        super().__init__(templatePath)
-
-        self.vars = {}
-
-    def _renderHTML(self):
-        from girder.utility import server
-        from girder.plugin import loadedPlugins
-        self.vars['plugins'] = loadedPlugins()
-        self.vars['pluginCss'] = []
-        self.vars['pluginJs'] = []
-        builtDir = os.path.join(constants.STATIC_ROOT_DIR, 'built', 'plugins')
-        for plugin in self.vars['plugins']:
-            if os.path.exists(os.path.join(builtDir, plugin, 'plugin.min.css')):
-                self.vars['pluginCss'].append(plugin)
-            if os.path.exists(os.path.join(builtDir, plugin, 'plugin.min.js')):
-                self.vars['pluginJs'].append(plugin)
-
-        self.vars['apiRoot'] = server.getApiRoot()
-        self.vars['staticPublicPath'] = server.getStaticPublicPath()
-        self.vars['brandName'] = Setting().get(SettingKey.BRAND_NAME)
-        self.vars['contactEmail'] = Setting().get(SettingKey.CONTACT_EMAIL_ADDRESS)
-        self.vars['privacyNoticeHref'] = Setting().get(SettingKey.PRIVACY_NOTICE)
-        self.vars['bannerColor'] = Setting().get(SettingKey.BANNER_COLOR)
-        self.vars['registrationPolicy'] = Setting().get(SettingKey.REGISTRATION_POLICY)
-        self.vars['enablePasswordLogin'] = Setting().get(SettingKey.ENABLE_PASSWORD_LOGIN)
-
-        return super()._renderHTML()

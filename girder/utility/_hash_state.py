@@ -10,10 +10,11 @@ import ssl
 import sys
 
 _ver = sys.version_info
+_free_threaded = hasattr(sys, '_is_gil_enabled') and not sys._is_gil_enabled()
 # This is the offset to the EVP_MD_CTX structure in CPython's _hashopenssl.c
 # EVPObject.  It changed for Python 3.8 in
 # https://github.com/python/cpython/pull/16023
-_HASHLIB_EVP_STRUCT_OFFSET = 2
+_HASHLIB_EVP_STRUCT_OFFSET = 2 if not _free_threaded else 4
 
 
 def _getHashStateDataPointer(hashObject):

@@ -1,16 +1,15 @@
-import $ from 'jquery';
-import _ from 'underscore';
 import sortable from 'sortablejs';
-
-import PluginConfigBreadcrumbWidget from '@girder/core/views/widgets/PluginConfigBreadcrumbWidget';
-import View from '@girder/core/views/View';
-import { restRequest } from '@girder/core/rest';
-import events from '@girder/core/events';
 
 import template from '../templates/configView.pug';
 import newServerTemplate from '../templates/newServerTemplate.pug';
 import '../stylesheets/configView.styl';
-import '@girder/core/utilities/jquery/girderEnable';
+
+const $ = girder.$;
+const _ = girder._;
+const PluginConfigBreadcrumbWidget = girder.views.widgets.PluginConfigBreadcrumbWidget;
+const View = girder.views.View;
+const { restRequest } = girder.rest;
+const events = girder.events;
 
 const FIELDS = ['uri', 'bindName', 'baseDn', 'password', 'searchField', 'queryFilter'];
 

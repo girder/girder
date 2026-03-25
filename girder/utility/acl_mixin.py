@@ -2,9 +2,9 @@ import collections
 import itertools
 from collections import abc
 
-from ..models.model_base import Model, AccessControlledModel, _permissionClauses
+from ..constants import TEXT_SCORE_SORT_MAX, AccessType
 from ..exceptions import AccessException
-from ..constants import AccessType, TEXT_SCORE_SORT_MAX
+from ..models.model_base import AccessControlledModel, Model, _permissionClauses
 from ..utility.model_importer import ModelImporter
 
 

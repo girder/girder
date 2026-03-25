@@ -1,22 +1,43 @@
 {
-    "name": "@girder/thumbnails",
+    "name": "@girder/girder-plugin-thumbnails",
     "version": "0.0.0",
     "description": "Generate thumbnails from files.",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#thumbnails",
     "bugs": {
-        "url": "https://github.com/girder/girder/issues"
+      "url": "https://github.com/girder/girder/issues"
     },
     "license": "Apache-2.0",
     "repository": {
-        "type": "git",
-        "url": "https://github.com/girder/girder.git"
+      "type": "git",
+      "url": "git+https://github.com/girder/girder.git"
     },
-    "peerDependencies": {
-        "@girder/core": "*",
-        "@girder/jobs": "*"
+    "type": "module",
+    "files": [
+      "dist",
+      "package.json"
+    ],
+    "main": "./dist/girder-plugin-thumbnails.umd.cjs",
+    "module": "./dist/girder-plugin-thumbnails.js",
+    "exports": {
+      ".": {
+        "import": "./dist/girder-plugin-thumbnails.js",
+        "require": "./dist/girder-plugin-thumbnails.umd.cjs"
+      },
+      "./style.css": "./dist/style.css",
+      "./package.json": "./package.json"
     },
-    "girderPlugin": {
-        "name": "thumbnails",
-        "main": "./main.js",
-        "dependencies": ["jobs"]
+    "scripts": {
+      "build": "vite build",
+      "dev": "vite build --watch"
+    },
+    "author": "",
+    "dependencies": {
+      "@girder/core": "file:../../../../girder/web"
+    },
+    "devDependencies": {
+      "pug": "^3.0.2",
+      "stylus": "^0.59.0",
+      "vite": "^4.3.9",
+      "vite-plugin-istanbul": "^4.1.0"
     }
-}
+  }

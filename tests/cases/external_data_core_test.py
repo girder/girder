@@ -1,6 +1,6 @@
-import unittest
 import hashlib
 import os
+import unittest
 
 
 class ExternalDataCoreTest(unittest.TestCase):

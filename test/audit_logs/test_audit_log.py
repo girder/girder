@@ -1,13 +1,15 @@
 import datetime
 import io
+
 import pytest
 from click.testing import CliRunner
+from girder_audit_logs import Record, cleanup
+
 from girder import auditLogger
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.upload import Upload
 from girder.models.user import User
-from girder_audit_logs import Record, cleanup
 
 
 @pytest.fixture
@@ -136,11 +138,3 @@ def testCleanupScript(server, freshLog, args, expected, admin):
     result = CliRunner().invoke(cleanup.cleanup, args)
     assert result.exit_code == 0
     assert result.output == 'Deleted %d log entries.\n' % expected
-
-
-@pytest.mark.plugin('audit_logs')
-def testDisableLoggingOnNotificationEndpoints(server, user, freshLog):
-    server.request('/user/me')
-    server.request('/notification', user=user)
-    server.request('/notification/stream', params={'timeout': 0}, user=user, isJson=False)
-    assert Record().find().count() == 1

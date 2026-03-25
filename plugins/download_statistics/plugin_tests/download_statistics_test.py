@@ -1,13 +1,13 @@
-import os
 import json
+import os
 
-from tests import base
 from girder.constants import ROOT_DIR
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.upload import Upload
 from girder.models.user import User
+from tests import base
 
 
 def setUpModule():

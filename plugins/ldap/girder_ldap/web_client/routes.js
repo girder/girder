@@ -1,12 +1,11 @@
-/* eslint-disable import/first */
+import ConfigView from './views/ConfigView';
 
-import events from '@girder/core/events';
-import router from '@girder/core/router';
-import { exposePluginConfig } from '@girder/core/utilities/PluginUtils';
+const events = girder.events;
+const router = girder.router;
+const { exposePluginConfig } = girder.utilities.PluginUtils;
 
 exposePluginConfig('ldap', 'plugins/ldap/config');
 
-import ConfigView from './views/ConfigView';
 router.route('plugins/ldap/config', 'ldapConfig', function () {
     events.trigger('g:navigateTo', ConfigView);
 });

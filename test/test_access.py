@@ -1,13 +1,12 @@
 import pytest
 
-from girder.api.rest import loadmodel, Resource
 from girder.api import access
+from girder.api.rest import Resource, loadmodel
 from girder.constants import AccessType, TokenScope
-from girder.models.user import User
 from girder.models.token import Token
+from girder.models.user import User
 from girder.settings import SettingKey
 from pytest_girder.assertions import assertStatus, assertStatusOk
-
 
 CUSTOM_SCOPE = 'Some.Exclusive.Scope'
 
@@ -108,10 +107,11 @@ class AccessTestResource(Resource):
 
 @pytest.fixture
 def server(server):
-    server.root.api.v1.accesstest = AccessTestResource()
+    accesstest = AccessTestResource()
+
+    server.apps['/api'].root.v1.accesstest = accesstest
     # Public access endpoints do not need to be a Resource subclass method,
     # they can be a regular function
-    accesstest = server.root.api.v1.accesstest
     accesstest.route('GET', ('default_function_access', ),
                      defaultFunctionHandler)
     accesstest.route('GET', ('admin_function_access', ), adminFunctionHandler)

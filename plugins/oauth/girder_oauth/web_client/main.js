@@ -1,5 +1,3 @@
-import { setCurrentToken } from '@girder/core/auth';
-
 import './routes';
 
 // Extends and overrides API
@@ -13,7 +11,7 @@ if (girderToken) {
     // This means we have been redirected from a successful OAuth login.
     // Save the token, and delete the query parameter from the URL.
     window.localStorage.setItem('girderToken', girderToken);
-    setCurrentToken(girderToken);
+    girder.auth.setCurrentToken(girderToken);
 
     const queryParams = new URLSearchParams(window.location.search);
     queryParams.delete('girderToken');

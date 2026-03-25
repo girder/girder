@@ -1,10 +1,9 @@
-import $ from 'jquery';
-import _ from 'underscore';
-
-import EditItemWidget from '@girder/core/views/widgets/EditItemWidget';
-import { wrap } from '@girder/core/utilities/PluginUtils';
-
 import SelectLicenseWidget from './SelectLicenseWidget';
+
+const $ = girder.$;
+const _ = girder._;
+const EditItemWidget = girder.views.widgets.EditItemWidget;
+const { wrap } = girder.utilities.PluginUtils;
 
 /**
  * Add select license widget to the edit item widget.

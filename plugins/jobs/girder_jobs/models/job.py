@@ -1,15 +1,16 @@
 import datetime
+
 from bson import json_util
 
 from girder import events
 from girder.constants import AccessType, SortDir
 from girder.exceptions import ValidationException
 from girder.models.model_base import AccessControlledModel
-from girder.models.notification import Notification
 from girder.models.token import Token
 from girder.models.user import User
+from girder.notification import Notification
 
-from ..constants import JobStatus, JOB_HANDLER_LOCAL
+from ..constants import JOB_HANDLER_LOCAL, JobStatus
 
 
 class Job(AccessControlledModel):
@@ -218,7 +219,7 @@ class Job(AccessControlledModel):
         :param otherFields: Any additional fields to set on the job.
         :type otherFields: dict
         """
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
 
         if when is None:
             when = now
@@ -265,9 +266,7 @@ class Job(AccessControlledModel):
             deserialized_kwargs = job['kwargs']
             job['kwargs'] = json_util.dumps(job['kwargs'])
 
-            Notification().createNotification(
-                type='job_created', data=job, user=user,
-                expires=datetime.datetime.utcnow() + datetime.timedelta(seconds=30))
+            Notification(type='job_created', data=job, user=user).flush()
 
             job['kwargs'] = deserialized_kwargs
 
@@ -320,10 +319,7 @@ class Job(AccessControlledModel):
         actually scheduling and/or executing the job, except in the case when
         the handler is 'local'.
         """
-        if job.get('asynchronous', job.get('async')) is True:
-            events.daemon.trigger('jobs.schedule', info=job)
-        else:
-            events.trigger('jobs.schedule', info=job)
+        events.trigger('jobs.schedule', info=job)
 
     def createJobToken(self, job, days=7):
         """
@@ -370,7 +366,7 @@ class Job(AccessControlledModel):
         if event.defaultPrevented:
             return job
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
         user = None
         otherFields = otherFields or {}
         if job['userId']:
@@ -443,21 +439,18 @@ class Job(AccessControlledModel):
             else:
                 updates['$push']['log'] = log
         if notify and user:
-            expires = now + datetime.timedelta(seconds=30)
-            Notification().createNotification(
+            Notification(
                 type='job_log', data={
                     '_id': job['_id'],
                     'overwrite': overwrite,
                     'text': log
-                }, user=user, expires=expires)
+                }, user=user).flush()
 
     def _createUpdateStatusNotification(self, now, user, job):
-        expires = now + datetime.timedelta(seconds=30)
         filtered = self.filter(job, user)
         filtered.pop('kwargs', None)
         filtered.pop('log', None)
-        Notification().createNotification(
-            type='job_status', data=filtered, user=user, expires=expires)
+        Notification(type='job_status', data=filtered, user=user).flush()
 
     def _updateStatus(self, job, status, now, query, updates):
         """Helper for updating job progress information."""
@@ -495,17 +488,10 @@ class Job(AccessControlledModel):
             total = float(total)
 
         if job['progress'] is None:
-            if notify and job['userId']:
-                notification = self._createProgressNotification(
-                    job, total, current, state, message)
-                notificationId = notification['_id']
-            else:
-                notificationId = None
             job['progress'] = {
                 'message': message,
                 'total': total,
                 'current': current,
-                'notificationId': notificationId
             }
             updates['$set']['progress'] = job['progress']
         else:
@@ -519,31 +505,19 @@ class Job(AccessControlledModel):
                 job['progress']['message'] = message
                 updates['$set']['progress.message'] = message
 
-            if notify and user:
-                if job['progress']['notificationId'] is None:
-                    notification = self._createProgressNotification(
-                        job, total, current, state, message, user)
-                    nid = notification['_id']
-                    job['progress']['notificationId'] = nid
-                    updates['$set']['progress.notificationId'] = nid
-                else:
-                    notification = Notification().load(job['progress']['notificationId'])
-
-                Notification().updateProgress(
-                    notification, state=state,
-                    message=job['progress']['message'],
-                    current=job['progress']['current'],
-                    total=job['progress']['total'])
-
-    def _createProgressNotification(self, job, total, current, state, message,
-                                    user=None):
-        if not user:
-            user = User().load(job['userId'], force=True)
-        # TODO support channel-based notifications for jobs. For
-        # right now we'll just go through the user.
-        return Notification().initProgress(
-            user, job['title'], total, state=state, current=current,
-            message=message, estimateTime=False, resource=job, resourceName=self.name)
+        if notify and (user or job.get('userId')):
+            Notification.initProgress(
+                user=(user or User().load(job['userId'], force=True)),
+                title=job['title'],
+                total=job['progress']['total'],
+                state=state,
+                current=job['progress']['current'],
+                message=job['progress']['message'],
+                resource=job,
+                resourceName=self.name,
+                estimateTime=False,
+                _id=str(job['_id']),
+            ).flush()
 
     def filter(self, doc, user=None, additionalKeys=None):
         """

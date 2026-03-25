@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<executable>
+  <category>HistomicsTK</category>
+  <title>Performs Adaptive Color Deconvolution</title>
+  <description>Uses sparse non-negative matrix factorization to adaptively deconvolve a given RGB image into intensity images representing distinct stains.</description>
+  <version>0.1.0</version>
+  <documentation-url>https://histomicstk.readthedocs.org/en/latest/</documentation-url>
+  <license>Apache 2.0</license>
+  <contributor>Deepak Roy Chittajallu (Kitware)</contributor>
+  <acknowledgements>This work is part of the HistomicsTK project.</acknowledgements>
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters.</description>
+    <image>
+      <name>inputImageFile</name>
+      <label>Input Image</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Input image to be deconvolved</description>
+    </image>
+    <image>
+      <name>secondImageFile</name>
+      <label>Second Input Image</label>
+      <channel>input</channel>
+      <longflag>image2</longflag>
+      <description>Another image</description>
+    </image>
+    <double-vector>
+      <name>stainColor_1</name>
+      <label>Initial estimate of color of stain-1</label>
+      <description>RGB Color of stain-1</description>
+      <channel>input</channel>
+      <index>1</index>
+    </double-vector>
+    <image reference="inputImageFile" fileExtensions=".jpg,.tiff">
+      <name>outputStainImageFile_1</name>
+      <label>Output image of Stain 1</label>
+      <description>Output Image of Stain 1</description>
+      <channel>output</channel>
+      <index>2</index>
+    </image>
+    <image>
+      <name>outputStainImageFile_2</name>
+      <longflag>outputStainImageFile_2</longflag>
+      <label>Output Image of Stain 2</label>
+      <description>Optional Output Image of Stain 2</description>
+      <channel>output</channel>
+    </image>
+    <double>
+      <name>beta</name>
+      <label>A parameter to control sparsity of stain concentrations</label>
+      <description>RGB Color of stain-3</description>
+      <default>0.5</default>
+    </double>
+    <double>
+      <name>gamma</name>
+      <longflag>gamma</longflag>
+      <label>A parameter to control sparsity of stain concentrations</label>
+      <description>RGB Color of stain-3</description>
+      <default>0.5</default>
+    </double>
+    <double-vector>
+      <name>stainColor_2</name>
+      <flag>c</flag>
+      <label>Initial estimate of color of stain-2</label>
+      <description>RGB Color of stain-2</description>
+      <channel>input</channel>
+      <default>[1.0, 1.0, 1.0]</default>
+    </double-vector>
+    <double-vector>
+      <name>stainColor_3</name>
+      <flag>d</flag>
+      <label>Initial estimate of color of stain-3</label>
+      <description>RGB Color of stain-3</description>
+      <channel>input</channel>
+      <default>[1.0, 1.0, 1.0]</default>
+    </double-vector>
+    <float>
+      <name>NumberWeakPositive</name>
+      <label>Number of Weak Positive Pixels</label>
+      <channel>output</channel>
+      <description>Number of pixels classified as weak positive</description>
+    </float>
+  </parameters>
+  <parameters advanced="true">
+    <label>Girder API URL and Key</label>
+    <description>A Girder API URL and token for Girder client</description>
+    <string>
+      <name>girderApiUrl</name>
+      <longflag>api-url</longflag>
+      <label>Girder API URL</label>
+      <description>A Girder API URL (e.g., https://girder.example.com:443/api/v1)</description>
+      <channel>input</channel>
+      <default></default>
+    </string>
+    <string>
+      <name>girderToken</name>
+      <longflag>girder-token</longflag>
+      <label>Girder Token</label>
+      <description>A Girder token</description>
+      <channel>input</channel>
+      <default></default>
+    </string>
+  </parameters>
+</executable>

@@ -1,40 +1,42 @@
-import html
-import cherrypy
 import collections
 import datetime
-from functools import wraps
+import fnmatch
+import html
 import inspect
 import json
+import logging
 import posixpath
-import pymongo
-import pymongo.command_cursor
 import sys
 import traceback
 import types
 import unicodedata
 import urllib.parse
 import uuid
-import fnmatch
+from functools import wraps
 
+import cherrypy
+import pymongo
+import pymongo.command_cursor
 from dogpile.cache.util import kwarg_function_key_generator
 
-from . import docs
-from girder import auditLogger, events, logger, logprint
-from girder.constants import TokenScope, SortDir, ServerMode
-from girder.exceptions import AccessException, GirderException, ValidationException, RestException
+from girder import auditLogger, events
+from girder.constants import ServerMode, SortDir, TokenScope
+from girder.exceptions import AccessException, GirderException, RestException, ValidationException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
 from girder.settings import SettingKey
-from girder.utility import toBool, config, JsonEncoder, optionalArgumentDecorator
+from girder.utility import JsonEncoder, config, optionalArgumentDecorator, toBool
 from girder.utility._cache import requestCache
 from girder.utility.model_importer import ModelImporter
 
+from . import docs
 
 # Arbitrary buffer length for stream-reading request bodies
 READ_BUFFER_LEN = 65536
 
 _MONGO_CURSOR_TYPES = (pymongo.cursor.Cursor, pymongo.command_cursor.CommandCursor)
+logger = logging.getLogger(__name__)
 
 
 def getUrlParts(url=None):
@@ -67,7 +69,7 @@ def getApiUrl(url=None, preferReferer=False):
         a cherrypy request that has a referer header that contains the api
         string, use that referer as the url.
     """
-    apiStr = config.getConfig()['server']['api_root']
+    apiStr = 'api/v1'
 
     if not url:
         if preferReferer and apiStr in cherrypy.request.headers.get('referer', ''):
@@ -75,7 +77,7 @@ def getApiUrl(url=None, preferReferer=False):
         else:
             root = Setting().get(SettingKey.SERVER_ROOT)
             if root:
-                return posixpath.join(root, apiStr.lstrip('/'))
+                return posixpath.join(root, apiStr)
 
     url = url or cherrypy.url()
     idx = url.find(apiStr)
@@ -194,7 +196,7 @@ def getCurrentUser(returnToken=False):
             return user
 
     if (token is None
-            or token['expires'] < datetime.datetime.utcnow()
+            or token['expires'] < datetime.datetime.now(datetime.timezone.utc)
             or 'userId' not in token):
         return retVal(None, token)
     else:
@@ -786,9 +788,9 @@ class Resource:
         """
         if not hasattr(self, '_routes'):
             super().__init__()
-            logprint.warning(
+            logger.warning(
                 'WARNING: Resource subclass "%s" did not call '
-                '"Resource__init__()" from its constructor.' %
+                '"Resource__init__()" from its constructor.',
                 self.__class__.__name__)
 
     def route(self, method, route, handler, nodoc=False, resource=None):
@@ -837,16 +839,16 @@ class Resource:
                     info=handler.description.asDict(), handler=handler)
         elif not nodoc:
             routePath = '/'.join([resource] + list(route))
-            logprint.warning(
-                'WARNING: No description docs present for route %s %s' % (
-                    method, routePath))
+            logger.warning(
+                'WARNING: No description docs present for route %s %s',
+                method, routePath)
 
         # Warn if there is no access decorator on the handler function
         if not hasattr(handler, 'accessLevel'):
             routePath = '/'.join([resource] + list(route))
-            logprint.warning(
-                'WARNING: No access level specified for route %s %s' % (
-                    method, routePath))
+            logger.warning(
+                'WARNING: No access level specified for route %s %s',
+                method, routePath)
 
     def removeRoute(self, method, route, resource=None):
         """
@@ -1189,14 +1191,15 @@ class Resource:
         cookie['girderToken'] = str(token['_id'])
         cookie['girderToken']['path'] = '/'
         cookie['girderToken']['expires'] = int(days * 3600 * 24)
-
-        if Setting().get(SettingKey.HTTP_ONLY_COOKIES):
-            cookie['girderToken']['httponly'] = True
+        cookie['girderToken']['httponly'] = True
 
         # CherryPy proxy tools modify the request.base, but not request.scheme, when receiving
         # X-Forwarded-Proto headers from a reverse proxy
         if cherrypy.request.scheme == 'https' or cherrypy.request.base.startswith('https'):
             cookie['girderToken']['secure'] = True
+
+        if domain := Setting().get(SettingKey.COOKIE_DOMAIN):
+            cookie['girderToken']['domain'] = domain
 
         return token
 

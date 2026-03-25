@@ -1,11 +1,10 @@
-import $ from 'jquery';
-
-import { renderMarkdown } from '@girder/core/misc';
-import CollectionInfoWidget from '@girder/core/views/widgets/CollectionInfoWidget';
-import { wrap } from '@girder/core/utilities/PluginUtils';
-
 import CollectionInfoWidgetTemplate from '../templates/collectionInfoWidget.pug';
 import '../stylesheets/collectionInfoWidget.styl';
+
+const $ = girder.$;
+const { renderMarkdown } = girder.misc;
+const { wrap } = girder.utilities.PluginUtils;
+const CollectionInfoWidget = girder.views.widgets.CollectionInfoWidget;
 
 wrap(CollectionInfoWidget, 'render', function (render) {
     render.call(this);

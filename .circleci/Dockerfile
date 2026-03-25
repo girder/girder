@@ -1,4 +1,4 @@
-FROM cimg/python:3.9
+FROM cimg/python:3.10
 LABEL maintainer="Kitware, Inc. <kitware@kitware.com>"
 
 # Don't use "sudo"
@@ -17,7 +17,8 @@ RUN apt-get update \
 RUN apt-get update \
   && apt-get install --assume-yes \
     cmake \
-  # Note: universal-ctags is installed for use in the public_names CI job.
+    automake \
+  # Note: universal-ctags is installed for use in the public-names CI job.
   && git clone "https://github.com/universal-ctags/ctags.git" "./ctags" \
   && cd ./ctags \
   && ./autogen.sh \
@@ -31,7 +32,7 @@ RUN apt-get update \
     setuptools \
     tox
 
-ENV NODE_VERSION=14
+ENV NODE_VERSION=20
 
 RUN mkdir /.nvm && \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | NVM_DIR=/.nvm bash && \

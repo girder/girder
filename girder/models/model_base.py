@@ -1,17 +1,21 @@
 import copy
 import functools
 import itertools
+import logging
 import os
-import pymongo
 import re
+from datetime import timezone
 
-from bson.objectid import ObjectId
+import pymongo
+from bson.codec_options import CodecOptions
 from bson.errors import InvalidId
+from bson.objectid import ObjectId
 from pymongo.errors import WriteError
-from girder import events, logprint, logger, auditLogger
-from girder.constants import AccessType, CoreEventHandler, ACCESS_FLAGS, TEXT_SCORE_SORT_MAX
-from girder.models import getDbConnection
+
+from girder import auditLogger, events
+from girder.constants import ACCESS_FLAGS, TEXT_SCORE_SORT_MAX, AccessType, CoreEventHandler
 from girder.exceptions import AccessException, ValidationException
+from girder.models import getDbConnection
 
 # pymongo3 complains about extra kwargs to find(), so we must filter them.
 _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
@@ -20,6 +24,7 @@ _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
 # the database is dropped between each test case. If we find a cleverer way to do
 # that, we don't need to store these here.
 _modelSingletons = []
+logger = logging.getLogger(__name__)
 
 if 'GIRDER_MAX_CURSOR_TIMEOUT_MS' in os.environ:
     _MAX_CURSOR_TIMEOUT_MS = int(os.environ['GIRDER_MAX_CURSOR_TIMEOUT_MS'])
@@ -115,7 +120,8 @@ class Model(metaclass=_ModelSingleton):
         db_connection = getDbConnection()
         self._dbserver_version = tuple(db_connection.server_info()['versionArray'])
         self.database = db_connection.get_database()
-        self.collection = self.database[self.name]
+        self.collection = self.database[self.name].with_options(
+            codec_options=CodecOptions(tz_aware=True, tzinfo=timezone.utc))
 
         for index in self._indices:
             self._createIndex(index)
@@ -127,7 +133,11 @@ class Model(metaclass=_ModelSingleton):
                     textIdx, weights=self._textIndex,
                     default_language=self._textLanguage)
             except pymongo.errors.OperationFailure:
-                logprint.warning('WARNING: Text search not enabled.')
+                try:
+                    # Some mongoDB providers don't support default_language (DocumentDB)
+                    self.collection.create_index(textIdx, weights=self._textIndex)
+                except pymongo.errors.OperationFailure:
+                    logger.exception('Error: text search not enabled.')
 
         self._connected = True
 
@@ -1237,8 +1247,8 @@ class AccessControlledModel(Model):
         :type doc: dict
         :returns: A dict containing `users` and `groups` keys.
         """
-        from .user import User
         from .group import Group
+        from .user import User
 
         acList = {
             'users': doc.get('access', {}).get('users', []),

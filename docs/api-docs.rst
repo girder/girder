@@ -130,12 +130,6 @@ Upload
 .. automodule:: girder.models.upload
    :members:
 
-Notification
-~~~~~~~~~~~~
-
-.. automodule:: girder.models.notification
-    :members:
-
 Web API Endpoints
 ^^^^^^^^^^^^^^^^^
 
@@ -179,9 +173,6 @@ Utility
    :members:
 
 .. automodule:: girder.utility.filesystem_assetstore_adapter
-   :members:
-
-.. automodule:: girder.utility.gridfs_assetstore_adapter
    :members:
 
 .. automodule:: girder.utility.mail_utils

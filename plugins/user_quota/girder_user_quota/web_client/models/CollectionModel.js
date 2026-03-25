@@ -1,5 +1,5 @@
-import CollectionModel from '@girder/core/models/CollectionModel';
-
 import extendModel from './extendModel';
+
+const CollectionModel = girder.models.CollectionModel;
 
 extendModel(CollectionModel, 'collection');

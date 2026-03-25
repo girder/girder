@@ -1,14 +1,12 @@
-import datetime
 import json
-
-from .. import base
 
 from girder import events
 from girder.constants import AccessType, SortDir
-from girder.models.notification import Notification, ProgressState
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.user import User
+
+from .. import base
 
 
 def setUpModule():
@@ -468,19 +466,6 @@ class FolderTestCase(base.TestCase):
             self.assertEqual(subfolder, None)
             self.assertEqual(item, None)
 
-            # Make sure progress record exists and that it is set to expire soon
-            notifs = list(Notification().get(self.admin))
-            self.assertEqual(len(notifs), 1)
-            self.assertEqual(notifs[0]['type'], 'progress')
-            self.assertEqual(notifs[0]['data']['state'], ProgressState.SUCCESS)
-            self.assertEqual(notifs[0]['data']['title'],
-                             'Deleting folder Public')
-            self.assertEqual(notifs[0]['data']['message'], 'Done')
-            self.assertEqual(notifs[0]['data']['total'], 3)
-            self.assertEqual(notifs[0]['data']['current'], 3)
-            self.assertTrue(notifs[0]['expires'] < datetime.datetime.utcnow()
-                            + datetime.timedelta(minutes=1))
-
             # Make sure our event handler was called with expected args
             self.assertTrue('kwargs' in cbInfo)
             self.assertTrue('doc' in cbInfo)
@@ -675,8 +660,7 @@ class FolderTestCase(base.TestCase):
             user=self.admin)
         self.assertStatusOk(resp)
         # Check our new folder information
-        newFolder = resp.json
-        self.assertEqual(newFolder['name'], 'Main Folder (1)')
+        newFolder = Folder().findOne({'name': 'Main Folder (1)'})
         self.assertEqual(newFolder['size'], size)
 
         # Check the copied item inside the new folder
@@ -727,8 +711,8 @@ class FolderTestCase(base.TestCase):
             user=self.admin, params={'public': 'original', 'progress': True})
         self.assertStatusOk(resp)
         # Check our new folder name
-        newSubFolder = resp.json
-        self.assertEqual(newSubFolder['name'], 'Sub Folder (1)')
+        self.assertIsNotNone(Folder().findOne({'name': 'Sub Folder (1)'}))
+
         # Test that a bogus parentType throws an error
         resp = self.request(
             path='/folder/%s/copy' % subFolder['_id'], method='POST',

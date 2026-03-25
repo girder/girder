@@ -1,0 +1,87 @@
+#g-assetstore-accordion.panel-group
+  .panel.panel-default
+    .panel-heading(data-toggle="collapse",
+        data-parent="#g-assetstore-accordion",
+        data-target="#g-create-fs-tab")
+      .panel-title
+        a
+          i.icon-hdd
+          span Create new #[b Filesystem] assetstore
+    #g-create-fs-tab.panel-collapse.collapse
+      .panel-body
+        p.
+          This type of assetstore will store files in a directory on the
+          local filesystem, using content-addressed storage to ensure that
+          data is never duplicated on disk. Just specify the root directory
+          that files will be stored under.
+        p.
+          If the specified root directory does not already exist, the server
+          will attempt to create it.
+        form#g-new-fs-form(role="form")
+          .form-group
+            label.control-label(for="g-new-fs-name") Assetstore name
+            input#g-new-fs-name.input-sm.form-control(type="text", placeholder="Name")
+          .form-group
+            label.control-label(for="g-new-fs-root") Root directory
+            input#g-new-fs-root.input-sm.form-control(
+              type="text", placeholder="Root directory")
+          p#g-new-fs-error.g-validation-failed-message
+          input.g-new-assetstore-submit.btn.btn-sm.btn-primary(type="submit", value="Create")
+
+  .panel.panel-default
+    .panel-heading(data-toggle="collapse",
+        data-parent="#g-assetstore-accordion",
+        data-target="#g-create-s3-tab")
+      .panel-title
+        a
+          i.icon-upload-cloud
+          span Create new #[b Amazon S3] assetstore
+    #g-create-s3-tab.panel-collapse.collapse
+      .panel-body
+        p.
+          This type of assetstore keeps files in
+          an #[a(target="_blank", href="http://aws.amazon.com/s3/") Amazon S3]
+          bucket. The service defaults to s3.amazonaws.com. You can specify an
+          alternate service, including an optional protocol and port using the
+          form [http[s]://](service domain)[:(port)].
+        form#g-new-s3-form(role="form")
+          .form-group
+            label.control-label(for="g-new-s3-name") Assetstore name
+            input#g-new-s3-name.input-sm.form-control(type="text", placeholder="Name")
+          .form-group
+            label.control-label(for="g-new-s3-bucket") S3 bucket name
+            input#g-new-s3-bucket.input-sm.form-control(type="text", placeholder="Bucket")
+          .form-group
+            label.control-label(for="g-new-s3-prefix") Path prefix (optional)
+            input#g-new-s3-prefix.input-sm.form-control(type="text", placeholder="Prefix")
+          .form-group
+            label.control-label(for="g-new-s3-access-key-id") Access key ID
+            input#g-new-s3-access-key-id.input-sm.form-control(type="text", placeholder="Access key ID")
+          .form-group
+            label.control-label(for="g-new-s3-secret") Secret access key
+            input#g-new-s3-secret.input-sm.form-control(type="text", placeholder="Secret access key")
+          .form-group
+            label.control-label(for="g-new-s3-service") Service
+            input#g-new-s3-service.input-sm.form-control(type="text", placeholder="Service", title="The service if different from s3.amazonaws.com, such as storage.googleapis.com.")
+          .form-group
+            label.control-label(for="g-new-s3-region") Region
+            input#g-new-s3-region.input-sm.form-control(type="text", placeholder="Region")
+          .checkbox
+            label
+              input#g-new-s3-readonly(type="checkbox")
+              | Read only
+          .checkbox
+            label
+              input#g-new-s3-infercredentials(type="checkbox")
+              | Infer Credentials
+          .checkbox
+            label
+              input#g-new-s3-sse(type="checkbox")
+              | Server side encryption
+          .checkbox
+            label
+              input#g-new-s3-accelerated-endpoint(type="checkbox")
+              | Allow S3 accelerated endpoint
+
+          p#g-new-s3-error.g-validation-failed-message
+          input.g-new-assetstore-submit.btn.btn-sm.btn-primary(type="submit", value="Create")

@@ -1,13 +1,10 @@
 from ..constants import AssetstoreType
 from ..exceptions import NoAssetstoreAdapter
 from .filesystem_assetstore_adapter import FilesystemAssetstoreAdapter
-from .gridfs_assetstore_adapter import GridFsAssetstoreAdapter
 from .s3_assetstore_adapter import S3AssetstoreAdapter
-
 
 _assetstoreTable = {
     AssetstoreType.FILESYSTEM: FilesystemAssetstoreAdapter,
-    AssetstoreType.GRIDFS: GridFsAssetstoreAdapter,
     AssetstoreType.S3: S3AssetstoreAdapter
 }
 
@@ -64,7 +61,6 @@ def fileIndexFields():
     the different assetstore types.
     """
     indices = (FilesystemAssetstoreAdapter.fileIndexFields()
-               + GridFsAssetstoreAdapter.fileIndexFields()
                + S3AssetstoreAdapter.fileIndexFields())
     for idx in range(len(indices) - 1, -1):
         if indices[idx] in indices[: idx - 1]:

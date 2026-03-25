@@ -1,123 +1,82 @@
+.. _deployment:
+
 Deployment
 ==========
 
-This tutorial will deploy a production-ready Girder on Ubuntu 18.04,
-using the popular IT automation tool
-`Ansible <https://docs.ansible.com/ansible/latest/index.html>`_.
+Girder exposes a well-behaved ASGI application at ``girder.asgi:app``, so it can be deployed behind
+any ASGI server. There are many servers and managed cloud offerings that will run ASGI applications,
+and we won't attempt to enumerate them all. We like ``uvicorn``, so we provide an example of a
+simple invocation that serves Girder: ::
 
-Prerequisites
--------------
-Before running this, you must provide:
+    uvicorn girder.asgi:app
 
-* A "server": an (ideally fresh) Ubuntu 18.04 system, with:
+Because deployment requirements are very specific to each application, we consider configuration
+and tuning of the ASGI server to be out of scope of Girder's documentation.
 
-  * A ``sudo``-capable user.
-  * Inbound access from the internet on TCP port 80 and 443.
-  * Outbound access to the internet on UDP port 53. Many firewalls (e.g. the
-    `AWS EC2 default security group <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html#default-security-group>`_)
-    do not allow this by default.
-  * A DNS entry, so its public IP address is resolvable from the internet.
+A note on reverse proxy configuration
+-------------------------------------
 
-* A "controller": a machine with
-  `Ansible installed <https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html>`_
-  and SSH access to the server.
+Typically, one would serve Girder behind a reverse proxy that manages things like TLS termination.
+If you're setting up your own proxy rather than using a managed cloud offering, you will need to
+configure it to support Girder's behaviors, in particular for large file uploads and downloads.
+We provide an example nginx configuration block to show the settings that are necessary for Girder
+to work properly behind nginx:
 
-* An "assetstore" for storing uploaded files on Girder. This may be either:
+.. code-block:: nginx
 
-  * A location on the server's filesystem (which may be mounted external storage).
-  * An AWS S3 bucket.
+    location / {
+        proxy_set_header Host $proxy_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_pass http://localhost:8080/;
+        # Must set the following for WebSocket connections to work
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_set_header Connection '';
+        proxy_http_version 1.1;
+        chunked_transfer_encoding off;
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+        # proxy_request_buffering option only works on nginx >= 1.7.11
+        # but is necessary to support streaming requests
+        proxy_request_buffering off;
+    }
 
-* Credentials for an outbound SMTP server, ideally with STARTTLS or TLS.
+And under the ``http`` block add the following to ensure that websockets can connect:
 
-* An email address for the administrator of the system.
+.. code-block:: nginx
 
-Install with Ansible
---------------------
-Download Template Files
-+++++++++++++++++++++++
-Download the following files to a fresh directory on the controller machine:
+  map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+  }
 
-* `requirements.yml <https://raw.githubusercontent.com/girder/girder/master/devops/deployment-template/requirements.yml>`_
-* `hosts.yml <https://raw.githubusercontent.com/girder/girder/master/devops/deployment-template/hosts.yml>`_
-* `playbook.yml <https://raw.githubusercontent.com/girder/girder/master/devops/deployment-template/playbook.yml>`_
-* `provision.sh <https://raw.githubusercontent.com/girder/girder/master/devops/deployment-template/provision.sh>`_
+And under the containing ``server`` block, make sure to add the following rule:
 
-Make ``provision.sh`` executable:
+.. code-block:: nginx
 
-.. code-block:: bash
+    server {
+        client_max_body_size 500M;
+    }
 
-   chmod +x ./provision.sh
+Alternate Root URL
+------------------
 
-Setup Inventory
-+++++++++++++++
-Edit ``hosts.yml``, in accordance with the inline comments.
-This will configure Ansible to find and login to the server.
+To proxy girder to something other than the root of the url, set the ``GIRDER_URL_ROOT`` environment variable (e.g., ``GIRDER_URL_ROOT=girder``) and apply the appropriate rule to proxy to that location:
 
-Setup the Playbook
-++++++++++++++++++
-Edit ``playbook.yml``, in accordance with the inline comments.
-This will configure necessary details of the provisioning process.
+.. code-block:: nginx
 
-.. note::
-   Spoof ``nginx_registration_email`` at your own risk.
-   The email address is only provided to Let's Encrypt,
-   `to provide warnings in case HTTPS auto-renewal is failing <https://letsencrypt.org/docs/expiration-emails/>`_.
-   Under normal circumstances, no emails should ever be sent.
-
-.. note::
-   When specifying Girder plugins, PyPI package names of published Girder plugin packages should be
-   used whenever possible. See :doc:`plugins` for a list of official Girder plugins and associated
-   PyPI package names.
-
-   Unpublished plugin packages may be specified in accordance with
-   `pip's VCS support <https://pip.pypa.io/en/stable/reference/pip_install/#vcs-support>`_.
-
-Run the Playbook
-++++++++++++++++
-Run the ``provision.sh`` script, which will download external role files and run the playbook:
-
-.. code-block:: bash
-
-   ./provision.sh
-
-If the server user requires a password to use sudo, you may be prompted for a "become" password.
-Enter the password of the server user at this point.
-
-When the script completes, Girder should be fully installed! There is no need for additional setup
-via SSH.
-
-Configure the Server
---------------------
-Create a Site Admin User
-++++++++++++++++++++++++
-Visit the URL of the new Girder server in a web browser, click the Register link, and create a
-new user.
-
-The first user to be created on a Girder instance is automatically given site admin permissions.
-As a site admin, you should see an ``Admin console`` link in the left-side navigation bar.
-If you do not see this link while logged in, then another user has already have created an account
-first.
-
-Create an Assetstore
-++++++++++++++++++++
-While logged in as a site admin, visit ``Admin console`` -> ``Assetstores``. Here, create at least
-one new assetstore. See the :ref:`Assetstores <assetstores>` section for further details on
-assetstore types.
-
-No users can upload files until an assetstore is created, since all files in Girder must reside
-within an assetstore.
-
-Configure Email Sending
-+++++++++++++++++++++++
-While logged in as a site admin, visit ``Admin console`` -> ``Server Configuration``, then scroll
-down to the ``Email Delivery`` section. Here, enter the credentials for an outgoing SMTP server,
-then click ``Save`` at the bottom of the page.
-
-Outgoing email support is essential to allowing reset of forgotten passwords and, if enabled,
-email address validation for new users.
-
-Plugins
-+++++++
-To change settings for plugins, click the ``Admin console`` navigation link, then click
-``Plugins``. Here, you will see a list of installed plugins. If the plugin has
-settings, click on the associated gear icon to modify them.
+  location /girder/ {
+    proxy_set_header Host $proxy_host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_http_version 1.1;
+    proxy_pass http://localhost:8080/;
+  }

@@ -1,6 +1,6 @@
-import HierarchyWidget from '@girder/core/views/widgets/HierarchyWidget';
-import { restRequest } from '@girder/core/rest';
-import { wrap } from '@girder/core/utilities/PluginUtils';
+const HierarchyWidget = girder.views.widgets.HierarchyWidget;
+const { restRequest } = girder.rest;
+const { wrap } = girder.utilities.PluginUtils;
 
 /**
  * Allow selecting license when uploading an item.

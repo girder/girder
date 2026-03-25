@@ -1,10 +1,10 @@
 import pytest
-from pytest_girder.assertions import assertStatusOk
 
 from girder.api import access
 from girder.api.describe import Description, describeRoute
-from girder.api.rest import Resource, Prefix
+from girder.api.rest import Prefix, Resource
 from girder.plugin import GirderPlugin
+from pytest_girder.assertions import assertStatusOk
 
 
 class Resourceful(Resource):
@@ -33,10 +33,7 @@ class APIPrefix(GirderPlugin):
     '/prefix/resourceful',
     '/prefix/sibling'
 ])
-def testCustomWebRoot(route, server):
-    """
-    Tests the ability of plugins to serve their own custom server roots.
-    """
+def test_api_prefix_for_plugin(route, server):
     resp = server.request(route)
     assertStatusOk(resp)
     assert resp.json == ['custom REST route']

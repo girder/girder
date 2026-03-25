@@ -1,16 +1,20 @@
 import copy
 import datetime
 import json
+import logging
 import os
 
 from bson.objectid import ObjectId
-from .model_base import Model
+
 from girder import events
-from girder import logger
 from girder.constants import AccessType
-from girder.exceptions import ValidationException, GirderException
+from girder.exceptions import GirderException, ValidationException
 from girder.utility import acl_mixin
 from girder.utility.model_importer import ModelImporter
+
+from .model_base import Model
+
+logger = logging.getLogger(__name__)
 
 
 class Item(acl_mixin.AccessControlMixin, Model):
@@ -182,8 +186,10 @@ class Item(acl_mixin.AccessControlMixin, Model):
             size += file.get('size', 0)
         delta = size - item.get('size', 0)
         if delta:
-            logger.info('Item %s was wrong size: was %d, is %d' % (
-                item['_id'], item['size'], size))
+            logger.info(
+                'Item %s was wrong size: was %d, is %d',
+                item['_id'], item['size'], size
+            )
             item['size'] = size
             self.update({'_id': item['_id']}, update={'$set': {'size': size}})
             self.propagateSizeChange(item, delta)
@@ -264,7 +270,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
             if existing:
                 return existing
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
 
         if not isinstance(creator, dict) or '_id' not in creator:
             # Internal error -- this shouldn't be called without a user.
@@ -298,7 +304,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :type item: dict
         :returns: The item document that was edited.
         """
-        item['updated'] = datetime.datetime.utcnow()
+        item['updated'] = datetime.datetime.now(datetime.timezone.utc)
 
         # Validate and save the item
         return self.save(item)
@@ -344,7 +350,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         self.validateKeys(item['meta'])
 
-        item['updated'] = datetime.datetime.utcnow()
+        item['updated'] = datetime.datetime.now(datetime.timezone.utc)
 
         # Validate and save the item
         return self.save(item)
@@ -370,7 +376,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         for field in fields:
             item['meta'].pop(field, None)
 
-        item['updated'] = datetime.datetime.utcnow()
+        item['updated'] = datetime.datetime.now(datetime.timezone.utc)
 
         return self.save(item)
 
@@ -547,6 +553,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :type doc: dict
         """
         from .file import File
+
         # get correct size from child files
         size = 0
         fixes = 0

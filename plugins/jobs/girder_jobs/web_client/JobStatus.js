@@ -1,4 +1,4 @@
-import _ from 'underscore';
+const { _ } = girder;
 
 // The same job status enum as the server.
 var JobStatus = {

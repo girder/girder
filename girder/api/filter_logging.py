@@ -1,8 +1,8 @@
-import cherrypy
 import logging
 import re
 import time
 
+import cherrypy
 
 LoggingFilters = []
 SingletonRegexLoggingFilter = None
@@ -61,6 +61,9 @@ def addLoggingFilter(regex, frequency=None, duration=None):
     if not SingletonRegexLoggingFilter:
         SingletonRegexLoggingFilter = RegexLoggingFilter()
     for handler in cherrypy.log.access_log.handlers:
+        handler.addFilter(SingletonRegexLoggingFilter)
+    # Also apply to the root handler
+    for handler in logging.getLogger().handlers:
         handler.addFilter(SingletonRegexLoggingFilter)
 
     # Now add or adjust the regex filter.

@@ -1,16 +1,61 @@
----
-mongodb:
-  image: mongo:4.4
-  ports:
-    - "27017"
-  volumes:
-    - "/data/db"
+# This docker compose setup is exclusively intended to be used as a development environment
 
-girder:
-  build: .
-  dockerfile: Dockerfile
-  ports:
-    - "8080:8080"
-  links:
-    - "mongodb:mongodb"
-  command: --host 0.0.0.0 --database mongodb://mongodb:27017/girder
+services:
+  mongodb:
+    image: mongo:4.4
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  girder:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongodb
+    command: --host 0.0.0.0 --database mongodb://mongodb:27017/girder
+    environment:
+      - GIRDER_WORKER_BROKER=amqp://rabbitmq:5672
+      - GIRDER_WORKER_BACKEND=rpc://rabbitmq:5672
+      - GIRDER_NOTIFICATION_REDIS_URL=redis://redis:6379
+    volumes:
+      - .:/girder # Map local Girder files to the container
+      - /girder/girder/web/dist # but exclude the built web client files.
+      - assetstore:/assetstore
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_FEATURE_FLAGS=
+    ports:
+      - ${DOCKER_RABBITMQ_PORT-5672}:5672
+      - ${DOCKER_RABBITMQ_CONSOLE_PORT-15672}:15672
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq/mnesia
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  localworker:
+    build: .
+    depends_on:
+      - mongodb
+    entrypoint: celery -A girder_worker.app worker -Q local
+    working_dir: /girder
+    environment:
+      - GIRDER_WORKER_BROKER=amqp://rabbitmq:5672
+      - GIRDER_WORKER_BACKEND=rpc://rabbitmq:5672
+      - GIRDER_MONGO_URI=mongodb://mongodb:27017/girder
+      - GIRDER_NOTIFICATION_REDIS_URL=redis://redis:6379
+      - C_FORCE_ROOT=1
+
+volumes:
+  mongodb_data:
+  assetstore:
+  rabbitmq:
+  redis_data:

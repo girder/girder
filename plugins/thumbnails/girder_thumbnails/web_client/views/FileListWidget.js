@@ -1,14 +1,14 @@
-import $ from 'jquery';
-import Backbone from 'backbone';
-
-import FileListWidget from '@girder/core/views/widgets/FileListWidget';
-import router from '@girder/core/router';
-import { AccessType } from '@girder/core/constants';
-import { wrap } from '@girder/core/utilities/PluginUtils';
 
 import FileListWidgetCreateButtonTemplate from '../templates/fileListWidgetCreateButton.pug';
 
 import CreateThumbnailView from './CreateThumbnailView';
+
+const $ = girder.$;
+const Backbone = girder.Backbone;
+const FileListWidget = girder.views.widgets.FileListWidget;
+const { wrap } = girder.utilities.PluginUtils;
+const { AccessType } = girder.constants;
+const router = girder.router;
 
 // Add create thumbnail link to each file in the file list
 wrap(FileListWidget, 'render', function (render) {

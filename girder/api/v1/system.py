@@ -1,14 +1,15 @@
-import cherrypy
 import datetime
 import errno
-import girder
 import json
-import os
 import logging
+from functools import lru_cache
+from itertools import chain
+
+import cherrypy
 
 from girder import plugin
 from girder.api import access
-from girder.constants import TokenScope, ACCESS_FLAGS, VERSION
+from girder.constants import ACCESS_FLAGS, VERSION, TokenScope
 from girder.exceptions import GirderException, ResourcePathNotFound
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -18,14 +19,17 @@ from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.models.upload import Upload
 from girder.models.user import User
+from girder.plugin import getPluginStaticContent
 from girder.settings import SettingKey
 from girder.utility import config, system
 from girder.utility.progress import ProgressContext
+
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource
 
-ModuleStartTime = datetime.datetime.utcnow()
+ModuleStartTime = datetime.datetime.now(datetime.timezone.utc)
 LOG_BUF_SIZE = 65536
+logger = logging.getLogger(__name__)
 
 
 class System(Resource):
@@ -40,18 +44,30 @@ class System(Resource):
         self.route('GET', ('version',), self.getVersion)
         self.route('GET', ('configuration',), self.getConfigurationOption)
         self.route('GET', ('setting',), self.getSetting)
+        self.route('GET', ('public_settings',), self.getPublicSettings)
         self.route('GET', ('plugins',), self.getPlugins)
+        self.route('GET', ('plugin_static_files',), self.getPluginStaticFiles)
         self.route('GET', ('access_flag',), self.getAccessFlags)
         self.route('PUT', ('setting',), self.setSetting)
         self.route('GET', ('uploads',), self.getPartialUploads)
         self.route('DELETE', ('uploads',), self.discardPartialUploads)
         self.route('GET', ('check',), self.systemStatus)
         self.route('PUT', ('check',), self.systemConsistencyCheck)
-        self.route('GET', ('log',), self.getLog)
-        self.route('GET', ('log', 'level'), self.getLogLevel)
-        self.route('PUT', ('log', 'level'), self.setLogLevel)
         self.route('GET', ('setting', 'collection_creation_policy', 'access'),
                    self.getCollectionCreationPolicyAccess)
+
+    @access.public
+    @autoDescribeRoute(
+        Description('Get the list of plugin static files to be injected into the Girder app.'),
+        hide=True,
+    )
+    @lru_cache(maxsize=1)  # this serves data that is immutable after server startup
+    def getPluginStaticFiles(self):
+        contentObjects = list(getPluginStaticContent().values())
+        return {
+            'css': list(chain(*[content.css for content in contentObjects])),
+            'js': list(chain(*[content.js for content in contentObjects])),
+        }
 
     @access.admin
     @autoDescribeRoute(
@@ -119,6 +135,21 @@ class System(Resource):
         else:
             self.requireParams({'key': key})
             return Setting().get(key)
+
+    @access.public()
+    @autoDescribeRoute(
+        Description('Get publicly accessible settings.')
+    )
+    def getPublicSettings(self):
+        publicSettings = [
+            SettingKey.BRAND_NAME,
+            SettingKey.CONTACT_EMAIL_ADDRESS,
+            SettingKey.PRIVACY_NOTICE,
+            SettingKey.BANNER_COLOR,
+            SettingKey.REGISTRATION_POLICY,
+            SettingKey.ENABLE_PASSWORD_LOGIN,
+        ]
+        return {k: Setting().get(k) for k in publicSettings}
 
     @access.admin(scope=TokenScope.PLUGINS_READ)
     @autoDescribeRoute(
@@ -205,8 +236,7 @@ class System(Resource):
                 elif len(uploadList) < limit:
                     uploadList += untrackedList[:limit - len(uploadList)]
             except Exception:
-                girder.logger.debug(
-                    'Could not get untracked uploads for assetstore %s', assetstoreId)
+                logger.debug('Could not get untracked uploads for assetstore %s', assetstoreId)
         return uploadList
 
     @access.admin(scope=TokenScope.PARTIAL_UPLOAD_CLEAN)
@@ -260,8 +290,7 @@ class System(Resource):
             try:
                 uploadList += Upload().untrackedUploads('delete', assetstoreId)
             except Exception:
-                girder.logger.debug(
-                    'Could not delete untracked uploads for assetstore %s', assetstoreId)
+                logger.debug('Could not delete untracked uploads for assetstore %s', assetstoreId)
         return uploadList
 
     @access.public
@@ -321,82 +350,7 @@ class System(Resource):
         # * check that all groups contain valid users
         # * check that all resources validate
         # * for filesystem assetstores, find files that are not tracked.
-        # * for gridfs assetstores, find chunks that are not tracked.
         # * for s3 assetstores, find elements that are not tracked.
-
-    @access.admin
-    @autoDescribeRoute(
-        Description('Show the most recent contents of the server logs.')
-        .notes('Must be a system administrator to call this.')
-        .param('bytes', 'Controls how many bytes (from the end of the log) to show. '
-               'Pass 0 to show the whole log.', dataType='integer', required=False, default=4096)
-        .param('log', 'Which log to tail.', enum=('error', 'info'),
-               required=False, default='error')
-        .errorResponse('You are not a system administrator.', 403)
-    )
-    def getLog(self, bytes, log):
-        path = girder.getLogPaths()[log]
-        filesize = os.path.getsize(path)
-        length = int(bytes) or filesize
-        filesize1 = 0
-        if length > filesize:
-            path1 = path + '.1'
-            if os.path.exists(path1):
-                filesize1 = os.path.getsize(path1)
-
-        def stream():
-            yield '=== Last %d bytes of %s: ===\n\n' % (
-                min(length, filesize + filesize1), path
-            )
-
-            readlength = length
-            if readlength > filesize and filesize1:
-                readlength = length - filesize
-                with open(path1, 'rb') as f:
-                    if readlength < filesize1:
-                        f.seek(-readlength, os.SEEK_END)
-                    while True:
-                        data = f.read(LOG_BUF_SIZE)
-                        if not data:
-                            break
-                        yield data
-                readlength = filesize
-            with open(path, 'rb') as f:
-                if readlength < filesize:
-                    f.seek(-readlength, os.SEEK_END)
-                while True:
-                    data = f.read(LOG_BUF_SIZE)
-                    if not data:
-                        break
-                    yield data
-        return stream
-
-    @access.admin
-    @autoDescribeRoute(
-        Description('Get the current log level.')
-        .notes('Must be a system administrator to call this.')
-        .errorResponse('You are not a system administrator.', 403)
-    )
-    def getLogLevel(self):
-        level = girder.logger.getEffectiveLevel()
-        return logging.getLevelName(level)
-
-    @access.admin
-    @autoDescribeRoute(
-        Description('Set the current log level.')
-        .notes('Must be a system administrator to call this.')
-        .param('level', 'The new level to set.',
-               enum=['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'],
-               default='INFO')
-        .errorResponse('You are not a system administrator.', 403)
-    )
-    def setLogLevel(self, level):
-        level = logging.getLevelName(level)
-        for logger in (girder.logger, cherrypy.log.access_log, cherrypy.log.error_log):
-            logger.setLevel(level)
-            for handler in logger.handlers:
-                handler.setLevel(level)
-        return logging.getLevelName(level)
 
     @access.admin
     @autoDescribeRoute(

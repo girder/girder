@@ -1,12 +1,11 @@
-/* eslint-disable import/first */
+import ConfigView from './views/ConfigView';
 
-import router from '@girder/core/router';
-import events from '@girder/core/events';
-import { exposePluginConfig } from '@girder/core/utilities/PluginUtils';
+const router = girder.router;
+const events = girder.events;
+const { exposePluginConfig } = girder.utilities.PluginUtils;
 
 exposePluginConfig('item_licenses', 'plugins/item_licenses/config');
 
-import ConfigView from './views/ConfigView';
 router.route('plugins/item_licenses/config', 'itemLicensesConfig', function () {
     events.trigger('g:navigateTo', ConfigView);
 });

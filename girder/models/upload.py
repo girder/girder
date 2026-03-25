@@ -1,15 +1,20 @@
 import datetime
 import io
+import logging
+
 from bson.objectid import ObjectId
 
-from girder import events, logger
+from girder import events
 from girder.api import rest
-from .model_base import Model
-from girder.exceptions import GirderException, ValidationException, NoAssetstoreAdapter
+from girder.exceptions import GirderException, NoAssetstoreAdapter, ValidationException
 from girder.settings import SettingKey
 from girder.utility import RequestBodyStream
 from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import noProgress
+
+from .model_base import Model
+
+logger = logging.getLogger(__name__)
 
 
 class Upload(Model):
@@ -102,7 +107,7 @@ class Upload(Model):
         if doc['received'] > doc['size']:
             raise ValidationException('Received too many bytes.')
 
-        doc['updated'] = datetime.datetime.utcnow()
+        doc['updated'] = datetime.datetime.now(datetime.timezone.utc)
 
         return doc
 
@@ -130,9 +135,10 @@ class Upload(Model):
             adapter for customization of the upload request.
         :type uploadExtraParameters: Optional[dict]
         """
+        from girder.utility import assetstore_utilities
+
         from .assetstore import Assetstore
         from .file import File
-        from girder.utility import assetstore_utilities
 
         assetstore = Assetstore().load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
@@ -156,8 +162,9 @@ class Upload(Model):
         Requests the offset that should be used to resume uploading. This
         makes the request from the assetstore adapter.
         """
-        from .assetstore import Assetstore
         from girder.utility import assetstore_utilities
+
+        from .assetstore import Assetstore
 
         assetstore = Assetstore().load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
@@ -174,10 +181,11 @@ class Upload(Model):
         :type assetstore: dict
         :returns: The file object that was created.
         """
+        from girder.utility import assetstore_utilities
+
         from .assetstore import Assetstore
         from .file import File
         from .item import Item
-        from girder.utility import assetstore_utilities
 
         events.trigger('model.upload.finalize', upload)
         if assetstore is None:
@@ -196,7 +204,7 @@ class Upload(Model):
 
             # Update file info
             file['creatorId'] = upload['userId']
-            file['created'] = datetime.datetime.utcnow()
+            file['created'] = datetime.datetime.now(datetime.timezone.utc)
             file['assetstoreId'] = assetstore['_id']
             file['size'] = upload['size']
             # If the file was previously imported, it is no longer.
@@ -235,10 +243,12 @@ class Upload(Model):
         if '_id' in upload:
             self.remove(upload)
 
-        logger.info('Upload complete. Upload=%s File=%s User=%s' % (
-            upload['_id'], file['_id'], upload['userId']))
+        logger.info(
+            'Upload complete. Upload=%s File=%s User=%s',
+            upload['_id'], file['_id'], upload['userId']
+        )
 
-        # Add an async event for handlers that wish to process this file.
+        # Add an event for handlers that wish to process this file.
         eventParams = {
             'file': file,
             'assetstore': assetstore,
@@ -247,7 +257,7 @@ class Upload(Model):
         }
         if 'reference' in upload:
             eventParams['reference'] = upload['reference']
-        events.daemon.trigger('data.process', eventParams)
+        events.trigger('data.process', eventParams)
 
         return file
 
@@ -298,7 +308,7 @@ class Upload(Model):
 
         assetstore = self.getTargetAssetstore('file', file, assetstore)
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
 
         if 'attachedToId' in file:
             parent = ModelImporter.model(
@@ -365,7 +375,7 @@ class Upload(Model):
 
         assetstore = self.getTargetAssetstore(parentType, parent, assetstore)
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
 
         if not mimeType:
             mimeType = 'application/octet-stream'
@@ -475,7 +485,7 @@ class Upload(Model):
                             query[key] = id
             if 'minimumAge' in filters:
                 query['updated'] = {
-                    '$lte': datetime.datetime.utcnow() - datetime.timedelta(
+                    '$lte': datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(
                         days=float(filters['minimumAge']))
                     }
         # Perform the find; we'll do access-based filtering of the result
@@ -490,8 +500,9 @@ class Upload(Model):
         :param upload: The upload document to remove.
         :type upload: dict
         """
-        from .assetstore import Assetstore
         from girder.utility import assetstore_utilities
+
+        from .assetstore import Assetstore
 
         assetstore = Assetstore().load(upload['assetstoreId'])
         # If the assetstore was deleted, the upload may still be in our
@@ -519,8 +530,9 @@ class Upload(Model):
         :type assetstoreId: str
         :returns: a list of items that were removed or could be removed.
         """
-        from .assetstore import Assetstore
         from girder.utility import assetstore_utilities
+
+        from .assetstore import Assetstore
 
         results = []
         knownUploads = list(self.list())

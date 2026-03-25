@@ -1,8 +1,8 @@
-import HeaderUserView from '@girder/core/views/layout/HeaderUserView';
-import { getCurrentUser } from '@girder/core/auth';
-import { wrap } from '@girder/core/utilities/PluginUtils';
-
 import HeaderUserViewMenuTemplate from '../templates/headerUserViewMenu.pug';
+
+const HeaderUserView = girder.views.layout.HeaderUserView;
+const { getCurrentUser } = girder.auth;
+const { wrap } = girder.utilities.PluginUtils;
 
 /**
  * Add an entry to the user dropdown menu to navigate to user's job list view.

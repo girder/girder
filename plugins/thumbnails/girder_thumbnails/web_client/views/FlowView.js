@@ -1,14 +1,13 @@
-import $ from 'jquery';
-
-import FileModel from '@girder/core/models/FileModel';
-import View from '@girder/core/views/View';
-import { AccessType } from '@girder/core/constants';
-import { confirm } from '@girder/core/dialog';
-import events from '@girder/core/events';
-
 import FlowViewTemplate from '../templates/flowView.pug';
 
 import '../stylesheets/flowView.styl';
+
+const $ = girder.$;
+const View = girder.views.View;
+const { confirm } = girder.dialog;
+const events = girder.events;
+const FileModel = girder.models.FileModel;
+const { AccessType } = girder.constants;
 
 var FlowView = View.extend({
     events: {

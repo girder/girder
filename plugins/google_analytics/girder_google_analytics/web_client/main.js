@@ -1,9 +1,8 @@
-import $ from 'jquery';
-
-import events from '@girder/core/events';
-import { restRequest } from '@girder/core/rest';
-
 import './routes';
+
+const $ = girder.$;
+const events = girder.events;
+const { restRequest } = girder.rest;
 
 function initGoogleAnalytics() {
     restRequest({

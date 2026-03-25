@@ -3,53 +3,54 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${brandName | h} - REST API Documentation</title>
-    <link rel="stylesheet" href="${staticPublicPath}/built/swagger/swagger-ui.css">
-    <link rel="stylesheet" href="${staticPublicPath}/built/swagger/docs.css">
-    <link rel="icon" type="image/png" href="${staticPublicPath}/built/Girder_Favicon.png">
-    <style type="text/css">
-      .response_throbber {
-        content: url("${staticPublicPath}/built/swagger/images/throbber.gif");
-      }
-      #api_info {
-        display: none;
-      }
-    </style>
+    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.20.1/swagger-ui.css">
+    <link rel="icon" type="image/png" href="/Girder_Favicon.png">
+    <script src="https://unpkg.com/swagger-ui-dist@5.20.1/swagger-ui-bundle.js"></script>
   </head>
   <body>
-    <div class="docs-header">
-      <%block name="docsHeader">
-      <span>${brandName | h} REST API Documentation</span>
-      <i class="icon-book-alt right"></i>
-      <div id="g-global-info-apiroot" style="display: none">%HOST%/${apiRoot}</div>
-      </%block>
-    </div>
-    <div class="docs-body">
-      <%block name="docsBody">
-      <p>Below you will find the list of all of the resource types exposed by
-      the ${brandName | h} RESTful Web API. Click any of the resource links to open up a
-      list of all available endpoints related to each resource type.</p>
-      <p>Clicking any of those endpoints will display detailed documentation
-      about the purpose of each endpoint and the input parameters and output
-      values. You can also call API endpoints directly from this page by typing
-      in the parameters you wish to pass and then clicking the "Try it out!"
-      button.</p>
-      <p><b>Warning:</b> This is not a sandbox&mdash;calls that you make from
-      this page are the same as calling the API with any other client, so
-      update or delete calls that you make will affect the actual data on the
-      server.</p>
-      </%block>
-    </div>
-    <div class="swagger-section">
-      <div id="swagger-ui-container"
-          class="swagger-ui-wrap docs-swagger-container">
-      </div>
-    </div>
-    <script src="${staticPublicPath}/built/swagger/jquery.slim.min.js"></script>
-    <script src="${staticPublicPath}/built/swagger/underscore-min.js"></script>
-    <script src="${staticPublicPath}/built/swagger/swagger-ui-bundle.js"></script>
-    <script src="${staticPublicPath}/built/swagger/girder-swagger.js"></script>
-    % if mode == 'testing':
-    <script src="${staticPublicPath}/built/testing.min.js"></script>
-    % endif
+    <div id="swagger-ui-container"></div>
+    <script type="text/javascript">
+      (function () {
+        var swaggerUi = new window.SwaggerUIBundle({
+          url: '${urlRoot}/api/v1/describe',
+          dom_id: '#swagger-ui-container',
+          docExpansion: 'none',
+          defaultModelRendering: 'model',
+          validatorUrl: null,
+          defaultModelsExpandDepth: -1,
+          deepLinking: true,
+          tryItOutEnabled: true,
+          apisSorter: 'alpha',
+          operationsSorter: (op1, op2) => {
+            // Comparator to sort operations by path and method.
+            // Methods not in the pre-defined ordered list are placed at the
+            // end and sorted alphabetically.
+            var methodOrder = ['get', 'put', 'post', 'patch', 'delete'];
+            var pathCmp = op1.get('path').localeCompare(op2.get('path'));
+            if (pathCmp !== 0) {
+              return pathCmp;
+            }
+            var index1 = methodOrder.indexOf(op1.get('method'));
+            var index2 = methodOrder.indexOf(op2.get('method'));
+            if (index1 > -1 && index2 > -1) {
+              return index1 > index2 ? 1 : (index1 < index2 ? -1 : 0);
+            }
+            if (index1 > -1) {
+              return -1;
+            }
+            if (index2 > -1) {
+              return 1;
+            }
+            return op1.get('method').localeCompare(op2.get('method'));
+          },
+          onComplete: function () {
+           const girderToken = window.localStorage.getItem('girderToken');
+            if (girderToken) {
+              swaggerUi.preauthorizeApiKey('Girder-Token', girderToken);
+            }
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

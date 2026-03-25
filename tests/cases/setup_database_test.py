@@ -1,9 +1,10 @@
-from .. import base
 from girder.models.collection import Collection
 from girder.models.file import File
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.user import User
+
+from .. import base
 
 
 class SetupDatabaseTestCase(base.TestCase):

@@ -2,6 +2,7 @@ import os
 import tempfile
 
 import pytest
+
 from girder.models.folder import Folder
 from girder.utility import path as path_util
 from pytest_girder.assertions import assertStatusOk
@@ -30,7 +31,7 @@ def temp_files():
     os.rmdir(temp_dir)
 
 
-def test_mimetype_guessing(server, admin, fsAssetstore, temp_files):
+def test_mimetype_guessing(server, admin, fsAssetstore, temp_files, eagerWorkerTasks):
     """Test that the assetstore correctly guesses the mimetype of files."""
     # Upload files
 

@@ -1,0 +1,3 @@
+prune girder_homepage/web_client
+include girder_homepage/web_client/dist/girder-plugin-homepage.umd.cjs
+include girder_homepage/web_client/dist/style.css

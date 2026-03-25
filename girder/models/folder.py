@@ -4,12 +4,14 @@ import json
 import os
 
 from bson.objectid import ObjectId
-from .model_base import AccessControlledModel
+
 from girder import events
 from girder.constants import AccessType
-from girder.exceptions import ValidationException, GirderException
+from girder.exceptions import GirderException, ValidationException
 from girder.utility.model_importer import ModelImporter
-from girder.utility.progress import noProgress, setResponseTimeLimit
+from girder.utility.progress import noProgress
+
+from .model_base import AccessControlledModel
 
 
 class Folder(AccessControlledModel):
@@ -195,7 +197,7 @@ class Folder(AccessControlledModel):
             for key in toDelete:
                 del folder['meta'][key]
 
-        folder['updated'] = datetime.datetime.utcnow()
+        folder['updated'] = datetime.datetime.now(datetime.timezone.utc)
 
         self.validateKeys(folder['meta'])
 
@@ -223,7 +225,7 @@ class Folder(AccessControlledModel):
         for field in fields:
             folder['meta'].pop(field, None)
 
-        folder['updated'] = datetime.datetime.utcnow()
+        folder['updated'] = datetime.datetime.now(datetime.timezone.utc)
 
         return self.save(folder)
 
@@ -335,14 +337,12 @@ class Folder(AccessControlledModel):
         """
         from .item import Item
 
-        setResponseTimeLimit()
         # Delete all child items
         itemModel = Item()
         items = itemModel.find({
             'folderId': folder['_id']
         })
         for item in items:
-            setResponseTimeLimit()
             itemModel.remove(item, progress=progress, **kwargs)
             if progress:
                 progress.update(increment=1, message='Deleted item %s' % item['name'])
@@ -502,7 +502,7 @@ class Folder(AccessControlledModel):
             parent['baseParentId'] = parent['_id']
             parent['baseParentType'] = parentType
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc)
 
         if creator is None:
             creatorId = None
@@ -548,7 +548,7 @@ class Folder(AccessControlledModel):
         :type folder: dict
         :returns: The folder document that was edited.
         """
-        folder['updated'] = datetime.datetime.utcnow()
+        folder['updated'] = datetime.datetime.now(datetime.timezone.utc)
 
         # Validate and save the folder
         return self.save(folder)
@@ -753,7 +753,6 @@ class Folder(AccessControlledModel):
                             folders.
         :returns: the new folder document.
         """
-        setResponseTimeLimit()
         if parentType is None:
             parentType = srcFolder['parentCollection']
         parentType = parentType.lower()
@@ -813,7 +812,6 @@ class Folder(AccessControlledModel):
         # copy items
         itemModel = Item()
         for item in self.childItems(folder=srcFolder):
-            setResponseTimeLimit()
             itemModel.copyItem(item, creator, folder=newFolder)
             if progress:
                 progress.update(increment=1, message='Copied item ' + item['name'])

@@ -1,6 +1,6 @@
-import View from '@girder/core/views/View';
-
 import ItemLicenseWidgetTemplate from '../templates/itemLicenseWidget.pug';
+
+const View = girder.views.View;
 
 /**
  * Item widget extensions for licenses.
