@@ -102,7 +102,7 @@
         "**/dist/",
         "**/node_modules/",
         "**/build/",
-        "_build/",
+        "build/",
         ".tox/",
         "**/__pycache__/",
         "**/playwright-report"

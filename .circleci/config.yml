@@ -136,7 +136,7 @@ jobs:
       - build-plugins
       - run:
           name: Create Girder build directory
-          command: mkdir _build
+          command: mkdir build
       - run:
           name: Run CTest
           command: >-
@@ -148,7 +148,7 @@ jobs:
             TEST_GROUP: python
             PYTHON_VERSION: 3.10
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
-          working_directory: _build
+          working_directory: build
       - persist_to_workspace:
           root: /home/circleci/project
           paths:
@@ -259,7 +259,7 @@ jobs:
           working_directory: girder/girder/web
       - run:
           name: Create Girder build directory
-          command: mkdir _build
+          command: mkdir build
       - run:
           name: CMake
           command: >-
@@ -267,11 +267,11 @@ jobs:
             ../girder
             -DPYTHON_VERSION=3.10
             -DPYTHON_EXECUTABLE=$CIRCLE_WORKING_DIRECTORY/girder_env/bin/python
-          working_directory: _build
+          working_directory: build
       - run:
           name: make
           command: make --jobs=3
-          working_directory: _build
+          working_directory: build
       - run:
           name: CTest
           command: >-
@@ -279,7 +279,7 @@ jobs:
             --parallel 3
             --extra-verbose
             --label-regex girder_integration
-          working_directory: _build
+          working_directory: build
           environment:
             JASMINE_TIMEOUT: 15000
       - store_artifacts:
