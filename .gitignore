@@ -1,6 +1,5 @@
 # Build outputs
 /build/
-_build/
 /.tox/
 **/dist/
 **/.eggs/
