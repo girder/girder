@@ -18,8 +18,8 @@
     "devDependencies": {
         "@girder/eslint-config": "^3.1.21",
         "@girder/pug-lint-config": "^3.1.21",
-        "@vue/eslint-config-prettier": "^7.1.0",
-        "@vue/eslint-config-typescript": "^11.0.3",
+        "@vue/eslint-config-prettier": "^10.0.0",
+        "@vue/eslint-config-typescript": "^13.0.0",
         "docdash": "^2.0.2",
         "eslint": "^8.20.0",
         "eslint-config-semistandard": "^17.0.0",
@@ -32,8 +32,8 @@
         "get-port": "^7.2.0",
         "jsdoc": "^4.0.5",
         "pug-lint": "^2.6.0",
-        "stylelint": "^15.11.0",
-        "stylelint-stylus": "^0.18.0"
+        "stylelint": "^16.0.0",
+        "stylelint-stylus": "^1.0.0"
     },
     "scripts": {
         "build": "echo Run build in the web directory and for each plugin",
