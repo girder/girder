@@ -1,0 +1,30 @@
+{
+  "source": {
+    "include": ["girder/web/src"]
+  },
+  "opts": {
+    "destination": "build/docs/web",
+    "readme": "README.rst",
+    "template": "node_modules/docdash",
+    "recurse": true
+  },
+  "templates": {
+    "cleverLinks": true,
+    "default": {
+      "includeDate": false
+    }
+  },
+  "docdash": {
+    "title": "Girder",
+    "description": "Web-based data management platform",
+    "logo": "girder/web_client/src/assets/Girder_Mark.png",
+    "projectUrl": "https://github.com/girder/girder",
+    "meta": {
+      "title": "Girder Documentation"
+    },
+    "search": true,
+    "collapse": true,
+    "wrap": false,
+    "static": true
+  }
+}
