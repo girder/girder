@@ -29,7 +29,7 @@ _girder_imports |= {
 master_doc = 'index'
 
 project = 'Girder'
-copyright = '2014-2018, Kitware, Inc.'
+copyright = '2014-2026, Kitware, Inc.'
 release = _girder_version
 version = '.'.join(release.split('.')[:2])
 
