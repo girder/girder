@@ -28,5 +28,15 @@ export default defineConfig({
       name: 'GirderPluginWorker',
       fileName: 'girder-plugin-worker',
     },
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            return 'style.css';
+          }
+          return '[name].[ext]';
+        },
+      },
+    },
   }
 });

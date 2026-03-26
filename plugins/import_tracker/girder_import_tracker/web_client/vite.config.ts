@@ -18,15 +18,25 @@ function pugPlugin() {
 }
 
 export default defineConfig({
-    plugins: [
-        pugPlugin(),
-    ],
-    build: {
-        sourcemap: !process.env.SKIP_SOURCE_MAPS,
-        lib: {
-            entry: resolve(__dirname, 'main.js'),
-            name: 'GirderPluginImportTracker',
-            fileName: 'girder-plugin-import-tracker',
+  plugins: [
+    pugPlugin(),
+  ],
+  build: {
+      sourcemap: !process.env.SKIP_SOURCE_MAPS,
+      lib: {
+        entry: resolve(__dirname, 'main.js'),
+        name: 'GirderPluginImportTracker',
+        fileName: 'girder-plugin-import-tracker',
+      },
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            return 'style.css';
+          }
+          return '[name].[ext]';
         },
+      },
     },
+  },
 });

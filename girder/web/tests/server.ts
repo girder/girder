@@ -68,7 +68,9 @@ export const setupServer = () => {
     await new Promise<void>((resolve) => {
       mongoshProcess?.on('close', (code) => {
         if (code === 0) {
-          serverProcess.serverLogs.push('mongo database cleaned up');
+          if (serverProcess) {
+            serverProcess.serverLogs.push('mongo database cleaned up');
+          }
         } else {
           console.error('mongo database cleanup failed with code', code);
         }
