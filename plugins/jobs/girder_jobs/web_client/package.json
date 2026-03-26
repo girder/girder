@@ -33,7 +33,7 @@
   "author": "",
   "dependencies": {
     "@girder/core": "file:../../../../girder/web",
-    "vega-lib": "^3.3.1"
+    "vega": "^6.0.0"
   },
   "devDependencies": {
     "nib": "^1.1.2",

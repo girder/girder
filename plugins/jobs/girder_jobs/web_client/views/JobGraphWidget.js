@@ -1,7 +1,5 @@
-import {
-    parse,
-    View as VegaView
-} from 'vega-lib/build/vega';
+import { parse } from 'vega';
+import { View as VegaView } from 'vega-view';
 
 import JobStatus from '../JobStatus';
 import JobsGraphWidgetTemplate from '../templates/jobsGraphWidget.pug';
