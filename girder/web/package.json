@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@girder/fontello": "^5.0.0-a7",
-    "apexcharts": "^4.5.0",
+    "apexcharts": "^5.0.0",
     "backbone": "~1.4.0",
     "bootstrap": "~3.4.1",
     "bootstrap-switch": "~3.3.4",
