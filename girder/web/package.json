@@ -42,7 +42,7 @@
     "bootstrap-switch": "~3.3.4",
     "eonasdan-bootstrap-datetimepicker": "~4.17",
     "jquery": "~3.5.1",
-    "jsoneditor": "~5.9.3",
+    "jsoneditor": "~10.4.2",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",
     "qrcode": "~1.4.4",
