@@ -11,13 +11,13 @@ Installation of Girder's server has the following system dependencies:
           of dependencies. The Girder development team can only provide bugfixes and support
           for this environment.
 
-* `Ubuntu <https://releases.ubuntu.com/>`_ 20.04
+* `Ubuntu <https://releases.ubuntu.com/>`_ 24.04
 
   * Girder interacts with some system libraries (particularly
     `OpenSSL <https://packages.ubuntu.com/bionic/openssl>`_) at a very low level, so other
     operating system distributions and versions may not be compatible.
 
-* `Python <https://www.python.org>`_ v3.8
+* `Python <https://www.python.org>`_ v3.10
 
   * This is necessary to run most of the server software.
 
