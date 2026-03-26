@@ -33,7 +33,7 @@
     "author": "",
     "dependencies": {
       "@girder/core": "file:../../../../girder/web",
-      "apexcharts": "^4.5.0"
+      "apexcharts": "^5.0.0"
     },
     "devDependencies": {
       "pug": "^3.0.2",
