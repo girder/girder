@@ -1,11 +1,30 @@
 import importlib.metadata
 import importlib.resources
+import subprocess
+import sys
+from pathlib import Path
 
 import packaging.requirements
 from sphinx.domains.python import PythonDomain
 
 # needs_sphinx = '1.6'
 
+
+def _generate_env_vars_table():
+    """Run list_env_setting.py and capture RST output."""
+    docs_dir = Path(__file__).parent
+    generated_env_vars_file = docs_dir / '_generated_env_vars.md'
+    result = subprocess.run(
+        [sys.executable, str(docs_dir / 'list_env_settings.py'),
+         str(docs_dir.parent)],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    generated_env_vars_file.write_text(result.stdout)
+
+
+_generate_env_vars_table()
 
 # Get package imports and version
 _girder_package = importlib.metadata.distribution('girder')
@@ -33,7 +52,9 @@ copyright = '2014-2026, Kitware, Inc.'
 release = _girder_version
 version = '.'.join(release.split('.')[:2])
 
+html_static_path = ['static']
 html_theme = 'sphinx_rtd_theme'
+html_css_files = ['custom.css']
 html_favicon = 'favicon.ico'
 
 latex_documents = [
@@ -42,6 +63,7 @@ latex_documents = [
 
 # Setup Sphinx extensions (and associated variables)
 extensions = [
+    'myst_parser',
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
@@ -54,8 +76,11 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
 }
 
+myst_enable_extensions = ['deflist']
 
 # Override the resolution of some targets
+
+
 class PatchedPythonDomain(PythonDomain):
     def resolve_xref(self, env, fromdocname, builder, typ, target, node, contnode):
         # References to "list" may ambiguously resolve to several Girder methods named "list",

@@ -24,3 +24,6 @@ __pycache__
 
 # Generated during CI
 /py-env-checksum
+
+# docs build
+docs/_generated_env_vars.md
