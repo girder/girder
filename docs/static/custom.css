@@ -1,0 +1,16 @@
+body {
+  color: #000;
+}
+.rst-content code.literal {
+  color: inherit;
+}
+.full-width-section {
+  background: #FCFCFC;
+  width: 100vw;
+  max-width: none;
+  padding-bottom: 10px;
+  box-sizing: border-box;
+}
+.full-width-section .wy-table-responsive {
+  width: 100%;
+}
