@@ -35,7 +35,7 @@
     "prepublishOnly": "npm run build-lib"
   },
   "dependencies": {
-    "@girder/fontello": "^5.0.0-a7",
+    "@girder/fontello": "^5.0.0",
     "apexcharts": "^5.0.0",
     "backbone": "^1.4.0",
     "bootstrap": "~3.4.1",
