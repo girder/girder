@@ -1,8 +1,9 @@
-import click
 import logging
 import os
-import paramiko
 import sys
+
+import click
+import paramiko
 
 from girder.api.sftp import SftpServer
 

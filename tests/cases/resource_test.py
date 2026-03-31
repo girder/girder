@@ -5,13 +5,13 @@ import os
 import urllib.parse
 import zipfile
 
-from .. import base
-
-from girder.models.collection import Collection
-from girder.models.item import Item
-from girder.models.folder import Folder
-from girder.models.user import User
 import girder.utility.ziputil
+from girder.models.collection import Collection
+from girder.models.folder import Folder
+from girder.models.item import Item
+from girder.models.user import User
+
+from .. import base
 
 
 def setUpModule():

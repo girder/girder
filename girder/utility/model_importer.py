@@ -7,8 +7,8 @@ def _registerCoreModels():
     if _coreModelsRegistered:
         return
 
-    from girder.models import (
-        api_key, assetstore, collection, file, folder, group, item, setting, token, upload, user)
+    from girder.models import (api_key, assetstore, collection, file, folder, group, item, setting,
+                               token, upload, user)
 
     ModelImporter.registerModel('api_key', api_key.ApiKey)
     ModelImporter.registerModel('assetstore', assetstore.Assetstore)

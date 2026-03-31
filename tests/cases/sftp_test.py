@@ -1,15 +1,17 @@
-import paramiko
 import io
 import socket
 import stat
 import threading
 
-from .. import base
+import paramiko
+
 from girder.api import sftp
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.upload import Upload
 from girder.models.user import User
+
+from .. import base
 
 server = None
 TEST_PORT = 10551

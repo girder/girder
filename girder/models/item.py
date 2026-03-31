@@ -5,12 +5,14 @@ import logging
 import os
 
 from bson.objectid import ObjectId
-from .model_base import Model
+
 from girder import events
 from girder.constants import AccessType
-from girder.exceptions import ValidationException, GirderException
+from girder.exceptions import GirderException, ValidationException
 from girder.utility import acl_mixin
 from girder.utility.model_importer import ModelImporter
+
+from .model_base import Model
 
 logger = logging.getLogger(__name__)
 
@@ -551,6 +553,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
         :type doc: dict
         """
         from .file import File
+
         # get correct size from child files
         size = 0
         fixes = 0

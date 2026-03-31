@@ -1,16 +1,18 @@
 import datetime
 import io
 import logging
+
 from bson.objectid import ObjectId
 
 from girder import events
 from girder.api import rest
-from .model_base import Model
-from girder.exceptions import GirderException, ValidationException, NoAssetstoreAdapter
+from girder.exceptions import GirderException, NoAssetstoreAdapter, ValidationException
 from girder.settings import SettingKey
 from girder.utility import RequestBodyStream
 from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import noProgress
+
+from .model_base import Model
 
 logger = logging.getLogger(__name__)
 
@@ -133,9 +135,10 @@ class Upload(Model):
             adapter for customization of the upload request.
         :type uploadExtraParameters: Optional[dict]
         """
+        from girder.utility import assetstore_utilities
+
         from .assetstore import Assetstore
         from .file import File
-        from girder.utility import assetstore_utilities
 
         assetstore = Assetstore().load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
@@ -159,8 +162,9 @@ class Upload(Model):
         Requests the offset that should be used to resume uploading. This
         makes the request from the assetstore adapter.
         """
-        from .assetstore import Assetstore
         from girder.utility import assetstore_utilities
+
+        from .assetstore import Assetstore
 
         assetstore = Assetstore().load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
@@ -177,10 +181,11 @@ class Upload(Model):
         :type assetstore: dict
         :returns: The file object that was created.
         """
+        from girder.utility import assetstore_utilities
+
         from .assetstore import Assetstore
         from .file import File
         from .item import Item
-        from girder.utility import assetstore_utilities
 
         events.trigger('model.upload.finalize', upload)
         if assetstore is None:
@@ -495,8 +500,9 @@ class Upload(Model):
         :param upload: The upload document to remove.
         :type upload: dict
         """
-        from .assetstore import Assetstore
         from girder.utility import assetstore_utilities
+
+        from .assetstore import Assetstore
 
         assetstore = Assetstore().load(upload['assetstoreId'])
         # If the assetstore was deleted, the upload may still be in our
@@ -524,8 +530,9 @@ class Upload(Model):
         :type assetstoreId: str
         :returns: a list of items that were removed or could be removed.
         """
-        from .assetstore import Assetstore
         from girder.utility import assetstore_utilities
+
+        from .assetstore import Assetstore
 
         results = []
         knownUploads = list(self.list())

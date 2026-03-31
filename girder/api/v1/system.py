@@ -1,14 +1,15 @@
-import cherrypy
 import datetime
 import errno
-from functools import lru_cache
-from itertools import chain
 import json
 import logging
+from functools import lru_cache
+from itertools import chain
+
+import cherrypy
 
 from girder import plugin
 from girder.api import access
-from girder.constants import TokenScope, ACCESS_FLAGS, VERSION
+from girder.constants import ACCESS_FLAGS, VERSION, TokenScope
 from girder.exceptions import GirderException, ResourcePathNotFound
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -22,6 +23,7 @@ from girder.plugin import getPluginStaticContent
 from girder.settings import SettingKey
 from girder.utility import config, system
 from girder.utility.progress import ProgressContext
+
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource
 

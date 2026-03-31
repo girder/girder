@@ -18,10 +18,9 @@
     "devDependencies": {
         "@girder/eslint-config": "^3.1.21",
         "@girder/pug-lint-config": "^3.1.21",
-        "@vue/eslint-config-prettier": "^7.1.0",
-        "@vue/eslint-config-typescript": "^11.0.3",
-        "esdoc": "^1.1.0",
-        "esdoc-standard-plugin": "^1.0.0",
+        "@vue/eslint-config-prettier": "^10.0.0",
+        "@vue/eslint-config-typescript": "^13.0.0",
+        "docdash": "^2.0.2",
         "eslint": "^8.20.0",
         "eslint-config-semistandard": "^17.0.0",
         "eslint-config-standard": "^17.0.0",
@@ -30,33 +29,17 @@
         "eslint-plugin-n": "^15.3.0",
         "eslint-plugin-promise": "^6.0.0",
         "eslint-plugin-vue": "^9.11.0",
+        "get-port": "^7.2.0",
+        "jsdoc": "^4.0.5",
         "pug-lint": "^2.6.0",
-        "stylelint": "^15.11.0",
-        "stylelint-stylus": "^0.18.0"
+        "stylelint": "^16.0.0",
+        "stylelint-stylus": "^1.0.0"
     },
     "scripts": {
+        "build": "echo Run build in the web directory and for each plugin",
         "lint": "eslint --cache . && pug-lint . && stylelint **/*.styl",
-        "docs": "esdoc",
+        "docs": "jsdoc -c jsdoc.json",
         "publish-all": "./.circleci/publish_npm.sh"
-    },
-    "esdoc": {
-        "source": "girder/web/src",
-        "destination": "build/docs/web",
-        "index": "README.rst",
-        "plugins": [
-            {
-                "name": "esdoc-standard-plugin",
-                "option": {
-                    "brand": {
-                        "title": "Girder",
-                        "description": "Web-based data management platform",
-                        "repository": "https://github.com/girder/girder",
-                        "author": "Kitware, Inc.",
-                        "image": "girder/web_client/src/assets/Girder_Mark.png"
-                    }
-                }
-            }
-        ]
     },
     "eslintConfig": {
         "extends": [
@@ -97,7 +80,13 @@
     "eslintIgnore": [
         "dist/",
         "dist-lib/",
-        "**/node_modules/"
+        "**/dist/",
+        "**/node_modules/",
+        "**/build/",
+        "build/",
+        ".tox/",
+        "**/__pycache__/",
+        "**/playwright-report"
     ],
     "pugLintConfig": {
         "extends": "@girder/pug-lint-config",

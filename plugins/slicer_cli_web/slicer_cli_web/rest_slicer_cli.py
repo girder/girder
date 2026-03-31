@@ -8,6 +8,9 @@ import time
 import cherrypy
 import pymongo
 from bson.objectid import ObjectId
+from girder_jobs.constants import JobStatus
+from girder_jobs.models.job import Job
+
 from girder.api import access
 from girder.api.describe import Description, describeRoute
 from girder.api.rest import Resource, RestException, boundHandler, getApiUrl, getCurrentToken
@@ -16,8 +19,6 @@ from girder.models.item import Item
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
-from girder_jobs.constants import JobStatus
-from girder_jobs.models.job import Job
 
 from .cli_utils import (as_model, generate_description, get_cli_parameters, is_on_girder,
                         return_parameter_file_name)
@@ -524,14 +525,14 @@ def genHandlerToRunDockerCLI(cliItem):  # noqa C901
 
             @access.user
             @describeRoute(datalistDesc)
-            def datalistHandler(resource, params):
+            def datalistHandler(resource, params, *, _dl_entry=entry):
                 user = resource.getCurrentUser()
                 currentItem = CLIItem.find(itemId, user)
                 if not currentItem:
                     raise RestException('Invalid CLI Item id (%s).' % (itemId))
                 token = Token().createToken(user=user)
                 job = cliSubHandler(
-                    currentItem, params, user, token, entry['json']).job  # noqa: B023
+                    currentItem, params, user, token, _dl_entry['json']).job  # noqa: B023
                 delay = 0.01
                 while job['status'] not in {JobStatus.SUCCESS, JobStatus.ERROR, JobStatus.CANCELED}:
                     time.sleep(delay)

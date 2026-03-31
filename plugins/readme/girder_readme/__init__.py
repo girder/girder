@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from girder.plugin import GirderPlugin, registerPluginStaticContent
+
 from .rest import _getFolderReadme
 
 

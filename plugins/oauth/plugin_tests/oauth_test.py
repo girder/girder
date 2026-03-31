@@ -6,18 +6,17 @@ import urllib.parse
 import httmock
 import jwt
 import requests
+from girder_oauth.providers.base import ProviderBase
+from girder_oauth.providers.google import Google
+from girder_oauth.settings import PluginSettings
 
+import girder.events
 from girder.exceptions import ValidationException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
 from girder.settings import SettingKey
-import girder.events
 from tests import base
-
-from girder_oauth.providers.base import ProviderBase
-from girder_oauth.providers.google import Google
-from girder_oauth.settings import PluginSettings
 
 
 def setUpModule():

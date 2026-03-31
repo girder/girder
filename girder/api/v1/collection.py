@@ -1,12 +1,13 @@
-from ..describe import Description, autoDescribeRoute
-from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.api import access
 from girder.constants import AccessType, TokenScope
-from girder.models.collection import Collection as CollectionModel
 from girder.exceptions import AccessException
+from girder.models.collection import Collection as CollectionModel
 from girder.tasks import deleteCollectionTask
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
+
+from ..describe import Description, autoDescribeRoute
+from ..rest import Resource, filtermodel, setContentDisposition, setResponseHeader
 
 
 class Collection(Resource):

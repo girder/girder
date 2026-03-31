@@ -3,18 +3,19 @@ import functools
 import itertools
 import logging
 import os
-import pymongo
 import re
+from datetime import timezone
 
-from bson.objectid import ObjectId
+import pymongo
 from bson.codec_options import CodecOptions
 from bson.errors import InvalidId
-from datetime import timezone
+from bson.objectid import ObjectId
 from pymongo.errors import WriteError
-from girder import events, auditLogger
-from girder.constants import AccessType, CoreEventHandler, ACCESS_FLAGS, TEXT_SCORE_SORT_MAX
-from girder.models import getDbConnection
+
+from girder import auditLogger, events
+from girder.constants import ACCESS_FLAGS, TEXT_SCORE_SORT_MAX, AccessType, CoreEventHandler
 from girder.exceptions import AccessException, ValidationException
+from girder.models import getDbConnection
 
 # pymongo3 complains about extra kwargs to find(), so we must filter them.
 _allowedFindArgs = ('cursor_type', 'allow_partial_results', 'oplog_replay',
@@ -206,13 +207,26 @@ class Model(metaclass=_ModelSingleton):
 
     def _createIndex(self, index):
         if isinstance(index, (list, tuple)):
+            keys, opts = index[0], index[1]
+            if isinstance(keys, str):
+                keys = [(keys, pymongo.ASCENDING)]
+            if 'background' not in opts:
+                opts = opts.copy()
+                opts['background'] = True
             try:
-                self.collection.create_index(index[0], **index[1])
-            except pymongo.errors.OperationFailure:
-                self.collection.drop_index(index[0])
-                self.collection.create_index(index[0], **index[1])
+                self.collection.create_index(keys, **opts)
+            except pymongo.errors.OperationFailure as e:
+                code_name = e.details.get('codeName') if hasattr(e, 'details') else None
+                if code_name in ('IndexOptionsConflict', 'IndexKeySpecsConflict'):
+                    for idx in self.collection.list_indexes():
+                        if list(idx['key'].items()) == keys:
+                            self.collection.drop_index(idx['name'])
+                            break
+                    self.collection.create_index(keys, **opts)
+                else:
+                    raise
         else:
-            self.collection.create_index(index)
+            self.collection.create_index(index, background=True)
 
     def ensureTextIndex(self, index, language='english'):
         """
@@ -1233,8 +1247,8 @@ class AccessControlledModel(Model):
         :type doc: dict
         :returns: A dict containing `users` and `groups` keys.
         """
-        from .user import User
         from .group import Group
+        from .user import User
 
         acList = {
             'users': doc.get('access', {}).get('users', []),

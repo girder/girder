@@ -1,8 +1,9 @@
+import json
+
 from girder.constants import AccessType
 from girder.models.group import Group
 from girder.models.user import User
 from tests import base
-import json
 
 
 def setUpModule():

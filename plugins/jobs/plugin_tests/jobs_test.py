@@ -1,16 +1,16 @@
 import json
 import time
-from bson import json_util
 
-from tests import base
+from bson import json_util
+from girder_jobs.constants import REST_CREATE_JOB_TOKEN_SCOPE, JobStatus
+from girder_jobs.models.job import Job
+
 from girder import events
 from girder.constants import AccessType
 from girder.exceptions import ValidationException
-from girder.models.user import User
 from girder.models.token import Token
-
-from girder_jobs.constants import JobStatus, REST_CREATE_JOB_TOKEN_SCOPE
-from girder_jobs.models.job import Job
+from girder.models.user import User
+from tests import base
 
 
 def setUpModule():

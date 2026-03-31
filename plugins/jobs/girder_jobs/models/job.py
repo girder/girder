@@ -1,4 +1,5 @@
 import datetime
+
 from bson import json_util
 
 from girder import events
@@ -9,7 +10,7 @@ from girder.models.token import Token
 from girder.models.user import User
 from girder.notification import Notification
 
-from ..constants import JobStatus, JOB_HANDLER_LOCAL
+from ..constants import JOB_HANDLER_LOCAL, JobStatus
 
 
 class Job(AccessControlledModel):

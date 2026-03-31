@@ -24,9 +24,7 @@ class HostStdOut(Transform):
     """
 
     def transform(self, **kwargs):
-        from girder_worker.docker.io import (
-            StdStreamWriter
-        )
+        from girder_worker.docker.io import StdStreamWriter
         return StdStreamWriter(sys.stdout)
 
 
@@ -37,9 +35,7 @@ class HostStdErr(Transform):
     """
 
     def transform(self, **kwargs):
-        from girder_worker.docker.io import (
-            StdStreamWriter
-        )
+        from girder_worker.docker.io import StdStreamWriter
         return StdStreamWriter(sys.stderr)
 
 
@@ -266,10 +262,7 @@ class NamedInputPipe(NamedPipeBase):
         super().__init__(name, container_path, host_path, volume)
 
     def transform(self, **kwargs):
-        from girder_worker.docker.io import (
-            NamedPipe,
-            NamedPipeWriter
-        )
+        from girder_worker.docker.io import NamedPipe, NamedPipeWriter
         super().transform(**kwargs)
 
         pipe = NamedPipe(self.host_path)
@@ -297,10 +290,7 @@ class NamedOutputPipe(NamedPipeBase):
         super().__init__(name, container_path, host_path, volume)
 
     def transform(self, **kwargs):
-        from girder_worker.docker.io import (
-            NamedPipe,
-            NamedPipeReader
-        )
+        from girder_worker.docker.io import NamedPipe, NamedPipeReader
         super().transform(**kwargs)
 
         pipe = NamedPipe(self.host_path)
@@ -362,10 +352,7 @@ class Connect(Transform):
         self._output = output
 
     def transform(self, **kwargs):
-        from girder_worker.docker.io import (
-            FDWriteStreamConnector,
-            FDReadStreamConnector,
-        )
+        from girder_worker.docker.io import FDReadStreamConnector, FDWriteStreamConnector
         input = _maybe_transform(self._input, **kwargs)
         output = _maybe_transform(self._output, **kwargs)
         if isinstance(self._output, NamedInputPipe):
@@ -398,8 +385,6 @@ class ChunkedTransferEncodingStream(Transform):
         self.headers = headers or {}
 
     def transform(self, **kwargs):
-        from girder_worker.docker.io import (
-            ChunkedTransferEncodingStreamWriter
-        )
+        from girder_worker.docker.io import ChunkedTransferEncodingStreamWriter
 
         return ChunkedTransferEncodingStreamWriter(self.url, self.headers)

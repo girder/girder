@@ -1,12 +1,13 @@
 #!/usr/bin/env python
-import click
-from http.client import HTTPConnection
 import logging
-import requests
-from requests.adapters import HTTPAdapter
 import sys
 import types
+from http.client import HTTPConnection
+
+import click
+import requests
 from girder_client import GirderClient, __version__
+from requests.adapters import HTTPAdapter
 
 _logger = logging.getLogger('girder_client.cli')
 

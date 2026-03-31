@@ -4,11 +4,12 @@ import os
 
 import pymongo
 
-from .model_base import Model
 from girder.exceptions import ValidationException
 from girder.settings import SettingDefault
 from girder.utility import setting_utilities
 from girder.utility._cache import cache
+
+from .model_base import Model
 
 logger = logging.getLogger(__name__)
 

@@ -12,14 +12,11 @@
   },
   "main": "index.js",
   "scripts": {
-    "build": "grunt",
+    "build": "rm -rf dist .fontello-session && npx fontello-cli install --config fontello.config.json --css dist/css --font dist/fonts --host https://fontello.com && sed -i 's#/font#/fonts#g' dist/css/fontello.css && rm -f dist/css/fontello-codes.css dist/css/fontello-embedded.css dist/css/fontello-ie7.css dist/css/fontello-ie7-codes.css",
     "prepublishOnly": "$npm_execpath install && $npm_execpath run build"
   },
   "devDependencies": {
-    "fontello-cli": "^0.6.2",
-    "grunt": "~1.5.0",
-    "grunt-contrib-clean": "^2.0.0",
-    "grunt-shell": "^4.0.0"
+    "fontello-cli": "^0.6.2"
   },
   "keywords": [
     "fontello",

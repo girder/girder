@@ -5,15 +5,15 @@ import time
 
 import cherrypy
 import pytest
+from slicer_cli_web import docker_resource, rest_slicer_cli
+from slicer_cli_web.models import CLIItem
+
 from girder.api import rest
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.token import Token
 from pytest_girder.assertions import assertStatusOk
-
-from slicer_cli_web import docker_resource, rest_slicer_cli
-from slicer_cli_web.models import CLIItem
 
 
 @pytest.fixture

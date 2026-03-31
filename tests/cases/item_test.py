@@ -1,11 +1,9 @@
-import os
 import io
 import itertools
 import json
+import os
 import shutil
 import zipfile
-
-from .. import base
 
 from girder.constants import AccessType
 from girder.models.assetstore import Assetstore
@@ -13,6 +11,8 @@ from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.token import Token
 from girder.models.user import User
+
+from .. import base
 
 
 def setUpModule():

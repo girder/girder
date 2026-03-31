@@ -3,7 +3,9 @@ import json
 import os
 import time
 
-from tests import base
+from girder_jobs.constants import JobStatus
+from PIL import Image
+
 from girder import events
 from girder.constants import ROOT_DIR
 from girder.models.file import File
@@ -11,8 +13,7 @@ from girder.models.folder import Folder
 from girder.models.item import Item
 from girder.models.upload import Upload
 from girder.models.user import User
-from girder_jobs.constants import JobStatus
-from PIL import Image
+from tests import base
 
 
 def setUpModule():

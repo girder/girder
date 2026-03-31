@@ -1,10 +1,10 @@
 import json
+
+import requests
 from celery import current_app
 from girder_client import GirderClient
 from girder_worker import logger
 from girder_worker.utils import _maybe_model_repr, _walk_obj
-
-import requests
 
 
 class MissingJobArguments(RuntimeError):

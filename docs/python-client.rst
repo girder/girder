@@ -25,12 +25,12 @@ auto-completion can easily be enabled executing:
 
 ::
 
-    eval "$(_GIRDER_CLI_COMPLETE=source girder-client)"
+    eval "$(_GIRDER_CLIENT_COMPLETE=bash_source girder-client)"
 
 For convenience, adding this line at the end of ``.bashrc`` will make sure
 auto-completion is always available.
 
-For more details, see http://click.pocoo.org/6/bashcomplete/
+For more details, see https://click.palletsprojects.com/en/stable/shell-completion/
 
 The Command Line Interface
 --------------------------

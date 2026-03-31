@@ -1,7 +1,6 @@
 from unittest import mock
 
 from docker.api.client import APIClient
-
 from girder_worker.docker.nvidia import is_nvidia_image
 
 

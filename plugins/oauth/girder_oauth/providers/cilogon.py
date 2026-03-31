@@ -1,12 +1,13 @@
 import warnings
 
+import requests
+
 from girder.api.rest import getApiUrl
 from girder.exceptions import RestException
 from girder.models.setting import Setting
 
 from ..settings import PluginSettings
 from .base import ProviderBase
-import requests
 
 
 class CILogon(ProviderBase):

@@ -1,11 +1,12 @@
 import time
-from girder import events
 
-from girder.models.file import File
-from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
 from girder_jobs.constants import JobStatus
 from girder_jobs.models.job import Job
 from girder_worker import GirderWorkerPluginABC
+
+from girder import events
+from girder.models.file import File
+from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 from .models import AssetstoreImport, ImportTrackerCancelError
 

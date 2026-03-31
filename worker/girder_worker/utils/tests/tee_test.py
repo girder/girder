@@ -1,6 +1,6 @@
 import sys
 
-from girder_worker_utils.tee import Tee, tee_stdout, TeeStdErr, TeeStdOut
+from girder_worker_utils.tee import Tee, TeeStdErr, TeeStdOut, tee_stdout
 
 
 @tee_stdout

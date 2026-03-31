@@ -1,9 +1,8 @@
 import os
-from pathlib import Path
 import re
+from pathlib import Path
 
 import pytest
-
 from slicer_cli_web.models.parser import parse_json_desc, parse_xml_desc, parse_yaml_desc
 
 

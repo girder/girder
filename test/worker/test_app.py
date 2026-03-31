@@ -1,16 +1,9 @@
-import celery
-
-from girder_worker.task import (
-    GirderAsyncResult,
-    Task
-)
-from girder_worker.utils import (
-    BUILTIN_CELERY_TASKS,
-    _maybe_model_repr
-)
 from unittest import mock
-import pytest
 
+import celery
+import pytest
+from girder_worker.task import GirderAsyncResult, Task
+from girder_worker.utils import BUILTIN_CELERY_TASKS, _maybe_model_repr
 
 RESERVED_HEADERS = [
     ('girder_client_token', 'GIRDER_CLIENT_TOKEN'),

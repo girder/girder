@@ -1,10 +1,11 @@
-import boto3
 import io
 import json
 import os
 import re
-import requests
 import threading
+
+import boto3
+import requests
 
 from girder import events
 from girder.models.assetstore import Assetstore
@@ -15,7 +16,6 @@ from girder.models.user import User
 from girder.utility import assetstore_utilities
 
 from .. import base
-
 
 Chunk1, Chunk2 = ('hello ', 'world')
 

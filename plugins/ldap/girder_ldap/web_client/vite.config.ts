@@ -36,5 +36,15 @@ export default defineConfig({
       name: 'GirderPluginLdap',
       fileName: 'girder-plugin-ldap',
     },
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            return 'style.css';
+          }
+          return '[name].[ext]';
+        },
+      },
+    },
   },
 });

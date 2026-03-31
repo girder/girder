@@ -3,6 +3,7 @@
 -e pytest_girder
 -e plugins/jobs
 -e worker
+-e clients/python
 
 # The following are top level dependencies.
 -e plugins/audit_logs
@@ -38,3 +39,9 @@ pytest-mock
 python-dateutil
 tox
 virtualenv
+
+# from extras
+paramiko
+cachetools
+diskcache
+fusepy>=3.0

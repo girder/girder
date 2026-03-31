@@ -1,7 +1,9 @@
 import os
+
 import pytest
-from pytest_girder.assertions import assertStatus, assertStatusOk
+
 from girder.models.folder import Folder
+from pytest_girder.assertions import assertStatus, assertStatusOk
 
 
 @pytest.fixture

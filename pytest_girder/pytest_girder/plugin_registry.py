@@ -1,10 +1,10 @@
 import distutils
-from contextlib import contextmanager
 import email.parser
-import io
 import importlib.metadata
-from tempfile import gettempdir
+import io
 import unittest.mock
+from contextlib import contextmanager
+from tempfile import gettempdir
 
 
 class _MockDistribution:

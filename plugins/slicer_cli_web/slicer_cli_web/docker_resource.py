@@ -7,6 +7,9 @@ import time
 from base64 import b64decode
 
 import pymongo
+from girder_jobs.constants import JobStatus
+from girder_jobs.models.job import Job
+
 from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute, describeRoute
 from girder.api.rest import filtermodel, setRawResponse, setResponseHeader
@@ -18,8 +21,6 @@ from girder.models.item import Item
 from girder.models.token import Token
 from girder.utility import path as path_util
 from girder.utility.model_importer import ModelImporter
-from girder_jobs.constants import JobStatus
-from girder_jobs.models.job import Job
 
 from . import TOKEN_SCOPE_MANAGE_TASKS, rest_slicer_cli
 from .cli_utils import as_model, get_cli_parameters
@@ -117,7 +118,7 @@ class DockerResource(Resource):
     @autoDescribeRoute(
         Description('Re-run a Slicer CLI job.')
         .modelParam('id', 'The slicer CLI item task', Item, level=AccessType.READ)
-        .modelParam('jobId', 'The job to re-run', Job, level=AccessType.READ)
+        .modelParam('jobId', 'The job to re-run', Job, level=AccessType.READ, paramType='query')
     )
     def rerunCli(self, item, job, params):
         user = self.getCurrentUser()

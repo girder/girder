@@ -1,8 +1,8 @@
 import os
 import re
 import shutil
-import setuptools
 
+import setuptools
 from setuptools.command.install import install
 
 

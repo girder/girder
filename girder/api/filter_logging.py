@@ -1,8 +1,8 @@
-import cherrypy
 import logging
 import re
 import time
 
+import cherrypy
 
 LoggingFilters = []
 SingletonRegexLoggingFilter = None

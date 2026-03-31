@@ -6,11 +6,11 @@ import re
 import cherrypy
 from cherrypy._cpreqbody import Part
 
-from girder.api.rest import setResponseHeader, setContentDisposition
-from girder.exceptions import GirderException, ValidationException, FilePathException
+from girder.api.rest import setContentDisposition, setResponseHeader
+from girder.exceptions import FilePathException, GirderException, ValidationException
 from girder.models.setting import Setting
 from girder.settings import SettingKey
-from girder.utility import progress, RequestBodyStream
+from girder.utility import RequestBodyStream, progress
 
 
 class FileHandle:

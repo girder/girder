@@ -1,10 +1,11 @@
 import pytest
+
 from girder.exceptions import ValidationException
 from girder.models.file import File
 from girder.models.model_base import Model
 from girder.utility import assetstore_utilities
-from girder.utility.model_importer import ModelImporter
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
+from girder.utility.model_importer import ModelImporter
 
 
 class Fake(Model):

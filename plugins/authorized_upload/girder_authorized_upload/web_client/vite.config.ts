@@ -36,5 +36,15 @@ export default defineConfig({
       name: 'GirderPluginAuthorizedUpload',
       fileName: 'girder-plugin-authorized-upload',
     },
+    rollupOptions: {
+      output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name && assetInfo.name.endsWith('.css')) {
+            return 'style.css';
+          }
+          return '[name].[ext]';
+        },
+      },
+    },
   },
 });

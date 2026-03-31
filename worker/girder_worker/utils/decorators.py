@@ -1,4 +1,5 @@
 from inspect import getdoc
+
 try:
     from inspect import signature
 except ImportError:  # pragma: nocover

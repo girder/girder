@@ -1,11 +1,10 @@
 import json
 import time
 
-from .. import base
 from girder.api import access
 from girder.api.describe import describeRoute
-from girder.api.rest import getApiUrl, loadmodel, Resource
-from girder.constants import AccessType, registerAccessFlag, VERSION
+from girder.api.rest import Resource, getApiUrl, loadmodel
+from girder.constants import VERSION, AccessType, registerAccessFlag
 from girder.exceptions import AccessException, ValidationException
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -16,6 +15,8 @@ from girder.models.setting import Setting
 from girder.models.user import User
 from girder.settings import SettingDefault, SettingKey
 from girder.utility import config
+
+from .. import base
 
 
 class TestEndpoints(Resource):

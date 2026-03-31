@@ -1,8 +1,8 @@
+import re
 from collections import OrderedDict
 
 import cherrypy
 from bson import ObjectId
-import re
 
 from girder.exceptions import ValidationException
 from girder.utility import setting_utilities

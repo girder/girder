@@ -6,7 +6,7 @@ import time
 
 def _webClientResource():
     from girder.api import access
-    from girder.api.describe import describeRoute, Description
+    from girder.api.describe import Description, describeRoute
     from girder.api.rest import Resource
     from girder.constants import ROOT_DIR, registerAccessFlag
     from girder.exceptions import RestException

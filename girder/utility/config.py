@@ -1,6 +1,7 @@
-import cherrypy
 import logging
 import os
+
+import cherrypy
 
 logger = logging.getLogger(__name__)
 

@@ -1,18 +1,19 @@
-from bson.objectid import ObjectId
 import functools
 import io
 import sys
 import traceback
-import pydicom
+
 import numpy as np
+import pydicom
+from bson.objectid import ObjectId
+from girder_jobs.constants import JobStatus
+from girder_jobs.models.job import Job
+from PIL import Image
 
 from girder import events
 from girder.models.file import File
 from girder.models.upload import Upload
-from girder_jobs.constants import JobStatus
-from girder_jobs.models.job import Job
 from girder.utility.model_importer import ModelImporter
-from PIL import Image
 
 
 def run(job):

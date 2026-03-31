@@ -1,7 +1,8 @@
 import logging
+import urllib.parse
+
 import pymongo
 import pymongo.cursor
-import urllib.parse
 
 from girder.utility import config
 

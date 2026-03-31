@@ -1,5 +1,4 @@
 import base64
-import cherrypy
 import io
 import json
 import logging
@@ -11,17 +10,20 @@ import unittest
 import urllib.parse
 import warnings
 
+import cherrypy
+
 from girder import plugin
-from girder.utility._cache import cache, requestCache
-from girder.utility.server import create_app
-from girder.constants import AccessType, ROOT_DIR, ServerMode
+from girder.constants import ROOT_DIR, AccessType, ServerMode
 from girder.models import getDbConnection
-from girder.models.model_base import _modelSingletons
 from girder.models.assetstore import Assetstore
 from girder.models.file import File
+from girder.models.model_base import _modelSingletons
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.settings import SettingKey
+from girder.utility._cache import cache, requestCache
+from girder.utility.server import create_app
+
 from . import mock_s3
 
 with warnings.catch_warnings():

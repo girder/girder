@@ -1,6 +1,7 @@
-from click_plugins import with_plugins
-import click
 import importlib.metadata
+
+import click
+from click_plugins import with_plugins
 
 
 @with_plugins(

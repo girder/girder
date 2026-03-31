@@ -52,3 +52,13 @@ via the web API.
 The full list of system settings available in Girder core can be seen in the file
 ``girder/girder/settings.py``, under the ``SettingKey`` class. Plugins may add additional settings
 within their own packages.
+
+Environment Variable List
+.........................
+
+This section is auto-generated from code inspection.
+
+.. container:: full-width-section
+
+  .. include:: _generated_env_vars.md
+     :parser: myst

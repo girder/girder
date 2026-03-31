@@ -1,11 +1,12 @@
 import datetime
 
-from .model_base import Model
 from girder import events
 from girder.constants import AssetstoreType, SortDir
-from girder.exceptions import ValidationException, GirderException, NoAssetstoreAdapter
+from girder.exceptions import GirderException, NoAssetstoreAdapter, ValidationException
 from girder.utility import assetstore_utilities
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
+
+from .model_base import Model
 
 
 class Assetstore(Model):

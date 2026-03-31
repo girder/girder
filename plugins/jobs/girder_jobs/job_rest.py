@@ -3,8 +3,9 @@ from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource, filtermodel
 from girder.constants import AccessType, SortDir
 from girder.models.user import User
-from .models.job import Job as JobModel
+
 from . import constants
+from .models.job import Job as JobModel
 
 
 class Job(Resource):

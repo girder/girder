@@ -8,7 +8,6 @@ except importlib.metadata.PackageNotFoundError:
 
 __license__ = 'Apache 2.0'
 
-import diskcache
 import getpass
 import glob
 import io
@@ -17,11 +16,12 @@ import logging
 import mimetypes
 import os
 import re
-import requests
 import shutil
 import tempfile
-
 from contextlib import contextmanager
+
+import diskcache
+import requests
 
 DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
 REQ_BUFFER_SIZE = 65536  # Chunk size when iterating a download body
