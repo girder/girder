@@ -76,6 +76,12 @@
             }
         ],
         "root": true
+        ,
+        "settings": {
+            "import/ignore": [
+                "node_modules"
+            ]
+        }
     },
     "eslintIgnore": [
         "dist/",
