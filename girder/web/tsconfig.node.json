@@ -1,9 +1,19 @@
 {
   "extends": "@tsconfig/node20/tsconfig.json",
-  "include": ["vite.config.*", "vitest.config.*", "cypress.config.*", "playwright.config.*", "tests/playwright-global-setup.*", "tests/playwright-teardown.*", "tests/playwright-setup.ts"],
+  "include": [
+    "vite.config.*",
+    "vitest.config.*",
+    "cypress.config.*",
+    "playwright.config.*",
+    "tests/playwright-global-setup.*",
+    "tests/playwright-teardown.*",
+    "tests/playwright-setup.ts"
+  ],
   "compilerOptions": {
     "composite": true,
     "module": "ESNext",
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   }
 }
