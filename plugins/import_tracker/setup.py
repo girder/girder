@@ -37,7 +37,7 @@ setup(
     ],
     description='A Girder plugin for data import tracking',
     long_description=readme,
-    long_description_content_type='text/rst',
+    long_description_content_type='text/x-rst',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
     url='https://github.com/girder/girder/tree/master/plugins/import_tracker',
