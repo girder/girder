@@ -1,6 +1,8 @@
 {
   "source": {
-    "include": ["girder/web/src"]
+    "include": [
+      "girder/web/src"
+    ]
   },
   "opts": {
     "destination": "build/docs/web",

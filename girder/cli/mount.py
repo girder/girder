@@ -74,6 +74,7 @@ class ServerFuse(fuse.Operations):
         self.openFilesLock = threading.Lock()
         options = options or {}
         self.cache = cachetools.TTLCache(maxsize=10000, ttl=int(options.pop('stat_cache_ttl', 1)))
+        self.cacheLock = threading.Lock()
         self.diskcache = None
         self._mount_stats = {
             'open': 0,
@@ -160,7 +161,7 @@ class ServerFuse(fuse.Operations):
                 logger.debug('<- %s (length %d) %r', op, len(ret), ret[:16])
 
     @cachetools.cachedmethod(lambda self: self.cache, key=functools.partial(
-        _hashkey_first, '_get_path'))
+        _hashkey_first, '_get_path'), lock=lambda self: self.cacheLock)
     def _get_path(self, path):
         """
         Given a fuse path, return the associated resource.
@@ -336,7 +337,7 @@ class ServerFuse(fuse.Operations):
         return 0
 
     @cachetools.cachedmethod(lambda self: self.cache, key=functools.partial(
-        _hashkey_first, 'getattr'))
+        _hashkey_first, 'getattr'), lock=lambda self: self.cacheLock)
     def getattr(self, path, fh=None):
         """
         Get the attributes dictionary of a path.
@@ -465,7 +466,7 @@ class ServerFuse(fuse.Operations):
         return result
 
     @cachetools.cachedmethod(lambda self: self.cache, key=functools.partial(
-        _hashkey_first, '_get_direct_path'))
+        _hashkey_first, '_get_direct_path'), lock=lambda self: self.cacheLock)
     def _get_direct_path(self, path, doc):
         self._mount_stats['directpathchecks'] += 1
         try:

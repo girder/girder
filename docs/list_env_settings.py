@@ -389,6 +389,8 @@ def main():
         else:
             path_str = spec
             label = Path(path_str).resolve().name
+            if re.match(r'^(v\d+|stable|latest)', label):
+                label = 'girder'
         repo_root = Path(path_str).resolve()
         if not (repo_root / '.git').exists():
             print(f'Warning: {repo_root} does not appear to be a git repository, skipping',

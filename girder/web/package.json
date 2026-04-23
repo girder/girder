@@ -78,9 +78,12 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^6.0.0",
     "v8-to-istanbul": "^9.1.0",
-    "vite": "^8.0.0",
+    "vite": "^8.0.5",
     "vite-plugin-dts": "^4.0.0",
     "vite-plugin-static-copy": "^3.0.0",
     "vue-tsc": "^3.0.0"
+  },
+  "overrides": {
+    "moment-timezone": "^0.6.0"
   }
 }

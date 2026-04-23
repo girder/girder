@@ -10,6 +10,7 @@ import { linkify } from 'remarkable/linkify';
 /**
  * This file contains utility functions for general use in the application
  */
+var DATE_YYMMDD = -1;
 var DATE_MONTH = 0;
 var DATE_DAY = 1;
 var DATE_MINUTE = 2;
@@ -26,6 +27,13 @@ function formatDate(datestr, resolution) {
     var output = MONTHS[date.getMonth()];
 
     resolution = resolution || DATE_MONTH;
+
+    if (resolution === DATE_YYMMDD) {
+        var yyyy = date.getFullYear();
+        var mm = ('0' + (date.getMonth() + 1)).slice(-2);
+        var dd = ('0' + date.getDate()).slice(-2);
+        return yyyy + '-' + mm + '-' + dd;
+    }
 
     if (resolution >= DATE_DAY) {
         output += ' ' + date.getDate() + ',';
@@ -241,6 +249,7 @@ function _whenAll(promises) {
 }
 
 export {
+    DATE_YYMMDD,
     DATE_MONTH,
     DATE_DAY,
     DATE_MINUTE,

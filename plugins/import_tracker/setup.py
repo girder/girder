@@ -24,7 +24,7 @@ def prerelease_local_scheme(version):
         return get_local_node_and_date(version)
 
 
-with open('README.md') as readme_file:
+with open('README.rst') as readme_file:
     readme = readme_file.read()
 
 
@@ -37,7 +37,7 @@ setup(
     ],
     description='A Girder plugin for data import tracking',
     long_description=readme,
-    long_description_content_type='text/markdown',
+    long_description_content_type='text/x-rst',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
     url='https://github.com/girder/girder/tree/master/plugins/import_tracker',

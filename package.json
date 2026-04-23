@@ -1,108 +1,115 @@
 {
-    "name": "@girder/lint",
-    "version": "0.0.0",
-    "description": "Extensible data management platform",
-    "homepage": "https://girder.readthedocs.org",
-    "bugs": {
-        "url": "https://github.com/girder/girder/issues"
-    },
-    "license": "Apache-2.0",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/girder/girder.git"
-    },
-    "engines": {
-        "node": ">=10.0",
-        "npm": ">=5.2"
-    },
-    "devDependencies": {
-        "@girder/eslint-config": "^3.1.21",
-        "@girder/pug-lint-config": "^3.1.21",
-        "@vue/eslint-config-prettier": "^10.0.0",
-        "@vue/eslint-config-typescript": "^13.0.0",
-        "docdash": "^2.0.2",
-        "eslint": "^8.20.0",
-        "eslint-config-semistandard": "^17.0.0",
-        "eslint-config-standard": "^17.0.0",
-        "eslint-plugin-backbone": "^2.1.1",
-        "eslint-plugin-import": "^2.26.0",
-        "eslint-plugin-n": "^15.3.0",
-        "eslint-plugin-promise": "^6.0.0",
-        "eslint-plugin-vue": "^9.11.0",
-        "get-port": "^7.2.0",
-        "jsdoc": "^4.0.5",
-        "pug-lint": "^2.6.0",
-        "stylelint": "^16.0.0",
-        "stylelint-stylus": "^1.0.0"
-    },
-    "scripts": {
-        "build": "echo Run build in the web directory and for each plugin",
-        "lint": "eslint --cache . && pug-lint . && stylelint **/*.styl",
-        "docs": "jsdoc -c jsdoc.json",
-        "publish-all": "./.circleci/publish_npm.sh"
-    },
-    "eslintConfig": {
-        "extends": [
-            "@girder",
-            "plugin:vue/vue3-essential",
-            "eslint:recommended",
-            "@vue/eslint-config-typescript",
-            "@vue/eslint-config-prettier/skip-formatting"
-        ],
-        "rules": {
-            "promise/no-native": 0
-        },
-        "overrides": [
-            {
-                "files": [
-                    "girder/web/**",
-                    "plugins/*/plugin_tests/**",
-                    "plugins/**/web_client/**"
-                ],
-                "globals": {
-                    "Backbone": true,
-                    "_": true,
-                    "girderTest": true,
-                    "girder": true,
-                    "moment": true
-                },
-                "env": {
-                    "jasmine": true,
-                    "jquery": true
-                },
-                "parserOptions": {
-                    "ecmaVersion": "latest"
-                }
-            }
-        ],
-        "root": true
-    },
-    "eslintIgnore": [
-        "dist/",
-        "dist-lib/",
-        "**/dist/",
-        "**/node_modules/",
-        "**/build/",
-        "build/",
-        ".tox/",
-        "**/__pycache__/",
-        "**/playwright-report"
+  "name": "@girder/lint",
+  "version": "0.0.0",
+  "description": "Extensible data management platform",
+  "homepage": "https://girder.readthedocs.org",
+  "bugs": {
+    "url": "https://github.com/girder/girder/issues"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/girder/girder.git"
+  },
+  "engines": {
+    "node": ">=10.0",
+    "npm": ">=5.2"
+  },
+  "devDependencies": {
+    "@girder/eslint-config": "^3.1.21",
+    "@girder/pug-lint-config": "^3.1.21",
+    "@vue/eslint-config-prettier": "^10.0.0",
+    "@vue/eslint-config-typescript": "^13.0.0",
+    "docdash": "^2.0.2",
+    "eslint": "^8.20.0",
+    "eslint-config-semistandard": "^17.0.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-backbone": "^2.1.1",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.3.0",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-vue": "^9.11.0",
+    "get-port": "^7.2.0",
+    "jsdoc": "^4.0.5",
+    "pug-lint": "^2.6.0",
+    "stylelint": "^16.0.0",
+    "stylelint-stylus": "^1.0.0"
+  },
+  "overrides": {
+    "resolve": "^1.0.0"
+  },
+  "scripts": {
+    "build": "echo Run build in the web directory and for each plugin",
+    "lint": "eslint --cache . && pug-lint . && stylelint **/*.styl",
+    "docs": "jsdoc -c jsdoc.json",
+    "publish-all": "./.circleci/publish_npm.sh"
+  },
+  "eslintConfig": {
+    "extends": [
+      "@girder",
+      "plugin:vue/vue3-essential",
+      "eslint:recommended",
+      "@vue/eslint-config-typescript",
+      "@vue/eslint-config-prettier/skip-formatting"
     ],
-    "pugLintConfig": {
-        "extends": "@girder/pug-lint-config",
-        "disallowHtmlText": null,
-        "excludeFiles": [
-            "**/node_modules/",
-            "**/.tox/"
-        ]
+    "rules": {
+      "promise/no-native": 0
     },
-    "stylelint": {
-        "extends": [
-            "stylelint-stylus/standard"
+    "overrides": [
+      {
+        "files": [
+          "girder/web/**",
+          "plugins/*/plugin_tests/**",
+          "plugins/**/web_client/**"
         ],
-        "ignoreFiles": [
-            "girder/web/dist/**/*.styl",
-            "girder/web/dist-lib/**/*.styl"
-        ]
+        "globals": {
+          "Backbone": true,
+          "_": true,
+          "girderTest": true,
+          "girder": true,
+          "moment": true
+        },
+        "env": {
+          "jasmine": true,
+          "jquery": true
+        },
+        "parserOptions": {
+          "ecmaVersion": "latest"
+        }
+      }
+    ],
+    "root": true,
+    "settings": {
+      "import/ignore": [
+        "node_modules"
+      ]
     }
+  },
+  "eslintIgnore": [
+    "dist/",
+    "dist-lib/",
+    "**/dist/",
+    "**/node_modules/",
+    "**/build/",
+    "build/",
+    ".tox/",
+    "**/__pycache__/",
+    "**/playwright-report"
+  ],
+  "pugLintConfig": {
+    "extends": "@girder/pug-lint-config",
+    "excludeFiles": [
+      "**/node_modules/",
+      "**/.tox/"
+    ]
+  },
+  "stylelint": {
+    "extends": [
+      "stylelint-stylus/standard"
+    ],
+    "ignoreFiles": [
+      "girder/web/dist/**/*.styl",
+      "girder/web/dist-lib/**/*.styl"
+    ]
+  }
 }

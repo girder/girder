@@ -30,6 +30,11 @@ repos:
       - id: mixed-line-ending
       - id: no-commit-to-branch
       - id: trailing-whitespace
+      - id: pretty-format-json
+        args:
+          - '--autofix'
+          - '--no-sort-keys'
+        exclude: package-lock\.json
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.10.0
     hooks:
