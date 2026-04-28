@@ -4,10 +4,15 @@
 
 import argparse
 import ast
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
+
+import yaml
+
+yaml_cache = {}
 
 
 def get_git_tracked_python_files(repo_root):
@@ -332,6 +337,17 @@ def setting_key_to_env(key):
     return f"GIRDER_SETTING_{key.replace('.', '_').upper()}"
 
 
+def get_desc(key):
+    if not yaml_cache:
+        yaml_file = os.path.splitext(__file__)[0] + '.yaml'
+        try:
+            with open(yaml_file) as f:
+                yaml_cache.update(yaml.safe_load(f) or {})
+        except Exception:
+            yaml_cache[None] = None
+    return yaml_cache.get(key, '')
+
+
 def process_repo(repo_root, repo_label, exclude_pattern):
     py_files = get_git_tracked_python_files(repo_root)
     setting_entries = []
@@ -412,20 +428,22 @@ def main():
 
     print('# Girder Environment Variables\n')
     print('## Database-Stored Settings via Environment Variables\n')
-    print('| Environment Variable | Setting Key | Component | Repo | Source File |')
-    print('|---|---|---|---|---|')
+    print('| Environment Variable | Setting Key | Component | Repo | Source File | Description |')
+    print('|---|---|---|---|---|---|')
     for env_var in sorted(seen_settings.keys()):
         key, component, repo_label, path = seen_settings[env_var]
-        print(f'| `{env_var}` | `{key}` | {component} | {repo_label} | `{path}` |')
+        desc = get_desc(env_var)
+        print(f'| `{env_var}` | `{key}` | {component} | {repo_label} | `{path}` | {desc}')
 
     print('\n## Direct Environment Variables\n')
-    print('| Environment Variable | Component | Repo | Source File |')
-    print('|---|---|---|---|')
+    print('| Environment Variable | Component | Repo | Source File | Description |')
+    print('|---|---|---|---|---|')
     for env_var in sorted(seen_environ.keys()):
         component, repo_label, path = seen_environ[env_var]
+        desc = get_desc(env_var)
         if exclude_name_pattern and exclude_name_pattern.search(env_var):
             continue
-        print(f'| `{env_var}` | {component} | {repo_label} | `{path}` |')
+        print(f'| `{env_var}` | {component} | {repo_label} | `{path}` | {desc} |')
 
 
 if __name__ == '__main__':

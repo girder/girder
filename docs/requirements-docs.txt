@@ -3,3 +3,4 @@ Sphinx
 sphinx_rtd_theme
 packaging
 myst-parser
+pyyaml

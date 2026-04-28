@@ -1,0 +1,4 @@
+# This yaml file has descriptions of _some_ of the environment variables to
+# augment the data shown in the auto-generated table
+GIRDER_WORKER_DOCKER_RUN_OPTIONS: >
+  A JSON dictionary of values to pass to all dockers that are created by Girder Worker.  For instance, you could always mount a specific directory and pass an environment variable like so: `{"volumes": ["/some/cache:/root/.cache"], "environment": {"CACHE_AVAILABLE": "1"}}`.  If the value is not a valid JSON dictionary it is ignored.  Keys of `detach` and `tty` are ignored.
