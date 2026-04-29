@@ -56,7 +56,7 @@ within their own packages.
 Environment Variable List
 .........................
 
-This section is auto-generated from code inspection.
+This section, except for descriptions, is auto-generated from code inspection.  More descriptions will be added as users ask about settings.
 
 .. container:: full-width-section
 

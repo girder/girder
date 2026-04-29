@@ -358,11 +358,11 @@ class DockerTask(Task):
 
 
 def _add_environment_kargs(run_kwargs):
-    envkey = 'GIRDER_WORKER_DOCKER_RUN_OPTIONS'
-    if envkey not in os.environ:
+    val = os.environ.get('GIRDER_WORKER_DOCKER_RUN_OPTIONS')
+    if not val:
         return
     try:
-        opts = json.loads(os.environ[envkey])
+        opts = json.loads(val)
         extra_run_kwargs = {k: v for k, v in opts.items() if k not in BLACKLISTED_DOCKER_RUN_ARGS}
         run_kwargs.update(extra_run_kwargs)
         if 'volumes' in opts:
@@ -376,7 +376,7 @@ def _add_environment_kargs(run_kwargs):
                 run_kwargs['volumes'] = {}
             run_kwargs['volumes'].update(opts['volumes'])
     except Exception:
-        logger.exception(f'Failed to parse {envkey}')
+        logger.exception('Failed to parse GIRDER_WORKER_DOCKER_RUN_OPTIONS')
 
 
 def _docker_run(task, image, pull_image=True, entrypoint=None, container_args=None,
