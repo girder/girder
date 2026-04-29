@@ -1,4 +1,97 @@
 # This yaml file has descriptions of _some_ of the environment variables to
 # augment the data shown in the auto-generated table
-GIRDER_WORKER_DOCKER_RUN_OPTIONS: >
+GIRDER_SETTING_CORE_BRAND_NAME: >-
+  The name of the application displayed in the UI header and title. Default is "Girder".
+
+GIRDER_SETTING_CORE_CACHE_ENABLED: >-
+  Whether to enable short-term caching of database queries. Set to "true" or "false".  This can speed up
+
+GIRDER_SETTING_CORE_CACHE_CONFIG: >-
+  A JSON dictionary configuring the caching system. Use keys like:
+  `cache.global.backend` for the cache backend,
+  `cache.global.expiration_time` for timeout in seconds,
+  `cache.request.backend` for request-specific caching.
+
+GIRDER_SETTING_CORE_CORS_ALLOW_ORIGIN: >-
+  CORS header specifying which origins are allowed to access the API. Use * for all or specify domains.
+
+GIRDER_SETTING_CORE_CORS_ALLOW_METHODS: >-
+  CORS header listing allowed HTTP methods (GET, POST, PUT, DELETE, etc.).
+
+GIRDER_SETTING_CORE_CORS_ALLOW_HEADERS: >-
+  CORS header specifying which headers are allowed in requests.
+
+GIRDER_SETTING_CORE_CORS_EXPOSE_HEADERS: >-
+  CORS header listing headers that should be exposed to the client.
+
+GIRDER_SETTING_CORE_REGISTRATION_POLICY: >-
+  Controls user registration policy. Values: "open", "admin", or "closed".
+
+GIRDER_SETTING_CORE_EMAIL_VERIFICATION: >-
+  Whether email verification is required for new accounts. Set to "true" or "false".
+
+GIRDER_SETTING_CORE_ENABLE_PASSWORD_LOGIN: >-
+  Whether password-based login is enabled. Set to "true" or "false".
+
+GIRDER_SETTING_CORE_SMTP_HOST: >-
+  SMTP server hostname for sending emails.
+
+GIRDER_SETTING_CORE_SMTP_PORT: >-
+  SMTP server port number.
+
+GIRDER_SETTING_CORE_SMTP_USERNAME: >-
+  SMTP authentication username.
+
+GIRDER_SETTING_CORE_SMTP_PASSWORD: >-
+  SMTP authentication password.
+
+GIRDER_SETTING_CORE_SMTP_ENCRYPTION: >-
+  SMTP encryption method. Values: "none", "ssl", or "tls".
+
+GIRDER_SETTING_USER_QUOTA_DEFAULT_USER_QUOTA: >-
+  Default storage quota for new users in bytes.
+
+GIRDER_SETTING_USER_QUOTA_DEFAULT_COLLECTION_QUOTA: >-
+  Default storage quota for new collections in bytes.
+
+GIRDER_WORKER_DOCKER_RUN_OPTIONS: >-
   A JSON dictionary of values to pass to all dockers that are created by Girder Worker.  For instance, you could always mount a specific directory and pass an environment variable like so: `{"volumes": ["/some/cache:/root/.cache"], "environment": {"CACHE_AVAILABLE": "1"}}`.  If the value is not a valid JSON dictionary it is ignored.  Keys of `detach` and `tty` are ignored.
+
+GIRDER_SETTING_CORE_COOKIE_LIFETIME: >-
+  The lifetime of authentication cookies in days. Default is 180.
+
+GIRDER_SETTING_CORE_COOKIE_DOMAIN: >-
+  The domain for which authentication cookies are valid. An empty string means cookies are valid for the entire domain.  You might set this if Girder is proxied to a path within the domain.
+
+GIRDER_SETTING_CORE_SERVER_ROOT: >-
+  The base URL path where Girder is mounted. Use this for reverse proxy setups.  This is prefixed to "api/v1".
+
+GIRDER_SETTING_CORE_FILEHANDLE_MAX_SIZE: >-
+  Maximum size in bytes that is read from files internally.  Controls for some memory usage. Default is 16MB (1024 * 1024 * 16).
+
+GIRDER_SETTING_CORE_UPLOAD_MINIMUM_CHUNK_SIZE: >-
+  Minimum chunk size for file uploads in bytes. Default is 5MB (1024 * 1024 * 5).
+
+GIRDER_HOST: >-
+  Hostname or IP address to bind the server to. Use '0.0.0.0' to bind to all interfaces.
+
+GIRDER_PORT: >-
+  Port number the server should listen on. Default is 8080.
+
+GIRDER_MONGO_URI: >-
+  MongoDB connection string including authentication details if needed.  Default is "mongodb://localhost:27017".
+
+GIRDER_MONGO_REPLICA_SET: >-
+  MongoDB replica set name for connecting to a replica set cluster.  It is probably better to include this as part of the URI.
+
+GIRDER_THREAD_POOL: >-
+  Number of threads in the CherryPy thread pool. Adjust based on server capacity.  Default is 100.
+
+GIRDER_WORKER_BROKER: >-
+  URL for the Celery message broker (e.g., redis://localhost:6379/0).
+
+GIRDER_WORKER_BACKEND: >-
+  URL for the Celery result backend (e.g., redis://localhost:6379/0).
+
+GIRDER_WORKER_JOB_GC_SCOPE: >-
+  A comma-separated list of extra default scopes for worker jobs.  For instance to allow jobs to schedule and check on other jobs, set this to "jobs.rest.create_job,jobs.rest.list_job"

@@ -6,11 +6,23 @@ body {
 }
 .full-width-section {
   background: #FCFCFC;
-  width: 100vw;
+  width: calc(100vw - 320px - 3.236em);
   max-width: none;
   padding-bottom: 10px;
   box-sizing: border-box;
 }
 .full-width-section .wy-table-responsive {
   width: 100%;
+}
+.rst-content p a.girder_env {
+  overflow-wrap: revert;
+  color: inherit;
+}
+.full-width-section table td {
+  text-wrap-mode: wrap;
+}
+@media screen and (max-width: 768px) {
+  .full-width-section {
+    width: 100vw;
+  }
 }

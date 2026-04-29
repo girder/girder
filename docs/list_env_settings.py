@@ -433,7 +433,8 @@ def main():
     for env_var in sorted(seen_settings.keys()):
         key, component, repo_label, path = seen_settings[env_var]
         desc = get_desc(env_var)
-        print(f'| `{env_var}` | `{key}` | {component} | {repo_label} | `{path}` | {desc}')
+        print(f'| <a class="girder_env" id="{env_var}" href="#{env_var}">`{env_var}`</a> | '
+              f'`{key}` | {component} | {repo_label} | `{path}` | {desc}')
 
     print('\n## Direct Environment Variables\n')
     print('| Environment Variable | Component | Repo | Source File | Description |')
@@ -443,7 +444,8 @@ def main():
         desc = get_desc(env_var)
         if exclude_name_pattern and exclude_name_pattern.search(env_var):
             continue
-        print(f'| `{env_var}` | {component} | {repo_label} | `{path}` | {desc} |')
+        print(f'| <a class="girder_env" id="{env_var}" href="#{env_var}">`{env_var}`</a> | '
+              f'{component} | {repo_label} | `{path}` | {desc} |')
 
 
 if __name__ == '__main__':
