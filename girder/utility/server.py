@@ -98,8 +98,15 @@ def create_app(mode: str) -> dict:
         '/': static_opts
     })
 
-    # Mount the web API
+    # Mount the web API at /api (always).
     tree.mount(apiRoot, '/api', appconf)
+
+    # When GIRDER_URL_ROOT names a public path prefix (e.g. "girder" for
+    # https://host/girder/...), mount the same API object at /<prefix>/api so
+    # /api/v1 and /<prefix>/api/v1 hit identical handlers
+    if custom_root:
+        prefix = '/' + custom_root.strip('/')
+        tree.mount(apiRoot, f'{prefix}/api', appconf)
 
     return info
 
