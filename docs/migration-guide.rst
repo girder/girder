@@ -244,6 +244,17 @@ Then, build the core front-end application with the desired base path:
 With that variable set in your environment, the Girder core web client will now be served under
 ``/new_root/`` rather than ``/``.
 
+.. note::
+
+   Remapping ``apps['']`` only moves the static SPA. The REST API (including Swagger at
+   ``/api/v1``) stays on its original ``/api`` mount unless you duplicate it. After the remount
+   above, and before `del info['serverRoot'].apps['']`, add:
+
+   .. code-block:: python
+
+       api_cp_app = info['serverRoot'].apps['/api']
+       info['serverRoot'].mount(api_cp_app.root, '/new_root/api', api_cp_app.config)
+
 Logging changes
 +++++++++++++++
 

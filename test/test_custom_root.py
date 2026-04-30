@@ -81,6 +81,8 @@ class CustomRoot(GirderPlugin):
     def load(self, info):
         path = os.path.join(os.path.dirname(__file__), 'data', 'static.txt')
         info['serverRoot'].mount(staticFile(path), '/static_route', info['config'])
+        api_cp_app = info['serverRoot'].apps['/api']
+        info['serverRoot'].mount(api_cp_app.root, '/new_root/api', api_cp_app.config)
 
         info['apiRoot'].collection.route('GET', ('unbound', 'default', 'noargs'),
                                          unboundHandlerDefaultNoArgs)
@@ -116,6 +118,15 @@ def testApiRedirect(server):
     resp = server.request('/api', prefix='', isJson=False)
     assertStatus(resp, 303)
     assert urllib.parse.urlparse(resp.headers['Location']).path == '/api/v1'
+
+
+def testApiDocsContent(server):
+    resp = server.request('/api/v1', method='GET', isJson=False, prefix='')
+    assertStatusOk(resp)
+    body = getResponseBody(resp)
+
+    assert 'Girder - REST API Documentation' in body
+    assert 'id="swagger-ui-container"' in body
 
 
 @pytest.mark.plugin('test_plugin', CustomRoot)
