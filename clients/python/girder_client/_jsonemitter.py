@@ -3,7 +3,7 @@ Helper functions used by the CLI. Currently this only defines
 :class:`_JSONEmitter`, which we test here.
 
 Example:
-    >>> from girder_client.util import _JSONEmitter
+    >>> from girder_client._jsonemitter import _JSONEmitter
     >>> import io
     >>> self = _JSONEmitter(stream=io.StringIO())
     >>> self.start_dict()
@@ -22,7 +22,7 @@ Example:
     {'version': '1.0.0', 'info': [{}, [{}], {}]}
 
 Example:
-    >>> from girder_client.util import _JSONEmitter
+    >>> from girder_client._jsonemitter import _JSONEmitter
     >>> import io
     >>> self = _JSONEmitter(stream=io.StringIO())
     >>> self.start_dict()
@@ -101,7 +101,7 @@ class _JSONEmitter(_AssertionMixin):
     response time is desired.
 
     Example:
-        >>> from girder_client.util import *  # NOQA
+        >>> from girder_client._jsonemitter import *  # NOQA
         >>> self = _JSONEmitter()
         >>> self.start_dict()
         >>> self.end_dict()
