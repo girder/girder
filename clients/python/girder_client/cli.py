@@ -250,8 +250,7 @@ def _lookup_parent_type(client, object_id):
 
 def _CommonParameters(path_exists=False, path_writable=True,
                       additional_parent_types=('collection', 'user'),
-                      path_default=None, multiple_local=False,
-                      with_local_folder=True):
+                      path_default=None, multiple_local=False):
     parent_types = ['folder'] + list(additional_parent_types)
     parent_type_cls = _HiddenOption
     parent_type_default = 'folder'
@@ -266,16 +265,15 @@ def _CommonParameters(path_exists=False, path_writable=True,
                          show_default=True, cls=parent_type_cls,
                          help='type of Girder parent target', type=click.Choice(parent_types)),
             click.argument('parent_id'),
-        ]
-        if with_local_folder:
-            decorators.append(click.argument(
+            click.argument(
                 'local_folder',
                 type=click.Path(exists=path_exists, dir_okay=True,
                                 writable=path_writable, readable=True),
                 default=path_default,
                 nargs=1 if not multiple_local else -1,
                 required=multiple_local
-            ))
+            ),
+        ]
         for decorator in reversed(decorators):
             func = decorator(func)
         return func
@@ -349,9 +347,8 @@ def _upload(gc, parent_type, parent_id, local_folder,
 
 
 _short_help = 'List contents of a collection, folder, or item'
-_long_help = f"""
-
-{_common_help.replace('LOCAL_FOLDER', 'LOCAL_FOLDER (default: ".")')}
+_long_help = """
+PARENT_ID is the id of the Girder parent target.
 
 Examples:
 
@@ -366,35 +363,36 @@ Examples:
 
     # List FILE: the paraview.png logo
     girder-client --api-url https://data.kitware.com/api/v1 list 647cfb97a71cc6eae69303b6
-
 """.rstrip()
 
 
-@main.command('list', short_help=_short_help, help=f'{_short_help}\n\n{_long_help}')
-@_CommonParameters(additional_parent_types=[
-    'collection', 'user', 'item', 'file'], path_default='.', with_local_folder=False)
-@click.option('--limit', default=None,
+@main.command('list', short_help=_short_help, help='%s\n\n%s' % (_short_help, _long_help))
+@click.option('--parent-type', default='auto', show_default=True,
+              help='type of Girder parent target',
+              type=click.Choice(['folder', 'collection', 'user', 'item', 'file', 'auto']))
+@click.argument('parent_id')
+@click.option('--limit', default=None, type=click.INT,
               help='maximum number of records to list')
-@click.option('--offset', default=None,
+@click.option('--offset', default=None, type=click.INT,
               help='starting offset into list')
-@click.option('--json', default=False, is_flag=True, show_default=True,
-              help='if True output machine readable json')
+@click.option('--json', 'as_json', default=False, is_flag=True, show_default=True,
+              help='output machine-readable JSON')
 @click.pass_obj
-def _list(gc, parent_type, parent_id, limit, offset, json):
+def _list(gc, parent_type, parent_id, limit, offset, as_json):
     # TODO / DISCUSS:
     #     Possible extensions:
-    #         - [ ] Allow user to specify columns of interested (e.g. sha512 if
+    #         - [ ] Allow user to specify columns of interest (e.g. sha512 if
     #               available)
     #         - [ ] Allow query-by-name rather than by id?
     #         - [ ] Show folder tree structure?
-    #         - [X] Emit proper machine readable json
+    #         - [X] Emit proper machine-readable JSON
     #         - [X] Show the name of the parent item/folder/collection?
     if parent_type == 'auto':
         parent_type = _lookup_parent_type(gc, parent_id)
 
     this_record = gc.getResource(parent_type, parent_id)
 
-    if json:
+    if as_json:
         from girder_client._jsonemitter import _JSONEmitter
         emitter = _JSONEmitter()
         emitter.start_dict()
@@ -403,44 +401,55 @@ def _list(gc, parent_type, parent_id, limit, offset, json):
 
     _list_record_info(gc, this_record, emitter)
 
-    if parent_type == 'collection':
-        # collections can only have children that are folders
+    if parent_type in {'collection', 'user'}:
+        # Collections and users can have folder children.
         child_types = ['folder']
-    elif parent_type == 'file':
-        # Files have no children
-        child_types = []
-    elif parent_type == 'item':
-        child_types = ['file']
-    else:
-        # List children of various types
+    elif parent_type == 'folder':
+        # Folders can have folders and items as children.
         child_types = ['folder', 'item']
+    elif parent_type == 'item':
+        # The requested item is already shown as this_record; list its files.
+        child_types = ['file']
+    elif parent_type == 'file':
+        # Files have no children.
+        child_types = []
+    else:
+        raise KeyError(parent_type)
 
     if child_types:
-        # If there are children, list them
-        _list_children_info(gc, this_record, parent_id, parent_type,
+        _list_children_info(gc, parent_id, parent_type,
                             child_types, limit, offset, emitter)
 
     if emitter:
         emitter.end_dict()
 
 
+def _list_record_label(record):
+    """
+    Return a compact label for a Girder record.
+    """
+    return record.get('name') or record.get('login') or record.get('_id')
+
+
 def _list_record_info(gc, this_record, emitter):
     """
-    Helper for :func:`_list` to print the root item.
+    Helper for :func:`_list` to print the requested record and its parents.
     """
-    this_type = this_record['_modelType']
+    this_type = this_record.get('_modelType')
     if this_type == 'folder':
         prev_record = gc.getResource(this_record['parentCollection'], this_record['parentId'])
         if emitter:
             emitter.setitem('parent_record', prev_record)
         else:
-            print('Parent {_modelType}: {_id} - {name}'.format(**prev_record))
+            print('Parent {_modelType}: {_id} - {}'.format(
+                _list_record_label(prev_record), **prev_record))
     elif this_type == 'item':
         prev_record = gc.getResource('folder', this_record['folderId'])
         if emitter:
             emitter.setitem('parent_record', prev_record)
         else:
-            print('Parent {_modelType}: {_id} - {name}'.format(**prev_record))
+            print('Parent {_modelType}: {_id} - {}'.format(
+                _list_record_label(prev_record), **prev_record))
     elif this_type == 'file':
         item_record = gc.getResource('item', this_record['itemId'])
         folder_record = gc.getResource('folder', item_record['folderId'])
@@ -448,40 +457,41 @@ def _list_record_info(gc, this_record, emitter):
             emitter.setitem('item_record', item_record)
             emitter.setitem('folder_record', folder_record)
         else:
-            print('Parent folder: {_id} - {name}'.format(**folder_record))
-            print('Parent item: {_id} - {name}'.format(**item_record))
-    elif this_type == 'collection':
-        ...
+            print('Parent folder: {_id} - {}'.format(
+                _list_record_label(folder_record), **folder_record))
+            print('Parent item: {_id} - {}'.format(
+                _list_record_label(item_record), **item_record))
+    elif this_type in {'collection', 'user'}:
+        # Collections and users do not have a single parent record to show here.
+        pass
     else:
-        raise KeyError(this_record['_modelType'])
+        raise KeyError(this_type)
 
     if emitter:
         emitter.setitem('this_record', this_record)
     else:
-        print('Listing {_modelType}: {_id} - {name}'.format(**this_record))
+        print('Listing {_modelType}: {_id} - {}'.format(
+            _list_record_label(this_record), **this_record))
 
 
-def _list_children_info(gc, this_record, parent_id, parent_type, child_types,
+def _list_children_info(gc, parent_id, parent_type, child_types,
                         limit, offset, emitter):
     """
-    Helper for :func:`_list` to print nested items.
+    Helper for :func:`_list` to print nested records.
     """
     import itertools
     for child_type in child_types:
-
         if child_type == 'folder':
             records = gc.listFolder(parent_id, limit=limit, offset=offset,
                                     parentFolderType=parent_type)
         elif child_type == 'item':
             records = gc.listItem(parent_id, limit=limit, offset=offset)
         elif child_type == 'file':
-            # listing an item  will lists its files as children
-            child_type = 'item'
-            records = [this_record]
+            records = gc.listFile(parent_id, limit=limit, offset=offset)
         else:
             raise NotImplementedError
 
-        # Check if records has at least 1 element.
+        # Check if records has at least one element without losing it.
         records_copy, records = itertools.tee(records)
         first_records = list(itertools.islice(records_copy, 1))
         if first_records:
@@ -489,28 +499,15 @@ def _list_children_info(gc, this_record, parent_id, parent_type, child_types,
                 emitter.start_subcontainer(f'{child_type}_children')
                 emitter.start_list()
             else:
-                # Only print the header if there is at least one record
                 print('=== {} ==='.format(child_type))
                 print('{:<24} {:<6} {:<24}'.format('ID', 'TYPE', 'NAME'))
 
         for record in records:
-            if child_type == 'item':
-                if emitter:
-                    emitter.append(record)
-                else:
-                    print('{_id:<24} {_modelType:<6} {name}'.format(**record))
-                if 0:
-                    # Previously we recursed one level deep by defalt, disable
-                    # this for now. We should implement a proper recursive tree
-                    # function instead.
-                    _id = record['_id']
-                    for record in gc.listFile(_id, limit=limit, offset=offset):
-                        print('{_id:<24} {_modelType:<6} {name}'.format(**record))
+            if emitter:
+                emitter.append(record)
             else:
-                if emitter:
-                    emitter.append(record)
-                else:
-                    print('{_id:<24} {_modelType:<6} {name}'.format(**record))
+                print('{_id:<24} {_modelType:<6} {}'.format(
+                    _list_record_label(record), **record))
 
         if first_records and emitter:
             emitter.end_list()
