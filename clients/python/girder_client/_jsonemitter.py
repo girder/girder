@@ -53,47 +53,29 @@ Example:
     >>> import json
     >>> print(json.dumps(json.loads(text)))
 """
+
+from __future__ import annotations
+
 import json
+import sys
+from dataclasses import dataclass
+from typing import Any, Literal, TextIO
+
+__all__ = ['_JSONEmitter']
+
+_ContainerKind = Literal['root', 'dict', 'list']
 
 
-class _AssertionMixin:
-    """
-    Assertion / check boilerplate is useful to have, but keeping it separated
-    from the core logic to reduce clutter in the main class.
-    """
+@dataclass
+class _Context:
+    """State for one open JSON container."""
 
-    def _assert_number_of_toplevel_containers_le_1(self, context):
-        if context['type'] == 'root' and context['size'] > 1:
-            raise AssertionError('Top level can only contain one container')
-
-    def _assert_subcontainer_is_prepared(self, context):
-        if not context.get('subcontainer_prepared', False):
-            raise AssertionError(
-                "Expected that a subcontainer IS prepared, but it wasn't"
-                f'context={context}'
-            )
-
-    def _assert_subcontainer_is_not_prepared(self, context):
-        if context.get('subcontainer_prepared', False):
-            raise AssertionError(
-                'Expected that a subcontainer is NOT prepared, but it was'
-                f'context={context}'
-            )
-
-    def _assert_context_type_eq(self, context, expected_type):
-        if context['type'] != expected_type:
-            raise AssertionError(
-                f'Expected type == {expected_type}, but got context={context}'
-            )
-
-    def _assert_context_type_ne(self, context, expected_type):
-        if context['type'] == expected_type:
-            raise AssertionError(
-                f'Expected type != {expected_type}, but got context={context}'
-            )
+    kind: _ContainerKind
+    size: int = 0
+    awaiting_subcontainer: bool = False
 
 
-class _JSONEmitter(_AssertionMixin):
+class _JSONEmitter:
     """
     Helps incrementally emit compliant JSON text.
 
@@ -113,95 +95,129 @@ class _JSONEmitter(_AssertionMixin):
         >>> self.setitem('k3', 'v3')
         >>> self.end_dict()
     """
-    def __init__(self, stream=None, checks=True, ):
+
+    def __init__(self, stream: TextIO | None = None, checks: bool = True) -> None:
         """
         Args:
-            stream (io._io._TextIOBas): stream to write to (defaults to stdout)
-            checks (bool): if True checks that operations are legal
+            stream: stream to write to (defaults to stdout)
+            checks: if True checks that operations are legal
         """
-        import sys
-        self._stack = [{'type': 'root', 'depth': -1, 'size': 0}]
-        if stream is None:
-            stream = sys.stdout
-        self.stream = stream
-        self.checks = checks
+        self._stack: list[_Context] = [_Context('root')]
+        self.stream: TextIO = sys.stdout if stream is None else stream
+        self.checks: bool = checks
 
-    def _ensure_separator(self, context):
-        """
-        Prepare for an increase in length to the current container.
+    def _current(self) -> _Context:
+        """Return the current container context."""
+        return self._stack[-1]
 
-        Use when you are about to add a new item that would increase the
-        length of the container. If it is the first items in this container,
-        we do not write a trailing comma, otherwise we know the container is
-        not empty, and we need to add a trailing comma for the previous item.
-        TODO: handle indentation
+    def _assert_can_start_container(self, context: _Context) -> None:
+        """Validate that a new dict/list value may start in ``context``."""
+        if context.kind == 'root':
+            if context.size >= 1:
+                raise AssertionError('Top level can only contain one container')
+        elif context.kind == 'dict':
+            if not context.awaiting_subcontainer:
+                raise AssertionError(
+                    'Expected start_subcontainer(key) before starting a '
+                    f'nested container; context={context!r}'
+                )
+        elif context.kind != 'list':
+            raise AssertionError(f'Unknown container context={context!r}')
+
+    def _assert_can_write_dict_item(self, context: _Context) -> None:
+        """Validate that a plain key/value item may be written to a dict."""
+        if context.kind != 'dict':
+            raise AssertionError(
+                f"Expected current context to be 'dict', but got context={context!r}"
+            )
+        if context.awaiting_subcontainer:
+            raise AssertionError(
+                'Expected a nested dict/list after start_subcontainer(key), '
+                f'but got a plain dict item; context={context!r}'
+            )
+
+    def _assert_can_write_list_item(self, context: _Context) -> None:
+        """Validate that a plain value may be appended to a list."""
+        if context.kind != 'list':
+            raise AssertionError(
+                f"Expected current context to be 'list', but got context={context!r}"
+            )
+
+    def _prepare_value(self, context: _Context) -> None:
         """
-        # If a subcontainer was prepared, it already called this.
-        if context.pop('subcontainer_prepared', False):
+        Write any separator needed before emitting the next JSON value.
+
+        ``start_subcontainer`` writes a dict key before the corresponding
+        container exists. In that one case, the dict item has already been
+        counted and separated, so starting the child container consumes the
+        pending state without writing another separator.
+        """
+        if context.awaiting_subcontainer:
+            context.awaiting_subcontainer = False
             return
-        if context['size'] == 0:
-            self.stream.write('\n')
-        else:
-            self.stream.write(',\n')  # trailing comma for previous item
-        context['size'] += 1
 
-    def start_list(self):
+        if context.size > 0:
+            self.stream.write(',\n')
+        elif context.kind != 'root':
+            self.stream.write('\n')
+        context.size += 1
+
+    def _start_container(self, kind: _ContainerKind, opener: str) -> None:
+        """Start a new list or dict container."""
+        context = self._current()
+        if self.checks:
+            self._assert_can_start_container(context)
+
+        self._prepare_value(context)
+        self.stream.write(opener)
+        self._stack.append(_Context(kind))
+
+    def _end_container(self, expected_kind: _ContainerKind, closer: str) -> None:
+        """End the current list or dict container."""
+        if len(self._stack) == 1:
+            raise AssertionError('No open container to end')
+
+        context = self._current()
+        if self.checks:
+            if context.awaiting_subcontainer:
+                raise AssertionError(
+                    'Expected a nested dict/list after start_subcontainer(key), '
+                    f'but the {context.kind!r} context is ending; context={context!r}'
+                )
+            if context.kind != expected_kind:
+                raise AssertionError(
+                    f'Expected current context to be {expected_kind!r}, '
+                    f'but got context={context!r}'
+                )
+
+        self._stack.pop()
+        if context.size > 0:
+            self.stream.write('\n')
+        self.stream.write(closer)
+
+    def start_list(self) -> None:
         """
         Start a new list context. Must be in a list, or in a dict with a
         prepared subcontainer.
         """
-        context = self._stack[-1]
-        if self.checks:
-            self._assert_number_of_toplevel_containers_le_1(context)
-            if context['type'] == 'dict':
-                self._assert_subcontainer_is_prepared(context)
+        self._start_container('list', '[')
 
-        self._ensure_separator(context)
-
-        self._stack.append({'type': 'list', 'size': 0, 'depth': context['depth'] + 1})
-        self.stream.write('[')
-
-    def start_dict(self):
+    def start_dict(self) -> None:
         """
         Start a new dictionary context. Must be in a list, or in a dict with a
         prepared subcontainer.
         """
-        context = self._stack[-1]
-        if self.checks:
-            self._assert_number_of_toplevel_containers_le_1(context)
-            if context['type'] == 'dict':
-                self._assert_subcontainer_is_prepared(context)
+        self._start_container('dict', '{')
 
-        self._ensure_separator(context)
+    def end_list(self) -> None:
+        """End the current list context."""
+        self._end_container('list', ']')
 
-        self._stack.append({'type': 'dict', 'size': 0, 'depth': context['depth'] + 1})
-        self.stream.write('{')
+    def end_dict(self) -> None:
+        """End the current dictionary context."""
+        self._end_container('dict', '}')
 
-    def end_list(self):
-        """
-        End the current list context.
-        """
-        context = self._stack.pop()
-        if self.checks:
-            self._assert_subcontainer_is_not_prepared(context)
-            self._assert_context_type_eq(context, 'list')
-        if context['size'] > 0:
-            self.stream.write('\n')
-        self.stream.write(']')
-
-    def end_dict(self):
-        """
-        End the current dictionary context
-        """
-        context = self._stack.pop()
-        if self.checks:
-            self._assert_subcontainer_is_not_prepared(context)
-            self._assert_context_type_eq(context, 'dict')
-        if context['size'] > 0:
-            self.stream.write('\n')
-        self.stream.write('}')
-
-    def start_subcontainer(self, key):
+    def start_subcontainer(self, key: str) -> None:
         """
         Add a key to a dictionary whose value will be a new container.
 
@@ -211,42 +227,42 @@ class _JSONEmitter(_AssertionMixin):
         Can only be called if you are inside a dict context.
         The next call must start a new dict or list container.
         """
-        context = self._stack[-1]
+        context = self._current()
         if self.checks:
-            self._assert_context_type_eq(context, 'dict')
-            self._assert_subcontainer_is_not_prepared(context)
+            self._assert_can_write_dict_item(context)
 
-        self._ensure_separator(context)
-        self.stream.write(json.dumps(key) + ': ')
-        context['subcontainer_prepared'] = True
+        self._prepare_value(context)
+        self.stream.write(json.dumps(key))
+        self.stream.write(': ')
+        context.awaiting_subcontainer = True
 
-    def setitem(self, key, value):
+    def setitem(self, key: str, value: Any) -> None:
         """
         Add an item to a dict context.
 
         Args:
-            key (str): a string key
-            value (Any): any json serializable object.
+            key: a string key
+            value: any JSON-serializable object
         """
-        context = self._stack[-1]
+        context = self._current()
         if self.checks:
-            self._assert_context_type_eq(context, 'dict')
-            self._assert_subcontainer_is_not_prepared(context)
+            self._assert_can_write_dict_item(context)
 
-        self._ensure_separator(context)
+        self._prepare_value(context)
         self.stream.write(json.dumps(key))
         self.stream.write(': ')
         self.stream.write(json.dumps(value))
 
-    def append(self, item):
+    def append(self, item: Any) -> None:
         """
-        Add an item to a list context
+        Add an item to a list context.
 
         Args:
-            item (Any): a json serializable object
+            item: any JSON-serializable object
         """
-        context = self._stack[-1]
+        context = self._current()
         if self.checks:
-            self._assert_context_type_eq(context, 'list')
-        self._ensure_separator(context)
+            self._assert_can_write_list_item(context)
+
+        self._prepare_value(context)
         self.stream.write(json.dumps(item))
