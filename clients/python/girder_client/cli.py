@@ -346,11 +346,18 @@ def _upload(gc, parent_type, parent_id, local_folder,
         blacklist=blacklist.split(','), dryRun=dry_run, reference=reference)
 
 
-_short_help = 'List contents of a collection, folder, or item'
+_short_help = 'List contents of a user, collection, folder, item, or file'
 _long_help = """
-PARENT_ID is the id of the Girder parent target.
+PARENT_ID is the id of a Girder user, collection, folder, item, or file.
+The command first shows the requested resource so opaque ids are identifiable,
+then lists any immediate child resources: users and collections contain folders,
+folders contain folders and items, items contain files, and files have no
+children. In JSON output, the requested resource is emitted as this_record.
 
 Examples:
+
+    # List USER: jon.crall
+    girder-client --api-url https://data.kitware.com/api/v1 list 598a19658d777f7d33e9c18b
 
     # List COLLECTION: VIAME
     girder-client --api-url https://data.kitware.com/api/v1 list 58b747ec8d777f0aef5d0f6a
@@ -379,18 +386,10 @@ Examples:
               help='output machine-readable JSON')
 @click.pass_obj
 def _list(gc, parent_type, parent_id, limit, offset, as_json):
-    # TODO / DISCUSS:
-    #     Possible extensions:
-    #         - [ ] Allow user to specify columns of interest (e.g. sha512 if
-    #               available)
-    #         - [ ] Allow query-by-name rather than by id?
-    #         - [ ] Show folder tree structure?
-    #         - [X] Emit proper machine-readable JSON
-    #         - [X] Show the name of the parent item/folder/collection?
     if parent_type == 'auto':
-        parent_type = _lookup_parent_type(gc, parent_id)
+        parent_type = _list_lookup_parent_type(gc, parent_id)
 
-    this_record = gc.getResource(parent_type, parent_id)
+    this_record = _list_get_resource(gc, parent_type, parent_id)
 
     if as_json:
         from girder_client._jsonemitter import _JSONEmitter
@@ -422,6 +421,117 @@ def _list(gc, parent_type, parent_id, limit, offset, as_json):
 
     if emitter:
         emitter.end_dict()
+
+
+def _list_lookup_parent_type(gc, parent_id):
+    """
+    Resolve the Girder resource type for the list command.
+
+    The shared _lookup_parent_type helper uses the resource path endpoint,
+    which can fail to identify users. Fall back to direct resource GETs, and
+    for users also try listing folders with parentType=user because some Girder
+    deployments allow traversing a user's public folders without allowing the
+    user record itself to be read anonymously.
+    """
+    lookup_errors = []
+    try:
+        parent_type = _lookup_parent_type(gc, parent_id)
+    except requests.HTTPError as exc_info:
+        lookup_errors.append('resource path lookup: %s' % _list_http_error_summary(exc_info))
+    else:
+        if parent_type is not None:
+            return parent_type
+        lookup_errors.append('resource path lookup: no match')
+
+    for candidate_type in ['folder', 'collection', 'item', 'file']:
+        try:
+            _list_get_resource(gc, candidate_type, parent_id)
+            return candidate_type
+        except requests.HTTPError as exc_info:
+            if exc_info.response.status_code in {400, 403, 404}:
+                lookup_errors.append('%s: %s' % (
+                    candidate_type, _list_http_error_summary(exc_info)))
+                continue
+            raise
+
+    user_status = _list_probe_user_resource(gc, parent_id)
+    if user_status is True:
+        return 'user'
+    lookup_errors.append('user: %s' % user_status)
+
+    raise click.ClickException(
+        'Could not determine Girder resource type for %s. Tried: %s' % (
+            parent_id, '; '.join(lookup_errors)))
+
+
+def _list_http_error_summary(exc_info):
+    """
+    Return a short description of a Girder HTTP lookup failure.
+    """
+    response = exc_info.response
+    status_code = getattr(response, 'status_code', None)
+    reason = getattr(response, 'reason', '')
+    if status_code is None:
+        return str(exc_info)
+    if reason:
+        return '%s %s' % (status_code, reason)
+    return str(status_code)
+
+
+def _list_probe_user_resource(gc, user_id):
+    """
+    Return True if user_id appears to identify a user resource.
+
+    A user record can be inaccessible while its public folders are still
+    listable, so direct GET /user/<id> is not the only useful probe.
+    """
+    try:
+        record = gc.get('user/%s' % user_id)
+    except requests.HTTPError as exc_info:
+        direct_status = _list_http_error_summary(exc_info)
+        if exc_info.response.status_code not in {400, 403, 404}:
+            raise
+    else:
+        if record:
+            return True
+        direct_status = 'empty response'
+
+    try:
+        records = gc.listFolder(user_id, parentFolderType='user', limit=1)
+        first_record = next(iter(records), None)
+    except requests.HTTPError as exc_info:
+        if exc_info.response.status_code not in {400, 403, 404}:
+            raise
+        return 'GET user failed with %s; folder probe failed with %s' % (
+            direct_status, _list_http_error_summary(exc_info))
+
+    if first_record is not None:
+        return True
+    return 'GET user failed with %s; folder probe returned no folders' % direct_status
+
+
+def _list_get_resource(gc, resource_type, resource_id):
+    """
+    Return a Girder record for a supported list resource type.
+
+    GirderClient.getResource handles collections, folders, items, and files.
+    User records are fetched through the user endpoint when possible. If the
+    user record is not readable, return a minimal user-shaped record so the CLI
+    can still show the requested opaque ID and list public folders below it.
+    """
+    if resource_type == 'user':
+        try:
+            record = gc.get('user/%s' % resource_id)
+        except requests.HTTPError as exc_info:
+            if exc_info.response.status_code in {400, 403, 404}:
+                return {
+                    '_id': resource_id,
+                    '_modelType': 'user',
+                }
+            raise
+        record.setdefault('_modelType', 'user')
+        return record
+    return gc.getResource(resource_type, resource_id)
 
 
 def _list_record_label(record):

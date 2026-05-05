@@ -38,6 +38,7 @@ pytest-forked
 pytest-mock
 python-dateutil
 tox
+xdoctest
 virtualenv
 
 # from extras
