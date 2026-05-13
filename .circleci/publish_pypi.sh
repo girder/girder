@@ -20,6 +20,7 @@ for directory in "${PUBLISHED_PYTHON_PACKAGES[@]}"; do
     pushd "$directory"
     rm -fr dist
     python -m build
+    pip wheel . --no-deps -w dist
     twine upload --verbose --skip-existing dist/*
     popd
 done
