@@ -13,7 +13,7 @@ import time
 import cachetools
 import cherrypy
 import click
-import fuse
+import mfusepy as fuse
 
 from girder import events, plugin
 from girder.constants import ServerMode
