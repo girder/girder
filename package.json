@@ -41,6 +41,7 @@
   "scripts": {
     "build": "echo Run build in the web directory and for each plugin",
     "lint": "eslint --cache . && pug-lint . && stylelint **/*.styl",
+    "format": "eslint --cache --fix .",
     "docs": "jsdoc -c jsdoc.json",
     "publish-all": "./.circleci/publish_npm.sh"
   },
