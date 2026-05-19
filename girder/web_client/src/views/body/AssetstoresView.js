@@ -112,10 +112,16 @@ var AssetstoresView = View.extend({
         var assetstore = this.collection.get($(el).attr('cid'));
         var capacity = assetstore.get('capacity');
         var used = capacity.total - capacity.free;
+        if (capacity.reserved) {
+            used -= capacity.reserved;
+        }
         var data = [
             ['Used (' + formatSize(used) + ')', used],
             ['Free (' + formatSize(capacity.free) + ')', capacity.free]
         ];
+        if (capacity.reserved) {
+            data.push(['Reserved (' + formatSize(capacity.reserved) + ')', capacity.reserved]);
+        }
         var plot = $(el).jqplot([data], {
             seriesDefaults: {
                 renderer: $.jqplot.PieRenderer,
