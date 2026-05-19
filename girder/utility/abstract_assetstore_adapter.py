@@ -47,6 +47,10 @@ class FileHandle:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
+    @property
+    def unavailable(self) -> bool:
+        return False
+
     def read(self, size=None):
         """
         Read *size* bytes from the file data.

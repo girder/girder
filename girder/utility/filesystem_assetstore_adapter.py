@@ -97,14 +97,27 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # happens to existing assetstores that no longer can access their temp
         # directories.
         self.tempDir = os.path.join(self.assetstore['root'], 'temp')
+        self._unavailable = False
         try:
             mkdir(self.tempDir)
         except OSError:
-            self.unavailable = True
+            self._unavailable = True
             logger.exception('Failed to create filesystem assetstore directories %s', self.tempDir)
         if not os.access(self.assetstore['root'], os.W_OK):
-            self.unavailable = True
+            self._unavailable = True
             logger.error('Could not write to assetstore root: %s', self.assetstore['root'])
+
+    @property
+    def unavailable(self) -> bool:
+        if self._unavailable:
+            return True
+        try:
+            free = self.capacityInfo()['free']
+            if free is not None and free <= 0:
+                return True
+        except Exception:
+            pass
+        return False
 
     def capacityInfo(self):
         """
@@ -113,7 +126,18 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         try:
             usage = psutil.disk_usage(self.assetstore['root'])
-            return {'free': usage.free, 'total': usage.total}
+            reserved = -1
+            try:
+                reserved = float(os.environ.get('GIRDER_FILESYSTEMASSETSTORE_RESERVED_MBYTES'))
+            except Exception:
+                pass
+            if reserved <= 0:
+                reserved = 10 * 1024
+            reserved *= 1024 ** 2
+            return {
+                'free': max(0, usage.free - reserved),
+                'reserved': reserved,
+                'total': usage.total}
         except OSError:
             logger.exception('Failed to get disk usage of %s', self.assetstore['root'])
         # If psutil.disk_usage fails or we can't query the assetstore's root
@@ -128,6 +152,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         Generates a temporary file and sets its location in the upload document
         as tempFile. This is the file that the chunks will be appended to.
         """
+        if self.unavailable:
+            msg = 'Assetstore is unavailable or has insufficient free space.'
+            raise ValidationException(msg)
         fd, path = tempfile.mkstemp(dir=self.tempDir)
         os.close(fd)  # Must close this file descriptor or it will leak
         upload['tempFile'] = path
@@ -138,6 +165,9 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         Appends the chunk into the temporary file.
         """
+        if self.unavailable:
+            msg = 'Assetstore is unavailable or has insufficient free space.'
+            raise ValidationException(msg)
         # If we know the chunk size is too large or small, fail early.
         self.checkUploadSize(upload, self.getChunkSize(chunk))
 
