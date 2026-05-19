@@ -801,6 +801,7 @@ girder
                 seek
                 seekable
                 tell
+                unavailable
         acl_mixin
             AccessControlMixin
                 filterResultsByPermission
@@ -843,6 +844,7 @@ girder
                 importFile
                 initUpload
                 requestOffset
+                unavailable
                 uploadChunk
                 validateInfo
         genToken
