@@ -110,10 +110,16 @@ var AssetstoresView = View.extend({
         var assetstore = this.collection.get($(el).attr('cid'));
         var capacity = assetstore.get('capacity');
         var used = capacity.total - capacity.free;
+        if (capacity.reserved) {
+            used -= capacity.reserved;
+        }
         var data = [
             ['Used (' + formatSize(used) + ')', used],
             ['Free (' + formatSize(capacity.free) + ')', capacity.free]
         ];
+        if (capacity.reserved) {
+            data.push(['Reserved (' + formatSize(capacity.reserved) + ')', capacity.reserved]);
+        }
         var plot = new ApexCharts(el, {
             series: data.map(d => d[1]),
             chart: {
@@ -133,7 +139,7 @@ var AssetstoresView = View.extend({
             },
             dataLabels: {
                 style: {
-                  colors: ['#000', '#000']
+                  colors: ['#000', '#000', '#000']
                 },
                 dropShadow: {enabled: false},
             },
