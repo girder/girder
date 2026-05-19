@@ -137,6 +137,55 @@ to run the local worker is:
 
     celery -A girder_worker.app worker -Q local
 
+Event handlers for ``local``-queue work
++++++++++++++++++++++++++++++++++++++++
+
+Many operations that previously ran synchronously in the Girder web process are now
+enqueued as Celery tasks on the ``local`` queue. For example, the assetstore import
+handler calls ``importDataTask.delay(...)`` rather than Girder 3.x's ``Assetstore().importData(...)`` in
+the request thread. Model events such as ``s3_assetstore_imported``,
+``filesystem_assetstore_imported``, and ``assetstore_import.after`` are still triggered, but
+they fire in **whichever process runs the import**—typically a Celery worker, not the web
+server.
+
+``events.bind`` calls made in a :py:class:`~girder.plugin.GirderPlugin` ``load`` method only
+apply to the Girder web process. Many events still fire there as before, especially REST
+events (``rest.*.before``, ``rest.*.after``, and so on). The worker does not load server
+plugins instead it discovers task modules through the ``girder_worker_plugins`` entry point (see
+:py:class:`girder_worker.GirderWorkerPluginABC`). If your handlers must run when code
+executes on the ``local`` queue (for example during ``importDataTask``), register them in a
+worker plugin subclass instead of only in ``load``, binding them in ``__init__`` when the
+worker starts. For example, the Import Tracker plugin binds
+``assetstore_import.before``, ``assetstore_import.after``, and ``assetstore_import.error`` in
+``ImportTrackerWorkerPlugin.__init__`` (see
+``plugins/import_tracker/girder_import_tracker/girder_worker_plugin.py``).
+
+Below is an example of a worker plugin that registers event handlers for the ``local`` queue.
+
+.. code-block:: python
+
+    from girder import events
+    from girder_worker import GirderWorkerPluginABC
+
+    from my_plugin.handlers import on_s3_imported, on_import_finished
+
+
+    class MyPluginWorker(GirderWorkerPluginABC):
+        def __init__(self, app, *args, **kwargs):
+            events.bind(
+                's3_assetstore_imported',
+                'my_plugin_s3_imported',
+                on_s3_imported,
+            )
+            events.bind(
+                'assetstore_import.after',
+                'my_plugin_import_after',
+                on_import_finished,
+            )
+
+        def task_imports(self):
+            return ['my_plugin.tasks']
+
 Overhaul of notifications system switch from WSGI to ASGI
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -243,6 +292,17 @@ Then, build the core front-end application with the desired base path:
 
 With that variable set in your environment, the Girder core web client will now be served under
 ``/new_root/`` rather than ``/``.
+
+.. note::
+
+   Remapping ``apps['']`` only moves the static SPA. The REST API (including Swagger at
+   ``/api/v1``) stays on its original ``/api`` mount unless you duplicate it. After the remount
+   above, and before `del info['serverRoot'].apps['']`, add:
+
+   .. code-block:: python
+
+       api_cp_app = info['serverRoot'].apps['/api']
+       info['serverRoot'].mount(api_cp_app.root, '/new_root/api', api_cp_app.config)
 
 Logging changes
 +++++++++++++++

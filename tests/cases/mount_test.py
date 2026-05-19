@@ -6,7 +6,7 @@ import tempfile
 import threading
 import time
 
-import fuse
+import mfusepy as fuse
 
 from girder.cli import mount
 from girder.exceptions import ValidationException

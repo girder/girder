@@ -35,9 +35,9 @@ installReqs = [
     'CherryPy',
     'click',
     'click-plugins',
-    'dogpile.cache<1.4',
+    'dogpile.cache',
     'filelock',
-    'girder-worker>=5.0.0a5',
+    'girder-worker>=5',
     'jsonschema',
     'Mako',
     'packaging',
@@ -62,7 +62,7 @@ extrasReqs = {
     'mount': [
         'cachetools',
         'diskcache',
-        'fusepy>=3.0'
+        'mfusepy>=3.0'
     ]
 }
 

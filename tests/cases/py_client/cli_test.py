@@ -460,3 +460,185 @@ class PythonCliTestCase(base.TestCase):
             gc.sendRestRequest('')
 
         self.assertTrue(m.called)
+
+    def testListCommand(self):
+        localDir = os.path.join(os.path.dirname(__file__), 'testdata')
+        ret = invokeCli(
+            ['upload', str(self.publicFolder['_id']), localDir, '--parent-type=folder'],
+            username='mylogin', password='password', useApiUrl=True)
+        self.assertEqual(ret['exitVal'], 0)
+
+        subfolder = next(Folder().childFolders(
+            parent=self.publicFolder, parentType='folder', limit=1))
+        items = list(Folder().childItems(folder=subfolder))
+        self.assertTrue(items)
+        item = items[0]
+        fileName, fileDoc = next(Item().fileList(item, data=False))
+
+        ret = invokeCli(
+            ('list', '--parent-type=folder', str(subfolder['_id'])),
+            username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('Listing folder: %s - %s' % (subfolder['_id'], subfolder['name']),
+                      ret['stdout'])
+        self.assertIn('=== item ===', ret['stdout'])
+        self.assertIn(str(item['_id']), ret['stdout'])
+
+        ret = invokeCli(
+            ('list', '--parent-type=item', str(item['_id']), '--json'),
+            username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('"parent_record"', ret['stdout'])
+        self.assertIn('"this_record"', ret['stdout'])
+        self.assertIn('"file_children"', ret['stdout'])
+        self.assertIn(str(fileDoc['_id']), ret['stdout'])
+
+        ret = invokeCli(
+            ('list', '--parent-type=file', str(fileDoc['_id'])),
+            username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('Parent folder: %s - %s' % (subfolder['_id'], subfolder['name']),
+                      ret['stdout'])
+        self.assertIn('Parent item: %s - %s' % (item['_id'], item['name']), ret['stdout'])
+        self.assertIn('Listing file: %s - %s' % (fileDoc['_id'], fileName), ret['stdout'])
+
+        ret = invokeCli(('list', '--parent-type=user', str(self.user['_id'])),
+                        username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('Listing user: %s - mylogin' % self.user['_id'], ret['stdout'])
+        self.assertIn('=== folder ===', ret['stdout'])
+        self.assertIn('Public', ret['stdout'])
+        self.assertIn('Private', ret['stdout'])
+
+        # Test list of a folder auto-detecting parent-type
+        ret = invokeCli(('list', str(subfolder['_id'])),
+                        username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('Listing folder: %s - %s' % (subfolder['_id'], subfolder['name']),
+                      ret['stdout'])
+        self.assertIn(str(item['_id']), ret['stdout'])
+
+        # Test list of an item auto-detecting parent-type
+        ret = invokeCli(('list', str(item['_id']), '--json'),
+                        username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('"this_record"', ret['stdout'])
+        self.assertIn('"file_children"', ret['stdout'])
+        self.assertIn(str(fileDoc['_id']), ret['stdout'])
+
+        # Test list of a file auto-detecting parent-type
+        ret = invokeCli(('list', str(fileDoc['_id'])),
+                        username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('Parent item: %s - %s' % (item['_id'], item['name']), ret['stdout'])
+        self.assertIn('Listing file: %s - %s' % (fileDoc['_id'], fileName), ret['stdout'])
+
+        # Test list of a user auto-detecting parent-type
+        ret = invokeCli(('list', str(self.user['_id'])),
+                        username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('Listing user: %s - mylogin' % self.user['_id'], ret['stdout'])
+        self.assertIn('=== folder ===', ret['stdout'])
+
+        # List collection test
+        resp = self.request('/collection', 'POST', user=self.user, params={
+            'name': 'list_collection'
+        })
+        self.assertStatusOk(resp)
+        collection = resp.json
+
+        resp = self.request('/folder', 'POST', user=self.user, params={
+            'parentType': 'collection',
+            'parentId': collection['_id'],
+            'name': 'list_collection_folder'
+        })
+        self.assertStatusOk(resp)
+        collectionFolder = resp.json
+
+        ret = invokeCli(('list', str(collection['_id'])),
+                        username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('Listing collection: %s - list_collection' % collection['_id'],
+                      ret['stdout'])
+        self.assertIn(str(collectionFolder['_id']), ret['stdout'])
+
+        # Test JSON list of a file
+        ret = invokeCli(
+            ('list', '--parent-type=file', str(fileDoc['_id']), '--json'),
+            username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('"folder_record"', ret['stdout'])
+        self.assertIn('"item_record"', ret['stdout'])
+        self.assertIn('"this_record"', ret['stdout'])
+        self.assertIn(str(fileDoc['_id']), ret['stdout'])
+
+        # Test JSON list of a collection
+        ret = invokeCli(
+            ('list', '--parent-type=collection', str(collection['_id']), '--json'),
+            username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('"this_record"', ret['stdout'])
+        self.assertIn('"folder_children"', ret['stdout'])
+        self.assertIn(str(collectionFolder['_id']), ret['stdout'])
+
+        # Test JSON list of a user
+        ret = invokeCli(('list', '--parent-type=user', str(self.user['_id']), '--json'),
+                        username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('"this_record"', ret['stdout'])
+        self.assertIn('"folder_children"', ret['stdout'])
+        self.assertIn('Public', ret['stdout'])
+
+        # Coverage variants
+        ret = invokeCli(
+            ('list', '--parent-type=folder', str(subfolder['_id']), '--json'),
+            username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('"parent_record"', ret['stdout'])
+        self.assertIn('"this_record"', ret['stdout'])
+        self.assertIn('"item_children"', ret['stdout'])
+        self.assertIn(str(item['_id']), ret['stdout'])
+
+        ret = invokeCli(
+            ('list', '--parent-type=file', str(fileDoc['_id']), '--json'),
+            username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('"folder_record"', ret['stdout'])
+        self.assertIn('"item_record"', ret['stdout'])
+        self.assertIn('"this_record"', ret['stdout'])
+        self.assertIn(str(fileDoc['_id']), ret['stdout'])
+
+        ret = invokeCli(
+            ('list', '--parent-type=user', str(self.user['_id']), '--json'),
+            username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('"this_record"', ret['stdout'])
+        self.assertIn('"folder_children"', ret['stdout'])
+        self.assertIn('Public', ret['stdout'])
+
+        ret = invokeCli(
+            ('list', '--parent-type=collection', str(collection['_id']), '--json'),
+            username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('"this_record"', ret['stdout'])
+        self.assertIn('"folder_children"', ret['stdout'])
+        self.assertIn(str(collectionFolder['_id']), ret['stdout'])
+
+        ret = invokeCli(('list', '--parent-type=collection', str(collection['_id'])),
+                        username='mylogin', password='password')
+        self.assertEqual(ret['exitVal'], 0)
+        self.assertIn('Listing collection: %s - list_collection' % collection['_id'],
+                      ret['stdout'])
+        self.assertIn(str(collectionFolder['_id']), ret['stdout'])
+
+        # Test list of an unknown id gives a useful error.
+        ret = invokeCli(('list', 'not-a-valid-resource-id'),
+                        username='mylogin', password='password')
+        self.assertNotEqual(ret['exitVal'], 0)
+        self.assertIn('Could not determine Girder resource type', ret['stderr'])
+
+    def testDoctests(self):
+        import xdoctest
+        from girder_client import _jsonemitter
+        results = xdoctest.doctest_module(_jsonemitter, command='all')
+        self.assertEqual(results['n_failed'], 0)

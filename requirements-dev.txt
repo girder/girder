@@ -38,10 +38,11 @@ pytest-forked
 pytest-mock
 python-dateutil
 tox
+xdoctest
 virtualenv
 
 # from extras
 paramiko
 cachetools
 diskcache
-fusepy>=3.0
+mfusepy>=3.0

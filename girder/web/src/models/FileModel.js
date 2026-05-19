@@ -107,7 +107,7 @@ var FileModel = Model.extend({
                 parentId: parentModel.get('_id'),
                 name: file.name,
                 size: file.size,
-                mimeType: file.type
+                mimeType: file.type || 'application/octet-stream'
             }, otherParams)
         };
 
