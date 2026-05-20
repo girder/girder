@@ -64,19 +64,18 @@ class _WSGIBridge:
         rsock, wsock = socket.socketpair()
         rsock.setblocking(True)
         wsock.setblocking(False)
-        response_started = asyncio.Event()
         response_status = {}
         response_headers = []
         response_chunks = []
         error = []
 
         def start_response(status, headers, exc_info=None):
+            response_headers.clear()
             response_status['code'] = int(status.split()[0])
             response_headers.extend(
                 (k.encode('latin-1'), v.encode('latin-1'))
                 for k, v in headers
             )
-            response_started.set()
 
             def write(data):
                 if data:
