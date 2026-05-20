@@ -37,6 +37,30 @@ def _hashkey_first(funcname, *args, **kwargs):
     return (funcname, args[1])
 
 
+def _log_operation(func):
+    """Decorator to log FUSE operations."""
+
+    def wrapper(self, path, *args, **kwargs):
+        logger.info('-> %s %s %s', func.__name__, path, repr(args))
+        try:
+            ret = getattr(self, func.__name__)(path, *args, **kwargs)
+            return ret
+        except Exception as e:
+            ret = '[exception]'
+            # Log all exceptions and then reraise them
+            if getattr(e, 'errno', None) in (errno.ENOENT, errno.EACCES):
+                logger.debug('-- %s %r', func.__name__, e)
+            else:
+                logger.exception('-- %s', func.__name__)
+            raise e
+        finally:
+            if func.__name__ != 'read':
+                logger.debug('<- %s %s', func.__name__, repr(ret))
+            else:
+                logger.debug('<- %s (length %d) %r', func.__name__, len(ret), ret[:16])
+    return wrapper
+
+
 class ServerFuse(fuse.Operations):
     """
     This class handles FUSE operations that are non-default.  It exposes the
@@ -133,32 +157,6 @@ class ServerFuse(fuse.Operations):
                 'miss': 0,
                 'bytesread': 0,
             }
-
-    def __call__(self, op, path, *args, **kwargs):
-        """
-        Generically allow logging and error handling for any operation.
-
-        :param op: operation to perform.
-        :param path: path within the fuse (e.g., '', '/user', '/user/<name>',
-            etc.).
-        """
-        logger.info('-> %s %s %s', op, path, repr(args))
-        try:
-            ret = getattr(self, op)(path, *args, **kwargs)
-            return ret
-        except Exception as e:
-            ret = '[exception]'
-            # Log all exceptions and then reraise them
-            if getattr(e, 'errno', None) in (errno.ENOENT, errno.EACCES):
-                logger.debug('-- %s %r', op, e)
-            else:
-                logger.exception('-- %s', op)
-            raise e
-        finally:
-            if op != 'read':
-                logger.debug('<- %s %s', op, repr(ret))
-            else:
-                logger.debug('<- %s (length %d) %r', op, len(ret), ret[:16])
 
     @cachetools.cachedmethod(lambda self: self.cache, key=functools.partial(
         _hashkey_first, '_get_path'), lock=lambda self: self.cacheLock)
@@ -303,6 +301,7 @@ class ServerFuse(fuse.Operations):
     listxattr = None
     ioctl = None
 
+    @_log_operation
     def access(self, path, mode):
         """
         Try to load the resource associated with a path.  If we have permission
@@ -322,12 +321,14 @@ class ServerFuse(fuse.Operations):
         # mode is either F_OK or a bitfield of R_OK, W_OK, X_OK
         return 0
 
+    @_log_operation
     def create(self, path, mode):
         """
         This is a read-only system, so don't allow create.
         """
         raise fuse.FuseOSError(errno.EROFS)
 
+    @_log_operation
     def flush(self, path, fh=None):
         """
         We may want to disallow flush, since this is a read-only system:
@@ -338,6 +339,7 @@ class ServerFuse(fuse.Operations):
 
     @cachetools.cachedmethod(lambda self: self.cache, key=functools.partial(
         _hashkey_first, 'getattr'), lock=lambda self: self.cacheLock)
+    @_log_operation
     def getattr(self, path, fh=None):
         """
         Get the attributes dictionary of a path.
@@ -367,6 +369,7 @@ class ServerFuse(fuse.Operations):
                 (attr['st_size'] + attr['st_blksize'] - 1) / attr['st_blksize'])
         return attr
 
+    @_log_operation
     def read(self, path, size, offset, fh):
         """
         Read a block of bytes from a resource.
@@ -434,6 +437,7 @@ class ServerFuse(fuse.Operations):
             self._mount_stats['bytesread'] += size
             return handle.read(size)
 
+    @_log_operation
     def readdir(self, path, fh):
         """
         Get a list of names within a directory.
@@ -475,6 +479,7 @@ class ServerFuse(fuse.Operations):
             directpath = None
         return directpath
 
+    @_log_operation
     def open(self, path, flags):
         """
         Open a path and return a descriptor.
@@ -518,6 +523,7 @@ class ServerFuse(fuse.Operations):
             self._mount_stats['open'] += 1
         return fh
 
+    @_log_operation
     def release(self, path, fh):
         """
         Release an open file handle.
@@ -538,6 +544,7 @@ class ServerFuse(fuse.Operations):
                 return super().release(path, fh)
         return 0
 
+    @_log_operation
     def destroy(self, path):
         """
         Handle shutdown of the FUSE.
