@@ -1527,6 +1527,7 @@ pytest_girder
             assertStatusOk
         fixtures
             admin
+            asgiBoundServer
             boundServer
             db
             eagerWorkerTasks
