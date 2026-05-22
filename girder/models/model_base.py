@@ -196,27 +196,31 @@ class Model(metaclass=_ModelSingleton):
         return self.filterDocument(doc, allow=keys)
 
     def _createIndex(self, index):
-        if isinstance(index, (list, tuple)):
-            keys, opts = index[0], index[1]
-            if isinstance(keys, str):
-                keys = [(keys, pymongo.ASCENDING)]
-            if 'background' not in opts:
-                opts = opts.copy()
-                opts['background'] = True
-            try:
-                self.collection.create_index(keys, **opts)
-            except pymongo.errors.OperationFailure as e:
-                code_name = e.details.get('codeName') if hasattr(e, 'details') else None
-                if code_name in ('IndexOptionsConflict', 'IndexKeySpecsConflict'):
-                    for idx in self.collection.list_indexes():
-                        if list(idx['key'].items()) == keys:
-                            self.collection.drop_index(idx['name'])
-                            break
+        try:
+            if isinstance(index, (list, tuple)):
+                keys, opts = index[0], index[1]
+                if isinstance(keys, str):
+                    keys = [(keys, pymongo.ASCENDING)]
+                if 'background' not in opts:
+                    opts = opts.copy()
+                    opts['background'] = True
+                try:
                     self.collection.create_index(keys, **opts)
-                else:
-                    raise
-        else:
-            self.collection.create_index(index, background=True)
+                except pymongo.errors.OperationFailure as e:
+                    code_name = e.details.get('codeName') if hasattr(e, 'details') else None
+                    if code_name in ('IndexOptionsConflict', 'IndexKeySpecsConflict'):
+                        for idx in self.collection.list_indexes():
+                            if list(idx['key'].items()) == keys:
+                                self.collection.drop_index(idx['name'])
+                                break
+                        self.collection.create_index(keys, **opts)
+                    else:
+                        raise
+            else:
+                self.collection.create_index(index, background=True)
+        except Exception as exc:
+            # index creation is best-effort
+            logger.info('Index creation raised an exception (%r)', exc)
 
     def ensureTextIndex(self, index, language='english'):
         """
