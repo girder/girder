@@ -62,7 +62,11 @@ def db(request):
     # Since models store a local reference to the current database, we need to force them all to
     # reconnect
     for model in model_base._modelSingletons:
-        model.reconnect()
+        try:
+            model.reconnect()
+        except OSError:
+            # Ignore lazy index creation errors
+            pass
 
     # Use faster password hashing to avoid unnecessary testing bottlenecks. Any test case
     # that creates a user goes through the password hashing process, so we avoid actual bcrypt.
@@ -247,12 +251,22 @@ def fsAssetstore(db, request):
     path = os.path.join(ROOT_DIR, 'tests', 'assetstore', name)
 
     if os.path.isdir(path):
-        shutil.rmtree(path)
+        for _ in range(5):
+            try:
+                shutil.rmtree(path)
+                break
+            except Exception:
+                time.sleep(1)
 
     yield Assetstore().createFilesystemAssetstore(name=name, root=path)
 
     if os.path.isdir(path):
-        shutil.rmtree(path)
+        for _ in range(5):
+            try:
+                shutil.rmtree(path)
+                break
+            except Exception:
+                time.sleep(1)
 
 
 __all__ = (
