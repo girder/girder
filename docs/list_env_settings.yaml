@@ -95,3 +95,6 @@ GIRDER_WORKER_BACKEND: >-
 
 GIRDER_WORKER_JOB_GC_SCOPE: >-
   A comma-separated list of extra default scopes for worker jobs.  For instance to allow jobs to schedule and check on other jobs, set this to "jobs.rest.create_job,jobs.rest.list_job"
+
+GIRDER_FILESYSTEMASSETSTORE_RESERVED_MBYTES: >-
+  For filesystem assetstores, reserve this many megabytes of space.  Uploads will be rejected when there is less than this available.  If using the user quota plugin with fall-back assetstores, it will trigger the fall-back behavior.

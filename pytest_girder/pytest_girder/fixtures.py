@@ -1,13 +1,15 @@
 import hashlib
 import os
 import shutil
+import threading
+import time
 import unittest.mock
 
 import mongomock
 import pytest
 
 from .plugin_registry import PluginRegistry
-from .utils import serverContext
+from .utils import _findFreePort, serverContext
 
 
 def _uid(node):
@@ -60,7 +62,11 @@ def db(request):
     # Since models store a local reference to the current database, we need to force them all to
     # reconnect
     for model in model_base._modelSingletons:
-        model.reconnect()
+        try:
+            model.reconnect()
+        except OSError:
+            # Ignore lazy index creation errors
+            pass
 
     # Use faster password hashing to avoid unnecessary testing bottlenecks. Any test case
     # that creates a user goes through the password hashing process, so we avoid actual bcrypt.
@@ -146,6 +152,52 @@ def boundServer(db, request):
 
 
 @pytest.fixture
+def asgiBoundServer(db, request):
+    """
+    Require an ASGI server that listens on a port.
+
+    Provides a started uvicorn server with a bound port. The returned value has
+    a `boundPort` property identifying where the server can be reached.
+    """
+    import uvicorn
+
+    from girder.asgi import _WSGIBridge
+
+    registry = PluginRegistry()
+    with registry():
+        plugins = _getPluginsFromMarker(request, registry)
+        with serverContext(plugins, bindPort=False) as server_fixture:
+            port = _findFreePort()
+            server_fixture.boundPort = port
+            config = uvicorn.Config(
+                _WSGIBridge(server_fixture.serverRoot),
+                host='127.0.0.1',
+                port=port,
+                log_level='warning',
+                server_header=False,
+                date_header=False,
+                lifespan='off',
+                access_log=False,
+                loop='asyncio',
+            )
+            asgi_server = uvicorn.Server(config)
+            thread = threading.Thread(target=asgi_server.run, daemon=True)
+            thread.start()
+            deadline = time.monotonic() + 10
+            while not asgi_server.started and thread.is_alive() and time.monotonic() < deadline:
+                time.sleep(0.01)
+            if not asgi_server.started:
+                asgi_server.should_exit = True
+                thread.join(timeout=5)
+                raise RuntimeError('ASGI server failed to start')
+            try:
+                yield server_fixture
+            finally:
+                asgi_server.should_exit = True
+                thread.join(timeout=5)
+
+
+@pytest.fixture
 def email_stdout(db):
     old_env_val = os.environ.get('GIRDER_EMAIL_TO_CONSOLE')
     os.environ['GIRDER_EMAIL_TO_CONSOLE'] = 'true'
@@ -199,21 +251,32 @@ def fsAssetstore(db, request):
     path = os.path.join(ROOT_DIR, 'tests', 'assetstore', name)
 
     if os.path.isdir(path):
-        shutil.rmtree(path)
+        for _ in range(5):
+            try:
+                shutil.rmtree(path)
+                break
+            except Exception:
+                time.sleep(1)
 
     yield Assetstore().createFilesystemAssetstore(name=name, root=path)
 
     if os.path.isdir(path):
-        shutil.rmtree(path)
+        for _ in range(5):
+            try:
+                shutil.rmtree(path)
+                break
+            except Exception:
+                time.sleep(1)
 
 
 __all__ = (
     'admin',
+    'asgiBoundServer',
+    'boundServer',
     'db',
+    'eagerWorkerTasks',
+    'email_stdout',
     'fsAssetstore',
     'server',
-    'boundServer',
     'user',
-    'email_stdout',
-    'eagerWorkerTasks',
 )

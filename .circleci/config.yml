@@ -19,7 +19,7 @@ executors:
     working_directory: /home/circleci/project
   machine:
     machine:
-      image: ubuntu-2204:current
+      image: ubuntu-2204:2025.09.1
     working_directory: /home/circleci/project
 
 commands:
