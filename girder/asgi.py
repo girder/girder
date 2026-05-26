@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import queue
 import socket
 import sys
 import threading
@@ -66,7 +67,7 @@ class _WSGIBridge:
         wsock.setblocking(False)
         response_status = {}
         response_headers = []
-        response_chunks = []
+        chunk_queue = queue.Queue(maxsize=1)
         error = []
 
         def start_response(status, headers, exc_info=None):
@@ -79,7 +80,7 @@ class _WSGIBridge:
 
             def write(data):
                 if data:
-                    response_chunks.append(bytes(data))
+                    chunk_queue.put(bytes(data))
 
             return write
 
@@ -91,47 +92,80 @@ class _WSGIBridge:
                 try:
                     for chunk in result:
                         if chunk:
-                            response_chunks.append(bytes(chunk))
+                            chunk_queue.put(bytes(chunk))
                 finally:
                     if hasattr(result, 'close'):
                         result.close()
             except Exception as exc:
                 error.append(exc)
             finally:
+                chunk_queue.put(None)
                 body_file.close()
                 rsock.close()
 
         thread = threading.Thread(target=run_wsgi, daemon=True)
         thread.start()
-        try:
-            while True:
-                message = await receive()
-                if message['type'] == 'http.disconnect':
-                    break
-                body = message.get('body', b'')
-                if body:
-                    await loop.sock_sendall(wsock, body)
-                if not message.get('more_body', False):
-                    break
-        finally:
+
+        async def handle_request():
             try:
-                wsock.shutdown(socket.SHUT_WR)
-            except OSError:
-                pass
-            wsock.close()
-        thread.join()
+                while True:
+                    message = await receive()
+                    if message['type'] == 'http.disconnect':
+                        break
+                    body = message.get('body', b'')
+                    if body:
+                        await loop.sock_sendall(wsock, body)
+                    if not message.get('more_body', False):
+                        break
+            finally:
+                try:
+                    wsock.shutdown(socket.SHUT_WR)
+                except OSError:
+                    pass
+                wsock.close()
+
+        async def handle_response():
+            headers_sent = False
+            while True:
+                chunk = await loop.run_in_executor(None, chunk_queue.get)
+                if not headers_sent:
+                    await send({
+                        'type': 'http.response.start',
+                        'status': response_status.get('code', 500),
+                        'headers': response_headers,
+                    })
+                    headers_sent = True
+                if chunk is None:
+                    await send({
+                        'type': 'http.response.body',
+                        'body': b'',
+                        'more_body': False,
+                    })
+                    break
+                await send({
+                    'type': 'http.response.body',
+                    'body': chunk,
+                    'more_body': True,
+                })
+
+        req_task = asyncio.create_task(handle_request())
+        res_task = asyncio.create_task(handle_response())
+        try:
+            await asyncio.gather(req_task, res_task)
+        except BaseException:
+            req_task.cancel()
+            res_task.cancel()
+            while thread.is_alive():
+                try:
+                    if chunk_queue.get(timeout=0.1) is None:
+                        break
+                except queue.Empty:
+                    pass
+            raise
+        finally:
+            await loop.run_in_executor(None, thread.join)
         if error:
             raise error[0]
-        await send({
-            'type': 'http.response.start',
-            'status': response_status.get('code', 500),
-            'headers': response_headers,
-        })
-        await send({
-            'type': 'http.response.body',
-            'body': b''.join(response_chunks),
-            'more_body': False,
-        })
 
 
 @asynccontextmanager
