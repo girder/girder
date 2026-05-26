@@ -119,11 +119,16 @@ var FileListWidget = View.extend({
 
     render: function () {
         this.checked = [];
+        let baseParent = this.parentView;
+        while (baseParent && !baseParent.showDownload) {
+            baseParent = baseParent.parentView;
+        }
         this.$el.html(FileListTemplate({
             files: this.collection.toArray(),
             hasMore: this.collection.hasNextPage(),
             AccessType: AccessType,
             formatSize: formatSize,
+            showDownload: baseParent && baseParent.showDownload ? baseParent.showDownload() : false,
             parentItem: this.parentItem
         }));
 
