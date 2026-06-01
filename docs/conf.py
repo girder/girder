@@ -68,6 +68,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
     'sphinxcontrib.jquery',
+    'sphinx_llm.txt',
 ]
 
 autodoc_mock_imports = list(_girder_imports)
