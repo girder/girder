@@ -36,13 +36,13 @@ class ProgressState:
 @functools.lru_cache
 def _redis_client_async() -> aioredis.Redis:
     url = os.environ.get('GIRDER_NOTIFICATION_REDIS_URL', 'redis://localhost:6379')
-    return aioredis.Redis.from_url(url)
+    return aioredis.Redis.from_url(url, socket_timeout=None)
 
 
 @functools.lru_cache
 def _redis_client_sync() -> redis.Redis:
     url = os.environ.get('GIRDER_NOTIFICATION_REDIS_URL', 'redis://localhost:6379')
-    return redis.Redis.from_url(url)
+    return redis.Redis.from_url(url, socket_timeout=None)
 
 
 class UserNotificationsSocket(WebSocketEndpoint):

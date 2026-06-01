@@ -161,7 +161,7 @@ def asgiBoundServer(db, request):
     """
     import uvicorn
 
-    from girder.asgi import _WSGIBridge
+    from girder.asgi import app
 
     registry = PluginRegistry()
     with registry():
@@ -170,7 +170,7 @@ def asgiBoundServer(db, request):
             port = _findFreePort()
             server_fixture.boundPort = port
             config = uvicorn.Config(
-                _WSGIBridge(server_fixture.serverRoot),
+                app,
                 host='127.0.0.1',
                 port=port,
                 log_level='warning',
