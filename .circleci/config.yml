@@ -5,11 +5,11 @@ executors:
   py3:
     docker:
       # This image uses the newest version of many dependencies
-      - image: girder/girder_test:py310-node20
+      - image: girder/girder_test:py310-node22
     working_directory: /home/circleci/project
   py3-mongo:
     docker:
-      - image: girder/girder_test:py310-node20
+      - image: girder/girder_test:py310-node22
       # Use the oldest supported MongoDB
       # This is equivalent to the deprecated circleci/mongo:<version>-ram image
       - image: mongo:5.0
@@ -359,7 +359,7 @@ jobs:
 
   publish:
     docker:
-      - image: girder/girder_test:py310-node20
+      - image: girder/girder_test:py310-node22
     working_directory: ~/project
     steps:
       - checkout:
