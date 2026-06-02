@@ -8,6 +8,7 @@ build:
 sphinx:
   configuration: docs/conf.py
   fail_on_warning: true
+  output: build/docs/html
 
 python:
   install:
@@ -16,3 +17,5 @@ python:
       path: .
     - method: pip
       path: ./clients/python
+    - method: pip
+      path: ./worker
