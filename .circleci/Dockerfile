@@ -32,7 +32,7 @@ RUN apt-get update \
     setuptools \
     tox
 
-ENV NODE_VERSION=20
+ENV NODE_VERSION=22
 
 RUN mkdir /.nvm && \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | NVM_DIR=/.nvm bash && \
