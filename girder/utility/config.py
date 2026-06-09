@@ -9,10 +9,12 @@ logger = logging.getLogger(__name__)
 def loadConfig():
     # Calling this has the side effect of populating the cherrypy.config object with
     # values from the environment. It is called at import time of the girder package.
-    cherrypy.config.update({'server.socket_host': os.getenv('GIRDER_HOST', '127.0.0.1')})
-    cherrypy.config.update({'server.socket_port': int(os.getenv('GIRDER_PORT', 8080))})
-    cherrypy.config.update({'server.thread_pool': int(os.getenv('GIRDER_THREAD_POOL', 100))})
-    cherrypy.config.update({'tools.proxy.on': True})
+    cherrypy.config.update({
+        'server.socket_host': os.getenv('GIRDER_HOST', '127.0.0.1'),
+        'server.socket_port': int(os.getenv('GIRDER_PORT', 8080)),
+        'server.thread_pool': int(os.getenv('GIRDER_THREAD_POOL', 100)),
+        'tools.proxy.on': True,
+    })
 
     if 'database' not in cherrypy.config:
         cherrypy.config.update({'database': {}})
@@ -20,9 +22,10 @@ def loadConfig():
     if 'GIRDER_TEST_DB' in os.environ:
         cherrypy.config['database'].update({'uri': os.environ['GIRDER_TEST_DB'].replace('.', '_')})
     else:
-        cherrypy.config['database'].update({'uri': os.getenv(
-            'GIRDER_MONGO_URI', 'mongodb://localhost:27017/girder')})
-        cherrypy.config['database'].update({'replica_set': os.getenv('GIRDER_MONGO_REPLICA_SET')})
+        cherrypy.config['database'].update({
+            'uri': os.getenv('GIRDER_MONGO_URI', 'mongodb://localhost:27017/girder'),
+            'replica_set': os.getenv('GIRDER_MONGO_REPLICA_SET')
+        })
 
 
 def getConfig():
