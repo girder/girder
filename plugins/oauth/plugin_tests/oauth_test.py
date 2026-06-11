@@ -331,6 +331,18 @@ class OauthTest(base.TestCase):
         with self.assertRaises(ValidationException):
             Setting().set(PluginSettings.IGNORE_REGISTRATION_POLICY, 'foo')
 
+        # check graceful handling of login when registration policy is set to 'approve'
+        # and ignore registration policy is not set
+        Setting().set(SettingKey.REGISTRATION_POLICY, 'approve')
+        self.accountType = 'new'
+        params = getCallbackParams(getProviderResp())
+        resp = self.request('/oauth/%s/callback' % providerInfo['id'], params=params, isJson=False)
+        self.assertStatus(resp, 303)
+        expr = re.compile(r'^http://localhost/\?error=accountApproval#foo/bar$')
+        self.assertRegex(resp.headers['Location'], expr)
+        self.assertFalse('girderToken' in resp.cookie)
+        Setting().set(SettingKey.REGISTRATION_POLICY, 'closed')
+
         # Try callback for the 'new' account, with registration policy ignored
         Setting().set(PluginSettings.IGNORE_REGISTRATION_POLICY, True)
         new = doOauthLogin('new')
