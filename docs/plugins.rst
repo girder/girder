@@ -378,6 +378,29 @@ if this is the first time logging in with these OAuth credentials).
   callback does not create a new Girder Token, nor sets a new authentication
   cookie.
 
+Using OAuth2 with external UI
+*****************************
+If your custom UI needs to support OAuth2 login, you can use the redirect query
+parameter on the ``/oauth/provider`` endpoint to specify where to send users
+after a successful authentication.
+
+Successful Login
+^^^^^^^^^^^^^^^^
+Upon successful login, a ``girderToken`` query parameter containing the
+authentication token will be appended to your redirect URL. Your application can
+then extract and store this token.
+
+Login Restrictions
+^^^^^^^^^^^^^^^^^^
+If the authentication succeeds but the user cannot log in due to system
+policies, an ``error`` query parameter will be appended to the redirect URL
+instead. The potential error values are:
+
+* ``disabled``: The user's account has been disabled in Girder.
+* ``emailVerification``: The user has not yet verified their email address.
+* ``accountApproval``: The account is awaiting administrator approval under the
+  current authentication policy.
+
 
 README
 ------
