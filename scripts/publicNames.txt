@@ -734,7 +734,10 @@ girder
         copyFolderTask
         deleteCollectionTask
         deleteFolderTask
+        ensure_local_worker_available
         importDataTask
+        is_local_worker_available
+        logger
     utility
         JsonEncoder
             default
