@@ -609,7 +609,7 @@ def _list_children_info(gc, parent_id, parent_type, child_types,
                 emitter.start_subcontainer(f'{child_type}_children')
                 emitter.start_list()
             else:
-                print('=== {} ==='.format(child_type))
+                print(f'=== {child_type} ===')
                 print('{:<24} {:<6} {:<24}'.format('ID', 'TYPE', 'NAME'))
 
         for record in records:

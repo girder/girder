@@ -297,7 +297,7 @@ With that variable set in your environment, the Girder core web client will now 
 
    Remapping ``apps['']`` only moves the static SPA. The REST API (including Swagger at
    ``/api/v1``) stays on its original ``/api`` mount unless you duplicate it. After the remount
-   above, and before `del info['serverRoot'].apps['']`, add:
+   above, and before ``del info['serverRoot'].apps['']``, add:
 
    .. code-block:: python
 
