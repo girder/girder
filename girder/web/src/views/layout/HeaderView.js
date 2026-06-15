@@ -32,7 +32,7 @@ var LayoutHeaderView = View.extend({
          * The order of types correspond to the order of the displayed types results on the dialog box.
          */
         this.searchWidget = new SearchFieldWidget({
-            placeholder: 'Quick search...',
+            placeholder: 'Search...',
             types: ['collection', 'folder', 'item', 'group', 'user'],
             parentView: this
         }).on('g:resultClicked', function (result) {
