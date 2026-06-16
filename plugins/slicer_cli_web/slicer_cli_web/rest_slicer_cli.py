@@ -24,6 +24,7 @@ from .cli_utils import (as_model, generate_description, get_cli_parameters, is_o
                         return_parameter_file_name)
 from .models import CLIItem
 from .prepare_task import FOLDER_SUFFIX, OPENAPI_DIRECT_TYPES, prepare_task
+from .singularity import singularity_extension_installed
 
 _return_parameter_file_desc = """
 Filename in which to write simple return parameters (integer, float,
@@ -399,7 +400,15 @@ def genHandlerToRunDockerCLI(cliItem):  # noqa C901
         :param datalist: if not None, an object with keys that override
             parameters.  No outputs are used.
         """
-        from .girder_worker_plugin.direct_docker_run import run
+        use_singularity = singularity_extension_installed()
+        if use_singularity:
+            try:
+                from slicer_cli_web.singularity.slicer_cli_web_singularity.girder_worker_plugin.direct_singularity_run import run
+            except ImportError:
+                logger.exception('slicer_cli_web singularity extension is registered but failed to import')
+                use_singularity = False
+        if not use_singularity:
+            from .girder_worker_plugin.direct_docker_run import run
 
         original_params = copy.deepcopy(params)
         if hasattr(getCurrentToken, 'set'):
@@ -465,7 +474,7 @@ def genHandlerToRunDockerCLI(cliItem):  # noqa C901
             girder_job_type=jobType,
             girder_job_title=jobTitle,
             girder_result_hooks=result_hooks,
-            image=cliItem.digest,
+            image=cliItem.image if use_singularity else cliItem.digest,
             pull_image='if-not-present',
             container_args=container_args,
             **job_kwargs

@@ -1,0 +1,25 @@
+{
+    "name": "@girder/worker-slurm",
+    "version": "0.0.0",
+    "description": "Extension to girder_worker enabling Slurm support.",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#remote-worker",
+    "bugs": {
+        "url": "https://github.com/girder/girder_worker/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder_worker.git"
+    },
+    "dependencies": {
+    },
+    "peerDependencies": {
+        "@girder/core": "*",
+        "@girder/worker": "*"
+    },
+    "girderPlugin": {
+        "name": "worker_slurm",
+        "main": "./main.js",
+        "dependencies": ["worker"]
+    }
+}

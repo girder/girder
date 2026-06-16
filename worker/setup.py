@@ -68,11 +68,15 @@ setuptools.setup(
         'install': CustomInstall
     },
     install_requires=install_reqs,
+    extras_require={
+        'singularity': ['girder-worker-singularity'],
+        'slurm': ['girder-worker-slurm'],
+    },
     python_requires='>=3.10',
     zip_safe=False,
     entry_points={
         'girder_worker_plugins': [
-            'docker = girder_worker.docker:DockerPlugin [docker]'
+            'docker = girder_worker.docker:DockerPlugin [docker]',
         ],
         'girder_worker._test_plugins.valid_plugins': [
             'plugin1 = girder_worker._test_plugins.plugins:TestPlugin1',

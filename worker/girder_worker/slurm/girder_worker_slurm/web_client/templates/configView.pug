@@ -1,0 +1,59 @@
+#g-configuration-accordion.panel-group
+  .panel.panel-default
+    .panel-heading(data-toggle="collapse",
+        data-parent="#g-configuration-accordion",
+        data-target="#g-advanced-settings-tab")
+      .panel-title
+        a
+          b Advanced Settings
+    #g-advanced-settings-tab.panel-collapse.collapse
+      .panel-body
+        h3.
+          Slurm
+
+        .form-group
+          label.control-label(for="g-worker-slurm-account") Slurm Account
+          input#g-worker-slurm-account.input-sm.form-control(
+            type="text", placeholder="Slurm Account")
+        .form-group
+          label.control-label(for="g-worker-slurm-qos") Slurm QOS
+          input#g-worker-slurm-qos.input-sm.form-control(
+            type="text", placeholder="Slurm QOS")
+        .form-group
+          label.control-label(for="g-worker-slurm-mem") Slurm Memory Allocation (MB)
+          input#g-worker-slurm-mem.input-sm.form-control(
+            type="text", placeholder="Slurm Memory (default: 16,000)")
+        .form-group
+          label.control-label(for="g-worker-slurm-cpu") Slurm CPU Count
+          input#g-worker-slurm-cpu.input-sm.form-control(
+            type="text", placeholder="Slurm CPU Count (default: 4)")
+        .form-group
+          label.control-label(for="g-worker-slurm-ntasks") Slurm Number of Tasks
+          input#g-worker-slurm-ntasks.input-sm.form-control(
+            type="text", placeholder="Slurm Number of Tasks")
+        .form-group
+          label.control-label(for="g-worker-slurm-partition") Slurm Partition
+          input#g-worker-slurm-partition.input-sm.form-control(
+            type="text", placeholder="Slurm Partition")
+        .form-group
+          label.control-label(for="g-worker-slurm-time") Slurm Time
+          input#g-worker-slurm-time.input-sm.form-control(
+            type="text", placeholder="Slurm Time (default: 72:00)")
+        .form-group
+          label.control-label(for="g-worker-slurm-gres-config") Slurm GRES Configuration
+          input#g-worker-slurm-gres-config.input-sm.form-control(
+            type="text", placeholder="Slurm GRES Configuration")
+
+        h4 Slurm GPU Settings
+        .form-group
+          label.control-label(for="g-worker-slurm-gpu") Slurm GPU
+          input#g-worker-slurm-gpu.input-sm.form-control(
+            type="text", placeholder="Slurm GPU")
+        .form-group
+          label.control-label(for="g-worker-slurm-gpu-partition") Slurm GPU Partition
+          input#g-worker-slurm-gpu-partition.input-sm.form-control(
+            type="text", placeholder="Slurm GPU Partition (default: gpu)")
+        .form-group
+          label.control-label(for="g-worker-slurm-gpu-mem") Slurm GPU Memory Allocation (MB)
+          input#g-worker-slurm-gpu-mem.input-sm.form-control(
+            type="text", placeholder="Slurm GPU Memory (MB)")

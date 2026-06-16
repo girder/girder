@@ -1,4 +1,3 @@
-import copy
 import itertools
 import json
 import os
@@ -134,7 +133,7 @@ class DockerResource(Resource):
         if len(batch_params):
             job = rest_slicer_cli.batchCLIJob(cli_item, newParams, user, cli_model.title)
         else:
-            job = cliSubHandler(cli_item, cli_model, params, user, token)
+            job = cliSubHandler(cli_item, cli_model, newParams, user, token)
             job = job.job
 
         return job
@@ -513,88 +512,8 @@ def cliSubHandler(cliItem: CLIItem, cli_model, params: dict, user, token, datali
     :param token: allocated token for the job.
     :param datalistKey: if not None, a param name for this CLI that has a datalist.
     """
-    from .girder_worker_plugin.direct_docker_run import run
-
-    cliTitle = cli_model.title
-
-    original_params = copy.deepcopy(params)
-    index_params, opt_params, simple_out_params = get_cli_parameters(cli_model)
-
-    datalistSpec = {
-        param.name: json.loads(param.datalist)
-        for param in index_params + opt_params
-        if param.channel != 'output' and param.datalist
-    }
-
-    container_args = [cliItem.name]
-    reference = {'slicer_cli_web': {
-        'title': cliTitle,
-        'image': cliItem.image,
-        'name': cliItem.name,
-    }}
-    now = time.localtime()
-    templateParams = {
-        'title': cliTitle,  # e.g., "Detects Nuclei"
-        'task': cliItem.name,  # e.g., "NucleiDetection"
-        'image': cliItem.image,  # e.g., "dsarchive/histomicstk:latest"
-        'now': time.strftime('%Y%m%d-%H%M%S', now),
-        'yyyy': time.strftime('%Y', now),
-        'mm': time.strftime('%m', now),
-        'dd': time.strftime('%d', now),
-        'HH': time.strftime('%H', now),
-        'MM': time.strftime('%M', now),
-        'SS': time.strftime('%S', now),
-    }
-
-    has_simple_return_file = bool(simple_out_params)
-    sub_index_params, sub_opt_params = index_params, opt_params
-
+    handler = rest_slicer_cli.genHandlerToRunDockerCLI(cliItem)
+    datalist = None
     if datalistKey:
-        datalist = datalistSpec[datalistKey]
-        params = params.copy()
-        params.update(datalist)
-        sub_index_params = [
-            param if param.name not in datalist or not rest_slicer_cli.is_on_girder(param)
-            else rest_slicer_cli.stringifyParam(param)
-            for param in index_params
-            if (param.name not in datalist or datalist.get(param.name) is not None)
-            and param.name not in {k + rest_slicer_cli.FOLDER_SUFFIX for k in datalist}
-        ]
-        sub_opt_params = [
-            param if param.name not in datalist or not rest_slicer_cli.is_on_girder(param)
-            else rest_slicer_cli.stringifyParam(param)
-            for param in opt_params
-            if param.channel != 'output' and (
-                param.name not in datalist or datalist.get(param.name) is not None)
-            and param.name not in {k + rest_slicer_cli.FOLDER_SUFFIX for k in datalist}
-        ]
-
-    args, result_hooks, primary_input_name = rest_slicer_cli.prepare_task(
-        params, user, token, sub_index_params, sub_opt_params,
-        has_simple_return_file, reference, templateParams=templateParams)
-    container_args.extend(args)
-
-    jobType = '%s#%s' % (cliItem.image, cliItem.name)
-
-    if primary_input_name:
-        jobTitle = '%s on %s' % (cliTitle, primary_input_name)
-    else:
-        jobTitle = cliTitle
-
-    job_kwargs = cliItem.item.get('meta', {}).get('docker-params', {})
-    job = run.delay(
-        girder_user=user,
-        girder_job_type=jobType,
-        girder_job_title=jobTitle,
-        girder_result_hooks=result_hooks,
-        image=cliItem.digest,
-        pull_image='if-not-present',
-        container_args=container_args,
-        **job_kwargs
-    )
-    jobRecord = Job().load(job.job['_id'], force=True)
-    job.job['_original_params'] = jobRecord['_original_params'] = original_params
-    job.job['_original_name'] = jobRecord['_original_name'] = cliItem.name
-    job.job['_original_path'] = jobRecord['_original_path'] = cliItem.restBasePath
-    Job().save(jobRecord)
-    return job
+        datalist = handler.datalist[datalistKey]['json']
+    return handler.subHandler(cliItem, params, user, token, datalist)

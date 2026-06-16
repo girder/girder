@@ -72,6 +72,9 @@ setup(
             'girder-client',
             'docker>=2.6.0',
         ],
+        'singularity': [
+            'slicer-cli-web-singularity',
+        ],
         'client': [
             'click',
         ]
@@ -81,7 +84,7 @@ setup(
             'slicer_cli_web = slicer_cli_web.girder_plugin:SlicerCLIWebPlugin'
         ],
         'girder_worker_plugins': [
-            'slicer_cli_web = slicer_cli_web.girder_worker_plugin:SlicerCLIWebWorkerPlugin'
+            'slicer_cli_web = slicer_cli_web.girder_worker_plugin:SlicerCLIWebWorkerPlugin',
         ],
         'console_scripts': [
             'upload-slicer-cli-task = slicer_cli_web.upload_slicer_cli_task:upload_slicer_cli_task'  # noqa: E501
