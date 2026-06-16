@@ -2,7 +2,7 @@ from girder.api import access
 from girder.constants import AccessType, SortDir, TokenScope
 from girder.exceptions import RestException
 from girder.models.folder import Folder as FolderModel
-from girder.tasks import copyFolderTask, deleteFolderTask
+from girder.tasks import copyFolderTask, deleteFolderTask, ensure_local_worker_available
 from girder.utility import ziputil
 from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
@@ -307,6 +307,7 @@ class Folder(Resource):
         .errorResponse('Admin access was denied for the folder.', 403)
     )
     def deleteFolder(self, folder, progress):
+        ensure_local_worker_available()
         deleteFolderTask.delay(
             folderId=str(folder['_id']),
             progress=progress,
@@ -365,6 +366,7 @@ class Folder(Resource):
         else:
             parent = None
 
+        ensure_local_worker_available()
         copyFolderTask.delay(
             folderId=str(folder['_id']),
             parentType=parentType,
@@ -389,6 +391,7 @@ class Folder(Resource):
         .errorResponse('Write access was denied on the folder.', 403)
     )
     def deleteContents(self, folder, progress):
+        ensure_local_worker_available()
         deleteFolderTask.delay(
             folderId=str(folder['_id']),
             progress=progress,

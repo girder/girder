@@ -2,7 +2,7 @@ from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import AccessException
 from girder.models.collection import Collection as CollectionModel
-from girder.tasks import deleteCollectionTask
+from girder.tasks import deleteCollectionTask, ensure_local_worker_available
 from girder.utility import ziputil
 from girder.utility.progress import ProgressContext
 
@@ -196,6 +196,7 @@ class Collection(Resource):
         .errorResponse('Admin permission denied on the collection.', 403)
     )
     def deleteCollection(self, collection, progress):
+        ensure_local_worker_available()
         deleteCollectionTask.delay(
             collectionId=str(collection['_id']),
             progress=progress,
