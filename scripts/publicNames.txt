@@ -1330,12 +1330,16 @@ plugins
                     TEMP_VOLUME_DIRECT_MOUNT_PREFIX
                     run
             image_job
+                USE_SINGULARITY
                 deleteImage
                 findLocalImage
                 getCliData
+                getCliDataSingularity
                 getDockerOutput
                 ingest_from_docker
+                ingest_from_singularity
                 loadMetadata
+                loadMetadataSingularity
                 logger
                 pullDockerImage
                 pullOneDockerImage
@@ -1376,6 +1380,49 @@ plugins
                 genRESTEndPointsForSlicerCLIsForItem
                 logger
                 stringifyParam
+            singularity
+                singularity_extension_installed
+                slicer_cli_web_singularity
+                    SlicerCLISingularityWebWorkerPlugin
+                        task_imports
+                    commands
+                        SingularityCommands
+                            get_work_dir
+                            singualrity_run
+                            singularity_get_env
+                            singularity_inspect
+                            singularity_pull
+                            singularity_version
+                        logger
+                        run_command
+                    girder_worker_plugin
+                        direct_singularity_run
+                            DirectSingularityTask
+                            logger
+                            run
+                    job
+                        find_and_remove_local_sif_files
+                        find_local_singularity_image
+                        get_local_singularity_output
+                        is_singularity_installed
+                        is_valid_path
+                        logger
+                        pull_image_and_convert_to_sif
+                    singularity_image
+                        SingularityImage
+                            get
+                        SingularityImageItem
+                            find
+                            findAllImages
+                            getCLIs
+                            prepare
+                            removeImages
+                            saveImage
+                    utils
+                        generate_image_name_for_singularity
+                        is_valid_image_name_format
+                        sanitize_and_return_json
+                        switch_to_sif_image_folder
             upload_slicer_cli_task
                 upload_cli
                 upload_slicer_cli_task
