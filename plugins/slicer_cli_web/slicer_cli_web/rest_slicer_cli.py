@@ -403,12 +403,18 @@ def genHandlerToRunDockerCLI(cliItem):  # noqa C901
         use_singularity = singularity_extension_installed()
         if use_singularity:
             try:
-                from slicer_cli_web.singularity.slicer_cli_web_singularity.girder_worker_plugin.direct_singularity_run import run
+                from .singularity.slicer_cli_web_singularity.girder_worker_plugin import (
+                    direct_singularity_run,
+                )
+                run_task = direct_singularity_run.run
             except ImportError:
-                logger.exception('slicer_cli_web singularity extension is registered but failed to import')
+                logger.exception(
+                    'slicer_cli_web singularity extension is registered but failed to import'
+                )
                 use_singularity = False
         if not use_singularity:
-            from .girder_worker_plugin.direct_docker_run import run
+            from .girder_worker_plugin import direct_docker_run
+            run_task = direct_docker_run.run
 
         original_params = copy.deepcopy(params)
         if hasattr(getCurrentToken, 'set'):
@@ -469,7 +475,7 @@ def genHandlerToRunDockerCLI(cliItem):  # noqa C901
             jobTitle = cliTitle
 
         job_kwargs = cliItem.item.get('meta', {}).get('docker-params', {})
-        job = run.delay(
+        job = run_task.delay(
             girder_user=user,
             girder_job_type=jobType,
             girder_job_title=jobTitle,

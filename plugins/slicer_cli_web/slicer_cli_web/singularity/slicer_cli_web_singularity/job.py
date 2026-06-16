@@ -1,10 +1,9 @@
-import json
 import os
 import subprocess
 
 import logging
 
-from slicer_cli_web.models import DockerImageError, DockerImageNotFoundError
+from slicer_cli_web.models import DockerImageNotFoundError
 
 from .commands import SingularityCommands, run_command
 from .utils import (

@@ -22,7 +22,8 @@ setup(
     install_requires=['girder-slicer-cli-web', 'girder-worker-singularity'],
     entry_points={
         'girder_worker_plugins': [
-            'slicer_cli_web_singularity = slicer_cli_web_singularity:SlicerCLISingularityWebWorkerPlugin',
+            'slicer_cli_web_singularity = '
+            'slicer_cli_web_singularity:SlicerCLISingularityWebWorkerPlugin',
         ]
     },
     packages=find_packages(),

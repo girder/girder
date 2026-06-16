@@ -4,36 +4,52 @@ import sys
 import threading
 import time
 
-from girder.models.setting import Setting
-
 from girder_worker import logger
 from girder_worker.docker import utils
 
-from .girder_plugin import PluginSettings
 
-
-def slurm_dispatch(task, container_args, run_kwargs, read_streams, write_streams, log_file_name,
-                   progress_writer=None):
-    apptainer_command, slurm_config = _slurm_apptainer_config(container_args, **run_kwargs)
+def slurm_dispatch(
+    task,
+    container_args,
+    run_kwargs,
+    read_streams,
+    write_streams,
+    log_file_name,
+    progress_writer=None,
+):
+    apptainer_command, slurm_config = _slurm_apptainer_config(
+        container_args,
+        **run_kwargs,
+    )
     try:
         monitor_thread = _monitor_apptainer_job(
-            apptainer_command, slurm_config, log_file_name, progress_writer=progress_writer)
+            apptainer_command,
+            slurm_config,
+            log_file_name,
+            progress_writer=progress_writer,
+        )
 
         def check_job_cancellation():
-            # Check if the cancel event is called and the job_id is set for the current
-            # job thread we are intending to cancel.
+            # Check if cancel was requested and this thread has a job id.
             if task.canceled and monitor_thread.job_id:
                 try:
-                    returnCode = subprocess.call(['scancel', monitor_thread.job_id])
-                    if returnCode != 0:
-                        raise Exception(f'Failed to Cancel job with jobID {monitor_thread.job_id}')
+                    return_code = subprocess.call(
+                        ['scancel', monitor_thread.job_id]
+                    )
+                    if return_code != 0:
+                        raise Exception(
+                            'Failed to Cancel job with jobID '
+                            f'{monitor_thread.job_id}'
+                        )
                 except Exception as e:
                     logger.info(f'Error Occured {e}')
             return not monitor_thread.is_alive()
 
-        utils.select_loop(exit_condition=check_job_cancellation,
-                          readers=read_streams,
-                          writers=write_streams)
+        utils.select_loop(
+            exit_condition=check_job_cancellation,
+            readers=read_streams,
+            writers=write_streams,
+        )
     finally:
         if progress_writer is not None:
             try:
@@ -41,16 +57,25 @@ def slurm_dispatch(task, container_args, run_kwargs, read_streams, write_streams
             except Exception:
                 logger.exception('Failed to close slurm progress writer')
         logger.info('DONE')
-        # from girder_worker_singularity.tasks.utils import remove_tmp_folder_apptainer
-        # TODO: removing the below line. remove_tmp_folder_apptainer's argument should be a list of paths
-        # remove_tmp_folder_apptainer(container_args) # TODO: need to replace?
+        # from girder_worker_singularity.tasks.utils import (
+        #     remove_tmp_folder_apptainer,
+        # )
+        # TODO: removing the below line. remove_tmp_folder_apptainer's
+        # argument should be a list of paths.
+        # remove_tmp_folder_apptainer(container_args)  # TODO: replace?
         # TODO: ^ is this even necessary?
 
 
 def get_slurm_job_status(job_id):
-    process = subprocess.run(['scontrol', 'show', 'job', job_id], capture_output=True)
+    process = subprocess.run(
+        ['scontrol', 'show', 'job', job_id],
+        capture_output=True,
+    )
     if process.returncode != 0:
-        logger.error(f'Failed to get job status with error code {process.returncode}')
+        logger.error(
+            'Failed to get job status with error code %s',
+            process.returncode,
+        )
         return 'INVALID'
 
     result = process.stdout.decode('utf-8')
@@ -75,13 +100,22 @@ def _write_log_output(text, progress_writer=None):
     stdout.flush()
 
 
-def _monitor_apptainer_job(apptainer_command, slurm_config, log_file_name, progress_writer=None):
+def _monitor_apptainer_job(
+    apptainer_command,
+    slurm_config,
+    log_file_name,
+    progress_writer=None,
+):
     submit_script = os.getenv('GIRDER_WORKER_SLURM_SUBMIT_SCRIPT')
     # TODO: check for validity ^
 
     def submit_job_and_monitor_status():
         # TODO: cleanup log files
-        submit_command = ['sbatch', f'--error={log_file_name}', f'--output={log_file_name}']
+        submit_command = [
+            'sbatch',
+            f'--error={log_file_name}',
+            f'--output={log_file_name}',
+        ]
         submit_command.extend(slurm_config)
         submit_command.append(submit_script)
         submit_command.extend(apptainer_command)
@@ -91,7 +125,10 @@ def _monitor_apptainer_job(apptainer_command, slurm_config, log_file_name, progr
             print('running', submit_command)
             process = subprocess.run(submit_command, capture_output=True)
             if process.returncode != 0:
-                raise Exception(f'Failed to submit job with error code {process.returncode}')
+                raise Exception(
+                    'Failed to submit job with error code '
+                    f'{process.returncode}'
+                )
 
             sbatch_cli_stdout = process.stdout.decode('utf-8').strip()
 
@@ -102,7 +139,7 @@ def _monitor_apptainer_job(apptainer_command, slurm_config, log_file_name, progr
             job_id = sbatch_cli_stdout.split(' ')[-1]
             logger.info(f'Job submitted with job id {job_id}')
 
-            threading.current_thread().job_id = job_id # TODO: refactor this holdover from UF
+            threading.current_thread().job_id = job_id  # TODO: refactor holdover from UF
 
             with open(log_file_name, 'r') as log_file:
                 while True:
@@ -119,7 +156,14 @@ def _monitor_apptainer_job(apptainer_command, slurm_config, log_file_name, progr
                             raise Exception(f'Slurm job {job_id} exited as {status}')
                         break
 
-                    if status in ['BOOT_FAIL', 'DEADLINE', 'NODE_FAIL', 'OUT_OF_MEMORY', 'PREEMPTED', 'TIMEOUT']:
+                    if status in [
+                        'BOOT_FAIL',
+                        'DEADLINE',
+                        'NODE_FAIL',
+                        'OUT_OF_MEMORY',
+                        'PREEMPTED',
+                        'TIMEOUT',
+                    ]:
                         logger.error(f'Job failed with status {status}')
                         break
 
@@ -133,7 +177,10 @@ def _monitor_apptainer_job(apptainer_command, slurm_config, log_file_name, progr
             print(f'Error Occured {e}')
 
     # Start the job monitor in a new thread
-    monitor_thread = SlurmThread(target=submit_job_and_monitor_status, daemon=True)
+    monitor_thread = SlurmThread(
+        target=submit_job_and_monitor_status,
+        daemon=True,
+    )
     monitor_thread.start()
 
     return monitor_thread
@@ -164,21 +211,31 @@ def _process_container_args(container_args, kwargs):
     def find_matching_volume_key(path):
         for key, value in volumes.items():
             if path.startswith(value['bind']):
-                # Append the suffix from the original path that isn't part of the 'bind' path
-                suffix = path[len(value['bind']):] if value['bind'] != path else ''
+                # Append the suffix from the original path that isn't part
+                # of the bind path.
+                suffix = (
+                    path[len(value['bind']):]
+                    if value['bind'] != path else ''
+                )
                 if 'assetstore' in key:
                     key = prefix + key
                 # Replace spaces in suffix with underscores
-                new_key = key + suffix.replace(' ', '_') # TODO: causing file name bug???
+                new_key = key + suffix.replace(
+                    ' ',
+                    '_',
+                )  # TODO: file name bug?
                 return new_key
         return path  # Replace spaces in paths that don't match any volume
     try:
         # Replace paths in container_args with their corresponding volume keys
-        container_args = [str(find_matching_volume_key(arg)) for arg in container_args]
+        container_args = [
+            str(find_matching_volume_key(arg))
+            for arg in container_args
+        ]
     except Exception as e:
         logger.info(f'error {e}')
 
-    # Remove all arguments that start with '--slurm_' & their values from container_args
+    # Remove all --slurm_ arguments and the value that follows each one.
     filtered_args = []
     it = iter(container_args)
     for arg in it:
@@ -195,7 +252,9 @@ def _generate_apptainer_command(container_args, kwargs):
     image = kwargs.pop('image', None)
     apptainer_command = []
     if not image:
-        raise Exception(' Issue with Slicer_Cli_Plugin_Image. Plugin Not available') # TODO: remove
+        raise Exception(
+            ' Issue with Slicer_Cli_Plugin_Image. Plugin Not available'
+        )  # TODO: remove
 
     sif_directory = os.getenv('SIF_IMAGE_PATH')
     image_full_path = os.path.join(sif_directory, image)
@@ -208,16 +267,18 @@ def _generate_apptainer_command(container_args, kwargs):
 
         apptainer_command.append('--bind')
         volumes = ''
-        for key, value in kwargs.get('volumes').items():
+        for key, _value in kwargs.get('volumes').items():
             # TODO: make this robust, currently only works for tmp volume mount
             # TODO: ^ when do things get mounted to docker like this?
             # volumes += f'{value["bind"]}:{key},'
             volumes += f'{key},'
-        volumes = volumes[:-1] # remove trailing comma
+        volumes = volumes[:-1]  # remove trailing comma
         apptainer_command.append(volumes)
 
         apptainer_command.append(image_full_path)
-        apptainer_command.append(kwargs.get('entrypoint', './docker-entrypoint.sh'))
+        apptainer_command.append(
+            kwargs.get('entrypoint', './docker-entrypoint.sh')
+        )
         apptainer_command.extend(container_args)
     except Exception as e:
         logger.info(f'Error occured - {e}')
@@ -226,7 +287,7 @@ def _generate_apptainer_command(container_args, kwargs):
 
 
 def _get_slurm_config(container_args, kwargs):
-    # # Use this function to add or modify any configuration parameters for the SLURM job
+    # # Use this function to add or modify SLURM job configuration.
     # config_defaults = {
     #     # '--qos': Setting().get(PluginSettings.SLURM_QOS),
     #     # '--account': Setting().get(PluginSettings.SLURM_ACCOUNT),
@@ -245,7 +306,7 @@ def _get_slurm_config(container_args, kwargs):
     for i, arg in enumerate(container_args):
         if arg.startswith('--slurm_'):
             # Extract the slurm config argument and its value
-            arg_name = arg.lstrip('--slurm_')
+            arg_name = arg.removeprefix('--slurm_')
             if i + 1 < len(container_args):
                 arg_value = container_args[i + 1]
                 slurm_config.append(f'--{arg_name}={arg_value}')
@@ -258,13 +319,14 @@ def _get_slurm_config(container_args, kwargs):
 
 class SlurmThread(threading.Thread):
     """
-    This is a custom Thread class in order to handle cancelling a slurm job outside of the thread
-    since the task context object is not available inside the thread.
+    Thread wrapper used to support external SLURM job cancellation.
+
+    The task context object is not available inside the thread.
+
     Methods:
-    __init__(self,target, daemon) - Initialize the thread similar to threading. Thread class,
-                                    requires a job_id param to keep track of the job_id
-    run(self) - This method is used to run the target function. This is essentially called when
-                you do thread.start()
+        __init__(self, target, daemon): initialize the thread and store
+            a job id.
+        run(self): execute the target function when ``start()`` is called.
     """
 
     def __init__(self, target, daemon=False):

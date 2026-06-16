@@ -22,4 +22,7 @@ class SlicerCLISingularityWebWorkerPlugin(GirderWorkerPluginABC):
         self.app = app
 
     def task_imports(self):
-        return ['slicer_cli_web.singularity.slicer_cli_web_singularity.girder_worker_plugin.direct_singularity_run']
+        return [
+            'slicer_cli_web.singularity.slicer_cli_web_singularity.'
+            'girder_worker_plugin.direct_singularity_run',
+        ]

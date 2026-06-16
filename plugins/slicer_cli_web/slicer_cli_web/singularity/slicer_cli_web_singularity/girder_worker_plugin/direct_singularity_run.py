@@ -3,7 +3,10 @@ from uuid import uuid4
 
 import logging
 from girder_worker.app import app
-from girder_worker.singularity.girder_worker_singularity.tasks import SingularityTask, singularity_run
+from girder_worker.singularity.girder_worker_singularity.tasks import (
+    SingularityTask,
+    singularity_run,
+)
 
 from slicer_cli_web.girder_worker_plugin.cli_progress import CLIProgressCLIWriter
 from slicer_cli_web.girder_worker_plugin.direct_docker_run import _resolve_direct_file_paths
@@ -40,7 +43,9 @@ def run(task, **kwargs):
     logs_dir = os.getenv('LOGS')
     if logs_dir is None:
         raise Exception(
-            'The LOGS environment variable must be set to a writable directory path for singularity task logs')
+            'The LOGS environment variable must be set to a writable '
+            'directory path for singularity task logs'
+        )
     kwargs['nvidia'] = _is_nvidia_img(image)
 
     # Cahnge to reflect JOBID for logs later

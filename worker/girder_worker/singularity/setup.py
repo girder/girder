@@ -12,7 +12,6 @@ def prerelease_local_scheme(version):
     PEP440 compliant pre-release version number (e.g. 0.0.0.dev<N>).
 
     """
-
     from setuptools_scm.version import get_local_node_and_date
 
     if os.getenv('CIRCLE_BRANCH') in ('master', ):
@@ -47,7 +46,8 @@ setup(
             'singularity = girder_worker_singularity:SingularityPlugin',
         ],
         'girder.plugin': [
-            'worker_singularity = girder_worker_singularity.girder_plugin:WorkerSingularityPlugin',
+            'worker_singularity = '
+            'girder_worker_singularity.girder_plugin:WorkerSingularityPlugin',
         ],
     },
     packages=find_packages(),

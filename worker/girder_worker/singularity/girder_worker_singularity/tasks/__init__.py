@@ -140,13 +140,14 @@ def slurm_extension_installed():
         return False
 
 
-def singularity_run(task, **kwargs):
+def singularity_run(task, **kwargs):  # noqa: C901
     volumes = kwargs.pop('volumes', {})
     container_args = kwargs.pop('container_args', [])
     stream_connectors = kwargs.get('stream_connectors') or []
     progress_writer = kwargs.pop('progress_writer', None)
     image = kwargs.pop('image', None)
-    entrypoint = './docker-entrypoint.sh' # TODO: use "apptainer sif dump 3 <image> | jq -r .Entrypoint"
+    entrypoint = './docker-entrypoint.sh'
+    # TODO: use `apptainer sif dump 3 <image> | jq -r .Entrypoint`.
 
     if not image:
         logger.exception('Image name cannot be empty')

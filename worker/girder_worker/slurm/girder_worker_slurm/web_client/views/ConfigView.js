@@ -1,11 +1,9 @@
-import _ from 'underscore';
-
 import { wrap } from '@girder/core/utilities/PluginUtils';
 import { restRequest } from '@girder/core/rest';
 
-import ConfigTemplate from '../templates/configView.pug';
-
 import ConfigView from '@girder/worker/views/ConfigView';
+
+import ConfigTemplate from '../templates/configView.pug';
 
 wrap(ConfigView, 'render', function (render) {
     render.call(this);

@@ -12,7 +12,6 @@ def prerelease_local_scheme(version):
     PEP440 compliant pre-release version number (e.g. 0.0.0.dev<N>).
 
     """
-
     from setuptools_scm.version import get_local_node_and_date
 
     if os.getenv('CIRCLE_BRANCH') in ('master', ):
@@ -44,10 +43,15 @@ setup(
         'Programming Language :: Python :: 3.11',
         'Programming Language :: Python :: 3.12',
     ],
-    install_requires=['girder-worker', 'girder-worker-singularity', *install_reqs],
+    install_requires=[
+        'girder-worker',
+        'girder-worker-singularity',
+        *install_reqs,
+    ],
     entry_points={
         'girder.plugin': [
-            'worker_slurm = girder_worker_slurm.girder_plugin:WorkerSlurmPlugin',
+            'worker_slurm = '
+            'girder_worker_slurm.girder_plugin:WorkerSlurmPlugin',
         ],
     },
     packages=find_packages(),

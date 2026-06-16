@@ -26,7 +26,9 @@ if singularity_extension_installed():
             is_singularity_installed,
             pull_image_and_convert_to_sif,
         )
-        from slicer_cli_web.singularity.slicer_cli_web_singularity.singularity_image import SingularityImage
+        from slicer_cli_web.singularity.slicer_cli_web_singularity.singularity_image import (
+            SingularityImage,
+        )
         USE_SINGULARITY = True
     except Exception:
         logger.exception('slicer_cli_web singularity extension is registered but failed to import')

@@ -75,7 +75,8 @@ class SingularityCommands:
                 errors.append(f'{descriptor_id}: {exc}')
 
         logger.warning(
-            'Could not determine WorkingDir for %s from JSON descriptors %s; defaulting to "/". Errors: %s',
+            'Could not determine WorkingDir for %s from JSON '
+            'descriptors %s; defaulting to "/". Errors: %s',
             sif_path,
             descriptor_ids,
             '; '.join(errors) if errors else 'none',
