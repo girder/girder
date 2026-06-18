@@ -502,8 +502,9 @@ class User(AccessControlledModel):
             'user': user,
             'url': mail_utils.getEmailUrlPrefix()
         })
+        brandName = Setting().get(SettingKey.BRAND_NAME)
         mail_utils.sendMail(
-            'Girder: Account approved',
+            f'{brandName}: Account approved',
             text,
             [user.get('email')])
 
@@ -521,8 +522,9 @@ class User(AccessControlledModel):
         text = mail_utils.renderTemplate('emailVerification.mako', {
             'url': url
         })
+        brandName = Setting().get(SettingKey.BRAND_NAME)
         mail_utils.sendMail(
-            'Girder: Email verification',
+            f'{brandName}: Email verification',
             text,
             [user.get('email')])
 
