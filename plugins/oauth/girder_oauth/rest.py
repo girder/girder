@@ -8,7 +8,7 @@ from girder.api import access
 from girder.api.describe import Description, autoDescribeRoute
 from girder.api.rest import Resource
 from girder.constants import AccessType
-from girder.exceptions import RestException
+from girder.exceptions import AccessException, RestException
 from girder.models.setting import Setting
 from girder.models.token import Token
 from girder.models.user import User
@@ -54,6 +54,21 @@ class OAuth(Resource):
             raise RestException('No redirect location (state="%s").' % state)
 
         return redirect
+
+    @staticmethod
+    def _add_qparam_to_url(url, key, value):
+        parsed = urlparse(url)
+        query_params = parse_qs(parsed.query)
+        query_params[key] = value
+        encoded_query_params = urlencode(query_params)
+        return urlunparse((
+            parsed.scheme,
+            parsed.netloc,
+            parsed.path,
+            parsed.params,
+            encoded_query_params,
+            parsed.fragment,
+        ))
 
     @access.public
     @autoDescribeRoute(
@@ -126,7 +141,11 @@ class OAuth(Resource):
             raise cherrypy.HTTPRedirect(redirect)
 
         user = providerObj.getUser(token)
-        User().verifyLogin(user)
+        try:
+            User().verifyLogin(user)
+        except AccessException as e:
+            updated_redirect = self._add_qparam_to_url(redirect, 'error', e.extra)
+            raise cherrypy.HTTPRedirect(updated_redirect)
 
         event = events.trigger('oauth.auth_callback.after', {
             'provider': provider,
@@ -140,18 +159,7 @@ class OAuth(Resource):
         token_id = str(token['_id'])
 
         # Set `girderToken` in the query params of the redirect URL
-        parsed = urlparse(redirect)
-        query_params = parse_qs(parsed.query)
-        query_params['girderToken'] = token_id
-        encoded_query_params = urlencode(query_params)
-        updated_redirect = urlunparse((
-            parsed.scheme,
-            parsed.netloc,
-            parsed.path,
-            parsed.params,
-            encoded_query_params,
-            parsed.fragment,
-        ))
+        updated_redirect = self._add_qparam_to_url(redirect, 'girderToken', token_id)
 
         # The cookie is still used for e.g. file downloads. Send it from the server
         # to support HttpOnly usage.
