@@ -478,6 +478,10 @@ class User(AccessControlledModel):
             Setting().get(SettingKey.REGISTRATION_POLICY) == 'approve'
 
     def _sendApprovalEmail(self, user):
+        event = events.trigger('email.approval', {'user': user})
+        if event.defaultPrevented:
+            return
+
         url = '%s#user/%s' % (
             mail_utils.getEmailUrlPrefix(), str(user['_id']))
         text = mail_utils.renderTemplate('accountApproval.mako', {
@@ -490,6 +494,10 @@ class User(AccessControlledModel):
             text)
 
     def _sendApprovedEmail(self, user):
+        event = events.trigger('email.approved', {'user': user})
+        if event.defaultPrevented:
+            return
+
         text = mail_utils.renderTemplate('accountApproved.mako', {
             'user': user,
             'url': mail_utils.getEmailUrlPrefix()
@@ -500,6 +508,10 @@ class User(AccessControlledModel):
             [user.get('email')])
 
     def _sendVerificationEmail(self, user):
+        event = events.trigger('email.verification', {'user': user})
+        if event.defaultPrevented:
+            return
+
         from .token import Token
 
         token = Token().createToken(
