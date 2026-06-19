@@ -163,7 +163,7 @@ var SearchFieldWidget = View.extend({
         }));
 
         this.$('.g-search-options-button').popover({
-            trigger: 'manual',
+            trigger: 'click',
             viewport: {
                 selector: 'body',
                 padding: 10
@@ -176,12 +176,17 @@ var SearchFieldWidget = View.extend({
             },
             html: true,
             sanitize: false
-        }).on('click', function () {
-            $(this).popover('toggle');
+        }).on('hide.bs.popover', function () {
+            // always Set the popover's click state to false when hidden
+            // even when hidden by clicking outside the element itself
+            const popover = $(this).data('bs.popover');
+            if (popover) {
+                popover.inState.click = false;
+            }
         });
 
         this.$('.g-search-mode-choose').popover({
-            trigger: 'manual',
+            trigger: 'click',
             viewport: {
                 selector: 'body',
                 padding: 10
@@ -195,8 +200,33 @@ var SearchFieldWidget = View.extend({
             },
             html: true,
             sanitize: false
-        }).on('click', function () {
-            $(this).popover('toggle');
+        }).on('hide.bs.popover', function () {
+            // always Set the popover's click state to false when hidden
+            // even when hidden by clicking outside the element itself
+            const popover = $(this).data('bs.popover');
+            if (popover) {
+                popover.inState.click = false;
+            }
+        });
+
+        // Dismiss the "Search Mode" popover when clicking outside the popover and its trigger
+        $(document).on('click.searchModePopover', (e) => {
+            const $trigger = this.$('.g-search-mode-choose');
+            const clickedTrigger = $trigger.is(e.target) || $trigger.has(e.target).length > 0;
+            const clickedPopover = $(e.target).closest('.popover').length > 0;
+            if (!clickedTrigger && !clickedPopover) {
+                $trigger.popover('hide');
+            }
+        });
+
+        // Dismiss the "Search Help" popover when clicking outside the popover and its trigger
+        $(document).on('click.searchHelpPopover', (e) => {
+            const $trigger = this.$('.g-search-options-button');
+            const clickedTrigger = $trigger.is(e.target) || $trigger.has(e.target).length > 0;
+            const clickedPopover = $(e.target).closest('.popover').length > 0;
+            if (!clickedTrigger && !clickedPopover) {
+                $trigger.popover('hide');
+            }
         });
 
         return this;
