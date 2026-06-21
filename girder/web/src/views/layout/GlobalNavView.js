@@ -57,7 +57,7 @@ var LayoutGlobalNavView = View.extend({
             navItems = this.navItems;
         } else {
             navItems = this.defaultNavItems;
-            let currentUser = getCurrentUser()
+            const currentUser = getCurrentUser()
             if (currentUser) {
                 // copy navItems so that this.defaultNavItems is unchanged
                 navItems = navItems.slice();
@@ -71,7 +71,7 @@ var LayoutGlobalNavView = View.extend({
                     icon: 'icon-folder',
                     target: 'user/' + currentUser.id
                 });
-                let userIsAdmin = currentUser.get('admin')
+                const userIsAdmin = currentUser.get('admin')
                 if (userIsAdmin) {
                     navItems.push({
                         name: 'Admin console',
