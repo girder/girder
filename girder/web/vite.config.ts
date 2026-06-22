@@ -57,6 +57,7 @@ if (process.env.BUILD_LIB) {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'GirderCore',
       fileName: 'girder-core',
+      cssFileName: 'style',
     }
   };
 

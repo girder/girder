@@ -21,6 +21,6 @@ for directory in "${PUBLISHED_PYTHON_PACKAGES[@]}"; do
     rm -fr dist
     python -m build
     pip wheel . --no-deps -w dist
-    twine upload --verbose --skip-existing dist/*
+    twine ${1:-check} $( [[ "${1:-check}" == "upload" ]] && printf %s '--verbose' ) $( [[ "${1:-check}" == "upload" ]] && printf %s '--skip-existing' ) dist/*
     popd
 done
