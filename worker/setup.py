@@ -1,9 +1,7 @@
 import os
 import re
-import shutil
 
-import setuptools
-from setuptools.command.install import install
+from setuptools import find_packages, setup
 
 
 def prerelease_local_scheme(version):
@@ -26,29 +24,13 @@ def prerelease_local_scheme(version):
         return get_local_node_and_date(version)
 
 
-class CustomInstall(install):
-    """
-    Override the default install to add some custom install-time behavior.
-    Namely, we create the local config file.
-    """
-
-    def run(self, *args, **kwargs):
-        install.run(self, *args, **kwargs)
-
-        distcfg = os.path.join('girder_worker', 'worker.dist.cfg')
-        localcfg = os.path.join('girder_worker', 'worker.local.cfg')
-        if not os.path.isfile(localcfg):
-            print('Creating worker.local.cfg')
-            shutil.copyfile(distcfg, localcfg)
-
-
 with open('requirements.in') as f:
     install_reqs = f.readlines()
 
-setuptools.setup(
+setup(
     name='girder-worker',
-    use_scm_version={'root': '..', 'local_scheme': prerelease_local_scheme},
-    setup_requires=['setuptools_scm', 'setuptools-git'],
+    use_scm_version={'search_parent_directories': True, 'local_scheme': prerelease_local_scheme},
+    setup_requires=['setuptools_scm'],
     description='Batch execution engine built on celery.',
     author='Kitware, Inc.',
     author_email='kitware@kitware.com',
@@ -60,13 +42,10 @@ setuptools.setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
     ],
-    packages=setuptools.find_packages(
+    packages=find_packages(
         exclude=('tests.*', 'tests')
     ),
     include_package_data=True,
-    cmdclass={
-        'install': CustomInstall
-    },
     install_requires=install_reqs,
     python_requires='>=3.10',
     zip_safe=False,
