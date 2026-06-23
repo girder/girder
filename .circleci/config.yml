@@ -439,16 +439,15 @@ workflows:
             tags:
               only: /^v[0-9]+.*/
       - check-publish:
-          requires:
-            - server-lint-test
-            - web-lint-test
-            - coverage
           filters:
             tags:
               only: /^v[0-9]+.*/
       - publish:
           requires:
             - check-publish
+            - server-lint-test
+            - web-lint-test
+            - coverage
           filters:
             tags:
               only: /^v[0-9]+.*/
@@ -459,6 +458,9 @@ workflows:
       - publish-release:
           requires:
             - check-publish
+            - server-lint-test
+            - web-lint-test
+            - coverage
           filters:
             tags:
               only: /^v[0-9]+.*/

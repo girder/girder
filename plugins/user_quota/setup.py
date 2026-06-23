@@ -26,10 +26,9 @@ def prerelease_local_scheme(version):
 # perform the install
 setup(
     name='girder-user-quota',
-    use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
+    use_scm_version={'search_parent_directories': True, 'local_scheme': prerelease_local_scheme},
     setup_requires=[
         'setuptools-scm',
-        'setuptools-git',
     ],
     description='Limits total file size stored for individual users and '
     'collections and can direct all files to a specific assetstore',

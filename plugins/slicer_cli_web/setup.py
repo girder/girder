@@ -29,10 +29,9 @@ with open('README.rst') as f:
 # perform the install
 setup(
     name='girder-slicer-cli-web',
-    use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
+    use_scm_version={'search_parent_directories': True, 'local_scheme': prerelease_local_scheme},
     setup_requires=[
         'setuptools-scm',
-        'setuptools-git',
     ],
     description='A girder plugin for exposing slicer CLIs over the web',
     long_description=readme,
@@ -60,15 +59,15 @@ setup(
     ],
     extras_require={
         'girder': [
-            'girder>=5.0.0a2',
-            'girder-jobs>=5.0.0a2',
-            'girder-worker>=5.0.0a4',
+            'girder>=5.0.0',
+            'girder-jobs>=5.0.0',
+            'girder-worker>=5.0.0',
             'girder-client',
         ],
         'worker': [
-            'girder>=5.0.0a2',
-            'girder-jobs>=5.0.0a2',
-            'girder-worker>=5.0.0a4',
+            'girder>=5.0.0',
+            'girder-jobs>=5.0.0',
+            'girder-worker>=5.0.0',
             'girder-client',
             'docker>=2.6.0',
         ],
