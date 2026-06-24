@@ -1,6 +1,8 @@
 import datetime
 import os
+import shutil
 import stat
+import subprocess
 import sys
 import tempfile
 import threading
@@ -43,7 +45,11 @@ class ServerFuseTestCase(base.TestCase):
                 time.sleep(0.001)
             self._mountThreads.append(mountThread)
         else:
-            mountThread.join()
+            mountThread.join(timeout=maxWait)
+            if mountThread.is_alive():
+                subprocess.run([shutil.which('fusermount3') or shutil.which(
+                    'fusermount'), '-u', path], capture_output=True, timeout=1)
+                mountThread.join()
         return mountThread
 
     def setUp(self):
