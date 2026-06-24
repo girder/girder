@@ -12,6 +12,7 @@ coverage:
         target: 80%
         paths:
           - girder
+          - "!girder/web_client/"
           - plugins/*/server
       python_client:
         target: 80%
