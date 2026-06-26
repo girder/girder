@@ -26,10 +26,9 @@ def prerelease_local_scheme(version):
 # perform the install
 setup(
     name='girder-download-statistics',
-    use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
+    use_scm_version={'search_parent_directories': True, 'local_scheme': prerelease_local_scheme},
     setup_requires=[
         'setuptools-scm',
-        'setuptools-git',
     ],
     description='Record file download statistics',
     author='Kitware, Inc.',

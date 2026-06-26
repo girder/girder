@@ -32,4 +32,17 @@ export default async (_config: PlaywrightTestConfig) => {
   });
 
   report.execute(context);
+
+  const outputDir = '../../build/test/coverage';
+  await fs.mkdir(outputDir, { recursive: true });
+  const contextXml = libReport.createContext({
+    dir: outputDir,
+    defaultSummarizer: 'nested',
+    coverageMap,
+  });
+  const xmlReport = reports.create('cobertura', {
+    file: 'cobertura-coverage.xml',
+    skipEmpty: false,
+  });
+  xmlReport.execute(contextXml);
 };

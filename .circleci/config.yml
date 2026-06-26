@@ -357,6 +357,21 @@ jobs:
               fi
               docker push girder/girder_test:py310-node22
 
+  check-publish:
+    docker:
+      - image: girder/girder_test:py310-node22
+    working_directory: ~/project
+    steps:
+      - checkout:
+          path: girder
+      - run:
+          name: Install tox
+          command: pip install --user tox
+      - run:
+          name: Check if Python packages can be published
+          command: tox -e check-publish
+          working_directory: girder
+
   publish:
     docker:
       - image: girder/girder_test:py310-node22
@@ -423,8 +438,13 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+.*/
+      - check-publish:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
       - publish:
           requires:
+            - check-publish
             - server-lint-test
             - web-lint-test
             - coverage
@@ -437,6 +457,7 @@ workflows:
                 - v4-integration
       - publish-release:
           requires:
+            - check-publish
             - server-lint-test
             - web-lint-test
             - coverage
