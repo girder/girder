@@ -918,14 +918,24 @@ var HierarchyWidget = View.extend({
         }
         var resources = this._getCheckedResourceParam(true);
         var pickDesc = this._describeResources(resources);
-        /* Merge these resources with any that are already picked */
+        /* Merge these resources with any that are already picked. For each resource type, any ids
+         * that are visible in the current view but are not currently checked are dropped from the
+         * picked set (so unchecking a previously picked resource removes it). Ids that belong to
+         * resources not visible here (e.g. from another folder or page) are left alone so
+         * resources can still be collected across pages. */
+        var visible = {
+            folder: this.folderListView.collection.map(function (model) {
+                return model.id;
+            }),
+            item: this.itemListView ? this.itemListView.collection.map(function (model) {
+                return model.id;
+            }) : []
+        };
         var existing = pickedResources.resources;
         _.each(existing, function (list, resource) {
-            if (!resources[resource]) {
-                resources[resource] = list;
-            } else {
-                resources[resource] = _.union(list, resources[resource]);
-            }
+            var checked = resources[resource] || [];
+            var stillPicked = _.difference(list, _.difference(visible[resource] || [], checked));
+            resources[resource] = _.union(stillPicked, checked);
         });
         pickedResources.resources = resources;
         this.updateChecked();
