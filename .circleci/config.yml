@@ -358,9 +358,9 @@ jobs:
               docker tag girder/girder:3-latest girder/girder:3-latest-py3
               docker push girder/girder:3-latest-py3
               if [[ $CIRCLE_TAG =~ ^v.*$ ]]; then
-              docker tag girder/girder:latest "girder/girder:$CIRCLE_TAG"
+              docker tag girder/girder:3-latest "girder/girder:$CIRCLE_TAG"
               docker push "girder/girder:$CIRCLE_TAG"
-              docker tag girder/girder:latest "girder/girder:${CIRCLE_TAG}-py3"
+              docker tag girder/girder:3-latest "girder/girder:${CIRCLE_TAG}-py3"
               docker push "girder/girder:${CIRCLE_TAG}-py3"
               fi
               docker push girder/girder_test:py39-node14
