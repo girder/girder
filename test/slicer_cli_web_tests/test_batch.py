@@ -1,3 +1,4 @@
+import os
 import time
 
 import pytest
@@ -6,6 +7,9 @@ from girder_jobs.constants import JobStatus
 from girder_jobs.models.job import Job
 
 from girder.models.token import Token
+
+DOCKER_SOCKET = '/var/run/docker.sock'
+SKIP_DOCKER_TESTS = not os.path.exists(DOCKER_SOCKET)
 
 
 def waitForBatchJob(job):
@@ -38,6 +42,7 @@ def scheduleBatchJob(boundServer, admin, data, task_id):
     return req
 
 
+@pytest.mark.skipif(SKIP_DOCKER_TESTS, reason='Docker socket not found')
 @pytest.mark.usefixtures('girderWorker')
 @pytest.mark.plugin('slicer_cli_web')
 def testBatchOneParam(boundServer, admin, girderWorker, smallDocker, fileset):
@@ -56,6 +61,7 @@ def testBatchOneParam(boundServer, admin, girderWorker, smallDocker, fileset):
         assert 'item match' not in ''.join(subjob['log'])
 
 
+@pytest.mark.skipif(SKIP_DOCKER_TESTS, reason='Docker socket not found')
 @pytest.mark.usefixtures('girderWorker')
 @pytest.mark.plugin('slicer_cli_web')
 def testBatchImageParam(boundServer, admin, girderWorker, smallDocker, fileset):
@@ -74,6 +80,7 @@ def testBatchImageParam(boundServer, admin, girderWorker, smallDocker, fileset):
         assert 'item match' not in ''.join(subjob['log'])
 
 
+@pytest.mark.skipif(SKIP_DOCKER_TESTS, reason='Docker socket not found')
 @pytest.mark.usefixtures('girderWorker')
 @pytest.mark.plugin('slicer_cli_web')
 def testBatchTwoParams(boundServer, admin, girderWorker, smallDocker, fileset):
@@ -93,6 +100,7 @@ def testBatchTwoParams(boundServer, admin, girderWorker, smallDocker, fileset):
         assert 'item match' not in ''.join(subjob['log'])
 
 
+@pytest.mark.skipif(SKIP_DOCKER_TESTS, reason='Docker socket not found')
 @pytest.mark.plugin('slicer_cli_web')
 def testBatchMismatchedLists(boundServer, admin, girderWorker, smallDocker, fileset):
     req = scheduleBatchJob(boundServer, admin, data={
@@ -108,6 +116,7 @@ def testBatchMismatchedLists(boundServer, admin, girderWorker, smallDocker, file
     assert 'different number of entries on batch inputs' in ''.join(results['job']['log'])
 
 
+@pytest.mark.skipif(SKIP_DOCKER_TESTS, reason='Docker socket not found')
 @pytest.mark.usefixtures('girderWorker')
 @pytest.mark.plugin('slicer_cli_web')
 def testBatchCancel(boundServer, admin, girderWorker, smallDocker, fileset):

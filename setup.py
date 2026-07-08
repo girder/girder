@@ -51,7 +51,7 @@ installReqs = [
     'redis',
     'requests',
     'starlette',
-    'uvicorn',
+    'uvicorn[standard]',
     'websockets',
 ]
 

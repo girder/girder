@@ -25,7 +25,7 @@ def prerelease_local_scheme(version):
 
 setup(
     name='girder-audit-logs',
-    use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
+    use_scm_version={'search_parent_directories': True, 'local_scheme': prerelease_local_scheme},
     setup_requires=[
         'setuptools-scm',
     ],
@@ -41,9 +41,9 @@ setup(
         'Programming Language :: Python :: 3',
     ],
     python_requires='>=3.10',
-    packages=find_packages(),
+    packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
-    install_requires=['girder>=3'],
+    install_requires=['girder>=5'],
     entry_points={
         'girder.plugin': [
             'audit_logs = girder_audit_logs:AuditLogsPlugin'

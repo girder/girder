@@ -66,6 +66,10 @@ register_backend('cherrypy_request', 'girder.utility._cache', 'CherrypyRequestBa
 cache = make_region(name='girder.cache').configure(backend='dogpile.cache.null')
 requestCache = make_region(name='girder.request').configure(backend='dogpile.cache.null')
 
+# This is a one hour TTL cache; it is not set to be reconfigured
+hourCache = make_region(name='girder.hour_cache').configure(
+    backend='dogpile.cache.memory', expiration_time=3600)
+
 # This cache is not configurable by the user, and will always be configured when the server is.
 # It holds data for rate limiting, which is ephemeral, but must be persisted (i.e. it's not optional
 # or best-effort).

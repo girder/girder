@@ -15,7 +15,7 @@ test.describe('Test file endpoints from the front-end', () => {
     test('file upload uses default mime type when none provided', async ({ page }) => {
         await createUser(page, 'admin');
         await page.locator('#g-app-header-container').getByText('admin').click();
-        await page.getByRole('link', { name: ' My folders' }).click();
+        await page.locator('a.g-my-folders').click();
         await page.getByRole('link', { name: ' Private ' }).click();
         await upload(page, path.join(__dirname, 'data', 'nomime.dat'));
     });

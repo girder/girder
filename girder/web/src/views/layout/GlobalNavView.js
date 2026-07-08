@@ -57,7 +57,8 @@ var LayoutGlobalNavView = View.extend({
             navItems = this.navItems;
         } else {
             navItems = this.defaultNavItems;
-            if (getCurrentUser()) {
+            const currentUser = getCurrentUser()
+            if (currentUser) {
                 // copy navItems so that this.defaultNavItems is unchanged
                 navItems = navItems.slice();
                 navItems.push({
@@ -65,7 +66,13 @@ var LayoutGlobalNavView = View.extend({
                     icon: 'icon-user',
                     target: 'users'
                 });
-                if (getCurrentUser().get('admin')) {
+                navItems.push({
+                    name: 'My Folders',
+                    icon: 'icon-folder',
+                    target: 'user/' + currentUser.id
+                });
+                const userIsAdmin = currentUser.get('admin')
+                if (userIsAdmin) {
                     navItems.push({
                         name: 'Admin console',
                         icon: 'icon-wrench',

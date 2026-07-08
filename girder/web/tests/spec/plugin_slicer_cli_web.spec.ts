@@ -56,7 +56,7 @@ test.describe('Test Slicer CLI web', () => {
         await createCliItem(page);
 
         await page.locator('#g-app-header-container').getByText('admin').click();
-        await page.getByRole('link', { name: ' My folders' }).click();
+        await page.locator('a.g-my-folders').click();
         await page.getByRole('link', { name: ' Public ' }).click();
         await page.getByRole('link', { name: ' Slicer CLI Web Test' }).click();
         await expect(page.getByRole('button', { name: 'Run Task' })).toBeVisible();

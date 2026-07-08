@@ -61,8 +61,8 @@ package we are going to create.
       include_package_data=True,
       packages=find_packages(exclude=['plugin_tests']),
       zip_safe=False,
-      setup_requires=['setuptools-git'],
-      install_requires=['girder>=3', 'girder-jobs'],
+      setup_requires=['setuptools-scm'],
+      install_requires=['girder>=5', 'girder-jobs'],
       entry_points={
           'girder.plugin': [ 'cats = girder_cats:CatsPlugin' ]
       }
@@ -80,7 +80,7 @@ in this example are specific to a Girder plugin.  These are as follows:
     `setuptools documentation <https://setuptools.readthedocs.io/en/latest/setuptools.html#including-data-files>`_
     for details.
 
-``setup_requires=['setuptools-git']``
+``setup_requires=['setuptools-scm']``
     This works with the ``include_package_data`` option to automatically include all non-python
     files that are checked into your git repository.  Alternatively, you can generate a
     ``MANIFEST.in`` for more fine-grained control over which files are included.

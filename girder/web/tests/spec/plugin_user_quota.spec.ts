@@ -16,7 +16,7 @@ test.describe('Test the quota front-end', () => {
         await createUser(page, 'admin');
 
         await page.locator('#g-app-header-container').getByText('admin').click();
-        await page.getByRole('link', { name: ' My folders' }).click();
+        await page.locator('a.g-my-folders').click();
 
         await page.getByRole('button', { name: ' Actions ' }).click();
         await page.getByRole('menuitem', { name: ' Quota and assetstore policies' }).click();

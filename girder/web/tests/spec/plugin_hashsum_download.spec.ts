@@ -15,7 +15,7 @@ test.describe('Test the hashsum download front-end', () => {
     test('verify presence of key file', async ({ page }) => {
         await createUser(page, 'admin');
         await page.locator('#g-app-header-container').getByText('admin').click();
-        await page.getByRole('link', { name: ' My folders' }).click();
+        await page.locator('a.g-my-folders').click();
         await page.getByRole('link', { name: ' Private ' }).click();
         await upload(page, path.join(__dirname, 'data', 'ten_byte_file.txt'));
 

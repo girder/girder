@@ -32,17 +32,18 @@ coverage
 httmock
 mongomock
 moto[server]<4.2.12
-pytest>=3.6
+pytest-asyncio
 pytest-cov>=2.6
 pytest-forked
 pytest-mock
+pytest>=3.6
 python-dateutil
 tox
-xdoctest
 virtualenv
+xdoctest
 
 # from extras
-paramiko
 cachetools
 diskcache
 mfusepy>=3.0
+paramiko

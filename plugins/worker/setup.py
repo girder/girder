@@ -25,10 +25,9 @@ def prerelease_local_scheme(version):
 
 setup(
     name='girder-plugin-worker',
-    use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
+    use_scm_version={'search_parent_directories': True, 'local_scheme': prerelease_local_scheme},
     setup_requires=[
         'setuptools-scm',
-        'setuptools-git',
     ],
     description='The Girder server plugin interfacing with girder-worker',
     author='Kitware, Inc.',
@@ -47,8 +46,8 @@ setup(
     packages=find_packages(exclude=['plugin_tests']),
     zip_safe=False,
     install_requires=[
-        'girder>=5.0.0a5',
-        'girder-jobs>=5.0.0a5',
+        'girder>=5.0.0',
+        'girder-jobs>=5.0.0',
     ],
     entry_points={
         'girder.plugin': [

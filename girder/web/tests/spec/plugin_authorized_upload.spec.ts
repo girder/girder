@@ -16,7 +16,7 @@ test.describe('Test the authorized upload front-end', () => {
         await createUser(page, 'admin');
 
         await page.locator('#g-app-header-container').getByText('admin').click();
-        await page.getByRole('link', { name: ' My folders' }).click();
+        await page.locator('a.g-my-folders').click();
         await page.getByRole('link', { name: ' Private ' }).click();
         await page.getByRole('button', { name: ' ' }).click();
         await page.getByRole('link', { name: ' Authorize upload here' }).click();

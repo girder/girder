@@ -56,13 +56,17 @@ def schedule(event):
     job = event.info
     if job['handler'] == 'worker_handler':
         task = job.get('celeryTaskName', 'girder_worker.run')
+        queue_name = job.get('celeryQueue')
 
+        if queue_name == 'local':
+            from girder.tasks import ensure_local_worker_available
+            ensure_local_worker_available()
         # Set the job status to queued
         Job().updateJob(job, status=JobStatus.QUEUED)
 
         # Send the task to celery
         asyncResult = app.send_task(
-            task, job['args'], job['kwargs'], queue=job.get('celeryQueue'), headers={
+            task, job['args'], job['kwargs'], queue=queue_name, headers={
                 'jobInfoSpec': jobInfoSpec(job, job.get('token', None)),
                 'apiUrl': getWorkerApiUrl()
             })

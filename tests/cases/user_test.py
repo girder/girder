@@ -1,4 +1,7 @@
 import collections
+import contextlib
+import io
+import sys
 
 from girder import events
 from girder.constants import AccessType
@@ -10,6 +13,19 @@ from girder.models.user import User
 from girder.settings import SettingKey
 
 from .. import base
+
+
+@contextlib.contextmanager
+def captureOutput():
+    oldout, olderr = sys.stdout, sys.stderr
+    try:
+        out = [io.StringIO(), io.StringIO()]
+        sys.stdout, sys.stderr = out
+        yield out
+    finally:
+        sys.stdout, sys.stderr = oldout, olderr
+        out[0] = out[0].getvalue()
+        out[1] = out[1].getvalue()
 
 
 def setUpModule():
@@ -395,6 +411,32 @@ class UserTestCase(base.TestCase):
             resp.json['authToken'], ('token', 'expires'))
         self._verifyAuthCookie(resp)
 
+    def testAccountApprovalEvents(self):
+
+        def preventDefault(event):
+            event.preventDefault()
+
+        def killSwitch(event):
+            raise RuntimeError('Should not be called!')
+
+        admin = User().createUser('admin', 'password', 'Admin', 'Admin', 'admin@girder.test')
+        Setting().set(SettingKey.REGISTRATION_POLICY, 'approve')
+        with events.bound('email.approval', 'test', preventDefault), \
+                events.bound('_sendmail', 'test', killSwitch):
+            user = User().createUser('user', 'password', 'User', 'User', 'user@girder.test')
+
+        # approve account
+        with events.bound('email.approved', 'test', preventDefault), \
+                events.bound('_sendmail', 'test', killSwitch):
+            path = '/user/%s' % user['_id']
+            resp = self.request(path=path, method='PUT', user=admin, params={
+                'firstName': user['firstName'],
+                'lastName': user['lastName'],
+                'email': user['email'],
+                'status': 'enabled'
+            })
+            self.assertStatusOk(resp)
+
     def testAccountApproval(self):
         admin = User().createUser('admin', 'password', 'Admin', 'Admin', 'admin@girder.test')
 
@@ -446,6 +488,27 @@ class UserTestCase(base.TestCase):
         resp = self.request('/user/authentication', basicAuth='user:password')
         self.assertStatus(resp, 401)
         self.assertEqual(resp.json['extra'], 'disabled')
+
+    def testAccountVerification(self):
+        User().createUser('admin', 'password', 'Admin', 'Admin', 'admin@girder.test')
+        Setting().set(SettingKey.EMAIL_VERIFICATION, 'required')
+        with captureOutput() as output:
+            user = User().createUser('user', 'password', 'User', 'User', 'user@girder.test')
+            self.assertFalse(user['emailVerified'])
+            self.assertIn('Girder: Email verification', output[0].getvalue())
+
+        def preventDefault(event):
+            print('Different message')
+            event.preventDefault()
+
+        def killSwitch(event):
+            raise RuntimeError('Should not be called!')
+
+        with events.bound('email.verification', 'test', preventDefault), \
+                events.bound('_sendmail', 'test', killSwitch), \
+                captureOutput() as output:
+            user = User().createUser('user2', 'password', 'User2', 'User2', 'user2@girder.test')
+            self.assertIn('Different message', output[0].getvalue())
 
     def testUserCreation(self):
         admin = User().createUser('user1', 'passwd', 'tst', 'usr', 'user@girder.test')

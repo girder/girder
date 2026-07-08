@@ -4,7 +4,7 @@ from girder.constants import AccessType, AssetstoreType, TokenScope
 from girder.exceptions import RestException
 from girder.models.assetstore import Assetstore as AssetstoreModel
 from girder.models.file import File
-from girder.tasks import importDataTask
+from girder.tasks import ensure_local_worker_available, importDataTask
 from girder.utility.model_importer import ModelImporter
 from girder.utility.s3_assetstore_adapter import DEFAULT_REGION
 
@@ -139,6 +139,7 @@ class Assetstore(Resource):
         extraParams = dict(kwargs)
         extraParams.update(kwargs.get('params', {}))
 
+        ensure_local_worker_available()
         # Run the import data task on the local celery queue since it can take a long time
         importDataTask.delay(
             assetstoreId=str(assetstore['_id']),

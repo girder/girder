@@ -1,5 +1,6 @@
 # See tox.ini for documentation on this file.
 Sphinx
+sphinx-llm
 sphinx_rtd_theme
 packaging
 myst-parser

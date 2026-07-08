@@ -30,10 +30,9 @@ with open('README.rst') as readme_file:
 
 setup(
     name='girder-import-tracker',
-    use_scm_version={'root': '../..', 'local_scheme': prerelease_local_scheme},
+    use_scm_version={'search_parent_directories': True, 'local_scheme': prerelease_local_scheme},
     setup_requires=[
         'setuptools-scm',
-        'setuptools-git',
     ],
     description='A Girder plugin for data import tracking',
     long_description=readme,

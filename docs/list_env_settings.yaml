@@ -25,7 +25,7 @@ GIRDER_SETTING_CORE_CORS_EXPOSE_HEADERS: >-
   CORS header listing headers that should be exposed to the client.
 
 GIRDER_SETTING_CORE_REGISTRATION_POLICY: >-
-  Controls user registration policy. Values: "open", "admin", or "closed".
+  Controls user registration policy. Values: "open", "approve", or "closed".
 
 GIRDER_SETTING_CORE_EMAIL_VERIFICATION: >-
   Whether email verification is required for new accounts. Set to "true" or "false".

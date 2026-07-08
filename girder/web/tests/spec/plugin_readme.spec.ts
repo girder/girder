@@ -16,7 +16,7 @@ test.describe('Test the readme UI', () => {
         await createUser(page, 'myuser');
 
         await page.locator('#g-app-header-container').getByText('myuser').click();
-        await page.getByRole('link', { name: ' My folders' }).click();
+        await page.locator('a.g-my-folders').click();
         await page.getByRole('link', { name: ' Public ' }).click();
         await upload(page, path.join(__dirname, 'data', 'README.md'));
         await expect(page.locator('h1', {hasText: 'README Testing'})).toBeVisible();
