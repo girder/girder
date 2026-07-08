@@ -927,9 +927,7 @@ var HierarchyWidget = View.extend({
             folder: this.folderListView.collection.map(function (model) {
                 return model.id;
             }),
-            item: this.itemListView ? this.itemListView.collection.map(function (model) {
-                return model.id;
-            }) : []
+            item: this.itemListView ? this.itemListView.collection.map(function (model) { return model.id; }) : []
         };
         var existing = pickedResources.resources;
         _.each(existing, function (list, resource) {
