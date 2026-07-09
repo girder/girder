@@ -26,7 +26,9 @@ var FolderListWidget = View.extend({
             const target = $(event.currentTarget);
             const cid = target.attr('g-folder-cid');
             if (target.prop('checked')) {
-                this.checked.push(cid);
+                if (!this.checked.includes(cid)) {
+                    this.checked.push(cid);
+                }
             } else {
                 const idx = this.checked.indexOf(cid);
                 if (idx !== -1) {
