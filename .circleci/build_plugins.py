@@ -1,5 +1,6 @@
 import argparse
 import concurrent.futures
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -69,4 +70,5 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    build_plugins(args.plugins_dir, args.workers, args.rebuild, args.extra)
+    if not str(os.environ.get('SKIP_BUILD_PLUGINS')).lower() in {'1', 'true'}:
+        build_plugins(args.plugins_dir, args.workers, args.rebuild, args.extra)
