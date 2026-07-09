@@ -25,14 +25,14 @@ var ItemListWidget = View.extend({
         'change .g-list-checkbox': function (event) {
             const target = $(event.currentTarget);
             const cid = target.attr('g-item-cid');
-            if (!this.checked.includes(cid)) {
-                if (target.prop('checked')) {
+            if (target.prop('checked')) {
+                if (!this.checked.includes(cid)) {
                     this.checked.push(cid);
-                } else {
-                    const idx = this.checked.indexOf(cid);
-                    if (idx !== -1) {
-                        this.checked.splice(idx, 1);
-                    }
+                }
+            } else {
+                const idx = this.checked.indexOf(cid);
+                if (idx !== -1) {
+                    this.checked.splice(idx, 1);
                 }
             }
             this.trigger('g:checkboxesChanged');
