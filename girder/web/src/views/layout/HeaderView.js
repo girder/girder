@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import Backbone from 'backbone';
 
 import LayoutHeaderUserView from '@girder/core/views/layout/HeaderUserView';
 import router from '@girder/core/router';
@@ -48,7 +49,7 @@ var LayoutHeaderView = View.extend({
         this.$el.html(LayoutHeaderTemplate({
             brandName: this.brandName,
             bannerColor: this.bannerColor,
-            textColor: textColor
+            hash: Backbone.history.location.hash
         }));
         this.userView.setElement(this.$('.g-current-user-wrapper')).render();
         if (textColor !== '#ffffff') {
