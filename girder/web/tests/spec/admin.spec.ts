@@ -37,3 +37,28 @@ test.describe('Create an admin and non-admin user', () => {
     await page.getByRole('button', { name: ' Create', exact: true }).click();
   });
 });
+
+test.describe('Test the plugins page', () => {
+  setupServer();
+
+  test('Login as admin, view plugins page and logout', async ({ page }) => {
+    // First create an admin user (first registered user is admin)
+    await createUser(page, 'admin', 'admin@girder.test', 'Admin', 'Admin', 'adminpassword!');
+    // Navigate to plugins page via Admin console menu
+    await page.getByRole('link', { name: ' Admin console' }).click();
+    await page.getByRole('link', { name: ' Plugins' }).click();
+    // Wait for the plugin list to load - at least core plugins should be present
+    await expect(page.locator('.g-plugin-list-container')).toBeVisible({ timeout: 10000 });
+    // Check that there is at least one plugin (core plugins should always be present)
+    const pluginCount = await page.locator('.g-plugin-list-item').count();
+    expect(pluginCount).toBeGreaterThanOrEqual(1);
+    // Verify we can see some plugins listed
+    const pluginList = page.locator('.g-plugin-list-item');
+    await expect(pluginList.first()).toBeVisible();
+    // Logout via user dropdown (visible on the admin/plugins page)
+    await page.locator('.g-user-dropdown-link').click();
+    await page.locator('.g-logout').click();
+    await expect(page.locator('.g-register')).toBeVisible();
+    await expect(page.locator('.g-login')).toBeVisible();
+  });
+});
