@@ -1,0 +1,6 @@
+services:
+  test:
+    build:
+      context: .
+    volumes:
+      - ..:/home/ubuntu/girder
