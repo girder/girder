@@ -13,7 +13,8 @@ from girder_worker.context import get_context
 from girder_worker.entrypoint import discover_tasks
 from girder_worker.task import Task
 from girder_worker.utils import (JobSpecNotFound, JobStatus, StateTransitionException, _job_manager,
-                                 _update_status, is_builtin_celery_task, is_revoked)
+                                 _update_status, apply_girder_api_url_override,
+                                 is_builtin_celery_task, is_revoked)
 from girder_worker.utils.transform import ResultTransform
 from kombu.serialization import register
 
@@ -90,13 +91,17 @@ def gw_task_prerun(task=None, sender=None, task_id=None,
                    args=None, kwargs=None, **rest):
     """Deserialize the jobInfoSpec passed in through the headers.
 
-    This provides the a JobManager class as an attribute of the
+    This provides the JobManager class as an attribute of the
     task before task execution.  decorated functions may bind to
     their task and have access to the job_manager for logging and
     updating their status in girder.
     """
     if is_builtin_celery_task(sender.name):
         return
+
+    # Allow each worker to override the API URL attached at schedule time so
+    # callbacks use a URL reachable from this worker's network context.
+    apply_girder_api_url_override(task.request)
 
     try:
         task.job_manager = _job_manager(task.request, task.request.headers)

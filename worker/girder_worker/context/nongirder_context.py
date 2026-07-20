@@ -4,7 +4,7 @@ import requests
 from celery import current_app
 from girder_client import GirderClient
 from girder_worker import logger
-from girder_worker.utils import _maybe_model_repr, _walk_obj
+from girder_worker.utils import _maybe_model_repr, _walk_obj, resolve_girder_api_url
 
 
 class MissingJobArguments(RuntimeError):
@@ -33,7 +33,8 @@ def create_task_job(job_defaults, sender=None, body=None,
         if 'id' not in headers:
             raise MissingJobArguments('id is not in headers')
 
-        gc = GirderClient(apiUrl=parent_task.request.girder_api_url)
+        api_url = resolve_girder_api_url(parent_task.request.girder_api_url)
+        gc = GirderClient(apiUrl=api_url)
         gc.token = parent_task.request.girder_client_token
 
         task_args = tuple(_walk_obj(body[0], _maybe_model_repr))
@@ -80,7 +81,8 @@ def attach_girder_api_url(sender=None, body=None, exchange=None,
         if not hasattr(parent_task.request, 'girder_api_url'):
             raise MissingJobArguments(
                 "Parent task's request does not contain girder_api_url")
-        headers['girder_api_url'] = parent_task.request.girder_api_url
+        headers['girder_api_url'] = resolve_girder_api_url(
+            parent_task.request.girder_api_url)
     except MissingJobArguments as e:
         logger.warning(f'Could not get girder_api_url from parent task: {str(e)}')
 
