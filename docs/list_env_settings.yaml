@@ -93,6 +93,13 @@ GIRDER_WORKER_BROKER: >-
 GIRDER_WORKER_BACKEND: >-
   URL for the Celery result backend (e.g., redis://localhost:6379/0).
 
+GIRDER_WORKER_API_URL: >-
+  Optional per-worker override for the Girder API base URL used when calling
+  back to the server (job status, logs, data transfer). When set, this takes
+  precedence over the girder_api_url header attached when the job was scheduled.
+  Useful when workers run in a different network context than the web server
+  (for example Docker hostname vs localhost).
+
 GIRDER_WORKER_JOB_GC_SCOPE: >-
   A comma-separated list of extra default scopes for worker jobs.  For instance to allow jobs to schedule and check on other jobs, set this to "jobs.rest.create_job,jobs.rest.list_job"
 

@@ -393,6 +393,11 @@ following environment variables:
 
 * ``GIRDER_WORKER_BROKER``: The URL of the message broker to use for celery
 * ``GIRDER_WORKER_BACKEND``: The URL of the result backend to use for celery
+* ``GIRDER_WORKER_API_URL``: Optional per-worker override for the Girder API
+  base URL used when the worker calls back to the server. When set, this takes
+  precedence over the ``girder_api_url`` header attached at schedule time, so
+  each worker can use an API URL appropriate for its own network location
+  (for example ``http://girder:8080/api/v1`` inside Docker).
 
 Switch to HttpOnly cookies in core web client
 +++++++++++++++++++++++++++++++++++++++++++++
