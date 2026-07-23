@@ -31,7 +31,7 @@ services:
       retries: 10
 
   rabbitmq:
-    image: rabbitmq:3
+    image: rabbitmq:4.2
     healthcheck:
       start_period: 60s
       start_interval: 2s
