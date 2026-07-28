@@ -48,15 +48,14 @@ RUN npx --yes playwright@1.61.0 install --with-deps chromium firefox \
   && chmod -R a+rwX "/ms-playwright"
 
 
-# Create a non-root user, "ubuntu"
-# (starting in Ubuntu 24.04, this user is already available)
-# `--no-log-init` to avoid potentially enormous lastlog and faillog databases from large UID & GID numbers
-ARG UID=1000
-ARG GID=1000
-RUN groupadd --non-unique --gid "${GID}" ubuntu \
-  && useradd --no-log-init --create-home --uid "${UID}" --gid "${GID}" --shell /bin/bash ubuntu \
-  && chown -R "${UID}:${GID}" /home/ubuntu
-USER ubuntu
+# in lieu of creating a user, we'll make an "ubuntu" home directory
+ENV HOME=/home/ubuntu
+RUN mkdir -p "$HOME/.cache/pip" "$HOME/.npm" "$HOME/.tox" \
+  && chmod -R 0777 "$HOME"
+
+# The actual UID & GID should come from the `docker-compose.yaml` file
+# this is a safeguard against running the container as root
+USER 1000:1000
 
 
 # Run the tests
