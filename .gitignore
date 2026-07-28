@@ -27,3 +27,7 @@ __pycache__
 
 # docs build
 docs/_generated_env_vars.md
+
+
+# environment variables
+.env

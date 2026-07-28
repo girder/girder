@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   python3.10 \
   python3.10-venv \
   python3.10-dev \
+  universal-ctags \
   && rm -rf /var/lib/apt/lists/*
 
 
@@ -38,20 +39,23 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
   && rm -rf /var/lib/apt/lists/*
 
 
-# Install Playwright and Chromium
+# Install Playwright, Chromium and Firefox
 # we must specify Playwright's installation directory - https://playwright.dev/docs/browsers#managing-browser-binaries
 # and let the directory be accessible to non-root users
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 RUN npx --yes playwright@1.61.0 install --with-deps chromium firefox \
+  && rm -rf /var/lib/apt/lists/* \
   && chmod -R a+rwX "/ms-playwright"
 
 
 # Create a non-root user, "ubuntu"
 # (starting in Ubuntu 24.04, this user is already available)
+# `--no-log-init` to avoid potentially enormous lastlog and faillog databases from large UID & GID numbers
 ARG UID=1000
 ARG GID=1000
-RUN groupadd -g "${GID}" ubuntu \
-  && useradd -m -u "${UID}" -g "${GID}" -s /bin/bash ubuntu
+RUN groupadd --non-unique --gid "${GID}" ubuntu \
+  && useradd --no-log-init --create-home --uid "${UID}" --gid "${GID}" --shell /bin/bash ubuntu \
+  && chown -R "${UID}:${GID}" /home/ubuntu
 USER ubuntu
 
 
