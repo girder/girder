@@ -2,7 +2,7 @@ name: girder-test
 services:
 
   redis:
-    image: redis:latest
+    image: redis:8
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       start_period: 60s
@@ -44,8 +44,8 @@ services:
     build:
       context: .
       args:
-        UID: ${HOST_UID:-1000}
-        GID: ${HOST_GID:-1000}
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
       dockerfile: Dockerfile
     depends_on:
       redis:
@@ -61,7 +61,7 @@ services:
       - GIRDER_NOTIFICATION_REDIS_URL=redis://redis:6379
     volumes:
       - ..:/home/ubuntu/girder
-    # for FUSE stuff
+    # for FUSE
     devices:
       - /dev/fuse
     cap_add:
