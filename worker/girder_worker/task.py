@@ -172,3 +172,19 @@ class Task(celery.Task):
             if hasattr(self.request, 'girder_result_hooks'):
                 for hook in self.request.girder_result_hooks:
                     self._maybe_cleanup(hook)
+
+    @property
+    def job_manager(self):
+        return getattr(self.request, 'girder_job_manager', None)
+
+    @job_manager.setter
+    def job_manager(self, value):
+        self.request.girder_job_manager = value
+
+    @property
+    def girder_client(self):
+        return getattr(self.request, 'girder_client_instance', None)
+
+    @girder_client.setter
+    def girder_client(self, value):
+        self.request.girder_client_instance = value
