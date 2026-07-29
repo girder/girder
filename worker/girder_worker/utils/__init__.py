@@ -358,6 +358,13 @@ class JobManager:
         :type interval: int or float
         :param reference: optional reference to store with the job.
         """
+        from ..app import CeleryAppInfo
+
+        # When we are using a threads pool, tee-ing stdout and stderr to
+        # logPrint can lead to the logs being written to multiple threads and
+        # therefore multiple workers.
+        if CeleryAppInfo['threads_pool']:
+            logPrint = None
         self.logPrint = logPrint
         self.method = method or 'PUT'
         self.url = url

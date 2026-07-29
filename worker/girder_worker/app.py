@@ -18,6 +18,8 @@ from girder_worker.utils import (JobSpecNotFound, JobStatus, StateTransitionExce
 from girder_worker.utils.transform import ResultTransform
 from kombu.serialization import register
 
+CeleryAppInfo = {'threads_pool': False}
+
 
 @before_task_publish.connect  # noqa: C901
 def girder_before_task_publish(sender=None, body=None, exchange=None,
@@ -76,6 +78,25 @@ def girder_before_task_publish(sender=None, body=None, exchange=None,
     except Exception:
         logger.exception('An error occurred in girder_before_task_publish.')
         raise
+
+
+@worker_ready.connect
+def _capture_celery_pool(sender, **kwargs):
+    """
+    Determine if the celery task pool is thread based; we use this to govern
+    some logging choices.
+
+    :param sender:  a celery.worker.worker.Worker instance
+    """
+    pool = getattr(sender, 'pool', None)
+    try:
+        if pool and 'thread' in type(pool).__module__.lower():
+            CeleryAppInfo['threads_pool'] = True
+            logger.info('Using a threads pool')
+        else:
+            logger.info('Not using a threads pool')
+    except Exception:
+        logger.exception('Failed to determine pool type')
 
 
 @worker_ready.connect
