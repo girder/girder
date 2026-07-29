@@ -40,6 +40,10 @@ def _pull_image(image):
         raise
 
 
+def _is_no_such_container(exc):
+    return 'No such container' in str(exc) or type(exc).__name__ == 'NotFound'
+
+
 def _get_docker_network():
     try:
         ip = socket.gethostbyname(socket.gethostname())
@@ -48,10 +52,23 @@ def _get_docker_network():
             client = docker.from_env(version='auto', timeout=timeout)
         else:
             client = docker.from_env(version='auto')
-        for container in client.containers.list(all=True, filters={'status': 'running'}):
-            for nw in container.attrs['NetworkSettings']['Networks'].values():
+        # we use client.api.containers rather than client.containers.list
+        # because containers.lists casts to a list which can throw an
+        # exception rather than allowing graceful handling.
+        for container in client.api.containers(all=True, filters={'status': ['running']}):
+            cid = container.get('Id') or container.get('ID')
+            if not cid:
+                continue
+            try:
+                data = client.api.inspect_container(cid)
+            except Exception as exc:
+                if _is_no_such_container(exc):
+                    continue
+                raise
+            networks = (data.get('NetworkSettings', {}) or {}).get('Networks', {}) or {}
+            for nw in networks.values():
                 if nw['IPAddress'] == ip:
-                    return 'container:%s' % container.id
+                    return 'container:%s' % cid
     except Exception:
         logger.exception('Failed to get docker network')
 
@@ -59,12 +76,23 @@ def _get_docker_network():
 def _remove_stopped_container(client, name):
     if name is None:
         return
-    for container in client.containers.list(all=True, filters={'name': name}):
-        try:
-            logger.info('Removing container %s ' % (name))
-            container.remove()
-        except Exception:
-            pass
+    # we use client.api.containers rather than client.containers.list
+    # because containers.lists casts to a list which can throw an
+    # exception rather than allowing graceful handling.
+    try:
+        for container in client.api.containers(all=True, filters={'name': [name]}):
+            cid = container.get('Id') or container.get('ID')
+            if not cid:
+                continue
+            try:
+                logger.info('Removing container %s ' % (name))
+                client.api.remove_container(cid)
+            except Exception:
+                pass
+    except Exception as exc:
+        if _is_no_such_container(exc):
+            return
+        raise
 
 
 def _run_container(image, container_args, **kwargs):
