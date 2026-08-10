@@ -311,24 +311,22 @@ var JobListWidget = View.extend({
     },
 
     _cancelJobs: function () {
-        _whenAll(
-            Object.keys(this.jobCheckedStates)
-                .filter((jobId) => {
-                    var jobModel = this.collection.find((job) => job.id === jobId);
-                    return JobStatus.isCancelable(jobModel);
-                })
-                .map((jobId) => restRequest({
-                    url: `job/${jobId}/cancel`,
-                    method: 'PUT',
-                    error: null
-                }))
-        ).done((results) => {
-            if (!results.length) {
-                return;
-            }
+        const cancelableJobIds = Object.keys(this.jobCheckedStates).filter((jobId) => {
+            var jobModel = this.collection.find((job) => job.id === jobId);
+            return JobStatus.isCancelable(jobModel);
+        });
+        const numJobs = cancelableJobIds.length;
+        if (numJobs === 0) {
+            return;
+        }
+        _whenAll(cancelableJobIds.map((jobId) => restRequest({
+            url: `job/${jobId}/cancel`,
+            method: 'PUT',
+            error: null
+        }))).done(() => {
             events.trigger('g:alert', {
                 icon: 'ok',
-                text: `Cancel ${results.length === 1 ? 'request' : 'requests'} sent for ${results.length} ${results.length === 1 ? 'job' : 'jobs'}`,
+                text: `Cancel ${numJobs === 1 ? 'request' : 'requests'} sent for ${numJobs} ${numJobs === 1 ? 'job' : 'jobs'}`,
                 type: 'info',
                 timeout: 4000
             });
