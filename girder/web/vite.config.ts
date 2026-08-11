@@ -53,7 +53,7 @@ let outDir = 'dist';
 if (process.env.BUILD_LIB) {
   buildOpts = {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: resolve(import.meta.dirname, 'src/index.ts'),
       name: 'GirderCore',
       fileName: 'girder-core',
     }
@@ -77,7 +77,7 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: path.resolve(__dirname, './src') + '/[!.]*',
+          src: path.resolve(import.meta.dirname, './src') + '/[!.]*',
           dest: './src',
         },
       ],
@@ -86,7 +86,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@girder/core': resolve(__dirname, 'src'),
+      '@girder/core': resolve(import.meta.dirname, 'src'),
     }
   },
   build: {

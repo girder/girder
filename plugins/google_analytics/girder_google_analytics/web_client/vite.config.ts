@@ -32,7 +32,7 @@ export default defineConfig({
   build: {
     sourcemap: !process.env.SKIP_SOURCE_MAPS,
     lib: {
-      entry: resolve(__dirname, 'main.js'),
+      entry: resolve(import.meta.dirname, 'main.js'),
       name: 'GirderPluginGoogleAnalytics',
       fileName: 'girder-plugin-google-analytics',
     },
