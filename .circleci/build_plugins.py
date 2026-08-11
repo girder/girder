@@ -34,7 +34,7 @@ def build_plugins(
                 subprocess.run,
                 ('npm ci' if not rebuild else
                  'rm -rf package-lock.json node_modules && npm install')
-                + ' && SKIP_SOURCE_MAPS=true npm run build',
+                + ' && npm run build',
                 check=True,
                 shell=True,
                 stdout=subprocess.DEVNULL,
