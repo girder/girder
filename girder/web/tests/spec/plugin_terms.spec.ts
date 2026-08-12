@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import { setupServer } from '../server';
-import { createUser, logout } from '../util';
+import { createUser, logout, waitForIdlePage } from '../util';
 
 test.describe('Test the terms front-end', () => {
     setupServer();
@@ -17,6 +17,8 @@ test.describe('Test the terms front-end', () => {
         await page.getByRole('button', { name: ' Create', exact: true }).click();
 
         await expect(page.locator('#g-dialog-container')).toBeHidden();
+        // Wait for REST requests to complete before further actions
+        await waitForIdlePage(page);
 
         await page.getByRole('button', { name: '' }).click();
         await page.getByLabel('Public — Anyone can view this collection').check();

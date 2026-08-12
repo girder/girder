@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { expect, test } from '@playwright/test';
 
 import { setupServer } from '../server';
-import { createUser } from '../util';
+import { createUser, waitForIdlePage } from '../util';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -54,6 +54,8 @@ test.describe('Test Slicer CLI web', () => {
     test('create a CLI item', async ({ page }) => {
         await createUser(page, 'admin');
         await createCliItem(page);
+        // Wait for all REST requests from CLI creation to complete before navigating
+        await waitForIdlePage(page);
 
         await page.locator('#g-app-header-container').getByText('admin').click();
         await page.locator('a.g-my-folders').click();

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { expect, test } from '@playwright/test';
 
 import { setupServer } from '../server';
-import { createUser, upload } from '../util';
+import { createUser, upload, waitForIdlePage } from '../util';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,6 +26,8 @@ test.describe('Test the thumbnails front-end', () => {
         await page.getByPlaceholder('width').press('Tab');
         await page.getByPlaceholder('height').fill('50');
         await page.getByRole('button', { name: ' Create' }).click();
+        // Wait for thumbnail creation task to complete
+        await waitForIdlePage(page);
 
         await expect(page.locator('.g-thumbnail')).toBeVisible();
 
