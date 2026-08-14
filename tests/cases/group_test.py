@@ -514,3 +514,58 @@ class GroupTestCase(base.TestCase):
                     else:
                         self.assertStatus(resp, 403)
         Setting().unset(SettingKey.ADD_TO_GROUP_POLICY)
+
+    def testModeratorForceGrantAdmin(self):
+        """
+        Test that a group moderator cannot escalate privilege to admin via force option.
+
+        When core.add_to_group_policy = 'yesmod' and addAllowed = 'yesmod',
+        a moderator should be able to force-add users to the group, but with
+        level <= WRITE (their own access level). Attempting to grant ADMIN (level 2)
+        via force=true should be rejected.
+        """
+        # Setup policy to allow mods to add members
+        Setting().set(SettingKey.ADD_TO_GROUP_POLICY, 'yesmod')
+
+        # Create a group and add users as admin, moderator
+        group = Group().createGroup('priv_esc_group', self.users[0], public=True)
+        resp = self.request(
+            path='/group/%s/invitation' % group['_id'],
+            params={
+                'force': 'true',
+                'userId': self.users[1]['_id'],
+                'level': AccessType.ADMIN
+            }, method='POST', user=self.users[0])
+        self.assertStatusOk(resp)
+
+        resp = self.request(
+            path='/group/%s/invitation' % group['_id'],
+            params={
+                'force': 'true',
+                'userId': self.users[2]['_id'],
+                'level': AccessType.WRITE
+            }, method='POST', user=self.users[0])
+        self.assertStatusOk(resp)
+
+        # Configure addAllowed for this group to yesmod
+        resp = self.request(
+            path='/group/%s' % group['_id'],
+            user=self.users[0], method='PUT',
+            params={'addAllowed': 'yesmod'})
+        self.assertStatusOk(resp)
+        group = Group().load(group['_id'], force=True)
+
+        # Now, try to use the moderator (user 2) to force-add user 3 as admin
+        resp = self.request(
+            path='/group/%s/invitation' % group['_id'],
+            params={
+                'force': 'true',
+                'userId': self.users[3]['_id'],
+                'level': AccessType.ADMIN
+            }, method='POST', user=self.users[2])
+
+        # This should fail with 403 because moderator can't grant admin rights
+        self.assertStatus(resp, 403)
+
+        # Clean up
+        Setting().unset(SettingKey.ADD_TO_GROUP_POLICY)
