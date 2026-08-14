@@ -1,19 +1,18 @@
 import { expect, Page } from '@playwright/test';
 
+/**
+ * Wait for all outstanding REST requests to complete.
+ */
+export const waitForIdlePage = async (page: Page) => {
+  await page.waitForFunction(() => {
+    // @ts-ignore
+    return window.girder && window.girder.rest && window.girder.rest.numberOutstandingRestRequests() === 0;
+  }, { timeout: 10000 });
+};
+
 export const waitForDialog = async (page: Page) => {
   await expect(page.locator('#g-dialog-container')).toBeVisible();
   await expect(page.locator('.modal-backdrop')).toBeVisible();
-  await delay(500);
-  // @ts-ignore
-  // while (await page.evaluate(() => window.girder._inTransition)) {
-  //   await delay(100);
-  // }
-//   waitsFor(function () {
-//     return !girder._inTransition;
-// }, 'dialog transitions to finish');
-// waitsFor(function () {
-//     return girder.rest.numberOutstandingRestRequests() === 0;
-// }, 'dialog rest requests to finish' + desc);
 };
 
 export const logout = async (page: Page) => {
@@ -44,6 +43,7 @@ export const createUser = async (
   await page.locator('#g-password').fill(password, { timeout: 1000 });
   await page.locator('#g-password2').fill(password, { timeout: 1000 });
   await page.locator('#g-register-button').click();
+  await waitForIdlePage(page);
   await expect(page.locator('.g-register')).toBeHidden();
   await expect(page.locator('.g-login')).toBeHidden();
   await expect(page.locator('.g-user-dropdown-link')).toBeVisible();
@@ -62,6 +62,7 @@ export const login = async (
   await page.locator('#g-login').fill(login, { timeout: 1000 });
   await page.locator('#g-password').fill(password, { timeout: 1000 });
   await page.locator('#g-login-button').click();
+  await waitForIdlePage(page);
   await expect(page.locator('.g-register')).toBeHidden();
   await expect(page.locator('.g-login')).toBeHidden();
   await expect(page.locator('.g-user-dropdown-link')).toBeVisible();
@@ -78,6 +79,16 @@ export const upload = async (page: Page, file: string | string[], awaitSuccess: 
   await page.locator('#g-files').setInputFiles(file);
   await page.locator('.g-start-upload').click();
   if (awaitSuccess) {
+    await waitForIdlePage(page);
     await expect(page.locator('.g-start-upload')).toBeHidden();
   }
+};
+
+export const waitForDelete = async (page: Page, container: import('@playwright/test').Locator) => {
+  // Click delete on the container and wait for it to disappear and REST requests to complete
+  await container.locator('.g-delete').click();
+  await expect(page.locator('#g-confirm-button')).toBeVisible();
+  await page.locator('#g-confirm-button').click();
+  await expect(container).toBeHidden({ timeout: 10000 });
+  await waitForIdlePage(page);
 };

@@ -9,7 +9,7 @@ function pugPlugin() {
     transform(src: string, id: string) {
       if (id.endsWith('.pug')) {
         return {
-          code: `${compileClient(src, {filename: id})}\nexport default template`,
+          code: `${compileClient(src, { filename: id, compileDebug: false })}\nexport default template`,
           map: null,
         };
       }
@@ -24,7 +24,7 @@ export default defineConfig({
   build: {
     sourcemap: !process.env.SKIP_SOURCE_MAPS,
     lib: {
-      entry: resolve(__dirname, 'main.js'),
+      entry: resolve(import.meta.dirname, 'main.js'),
       name: 'GirderPluginWorker',
       fileName: 'girder-plugin-worker',
     },

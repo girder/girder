@@ -29,6 +29,7 @@ const initializeDefaultApp = async (apiRoot: string, el: string | HTMLElement = 
                 url: `system/public_settings`,
                 method: 'GET',
             }).done((resp: any) => {
+                rest.setPublicSettings(resp);
                 const app = new views.App({
                     el,
                     parentView: null,

@@ -14,15 +14,13 @@ RUN apt-get update && apt-get install -qy \
     libsasl2-dev \
     python3-pip \
     curl \
+    tini \
 && apt-get clean && rm -rf /var/lib/apt/lists/* \
 && python3 -m pip install --upgrade --no-cache-dir \
     pip \
     setuptools \
     setuptools_scm \
     wheel
-
-RUN curl -LJ https://github.com/krallin/tini/releases/download/v0.19.0/tini -o /sbin/tini && \
-    chmod +x /sbin/tini
 
 RUN curl -sL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -qy nodejs
@@ -36,4 +34,4 @@ RUN pip install -e /girder
 
 EXPOSE 8080
 
-ENTRYPOINT ["/sbin/tini", "--", "girder", "serve"]
+ENTRYPOINT ["tini", "--", "girder", "serve"]

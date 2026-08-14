@@ -6,6 +6,7 @@ import events from '@girder/core/events';
 import { getCurrentToken, setCurrentUser, setCurrentToken } from '@girder/core/auth';
 
 let apiRoot;
+let publicSettings = null;
 var uploadHandlers = {};
 var uploadChunkSize = 1024 * 1024 * 64; // 64MB
 
@@ -29,6 +30,26 @@ function getApiRoot() {
 function setApiRoot(root) {
     // Strip trailing slash
     apiRoot = root.replace(/\/$/, '');
+}
+
+/**
+ * Get the public settings fetched at application startup (from
+ * "system/public_settings"), so callers don't need to re-fetch them.
+ *
+ * @returns {?Object} The cached public settings, or null if not yet fetched.
+ */
+function getPublicSettings() {
+    return publicSettings;
+}
+
+/**
+ * Set the cached public settings. Called once by the application bootstrap
+ * after fetching "system/public_settings".
+ *
+ * @param {Object} settings The public settings response.
+ */
+function setPublicSettings(settings) {
+    publicSettings = settings;
 }
 
 /**
@@ -212,6 +233,8 @@ function setUploadChunkSize(val) {
 export {
     getApiRoot,
     setApiRoot,
+    getPublicSettings,
+    setPublicSettings,
     uploadHandlers,
     restRequest,
     numberOutstandingRestRequests,

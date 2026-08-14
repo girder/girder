@@ -5,7 +5,6 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { compileClient } from 'pug';
 import dts from 'vite-plugin-dts';
-import inject from "@rollup/plugin-inject";
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 function pugPlugin() {
@@ -14,7 +13,7 @@ function pugPlugin() {
     transform(src: string, id: string) {
       if (id.endsWith('.pug')) {
         return {
-          code: `${compileClient(src, {filename: id})}\nexport default template`,
+          code: `${compileClient(src, { filename: id, compileDebug: false })}\nexport default template`,
           map: null,
         };
       }
@@ -54,7 +53,7 @@ let outDir = 'dist';
 if (process.env.BUILD_LIB) {
   buildOpts = {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: resolve(import.meta.dirname, 'src/index.ts'),
       name: 'GirderCore',
       fileName: 'girder-core',
     }
@@ -72,18 +71,13 @@ if (process.env.BUILD_LIB) {
 export default defineConfig({
   base: './',
   plugins: [
-    inject({
-      $: 'jquery',
-      jQuery: 'jquery',
-      exclude: 'src/**/*.pug',
-    }),
     vue(),
     pugPlugin(),
     inlineFaviconPlugin('public/Girder_Favicon.png', 'image/png'),
     viteStaticCopy({
       targets: [
         {
-          src: path.resolve(__dirname, './src') + '/[!.]*',
+          src: path.resolve(import.meta.dirname, './src') + '/[!.]*',
           dest: './src',
         },
       ],
@@ -92,12 +86,21 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@girder/core': resolve(__dirname, 'src'),
+      '@girder/core': resolve(import.meta.dirname, 'src'),
     }
   },
   build: {
     sourcemap: !process.env.SKIP_SOURCE_MAPS,
     outDir,
+    chunkSizeWarningLimit: Infinity,
     ...buildOpts,
+    rollupOptions: {transform: {
+    inject: {
+      $: 'jquery',
+      jQuery: 'jquery',
+      exclude: 'src/**/*.pug',
+    },
+    },
+    },
   },
 });

@@ -51,7 +51,7 @@ repos:
         files: README.rst
         name: rst-linter of README.rst
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.2
+    rev: v2.4.3
     hooks:
       - id: codespell
         args:
@@ -86,3 +86,11 @@ repos:
 #     rev: v1.5.0
 #     hooks:
 #       - id: yesqa
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit
+    rev: v1.29.0
+    hooks:
+      - id: zizmor
+        args:
+          - --no-progress
+          - --fix
+          - --min-severity=low

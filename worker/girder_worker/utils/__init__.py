@@ -1,10 +1,12 @@
 import importlib.metadata
+import os
 import time
 
 import requests
 # Disable urllib3 warnings about certificate validation. As they are printed in the console, the
 # messages are sent to Girder, creating an infinite loop.
 import urllib3
+from girder_worker import logger
 from requests import HTTPError
 
 from .tee import Tee, tee_stderr, tee_stdout
@@ -16,6 +18,96 @@ try:
 except importlib.metadata.PackageNotFoundError:
     # package is not installed
     pass
+
+# Per-worker override for the Girder API URL used when calling back to the server.
+# When set, this takes precedence over the girder_api_url header attached at schedule time.
+GIRDER_WORKER_API_URL_ENV = 'GIRDER_WORKER_API_URL'
+
+
+def resolve_girder_api_url(api_url=None):
+    """Resolve the Girder API URL, preferring a per-worker environment override.
+
+    When a job is scheduled, the Girder server attaches a ``girder_api_url`` header
+    based on its own view of the API root. Workers that run in a different network
+    context (for example inside Docker, or on a remote host) can set
+    ``GIRDER_WORKER_API_URL`` so callbacks use a URL reachable from that worker
+    instead of the URL provided by the scheduling server.
+
+    Called with no argument (or ``None``), this returns the override value alone,
+    or ``None`` if the environment variable is unset.
+
+    :param api_url: The API URL from the task headers / scheduling server.
+    :type api_url: str or None
+    :returns: The override URL if ``GIRDER_WORKER_API_URL`` is set, otherwise
+        ``api_url``.
+    :rtype: str or None
+    """
+    return os.environ.get(GIRDER_WORKER_API_URL_ENV) or api_url
+
+
+def rewrite_url_api_base(url, original_api_url, new_api_url):
+    """Rewrite a URL that starts with ``original_api_url`` to use ``new_api_url``.
+
+    Used to update embedded job callback URLs (for example in ``jobInfoSpec``)
+    when a worker overrides the Girder API base URL.
+
+    :param url: A full URL that may begin with ``original_api_url``.
+    :type url: str or None
+    :param original_api_url: The API base URL originally embedded in ``url``.
+    :type original_api_url: str or None
+    :param new_api_url: The API base URL that should replace ``original_api_url``.
+    :type new_api_url: str or None
+    :returns: The rewritten URL, or ``url`` unchanged if a rewrite is not possible.
+        When ``url`` and ``new_api_url`` are set but ``original_api_url`` is
+        missing, a warning is logged and ``url`` is returned unchanged.
+    :rtype: str or None
+    """
+    if not url or not new_api_url:
+        return url
+    if not original_api_url:
+        logger.warning(
+            'Cannot rewrite API URL %r to %r because the original API base URL '
+            'is missing; leaving the URL unchanged.',
+            url, new_api_url)
+        return url
+    original = original_api_url.rstrip('/')
+    replacement = new_api_url.rstrip('/')
+    if url.startswith(original):
+        return replacement + url[len(original):]
+    return url
+
+
+def apply_girder_api_url_override(request):
+    """Apply ``GIRDER_WORKER_API_URL`` to a Celery task request in place.
+
+    Updates ``girder_api_url`` (and legacy ``apiUrl`` when present) on the request,
+    and rewrites the ``jobInfoSpec`` callback URL so job status/log updates use the
+    overridden API base.
+
+    :param request: The Celery task request / context object.
+    :returns: The resolved API URL after applying any override, or ``None``.
+    :rtype: str or None
+    """
+    original_api_url = getattr(request, 'girder_api_url', None)
+    if original_api_url is None:
+        original_api_url = getattr(request, 'apiUrl', None)
+
+    override = resolve_girder_api_url()
+    if not override:
+        return original_api_url
+
+    if hasattr(request, 'jobInfoSpec') and request.jobInfoSpec:
+        jobSpec = dict(request.jobInfoSpec)
+        if 'url' in jobSpec:
+            jobSpec['url'] = rewrite_url_api_base(
+                jobSpec['url'], original_api_url, override)
+            request.jobInfoSpec = jobSpec
+
+    request.girder_api_url = override
+    if hasattr(request, 'apiUrl'):
+        request.apiUrl = override
+
+    return override
 
 
 def _walk_obj(obj, func, leaf_condition=None):
@@ -135,6 +227,20 @@ def _job_manager(request=None, headers=None, kwargs=None):
     else:
         raise JobSpecNotFound
 
+    override = resolve_girder_api_url()
+    if override:
+        original = None
+        if request is not None:
+            original = getattr(request, 'girder_api_url', None)
+            if original is None:
+                original = getattr(request, 'apiUrl', None)
+        if original is None and headers is not None:
+            original = headers.get('girder_api_url') or headers.get('apiUrl')
+        jobSpec = dict(jobSpec)
+        if 'url' in jobSpec:
+            jobSpec['url'] = rewrite_url_api_base(
+                jobSpec['url'], original, override)
+
     return deserialize_job_info_spec(
         **jobSpec, girder_client_session_kwargs=girder_client_session_kwargs)
 
@@ -252,6 +358,13 @@ class JobManager:
         :type interval: int or float
         :param reference: optional reference to store with the job.
         """
+        from ..app import CeleryAppInfo
+
+        # When we are using a threads pool, tee-ing stdout and stderr to
+        # logPrint can lead to the logs being written to multiple threads and
+        # therefore multiple workers.
+        if CeleryAppInfo['threads_pool']:
+            logPrint = None
         self.logPrint = logPrint
         self.method = method or 'PUT'
         self.url = url

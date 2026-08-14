@@ -36,7 +36,8 @@
     "stylelint-stylus": "^1.0.0"
   },
   "overrides": {
-    "resolve": "^1.0.0"
+    "resolve": "^1.0.0",
+    "typescript": "^5.0.0"
   },
   "scripts": {
     "build": "echo Run build in the web directory and for each plugin",

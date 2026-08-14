@@ -602,6 +602,74 @@ login via a username and password. This allows alternative authentication
 modes to be used instead of core, or prior to attempting core authentication.
 The event info contains two keys, "login" and "password".
 
+.. _plugin-public-settings:
+
+Exposing plugin settings to the web client
+******************************************
+
+Before rendering anything, the web client makes a single request to
+``GET /api/v1/system/public_settings``. That endpoint is public (unlike
+``GET /api/v1/system/setting``, which requires admin access), and core returns only a
+fixed set of branding and policy keys, listed in ``System.getPublicSettings`` in
+``girder/api/v1/system.py``.
+
+A plugin can append its own settings to that response with an after-REST-call handler (see
+`The events system`_ above) bound to ``rest.get.system/public_settings.after``, mutating
+``event.info['returnVal']``:
+
+.. code-block:: python
+
+    from girder import events
+    from girder.models.setting import Setting
+    from girder.plugin import GirderPlugin
+
+    from .settings import PluginSettings
+
+
+    def addPublicSettings(event):
+        publicSettings = (PluginSettings.PURR_VOLUME,)
+        event.info['returnVal'].update({
+            key: Setting().get(key) for key in publicSettings
+        })
+
+
+    class CatsPlugin(GirderPlugin):
+        DISPLAY_NAME = 'Cats'
+
+        def load(self, info):
+            events.bind(
+                'rest.get.system/public_settings.after', 'cats', addPublicSettings
+            )
+
+Here ``PluginSettings`` is the plugin's own class of setting keys, whose defaults and
+validators are registered with the decorators in :py:mod:`girder.utility.setting_utilities`.
+Keep in mind that the values you add are readable by **anonymous users**, so only expose
+settings that are not sensitive.
+
+Reading public settings on the client
+"""""""""""""""""""""""""""""""""""""
+
+The bootstrap response is cached in the client, so plugin code can read it synchronously
+via ``girder.rest.getPublicSettings()`` rather than issuing another request:
+
+.. code-block:: javascript
+
+    const { getPublicSettings, restRequest } = girder.rest;
+
+    // ...
+
+    const publicSettings = getPublicSettings() || {};
+    if (publicSettings['cats.purr_volume']) {
+        restRequest({ url: 'cats/purr', method: 'GET' }).done((resp) => {
+            // ...
+        });
+    }
+
+``getPublicSettings()`` returns ``null`` until the bootstrap request has completed, so
+code that may run that early (for example, a handler bound to ``g:appload.before``)
+should default it as shown above. Values are read once at startup; a setting changed in
+the admin console afterwards is not reflected until the page is reloaded.
+
 Customizing the Swagger page
 ****************************
 

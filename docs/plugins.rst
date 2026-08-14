@@ -465,3 +465,11 @@ and builds in some useful Girder integrations on top of celery. Namely,
   UI in real time. If the script prints any logging information, it is automatically
   collected in the job log on the server, and if the script raises an exception,
   the job status is automatically set to an error state.
+
+When a job is scheduled, Girder attaches a ``girder_api_url`` header so the worker
+can call back to the API. That URL is derived from the ``worker.api_url`` setting
+(or ``GIRDER_SETTING_WORKER_API_URL``), falling back to the server root. If a
+worker runs in a different network context than the web server (for example inside
+Docker), set ``GIRDER_WORKER_API_URL`` on that worker process to override the
+callback URL independently of the scheduling server. See the worker package
+``README.rst`` for details.

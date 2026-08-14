@@ -55,7 +55,6 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.61.0",
-    "@rollup/plugin-inject": "^5.0.3",
     "@tsconfig/node20": "^20.0.0",
     "@types/istanbul-lib-report": "^3.0.0",
     "@types/istanbul-reports": "^3.0.1",
