@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { expect, test } from '@playwright/test';
 
 import { setupServer } from '../server';
-import { createUser, upload, waitForIdlePage } from '../util';
+import { createUser, upload, waitForDialog, waitForIdlePage } from '../util';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,7 +32,9 @@ test.describe('Test the thumbnails front-end', () => {
         await expect(page.locator('.g-thumbnail')).toBeVisible();
 
         await page.getByTitle('Delete', { exact: true }).click();
+        await waitForDialog(page);
         await page.getByText('Delete', { exact: true }).click();
+        await waitForIdlePage(page);
 
         await expect(page.locator('.g-thumbnail')).not.toBeVisible();
 
@@ -41,10 +43,11 @@ test.describe('Test the thumbnails front-end', () => {
         // creates a job, which is otherwise tricky in testing.)
         await page.locator('#g-app-header-container').getByText('admin').click();
         await page.getByRole('link', { name: ' My jobs' }).click();
-
+        await waitForIdlePage(page);
         await page.getByText('Timing history').click();
         await expect(page.locator('.g-jobs-graph svg')).toBeVisible();
         await page.getByText('List').click();
+        await waitForIdlePage(page);
         await page.getByRole('link', { name: 'Generate thumbnail for Girder_Mark.png' }).click();
         await expect(page.locator('.g-job-status-badge')).toContainText('Success');
     });
