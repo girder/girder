@@ -15,8 +15,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
       - name: Annotate locations with typos
-        uses: codespell-project/codespell-problem-matcher@v1
+        uses: codespell-project/codespell-problem-matcher@3c8a9b5ddd592be3fbc2b734e6756fb20c87fd1f
       - name: Codespell
-        uses: codespell-project/actions-codespell@v2
+        uses: codespell-project/actions-codespell@406322ec52dd7b488e48c1c4b82e2a8b3a1bf630

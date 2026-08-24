@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { expect, test } from '@playwright/test';
 
 import { setupServer } from '../server';
-import { createUser, upload } from '../util';
+import { createUser, upload, waitForIdlePage } from '../util';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +23,8 @@ test.describe('Test the quota front-end', () => {
         await page.getByPlaceholder('Maximum allowed size of all files, or blank for no limit').fill('15');
         await page.getByRole('button', { name: ' Save' }).click();
         await expect(page.locator('#g-dialog-container')).toBeHidden();
+        // Wait for quota setting to be saved via REST before proceeding
+        await waitForIdlePage(page);
 
         await page.getByRole('link', { name: ' Private ' }).click();
 

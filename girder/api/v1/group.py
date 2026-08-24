@@ -222,6 +222,12 @@ class Group(Resource):
                     mustBeAdmin = False
                 if mustBeAdmin:
                     self.requireAdmin(user)
+            if not user['admin']:
+                # A non-site-admin may only grant an access level that they
+                # themselves hold. Without this clamp, a moderator (WRITE)
+                # could promote an arbitrary user to ADMIN via the force path,
+                # bypassing the level check that the non-force branch applies.
+                groupModel.requireAccess(group, user, level)
             groupModel.addUser(group, userToInvite, level=level)
         else:
             # Can only invite into access levels that you yourself have

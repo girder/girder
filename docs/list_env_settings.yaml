@@ -72,6 +72,9 @@ GIRDER_SETTING_CORE_FILEHANDLE_MAX_SIZE: >-
 GIRDER_SETTING_CORE_UPLOAD_MINIMUM_CHUNK_SIZE: >-
   Minimum chunk size for file uploads in bytes. Default is 5MB (1024 * 1024 * 5).
 
+GIRDER_SETTING_WORKER_API_URL: >-
+  The base URL for the Girder API when creating worker jobs.  This is used to call back to the server (job status, logs, data transfer) from workers.  This setting makes all jobs that are launched by a the server utilize the URL set here.  If GIRDER_WORKER_API_URL is set on a worker container, that will override this setting on that specific worker.
+
 GIRDER_HOST: >-
   Hostname or IP address to bind the server to. Use '0.0.0.0' to bind to all interfaces.
 
@@ -92,6 +95,9 @@ GIRDER_WORKER_BROKER: >-
 
 GIRDER_WORKER_BACKEND: >-
   URL for the Celery result backend (e.g., redis://localhost:6379/0).
+
+GIRDER_WORKER_API_URL: >-
+  Optional per-worker override for the Girder API base URL (or GIRDER_SETTING_WORKER_API_URL) used when calling back to the server (job status, logs, data transfer). When set, this takes precedence over the girder_api_url header attached when the job was scheduled. Useful when workers run in a different network context than the web server (for example Docker hostname vs localhost).
 
 GIRDER_WORKER_JOB_GC_SCOPE: >-
   A comma-separated list of extra default scopes for worker jobs.  For instance to allow jobs to schedule and check on other jobs, set this to "jobs.rest.create_job,jobs.rest.list_job"
