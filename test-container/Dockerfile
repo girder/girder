@@ -19,12 +19,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   python3.10 \
   python3.10-venv \
   python3.10-dev \
-  universal-ctags \
   && rm -rf /var/lib/apt/lists/*
 
 
 # Ubuntu 22 can install and run Python 3.10 easily
 # Installing Python 3.10 on later Ubuntu versions will require additional setup
+
+
+# Install Universal Ctags
+RUN curl -sSL "https://github.com/universal-ctags/ctags-nightly-build/releases/download/$(curl -s https://api.github.com/repos/universal-ctags/ctags-nightly-build/releases/latest | grep '"tag_name"' | head -1 | cut -d '"' -f 4)/uctags-$(curl -s https://api.github.com/repos/universal-ctags/ctags-nightly-build/releases/latest | grep '"tag_name"' | head -1 | cut -d '"' -f 4 | cut -d '+' -f 1)-$(uname -m | sed 's/x86_64/linux-x86_64/;s/aarch64/linux-aarch64/').deb" -o /tmp/uctags.deb && \
+    dpkg --force-architecture -i /tmp/uctags.deb && \
+    rm /tmp/uctags.deb
 
 
 # Use `venv` to install Python dependencies so they can be run as a non-root user
@@ -52,6 +57,7 @@ RUN npx --yes playwright@1.61.0 install --with-deps chromium firefox \
 ENV HOME=/home/ubuntu
 RUN mkdir -p "$HOME/.cache/pip" "$HOME/.npm" "$HOME/.tox" \
   && chmod -R 0777 "$HOME"
+
 
 # The actual UID & GID should come from the `docker-compose.yaml` file
 # this is a safeguard against running the container as root
