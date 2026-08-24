@@ -14,6 +14,12 @@ form#g-slicer-cli-web-form(role="form")
       .input-group-btn
         button.g-open-browser.btn.btn-default(type="button")
           i.icon-folder-open
+    label.radio-inline
+      input#g-slicer-cli-web-task-store-metadata(type="radio", name="g-slicer-cli-web-task-metdata", checked=settings['task_store_metadata'] === true ? 'checked' : undefined)
+      | Store task information on first girder item's metadata
+    label.radio-inline
+      input#g-slicer-cli-web-task-store-metadata(type="radio", name="g-slicer-cli-web-task-metdata", checked=settings['task_store_metadata'] === false ? 'checked' : undefined)
+      | Don't store task information in metadata
 
   .form-group
     label(for="g-slicer-cli-web-worker-config-item") Worker Management Configuration Item

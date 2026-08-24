@@ -28,6 +28,11 @@ from girder.utility import setting_utilities
 class PluginSettings:
     SLICER_CLI_WEB_TASK_FOLDER = 'slicer_cli_web.task_folder'
     SLICER_CLI_WEB_WORKER_CONFIG_ITEM = 'slicer_cli_web.worker_config_item'
+    SLICER_CLI_TASK_STORE_METADATA = 'slicer_cli_web.task_store_metadata'
+
+    @staticmethod
+    def store_task_metadata():
+        return Setting().get(PluginSettings.SLICER_CLI_TASK_STORE_METADATA)
 
     @staticmethod
     def has_task_folder():
@@ -78,6 +83,14 @@ def validateItem(doc):
         raise ValidationException('invalid folder selected')
 
 
+@setting_utilities.validator({
+    PluginSettings.SLICER_CLI_TASK_STORE_METADATA
+})
+def validateStoreMetadata(doc):
+    if not isinstance(doc['value'], bool):
+        raise ValidationException('task_store_metadata must be a boolean')
+
+
 # Defaults
 
 # Defaults that have fixed values can just be added to the system defaults
@@ -85,4 +98,5 @@ def validateItem(doc):
 SettingDefault.defaults.update({
     PluginSettings.SLICER_CLI_WEB_TASK_FOLDER: None,
     PluginSettings.SLICER_CLI_WEB_WORKER_CONFIG_ITEM: None,
+    PluginSettings.SLICER_CLI_TASK_STORE_METADATA: False,
 })
