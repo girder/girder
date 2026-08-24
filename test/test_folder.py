@@ -21,11 +21,15 @@ def parentChain(admin):
     F4 = Folder().createFolder(
         parent=privateFolder, parentType='folder', creator=admin,
         name='F4', public=True)
+    F5 = Folder().createFolder(
+        parent=F4, parentType='folder', creator=admin,
+        name='F5', public=True)
     yield {
         'folder1': F1,
         'folder2': F2,
         'privateFolder': privateFolder,
-        'folder4': F4
+        'folder4': F4,
+        'folder5': F5
     }
 
 
@@ -53,6 +57,17 @@ def testParentsToRootNoUsers(parentChain):
         assert parents[1]['object']['name'] == 'F1'
         assert parents[2]['object']['name'] == 'F2'
         assert parents[3] is None
+
+
+def testParentsToRootNoUserPublicFolderNoPublicParent(parentChain):
+    parents = Folder().parentsToRoot(parentChain['folder4'], user=None, hideInaccessible=True)
+    assert parents == []
+
+
+def testParentsToRootNoUserPublicFolderPublicParent(parentChain):
+    parents = Folder().parentsToRoot(parentChain['folder5'], user=None, hideInaccessible=True)
+    assert len(parents) == 1
+    assert parents[0]['object']['name'] == 'F4'
 
 
 def testGetResourceByPathForAdmin(server, parentChain, admin):
