@@ -429,4 +429,4 @@ class Folder(Resource):
         .errorResponse('Read access was denied for the folder.', 403)
     )
     def rootpath(self, folder, params):
-        return self._model.parentsToRoot(folder, user=self.getCurrentUser())
+        return self._model.parentsToRoot(folder, user=self.getCurrentUser(), hideInaccessible=True)

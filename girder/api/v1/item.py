@@ -313,7 +313,7 @@ class Item(Resource):
         .errorResponse('Read access was denied for the item.', 403)
     )
     def rootpath(self, item):
-        return self._model.parentsToRoot(item, self.getCurrentUser())
+        return self._model.parentsToRoot(item, self.getCurrentUser(), hideInaccessible=True)
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model=ItemModel)
