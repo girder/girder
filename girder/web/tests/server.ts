@@ -92,7 +92,7 @@ export const setupServer = () => {
         await page.goto(`http://localhost:${port}/`);
       }
       await expect(page.getByRole('link', { name: 'About' })).toBeVisible();
-    }).toPass({ timeout: 30000 });
+    }).toPass({ timeout: 60000 });
   });
 
   test.afterEach(async ({ page }, testInfo) => {

@@ -69,7 +69,7 @@ var ItemListWidget = View.extend({
 
         if (this._paginated) {
             if (this.collection.filterFunc) {
-                console.warn('Pagination cannot be used with a filter function');
+                // Pagination and filtering are incompatible; fall back to appending
                 this._paginated = false;
             } else {
                 // Override the default to prevent appending new pages

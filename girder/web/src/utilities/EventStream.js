@@ -61,8 +61,8 @@ EventStream.prototype.open = function () {
         this.trigger('g:eventStream.disable');
         return;
     }
-    if (this._state !== 'closed') {
-        console.warn('EventStream should be closed.');
+    if (this._state === 'started') {
+        document.addEventListener('visibilitychange', this._onVisibilityStateChange);
         return;
     }
 
@@ -73,8 +73,7 @@ EventStream.prototype.open = function () {
 };
 
 EventStream.prototype._start = function () {
-    if (this._state !== 'stopped') {
-        console.warn('EventStream should be stopped');
+    if (this._state === 'started') {
         return;
     }
     this._websocket = new WebSocket(`${notifyRoot}/notifications/me?token=${getCurrentToken()}`);
@@ -87,12 +86,13 @@ EventStream.prototype._start = function () {
 
 EventStream.prototype._stop = function () {
     if (this._state !== 'started') {
-        console.warn('EventStream should be started');
         return;
     }
 
-    this._websocket.close();
-    this._websocket = null;
+    if (this._websocket) {
+        this._websocket.close();
+        this._websocket = null;
+    }
 
     this._state = 'stopped';
     this.trigger('g:eventStream.stop');
@@ -100,7 +100,6 @@ EventStream.prototype._stop = function () {
 
 EventStream.prototype.close = function () {
     if (this._state === 'closed') {
-        console.warn('EventStream should not be closed');
         return;
     }
 
