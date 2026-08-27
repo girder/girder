@@ -17,18 +17,27 @@ var SearchResultsView = View.extend({
     initialize: function (settings) {
         this._query = settings.query || '';
         this._mode = settings.mode || 'text';
+        // When set, the search was restricted to a subtree of the hierarchy.
+        this._parentType = settings.parentType || null;
+        this._parentId = settings.parentId || null;
 
         this._sizeOneElement = 28;
         this.pageLimit = 10;
 
+        const data = {
+            q: this._query,
+            mode: this._mode,
+            types: JSON.stringify(SearchFieldWidget.getModeTypes(this._mode)),
+            limit: this.pageLimit
+        };
+        if (this._parentType && this._parentId) {
+            data.parentType = this._parentType;
+            data.parentId = this._parentId;
+        }
+
         this._request = restRequest({
             url: 'resource/search',
-            data: {
-                q: this._query,
-                mode: this._mode,
-                types: JSON.stringify(SearchFieldWidget.getModeTypes(this._mode)),
-                limit: this.pageLimit
-            }
+            data: data
         });
         this.render();
     },
@@ -65,6 +74,8 @@ var SearchResultsView = View.extend({
                             parentView: this,
                             query: this._query,
                             mode: this._mode,
+                            parentType: this._parentType,
+                            parentId: this._parentId,
                             type: type,
                             limit: this.pageLimit,
                             initResults: results[type],
@@ -106,6 +117,8 @@ var SearchResultsTypeView = View.extend({
             type: this._type,
             query: this._query,
             mode: this._mode,
+            parentType: settings.parentType,
+            parentId: settings.parentId,
             limit: this._pageLimit
         })
             .on('g:changed', () => {
