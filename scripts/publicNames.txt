@@ -618,6 +618,7 @@ girder
                 addScope
                 clearForApiKey
                 createToken
+                expire
                 getAllowedScopes
                 hasScope
                 initialize
