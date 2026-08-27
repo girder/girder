@@ -95,6 +95,12 @@ form.g-settings-form(role="form")
           input#g-core-enable-password-login(
               type="checkbox", checked=settings['core.enable_password_login'])
           | Enable password login
+    .form-group
+      .checkbox
+        label(for="g-core-disable-anonymous-access")
+          input#g-core-disable-anonymous-access(
+              type="checkbox", checked=settings['core.disable_anonymous_access'])
+          | Disable anonymous access
   .g-settings-form-container
     h4 Email Creation
     .form-group

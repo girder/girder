@@ -743,6 +743,7 @@ girder
             CORS_ALLOW_METHODS
             CORS_ALLOW_ORIGIN
             CORS_EXPOSE_HEADERS
+            DISABLE_ANONYMOUS_ACCESS
             EMAIL_FROM_ADDRESS
             EMAIL_HOST
             EMAIL_VERIFICATION

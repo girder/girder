@@ -41,7 +41,8 @@ var SystemConfigurationView = View.extend({
                     [
                         'core.api_keys',
                         'core.enable_password_login',
-                        'core.enable_notification_stream'
+                        'core.enable_notification_stream',
+                        'core.disable_anonymous_access'
                     ],
                     key
                 )) { // booleans via checkboxes
@@ -92,6 +93,7 @@ var SystemConfigurationView = View.extend({
             'core.banner_color',
             'core.privacy_notice',
             'core.cookie_lifetime',
+            'core.disable_anonymous_access',
             'core.enable_password_login',
             'core.email_from_address',
             'core.email_host',
