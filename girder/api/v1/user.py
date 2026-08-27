@@ -138,7 +138,7 @@ class User(Resource):
     def logout(self):
         token = self.getCurrentToken()
         if token:
-            Token().remove(token)
+            Token().expire(token)
         self.deleteAuthTokenCookie()
         return {'message': 'Logged out.'}
 
