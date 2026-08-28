@@ -48,12 +48,18 @@ def _permissionClauses(user=None, level=None, prefix=''):
     :returns: A query dictionary with an '$or' entry which consists of a list
         of match clauses, any one of which implies validation.
     """
+    from girder.models.setting import Setting
+    from girder.settings import SettingKey
+
     permissionClauses = []
     if level is None or (user and user['admin']):
         # Without a level or with an admin user, match everything.
         return {}
     if level <= AccessType.READ:
-        permissionClauses.append({prefix + 'public': True})
+        if user or not Setting().get(SettingKey.DISABLE_ANONYMOUS_ACCESS):
+            permissionClauses.append({prefix + 'public': True})
+        else:
+            return {'__matchnothing': 'nothing'}
     elif not user:
         # If we have no user and asked for higher than read access, make a
         # query that will fail
@@ -1215,9 +1221,12 @@ class AccessControlledModel(Model):
         """
         if user is None:
             if doc.get('public', False):
-                return AccessType.READ
-            else:
-                return AccessType.NONE
+                from girder.models.setting import Setting
+                from girder.settings import SettingKey
+
+                if not Setting().get(SettingKey.DISABLE_ANONYMOUS_ACCESS):
+                    return AccessType.READ
+            return AccessType.NONE
         elif user['admin']:
             return AccessType.ADMIN
         else:
@@ -1367,8 +1376,14 @@ class AccessControlledModel(Model):
         :returns: Whether the access is granted.
         """
         if level <= AccessType.READ and doc.get('public', False) is True:
-            # Short-circuit the case of public resources
-            return True
+            from girder.models.setting import Setting
+            from girder.settings import SettingKey
+
+            if user is not None or not Setting().get(SettingKey.DISABLE_ANONYMOUS_ACCESS):
+                # Short-circuit the case of public resources
+                return True
+            elif user is None:
+                return False
         elif user is None:
             # Anonymous users can only see public resources
             return False
