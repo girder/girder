@@ -8,7 +8,6 @@ build:
 sphinx:
   configuration: docs/conf.py
   fail_on_warning: true
-  output: build/docs/html
 
 python:
   install:
