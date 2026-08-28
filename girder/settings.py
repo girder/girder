@@ -32,6 +32,7 @@ class SettingKey:
     EMAIL_HOST = 'core.email_host'
     EMAIL_VERIFICATION = 'core.email_verification'
     ENABLE_PASSWORD_LOGIN = 'core.enable_password_login'
+    DISABLE_ANONYMOUS_ACCESS = 'core.disable_anonymous_access'
     FILEHANDLE_MAX_SIZE = 'core.filehandle_max_size'
     GIRDER_MOUNT_INFORMATION = 'core.girder_mount_information'
     PRIVACY_NOTICE = 'core.privacy_notice'
@@ -82,6 +83,7 @@ class SettingDefault:
         # SettingKey.EMAIL_HOST is provided by a function
         SettingKey.EMAIL_VERIFICATION: 'disabled',
         SettingKey.ENABLE_PASSWORD_LOGIN: True,
+        SettingKey.DISABLE_ANONYMOUS_ACCESS: False,
         SettingKey.FILEHANDLE_MAX_SIZE: 1024 * 1024 * 16,
         SettingKey.GIRDER_MOUNT_INFORMATION: None,
         SettingKey.PRIVACY_NOTICE: 'https://www.kitware.com/privacy',
@@ -268,6 +270,12 @@ class SettingValidator:
     def _validateEnablePasswordLogin(doc):
         if not isinstance(doc['value'], bool):
             raise ValidationException('Enable password login setting must be boolean.', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.DISABLE_ANONYMOUS_ACCESS)
+    def _validateDisableAnonymousAccess(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException('Disable anonymous access setting must be boolean.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.FILEHANDLE_MAX_SIZE)
