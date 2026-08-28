@@ -135,3 +135,13 @@ class Token(AccessControlledModel):
         """
         for token in self.find({'apiKeyId': apiKey['_id']}):
             self.remove(token)
+
+    def expire(self, token: dict):
+        """
+        Expire a token immediately.
+
+        :param token: The token document to expire.
+        """
+        expires = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(seconds=1)
+        self.update({'_id': token['_id']}, {'$set': {'expires': expires}})
+        return self.save(token)

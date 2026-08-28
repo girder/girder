@@ -168,9 +168,20 @@ describe('Test collection actions', function () {
         girderTest.anonymousLoadPage(false, privateFolderFragment, true);
     });
 
-    it('make new collection public', function () {
+    it('test that login dialog does not appear when anonymous loads a public folder in a private collection', function () {
+        girderTest.waitForLoad();
         girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
+        girderTest.testRoute(privateFolderFragment);
+        girderTest.folderAccessControl('private', 'public');
+        girderTest.anonymousLoadPage(true, privateFolderFragment, false);
 
+        // Reset the access controls for the folder
+        girderTest.login('admin', 'Admin', 'Admin', 'adminpassword!')();
+        girderTest.testRoute(privateFolderFragment);
+        girderTest.folderAccessControl('public', 'private');
+    });
+
+    it('make new collection public', function () {
         runs(function () {
             $('a.g-nav-link[g-target="collections"]').trigger('click');
         });

@@ -13,6 +13,7 @@ import { cancelRestRequests } from '@girder/core/rest';
 import { confirm } from '@girder/core/dialog';
 import { renderMarkdown, formatSize } from '@girder/core/misc';
 import events from '@girder/core/events';
+import CollectionsView from '@girder/core/views/body/CollectionsView';
 
 import CollectionPageTemplate from '@girder/core/templates/body/collectionPage.pug';
 
@@ -182,6 +183,13 @@ var CollectionView = View.extend({
             events.trigger('g:navigateTo', CollectionView, _.extend({
                 collection: collection
             }, params || {}));
+        }, this).on('g:error', function () {
+            if (params.folderId) {
+                const folderRoute = `folder/${params.folderId}`;
+                router.navigate(folderRoute, { trigger: true });
+            } else {
+                events.trigger('g:navigateTo', CollectionsView);
+            }
         }, this).fetch();
     }
 });
