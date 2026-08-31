@@ -4,7 +4,7 @@ from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
 from girder.api import access
 from girder.utility import parseTimestamp
-from girder.utility.search import getSearchModeHandler
+from girder.utility.search import getSearchModeHandler, handlerSupportsHierarchy
 from girder.utility import ziputil
 from girder.utility import path as path_util
 from girder.utility.model_importer import ModelImporter
@@ -53,6 +53,7 @@ class Resource(BaseResource):
         .pagingParams(defaultSort=None, defaultLimit=10)
         .errorResponse('Invalid type list format.')
         .errorResponse('parentType and parentId must be passed together.')
+        .errorResponse('The search mode cannot be restricted to a location in the hierarchy.')
     )
     def search(self, q, mode, types, level, limit, offset, parentType, parentId):
         """
@@ -67,6 +68,10 @@ class Resource(BaseResource):
             raise RestException('parentType and parentId must be passed together.')
         kwargs = {}
         if parentType:
+            if not handlerSupportsHierarchy(handler):
+                raise RestException(
+                    'The %r search mode cannot be restricted to a location in the '
+                    'hierarchy.' % mode)
             kwargs['parentType'] = parentType
             kwargs['parentId'] = parentId
         results = handler(

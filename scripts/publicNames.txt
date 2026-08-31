@@ -918,6 +918,7 @@ girder
         search
             addSearchMode
             getSearchModeHandler
+            handlerSupportsHierarchy
             removeSearchMode
         server
             configureServer

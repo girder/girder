@@ -1,3 +1,4 @@
+import inspect
 from functools import partial
 
 from bson.objectid import ObjectId
@@ -32,7 +33,8 @@ def addSearchMode(mode, handler):
     Handlers should also accept `**kwargs`, as searches may pass additional optional parameters.
     Currently a search that is restricted to a location in the data hierarchy also passes
     `parentType` and `parentId`; a handler that does not accept them will only be called for
-    unrestricted searches.
+    unrestricted searches, and a restricted search for that mode fails with an exception rather
+    than silently searching everywhere.
 
     :param mode: A search mode identifier.
     :type mode: str
@@ -42,6 +44,28 @@ def addSearchMode(mode, handler):
     if _allowedSearchMode.get(mode) is not None:
         raise GirderException('A search mode %r already exists.' % mode)
     _allowedSearchMode[mode] = handler
+
+
+def handlerSupportsHierarchy(handler):
+    """
+    Determine whether a search mode handler can be passed the optional `parentType` and `parentId`
+    parameters, either by naming them or by accepting `**kwargs`.
+
+    :param handler: A search mode handler function.
+    :type handler: function
+    :returns: Whether the handler accepts both parameters.
+    :rtype: bool
+    """
+    try:
+        params = inspect.signature(handler).parameters
+    except (TypeError, ValueError):
+        return False
+    if any(param.kind == inspect.Parameter.VAR_KEYWORD for param in params.values()):
+        return True
+    return all(
+        name in params and params[name].kind in (
+            inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
+        for name in ('parentType', 'parentId'))
 
 
 def removeSearchMode(mode):
