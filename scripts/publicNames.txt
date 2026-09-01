@@ -549,6 +549,7 @@ girder
                 setAccessList
                 setMetadata
                 subtreeCount
+                subtreeFolderIds
                 updateFolder
                 updateSize
                 validate
@@ -919,6 +920,7 @@ girder
         search
             addSearchMode
             getSearchModeHandler
+            handlerSupportsHierarchy
             removeSearchMode
         server
             configureServer
