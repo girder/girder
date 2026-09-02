@@ -6,6 +6,8 @@ import CheckedActionsMenuTemplate from '@girder/core/templates/widgets/checkedAc
 
 import '@girder/core/utilities/jquery/girderEnable';
 
+import { showDownload } from '../../utilities';
+
 /**
  * This widget presents a list of available batch actions
  * on a set of selected resources.
@@ -24,10 +26,6 @@ var CheckedMenuWidget = View.extend({
             return;
         }
 
-        let baseParent = this.parentView;
-        while (baseParent && !baseParent.showDownload) {
-            baseParent = baseParent.parentView;
-        }
         this.dropdownToggle.girderEnable(true);
         this.$el.html(CheckedActionsMenuTemplate({
             minFolderLevel: this.minFolderLevel,
@@ -39,7 +37,7 @@ var CheckedMenuWidget = View.extend({
             pickedCopyAllowed: this.pickedCopyAllowed,
             pickedMoveAllowed: this.pickedMoveAllowed,
             pickedDesc: this.pickedDesc,
-            showDownload: baseParent && baseParent.showDownload ? baseParent.showDownload() : false,
+            showDownload: showDownload(this),
             HierarchyWidget: HierarchyWidget
         }));
 
