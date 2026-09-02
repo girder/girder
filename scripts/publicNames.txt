@@ -744,7 +744,6 @@ girder
             CORS_ALLOW_ORIGIN
             CORS_EXPOSE_HEADERS
             DISABLE_ANONYMOUS_ACCESS
-            DOWNLOAD_SHOWN
             EMAIL_FROM_ADDRESS
             EMAIL_HOST
             EMAIL_VERIFICATION
@@ -757,6 +756,7 @@ girder
             REGISTRATION_POLICY
             ROUTE_TABLE
             SERVER_ROOT
+            SHOW_DOWNLOAD
             SMTP_ENCRYPTION
             SMTP_HOST
             SMTP_PASSWORD

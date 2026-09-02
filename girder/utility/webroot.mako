@@ -25,7 +25,7 @@
                 bannerColor: '${bannerColor | js}',
                 registrationPolicy: '${registrationPolicy | js}',
                 enablePasswordLogin: ${enablePasswordLogin | n,json,js},
-                downloadShown: '${downloadShown | js}'
+                showDownload: '${showDownload | js}'
             }).render();
             girder.events.trigger('g:appload.after', girder.app);
         });

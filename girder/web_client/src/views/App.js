@@ -47,7 +47,7 @@ var App = View.extend({
         this.bannerColor = settings.bannerColor || null;
         this.registrationPolicy = settings.registrationPolicy || null;
         this.enablePasswordLogin = _.has(settings, 'enablePasswordLogin') ? settings.enablePasswordLogin : true;
-        this.downloadShown = settings.downloadShown || 'all';
+        this.downloadShown = settings.showDownload || 'all';
 
         if (settings.start === undefined || settings.start) {
             this.start();
