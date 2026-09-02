@@ -342,7 +342,11 @@ var App = View.extend({
     showDownload: function () {
         const user = getCurrentUser();
         const isAdmin = !!(user && user.get('admin'));
-        return this.downloadShown === undefined || this.downloadShown === null || this.downloadShown === 'all' || (this.downloadShown === 'user' && user) || (this.downloadShown === 'admin' && isAdmin);
+        return this.downloadShown === undefined ||
+            this.downloadShown === null ||
+            this.downloadShown === 'all' ||
+            (this.downloadShown === 'user' && user) ||
+            (this.downloadShown === 'admin' && isAdmin);
     },
 
     /**

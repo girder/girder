@@ -30,6 +30,8 @@ import '@girder/core/stylesheets/widgets/hierarchyWidget.styl';
 
 import 'bootstrap/js/dropdown';
 
+import { showDownload } from '../../utilities';
+
 var pickedResources = null;
 
 /**
@@ -345,10 +347,6 @@ var HierarchyWidget = View.extend({
         this.folderCount = null;
         this.itemCount = null;
 
-        let baseParent = this.parentView;
-        while (baseParent && !baseParent.showDownload) {
-            baseParent = baseParent.parentView;
-        }
         this.$el.html(HierarchyWidgetTemplate({
             type: this.parentModel.resourceName,
             model: this.parentModel,
@@ -359,7 +357,7 @@ var HierarchyWidget = View.extend({
             showMetadata: this._showMetadata,
             checkboxes: this._checkboxes,
             capitalize: capitalize,
-            showDownload: baseParent && baseParent.showDownload ? baseParent.showDownload() : false,
+            showDownload: showDownload(this),
             itemFilter: this._itemFilter
         }));
 
