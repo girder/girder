@@ -206,8 +206,10 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         try:
             self.checkUploadSize(upload, size)
         except ValidationException:
+            # Use the actual file size minus what we just wrote to handle
+            # concurrent uploads that may have updated upload['received'].
             with open(upload['tempFile'], 'a+b') as tempFile:
-                tempFile.truncate(upload['received'])
+                tempFile.truncate(os.path.getsize(upload['tempFile']) - size)
             raise
 
         # Persist the internal state of the checksum
