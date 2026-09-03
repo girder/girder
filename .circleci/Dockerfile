@@ -37,6 +37,7 @@ ENV NODE_VERSION=22
 RUN mkdir /.nvm && \
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | NVM_DIR=/.nvm bash && \
     . /.nvm/nvm.sh && \
+    npm install -g npm@latest && \
     npm config set fetch-timeout 600000 && \
     npm cache clean --force && \
     ln -s $(dirname `which npm`) /usr/local/node

@@ -887,7 +887,8 @@ class FileTestCase(base.TestCase):
                 'status_code': 200
             }
 
-        # Trying to send too many bytes should fail
+        # We proxy to S3, so trying too many bytes passes, but the offset
+        # doesn't change
         currentOffset = resp.json['offset']
         with httmock.HTTMock(mockChunkUpload):
             resp = self.request(
@@ -895,15 +896,9 @@ class FileTestCase(base.TestCase):
                     'offset': currentOffset,
                     'uploadId': uploadId
                 }, user=self.user, type='application/octet-stream')
-        self.assertStatus(resp, 400)
-        self.assertEqual(resp.json, {
-            'type': 'validation',
-            'message': 'Received too many bytes.'
-        })
-        self.assertEqual(len(initRequests), 1)
-        self.assertEqual(initRequests[-1].headers['x-amz-server-side-encryption'], 'AES256')
+        self.assertStatusOk(resp)
 
-        # The offset should not have changed
+        # But, the offset should not have changed
         resp = self.request(
             path='/file/offset', method='GET', user=self.user, params={'uploadId': uploadId})
         self.assertStatusOk(resp)
