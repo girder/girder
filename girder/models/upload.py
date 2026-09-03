@@ -1,5 +1,6 @@
 import datetime
 import io
+import pymongo
 from bson.objectid import ObjectId
 
 from girder import events, logger
@@ -136,11 +137,18 @@ class Upload(Model):
 
         assetstore = Assetstore().load(upload['assetstoreId'])
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-
+        startReceived = upload['received']
         upload = adapter.uploadChunk(upload, chunk, uploadExtraParameters)
-        if '_id' in upload or upload['received'] != upload['size']:
-            upload = self.save(upload)
-
+        if '_id' in upload:
+            self.validate(upload)
+            update_result = self.collection.find_one_and_update(
+                {'_id': upload['_id'], 'received': int(startReceived)},
+                {'$set': {k: v for k, v in upload.items() if k != '_id'}},
+                return_document=pymongo.ReturnDocument.AFTER)
+            if update_result:
+                upload.update(update_result)
+            else:
+                raise GirderException('An upload with this ID was simultaneously modified')
         # If upload is finished, we finalize it
         if upload['received'] == upload['size']:
             file = self.finalizeUpload(upload, assetstore)
