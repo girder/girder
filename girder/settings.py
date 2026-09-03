@@ -235,7 +235,10 @@ class SettingValidator:
 
     @staticmethod
     @setting_utilities.validator(SettingKey.SHOW_DOWNLOAD)
-    def _validateDownloadShown(doc):
+    def _validateshowDownload(doc):
+        if not isinstance(doc['value'], str):
+            raise ValidationException(
+                'Show download must be "all", "user", "admin", or "none".', 'value')
         doc['value'] = doc['value'].lower()
         if doc['value'] not in ('all', 'user', 'admin', 'none'):
             raise ValidationException(
