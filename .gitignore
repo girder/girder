@@ -25,5 +25,8 @@ __pycache__
 # Generated during CI
 /py-env-checksum
 
-# docs build
+# Docs build
 docs/_generated_env_vars.md
+
+# Environment variables for testing
+test-container/.env
