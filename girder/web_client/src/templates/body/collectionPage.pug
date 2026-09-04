@@ -7,10 +7,11 @@
       |  Actions
       i.icon-down-dir
     ul.g-collection-actions-menu.dropdown-menu.pull-right(role="menu")
-      li(role="presentation")
-        a.g-download-collection(role="menuitem", href=collection.downloadUrl())
-          i.icon-download
-          | Download collection
+      if (showDownload)
+        li(role="presentation")
+          a.g-download-collection(role="menuitem", href=collection.downloadUrl())
+            i.icon-download
+            | Download collection
       if (collection.getAccessLevel() >= AccessType.WRITE)
         li.divider(role="presentation")
         li(role="presentation")

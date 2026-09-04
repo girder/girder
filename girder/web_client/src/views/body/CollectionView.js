@@ -21,6 +21,8 @@ import '@girder/core/stylesheets/body/collectionPage.styl';
 
 import 'bootstrap/js/dropdown';
 
+import { showDownload } from '../../utilities';
+
 /**
  * This view shows a single collection's page.
  */
@@ -88,7 +90,8 @@ var CollectionView = View.extend({
         this.$el.html(CollectionPageTemplate({
             collection: this.model,
             AccessType: AccessType,
-            renderMarkdown: renderMarkdown
+            renderMarkdown: renderMarkdown,
+            showDownload: showDownload(this)
         }));
 
         if (!this.hierarchyWidget) {

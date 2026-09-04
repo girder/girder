@@ -12,6 +12,8 @@ import events from '@girder/core/events';
 
 import FileListTemplate from '@girder/core/templates/widgets/fileList.pug';
 
+import { showDownload } from '../../utilities';
+
 /**
  * This widget shows a list of files in a given item.
  */
@@ -124,6 +126,7 @@ var FileListWidget = View.extend({
             hasMore: this.collection.hasNextPage(),
             AccessType: AccessType,
             formatSize: formatSize,
+            showDownload: showDownload(this),
             parentItem: this.parentItem
         }));
 

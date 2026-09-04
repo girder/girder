@@ -74,3 +74,18 @@ describe('Test EventStream', function () {
         }, 'EventStream to trigger stop and close events');
     });
 });
+
+describe('test showDialog traversal', function () {
+    it('checks the root view', function () {
+        var rootView = { showDownload: function () { return false; } };
+        var parentView = { showDownload: function () { return true; }, parentView: rootView };
+        var childView = { parentView: parentView };
+        expect(girder.utilities.showDownload(childView)).toBe(false);
+        expect(girder.utilities.showDownload(parentView)).toBe(false);
+    });
+
+    it('defaults to true', function () {
+        var view = {};
+        expect(girder.utilities.showDownload(view)).toBe(true);
+    });
+});
