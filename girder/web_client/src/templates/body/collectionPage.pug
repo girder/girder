@@ -12,8 +12,9 @@
           a.g-download-collection(role="menuitem", href=collection.downloadUrl())
             i.icon-download
             | Download collection
-      if (collection.getAccessLevel() >= AccessType.WRITE)
+      if (showDownload && collection.getAccessLevel() >= AccessType.WRITE)
         li.divider(role="presentation")
+      if (collection.getAccessLevel() >= AccessType.WRITE)
         li(role="presentation")
           a.g-edit-collection(role="menuitem")
             i.icon-edit
