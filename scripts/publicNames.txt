@@ -756,6 +756,7 @@ girder
             REGISTRATION_POLICY
             ROUTE_TABLE
             SERVER_ROOT
+            SHOW_DOWNLOAD
             SMTP_ENCRYPTION
             SMTP_HOST
             SMTP_PASSWORD

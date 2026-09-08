@@ -24,7 +24,8 @@
                 brandName: '${brandName | js}',
                 bannerColor: '${bannerColor | js}',
                 registrationPolicy: '${registrationPolicy | js}',
-                enablePasswordLogin: ${enablePasswordLogin | n,json,js}
+                enablePasswordLogin: ${enablePasswordLogin | n,json,js},
+                showDownload: '${showDownload | js}'
             }).render();
             girder.events.trigger('g:appload.after', girder.app);
         });
