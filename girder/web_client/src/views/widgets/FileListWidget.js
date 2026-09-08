@@ -12,6 +12,8 @@ import events from '@girder/core/events';
 
 import FileListTemplate from '@girder/core/templates/widgets/fileList.pug';
 
+import { showDownload } from '../../utilities';
+
 /**
  * This widget shows a list of files in a given item.
  */

@@ -9,6 +9,8 @@ import { restRequest } from '@girder/core/rest';
 
 import ItemListTemplate from '@girder/core/templates/widgets/itemList.pug';
 
+import { showDownload } from '../../utilities';
+
 /**
  * This widget shows a list of items under a given folder.
  */

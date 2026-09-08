@@ -35,23 +35,30 @@ def testAccessWebRoot(server):
     assert 'girder_app.min.js' in body
     assert 'girder_lib.min.js' in body
 
+    defaultShowDownload = Setting().getDefault(SettingKey.SHOW_DOWNLOAD)
+    assert "showDownload: '%s'" % defaultShowDownload in body
+
     # Change webroot settings
     Setting().set(SettingKey.CONTACT_EMAIL_ADDRESS, 'foo@bar.com')
     Setting().set(SettingKey.BRAND_NAME, 'FooBar')
+    Setting().set(SettingKey.SHOW_DOWNLOAD, 'user')
     resp = server.request(path='/', method='GET', isJson=False, prefix='')
     assertStatusOk(resp)
     body = getResponseBody(resp)
     assert WebrootBase._escapeJavascript('foo@bar.com') in body
     assert '<title>FooBar</title>' in body
+    assert "showDownload: '%s'" % 'user' in body
 
     # Remove webroot settings
     Setting().unset(SettingKey.CONTACT_EMAIL_ADDRESS)
     Setting().unset(SettingKey.BRAND_NAME)
+    Setting().unset(SettingKey.SHOW_DOWNLOAD)
     resp = server.request(path='/', method='GET', isJson=False, prefix='')
     assertStatusOk(resp)
     body = getResponseBody(resp)
     assert WebrootBase._escapeJavascript(defaultEmailAddress) in body
     assert '<title>%s</title>' % defaultBrandName in body
+    assert "showDownload: '%s'" % defaultShowDownload in body
 
 
 def testWebRootProperlyHandlesCustomStaticPublicPath(server):

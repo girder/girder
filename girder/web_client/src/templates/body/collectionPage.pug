@@ -1,5 +1,4 @@
 //- .g-collection-header
-
 //-   .btn-group.pull-right
 //-     button.g-collection-actions-button.btn.btn-default.dropdown-toggle(
 //-         data-toggle="dropdown", title="Collection actions")
@@ -12,8 +11,9 @@
 //-           a.g-download-collection(role="menuitem", href=collection.downloadUrl())
 //-             i.icon-download
 //-             | Download collection
-//-       if (collection.getAccessLevel() >= AccessType.WRITE)
+//-       if (showDownload && collection.getAccessLevel() >= AccessType.WRITE)
 //-         li.divider(role="presentation")
+//-       if (collection.getAccessLevel() >= AccessType.WRITE)
 //-         li(role="presentation")
 //-           a.g-edit-collection(role="menuitem")
 //-             i.icon-edit
@@ -28,6 +28,7 @@
 //-           a.g-delete-collection(role="menuitem")
 //-             i.icon-trash
 //-             | Delete collection
+//-
 //-   .g-collection-name.g-body-title= collection.name()
 //-   if collection.get('description')
 //-     .g-collection-description!= renderMarkdown(collection.get('description'))

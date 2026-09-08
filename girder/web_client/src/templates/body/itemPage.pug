@@ -18,8 +18,9 @@
               a.g-download-item(role="menuitem", href=item.downloadUrl())
                 i.icon-download
                 | Download item
-          if (accessLevel >= AccessType.WRITE)
+          if (showDownload && accessLevel >= AccessType.WRITE)
             li.divider(role="presentation")
+          if (accessLevel >= AccessType.WRITE)
             li(role="presentation")
               a.g-edit-item(role="menuitem")
                 i.icon-edit

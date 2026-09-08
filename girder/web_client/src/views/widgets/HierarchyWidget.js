@@ -30,6 +30,8 @@ import '@girder/core/stylesheets/widgets/hierarchyWidget.styl';
 
 import 'bootstrap/js/dropdown';
 
+import { showDownload } from '../../utilities';
+
 var pickedResources = null;
 
 /**

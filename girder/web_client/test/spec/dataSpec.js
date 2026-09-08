@@ -191,6 +191,52 @@ describe('Create a data hierarchy', function () {
         });
     });
 
+    it('can\'t download file if showDownload is false', function () {
+        var originalShowDownload;
+
+        runs(function () {
+            originalShowDownload = girder.app.showDownload;
+            girder.app.showDownload = function () { return false; };
+        });
+
+        runs(function () {
+            $('.g-hierarchy-level-up').trigger('click');
+        });
+
+        waitsFor(function () {
+            return $('.g-item-list-link').length === 1;
+        }, 'navigate back to the folder');
+
+        runs(function () {
+            $('.g-item-list-link').trigger('click');
+        });
+
+        waitsFor(function () {
+            return $('.g-file-list-link').length === 1;
+        }, 'the item page to display the file list');
+
+        runs(function () {
+            expect($('a.g-file-list-link').length).toBe(0);
+            expect($('span.g-file-list-link').length).toBe(1);
+        });
+
+        runs(function () {
+            $('.g-item-actions-button').trigger('click');
+        });
+
+        waitsFor(function () {
+            return $('.g-item-actions-menu.dropdown-menu').length === 1;
+        }, 'the actions menu to appear');
+
+        runs(function () {
+            expect($('a.g-download-item').length).toBe(0);
+        });
+
+        runs(function () {
+            girder.app.showDownload = originalShowDownload;
+        });
+    });
+
     it('search using quick search box', function () {
         runs(function () {
             $('.g-quick-search-container input.g-search-field')
@@ -327,8 +373,42 @@ describe('Create a data hierarchy', function () {
         });
     });
 
+    it('can\'t download a folder if showDownload is false', function () {
+        var originalShowDownload;
+        var widget;
+
+        runs(function () {
+            widget = girder.events._events['g:navigateTo'][0].ctx.bodyView.hierarchyWidget;
+            originalShowDownload = girder.app.showDownload;
+            girder.app.showDownload = function () { return false; };
+            widget.render();
+        });
+
+        waitsFor(function () {
+            return $('.g-folder-actions-button:visible').length === 1;
+        }, 'the folder actions button to appear');
+
+        runs(function () {
+            $('.g-folder-actions-button').trigger('click');
+        });
+
+        runs(function () {
+            expect($('.g-download-folder:visible').length).toBe(0);
+        });
+
+        runs(function () {
+            girder.app.showDownload = originalShowDownload;
+            widget.render();
+        });
+
+        waitsFor(function () {
+            return $('.g-folder-actions-button:visible').length === 1;
+        }, 'the folder actions button to appear again');
+    });
+
     it('download checked items', function () {
         var redirect = { method: null, url: null, data: { resources: null } }, widget;
+
         /* select a folder and the first item */
         runs(function () {
             $('.g-list-checkbox').slice(0, 2).trigger('click');
@@ -354,6 +434,29 @@ describe('Create a data hierarchy', function () {
                 .test(redirect.url)).toBe(true);
             expect(/{"folder":.*,"item":.*}/.test(redirect.data.resources))
                 .toBe(true);
+        });
+    });
+
+    it('can\'t download checked items if showDownload is false', function () {
+        var originalShowDownload;
+        runs(function () {
+            originalShowDownload = girder.app.showDownload;
+            girder.app.showDownload = function () { return false; };
+        });
+
+        runs(function () {
+            $('.g-list-checkbox').slice(0, 2).trigger('click');
+        });
+        waitsFor(function () {
+            return $('.g-checked-actions-menu').length > 0 &&
+                   $('a.g-pick-checked').length > 0;
+        }, 'checked actions menu');
+        runs(function () {
+            expect($('a.g-download-checked').length).toBe(0);
+        });
+
+        runs(function () {
+            girder.app.showDownload = originalShowDownload;
         });
     });
 
