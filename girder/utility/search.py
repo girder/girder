@@ -1,6 +1,10 @@
+import inspect
 from functools import partial
 
-from girder.exceptions import GirderException
+from bson.objectid import ObjectId
+
+from girder.constants import AccessType
+from girder.exceptions import GirderException, ValidationException
 from girder.utility.model_importer import ModelImporter
 
 _allowedSearchMode = {}
@@ -26,6 +30,12 @@ def addSearchMode(mode, handler):
     must take parameters: `query`, `types`, `user`, `level`, `limit`, `offset`, and return the
     search results.
 
+    Handlers should also accept `**kwargs`, as searches may pass additional optional parameters.
+    Currently a search that is restricted to a location in the data hierarchy also passes
+    `parentType` and `parentId`; a handler that does not accept them will only be called for
+    unrestricted searches, and a restricted search for that mode fails with an exception rather
+    than silently searching everywhere.
+
     :param mode: A search mode identifier.
     :type mode: str
     :param handler: A search mode handler function.
@@ -34,6 +44,28 @@ def addSearchMode(mode, handler):
     if _allowedSearchMode.get(mode) is not None:
         raise GirderException('A search mode %r already exists.' % mode)
     _allowedSearchMode[mode] = handler
+
+
+def handlerSupportsHierarchy(handler):
+    """
+    Determine whether a search mode handler can be passed the optional `parentType` and `parentId`
+    parameters, either by naming them or by accepting `**kwargs`.
+
+    :param handler: A search mode handler function.
+    :type handler: function
+    :returns: Whether the handler accepts both parameters.
+    :rtype: bool
+    """
+    try:
+        params = inspect.signature(handler).parameters
+    except (TypeError, ValueError):
+        return False
+    if any(param.kind == inspect.Parameter.VAR_KEYWORD for param in params.values()):
+        return True
+    return all(
+        name in params and params[name].kind in (
+            inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
+        for name in ('parentType', 'parentId'))
 
 
 def removeSearchMode(mode):
@@ -50,7 +82,42 @@ def removeSearchMode(mode):
     return _allowedSearchMode.pop(mode, None) is not None
 
 
-def _commonSearchModeHandler(mode, query, types, user, level, limit, offset):
+def _hierarchySearchFilters(parentType, parentId, user):
+    """
+    Build the query filters that restrict a search to the subtree rooted at a point in the data
+    hierarchy.
+
+    :param parentType: One of 'collection', 'folder', or 'user'.
+    :type parentType: str
+    :param parentId: The id of the resource to search within.
+    :param user: The user performing the search, for access checks.
+    :returns: A mapping of model name to a filters dict.
+    :rtype: dict
+    """
+    # Avoid circular import
+    from girder.models.folder import Folder
+
+    try:
+        parentId = ObjectId(parentId)
+    except Exception:
+        raise ValidationException('Invalid parentId.', field='parentId')
+
+    if parentType == 'folder':
+        folder = Folder().load(parentId, user=user, level=AccessType.READ, exc=True)
+        folderIds = list(Folder().subtreeFolderIds(folder))
+        return {
+            # The folder being searched from is the container, not a result.
+            'folder': {'_id': {'$in': [
+                folderId for folderId in folderIds if folderId != folder['_id']]}},
+            'item': {'folderId': {'$in': folderIds}},
+        }
+
+    filters = {'baseParentType': parentType, 'baseParentId': parentId}
+    return {'folder': dict(filters), 'item': dict(filters)}
+
+
+def _commonSearchModeHandler(mode, query, types, user, level, limit, offset,
+                             parentType=None, parentId=None):
     """
     The common handler for `text` and `prefix` search modes.
     """
@@ -60,9 +127,19 @@ def _commonSearchModeHandler(mode, query, types, user, level, limit, offset):
     method = '%sSearch' % mode
     results = {}
 
+    hierarchyFilters = None
+    if parentType is not None:
+        hierarchyFilters = _hierarchySearchFilters(parentType, parentId, user)
+
     for modelName in types:
         if modelName not in allowedSearchTypes:
             continue
+
+        filters = None
+        if hierarchyFilters is not None:
+            if modelName not in hierarchyFilters:
+                continue
+            filters = hierarchyFilters[modelName]
 
         if '.' in modelName:
             name, plugin = modelName.rsplit('.', 1)
@@ -73,7 +150,8 @@ def _commonSearchModeHandler(mode, query, types, user, level, limit, offset):
         if model is not None:
             results[modelName] = [
                 model.filter(d, user) for d in getattr(model, method)(
-                    query=query, user=user, limit=limit, offset=offset, level=level)
+                    query=query, user=user, limit=limit, offset=offset, level=level,
+                    filters=filters)
             ]
     return results
 

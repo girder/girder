@@ -681,7 +681,10 @@ describe('Test search widget with non-standard options', function () {
             }).render();
 
             expect($('input.g-search-field[placeholder="test ph"]').length).toBe(1);
-            expect($('.g-search-mode-choose').length).toBe(0);
+            // A single fixed mode offers no mode choice, but the options button is still shown to
+            // expose the "Search here" checkbox, since "folder" is a type a local search can
+            // restrict.
+            expect($('.g-search-mode-choose').length).toBe(1);
 
             $('.g-search-field').val('to').trigger('input');
         });

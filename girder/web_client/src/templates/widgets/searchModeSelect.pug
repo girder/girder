@@ -1,9 +1,19 @@
-p Choose search mode:
+if modes.length > 1
+  p Choose search mode:
 
-for mode in modes
-  .radio
-    label
-      input.g-search-mode-radio(
-          type="radio", name="search-mode", value=mode,
-          checked=(mode === currentMode ? 'checked' : undefined))
-      = getModeDescription(mode)
+  for mode in modes
+    .radio
+      label
+        input.g-search-mode-radio(
+            type="radio", name="search-mode", value=mode,
+            checked=(mode === currentMode ? 'checked' : undefined))
+        = getModeDescription(mode)
+
+if localSearchSupported
+  .checkbox.g-search-local
+    label(
+        title="Only return folders and items inside the folder or collection you are viewing.")
+      input.g-search-local-checkbox(
+          type="checkbox",
+          checked=(localSearch ? 'checked' : undefined))
+      | Search here

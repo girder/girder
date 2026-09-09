@@ -25,6 +25,9 @@ var SearchPaginateWidget = View.extend({
         this._type = settings.type;
         this._query = settings.query;
         this._mode = settings.mode;
+        // When set, the search is restricted to a subtree of the hierarchy.
+        this._parentType = settings.parentType || null;
+        this._parentId = settings.parentId || null;
         this._limit = settings.limit;
 
         this._offset = 0;
@@ -130,18 +133,24 @@ var SearchPaginateWidget = View.extend({
     },
 
     _fetch: function (offset) {
+        const data = {
+            q: this._query,
+            mode: this._mode,
+            types: JSON.stringify(_.intersection(
+                [this._type],
+                SearchFieldWidget.getModeTypes(this._mode))
+            ),
+            limit: this._limit,
+            offset: offset
+        };
+        if (this._parentType && this._parentId) {
+            data.parentType = this._parentType;
+            data.parentId = this._parentId;
+        }
+
         return restRequest({
             url: 'resource/search',
-            data: {
-                q: this._query,
-                mode: this._mode,
-                types: JSON.stringify(_.intersection(
-                    [this._type],
-                    SearchFieldWidget.getModeTypes(this._mode))
-                ),
-                limit: this._limit,
-                offset: offset
-            }
+            data: data
         });
     }
 });

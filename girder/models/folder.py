@@ -660,6 +660,38 @@ class Folder(AccessControlledModel):
 
         return folders.count()
 
+    def subtreeFolderIds(self, folder, includeRoot=True):
+        """
+        Return the set of ids of every folder in the subtree rooted at the given folder.
+
+        Folders record only their immediate parent, so this walks the tree one depth level at a
+        time, grouping each level into a single query.
+
+        :param folder: The root of the subtree.
+        :type folder: dict
+        :param includeRoot: Whether to include the root folder's own id.
+        :type includeRoot: bool
+        :returns: The set of folder ids.
+        :rtype: set
+        """
+        seen = {folder['_id']}
+        parentIds = [folder['_id']]
+
+        while parentIds:
+            children = [
+                child['_id']
+                for child in self.find(
+                    {'parentId': {'$in': parentIds}, 'parentCollection': 'folder'},
+                    fields=['_id'])
+                if child['_id'] not in seen
+            ]
+            seen.update(children)
+            parentIds = children
+
+        if not includeRoot:
+            seen.discard(folder['_id'])
+        return seen
+
     def subtreeCount(self, folder, includeItems=True, user=None, level=None):
         """
         Return the size of the subtree rooted at the given folder. Includes

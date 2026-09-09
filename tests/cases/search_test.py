@@ -239,7 +239,47 @@ class SearchTestCase(base.TestCase):
             'types': ['collection']
         })
 
+        # A handler that does not accept parentType and parentId is only called for unrestricted
+        # searches; restricting the search is rejected rather than searching the whole hierarchy or
+        # failing with an internal error.
+        coll = Collection().findOne({'name': 'Test Collection'})
+        resp = self.request(path='/resource/search', params={
+            'q': 'Test',
+            'mode': 'testSearch',
+            'types': json.dumps(['collection']),
+            'parentType': 'collection',
+            'parentId': coll['_id']
+        })
+        self.assertStatus(resp, 400)
+        self.assertEqual(
+            "The 'testSearch' search mode cannot be restricted to a location in the hierarchy.",
+            resp.json['message'])
+
         search.removeSearchMode('testSearch')
+
+        # A handler that accepts **kwargs is passed the parameters.
+        def kwargsSearchHandler(query, types, user, level, limit, offset, **kwargs):
+            return {
+                'parentType': kwargs.get('parentType'),
+                'parentId': str(kwargs.get('parentId'))
+            }
+
+        search.addSearchMode('kwargsSearch', kwargsSearchHandler)
+
+        resp = self.request(path='/resource/search', params={
+            'q': 'Test',
+            'mode': 'kwargsSearch',
+            'types': json.dumps(['collection']),
+            'parentType': 'collection',
+            'parentId': coll['_id']
+        })
+        self.assertStatusOk(resp)
+        self.assertDictEqual(resp.json, {
+            'parentType': 'collection',
+            'parentId': str(coll['_id'])
+        })
+
+        search.removeSearchMode('kwargsSearch')
 
         # Use the deleted search mode.
         resp = self.request(path='/resource/search', params={
