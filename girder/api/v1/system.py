@@ -148,6 +148,7 @@ class System(Resource):
             SettingKey.BANNER_COLOR,
             SettingKey.REGISTRATION_POLICY,
             SettingKey.ENABLE_PASSWORD_LOGIN,
+            SettingKey.SHOW_DOWNLOAD,
         ]
         return {k: Setting().get(k) for k in publicSettings}
 
