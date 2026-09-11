@@ -9,6 +9,8 @@ import { restRequest } from '@girder/core/rest';
 
 import ItemListTemplate from '@girder/core/templates/widgets/itemList.pug';
 
+import { showDownload } from '../../utilities';
+
 /**
  * This widget shows a list of items under a given folder.
  */
@@ -44,6 +46,9 @@ var ItemListWidget = View.extend({
         this._checkboxes = settings.checkboxes;
         this._downloadLinks = (
             _.has(settings, 'downloadLinks') ? settings.downloadLinks : true);
+        if (!showDownload(this)) {
+            this._downloadLinks = false;
+        }
         this._viewLinks = (
             _.has(settings, 'viewLinks') ? settings.viewLinks : true);
         this._showSizes = (

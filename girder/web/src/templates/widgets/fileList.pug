@@ -1,19 +1,30 @@
 ul.g-file-list
   each file in files
     li.g-file-list-entry
-      a.g-file-list-link(cid=file.cid, title="Download file",
-          target=file.get('linkUrl') ? '_blank' : '_self', href=file.downloadUrl(),
-          rel="noopener noreferrer")
-        if file.get('linkUrl')
-          i.icon-link
-          span.g-file-name= file.name()
-          i.icon-link-ext
-        else
-          i.icon-doc-inv
-          = file.name()
-      a.g-view-inline(title="View in browser", target="_blank", rel="noopener noreferrer",
-          href=file.downloadUrl({contentDisposition: 'inline'}))
-        i.icon-eye
+      if (showDownload)
+        a.g-file-list-link(cid=file.cid, title="Download file",
+            target=file.get('linkUrl') ? '_blank' : '_self', href=file.downloadUrl(),
+            rel="noopener noreferrer")
+          if file.get('linkUrl')
+            i.icon-link
+            span.g-file-name= file.name()
+            i.icon-link-ext
+          else
+            i.icon-doc-inv
+            = file.name()
+      else
+        span.g-file-list-link(cid=file.cid)
+          if file.get('linkUrl')
+            i.icon-link
+            span.g-file-name= file.name()
+            i.icon-link-ext
+          else
+            i.icon-doc-inv
+            = file.name()
+      if (showDownload || !file.has('size') || file.get('size') < 100000)
+        a.g-view-inline(title="View in browser", target="_blank", rel="noopener noreferrer",
+            href=file.downloadUrl({contentDisposition: 'inline'}))
+          i.icon-eye
       a.g-show-info(file-cid=file.cid, title="Show info")
         i.icon-info
       if file.has('size')
