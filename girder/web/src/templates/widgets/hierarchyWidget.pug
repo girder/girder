@@ -49,10 +49,11 @@
                 i.icon-folder-open
               |  #{model.name()}
             if type === 'folder' || type === 'collection'
-              li(role="presentation")
-                a.g-download-folder(role="menuitem", href=model.downloadUrl())
-                  i.icon-download
-                  | Download #{type}
+              if (showDownload)
+                li(role="presentation")
+                  a.g-download-folder(role="menuitem", href=model.downloadUrl())
+                    i.icon-download
+                    | Download #{type}
             if level >= AccessType.WRITE
               li(role="presentation")
                 a.g-create-subfolder(role="menuitem")

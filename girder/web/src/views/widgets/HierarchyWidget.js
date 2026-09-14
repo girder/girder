@@ -30,6 +30,8 @@ import '@girder/core/stylesheets/widgets/hierarchyWidget.styl';
 
 import 'bootstrap/js/dropdown';
 
+import { showDownload } from '../../utilities';
+
 var pickedResources = null;
 
 /**
@@ -355,6 +357,7 @@ var HierarchyWidget = View.extend({
             showMetadata: this._showMetadata,
             checkboxes: this._checkboxes,
             capitalize: capitalize,
+            showDownload: showDownload(this),
             itemFilter: this._itemFilter
         }));
 
