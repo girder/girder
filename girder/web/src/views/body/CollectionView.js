@@ -91,7 +91,7 @@ var CollectionView = View.extend({
             collection: this.model,
             AccessType: AccessType,
             renderMarkdown: renderMarkdown,
-            showDownload: showDownload(this)
+            showDownload: this.parentView.showDownload()
         }));
 
         if (!this.hierarchyWidget) {

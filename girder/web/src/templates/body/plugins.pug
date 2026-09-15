@@ -1,5 +1,5 @@
 .g-body-title Plugins
-.g-plugin-list-container
+.g-plugin-list-container.bg-white
   each plugin in allPlugins
     - var experimental = plugin.value.version ? plugin.value.version.indexOf('0.') === 0 : true
     .g-plugin-list-item(data-name=plugin.key)
