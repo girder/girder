@@ -28,11 +28,12 @@ class SettingKey:
     CORS_ALLOW_METHODS = 'core.cors.allow_methods'
     CORS_ALLOW_ORIGIN = 'core.cors.allow_origin'
     CORS_EXPOSE_HEADERS = 'core.cors.expose_headers'
-    DOWNLOAD_SHOWN = 'core.download_shown'
+    SHOW_DOWNLOAD = 'core.show_download'
     EMAIL_FROM_ADDRESS = 'core.email_from_address'
     EMAIL_HOST = 'core.email_host'
     EMAIL_VERIFICATION = 'core.email_verification'
     ENABLE_PASSWORD_LOGIN = 'core.enable_password_login'
+    DISABLE_ANONYMOUS_ACCESS = 'core.disable_anonymous_access'
     FILEHANDLE_MAX_SIZE = 'core.filehandle_max_size'
     GIRDER_MOUNT_INFORMATION = 'core.girder_mount_information'
     PRIVACY_NOTICE = 'core.privacy_notice'
@@ -76,7 +77,7 @@ class SettingDefault:
         SettingKey.CORS_ALLOW_METHODS: 'GET, POST, PUT, HEAD, DELETE',
         SettingKey.CORS_ALLOW_ORIGIN: '',
         SettingKey.CORS_EXPOSE_HEADERS: 'Girder-Total-Count, Content-Disposition',
-        SettingKey.DOWNLOAD_SHOWN: 'all',
+        SettingKey.SHOW_DOWNLOAD: 'all',
         # An apache server using reverse proxy would also need
         #  X-Requested-With, X-Forwarded-Server, X-Forwarded-For,
         #  X-Forwarded-Host, Remote-Addr
@@ -84,6 +85,7 @@ class SettingDefault:
         # SettingKey.EMAIL_HOST is provided by a function
         SettingKey.EMAIL_VERIFICATION: 'disabled',
         SettingKey.ENABLE_PASSWORD_LOGIN: True,
+        SettingKey.DISABLE_ANONYMOUS_ACCESS: False,
         SettingKey.FILEHANDLE_MAX_SIZE: 1024 * 1024 * 16,
         SettingKey.GIRDER_MOUNT_INFORMATION: None,
         SettingKey.PRIVACY_NOTICE: 'https://www.kitware.com/privacy',
@@ -242,12 +244,15 @@ class SettingValidator:
             raise ValidationException('CORS exposed headers must be a string', 'value')
 
     @staticmethod
-    @setting_utilities.validator(SettingKey.DOWNLOAD_SHOWN)
-    def _validateDownloadShown(doc):
+    @setting_utilities.validator(SettingKey.SHOW_DOWNLOAD)
+    def _validateshowDownload(doc):
+        if not isinstance(doc['value'], str):
+            raise ValidationException(
+                'Show download must be "all", "user", "admin", or "none".', 'value')
         doc['value'] = doc['value'].lower()
         if doc['value'] not in ('all', 'user', 'admin', 'none'):
             raise ValidationException(
-                'Download shown be "all", "user", "admin", or "nonde".', 'value')
+                'Show download must be "all", "user", "admin", or "none".', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.EMAIL_FROM_ADDRESS)
@@ -278,6 +283,12 @@ class SettingValidator:
     def _validateEnablePasswordLogin(doc):
         if not isinstance(doc['value'], bool):
             raise ValidationException('Enable password login setting must be boolean.', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.DISABLE_ANONYMOUS_ACCESS)
+    def _validateDisableAnonymousAccess(doc):
+        if not isinstance(doc['value'], bool):
+            raise ValidationException('Disable anonymous access setting must be boolean.', 'value')
 
     @staticmethod
     @setting_utilities.validator(SettingKey.FILEHANDLE_MAX_SIZE)

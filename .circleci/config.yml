@@ -105,6 +105,9 @@ jobs:
           name: Test public symbols
           command: tox -e public-names
           working_directory: girder
+      - store_artifacts:
+          path: girder/build/docs
+          destination: docs
 
   server-pytest-test:
     # We need the machine executor here because of slicer_cli_web E2E tests that require docker

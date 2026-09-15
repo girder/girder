@@ -157,7 +157,11 @@ var UserView = View.extend({
                 user: user
             }, params || {}));
         }, this).on('g:error', function () {
-            events.trigger('g:navigateTo', UsersView);
+            if (params.folderId) {
+                router.navigate(`folder/${params.folderId}`, { trigger: true });
+            } else {
+                events.trigger('g:navigateTo', UsersView);
+            }
         }, this).fetch();
     }
 });

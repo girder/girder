@@ -39,6 +39,7 @@ const initializeDefaultApp = async (apiRoot: string, el: string | HTMLElement = 
                     bannerColor: resp['core.banner_color'],
                     registrationPolicy: resp['core.registration_policy'],
                     enablePasswordLogin: resp['core.enable_password_login'],
+                    showDownload: resp['core.show_download'],
                 });
                 app.render();
                 document.title = resp['core.brand_name'];

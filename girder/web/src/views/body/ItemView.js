@@ -21,6 +21,8 @@ import '@girder/core/stylesheets/body/itemPage.styl';
 
 import 'bootstrap/js/dropdown';
 
+import { showDownload } from '../../utilities';
+
 /**
  * This view shows a single item's page.
  */

@@ -39,7 +39,7 @@ function inlineFaviconPlugin(relFaviconPath, mimeType) {
           `<link rel="icon" type="${mimeType}" href="${dataUri}">`
         );
       } catch (err) {
-        console.warn(`[inline-favicon] Failed to inline favicon ${relFaviconPath}:`, err);
+        // ignore missing favicon during test runs or builds
         return html;
       }
     }
@@ -67,7 +67,12 @@ if (process.env.BUILD_LIB) {
   outDir = 'dist-lib';
 }
 
-// https://vitejs.dev/config/
+// Pass `PLAYWRIGHT_TESTING=true` when starting the dev server via playwright
+// so it knows to disable hot reloading. Vite's file watching consumes inotify
+// resources; since automated browsers don't need HMR, we completely disable it
+// during Playwright test runs.
+const isTestMode = process.env.PLAYWRIGHT_TESTING === 'true';
+
 export default defineConfig({
   base: './',
   plugins: [
@@ -81,7 +86,7 @@ export default defineConfig({
           dest: './src',
         },
       ],
-    }).filter((config) => config.apply === 'build'), // Don't copy sources for dev server
+    }).filter((config) => config.apply === 'build'),  // Don't copy sources for dev server
     ...plugins,
   ],
   resolve: {
@@ -95,12 +100,25 @@ export default defineConfig({
     chunkSizeWarningLimit: Infinity,
     ...buildOpts,
     rollupOptions: {transform: {
-    inject: {
-      $: 'jquery',
-      jQuery: 'jquery',
-      exclude: 'src/**/*.pug',
-    },
-    },
+      inject: {
+        $: 'jquery',
+        jQuery: 'jquery',
+        exclude: 'src/**/*.pug',
+      },
+    }},
+  },
+  server: {
+    // Disable Hot Module Reloading when running under Playwright tests
+    hmr: isTestMode ? false : {},
+    watch: isTestMode ? null : {
+      ignored: [
+        '**/node_modules/**',
+        '**/coverage/**',
+        'dist/**',
+        '**/*.pyc',
+        '**/__pycache__/**',
+        '**/.git/**',
+      ],
     },
   },
 });

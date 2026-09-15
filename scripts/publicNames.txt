@@ -618,6 +618,7 @@ girder
                 addScope
                 clearForApiKey
                 createToken
+                expire
                 getAllowedScopes
                 hasScope
                 initialize
@@ -713,7 +714,7 @@ girder
             CORS_ALLOW_METHODS
             CORS_ALLOW_ORIGIN
             CORS_EXPOSE_HEADERS
-            DOWNLOAD_SHOWN
+            DISABLE_ANONYMOUS_ACCESS
             EMAIL_FROM_ADDRESS
             EMAIL_HOST
             EMAIL_VERIFICATION
@@ -723,6 +724,7 @@ girder
             PRIVACY_NOTICE
             REGISTRATION_POLICY
             SERVER_ROOT
+            SHOW_DOWNLOAD
             SMTP_ENCRYPTION
             SMTP_HOST
             SMTP_PASSWORD
@@ -1272,14 +1274,17 @@ plugins
                 return_parameter_file_name
             config
                 PluginSettings
+                    SLICER_CLI_TASK_STORE_METADATA
                     SLICER_CLI_WEB_TASK_FOLDER
                     SLICER_CLI_WEB_WORKER_CONFIG_ITEM
                     get_task_folder
                     get_worker_config_item
                     has_task_folder
                     has_worker_config_item
+                    store_task_metadata
                 validateFolder
                 validateItem
+                validateStoreMetadata
             ctk_cli_adjustment
                 CLIModule
                 CLIParameter

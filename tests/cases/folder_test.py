@@ -567,6 +567,11 @@ class FolderTestCase(base.TestCase):
         for parent in parents:
             self.assertIn('_accessLevel', parent['object'])
 
+        # Make sure hideInaccessble returns filtered documents
+        parents = Folder().parentsToRoot(subFolder, user=self.admin, hideInaccessible=True)
+        for parent in parents:
+            self.assertIn('_accessLevel', parent['object'])
+
     def testFolderAccessAndDetails(self):
         # create a folder to work with
         folder = Folder().createFolder(

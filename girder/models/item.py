@@ -380,7 +380,7 @@ class Item(acl_mixin.AccessControlMixin, Model):
 
         return self.save(item)
 
-    def parentsToRoot(self, item, user=None, force=False):
+    def parentsToRoot(self, item, user=None, force=False, hideInaccessible=False):
         """
         Get the path to traverse to a root of the hierarchy.
 
@@ -399,7 +399,12 @@ class Item(acl_mixin.AccessControlMixin, Model):
         curFolder = folderModel.load(
             item['folderId'], user=user, level=AccessType.READ, force=force)
         folderIdsToRoot = folderModel.parentsToRoot(
-            curFolder, user=user, level=AccessType.READ, force=force)
+            curFolder,
+            user=user,
+            level=AccessType.READ,
+            force=force,
+            hideInaccessible=hideInaccessible,
+        )
 
         if force:
             folderIdsToRoot.append({'type': 'folder', 'object': curFolder})

@@ -195,12 +195,11 @@ var BrowserWidget = View.extend({
         let inputValidation;
         if (this.input && this.input.validate) {
             inputValidation = this.input.validate(this.$('#g-input-element').val());
-            if (inputValidation === undefined) {
-                console.warn('Static validation is deprecated, return a promise instead');
-                inputValidation = $.Deferred().resolve().promise();
-            } else if (!_.isFunction(inputValidation.then)) {
-                console.warn('Static validation is deprecated, return a promise instead');
-                inputValidation = $.Deferred().reject(inputValidation).promise();
+            // Handle non-promise validators for backwards compatibility
+            if (!_.isFunction(inputValidation?.then)) {
+                inputValidation = !_.isEqual(inputValidation, undefined)
+                    ? $.Deferred().reject(inputValidation).promise()
+                    : $.Deferred().resolve().promise();
             }
         } else {
             // No validator is implicit acceptance
@@ -210,12 +209,11 @@ var BrowserWidget = View.extend({
         // Validate selected element
         const selectedModel = this.selectedModel();
         let selectedValidation = this.validate(selectedModel);
-        if (selectedValidation === undefined) {
-            console.warn('Static validation is deprecated, return a promise instead');
-            selectedValidation = $.Deferred().resolve().promise();
-        } else if (!_.isFunction(selectedValidation.then)) {
-            console.warn('Static validation is deprecated, return a promise instead');
-            selectedValidation = $.Deferred().reject(selectedValidation).promise();
+        // Handle non-promise validators for backwards compatibility
+        if (!_.isFunction(selectedValidation?.then)) {
+            selectedValidation = !_.isEqual(selectedValidation, undefined)
+                ? $.Deferred().reject(selectedValidation).promise()
+                : $.Deferred().resolve().promise();
         }
 
         let invalidInputElement = null;

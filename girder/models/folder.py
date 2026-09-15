@@ -564,7 +564,15 @@ class Folder(AccessControlledModel):
 
         return filteredDoc
 
-    def parentsToRoot(self, folder, curPath=None, user=None, force=False, level=AccessType.READ):
+    def parentsToRoot(
+        self,
+        folder,
+        curPath=None,
+        user=None,
+        force=False,
+        level=AccessType.READ,
+        hideInaccessible=False,
+    ):
         """
         Get the path to traverse to a root of the hierarchy.
 
@@ -572,6 +580,7 @@ class Folder(AccessControlledModel):
         :type folder: dict
         :returns: an ordered list of dictionaries from root to the current folder
         """
+        force = force or hideInaccessible
         curPath = curPath or []
         curParentId = folder['parentId']
         curParentType = folder['parentCollection']
@@ -585,10 +594,30 @@ class Folder(AccessControlledModel):
             else:
                 parentFiltered = ModelImporter.model(curParentType).filter(curParentObject, user)
 
-            return [{
+            curPaths = [{
                 'type': curParentType,
                 'object': parentFiltered
             }] + curPath
+            if hideInaccessible:
+                consolidatedPaths = []
+                # Walk the hierarchy from root to leaf, and return only the objects
+                # that the user has access to, providing they don't leak any parent
+                # information to the client.
+                for path in curPaths:
+                    pathModel = ModelImporter.model(path['type'])
+                    if not pathModel.hasAccess(path['object'], user, level):
+                        # If the user does not have access to a folder/collection/user,
+                        # discard all the accumulated hierarchy so as to not leak any
+                        # relational information.
+                        consolidatedPaths = []
+                        continue
+                    consolidatedPaths.append({
+                        'type': path['type'],
+                        'object': pathModel.filter(path['object'], user)
+                    })
+
+                return consolidatedPaths
+            return curPaths
         else:
             curParentObject = self.load(curParentId, user=user, level=level, force=force)
             curPath = [{
@@ -596,7 +625,13 @@ class Folder(AccessControlledModel):
                 'object': curParentObject if force else self.filter(curParentObject, user)
             }] + curPath
 
-            return self.parentsToRoot(curParentObject, curPath, user=user, force=force)
+            return self.parentsToRoot(
+                curParentObject,
+                curPath,
+                user=user,
+                force=force,
+                hideInaccessible=hideInaccessible
+            )
 
     def countItems(self, folder):
         """

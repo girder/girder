@@ -30,6 +30,8 @@ import '@girder/core/stylesheets/widgets/hierarchyWidget.styl';
 
 import 'bootstrap/js/dropdown';
 
+import { showDownload } from '../../utilities';
+
 var pickedResources = null;
 
 /**
@@ -316,12 +318,19 @@ var HierarchyWidget = View.extend({
 
     _setRoute: function () {
         if (this._routing) {
-            var route = this.breadcrumbs[0].resourceName + '/' +
-                this.breadcrumbs[0].get('_id');
-            if (this.parentModel.resourceName === 'folder') {
-                route += '/folder/' + this.parentModel.get('_id');
+            var route;
+            if (this.breadcrumbs[0].resourceName === 'folder') {
+                // Case where the user doesn't have access to the root collection/user
+                route = 'folder/' + this.parentModel.get('_id');
+                router.navigate(route);
+            } else {
+                route = this.breadcrumbs[0].resourceName + '/' +
+                    this.breadcrumbs[0].get('_id');
+                if (this.parentModel.resourceName === 'folder') {
+                    route += '/folder/' + this.parentModel.get('_id');
+                }
+                router.navigate(route);
             }
-            router.navigate(route);
             events.trigger('g:hierarchy.route', { route: route });
         }
     },

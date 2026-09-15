@@ -24,6 +24,9 @@ GIRDER_SETTING_CORE_CORS_ALLOW_HEADERS: >-
 GIRDER_SETTING_CORE_CORS_EXPOSE_HEADERS: >-
   CORS header listing headers that should be exposed to the client.
 
+GIRDER_SETTING_CORE_DISABLE_ANONYMOUS_ACCESS: >-
+  When set to "true", public access means any user; when "false" or the default, public access includes anonymous usage.
+
 GIRDER_SETTING_CORE_REGISTRATION_POLICY: >-
   Controls user registration policy. Values: "open", "approve", or "closed".
 

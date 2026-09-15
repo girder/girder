@@ -23,6 +23,9 @@ const ConfigView = View.extend({
             }, {
                 key: 'slicer_cli_web.worker_config_item',
                 value: this.$('#g-slicer-cli-web-worker-config-item').val()
+            }, {
+                key: 'slicer_cli_web.task_store_metadata',
+                value: this.$('#g-slicer-cli-web-task-store-metadata').prop('checked')
             }]);
         },
         'submit #g-slicer-cli-web-upload-form'(event) {
@@ -177,13 +180,15 @@ const ConfigView = View.extend({
             data: {
                 list: JSON.stringify([
                     'slicer_cli_web.task_folder',
-                    'slicer_cli_web.worker_config_item'
+                    'slicer_cli_web.worker_config_item',
+                    'slicer_cli_web.task_store_metadata'
                 ])
             }
         }).then((resp) => {
             const settings = {
                 task_folder: resp['slicer_cli_web.task_folder'],
-                worker_config_item: resp['slicer_cli_web.worker_config_item']
+                worker_config_item: resp['slicer_cli_web.worker_config_item'],
+                task_store_metadata: resp['slicer_cli_web.task_store_metadata']
             };
 
             return settings;

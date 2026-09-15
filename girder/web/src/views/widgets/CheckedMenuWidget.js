@@ -6,6 +6,8 @@ import CheckedActionsMenuTemplate from '@girder/core/templates/widgets/checkedAc
 
 import '@girder/core/utilities/jquery/girderEnable';
 
+import { showDownload } from '../../utilities';
+
 /**
  * This widget presents a list of available batch actions
  * on a set of selected resources.
