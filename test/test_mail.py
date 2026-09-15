@@ -82,3 +82,80 @@ def testBcc(email_stdout, capsys):
     message = _get_mail_from_stdout(capsys.readouterr().out)
     assert message['To'] == 'first@a.com'
     assert message['Bcc'] == ', '.join(bcc)
+
+
+class _FakeSMTP:
+    """Records the arguments smtplib would have been constructed with."""
+
+    instances = []
+
+    def __init__(self, host, port, local_hostname=None, timeout=None):
+        self.host = host
+        self.port = port
+        self.local_hostname = local_hostname
+        self.timeout = timeout
+        self.startedTls = False
+        self.loggedIn = None
+        _FakeSMTP.instances.append(self)
+
+    def starttls(self):
+        self.startedTls = True
+
+    def login(self, username, password):
+        self.loggedIn = (username, password)
+
+    def sendmail(self, fromAddress, toAddresses, message):
+        pass
+
+    def quit(self):
+        pass
+
+
+@pytest.fixture
+def fakeSmtp(monkeypatch):
+    _FakeSMTP.instances = []
+    monkeypatch.setattr(mail_utils.smtplib, 'SMTP', _FakeSMTP)
+    monkeypatch.setattr(mail_utils.smtplib, 'SMTP_SSL', _FakeSMTP)
+    yield _FakeSMTP
+
+
+@pytest.mark.parametrize('encryption,expectTls', [
+    ('none', False),
+    ('starttls', True),
+    ('ssl', False),
+])
+def testSmtpConnectionPassesTimeoutAndHostname(fakeSmtp, encryption, expectTls):
+    # A connection must never be created without a timeout: smtplib would otherwise
+    # inherit the global socket default (normally None) and block forever on a
+    # submission that is dropped rather than refused.
+    with mail_utils._SMTPConnection(
+            host='smtp.test', port=587, encryption=encryption,
+            localHostname='girder.test'):
+        pass
+
+    conn, = fakeSmtp.instances
+    assert conn.timeout == mail_utils.SMTP_TIMEOUT
+    assert conn.local_hostname == 'girder.test'
+    assert conn.startedTls is expectTls
+    assert conn.loggedIn is None
+
+
+def testSmtpConnectionLoginRequiresBoth(fakeSmtp):
+    with mail_utils._SMTPConnection(host='smtp.test', port=587, username='u'):
+        pass
+    assert fakeSmtp.instances[-1].loggedIn is None
+
+    with mail_utils._SMTPConnection(host='smtp.test', port=587, username='u', password='p'):
+        pass
+    assert fakeSmtp.instances[-1].loggedIn == ('u', 'p')
+
+
+@pytest.mark.parametrize('emailHost,expected', [
+    ('https://girder.test', 'girder.test'),
+    ('http://girder.test:8080', 'girder.test'),
+    ('', None),
+    ('not a url', None),
+])
+def testLocalHostname(db, emailHost, expected):
+    Setting().set(SettingKey.EMAIL_HOST, emailHost)
+    assert mail_utils._localHostname() == expected

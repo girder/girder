@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import smtplib
+import urllib.parse
 from email.mime.text import MIMEText
 
 from mako.lookup import TemplateLookup
@@ -11,6 +12,12 @@ from girder.constants import PACKAGE_DIR
 from girder.settings import SettingKey
 
 logger = logging.getLogger(__name__)
+
+# Socket timeout (seconds) for SMTP connections. Without an explicit value smtplib
+# inherits the global socket default, which is normally ``None``, potentially blocking
+# server thread forever if connection is silently dropped in transit.
+# Explicit timeout results in error that we can handle instead
+SMTP_TIMEOUT = 30
 
 
 def validateEmailAddress(address):
@@ -120,20 +127,40 @@ def _createMessage(subject, text, to, bcc):
     return msg, recipients
 
 
+def _localHostname():
+    """
+    Return the name to announce in the SMTP EHLO, or None to let smtplib choose.
+
+    Derived from the ``core.email_host`` setting, which already names this instance as
+    the outside world sees it. Without one, smtplib falls back to ``socket.getfqdn()``,
+    which inside a container typically cannot resolve a real name and yields a bracketed
+    address literal leaking the container's private address in every message.
+    """
+    from girder.models.setting import Setting
+
+    host = Setting().get(SettingKey.EMAIL_HOST)
+    if not host:
+        return None
+    return urllib.parse.urlparse(host).hostname or None
+
+
 class _SMTPConnection:
-    def __init__(self, host, port=None, encryption=None,
-                 username=None, password=None):
+    def __init__(self, host, port=None, encryption=None, username=None, password=None,
+                 timeout=SMTP_TIMEOUT, localHostname=None):
         self.host = host
         self.port = port
         self.encryption = encryption
         self.username = username
         self.password = password
+        self.timeout = timeout
+        self.localHostname = localHostname
 
     def __enter__(self):
+        kwargs = {'local_hostname': self.localHostname, 'timeout': self.timeout}
         if self.encryption == 'ssl':
-            self.connection = smtplib.SMTP_SSL(self.host, self.port)
+            self.connection = smtplib.SMTP_SSL(self.host, self.port, **kwargs)
         else:
-            self.connection = smtplib.SMTP(self.host, self.port)
+            self.connection = smtplib.SMTP(self.host, self.port, **kwargs)
             if self.encryption == 'starttls':
                 self.connection.starttls()
         if self.username and self.password:
@@ -161,7 +188,8 @@ def _submitEmail(msg, recipients):
         port=setting.get(SettingKey.SMTP_PORT),
         encryption=setting.get(SettingKey.SMTP_ENCRYPTION),
         username=setting.get(SettingKey.SMTP_USERNAME),
-        password=setting.get(SettingKey.SMTP_PASSWORD)
+        password=setting.get(SettingKey.SMTP_PASSWORD),
+        localHostname=_localHostname()
     )
 
     logger.info('Sending email to %s through %s', ', '.join(recipients), smtp.host)
