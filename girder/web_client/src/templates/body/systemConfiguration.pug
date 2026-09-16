@@ -30,6 +30,17 @@ form.g-settings-form(role="form")
     input#g-core-cookie-lifetime.form-control.input-sm(
         type="text", value=settings['core.cookie_lifetime'] || '',
         title="How long users will stay logged in.")
+  .form-group
+    label(for="g-core-show-download") Download control visibility
+    select#g-core-show-download.form-control.input-sm
+      option(value="all",
+          selected=(settings['core.show_download'] === "all")) Visible to anyone
+      option(value="user",
+          selected=(settings['core.show_download'] === "user")) Visible to logged-in users
+      option(value="admin",
+          selected=(settings['core.show_download'] === "admin")) Visible to admins only
+      option(value="none",
+          selected=(settings['core.show_download'] === "none")) Not visible to anyone
   .g-settings-form-container
     h4 Administrative Policy
     .form-group
