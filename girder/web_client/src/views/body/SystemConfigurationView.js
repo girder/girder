@@ -113,7 +113,8 @@ var SystemConfigurationView = View.extend({
             'core.add_to_group_policy',
             'core.collection_create_policy',
             'core.user_default_folders',
-            'core.route_table'
+            'core.route_table',
+            'core.show_download'
         ];
         this.settingsKeys = keys;
         restRequest({
