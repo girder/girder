@@ -104,7 +104,7 @@ class Job(Resource):
             statuses=statuses, handlers=handlers,
             sort=sort, currentUser=currentUser))
 
-    @access.public
+    @access.public(scope=constants.REST_LIST_JOB_TOKEN_SCOPE)
     @filtermodel(JobModel)
     @autoDescribeRoute(
         Description('Get a job by ID.')
