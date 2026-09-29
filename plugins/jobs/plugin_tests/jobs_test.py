@@ -2,11 +2,12 @@ import json
 import time
 
 from bson import json_util
-from girder_jobs.constants import REST_CREATE_JOB_TOKEN_SCOPE, JobStatus
+from girder_jobs.constants import (
+    REST_CREATE_JOB_TOKEN_SCOPE, REST_LIST_JOB_TOKEN_SCOPE, JobStatus)
 from girder_jobs.models.job import Job
 
 from girder import events
-from girder.constants import AccessType
+from girder.constants import AccessType, TokenScope
 from girder.exceptions import ValidationException
 from girder.models.token import Token
 from girder.models.user import User
@@ -481,6 +482,43 @@ class JobsTestCase(base.TestCase):
             '/job', method='POST', token=token, params={'title': 'job', 'type': 'job'})
         # If user has the necessary token status is 200
         self.assertStatusOk(resp2)
+
+    def testGetJobWithScopedToken(self):
+        job = self.jobModel.createJob(
+            title='Job Title', type='my_type', user=self.users[1], public=False)
+        job = self.jobModel.updateJob(job, log='My log message\n')
+        path = '/job/%s' % job['_id']
+
+        # A token without the jobs scope does not resolve to a user
+        token = Token().createToken(user=self.users[1], scope=TokenScope.DATA_READ)
+        resp = self.request(path, token=token)
+        self.assertStatus(resp, 401)
+
+        # With the jobs scope, the owner can read the job, including its log
+        token = Token().createToken(
+            user=self.users[1], scope=[TokenScope.DATA_READ, REST_LIST_JOB_TOKEN_SCOPE])
+        resp = self.request(path, token=token)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['status'], JobStatus.INACTIVE)
+        self.assertEqual(resp.json['log'], ['My log message\n'])
+
+        # The access check still applies to other users
+        token = Token().createToken(user=self.users[2], scope=REST_LIST_JOB_TOKEN_SCOPE)
+        resp = self.request(path, token=token)
+        self.assertStatus(resp, 403)
+
+        # A worker-style token scoped to the job can still read it
+        token = Token().createToken(scope='jobs.job_%s' % job['_id'])
+        resp = self.request(path, token=token)
+        self.assertStatusOk(resp)
+        self.assertEqual(resp.json['log'], ['My log message\n'])
+
+    def testJobScopesAreDescribed(self):
+        resp = self.request('/token/scopes')
+        self.assertStatusOk(resp)
+        custom = [scope['id'] for scope in resp.json['custom']]
+        self.assertEqual(custom.count(REST_LIST_JOB_TOKEN_SCOPE), 1)
+        self.assertNotIn(REST_CREATE_JOB_TOKEN_SCOPE, custom)
 
     def testJobStateTransitions(self):
         job = self.jobModel.createJob(
