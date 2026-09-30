@@ -390,6 +390,13 @@ var SearchFieldWidget = View.extend({
                 }));
                 this.$('.dropdown').addClass('open');
             }
+        }).fail(() => {
+            this.ajaxLock = false;
+            this._animatePending();
+
+            if (this.pending) {
+                this._doSearch(this.pending);
+            }
         });
     }
 }, {
