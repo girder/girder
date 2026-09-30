@@ -265,6 +265,12 @@ def testSearchRestrictedToInaccessibleFolder(server, scans, user, mode):
     assertStatus(resp, 403)
 
 
+def testSearchFallbackGetsNoNewArguments(server, scans, admin, pluginSearchModes):
+    _search(server, admin, scans['inside'], 'kwargsPrefix')
+    assert pluginSearchModes
+    assert all(kwargs == {} for kwargs in pluginSearchModes)
+
+
 @pytest.mark.parametrize('readLimit,expected', [
     # The six items outside the folder come first, so reading only four finds nothing
     (4, set()),
@@ -277,6 +283,19 @@ def testSearchFallbackReadLimit(server, scans, admin, monkeypatch, readLimit, ex
     monkeypatch.setattr(search, 'FALLBACK_SEARCH_READ_LIMIT', readLimit)
     results = _search(server, admin, scans['inside'], 'plainPrefix')
     assert set(results['item']) == expected
+
+
+def testSearchFastPathResultsAreChecked(server, scans, admin):
+    def ignoringHandler(query, types, user, level, limit, offset, hierarchyPipeline=None):
+        assert callable(hierarchyPipeline)
+        return _unrestrictedPrefixSearch(query, types, user, level, limit, offset)
+
+    search.addSearchMode('ignoringPrefix', ignoringHandler)
+    try:
+        results = _search(server, admin, scans['inside'], 'ignoringPrefix', limit=20)
+    finally:
+        search.removeSearchMode('ignoringPrefix')
+    assert set(results['item']) == {'scan-here-0', 'scan-here-1', 'scan-here-2', 'scan-private'}
 
 
 def testSearchFallbackUnexpectedResults(server, scans, admin):

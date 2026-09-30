@@ -1,3 +1,4 @@
+import inspect
 from functools import partial
 
 from bson.objectid import ObjectId
@@ -32,6 +33,9 @@ def addSearchMode(mode, handler):
     New searches made for the registered mode will call the handler function. The handler function
     must take parameters: `query`, `types`, `user`, `level`, `limit`, `offset`, and return the
     search results.
+
+    A handler can restrict its own query to part of the hierarchy by accepting a
+    `hierarchyPipeline` parameter; see :func:`runSearch`.
 
     :param mode: A search mode identifier.
     :type mode: str
@@ -115,6 +119,16 @@ def hierarchySearchPipeline(parentType, parentId, user, resultType='item', prefi
     ]
 
 
+def _handlerTakesHierarchyPipeline(handler):
+    """Whether a search mode handler names a `hierarchyPipeline` parameter."""
+    try:
+        param = inspect.signature(handler).parameters.get('hierarchyPipeline')
+    except (TypeError, ValueError):
+        return False
+    return param is not None and param.kind in (
+        inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
+
+
 def _keepInHierarchy(docs, resultType, buildPipeline):
     """Keep the documents inside the restricted location, in order."""
     withIds = []
@@ -167,8 +181,10 @@ def runSearch(handler, query, types, user, level, limit, offset, parentType=None
     """
     Run a search, optionally restricted to part of the hierarchy.
 
-    A restricted search returns only folders and items. The handler's results are restricted
-    after it runs.
+    A restricted search returns only folders and items. Handlers that accept a `hierarchyPipeline`
+    parameter get a function that builds the restriction's stages (see
+    :func:`hierarchySearchPipeline`) to add to their own queries. Other handlers' results are
+    restricted afterwards.
 
     :param handler: A search mode handler function.
     :type handler: function
@@ -186,8 +202,19 @@ def runSearch(handler, query, types, user, level, limit, offset, parentType=None
     # Validate the location and check access, even if no types can be restricted.
     buildPipeline()
 
-    results = _restrictSearchResults(
-        handler, query, types, user, level, limit, offset, buildPipeline)
+    if _handlerTakesHierarchyPipeline(handler):
+        results = handler(
+            query=query, types=types, user=user, level=level, limit=limit, offset=offset,
+            hierarchyPipeline=buildPipeline)
+        if not isinstance(results, dict):
+            results = {}
+        # Check anyway, in case the handler ignored the pipeline.
+        results = {
+            resultType: _keepInHierarchy(results.get(resultType, []), resultType, buildPipeline)
+            for resultType in types if resultType in ('folder', 'item')}
+    else:
+        results = _restrictSearchResults(
+            handler, query, types, user, level, limit, offset, buildPipeline)
 
     # Other types can't be inside the hierarchy.
     for resultType in types:
