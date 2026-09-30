@@ -57,6 +57,11 @@ events.on('g:hierarchy.route', () => {
     activeHierarchyParent();
 });
 
+// Forget the location on login or logout, since it may belong to someone else.
+events.on('g:login', () => {
+    lastHierarchyParent = null;
+});
+
 /**
  * This widget provides a text field that will search any set of data types
  * and show matching results as the user types. Results can be clicked,
