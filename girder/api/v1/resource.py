@@ -4,7 +4,7 @@ from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
 from girder.api import access
 from girder.utility import parseTimestamp
-from girder.utility.search import getSearchModeHandler
+from girder.utility.search import getSearchModeHandler, runSearch
 from girder.utility import ziputil
 from girder.utility import path as path_util
 from girder.utility.model_importer import ModelImporter
@@ -44,10 +44,16 @@ class Resource(BaseResource):
                    '["user", "folder", "item"].', requireArray=True)
         .param('level', 'Minimum required access level.', required=False,
                dataType='integer', default=AccessType.READ)
+        .param('parentType', 'Only find folders and items inside this type of resource. '
+               'Requires parentId.', required=False,
+               enum=['collection', 'folder', 'user'])
+        .param('parentId', 'The id of the resource to search within. Requires parentType.',
+               required=False)
         .pagingParams(defaultSort=None, defaultLimit=10)
         .errorResponse('Invalid type list format.')
+        .errorResponse('parentType and parentId must be passed together.')
     )
-    def search(self, q, mode, types, level, limit, offset):
+    def search(self, q, mode, types, level, limit, offset, parentType, parentId):
         """
         Perform a search using one of the registered search modes.
         """
@@ -56,15 +62,19 @@ class Resource(BaseResource):
         handler = getSearchModeHandler(mode)
         if handler is None:
             raise RestException('Search mode handler %r not found.' % mode)
-        results = handler(
+        if bool(parentType) != bool(parentId):
+            raise RestException('parentType and parentId must be passed together.')
+        return runSearch(
+            handler,
             query=q,
             types=types,
             user=user,
             limit=limit,
             offset=offset,
-            level=level
+            level=level,
+            parentType=parentType or None,
+            parentId=parentId
         )
-        return results
 
     def _validateResourceSet(self, resources, allowedModels=None):
         """
