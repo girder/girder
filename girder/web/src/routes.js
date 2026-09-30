@@ -228,6 +228,8 @@ router.route('user/:id/folder/:id', 'userFolder', function (userId, folderId, pa
 router.route('search/results', 'SearchResults', function (params) {
     events.trigger('g:navigateTo', SearchResultsView, {
         query: params.query,
-        mode: params.mode
+        mode: params.mode,
+        parentType: params.parentType,
+        parentId: params.parentId
     });
 });
