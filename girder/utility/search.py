@@ -3,6 +3,7 @@ from functools import partial
 
 from bson.objectid import ObjectId
 
+from girder import logger
 from girder.constants import AccessType
 from girder.exceptions import GirderException, ValidationException
 from girder.utility.model_importer import ModelImporter
@@ -172,6 +173,12 @@ def _restrictSearchResults(handler, query, types, user, level, limit, offset, bu
             # No new results means the handler is ignoring the offset.
             if (limit and len(kept) >= offset + limit) or returned < batchSize or not batch:
                 break
+        else:
+            logger.warning(
+                'Restricted search stopped after reading %d %s results from %s, so some may be '
+                'missing. The handler can avoid this by accepting a hierarchyPipeline parameter.',
+                FALLBACK_SEARCH_READ_LIMIT, resultType,
+                getattr(handler, '__qualname__', repr(handler)))
         results[resultType] = kept[offset:offset + limit if limit else None]
     return results
 
