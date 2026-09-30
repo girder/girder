@@ -117,13 +117,19 @@ def hierarchySearchPipeline(parentType, parentId, user, resultType='item', prefi
 
 def _keepInHierarchy(docs, resultType, buildPipeline):
     """Keep the documents inside the restricted location, in order."""
-    if not docs:
+    withIds = []
+    for doc in docs:
+        try:
+            withIds.append((doc, ObjectId(doc['_id'])))
+        except Exception:
+            pass
+    if not withIds:
         return []
     inside = {doc['_id'] for doc in ModelImporter.model(resultType).collection.aggregate(
-        [{'$match': {'_id': {'$in': [ObjectId(doc['_id']) for doc in docs]}}}]
+        [{'$match': {'_id': {'$in': [docId for _, docId in withIds]}}}]
         + buildPipeline(resultType=resultType)
         + [{'$project': {'_id': True}}])}
-    return [doc for doc in docs if ObjectId(doc['_id']) in inside]
+    return [doc for doc, docId in withIds if docId in inside]
 
 
 def _restrictSearchResults(handler, query, types, user, level, limit, offset, buildPipeline):
@@ -136,15 +142,21 @@ def _restrictSearchResults(handler, query, types, user, level, limit, offset, bu
         if resultType not in ('folder', 'item'):
             continue
         kept = []
+        seen = set()
         read = 0
         while read < FALLBACK_SEARCH_READ_LIMIT:
             batchSize = min(_FALLBACK_SEARCH_BATCH_SIZE, FALLBACK_SEARCH_READ_LIMIT - read)
             batch = handler(
                 query=query, types=[resultType], user=user, level=level, limit=batchSize,
-                offset=read).get(resultType, [])
-            read += len(batch)
+                offset=read)
+            batch = batch.get(resultType, []) if isinstance(batch, dict) else []
+            returned = len(batch)
+            read += returned
+            batch = [doc for doc in batch if doc.get('_id') not in seen]
+            seen.update(doc.get('_id') for doc in batch)
             kept += _keepInHierarchy(batch, resultType, buildPipeline)
-            if (limit and len(kept) >= offset + limit) or len(batch) < batchSize:
+            # No new results means the handler is ignoring the offset.
+            if (limit and len(kept) >= offset + limit) or returned < batchSize or not batch:
                 break
         results[resultType] = kept[offset:offset + limit if limit else None]
     return results
