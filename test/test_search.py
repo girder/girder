@@ -379,7 +379,7 @@ def _words(admin, model):
 
 @pytest.mark.parametrize('asAdmin', [True, False])
 @pytest.mark.parametrize('model', [Item, Folder])
-@pytest.mark.parametrize('method', ['prefixSearch'])
+@pytest.mark.parametrize('method', ['prefixSearch', 'textSearch'])
 def testSearchWithPipeline(admin, user, asAdmin, model, method):
     # The stages run before paging, so the last match still fills the first page
     _words(admin, model)
