@@ -2,7 +2,7 @@ import itertools
 from collections import abc
 
 from ..constants import TEXT_SCORE_SORT_MAX, AccessType
-from ..exceptions import AccessException
+from ..exceptions import AccessException, GirderException
 from ..models.model_base import _TEXT_SCORE_SORT, AccessControlledModel, Model, _permissionClauses
 from ..utility.model_importer import ModelImporter
 
@@ -183,10 +183,11 @@ class AccessControlMixin:
 
     def prefixSearch(self, query, user=None, filters=None, limit=0, offset=0,
                      sort=None, fields=None, level=AccessType.READ,
-                     prefixSearchFields=None):
+                     prefixSearchFields=None, pipeline=None):
         """
         Custom override of Model.prefixSearch to also force permission-based
-        filtering. The parameters are the same as Model.prefixSearch.
+        filtering. The parameters are the same as Model.prefixSearch, plus
+        ``pipeline``.
 
         :param user: The user to apply permission filtering for.
         :type user: dict or None
@@ -197,7 +198,7 @@ class AccessControlMixin:
 
         return self.findWithPermissions(
             filters, offset=offset, limit=limit, sort=sort, fields=fields,
-            user=user, level=level)
+            user=user, level=level, pipeline=pipeline)
 
     def permissionClauses(self, user=None, level=None, prefix=''):
         return _permissionClauses(user, level, prefix)
@@ -247,7 +248,7 @@ class AccessControlMixin:
 
     def findWithPermissions(self, query=None, offset=0, limit=0, timeout=None, fields=None,
                             sort=None, user=None, level=AccessType.READ, aggregateSort=None,
-                            **kwargs):
+                            pipeline=None, **kwargs):
         """
         Search the collection by a set of parameters, only returning results
         that the combined user and level have permission to access. Passes any
@@ -276,6 +277,10 @@ class AccessControlMixin:
         :param aggregateSort: A sort order to use if `sort` is None and an
             aggregation is used.
         :type aggregateSort: List of (key, order) tuples.
+        :param pipeline: Aggregation stages that further restrict the results,
+            run before sorting and paging.  Not supported when permissions
+            can't be checked in an aggregation.
+        :type pipeline: list or None
         :returns: A pymongo Cursor, CommandCursor, or an iterable.  If a
             CommandCursor, it has been augmented with a count function.
         """
@@ -290,6 +295,10 @@ class AccessControlMixin:
             # attachedToId, since ModelImporter.model(None) will not be an access
             # controlled model.
             if not isinstance(self.parentModel, AccessControlledModel):
+                if pipeline:
+                    raise GirderException(
+                        'Aggregation stages cannot be applied to %s when checking permissions.'
+                        % self.name)
                 return self._findWithPermissionsFallback(
                     query, offset, limit, timeout, fields, sort, user, level,
                     **kwargs)
@@ -304,7 +313,12 @@ class AccessControlMixin:
                     'as': '__parent'
                 }},
                 {'$match': self.permissionClauses(user, level, '__parent.')},
+                *(pipeline or []),
                 {'$project': {'__parent': False}},
             ], offset=offset, limit=limit, timeout=timeout, fields=fields,
                 sort=sort or aggregateSort)
+        if pipeline:
+            return self._findWithPipeline(
+                [{'$match': query or {}}] + pipeline, offset=offset, limit=limit,
+                timeout=timeout, fields=fields, sort=sort or aggregateSort)
         return self.find(query, offset, limit, timeout, fields, sort, **kwargs)
