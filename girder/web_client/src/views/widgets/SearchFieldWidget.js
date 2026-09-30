@@ -1,11 +1,13 @@
 import $ from 'jquery';
 import _ from 'underscore';
+import Backbone from 'backbone';
 // Bootstrap tooltip is required by popover
 import 'bootstrap/js/tooltip';
 import 'bootstrap/js/popover';
 
 import View from '@girder/core/views/View';
 import { restRequest } from '@girder/core/rest';
+import events from '@girder/core/events';
 import router from '@girder/core/router';
 
 import SearchFieldTemplate from '@girder/core/templates/widgets/searchField.pug';
@@ -13,6 +15,47 @@ import SearchHelpTemplate from '@girder/core/templates/widgets/searchHelp.pug';
 import SearchModeSelectTemplate from '@girder/core/templates/widgets/searchModeSelect.pug';
 import SearchResultsTemplate from '@girder/core/templates/widgets/searchResults.pug';
 import '@girder/core/stylesheets/widgets/searchFieldWidget.styl';
+
+/**
+ * The last hierarchy location the user visited, shared by all search fields. Local searches use it
+ * on pages that aren't hierarchy locations, like the search results page.
+ */
+let lastHierarchyParent = null;
+
+/**
+ * Parse a hierarchy location from a route fragment.
+ *
+ * @returns An object with "type" and "id", or null.
+ */
+function parseHierarchyParent(fragment) {
+    const parts = (fragment || '').split('?')[0].split('/');
+    let parent = null;
+
+    for (let i = 0; i + 1 < parts.length; i += 2) {
+        if (!_.contains(['collection', 'folder', 'user'], parts[i]) ||
+                !/^[0-9a-fA-F]{24}$/.test(parts[i + 1])) {
+            return null;
+        }
+        parent = { type: parts[i], id: parts[i + 1] };
+    }
+    return parent;
+}
+
+/**
+ * Remember the current route if it's a hierarchy location, and return the last one.
+ */
+function activeHierarchyParent() {
+    const current = parseHierarchyParent(Backbone.history.fragment);
+    if (current) {
+        lastHierarchyParent = current;
+    }
+    return lastHierarchyParent;
+}
+
+// Browsing the hierarchy updates the route without triggering it, so track it here too.
+events.on('g:hierarchy.route', () => {
+    activeHierarchyParent();
+});
 
 /**
  * This widget provides a text field that will search any set of data types
@@ -25,6 +68,15 @@ var SearchFieldWidget = View.extend({
 
         'click .g-search-mode-radio': function (e) {
             this.currentMode = $(e.target).val();
+            this.hideResults().search();
+
+            window.setTimeout(() => {
+                this.$('.g-search-mode-choose').popover('hide');
+            }, 250);
+        },
+
+        'change .g-search-local-checkbox': function (e) {
+            this.localSearch = $(e.target).prop('checked');
             this.hideResults().search();
 
             window.setTimeout(() => {
@@ -93,6 +145,7 @@ var SearchFieldWidget = View.extend({
      *        via a dropdown.
      * @param [settings.noResultsPage=false] If truthy, don't jump to a results
      *        page if enter is typed with a list of search results.
+     * @param [settings.localSearch=false] If truthy, start with "Search here" checked.
      */
     initialize: function (settings) {
         this.ajaxLock = false;
@@ -116,30 +169,49 @@ var SearchFieldWidget = View.extend({
 
         this.currentMode = this.modes[0];
 
+        // Only offer "Search here" for types that live in the hierarchy.
+        this.localSearchSupported = !_.isEmpty(
+            _.intersection(this.types, SearchFieldWidget.hierarchyTypes));
+        this.localSearch = this.localSearchSupported && !!settings.localSearch;
+
         // Do not change the icon for fast searches, to prevent jitter
         this._animatePending = _.debounce(this._animatePending, 100);
     },
 
-    search: function () {
-        var q = this.$('.g-search-field').val();
+    /**
+     * The location to restrict the search to, or null.
+     */
+    _localSearchParent: function () {
+        const parent = activeHierarchyParent();
+        return this.localSearch ? parent : null;
+    },
 
-        if (!q) {
+    search: function () {
+        var query = this.$('.g-search-field').val();
+
+        if (!query) {
             this.hideResults();
             return this;
         }
 
         if (this.ajaxLock) {
-            this.pending = q;
+            this.pending = query;
         } else {
-            this._doSearch(q);
+            this._doSearch(query);
         }
 
         return this;
     },
 
     _goToResultPage: function (query, mode) {
+        // Get the location first, since the results page isn't a hierarchy location.
+        const parent = this._localSearchParent();
         this.resetState();
-        router.navigate(`#search/results?query=${query}&mode=${mode}`, { trigger: true });
+        let route = `#search/results?query=${query}&mode=${mode}`;
+        if (parent) {
+            route += `&parentType=${parent.type}&parentId=${parent.id}`;
+        }
+        router.navigate(route, { trigger: true });
     },
 
     _resultClicked: function (link) {
@@ -159,7 +231,8 @@ var SearchFieldWidget = View.extend({
         this.$el.html(SearchFieldTemplate({
             placeholder: this.placeholder,
             modes: this.modes,
-            currentMode: this.currentMode
+            currentMode: this.currentMode,
+            localSearchSupported: this.localSearchSupported
         }));
 
         this.$('.g-search-options-button').popover({
@@ -190,7 +263,9 @@ var SearchFieldWidget = View.extend({
                 return SearchModeSelectTemplate({
                     modes: this.modes,
                     currentMode: this.currentMode,
-                    getModeDescription: SearchFieldWidget.getModeDescription
+                    getModeDescription: SearchFieldWidget.getModeDescription,
+                    localSearchSupported: this.localSearchSupported,
+                    localSearch: this.localSearch
                 });
             },
             html: true,
@@ -233,21 +308,28 @@ var SearchFieldWidget = View.extend({
             .toggleClass('icon-spin4 animate-spin', isPending);
     },
 
-    _doSearch: function (q) {
+    _doSearch: function (query) {
         this.ajaxLock = true;
         this.pending = null;
         this._animatePending();
 
+        const data = {
+            q: query,
+            mode: this.currentMode,
+            types: JSON.stringify(_.intersection(
+                this.types,
+                SearchFieldWidget.getModeTypes(this.currentMode))
+            )
+        };
+        const parent = this._localSearchParent();
+        if (parent) {
+            data.parentType = parent.type;
+            data.parentId = parent.id;
+        }
+
         restRequest({
             url: 'resource/search',
-            data: {
-                q: q,
-                mode: this.currentMode,
-                types: JSON.stringify(_.intersection(
-                    this.types,
-                    SearchFieldWidget.getModeTypes(this.currentMode))
-                )
-            }
+            data: data
         }).done((results) => {
             this.ajaxLock = false;
             this._animatePending();
@@ -313,6 +395,11 @@ var SearchFieldWidget = View.extend({
 }, {
     _allowedSearchMode: {},
 
+    /**
+     * The types that "Search here" can restrict.
+     */
+    hierarchyTypes: ['folder', 'item'],
+
     addMode: function (mode, types, description, help) {
         if (_.has(SearchFieldWidget._allowedSearchMode, mode)) {
             throw new Error(`The mode "${mode}" exist already. You can't change it`);
@@ -361,5 +448,4 @@ SearchFieldWidget.addMode(
     `You are searching by prefix.
      Start typing the first letters of whatever you are searching for.`
 );
-
 export default SearchFieldWidget;
