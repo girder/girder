@@ -1,4 +1,3 @@
-import collections
 import itertools
 from collections import abc
 
@@ -297,7 +296,7 @@ class AccessControlMixin:
                     **kwargs)
 
             query = query or {}
-            initialPipeline = [
+            return self._findWithPipeline([
                 {'$match': query},
                 {'$lookup': {
                     'from': self.parentModel.name,
@@ -306,64 +305,7 @@ class AccessControlMixin:
                     'as': '__parent'
                 }},
                 {'$match': self.permissionClauses(user, level, '__parent.')},
-            ]
-            countPipeline = initialPipeline + [
-                {'$count': 'count'},
-            ]
-            fullPipeline = initialPipeline + [
                 {'$project': {'__parent': False}},
-            ]
-            if sort is not None or aggregateSort is not None:
-                fullPipeline.append({'$sort': collections.OrderedDict(sort or aggregateSort)})
-            # limit should immediately follow sort for efficiency
-            if limit:
-                fullPipeline.append({'$limit': limit + (offset or 0)})
-            if offset:
-                fullPipeline.append({'$skip': offset})
-            if fields is not None:
-                # fields can be a Sequence, Set, or Mapping.  If a Mapping, the
-                # values are typically booleans or themselves a mapping (such
-                # as from text search to add a field like _textScore: {$meta:
-                # 'textScore'}).  Convert sequences and sets to mappings (as
-                # done in pymongo), then use values that aren't themselves
-                # mappings as a projection and those that are mappings as
-                # added fields.
-                if isinstance(fields, (abc.Sequence, abc.Set)):
-                    fields = dict.fromkeys(fields, 1)
-                if any(not isinstance(v, abc.Mapping) for v in fields.values()):
-                    fullPipeline.append({'$project': {
-                        k: v for k, v in fields.items()
-                        if not isinstance(v, abc.Mapping)}})
-                if any(isinstance(v, abc.Mapping) for v in fields.values()):
-                    fullPipeline.append({'$addFields': {
-                        k: v for k, v in fields.items()
-                        if isinstance(v, abc.Mapping)}})
-            options = {
-                # By allowing disk use, large sorted queries will work.  If
-                # disallowed, they will fail.  Although this is slower than
-                # memory sorting, actual experiemnts show it to be acceptable
-                'allowDiskUse': True,
-                # Start with a 0-sized batch.  This avoids fetching data from
-                # the Mongo server if the query is never polled and starts
-                # streaming data faster than a fixed batch size.
-                'cursor': {'batchSize': 0}
-            }
-            if timeout:
-                options['maxTimeMS'] = timeout
-            result = self.collection.aggregate(fullPipeline, **options)
-
-            def count():
-                try:
-                    return next(iter(self.collection.aggregate(countPipeline, **options)))['count']
-                except StopIteration:
-                    # If there are no values, this won't return the count, in
-                    # which case it is zero.
-                    return 0
-
-            result.count = count
-            # Mark that this result came from an aggregate.  If an aggregate
-            # is used, the results could be sorted via the aggregateSort
-            # parameter.  This informs the consumer of the result.
-            result.fromAggregate = True
-            return result
+            ], offset=offset, limit=limit, timeout=timeout, fields=fields,
+                sort=sort or aggregateSort)
         return self.find(query, offset, limit, timeout, fields, sort, **kwargs)
