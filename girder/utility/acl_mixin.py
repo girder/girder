@@ -3,7 +3,7 @@ from collections import abc
 
 from ..constants import TEXT_SCORE_SORT_MAX, AccessType
 from ..exceptions import AccessException
-from ..models.model_base import AccessControlledModel, Model, _permissionClauses
+from ..models.model_base import _TEXT_SCORE_SORT, AccessControlledModel, Model, _permissionClauses
 from ..utility.model_importer import ModelImporter
 
 
@@ -170,15 +170,14 @@ class AccessControlMixin:
     def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
                    sort=None, fields=None, level=AccessType.READ):
         filters, fields = self._textSearchFilters(query, filters, fields)
-        defaultSort = [('_textScore', {'$meta': 'textScore'})]
         cursor = self.findWithPermissions(
             filters, offset=offset, limit=limit, sort=sort, fields=fields,
-            user=user, level=level, aggregateSort=defaultSort)
+            user=user, level=level, aggregateSort=_TEXT_SCORE_SORT)
         if (sort is None and not getattr(cursor, 'fromAggregate', False)
                 and callable(getattr(cursor, 'count', None))
                 and cursor.count() < TEXT_SCORE_SORT_MAX):
             cursor = self.findWithPermissions(
-                filters, offset=offset, limit=limit, sort=defaultSort, fields=fields,
+                filters, offset=offset, limit=limit, sort=_TEXT_SCORE_SORT, fields=fields,
                 user=user, level=level)
         return cursor
 

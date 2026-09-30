@@ -344,3 +344,24 @@ def testSearchUnrestrictedPluginModeUnchanged(server, scans, admin, pluginSearch
     assertStatusOk(resp)
     assert len(resp.json['item']) == 10
     assert pluginSearchModes == [{}]
+
+
+@pytest.mark.parametrize('asAdmin', [True, False])
+@pytest.mark.parametrize('resultType', ['item', 'folder'])
+def testTextSearchPagingWithTiedScores(server, admin, user, asAdmin, resultType):
+    # Every result scores the same, so pages rely on the _id tie-breaker
+    coll = Collection().createCollection('ties', creator=admin, public=True)
+    parent = Folder().createFolder(coll, 'parent', parentType='collection', creator=admin)
+    for i in range(9):
+        if resultType == 'item':
+            Item().createItem('tie-%d' % i, creator=admin, folder=parent)
+        else:
+            Folder().createFolder(parent, 'tie-%d' % i, creator=admin)
+    names = []
+    for offset in range(0, 10, 2):
+        resp = server.request(path='/resource/search', user=admin if asAdmin else user, params={
+            'q': 'tie', 'mode': 'text', 'types': json.dumps([resultType]), 'limit': 2,
+            'offset': offset})
+        assertStatusOk(resp)
+        names += [doc['name'] for doc in resp.json[resultType]]
+    assert sorted(names) == ['tie-%d' % i for i in range(9)]
