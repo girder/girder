@@ -229,7 +229,8 @@ def runSearch(handler, query, types, user, level, limit, offset, parentType=None
     return results
 
 
-def _commonSearchModeHandler(mode, query, types, user, level, limit, offset):
+def _commonSearchModeHandler(mode, query, types, user, level, limit, offset,
+                             hierarchyPipeline=None):
     """
     The common handler for `text` and `prefix` search modes.
     """
@@ -243,6 +244,12 @@ def _commonSearchModeHandler(mode, query, types, user, level, limit, offset):
         if modelName not in allowedSearchTypes:
             continue
 
+        kwargs = {}
+        if hierarchyPipeline is not None:
+            if modelName not in ('folder', 'item'):
+                continue
+            kwargs['pipeline'] = hierarchyPipeline(resultType=modelName)
+
         if '.' in modelName:
             name, plugin = modelName.rsplit('.', 1)
             model = ModelImporter.model(name, plugin)
@@ -252,7 +259,7 @@ def _commonSearchModeHandler(mode, query, types, user, level, limit, offset):
         if model is not None:
             results[modelName] = [
                 model.filter(d, user) for d in getattr(model, method)(
-                    query=query, user=user, limit=limit, offset=offset, level=level)
+                    query=query, user=user, limit=limit, offset=offset, level=level, **kwargs)
             ]
     return results
 

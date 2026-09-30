@@ -199,7 +199,7 @@ def pluginSearchModes(monkeypatch):
     search.removeSearchMode('kwargsPrefix')
 
 
-ALL_MODES = ['plainPrefix', 'kwargsPrefix']
+ALL_MODES = ['prefix', 'text', 'plainPrefix', 'kwargsPrefix']
 
 
 def _search(server, user, parent, mode, parentType='folder', types=('item',), **params):
