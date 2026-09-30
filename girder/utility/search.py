@@ -1,6 +1,9 @@
 from functools import partial
 
-from girder.exceptions import GirderException
+from bson.objectid import ObjectId
+
+from girder.constants import AccessType
+from girder.exceptions import GirderException, ValidationException
 from girder.utility.model_importer import ModelImporter
 
 _allowedSearchMode = {}
@@ -48,6 +51,64 @@ def removeSearchMode(mode):
     :rtype: bool
     """
     return _allowedSearchMode.pop(mode, None) is not None
+
+
+def hierarchySearchPipeline(parentType, parentId, user, resultType='item', prefix=''):
+    """
+    Build aggregation stages that restrict a search to part of the hierarchy.
+
+    For a folder, this walks up from each document to its ancestors, so the cost doesn't grow with
+    the size of the subtree. Add the stages after the search's own match and before paging.
+
+    :param parentType: One of 'collection', 'folder', or 'user'.
+    :type parentType: str
+    :param parentId: The id of the resource to search within.
+    :param user: The user performing the search, for access checks.
+    :param resultType: The kind of document being restricted, either 'item' or 'folder'.
+    :type resultType: str
+    :param prefix: Prefix for the keys of the documents being restricted.
+    :type prefix: str
+    :returns: A list of pipeline stages.
+    :rtype: list
+    """
+    # Avoid circular import
+    from girder.models.folder import Folder
+
+    if parentType not in ('collection', 'folder', 'user'):
+        raise ValidationException('Invalid parentType.', field='parentType')
+    if resultType not in ('item', 'folder'):
+        raise ValidationException('Invalid resultType.', field='resultType')
+    try:
+        parentId = ObjectId(parentId)
+    except Exception:
+        raise ValidationException('Invalid parentId.', field='parentId')
+
+    if parentType != 'folder':
+        # Documents record the collection or user at the root of their tree.
+        return [{'$match': {
+            prefix + 'baseParentType': parentType,
+            prefix + 'baseParentId': parentId,
+        }}]
+
+    folder = Folder().load(parentId, user=user, level=AccessType.READ, exc=True)
+    return [
+        # Skip the walk for documents under a different root.
+        {'$match': {
+            prefix + 'baseParentType': folder['baseParentType'],
+            prefix + 'baseParentId': folder['baseParentId'],
+        }},
+        # Items start at their own folder and folders at their parent, so a folder isn't its own
+        # result.
+        {'$graphLookup': {
+            'from': Folder().name,
+            'startWith': '$' + prefix + ('folderId' if resultType == 'item' else 'parentId'),
+            'connectToField': '_id',
+            'connectFromField': 'parentId',
+            'as': '_hierarchyAncestors',
+        }},
+        {'$match': {'_hierarchyAncestors._id': folder['_id']}},
+        {'$project': {'_hierarchyAncestors': False}},
+    ]
 
 
 def _commonSearchModeHandler(mode, query, types, user, level, limit, offset):
