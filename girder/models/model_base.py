@@ -28,6 +28,9 @@ if 'GIRDER_MAX_CURSOR_TIMEOUT_MS' in os.environ:
 else:
     _MAX_CURSOR_TIMEOUT_MS = None
 
+# Break ties by _id, so pages don't repeat or skip results with equal scores.
+_TEXT_SCORE_SORT = [('_textScore', {'$meta': 'textScore'}), ('_id', 1)]
+
 
 def _permissionClauses(user=None, level=None, prefix=''):
     """
@@ -482,7 +485,7 @@ class Model(metaclass=_ModelSingleton):
         # threshold. The text score is not a real index, so we cannot always
         # sort by it if there is a high number of matching documents.
         if sort is None and cursor.count() < TEXT_SCORE_SORT_MAX:
-            cursor.sort([('_textScore', {'$meta': 'textScore'})])
+            cursor.sort(_TEXT_SCORE_SORT)
 
         return cursor
 
@@ -1639,7 +1642,7 @@ class AccessControlledModel(Model):
         # threshold. The text score is not a real index, so we cannot always
         # sort by it if there is a high number of matching documents.
         if sort is None and cursor.count() < TEXT_SCORE_SORT_MAX:
-            cursor.sort([('_textScore', {'$meta': 'textScore'})])
+            cursor.sort(_TEXT_SCORE_SORT)
 
         return cursor
 
