@@ -327,10 +327,15 @@ var SearchFieldWidget = View.extend({
             data.parentId = parent.id;
         }
 
-        restRequest({
+        const request = {
             url: 'resource/search',
             data: data
-        }).done((results) => {
+        };
+        if (parent) {
+            // Handle errors below, rather than alerting on every keystroke.
+            request.error = null;
+        }
+        restRequest(request).done((results) => {
             this.ajaxLock = false;
             this._animatePending();
 
@@ -396,6 +401,14 @@ var SearchFieldWidget = View.extend({
 
             if (this.pending) {
                 this._doSearch(this.pending);
+            } else if (parent && this.$('.g-search-field').val()) {
+                // The location may be gone, or no longer accessible, so stop searching it.
+                lastHierarchyParent = null;
+                this.$('.g-search-results>ul').html(SearchResultsTemplate({
+                    results: [],
+                    message: 'Can\'t search here'
+                }));
+                this.$('.dropdown').addClass('open');
             }
         });
     }
