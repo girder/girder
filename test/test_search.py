@@ -265,6 +265,20 @@ def testSearchRestrictedToInaccessibleFolder(server, scans, user, mode):
     assertStatus(resp, 403)
 
 
+@pytest.mark.parametrize('readLimit,expected', [
+    # The six items outside the folder come first, so reading only four finds nothing
+    (4, set()),
+    # Reading eight finds only the first two inside
+    (8, {'scan-here-0', 'scan-here-1'}),
+    (search.FALLBACK_SEARCH_READ_LIMIT,
+     {'scan-here-0', 'scan-here-1', 'scan-here-2', 'scan-private'}),
+])
+def testSearchFallbackReadLimit(server, scans, admin, monkeypatch, readLimit, expected):
+    monkeypatch.setattr(search, 'FALLBACK_SEARCH_READ_LIMIT', readLimit)
+    results = _search(server, admin, scans['inside'], 'plainPrefix')
+    assert set(results['item']) == expected
+
+
 def testSearchUnrestrictedPluginModeUnchanged(server, scans, admin, pluginSearchModes):
     resp = server.request(path='/resource/search', user=admin, params={
         'q': 'scan', 'mode': 'kwargsPrefix', 'types': json.dumps(['item']), 'limit': 20})
