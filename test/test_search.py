@@ -279,6 +279,41 @@ def testSearchFallbackReadLimit(server, scans, admin, monkeypatch, readLimit, ex
     assert set(results['item']) == expected
 
 
+def testSearchFallbackUnexpectedResults(server, scans, admin):
+    search.addSearchMode('listSearch', lambda query, types, user, level, limit, offset: [])
+    try:
+        results = _search(server, admin, scans['inside'], 'listSearch', types=('item', 'folder'))
+    finally:
+        search.removeSearchMode('listSearch')
+    assert results == {'item': [], 'folder': []}
+
+
+def testSearchFallbackOverlappingBatches(scans, admin):
+    # A batch that repeats an earlier result isn't mistaken for the handler running out.
+    docs = list(Item().find({'name': {'$regex': '^scan-'}}, sort=[('name', 1)]))
+
+    def handler(query, types, user, level, limit, offset):
+        page = docs[offset:offset + limit]
+        return {'item': docs[:1] + page[1:] if offset == 3 else page}
+
+    results = search.runSearch(
+        handler, 'scan', ['item'], admin, AccessType.READ, 10, 0, 'folder', scans['inside']['_id'])
+    assert {doc['name'] for doc in results['item']} == {
+        'scan-here-0', 'scan-here-1', 'scan-here-2', 'scan-private'}
+
+
+def testSearchFallbackUnusableIds(scans, admin):
+    # Results without a valid _id are dropped
+    inside = list(Item().find({'folderId': scans['inside']['_id']}))
+
+    def handler(query, types, user, level, limit, offset):
+        return {'item': [] if offset else [{'_id': 'not-an-id'}, {'name': 'no id'}] + inside}
+
+    results = search.runSearch(
+        handler, 'scan', ['item'], admin, AccessType.READ, 10, 0, 'folder', scans['inside']['_id'])
+    assert {doc['name'] for doc in results['item']} == {'scan-here-0', 'scan-here-1', 'scan-here-2'}
+
+
 def testSearchUnrestrictedPluginModeUnchanged(server, scans, admin, pluginSearchModes):
     resp = server.request(path='/resource/search', user=admin, params={
         'q': 'scan', 'mode': 'kwargsPrefix', 'types': json.dumps(['item']), 'limit': 20})
