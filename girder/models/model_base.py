@@ -1,9 +1,11 @@
+import collections
 import copy
 import functools
 import itertools
 import os
 import pymongo
 import re
+from collections import abc
 
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
@@ -25,6 +27,9 @@ if 'GIRDER_MAX_CURSOR_TIMEOUT_MS' in os.environ:
     _MAX_CURSOR_TIMEOUT_MS = int(os.environ['GIRDER_MAX_CURSOR_TIMEOUT_MS'])
 else:
     _MAX_CURSOR_TIMEOUT_MS = None
+
+# Break ties by _id, so pages don't repeat or skip results with equal scores.
+_TEXT_SCORE_SORT = [('_textScore', {'$meta': 'textScore'}), ('_id', 1)]
 
 
 def _permissionClauses(user=None, level=None, prefix=''):
@@ -342,6 +347,73 @@ class Model(metaclass=_ModelSingleton):
 
         return cursor
 
+    def _findWithPipeline(self, pipeline, offset=0, limit=0, timeout=None, fields=None,
+                          sort=None):
+        """
+        Select documents with aggregation stages, then sort, page, and project
+        them as find() would.
+
+        :param pipeline: The stages that select the documents.
+        :type pipeline: list
+        :returns: A pymongo CommandCursor with a count function.
+        """
+        fullPipeline = list(pipeline)
+        if sort is not None:
+            fullPipeline.append({'$sort': collections.OrderedDict(sort)})
+        # limit should immediately follow sort for efficiency
+        if limit:
+            fullPipeline.append({'$limit': limit + (offset or 0)})
+        if offset:
+            fullPipeline.append({'$skip': offset})
+        if fields is not None:
+            # fields can be a str, Sequence, Set, or Mapping.  If a Mapping, the
+            # values are typically booleans or themselves a mapping (such as
+            # from text search to add a field like _textScore: {$meta:
+            # 'textScore'}).  Convert the others to mappings (as done in
+            # pymongo), then use values that aren't themselves mappings as a
+            # projection and those that are mappings as added fields.
+            if isinstance(fields, str):
+                fields = {fields: 1}
+            elif isinstance(fields, (abc.Sequence, abc.Set)):
+                fields = dict.fromkeys(fields, 1)
+            if any(not isinstance(v, abc.Mapping) for v in fields.values()):
+                fullPipeline.append({'$project': {
+                    k: v for k, v in fields.items()
+                    if not isinstance(v, abc.Mapping)}})
+            if any(isinstance(v, abc.Mapping) for v in fields.values()):
+                fullPipeline.append({'$addFields': {
+                    k: v for k, v in fields.items()
+                    if isinstance(v, abc.Mapping)}})
+        options = {
+            # By allowing disk use, large sorted queries will work.  If
+            # disallowed, they will fail.  Although this is slower than
+            # memory sorting, actual experiemnts show it to be acceptable
+            'allowDiskUse': True,
+            # Start with a 0-sized batch.  This avoids fetching data from
+            # the Mongo server if the query is never polled and starts
+            # streaming data faster than a fixed batch size.
+            'cursor': {'batchSize': 0}
+        }
+        if timeout:
+            options['maxTimeMS'] = timeout
+        result = self.collection.aggregate(fullPipeline, **options)
+        countPipeline = list(pipeline) + [{'$count': 'count'}]
+
+        def count():
+            try:
+                return next(iter(self.collection.aggregate(countPipeline, **options)))['count']
+            except StopIteration:
+                # If there are no values, this won't return the count, in
+                # which case it is zero.
+                return 0
+
+        result.count = count
+        # Mark that this result came from an aggregate.  If an aggregate
+        # is used, the results could be sorted via the aggregateSort
+        # parameter.  This informs the consumer of the result.
+        result.fromAggregate = True
+        return result
+
     def findOne(self, query=None, fields=None, sort=None, **kwargs):
         """
         Search the collection by a set of parameters. Passes any kwargs
@@ -419,7 +491,7 @@ class Model(metaclass=_ModelSingleton):
         # threshold. The text score is not a real index, so we cannot always
         # sort by it if there is a high number of matching documents.
         if sort is None and cursor.count() < TEXT_SCORE_SORT_MAX:
-            cursor.sort([('_textScore', {'$meta': 'textScore'})])
+            cursor.sort(_TEXT_SCORE_SORT)
 
         return cursor
 
@@ -1549,10 +1621,11 @@ class AccessControlledModel(Model):
             yield result
 
     def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                   sort=None, fields=None, level=AccessType.READ):
+                   sort=None, fields=None, level=AccessType.READ, pipeline=None):
         """
         Custom override of Model.textSearch to also force permission-based
-        filtering. The parameters are the same as Model.textSearch.
+        filtering. The parameters are the same as Model.textSearch, plus
+        ``pipeline``.
 
         :param query: The text query. Will be stemmed internally.
         :type query: str
@@ -1574,8 +1647,16 @@ class AccessControlledModel(Model):
         :type fields: `str, list, set, or tuple`
         :param level: The access level to require.
         :type level: girder.constants.AccessType
+        :param pipeline: Aggregation stages that further restrict the results.
+        :type pipeline: list or None
         """
         filters, fields = self._textSearchFilters(query, filters, fields)
+
+        if pipeline:
+            # Sort in the pipeline, as AccessControlMixin.textSearch does.
+            return self.findWithPermissions(
+                filters, offset=offset, limit=limit, fields=fields, user=user, level=level,
+                sort=sort or _TEXT_SCORE_SORT, pipeline=pipeline)
 
         cursor = self.findWithPermissions(
             filters, offset=offset, limit=limit, sort=sort, fields=fields,
@@ -1585,15 +1666,17 @@ class AccessControlledModel(Model):
         # threshold. The text score is not a real index, so we cannot always
         # sort by it if there is a high number of matching documents.
         if sort is None and cursor.count() < TEXT_SCORE_SORT_MAX:
-            cursor.sort([('_textScore', {'$meta': 'textScore'})])
+            cursor.sort(_TEXT_SCORE_SORT)
 
         return cursor
 
     def prefixSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                     sort=None, fields=None, level=AccessType.READ, prefixSearchFields=None):
+                     sort=None, fields=None, level=AccessType.READ, prefixSearchFields=None,
+                     pipeline=None):
         """
         Custom override of Model.prefixSearch to also force permission-based
-        filtering. The parameters are the same as Model.prefixSearch.
+        filtering. The parameters are the same as Model.prefixSearch, plus
+        ``pipeline``.
 
         :param query: The prefix string to look for
         :type query: str
@@ -1617,6 +1700,8 @@ class AccessControlledModel(Model):
         :type level: girder.constants.AccessType
         :param prefixSearchFields: To override the model's prefixSearchFields
             attribute for this invocation, pass an alternate iterable.
+        :param pipeline: Aggregation stages that further restrict the results.
+        :type pipeline: list or None
         :returns: A pymongo cursor. It is left to the caller to build the
             results from the cursor.
         """
@@ -1624,13 +1709,14 @@ class AccessControlledModel(Model):
 
         return self.findWithPermissions(
             filters, offset=offset, limit=limit, sort=sort, fields=fields,
-            user=user, level=level)
+            user=user, level=level, pipeline=pipeline)
 
     def permissionClauses(self, user=None, level=None, prefix=''):
         return _permissionClauses(user, level, prefix)
 
     def findWithPermissions(self, query=None, offset=0, limit=0, timeout=None, fields=None,
-                            sort=None, user=None, level=AccessType.READ, **kwargs):
+                            sort=None, user=None, level=AccessType.READ, pipeline=None,
+                            **kwargs):
         """
         Search the collection by a set of parameters, only returning results
         that the combined user and level have permission to access. Passes any
@@ -1658,11 +1744,18 @@ class AccessControlledModel(Model):
         :param level: The access level.  Explicitly passing None skips doing
             permissions checks.
         :type level: AccessType
+        :param pipeline: Aggregation stages that further restrict the results,
+            run before sorting and paging.
+        :type pipeline: list or None
         :returns: A pymongo Cursor or CommandCursor.  If a CommandCursor, it
             has been augmented with a count function.
         """
         if level is not None and (not user or not user['admin']):
             query = {'$and': [query or {}, self.permissionClauses(user, level)]}
+        if pipeline:
+            return self._findWithPipeline(
+                [{'$match': query or {}}] + pipeline, offset=offset, limit=limit,
+                timeout=timeout, fields=fields, sort=sort)
         return self.find(
             query=query, offset=offset, limit=limit, timeout=timeout,
             fields=fields, sort=sort, **kwargs)
