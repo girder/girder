@@ -387,3 +387,11 @@ def testSearchWithPipeline(admin, user, asAdmin, model, method):
         'word', user=admin if asAdmin else user, limit=1,
         pipeline=[{'$match': {'name': 'word-2'}}])
     assert [doc['name'] for doc in docs] == ['word-2']
+
+
+def testSearchLoadsLocationOncePerType(server, scans, admin):
+    # The fallback reads several batches, but the folder is loaded once per result type
+    with mock.patch.object(Folder, 'load', autospec=True, side_effect=Folder.load) as load:
+        _search(server, admin, scans['inside'], 'plainPrefix', types=('item', 'folder'))
+    loads = [call for call in load.call_args_list if call.args[1] == scans['inside']['_id']]
+    assert len(loads) == 2

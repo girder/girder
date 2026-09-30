@@ -1,3 +1,4 @@
+import copy
 import inspect
 from functools import partial
 
@@ -205,7 +206,15 @@ def runSearch(handler, query, types, user, level, limit, offset, parentType=None
         return handler(
             query=query, types=types, user=user, level=level, limit=limit, offset=offset)
 
-    buildPipeline = partial(hierarchySearchPipeline, parentType, parentId, user)
+    stages = {}
+
+    def buildPipeline(resultType='item', prefix=''):
+        # Build each result type's stages once, rather than for every batch.
+        if (resultType, prefix) not in stages:
+            stages[resultType, prefix] = hierarchySearchPipeline(
+                parentType, parentId, user, resultType, prefix)
+        return copy.deepcopy(stages[resultType, prefix])
+
     # Validate the location and check access, even if no types can be restricted.
     buildPipeline()
 
