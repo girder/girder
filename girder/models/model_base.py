@@ -357,14 +357,15 @@ class Model(metaclass=_ModelSingleton):
         if offset:
             fullPipeline.append({'$skip': offset})
         if fields is not None:
-            # fields can be a Sequence, Set, or Mapping.  If a Mapping, the
-            # values are typically booleans or themselves a mapping (such
-            # as from text search to add a field like _textScore: {$meta:
-            # 'textScore'}).  Convert sequences and sets to mappings (as
-            # done in pymongo), then use values that aren't themselves
-            # mappings as a projection and those that are mappings as
-            # added fields.
-            if isinstance(fields, (abc.Sequence, abc.Set)):
+            # fields can be a str, Sequence, Set, or Mapping.  If a Mapping, the
+            # values are typically booleans or themselves a mapping (such as
+            # from text search to add a field like _textScore: {$meta:
+            # 'textScore'}).  Convert the others to mappings (as done in
+            # pymongo), then use values that aren't themselves mappings as a
+            # projection and those that are mappings as added fields.
+            if isinstance(fields, str):
+                fields = {fields: 1}
+            elif isinstance(fields, (abc.Sequence, abc.Set)):
                 fields = dict.fromkeys(fields, 1)
             if any(not isinstance(v, abc.Mapping) for v in fields.values()):
                 fullPipeline.append({'$project': {
