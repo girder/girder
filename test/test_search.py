@@ -365,3 +365,25 @@ def testTextSearchPagingWithTiedScores(server, admin, user, asAdmin, resultType)
         assertStatusOk(resp)
         names += [doc['name'] for doc in resp.json[resultType]]
     assert sorted(names) == ['tie-%d' % i for i in range(9)]
+
+
+def _words(admin, model):
+    coll = Collection().createCollection('words', creator=admin, public=True)
+    parent = Folder().createFolder(coll, 'parent', parentType='collection', creator=admin)
+    for i in range(3):
+        if model is Item:
+            Item().createItem('word-%d' % i, creator=admin, folder=parent)
+        else:
+            Folder().createFolder(parent, 'word-%d' % i, creator=admin)
+
+
+@pytest.mark.parametrize('asAdmin', [True, False])
+@pytest.mark.parametrize('model', [Item, Folder])
+@pytest.mark.parametrize('method', ['prefixSearch'])
+def testSearchWithPipeline(admin, user, asAdmin, model, method):
+    # The stages run before paging, so the last match still fills the first page
+    _words(admin, model)
+    docs = getattr(model(), method)(
+        'word', user=admin if asAdmin else user, limit=1,
+        pipeline=[{'$match': {'name': 'word-2'}}])
+    assert [doc['name'] for doc in docs] == ['word-2']

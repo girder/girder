@@ -1647,10 +1647,12 @@ class AccessControlledModel(Model):
         return cursor
 
     def prefixSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                     sort=None, fields=None, level=AccessType.READ, prefixSearchFields=None):
+                     sort=None, fields=None, level=AccessType.READ, prefixSearchFields=None,
+                     pipeline=None):
         """
         Custom override of Model.prefixSearch to also force permission-based
-        filtering. The parameters are the same as Model.prefixSearch.
+        filtering. The parameters are the same as Model.prefixSearch, plus
+        ``pipeline``.
 
         :param query: The prefix string to look for
         :type query: str
@@ -1674,6 +1676,8 @@ class AccessControlledModel(Model):
         :type level: girder.constants.AccessType
         :param prefixSearchFields: To override the model's prefixSearchFields
             attribute for this invocation, pass an alternate iterable.
+        :param pipeline: Aggregation stages that further restrict the results.
+        :type pipeline: list or None
         :returns: A pymongo cursor. It is left to the caller to build the
             results from the cursor.
         """
@@ -1681,13 +1685,14 @@ class AccessControlledModel(Model):
 
         return self.findWithPermissions(
             filters, offset=offset, limit=limit, sort=sort, fields=fields,
-            user=user, level=level)
+            user=user, level=level, pipeline=pipeline)
 
     def permissionClauses(self, user=None, level=None, prefix=''):
         return _permissionClauses(user, level, prefix)
 
     def findWithPermissions(self, query=None, offset=0, limit=0, timeout=None, fields=None,
-                            sort=None, user=None, level=AccessType.READ, **kwargs):
+                            sort=None, user=None, level=AccessType.READ, pipeline=None,
+                            **kwargs):
         """
         Search the collection by a set of parameters, only returning results
         that the combined user and level have permission to access. Passes any
@@ -1715,11 +1720,18 @@ class AccessControlledModel(Model):
         :param level: The access level.  Explicitly passing None skips doing
             permissions checks.
         :type level: AccessType
+        :param pipeline: Aggregation stages that further restrict the results,
+            run before sorting and paging.
+        :type pipeline: list or None
         :returns: A pymongo Cursor or CommandCursor.  If a CommandCursor, it
             has been augmented with a count function.
         """
         if level is not None and (not user or not user['admin']):
             query = {'$and': [query or {}, self.permissionClauses(user, level)]}
+        if pipeline:
+            return self._findWithPipeline(
+                [{'$match': query or {}}] + pipeline, offset=offset, limit=limit,
+                timeout=timeout, fields=fields, sort=sort)
         return self.find(
             query=query, offset=offset, limit=limit, timeout=timeout,
             fields=fields, sort=sort, **kwargs)
