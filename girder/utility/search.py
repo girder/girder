@@ -8,6 +8,8 @@ from girder.utility.model_importer import ModelImporter
 
 _allowedSearchMode = {}
 
+_FALLBACK_SEARCH_BATCH_SIZE = 100
+
 
 def getSearchModeHandler(mode):
     """
@@ -109,6 +111,73 @@ def hierarchySearchPipeline(parentType, parentId, user, resultType='item', prefi
         {'$match': {'_hierarchyAncestors._id': folder['_id']}},
         {'$project': {'_hierarchyAncestors': False}},
     ]
+
+
+def _keepInHierarchy(docs, resultType, buildPipeline):
+    """Keep the documents inside the restricted location, in order."""
+    if not docs:
+        return []
+    inside = {doc['_id'] for doc in ModelImporter.model(resultType).collection.aggregate(
+        [{'$match': {'_id': {'$in': [ObjectId(doc['_id']) for doc in docs]}}}]
+        + buildPipeline(resultType=resultType)
+        + [{'$project': {'_id': True}}])}
+    return [doc for doc in docs if ObjectId(doc['_id']) in inside]
+
+
+def _restrictSearchResults(handler, query, types, user, level, limit, offset, buildPipeline):
+    """
+    Restrict the results of a handler that doesn't restrict its own query, by reading them in
+    batches.
+    """
+    results = {}
+    for resultType in types:
+        if resultType not in ('folder', 'item'):
+            continue
+        kept = []
+        read = 0
+        while True:
+            batch = handler(
+                query=query, types=[resultType], user=user, level=level,
+                limit=_FALLBACK_SEARCH_BATCH_SIZE, offset=read).get(resultType, [])
+            read += len(batch)
+            kept += _keepInHierarchy(batch, resultType, buildPipeline)
+            if (limit and len(kept) >= offset + limit) or len(batch) < _FALLBACK_SEARCH_BATCH_SIZE:
+                break
+        results[resultType] = kept[offset:offset + limit if limit else None]
+    return results
+
+
+def runSearch(handler, query, types, user, level, limit, offset, parentType=None,
+              parentId=None):
+    """
+    Run a search, optionally restricted to part of the hierarchy.
+
+    A restricted search returns only folders and items. The handler's results are restricted
+    after it runs.
+
+    :param handler: A search mode handler function.
+    :type handler: function
+    :param parentType: One of 'collection', 'folder', or 'user', or None to search everywhere.
+    :type parentType: str or None
+    :param parentId: The id of the resource to search within.
+    :returns: The search results, keyed by type.
+    :rtype: dict
+    """
+    if parentType is None:
+        return handler(
+            query=query, types=types, user=user, level=level, limit=limit, offset=offset)
+
+    buildPipeline = partial(hierarchySearchPipeline, parentType, parentId, user)
+    # Validate the location and check access, even if no types can be restricted.
+    buildPipeline()
+
+    results = _restrictSearchResults(
+        handler, query, types, user, level, limit, offset, buildPipeline)
+
+    # Other types can't be inside the hierarchy.
+    for resultType in types:
+        results.setdefault(resultType, [])
+    return results
 
 
 def _commonSearchModeHandler(mode, query, types, user, level, limit, offset):

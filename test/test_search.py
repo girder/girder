@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from girder.constants import AccessType
@@ -5,7 +7,9 @@ from girder.exceptions import AccessException, ValidationException
 from girder.models.collection import Collection
 from girder.models.folder import Folder
 from girder.models.item import Item
+from girder.utility import search
 from girder.utility.search import hierarchySearchPipeline
+from pytest_girder.assertions import assertStatus, assertStatusOk
 
 
 @pytest.fixture
@@ -139,3 +143,131 @@ def testRestrictInvalidResultType(admin):
         hierarchySearchPipeline(
             'collection', 'aaaaaaaaaaaaaaaaaaaaaaaa', admin, resultType='annotation')
     assert exc.value.field == 'resultType'
+
+
+@pytest.fixture
+def scans(admin):
+    """
+    Matches for "scan", mostly outside the folder being searched::
+
+        collection "scans"
+        |-- outside
+        │   |-- (items) scan-away-0...scan-away-5
+        |-- inside
+            |-- (items) scan-here-0...scan-here-2
+            |-- scan-folder
+            |-- private
+                |-- (item) scan-private
+
+    The items outside come first, both by creation order and by name.
+    """
+    coll = Collection().createCollection('scans', creator=admin, public=True)
+    outside = Folder().createFolder(coll, 'outside', parentType='collection', creator=admin)
+    inside = Folder().createFolder(coll, 'inside', parentType='collection', creator=admin)
+    for i in range(6):
+        Item().createItem('scan-away-%d' % i, creator=admin, folder=outside)
+    for i in range(3):
+        Item().createItem('scan-here-%d' % i, creator=admin, folder=inside)
+    Folder().createFolder(inside, 'scan-folder', creator=admin)
+    private = Folder().createFolder(inside, 'private', creator=admin, public=False)
+    Item().createItem('scan-private', creator=admin, folder=private)
+    yield {'coll': coll, 'outside': outside, 'inside': inside, 'private': private}
+
+
+def _unrestrictedPrefixSearch(query, types, user, level, limit, offset):
+    return search._commonSearchModeHandler('prefix', query, types, user, level, limit, offset)
+
+
+@pytest.fixture(autouse=True)
+def pluginSearchModes(monkeypatch):
+    """Plugin-like search modes that don't restrict their own queries, read in small batches."""
+    calls = []
+
+    def plainHandler(query, types, user, level, limit, offset):
+        return _unrestrictedPrefixSearch(query, types, user, level, limit, offset)
+
+    def kwargsHandler(query, types, user, level, limit, offset, **kwargs):
+        calls.append(kwargs)
+        return _unrestrictedPrefixSearch(query, types, user, level, limit, offset)
+
+    monkeypatch.setattr(search, '_FALLBACK_SEARCH_BATCH_SIZE', 3)
+    search.addSearchMode('plainPrefix', plainHandler)
+    search.addSearchMode('kwargsPrefix', kwargsHandler)
+    yield calls
+    search.removeSearchMode('plainPrefix')
+    search.removeSearchMode('kwargsPrefix')
+
+
+ALL_MODES = ['plainPrefix', 'kwargsPrefix']
+
+
+def _search(server, user, parent, mode, parentType='folder', types=('item',), **params):
+    resp = server.request(path='/resource/search', user=user, params={
+        'q': 'scan', 'mode': mode, 'types': json.dumps(list(types)),
+        'parentType': parentType, 'parentId': str(parent['_id']), **params})
+    assertStatusOk(resp)
+    return {type: [doc['name'] for doc in docs] for type, docs in resp.json.items()}
+
+
+@pytest.mark.parametrize('mode', ALL_MODES)
+@pytest.mark.parametrize('asAdmin', [True, False])
+def testSearchRestrictedToFolder(server, scans, admin, user, asAdmin, mode):
+    results = _search(
+        server, admin if asAdmin else user, scans['inside'], mode,
+        types=('item', 'folder'))
+    expected = {'scan-here-0', 'scan-here-1', 'scan-here-2'}
+    if asAdmin:
+        expected.add('scan-private')
+    assert set(results['item']) == expected
+    assert results['folder'] == ['scan-folder']
+
+
+@pytest.mark.parametrize('mode', ALL_MODES)
+@pytest.mark.parametrize('asAdmin', [True, False])
+def testSearchRestrictedPaging(server, scans, admin, user, asAdmin, mode):
+    # Restricting happens before paging, so pages are full though the first matches are outside.
+    pages = [
+        _search(server, admin if asAdmin else user, scans['inside'], mode, limit=2,
+                offset=offset)['item']
+        for offset in (0, 2, 4)]
+    assert [len(page) for page in pages] == [2, 1 + asAdmin, 0]
+    found = pages[0] + pages[1]
+    assert len(set(found)) == len(found)
+    assert all(name.startswith('scan-here-') or name == 'scan-private' for name in found)
+
+
+@pytest.mark.parametrize('mode', ALL_MODES)
+def testSearchRestrictedToCollection(server, scans, admin, user, mode):
+    other = Collection().createCollection('other', creator=admin, public=True)
+    otherFolder = Folder().createFolder(other, 'elsewhere', parentType='collection', creator=admin)
+    Item().createItem('scan-elsewhere', creator=admin, folder=otherFolder)
+
+    results = _search(server, user, scans['coll'], mode, parentType='collection')
+    assert set(results['item']) == {'scan-away-%d' % i for i in range(6)} | {
+        'scan-here-%d' % i for i in range(3)}
+
+
+@pytest.mark.parametrize('mode', ALL_MODES)
+def testSearchRestrictedOtherTypes(server, scans, admin, mode):
+    results = _search(
+        server, admin, scans['inside'], mode, types=('item', 'collection', 'user', 'group'))
+    assert results['collection'] == []
+    assert results['user'] == []
+    assert results['group'] == []
+    assert len(results['item']) == 4
+
+
+@pytest.mark.parametrize('mode', ALL_MODES)
+def testSearchRestrictedToInaccessibleFolder(server, scans, user, mode):
+    resp = server.request(path='/resource/search', user=user, params={
+        'q': 'scan', 'mode': mode, 'types': json.dumps(['item']),
+        'parentType': 'folder', 'parentId': str(scans['private']['_id'])})
+    assertStatus(resp, 403)
+
+
+def testSearchUnrestrictedPluginModeUnchanged(server, scans, admin, pluginSearchModes):
+    resp = server.request(path='/resource/search', user=admin, params={
+        'q': 'scan', 'mode': 'kwargsPrefix', 'types': json.dumps(['item']), 'limit': 20})
+    assertStatusOk(resp)
+    assert len(resp.json['item']) == 10
+    assert pluginSearchModes == [{}]

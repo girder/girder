@@ -903,6 +903,7 @@ girder
             getSearchModeHandler
             hierarchySearchPipeline
             removeSearchMode
+            runSearch
         server
             RootHandler
                 index
