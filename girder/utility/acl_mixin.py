@@ -169,11 +169,11 @@ class AccessControlMixin:
             yield result
 
     def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                   sort=None, fields=None, level=AccessType.READ):
+                   sort=None, fields=None, level=AccessType.READ, pipeline=None):
         filters, fields = self._textSearchFilters(query, filters, fields)
         cursor = self.findWithPermissions(
             filters, offset=offset, limit=limit, sort=sort, fields=fields,
-            user=user, level=level, aggregateSort=_TEXT_SCORE_SORT)
+            user=user, level=level, pipeline=pipeline, aggregateSort=_TEXT_SCORE_SORT)
         if (sort is None and not getattr(cursor, 'fromAggregate', False)
                 and callable(getattr(cursor, 'count', None))
                 and cursor.count() < TEXT_SCORE_SORT_MAX):

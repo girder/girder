@@ -1606,10 +1606,11 @@ class AccessControlledModel(Model):
             yield result
 
     def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                   sort=None, fields=None, level=AccessType.READ):
+                   sort=None, fields=None, level=AccessType.READ, pipeline=None):
         """
         Custom override of Model.textSearch to also force permission-based
-        filtering. The parameters are the same as Model.textSearch.
+        filtering. The parameters are the same as Model.textSearch, plus
+        ``pipeline``.
 
         :param query: The text query. Will be stemmed internally.
         :type query: str
@@ -1631,8 +1632,16 @@ class AccessControlledModel(Model):
         :type fields: `str, list, set, or tuple`
         :param level: The access level to require.
         :type level: girder.constants.AccessType
+        :param pipeline: Aggregation stages that further restrict the results.
+        :type pipeline: list or None
         """
         filters, fields = self._textSearchFilters(query, filters, fields)
+
+        if pipeline:
+            # Sort in the pipeline, as AccessControlMixin.textSearch does.
+            return self.findWithPermissions(
+                filters, offset=offset, limit=limit, fields=fields, user=user, level=level,
+                sort=sort or _TEXT_SCORE_SORT, pipeline=pipeline)
 
         cursor = self.findWithPermissions(
             filters, offset=offset, limit=limit, sort=sort, fields=fields,
