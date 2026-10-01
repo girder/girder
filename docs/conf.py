@@ -71,6 +71,8 @@ extensions = [
     'sphinx_llm.txt',
 ]
 
+llms_txt_suppress_unknown_node_warnings = True
+
 autodoc_mock_imports = list(_girder_imports)
 
 intersphinx_mapping = {
