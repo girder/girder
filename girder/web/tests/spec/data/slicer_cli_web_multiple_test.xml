@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<executable>
+  <category>Example</category>
+  <title>Example 4 - Multiple Inputs</title>
+  <description>Choose a single file and a multi-file series.</description>
+  <version>0.1.0</version>
+  <license>Apache 2.0</license>
+  <contributor>Kitware</contributor>
+  <parameters>
+    <label>Inputs</label>
+    <description>Inputs to compare</description>
+    <file multiple="true">
+      <name>inputSeries</name>
+      <longflag>inputSeries</longflag>
+      <description>Files of the input series</description>
+      <label>Input series</label>
+      <channel>input</channel>
+    </file>
+    <file>
+      <name>singleFile</name>
+      <longflag>singleFile</longflag>
+      <description>A single input file</description>
+      <label>Single input file</label>
+      <channel>input</channel>
+    </file>
+  </parameters>
+</executable>
