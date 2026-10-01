@@ -8,6 +8,7 @@ from girder_worker.docker.tasks import DockerTask, _docker_run
 from girder_worker.docker.transforms import BindMountVolume, ContainerStdOut
 from girder_worker.docker.transforms.girder import GirderFileIdToVolume
 from girder_worker.utils import _walk_obj
+from girder_worker.utils.transform import Transform
 from girder_worker.utils.transforms.girder_io import GirderClientTransform
 
 from .cli_progress import CLIProgressCLIWriter
@@ -67,6 +68,27 @@ class DirectGirderFileIdToVolume(GirderFileIdToVolume):
         return super().transform(**kwargs)
 
 
+class CommaJoinedVolumes(Transform):
+    """One container argument spanning several volume transforms: their
+    resolved container paths, comma-joined in order.
+    """
+
+    def __init__(self, volumes):
+        self._volumes = volumes
+
+    def transform(self, **kwargs):
+        return ','.join(str(volume.transform(**kwargs)) for volume in self._volumes)
+
+    def cleanup(self, **kwargs):
+        for volume in self._volumes:
+            volume.cleanup(**kwargs)
+
+    def _repr_model_(self):
+        return '<%s.%s: [%s]>' % (
+            self.__module__, self.__class__.__name__,
+            ', '.join(volume._repr_model_() for volume in self._volumes))
+
+
 class GirderApiUrl(GirderClientTransform):
     def transform(self, **kwargs):
         return self.gc.urlBase
@@ -85,6 +107,9 @@ def _resolve_direct_file_paths(args, kwargs):
             path = arg.resolve_direct_file_path()
             if path:
                 extra_volumes.append(path)
+        elif isinstance(arg, CommaJoinedVolumes):
+            for volume in arg._volumes:
+                resolve(volume)
         return arg
     _walk_obj(args, resolve)
     _walk_obj(kwargs, resolve)

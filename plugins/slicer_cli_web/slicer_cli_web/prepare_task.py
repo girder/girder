@@ -3,6 +3,7 @@ import logging
 import os
 
 import jinja2
+from girder_plugin_worker.constants import PluginSettings
 
 from girder.api.rest import RestException
 from girder.constants import AccessType
@@ -21,8 +22,7 @@ FOLDER_SUFFIX = '_folder'
 logger = logging.getLogger(__name__)
 
 
-def _to_file_volume(param, model):
-    from girder_plugin_worker.constants import PluginSettings
+def _to_file_volume(param, model, filename=None, gc=None, direct_path=None):
     from girder_worker.docker.transforms.girder import (GirderFileIdToVolume,
                                                         GirderFolderIdToVolume,
                                                         GirderItemIdToVolume)
@@ -32,19 +32,53 @@ def _to_file_volume(param, model):
     girder_type = SLICER_TYPE_TO_GIRDER_MODEL_MAP[param.typ]
 
     if girder_type == 'folder':
-        return GirderFolderIdToVolume(model['_id'], folder_name=model['name'])
+        return GirderFolderIdToVolume(model['_id'], folder_name=filename or model['name'],
+                                      gc=gc)
     elif girder_type == 'item':
-        return GirderItemIdToVolume(model['_id'])
+        return GirderItemIdToVolume(model['_id'], gc=gc)
 
-    if not Setting().get(PluginSettings.DIRECT_PATH):
-        return GirderFileIdToVolume(model['_id'], filename=model['name'])
+    filename = filename or model['name']
+    if direct_path is None:
+        direct_path = Setting().get(PluginSettings.DIRECT_PATH)
+    if not direct_path:
+        return GirderFileIdToVolume(model['_id'], filename=filename, gc=gc)
 
     try:
         path = File().getLocalFilePath(model)
         return DirectGirderFileIdToVolume(model['_id'], direct_file_path=path,
-                                          filename=model['name'])
+                                          filename=filename, gc=gc)
     except FilePathException:
-        return GirderFileIdToVolume(model['_id'], filename=model['name'])
+        return GirderFileIdToVolume(model['_id'], filename=filename, gc=gc)
+
+
+def _list_item_name(model):
+    # Id-prefix so same-named files in a list can't collide when mounted, and
+    # drop commas so a name can't corrupt the comma-joined path argument.
+    return ('%s_%s' % (model['_id'], model['name'])).replace(',', '_')
+
+
+def _to_file_volume_arg(param, value):
+    from .girder_worker_plugin.direct_docker_run import CommaJoinedVolumes
+
+    if not isinstance(value, list):
+        return _to_file_volume(param, value)
+    # The direct-path setting is constant across the list; read it once.
+    direct_path = Setting().get(PluginSettings.DIRECT_PATH)
+    volumes = []
+    gc = None
+    for model in value:
+        volume = _to_file_volume(param, model, filename=_list_item_name(model),
+                                 gc=gc, direct_path=direct_path)
+        # Share the first volume's Girder client with the rest of the list so
+        # a large list does not mint one access token per file.
+        gc = volume.gc or gc
+        volumes.append(volume)
+    return CommaJoinedVolumes(volumes)
+
+
+def _first_model(value):
+    """A possibly-multiple Girder input uses its first model as the primary."""
+    return value[0] if isinstance(value, list) else value
 
 
 def _to_girder_api(param, value):
@@ -59,7 +93,7 @@ def _to_girder_api(param, value):
     return value
 
 
-def _parseParamValue(param, value, user, token):
+def _parseParamValue(param, value, user, token, primary_only=False):
     if isinstance(value, bytes):
         value = value.decode('utf8')
 
@@ -67,10 +101,21 @@ def _parseParamValue(param, value, user, token):
     if is_on_girder(param):
         girder_type = SLICER_TYPE_TO_GIRDER_MODEL_MAP[param.typ]
         curModel = ModelImporter.model(girder_type)
-        loaded = curModel.load(value, level=AccessType.READ, user=user)
-        if not loaded:
-            raise RestException('Invalid %s id (%s).' % (curModel.name, str(value)))
-        return loaded
+
+        def load(value):
+            loaded = curModel.load(value, level=AccessType.READ, user=user)
+            if not loaded:
+                raise RestException('Invalid %s id (%s).' % (curModel.name, str(value)))
+            return loaded
+
+        if getattr(param, 'multiple', None):
+            ids = [subvalue.strip() for subvalue in str(value).split(',')]
+            # Callers that only use the primary (first) model can skip loading
+            # the rest of the list.
+            if primary_only:
+                ids = ids[:1]
+            return [load(subvalue) for subvalue in ids]
+        return load(value)
 
     try:
         if param.isVector():
@@ -153,7 +198,7 @@ def _add_optional_input_param(param, args, user, token, templateParams):
 
     if is_on_girder(param):
         # Bindings
-        container_args.append(_to_file_volume(param, value))
+        container_args.append(_to_file_volume_arg(param, value))
     elif is_girder_api(param):
         # Bindings
         container_args.append(_to_girder_api(param, value))
@@ -203,7 +248,7 @@ def _add_indexed_input_param(param, args, user, token, templateParams=None):
 
     if is_on_girder(param):
         # Bindings
-        return _to_file_volume(param, value), value['name']
+        return _to_file_volume_arg(param, value), _first_model(value)['name']
     if is_girder_api(param):
         return _to_girder_api(param, value), value['name']
     value = _processTemplates(value, param, templateParams)
@@ -252,9 +297,11 @@ def _populateTemplateParams(params, user, token, index_params, opt_params, templ
     for param in index_params + opt_params:
         if param.identifier() in params:
             try:
-                value = _parseParamValue(param, params[param.identifier()], user, token)
+                value = _parseParamValue(param, params[param.identifier()], user, token,
+                                         primary_only=True)
             except Exception:
                 continue
+            value = _first_model(value)
             value = value.get('name') if isinstance(value, dict) else value
             if value:
                 templateParams[f'parameter_{param.name}'] = value
@@ -304,7 +351,8 @@ def prepare_task(params, user, token, index_params, opt_params,
                     and SLICER_TYPE_TO_GIRDER_MODEL_MAP[param.typ] != 'folder'):
                 primary_input_name = name
                 reference['userId'] = str(user['_id'])
-                value = _parseParamValue(param, params[param.identifier()], user, token)
+                value = _first_model(_parseParamValue(
+                    param, params[param.identifier()], user, token, primary_only=True))
                 itemId = value['_id']
                 if SLICER_TYPE_TO_GIRDER_MODEL_MAP[param.typ] == 'file':
                     reference['fileId'] = str(value['_id'])
