@@ -40,7 +40,6 @@
     "backbone": "^1.4.0",
     "bootstrap": "~3.4.1",
     "bootstrap-switch": "~3.3.4",
-    "eonasdan-bootstrap-datetimepicker": "~4.17",
     "jquery": "~3.5.1",
     "jsoneditor": "~10.4.2",
     "moment": "^2.31.0",
