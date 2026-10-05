@@ -21,6 +21,27 @@ export const waitForDialog = async (page: Page) => {
   }, { timeout: 10000 });
 };
 
+/**
+ * Wait for the given element to become the page's active element.
+ *
+ * Girder dialogs focus their default field in a Bootstrap `shown.bs.modal`
+ * handler, which fires only after the dialog's show transition completes
+ * (~300ms after the dialog becomes visible). The dialog views also call
+ * focus() during render, but at that point the modal is still hidden, so it
+ * has no effect. If we begin filling fields before `shown.bs.modal` fires, a
+ * fill that is in flight when the handler runs can be redirected to the newly
+ * focused field, corrupting the form (for example, the login field ends up
+ * containing the login concatenated with the password). Waiting for the
+ * dialog's intended field to be focused guarantees the show transition has
+ * finished before any fills are attempted.
+ */
+export const waitForFocused = async (page: Page, selector: string) => {
+  await page.waitForFunction(
+    (sel) => document.activeElement === document.querySelector(sel),
+    selector,
+  );
+};
+
 export const logout = async (page: Page) => {
   await page.locator('.g-user-dropdown-link').click();
   await expect(page.locator('.g-logout')).toBeVisible();
@@ -42,6 +63,7 @@ export const createUser = async (
   await page.locator('.g-register').click();
   await waitForDialog(page);
   await expect(page.locator('input#g-email')).toBeVisible();
+  await waitForFocused(page, '#g-login');
   await page.locator('#g-login').fill(login, { timeout: 1000 });
   await page.locator('#g-email').fill(email, { timeout: 1000 });
   await page.locator('#g-firstName').fill(firstName, { timeout: 1000 });
@@ -65,6 +87,7 @@ export const login = async (
   await page.locator('.g-login').click();
   await waitForDialog(page);
   await expect(page.locator('#g-login')).toBeVisible();
+  await waitForFocused(page, '#g-login');
   await page.locator('#g-login').fill(login, { timeout: 1000 });
   await page.locator('#g-password').fill(password, { timeout: 1000 });
   await page.locator('#g-login-button').click();
