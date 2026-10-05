@@ -221,7 +221,18 @@ def gw_task_revoked(sender=None, request=None, **rest):
             "No jobInfoSpec. Unable to move \'%s\' into CANCELED state.")
 
 
-register('girder_io', jsonpickle.encode, jsonpickle.decode,
+def _girder_io_encode(data):
+    # jsonpickle defaults `keys` to False but plans to default it to True in
+    # jsonpickle 5.0.0.  Pass it explicitly so behavior is stable and no
+    # deprecation warning is emitted.
+    return jsonpickle.encode(data, keys=True)
+
+
+def _girder_io_decode(data):
+    return jsonpickle.decode(data, keys=True)
+
+
+register('girder_io', _girder_io_encode, _girder_io_decode,
          content_type='application/json',
          content_encoding='utf-8')
 
