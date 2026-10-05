@@ -67,11 +67,4 @@ export default defineConfig({
       use: { ...devices['Desktop Firefox'] },
     },
   ],
-  webServer: {
-    command: 'npx vite dev --port 5173',
-    port: 5173,
-    reuseExistingServer: false,
-    // Disable Vite HMR when running tests so it doesn't consume inotify resources
-    env: { PLAYWRIGHT_TESTING: 'true' },
-  },
 });
