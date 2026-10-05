@@ -9,7 +9,7 @@ export const waitForIdlePage = async (page: Page) => {
   await page.waitForFunction(() => {
     // @ts-ignore
     return window.girder && window.girder.rest && window.girder.rest.numberOutstandingRestRequests() === 0;
-  }, { timeout: 10000 });
+  });
 };
 
 export const waitForDialog = async (page: Page) => {
@@ -18,7 +18,7 @@ export const waitForDialog = async (page: Page) => {
   await page.waitForFunction(() => {
     // @ts-ignore
     return window.girder && window.girder.rest && window.girder.rest.numberOutstandingRestRequests() === 0;
-  }, { timeout: 10000 });
+  });
 };
 
 /**
@@ -64,12 +64,12 @@ export const createUser = async (
   await waitForDialog(page);
   await expect(page.locator('input#g-email')).toBeVisible();
   await waitForFocused(page, '#g-login');
-  await page.locator('#g-login').fill(login, { timeout: 1000 });
-  await page.locator('#g-email').fill(email, { timeout: 1000 });
-  await page.locator('#g-firstName').fill(firstName, { timeout: 1000 });
-  await page.locator('#g-lastName').fill(lastName, { timeout: 1000 });
-  await page.locator('#g-password').fill(password, { timeout: 1000 });
-  await page.locator('#g-password2').fill(password, { timeout: 1000 });
+  await page.locator('#g-login').fill(login);
+  await page.locator('#g-email').fill(email);
+  await page.locator('#g-firstName').fill(firstName);
+  await page.locator('#g-lastName').fill(lastName);
+  await page.locator('#g-password').fill(password);
+  await page.locator('#g-password2').fill(password);
   await page.locator('#g-register-button').click();
   await waitForIdlePage(page);
   await expect(page.locator('.g-register')).toBeHidden();
@@ -88,8 +88,8 @@ export const login = async (
   await waitForDialog(page);
   await expect(page.locator('#g-login')).toBeVisible();
   await waitForFocused(page, '#g-login');
-  await page.locator('#g-login').fill(login, { timeout: 1000 });
-  await page.locator('#g-password').fill(password, { timeout: 1000 });
+  await page.locator('#g-login').fill(login);
+  await page.locator('#g-password').fill(password);
   await page.locator('#g-login-button').click();
   await waitForIdlePage(page);
   await expect(page.locator('.g-register')).toBeHidden();
@@ -118,6 +118,6 @@ export const waitForDelete = async (page: Page, container: import('@playwright/t
   await container.locator('.g-delete').click();
   await expect(page.locator('#g-confirm-button')).toBeVisible();
   await page.locator('#g-confirm-button').click();
-  await expect(container).toBeHidden({ timeout: 10000 });
+  await expect(container).toBeHidden();
   await waitForIdlePage(page);
 };
