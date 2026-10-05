@@ -1,4 +1,5 @@
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
+import { randomBytes } from 'crypto';
 
 import getPort from 'get-port';
 
@@ -9,13 +10,64 @@ import { outputCoverageReport, startCoverage } from './coverage';
 const mongoUri = process.env.GIRDER_CLIENT_TESTING_MONGO_URI ?? 'mongodb://localhost:27017';
 const girderExecutable = process.env.GIRDER_CLIENT_TESTING_GIRDER_EXECUTABLE ?? 'girder';
 
+/**
+ * Build a database name that is unique to this test server instance.
+ *
+ * This deliberately does not derive the database name from the port alone.
+ * Ports are recycled by the OS, so an interrupted prior run could leave a
+ * database behind that a later run would then reuse, leaking state (for
+ * example, a user registered by a previous run would cause "login already
+ * exists" failures). Combining the pid, a timestamp, and random bytes makes
+ * collisions effectively impossible.
+ */
+const createDatabaseName = () =>
+  `girder-${process.pid}-${Date.now()}-${randomBytes(4).toString('hex')}`;
 
-const startServer = async (port: number) => {
+/**
+ * Drop a database, waiting for mongosh to finish. Failures are reported but
+ * never thrown, so that a cleanup problem cannot mask the actual test result.
+ */
+const dropDatabase = async (database: string) => {
+  const mongoshProcess = spawn('mongosh', [`${mongoUri}/${database}`, '--eval', 'db.dropDatabase();']);
+
+  await new Promise<void>((resolve) => {
+    mongoshProcess?.on('close', (code) => {
+      if (code !== 0) {
+        console.error(`mongo database ${database} cleanup failed with code`, code);
+      }
+      resolve();
+    });
+
+    mongoshProcess?.on('error', (err) => {
+      console.error(`mongosh process error -- database ${database} not cleaned up`, err);
+      resolve();
+    });
+  });
+};
+
+/**
+ * Wait for a server process to exit, but do not wait forever if it hangs.
+ */
+const killServer = async (serverProcess?: ChildProcessWithoutNullStreams) => {
+  if (!serverProcess) {
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    const timeout = setTimeout(resolve, 5000);
+    serverProcess.once('close', () => {
+      clearTimeout(timeout);
+      resolve();
+    });
+    serverProcess.kill();
+  });
+};
+
+const startServer = async (port: number, database: string) => {
   const serverLogs: string[] = [];
-  const database = `${mongoUri}/girder-${port}`;
   const serverProcess = spawn(girderExecutable, [
     'serve',
-    '--database', database,
+    '--database', `${mongoUri}/${database}`,
     '--port', `${port}`,
     '--with-temp-assetstore',
   ], {
@@ -45,11 +97,13 @@ const startServer = async (port: number) => {
 
 export const setupServer = () => {
   let serverProcess: ChildProcessWithoutNullStreams;
+  let database: string;
   let port: number;
 
   test.beforeAll(async () => {
     port = await getPort();
-    serverProcess = await startServer(port);
+    database = createDatabaseName();
+    serverProcess = await startServer(port, database);
   });
 
   test.afterAll(async () => {
@@ -57,32 +111,15 @@ export const setupServer = () => {
       if (serverProcess) {
         console.log('WARNING: Girder server is being kept alive after test ends. Use the following to kill it:');
         console.log(`kill ${serverProcess?.pid}`);
+        console.log(`Its database is: ${database}`);
       }
       return;
     }
 
-    serverProcess?.kill();
-
-    const mongoshProcess = spawn('mongosh', [`${mongoUri}/girder-${port}`, '--eval', 'db.dropDatabase();']);
-
-    await new Promise<void>((resolve) => {
-      mongoshProcess?.on('close', (code) => {
-        if (code === 0) {
-          if (serverProcess) {
-            serverProcess.serverLogs.push('mongo database cleaned up');
-          }
-        } else {
-          console.error('mongo database cleanup failed with code', code);
-        }
-
-        resolve();
-      });
-
-      mongoshProcess?.on('error', (err) => {
-        console.error('mongosh process error -- database not cleaned up', err);
-        resolve();
-      });
-    });
+    // Wait for the server to exit before dropping the database, so it cannot
+    // recreate collections after the drop.
+    await killServer(serverProcess);
+    await dropDatabase(database);
   });
 
   test.beforeEach(async ({ page }) => {
