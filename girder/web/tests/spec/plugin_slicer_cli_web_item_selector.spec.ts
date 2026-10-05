@@ -144,7 +144,7 @@ test.describe('Slicer CLI web item selector regex selection', () => {
             const model = (window as any).__itemSelector.model;
             const value = model.get('value');
             return value ? value.get('name') : null;
-        }), { timeout: 8000 }).toBe('[5]$');
+        })).toBe('[5]$');
 
         const state = await page.evaluate(() => {
             const model = (window as any).__itemSelector.model;

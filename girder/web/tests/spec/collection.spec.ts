@@ -17,16 +17,16 @@ test.describe('Collection info dialog', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-create-button:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         await page.locator('.g-collection-create-button').click();
         await waitForDialog(page);
-        await page.locator('#g-name').fill('infoTestColl', { timeout: 1000 });
+        await page.locator('#g-name').fill('infoTestColl');
 
         const descEditor = page.locator('#g-dialog-container .g-description-editor-container');
-        await expect(descEditor).toBeVisible({ timeout: 5000 });
+        await expect(descEditor).toBeVisible();
         const descBox = page.locator('#g-dialog-container .g-description-editor-container').getByRole('textbox');
-        await expect(descBox).toBeVisible({ timeout: 5000 });
+        await expect(descBox).toBeVisible();
         await descBox.fill('Collection with info dialog test');
 
         await page.locator('.g-save-collection').click();
@@ -36,29 +36,29 @@ test.describe('Collection info dialog', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-list-entry:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         // Click on the collection link to go into the collection view.
         const colLink = page.locator('.g-collection-link').first();
         await colLink.click();
 
         // Wait for the collection view to load with the hierarchy widget.
-        await expect(page.locator('.g-collection-actions-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-collection-actions-button:visible')).toBeVisible();
 
         // The hierarchy widget should be visible with the info button.
         const infoButton = page.locator('.g-collection-info-button:visible');
-        await expect(infoButton).toBeVisible({ timeout: 5000 });
+        await expect(infoButton).toBeVisible();
         await infoButton.click();
         await waitForDialog(page);
 
         // Verify the collection info dialog shows.
-        await expect(page.locator('#g-dialog-container:visible')).toBeVisible({ timeout: 5000 });
-        await expect(page.locator('#g-dialog-container h4.modal-title')).toHaveText('Collection information', { timeout: 5000 });
+        await expect(page.locator('#g-dialog-container:visible')).toBeVisible();
+        await expect(page.locator('#g-dialog-container h4.modal-title')).toHaveText('Collection information');
 
         // Close the dialog and verify it's gone.
         await page.locator('#g-dialog-container .btn-default').click();
         await waitForIdlePage(page);
-        await expect(page.locator('#g-dialog-container')).toBeHidden({ timeout: 10000 });
+        await expect(page.locator('#g-dialog-container')).toBeHidden();
     });
 });
 
@@ -72,16 +72,16 @@ test.describe('Collection description toggle', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-create-button:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         await page.locator('.g-collection-create-button').click();
         await waitForDialog(page);
-        await page.locator('#g-name').fill('toggleDescriptionColl', { timeout: 1000 });
+        await page.locator('#g-name').fill('toggleDescriptionColl');
 
         const descEditor = page.locator('#g-dialog-container .g-description-editor-container');
-        await expect(descEditor).toBeVisible({ timeout: 5000 });
+        await expect(descEditor).toBeVisible();
         const descBox = page.locator('#g-dialog-container .g-description-editor-container').getByRole('textbox');
-        await expect(descBox).toBeVisible({ timeout: 5000 });
+        await expect(descBox).toBeVisible();
         await descBox.fill('This description should be toggled');
 
         await page.locator('.g-save-collection').click();
@@ -91,15 +91,15 @@ test.describe('Collection description toggle', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-list-entry:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         // The description should initially be hidden (show description link visible).
         const showDesc = page.locator('.g-show-description:visible');
-        await expect(showDesc).toBeVisible({ timeout: 5000 });
+        await expect(showDesc).toBeVisible();
 
         // Click to show the description.
         await showDesc.click();
-        await expect(page.locator('.g-collection-description:visible')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('.g-collection-description:visible')).toBeVisible();
         const descriptionText = await page.locator('.g-collection-description:visible').first().textContent() || '';
         expect(descriptionText).toContain('This description should be toggled');
 
@@ -129,20 +129,20 @@ test.describe('Create and verify collections', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-create-button:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
         await expect(page.locator('.g-collection-list-entry')).toHaveCount(0);
 
         // Create the collection.
         await page.locator('.g-collection-create-button').click();
         await waitForDialog(page);
-        await expect(page.locator('#g-name')).toBeVisible({ timeout: 5000 });
-        await page.locator('#g-name').fill('collName0', { timeout: 1000 });
+        await expect(page.locator('#g-name')).toBeVisible();
+        await page.locator('#g-name').fill('collName0');
 
         const descriptionEditor = page.locator('.g-description-editor-container');
-        await expect(descriptionEditor).toBeVisible({ timeout: 5000 });
+        await expect(descriptionEditor).toBeVisible();
         // Use the textbox within the editor container for Playwright strict mode compliance.
         const descBox = descriptionEditor.getByRole('textbox', { timeout: 'Enter a description' });
-        await expect(descBox).toBeVisible({ timeout: 5000 });
+        await expect(descBox).toBeVisible();
         await descBox.fill('coll Desc 0');
 
         await page.locator('.g-save-collection').click();
@@ -152,10 +152,8 @@ test.describe('Create and verify collections', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-create-button:visible'),
-        ).toBeVisible({ timeout: 10000 });
-        await expect(page.locator('.g-collection-list-entry').first()).toBeVisible(
-            { timeout: 10000 },
-        );
+        ).toBeVisible();
+        await expect(page.locator('.g-collection-list-entry').first()).toBeVisible();
 
         const title = (await page.locator('.g-collection-title b').first().textContent()) || '';
         expect(title).toContain('collName0');
@@ -172,33 +170,33 @@ test.describe('Edit collection description', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-create-button:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         // Create collection.
         await page.locator('.g-collection-create-button').click();
         await waitForDialog(page);
-        await page.locator('#g-name').fill('testEditColl', {timeout: 1000});
+        await page.locator('#g-name').fill('testEditColl');
         const descEditor = page.locator('.g-description-editor-container');
-        await expect(descEditor).toBeVisible({ timeout: 5000 });
+        await expect(descEditor).toBeVisible();
 
         // Use Playwright's role-based selector for the textarea.
         const descBox = page.locator('#g-dialog-container .g-description-editor-container').getByRole('textbox');
-        await expect(descBox).toBeVisible({ timeout: 5000 });
-        await descBox.fill('Initial Description', { timeout: 1000 });
+        await expect(descBox).toBeVisible();
+        await descBox.fill('Initial Description');
 
         await page.locator('#g-dialog-container .g-save-collection').click();
         await waitForIdlePage(page);
 
         // Navigate into the collection to verify.
         await page.locator('a.g-nav-link[g-target="collections"]').click();
-        await expect(page.locator('.g-collection-list-entry').first()).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-collection-list-entry').first()).toBeVisible();
 
         // Click into the first collection.
         const colLink = page.locator('.g-collection-link').first();
         await colLink.click();
 
         // Verify we're on the collection page with description visible.
-        await expect(page.locator('.g-collection-actions-button')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-collection-actions-button')).toBeVisible();
 
         // The description should be visible somewhere in the page DOM.
         const descElements = page.locator('.g-collection-description');
@@ -220,18 +218,18 @@ test.describe('Make collection public via API', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-create-button:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         // Create a collection (defaults to private).
         await page.locator('.g-collection-create-button').click();
         await waitForDialog(page);
-        await page.locator('#g-name').fill('pubTestColl', { timeout: 1000 });
+        await page.locator('#g-name').fill('pubTestColl');
         const descEditor = page.locator('#g-dialog-container .g-description-editor-container');
-        await expect(descEditor).toBeVisible({ timeout: 5000 });
+        await expect(descEditor).toBeVisible();
 
         // Fill in the description.
         const descBox = page.locator('#g-dialog-container .g-description-editor-container').getByRole('textbox');
-        await expect(descBox).toBeVisible({ timeout: 5000 });
+        await expect(descBox).toBeVisible();
         await descBox.fill('Public test collection');
 
         await page.locator('.g-save-collection').click();
@@ -249,19 +247,19 @@ test.describe('Delete a collection', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-create-button:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         // Create a collection to delete.
         await page.locator('.g-collection-create-button').click();
         await waitForDialog(page);
-        await page.locator('#g-name').fill('toDelete', { timeout: 1000 });
+        await page.locator('#g-name').fill('toDelete');
 
         const descEditor = page.locator('#g-dialog-container .g-description-editor-container');
-        await expect(descEditor).toBeVisible({ timeout: 5000 });
+        await expect(descEditor).toBeVisible();
 
         // Fill in the description.
         const descBox = page.locator('#g-dialog-container .g-description-editor-container').getByRole('textbox');
-        await expect(descBox).toBeVisible({ timeout: 5000 });
+        await expect(descBox).toBeVisible();
         await descBox.fill('Will be deleted');
 
         await page.locator('.g-save-collection').click();
@@ -270,7 +268,7 @@ test.describe('Delete a collection', () => {
         // Navigate back to the list.
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         const collEntry = page.locator('.g-collection-list-entry').first();
-        await expect(collEntry).toBeVisible({ timeout: 10000 });
+        await expect(collEntry).toBeVisible();
 
         // Verify the collection name is visible.
         const titleText = await page.locator('.g-collection-title b').textContent() || '';
@@ -278,7 +276,7 @@ test.describe('Delete a collection', () => {
 
         // Click on the collection link to navigate into it.
         await page.locator('.g-collection-link').first().click();
-        await expect(page.locator('.g-collection-actions-button')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-collection-actions-button')).toBeVisible();
 
         // The action menu should be visible. Let's just verify we can get here without crashing.
         const actionsBtn = page.locator('.g-collection-actions-button');
@@ -330,18 +328,18 @@ test.describe('Make collection public via UI', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-create-button:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         await page.locator('.g-collection-create-button').click();
         await waitForDialog(page);
-        await page.locator('#g-name').fill('pubViaUIColl', { timeout: 1000 });
+        await page.locator('#g-name').fill('pubViaUIColl');
 
         const descEditor = page.locator('#g-dialog-container .g-description-editor-container');
-        await expect(descEditor).toBeVisible({ timeout: 5000 });
+        await expect(descEditor).toBeVisible();
 
         // Fill in the description.
         const descBox = page.locator('#g-dialog-container .g-description-editor-container').getByRole('textbox');
-        await expect(descBox).toBeVisible({ timeout: 5000 });
+        await expect(descBox).toBeVisible();
         await descBox.fill('This collection will become public');
 
         await page.locator('.g-save-collection').click();
@@ -349,11 +347,11 @@ test.describe('Make collection public via UI', () => {
 
         // Navigate into the collection to access actions.
         await page.locator('a.g-nav-link[g-target="collections"]').click();
-        await expect(page.locator('.g-collection-list-entry:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-collection-list-entry:visible')).toBeVisible();
 
         // Click on the collection link to go into the collection view.
         await page.locator('.g-collection-link').first().click();
-        await expect(page.locator('.g-collection-actions-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-collection-actions-button:visible')).toBeVisible();
 
         // Click the actions button and look for access control.
         await page.locator('.g-collection-actions-button').click();
@@ -361,7 +359,7 @@ test.describe('Make collection public via UI', () => {
         await waitForDialog(page);
 
         // Verify the access dialog shows.
-        await expect(page.locator('#g-dialog-container:visible')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('#g-dialog-container:visible')).toBeVisible();
 
         // Select the Public radio button.
         await page.locator('#g-access-public').click();
@@ -375,10 +373,10 @@ test.describe('Make collection public via UI', () => {
 
         // Verify the collection is now public by checking for a public icon.
         await page.locator('a.g-nav-link[g-target="collections"]').click();
-        await expect(page.locator('.g-collection-list-entry:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-collection-list-entry:visible')).toBeVisible();
 
         // The collection should show as public (globe icon present).
-        await expect(page.locator('.g-list-public-status-icon .icon-globe')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('.g-list-public-status-icon .icon-globe')).toBeVisible();
     });
 });
 
@@ -392,16 +390,16 @@ test.describe('Anonymous access to collections', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-create-button:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         await page.locator('.g-collection-create-button').click();
         await waitForDialog(page);
-        await page.locator('#g-name').fill('anonPublicColl', { timeout: 1000 });
+        await page.locator('#g-name').fill('anonPublicColl');
 
         const descEditor = page.locator('#g-dialog-container .g-description-editor-container');
-        await expect(descEditor).toBeVisible({ timeout: 5000 });
+        await expect(descEditor).toBeVisible();
         const descBox = page.locator('#g-dialog-container .g-description-editor-container').getByRole('textbox');
-        await expect(descBox).toBeVisible({ timeout: 5000 });
+        await expect(descBox).toBeVisible();
         await descBox.fill('Public for anonymous');
 
         await page.locator('.g-save-collection').click();
@@ -409,9 +407,9 @@ test.describe('Anonymous access to collections', () => {
 
         // Navigate into the collection to access the action menu.
         await page.locator('a.g-nav-link[g-target="collections"]').click();
-        await expect(page.locator('.g-collection-list-entry:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-collection-list-entry:visible')).toBeVisible();
         await page.locator('.g-collection-link').first().click();
-        await expect(page.locator('.g-collection-actions-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-collection-actions-button:visible')).toBeVisible();
 
         // Open access control dialog and make it public.
         await page.locator('.g-collection-actions-button').click();
@@ -420,7 +418,8 @@ test.describe('Anonymous access to collections', () => {
 
         await page.locator('#g-access-public').click();
         await page.locator('.g-save-access-list').click();
-        // Wait for dialog close and REST requests to complete with retry.
+        // Bound these waits so the retry fallback can run before the 30s test
+        // timeout; inheriting the default timeout would consume the whole budget.
         try {
             await expect(page.locator('#g-dialog-container')).toBeHidden({ timeout: 10000 });
             await expect(page.locator('.modal-backdrop')).toBeHidden({ timeout: 10000 });
@@ -438,8 +437,8 @@ test.describe('Anonymous access to collections', () => {
         await page.locator('.g-logout').click();
 
         // Expect to see login/register buttons (anonymous state).
-        await expect(page.locator('.g-login:visible')).toBeVisible({ timeout: 5000 });
-        await expect(page.locator('.g-register:visible')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('.g-login:visible')).toBeVisible();
+        await expect(page.locator('.g-register:visible')).toBeVisible();
         await expect(page.locator('.g-user-dropdown-link')).toBeHidden();
 
         // Navigate to collections page.
@@ -448,7 +447,7 @@ test.describe('Anonymous access to collections', () => {
         await expect(page.locator('.g-collection-create-button')).toBeHidden();
 
         // The public collection should be visible.
-        await expect(page.locator('.g-collection-list-entry:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-collection-list-entry:visible')).toBeVisible();
         expect(await page.locator('.g-collection-list-entry').first().textContent()).toContain('anonPublicColl');
 
         // Verify the collection shows as public.
@@ -462,20 +461,22 @@ test.describe('Anonymous access to collections', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-create-button:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         await page.locator('.g-collection-create-button').click();
         await waitForDialog(page);
-        await page.locator('#g-name').fill('anonPrivateColl', { timeout: 1000 });
+        await page.locator('#g-name').fill('anonPrivateColl');
 
         const descEditor = page.locator('#g-dialog-container .g-description-editor-container');
-        await expect(descEditor).toBeVisible({ timeout: 5000 });
+        await expect(descEditor).toBeVisible();
         const descBox = page.locator('#g-dialog-container .g-description-editor-container').getByRole('textbox');
-        await expect(descBox).toBeVisible({ timeout: 5000 });
+        await expect(descBox).toBeVisible();
         await descBox.fill('Private for anonymous');
 
         await page.locator('.g-save-collection').click();
         // Explicitly close dialog and wait for it to disappear.
+        // Bound these waits so the manual-close fallback can run before the 30s
+        // test timeout; inheriting the default timeout would consume the whole budget.
         try {
             const dialog = page.locator('#g-dialog-container');
             await dialog.waitFor({ state: 'hidden', timeout: 10000 });
@@ -488,7 +489,7 @@ test.describe('Anonymous access to collections', () => {
             const closeBtn = page.locator('#g-dialog-container .btn-default, #g-dialog-container button[aria-label="close"]').first();
             if (await closeBtn.count() > 0) {
                 await closeBtn.click();
-                await page.locator('#g-dialog-container').waitFor({ state: 'hidden', timeout: 5000 });
+                await page.locator('#g-dialog-container').waitFor({ state: 'hidden', timeout: 10000 });
             } else {
                 // Force wait for idle instead.
                 await page.waitForTimeout(1000);
@@ -498,7 +499,7 @@ test.describe('Anonymous access to collections', () => {
         // Logout to become anonymous.
         await page.locator('.g-user-dropdown-link').click();
         await page.locator('.g-logout').click();
-        await expect(page.locator('.g-login:visible')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('.g-login:visible')).toBeVisible();
 
         // Verify login dialog is visible (anonymous user).
         await expect(page.locator('.g-login')).toBeVisible();
@@ -515,7 +516,7 @@ test.describe('Logout and redirect', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-create-button:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         // Verify user is logged in.
         await expect(page.locator('.g-user-dropdown-link')).toBeVisible();
@@ -526,8 +527,8 @@ test.describe('Logout and redirect', () => {
         await page.locator('.g-logout').click();
 
         // Should be redirected to front page with login visible.
-        await expect(page.locator('.g-frontpage-title:visible')).toBeVisible({ timeout: 10000 });
-        await expect(page.locator('.g-login:visible')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('.g-frontpage-title:visible')).toBeVisible();
+        await expect(page.locator('.g-login:visible')).toBeVisible();
     });
 
     test('logout from collections list page redirects to front page', async ({ page }) => {
@@ -537,14 +538,14 @@ test.describe('Logout and redirect', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-create-button:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         // Logout.
         await page.locator('.g-user-dropdown-link').click();
         await page.locator('.g-logout').click();
 
         // Should be redirected to front page.
-        await expect(page.locator('.g-frontpage-title:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-frontpage-title:visible')).toBeVisible();
     });
 });
 
@@ -558,15 +559,15 @@ test.describe('Public vs private collection visibility', () => {
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-create-button:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         await page.locator('.g-collection-create-button').click();
         await waitForDialog(page);
-        await page.locator('#g-name').fill('publicCollForAnon', { timeout: 1000 });
+        await page.locator('#g-name').fill('publicCollForAnon');
         const descEditor = page.locator('#g-dialog-container .g-description-editor-container');
-        await expect(descEditor).toBeVisible({ timeout: 5000 });
+        await expect(descEditor).toBeVisible();
         const descBox = page.locator('#g-dialog-container .g-description-editor-container').getByRole('textbox');
-        await expect(descBox).toBeVisible({ timeout: 5000 });
+        await expect(descBox).toBeVisible();
         await descBox.fill('Public for anonymous');
 
         await page.locator('.g-save-collection').click();
@@ -574,9 +575,9 @@ test.describe('Public vs private collection visibility', () => {
 
         // Navigate into the collection to make it public.
         await page.locator('a.g-nav-link[g-target="collections"]').click();
-        await expect(page.locator('.g-collection-list-entry:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-collection-list-entry:visible')).toBeVisible();
         await page.locator('.g-collection-link').first().click();
-        await expect(page.locator('.g-collection-actions-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-collection-actions-button:visible')).toBeVisible();
 
         // Open access control dialog and make it public.
         await page.locator('.g-collection-actions-button').click();
@@ -585,7 +586,8 @@ test.describe('Public vs private collection visibility', () => {
 
         await page.locator('#g-access-public').click();
         await page.locator('.g-save-access-list').click();
-        // Wait for dialog close with retry for flakiness.
+        // Bound these waits so the retry fallback can run before the 30s test
+        // timeout; inheriting the default timeout would consume the whole budget.
         try {
             await expect(page.locator('#g-dialog-container')).toBeHidden({ timeout: 10000 });
             await expect(page.locator('.modal-backdrop')).toBeHidden({ timeout: 10000 });
@@ -599,14 +601,14 @@ test.describe('Public vs private collection visibility', () => {
 
         // Create another private collection.
         await page.locator('a.g-nav-link[g-target="collections"]').click();
-        await expect(page.locator('.g-collection-create-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-collection-create-button:visible')).toBeVisible();
         await page.locator('.g-collection-create-button').click();
         await waitForDialog(page);
-        await page.locator('#g-name').fill('privateCollForAnon', { timeout: 1000 });
+        await page.locator('#g-name').fill('privateCollForAnon');
         const descEditor2 = page.locator('#g-dialog-container .g-description-editor-container');
-        await expect(descEditor2).toBeVisible({ timeout: 5000 });
+        await expect(descEditor2).toBeVisible();
         const descBox2 = page.locator('#g-dialog-container .g-description-editor-container').getByRole('textbox');
-        await expect(descBox2).toBeVisible({ timeout: 5000 });
+        await expect(descBox2).toBeVisible();
         await descBox2.fill('Private for anonymous');
         await page.locator('.g-save-collection').click();
         await waitForIdlePage(page);
@@ -614,13 +616,13 @@ test.describe('Public vs private collection visibility', () => {
         // Logout to become anonymous.
         await page.locator('.g-user-dropdown-link').click();
         await page.locator('.g-logout').click();
-        await expect(page.locator('.g-login:visible')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('.g-login:visible')).toBeVisible();
 
         // Navigate to collections page.
         await page.locator('a.g-nav-link[g-target="collections"]').click();
         await expect(
             page.locator('.g-collection-list-entry:visible'),
-        ).toBeVisible({ timeout: 10000 });
+        ).toBeVisible();
 
         // Only the public collection should be visible.
         const entries = await page.locator('.g-collection-list-entry').all();

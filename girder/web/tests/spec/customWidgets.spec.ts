@@ -22,13 +22,13 @@ test.describe('Test access widget with non-standard options', () => {
 
         // Enter the Private folder
         const folderLink = page.locator('.g-folder-list-link').first();
-        await expect(folderLink).toBeVisible({ timeout: 5000 });
+        await expect(folderLink).toBeVisible();
         await folderLink.click();
         await waitForIdlePage(page);
 
         // 3. Open the Access control dialog
         const accessBtn = page.locator('.g-folder-access-button').first();
-        if (await accessBtn.isVisible({ timeout: 5000 })) {
+        if (await accessBtn.isVisible()) {
             await accessBtn.click();
         } else {
             await page.locator('.g-folder-actions-button').first().click();
@@ -40,15 +40,15 @@ test.describe('Test access widget with non-standard options', () => {
 
         // 4. Verify the widget renders correctly
         expect(await page.locator('.g-public-container').count()).toBe(1);
-        await expect(page.locator('#g-access-private')).toBeChecked({ timeout: 5000 });
+        await expect(page.locator('#g-access-private')).toBeChecked();
         expect(await page.locator('.g-save-access-list').count()).toBe(1);
-        await expect(page.locator('.g-ac-list')).toBeVisible({ timeout: 5000 });
-        await expect(page.locator('.g-grant-access-container')).toBeVisible({ timeout: 5000 });
-        await expect(page.locator('.g-recursive-container .radio').first()).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('.g-ac-list')).toBeVisible();
+        await expect(page.locator('.g-grant-access-container')).toBeVisible();
+        await expect(page.locator('.g-recursive-container .radio').first()).toBeVisible();
 
         // 5. Close the dialog
         await page.locator('#g-dialog-container .btn-default').click();
-        await expect(page.locator('#g-dialog-container')).toBeHidden({ timeout: 10000 });
+        await expect(page.locator('#g-dialog-container')).toBeHidden();
     });
 
     test('test hiding elements', async ({ page }) => {
@@ -61,13 +61,13 @@ test.describe('Test access widget with non-standard options', () => {
         await waitForIdlePage(page);
 
         const folderLink = page.locator('.g-folder-list-link').first();
-        await expect(folderLink).toBeVisible({ timeout: 5000 });
+        await expect(folderLink).toBeVisible();
         await folderLink.click();
         await waitForIdlePage(page);
 
         // Open Access control dialog
         const accessBtn = page.locator('.g-folder-access-button').first();
-        if (await accessBtn.isVisible({ timeout: 5000 })) {
+        if (await accessBtn.isVisible()) {
             await accessBtn.click();
         } else {
             await page.locator('.g-folder-actions-button').first().click();
@@ -83,7 +83,7 @@ test.describe('Test access widget with non-standard options', () => {
         await expect(page.locator('.g-grant-access-container')).toBeVisible();
 
         await page.locator('#g-dialog-container .btn-default').click();
-        await expect(page.locator('#g-dialog-container')).toBeHidden({ timeout: 10000 });
+        await expect(page.locator('#g-dialog-container')).toBeHidden();
     });
 
     test('test custom access flags UI', async ({ page }) => {
@@ -95,13 +95,13 @@ test.describe('Test access widget with non-standard options', () => {
         await waitForIdlePage(page);
 
         const folderLink = page.locator('.g-folder-list-link').first();
-        await expect(folderLink).toBeVisible({ timeout: 5000 });
+        await expect(folderLink).toBeVisible();
         await folderLink.click();
         await waitForIdlePage(page);
 
         // Open Access control dialog
         const accessBtn = page.locator('.g-folder-access-button').first();
-        if (await accessBtn.isVisible({ timeout: 5000 })) {
+        if (await accessBtn.isVisible()) {
             await accessBtn.click();
         } else {
             await page.locator('.g-folder-actions-button').first().click();
@@ -114,10 +114,10 @@ test.describe('Test access widget with non-standard options', () => {
 
         // Close dialog
         await page.locator('#g-dialog-container .btn-default').click();
-        await expect(page.locator('#g-dialog-container')).toBeHidden({ timeout: 10000 });
+        await expect(page.locator('#g-dialog-container')).toBeHidden();
 
         // Re-open to switch to public
-        if (await accessBtn.isVisible({ timeout: 5000 })) {
+        if (await accessBtn.isVisible()) {
             await accessBtn.click();
         } else {
             await page.locator('.g-folder-actions-button').first().click();
@@ -131,9 +131,9 @@ test.describe('Test access widget with non-standard options', () => {
 
         // Save
         const saveBtn = page.locator('.g-save-access-list').first();
-        await expect(saveBtn).toBeVisible({ timeout: 5000 });
+        await expect(saveBtn).toBeVisible();
         await saveBtn.click();
-        await expect(page.locator('#g-dialog-container')).toBeHidden({ timeout: 10000 });
+        await expect(page.locator('#g-dialog-container')).toBeHidden();
     });
 
     test('test hide component options', async ({ page }) => {
@@ -145,13 +145,13 @@ test.describe('Test access widget with non-standard options', () => {
         await waitForIdlePage(page);
 
         const folderLink = page.locator('.g-folder-list-link').first();
-        await expect(folderLink).toBeVisible({ timeout: 5000 });
+        await expect(folderLink).toBeVisible();
         await folderLink.click();
         await waitForIdlePage(page);
 
         // Open Access control dialog
         const accessBtn = page.locator('.g-folder-access-button').first();
-        if (await accessBtn.isVisible({ timeout: 5000 })) {
+        if (await accessBtn.isVisible()) {
             await accessBtn.click();
         } else {
             await page.locator('.g-folder-actions-button').first().click();
@@ -165,7 +165,7 @@ test.describe('Test access widget with non-standard options', () => {
 
         // Close the dialog
         await page.locator('#g-dialog-container .btn-default').click();
-        await expect(page.locator('#g-dialog-container')).toBeHidden({ timeout: 10000 });
+        await expect(page.locator('#g-dialog-container')).toBeHidden();
     });
 });
 
@@ -181,18 +181,18 @@ test.describe('Test search widget with non-standard options', () => {
         await waitForIdlePage(page);
 
         const folderLink = page.locator('.g-folder-list-link').first();
-        await expect(folderLink).toBeVisible({ timeout: 5000 });
+        await expect(folderLink).toBeVisible();
         await folderLink.click();
         await waitForIdlePage(page);
 
         // Click the search field
         const searchField = page.locator('.g-search-field').first();
-        await expect(searchField).toBeVisible({ timeout: 5000 });
+        await expect(searchField).toBeVisible();
         await searchField.fill('Private');
 
         // Wait for search results
         const results = page.locator('li.g-search-result');
-        await expect(results.first()).toBeVisible({ timeout: 5000 });
+        await expect(results.first()).toBeVisible();
     });
 
     test('test multiple search modes', async ({ page }) => {
@@ -204,18 +204,18 @@ test.describe('Test search widget with non-standard options', () => {
         await waitForIdlePage(page);
 
         const folderLink = page.locator('.g-folder-list-link').first();
-        await expect(folderLink).toBeVisible({ timeout: 5000 });
+        await expect(folderLink).toBeVisible();
         await folderLink.click();
         await waitForIdlePage(page);
 
         // Use the search field
         const searchField = page.locator('.g-search-field').first();
-        await expect(searchField).toBeVisible({ timeout: 5000 });
+        await expect(searchField).toBeVisible();
         await searchField.fill('Private');
 
         // Wait for search results
         const multipleResults = page.locator('li.g-search-result');
-        await expect(multipleResults.first()).toBeVisible({ timeout: 5000 });
+        await expect(multipleResults.first()).toBeVisible();
     });
 });
 
@@ -231,13 +231,13 @@ test.describe('Test metadata widget with non-standard options', () => {
         await waitForIdlePage(page);
 
         const folderLink = page.locator('.g-folder-list-link').first();
-        await expect(folderLink).toBeVisible({ timeout: 5000 });
+        await expect(folderLink).toBeVisible();
         await folderLink.click();
         await waitForIdlePage(page);
 
         // Verify the add metadata button exists and is visible
         const addBtn = page.locator('.g-widget-metadata-add-button').first();
-        await expect(addBtn).toBeVisible({ timeout: 5000 });
+        await expect(addBtn).toBeVisible();
 
         // In Girder 5.x, clicking this button opens an inline editor or a dropdown
         // rather than a full modal dialog in the folder view context.

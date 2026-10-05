@@ -111,13 +111,13 @@ async function uploadWithResume(page: Page, file: string, abort = false) {
     await expect(page.locator('.g-drop-zone')).toBeVisible();
     await page.locator('#g-files').setInputFiles(file);
     await page.locator('.g-start-upload').click();
-    await expect(page.locator('.g-resume-upload:visible')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('.g-resume-upload:visible')).toBeVisible();
     if (abort) {
         await page.locator('#g-dialog-container .modal-footer a.btn-default').click();
-        await expect(page.locator('#g-dialog-container')).toBeHidden({ timeout: 10000 });
+        await expect(page.locator('#g-dialog-container')).toBeHidden();
     } else {
         await page.locator('.g-resume-upload').click();
-        await expect(page.locator('.g-start-upload')).toBeHidden({ timeout: 20000 });
+        await expect(page.locator('.g-start-upload')).toBeHidden();
         await waitForIdlePage(page);
     }
     await page.unroute('**/file/chunk*', handler);
@@ -134,7 +134,7 @@ test.describe('Create a data hierarchy', () => {
         await page.locator('a.g-my-folders').click();
 
         // The user has two default folders: Private and Public.
-        await expect(page.locator('li.g-folder-list-entry').first()).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('li.g-folder-list-entry').first()).toBeVisible();
         await expect(page.locator('.g-subfolder-count')).toHaveText('2');
         await expect(page.locator('a.g-folder-list-link').first()).toHaveText('Private');
         await expect(page.locator('.g-folder-privacy').first()).toHaveText('Private');
@@ -156,7 +156,7 @@ test.describe('Create a data hierarchy', () => {
         await page.locator('.g-save-folder').click();
         await waitForIdlePage(page);
 
-        await expect(page.locator('li.g-folder-list-entry').first()).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('li.g-folder-list-entry').first()).toBeVisible();
         await expect(page.locator('a.g-folder-list-link').first()).toHaveText("John's subfolder");
         await expect(page.locator('.g-folder-privacy').first()).toHaveText('Private');
 
@@ -204,7 +204,7 @@ test.describe('Download visibility setting', () => {
         await createUser(page, 'johndoe', 'john.doe@girder.test', 'John', 'Doe', 'password!');
         const privateId = await getUserFolderId(page, 'Private');
         await gotoFolder(page, privateId);
-        await expect(page.locator('.g-upload-here-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-upload-here-button:visible')).toBeVisible();
 
         await upload(page, path.join(__dirname, 'data', 'testFile.txt'));
         await expect(page.locator('.g-item-count')).toHaveText('1');
@@ -212,11 +212,11 @@ test.describe('Download visibility setting', () => {
 
         // Download the file from the item page.
         await page.locator('.g-item-list-link').first().click();
-        await expect(page.locator('a.g-file-list-link')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('a.g-file-list-link')).toBeVisible();
         const fileHref = await page.locator('a.g-file-list-link').first().getAttribute('href');
         expect(fileHref).toMatch(/\/api\/v1\/file\/.+\/download$/);
         const [fileDownload] = await Promise.all([
-            page.waitForEvent('download', { timeout: 10000 }),
+            page.waitForEvent('download'),
             page.locator('a.g-file-list-link').first().click(),
         ]);
         expect(fileDownload.url()).toMatch(/\/api\/v1\/file\/.+\/download$/);
@@ -226,7 +226,7 @@ test.describe('Download visibility setting', () => {
         const originalShowDownload = await getSetting(page, 'core.show_download');
         await setSetting(page, 'core.show_download', 'none');
         await page.reload();
-        await expect(page.locator('span.g-file-list-link')).toHaveCount(1, { timeout: 10000 });
+        await expect(page.locator('span.g-file-list-link')).toHaveCount(1);
         await expect(page.locator('a.g-file-list-link')).toHaveCount(0);
         await page.locator('.g-item-actions-button').click();
         await expect(page.locator('a.g-download-item')).toHaveCount(0);
@@ -234,12 +234,12 @@ test.describe('Download visibility setting', () => {
 
         // Download the folder.
         await gotoFolder(page, privateId);
-        await expect(page.locator('.g-folder-actions-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-folder-actions-button:visible')).toBeVisible();
         await page.locator('.g-folder-actions-button').click();
         const folderHref = await page.locator('a.g-download-folder').getAttribute('href');
         expect(folderHref).toMatch(/\/api\/v1\/folder\/.+\/download$/);
         const [folderDownload] = await Promise.all([
-            page.waitForEvent('download', { timeout: 10000 }),
+            page.waitForEvent('download'),
             page.locator('a.g-download-folder').click(),
         ]);
         expect(folderDownload.url()).toMatch(/\/api\/v1\/folder\/.+\/download$/);
@@ -247,7 +247,7 @@ test.describe('Download visibility setting', () => {
         // With downloads hidden, the folder has no download action.
         await setSetting(page, 'core.show_download', 'none');
         await page.reload();
-        await expect(page.locator('.g-folder-actions-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-folder-actions-button:visible')).toBeVisible();
         await page.locator('.g-folder-actions-button').click();
         await expect(page.locator('.g-download-folder')).toHaveCount(0);
         await setSetting(page, 'core.show_download', originalShowDownload ?? 'all');
@@ -256,15 +256,14 @@ test.describe('Download visibility setting', () => {
         // two checkboxes.
         await createFolderApi(page, 'folder', privateId, 'subfolder');
         await gotoFolder(page, privateId);
-        await expect(page.locator('.g-list-checkbox').nth(1)).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-list-checkbox').nth(1)).toBeVisible();
         await page.locator('.g-list-checkbox').nth(0).click();
         await page.locator('.g-list-checkbox').nth(1).click();
-        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled({ timeout: 10000 });
+        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled();
         await page.locator('.g-checked-actions-button').click();
         await expect(page.locator('a.g-download-checked')).toBeVisible();
         const requestPromise = page.waitForRequest((request) =>
-            request.method() === 'POST' && request.url().includes('/api/v1/resource/download'),
-        { timeout: 10000 });
+            request.method() === 'POST' && request.url().includes('/api/v1/resource/download'));
         await page.locator('a.g-download-checked').click();
         const request = await requestPromise;
         const postData = request.postData() ?? '';
@@ -274,10 +273,10 @@ test.describe('Download visibility setting', () => {
         // With downloads hidden, there is no checked-download action.
         await setSetting(page, 'core.show_download', 'none');
         await page.reload();
-        await expect(page.locator('.g-list-checkbox').nth(1)).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-list-checkbox').nth(1)).toBeVisible();
         await page.locator('.g-list-checkbox').nth(0).click();
         await page.locator('.g-list-checkbox').nth(1).click();
-        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled({ timeout: 10000 });
+        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled();
         await page.locator('.g-checked-actions-button').click();
         await expect(page.locator('a.g-download-checked')).toHaveCount(0);
         await setSetting(page, 'core.show_download', originalShowDownload ?? 'all');
@@ -297,7 +296,7 @@ test.describe('Quick search', () => {
         const privateId = await getUserFolderId(page, 'Private');
         await createFolderApi(page, 'folder', privateId, "John's subfolder");
         await gotoFolder(page, privateId);
-        await expect(page.locator('.g-upload-here-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-upload-here-button:visible')).toBeVisible();
         await upload(page, path.join(__dirname, 'data', 'testFile.txt'));
 
         const field = page.locator('.g-quick-search-container input.g-search-field');
@@ -308,7 +307,7 @@ test.describe('Quick search', () => {
         await expect(results).not.toHaveClass(/open/);
 
         await field.fill('john');
-        await expect(results).toHaveClass(/open/, { timeout: 10000 });
+        await expect(results).toHaveClass(/open/);
         // Two resources (folder and user) plus the "..." results-page entry.
         await expect(page.locator('.g-quick-search-container li.g-search-result')).toHaveCount(3);
         await expect(page.locator('.g-quick-search-container a[data-resource-type="folder"]')).toHaveCount(1);
@@ -322,7 +321,7 @@ test.describe('Quick search', () => {
         // Keyboard control of the search results: navigate with arrow keys and
         // select with enter.
         await field.fill('john');
-        await expect(results).toHaveClass(/open/, { timeout: 10000 });
+        await expect(results).toHaveClass(/open/);
         await field.press('ArrowUp');
         await field.press('ArrowUp');
         await field.press('ArrowUp');
@@ -342,10 +341,10 @@ test.describe('Upload files of various sizes', () => {
         await createUser(page, 'johndoe', 'john.doe@girder.test', 'John', 'Doe', 'password!');
         const privateId = await getUserFolderId(page, 'Private');
         await gotoFolder(page, privateId);
-        await expect(page.locator('.g-upload-here-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-upload-here-button:visible')).toBeVisible();
 
         const expectItemCount = async (count: number) => {
-            await expect(page.locator('.g-item-count')).toHaveText(String(count), { timeout: 15000 });
+            await expect(page.locator('.g-item-count')).toHaveText(String(count));
         };
 
         // A file without an extension.
@@ -394,7 +393,7 @@ test.describe('Upload by dropping', () => {
         await createUser(page, 'johndoe', 'john.doe@girder.test', 'John', 'Doe', 'password!');
         const privateId = await getUserFolderId(page, 'Private');
         await gotoFolder(page, privateId);
-        await expect(page.locator('.g-upload-here-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-upload-here-button:visible')).toBeVisible();
 
         // The drag bullseye appears on dragenter and disappears on dragleave.
         await page.locator('.g-upload-here-button').click();
@@ -423,7 +422,7 @@ test.describe('Upload by dropping', () => {
         await expect(page.locator('.g-overall-progress-message')).toContainText('Selected');
         await page.locator('.g-start-upload').click();
         await waitForIdlePage(page);
-        await expect(page.locator('.g-item-count')).toHaveText('1', { timeout: 15000 });
+        await expect(page.locator('.g-item-count')).toHaveText('1');
 
         // Drop two files and upload them.
         await page.locator('.g-upload-here-button').click();
@@ -440,7 +439,7 @@ test.describe('Upload by dropping', () => {
         await expect(page.locator('.g-overall-progress-message')).toContainText('Selected 2 files');
         await page.locator('.g-start-upload').click();
         await waitForIdlePage(page);
-        await expect(page.locator('.g-item-count')).toHaveText('3', { timeout: 15000 });
+        await expect(page.locator('.g-item-count')).toHaveText('3');
 
         // Dropping a directory is rejected with an error and nothing uploaded.
         await page.locator('.g-upload-here-button').click();
@@ -457,7 +456,7 @@ test.describe('Upload by dropping', () => {
         await expect(page.locator('.g-upload-error-message')).toContainText('Only files may be uploaded');
         await expect(page.locator('.g-item-count')).toHaveText('3');
         await page.locator('#g-dialog-container .modal-footer a.btn-default').click();
-        await expect(page.locator('#g-dialog-container')).toBeHidden({ timeout: 10000 });
+        await expect(page.locator('#g-dialog-container')).toBeHidden();
     });
 });
 
@@ -470,7 +469,7 @@ test.describe('Picked resource actions', () => {
         await createFolderApi(page, 'folder', privateId, 'subA');
         await createFolderApi(page, 'folder', privateId, 'subB');
         await gotoFolder(page, privateId);
-        await expect(page.locator('.g-upload-here-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-upload-here-button:visible')).toBeVisible();
         await upload(page, path.join(__dirname, 'data', 'testFile.txt'));
 
         const totalCheckboxes = page.locator('.g-list-checkbox');
@@ -479,61 +478,61 @@ test.describe('Picked resource actions', () => {
 
         // Move the item into subA: pick it, navigate in-SPA into subA, and move.
         await itemCheckboxes.first().click();
-        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled({ timeout: 10000 });
+        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled();
         await page.locator('.g-checked-actions-button').click();
         await page.locator('a.g-pick-checked').click();
-        await expect(page.locator('.g-checked-actions-menu')).toBeHidden({ timeout: 5000 });
+        await expect(page.locator('.g-checked-actions-menu')).toBeHidden();
 
         await page.locator('a.g-folder-list-link', { hasText: 'subA' }).click();
-        await expect(page.locator('.g-empty-parent-message:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-empty-parent-message:visible')).toBeVisible();
         await page.locator('.g-checked-actions-button').click();
         await expect(page.locator('a.g-move-picked')).toBeVisible();
         await page.locator('a.g-move-picked').click();
-        await expect(itemCheckboxes).toHaveCount(1, { timeout: 15000 });
+        await expect(itemCheckboxes).toHaveCount(1);
 
         // Back to Private; it should now contain just the two folders.
         await page.locator('a.g-breadcrumb-link', { hasText: 'Private' }).click();
-        await expect(totalCheckboxes).toHaveCount(2, { timeout: 10000 });
+        await expect(totalCheckboxes).toHaveCount(2);
 
         // Copy both folders into Private, doubling the resources to four.
         await page.locator('.g-select-all').check();
-        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled({ timeout: 10000 });
+        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled();
         await page.locator('.g-checked-actions-button').click();
         await page.locator('a.g-pick-checked').click();
-        await expect(page.locator('.g-checked-actions-menu')).toBeHidden({ timeout: 5000 });
+        await expect(page.locator('.g-checked-actions-menu')).toBeHidden();
         await page.locator('.g-checked-actions-button').click();
         await expect(page.locator('a.g-copy-picked')).toBeVisible();
         await page.locator('a.g-copy-picked').click();
-        await expect(totalCheckboxes).toHaveCount(4, { timeout: 15000 });
+        await expect(totalCheckboxes).toHaveCount(4);
 
         // Upload an item and pick it.  On the user page, copy and move are not
         // offered for items, but the picked resources can be cleared.
         await upload(page, path.join(__dirname, 'data', 'testFile2'));
         await expect(totalCheckboxes).toHaveCount(5);
         await itemCheckboxes.first().click();
-        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled({ timeout: 10000 });
+        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled();
         await page.locator('.g-checked-actions-button').click();
         await page.locator('a.g-pick-checked').click();
-        await expect(page.locator('.g-checked-actions-menu')).toBeHidden({ timeout: 5000 });
+        await expect(page.locator('.g-checked-actions-menu')).toBeHidden();
         await page.locator('a.g-breadcrumb-link').first().click();
-        await expect(page.locator('.g-folder-list-link').first()).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-folder-list-link').first()).toBeVisible();
         await page.locator('.g-checked-actions-button').click();
         await expect(page.locator('a.g-copy-picked')).toHaveCount(0);
         await expect(page.locator('a.g-move-picked')).toHaveCount(0);
         await expect(page.locator('a.g-clear-picked')).toHaveCount(1);
         await page.locator('a.g-clear-picked').click();
-        await expect(page.locator('.g-checked-actions-menu')).toBeHidden({ timeout: 5000 });
+        await expect(page.locator('.g-checked-actions-menu')).toBeHidden();
 
         // Back into Private and delete all remaining resources.
         await page.locator('a.g-folder-list-link', { hasText: 'Private' }).click();
-        await expect(totalCheckboxes).toHaveCount(5, { timeout: 10000 });
+        await expect(totalCheckboxes).toHaveCount(5);
         await page.locator('.g-select-all').check();
-        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled({ timeout: 10000 });
+        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled();
         await page.locator('.g-checked-actions-button').click();
         await page.locator('a.g-delete-checked').click();
-        await expect(page.locator('#g-confirm-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('#g-confirm-button:visible')).toBeVisible();
         await page.locator('#g-confirm-button').click();
-        await expect(page.locator('.g-empty-parent-message:visible')).toBeVisible({ timeout: 15000 });
+        await expect(page.locator('.g-empty-parent-message:visible')).toBeVisible();
         await expect(totalCheckboxes).toHaveCount(0);
     });
 });
@@ -545,12 +544,12 @@ test.describe('Resource permissions for a second user', () => {
         await createUser(page, 'johndoe', 'john.doe@girder.test', 'John', 'Doe', 'password!');
         const publicId = await getUserFolderId(page, 'Public');
         await gotoFolder(page, publicId);
-        await expect(page.locator('.g-upload-here-button:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-upload-here-button:visible')).toBeVisible();
         await upload(page, path.join(__dirname, 'data', 'testFile.txt'));
         await upload(page, path.join(__dirname, 'data', 'testFile2'));
         await createFolderApi(page, 'folder', publicId, 'pubSub');
         await page.reload();
-        await expect(page.locator('.g-list-checkbox')).toHaveCount(3, { timeout: 10000 });
+        await expect(page.locator('.g-list-checkbox')).toHaveCount(3);
 
         await logout(page);
         await createUser(page, 'janedoe', 'jane.doe@girder.test', 'Jane', 'Doe', 'password!');
@@ -558,34 +557,34 @@ test.describe('Resource permissions for a second user', () => {
         // Navigate to John's user page via quick search.
         const field = page.locator('.g-quick-search-container input.g-search-field');
         await field.fill('john');
-        await expect(page.locator('.g-quick-search-container a[data-resource-type="user"]')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-quick-search-container a[data-resource-type="user"]')).toBeVisible();
         await page.locator('.g-quick-search-container a[data-resource-type="user"]').click();
         await waitForIdlePage(page);
 
         // Only John's Public folder is visible to Jane.
-        await expect(page.locator('a.g-folder-list-link', { hasText: 'Public' })).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('a.g-folder-list-link', { hasText: 'Public' })).toBeVisible();
         await page.locator('a.g-folder-list-link', { hasText: 'Public' }).click();
-        await expect(page.locator('.g-list-checkbox')).toHaveCount(3, { timeout: 10000 });
+        await expect(page.locator('.g-list-checkbox')).toHaveCount(3);
 
         // Picking an item: no copy or move, but the resources can be cleared.
         await page.locator('.g-item-list-container .g-list-checkbox').first().click();
-        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled({ timeout: 10000 });
+        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled();
         await page.locator('.g-checked-actions-button').click();
         await page.locator('a.g-pick-checked').click();
-        await expect(page.locator('.g-checked-actions-menu')).toBeHidden({ timeout: 5000 });
+        await expect(page.locator('.g-checked-actions-menu')).toBeHidden();
         await page.locator('.g-checked-actions-button').click();
         await expect(page.locator('a.g-copy-picked')).toHaveCount(0);
         await expect(page.locator('a.g-move-picked')).toHaveCount(0);
         await expect(page.locator('a.g-clear-picked')).toHaveCount(1);
         await page.locator('a.g-clear-picked').click();
-        await expect(page.locator('.g-checked-actions-menu')).toBeHidden({ timeout: 5000 });
+        await expect(page.locator('.g-checked-actions-menu')).toBeHidden();
 
         // Picking a folder: no copy or move either.
         await page.locator('.g-folder-list-container .g-list-checkbox').first().click();
-        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled({ timeout: 10000 });
+        await expect(page.locator('.g-checked-actions-button')).not.toBeDisabled();
         await page.locator('.g-checked-actions-button').click();
         await page.locator('a.g-pick-checked').click();
-        await expect(page.locator('.g-checked-actions-menu')).toBeHidden({ timeout: 5000 });
+        await expect(page.locator('.g-checked-actions-menu')).toBeHidden();
         await page.locator('.g-checked-actions-button').click();
         await expect(page.locator('a.g-copy-picked')).toHaveCount(0);
         await expect(page.locator('a.g-move-picked')).toHaveCount(0);
@@ -596,7 +595,7 @@ test.describe('Resource permissions for a second user', () => {
         // move are not offered, but the picked resources can still be cleared.
         await page.locator('.g-user-dropdown-link').click();
         await page.locator('a.g-my-folders').click();
-        await expect(page.locator('a.g-folder-list-link', { hasText: 'Private' })).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('a.g-folder-list-link', { hasText: 'Private' })).toBeVisible();
         await page.locator('.g-checked-actions-button').click();
         await expect(page.locator('a.g-copy-picked')).toHaveCount(0);
         await expect(page.locator('a.g-move-picked')).toHaveCount(0);
@@ -606,7 +605,7 @@ test.describe('Resource permissions for a second user', () => {
         // In Jane's own private folder she may copy the picked resources but
         // not move them, because she only has read access to the originals.
         await page.locator('a.g-folder-list-link', { hasText: 'Private' }).click();
-        await expect(page.locator('.g-empty-parent-message:visible')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('.g-empty-parent-message:visible')).toBeVisible();
         await page.locator('.g-checked-actions-button').click();
         await expect(page.locator('a.g-copy-picked')).toHaveCount(1);
         await expect(page.locator('a.g-move-picked')).toHaveCount(0);

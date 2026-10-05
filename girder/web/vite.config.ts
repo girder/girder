@@ -67,12 +67,6 @@ if (process.env.BUILD_LIB) {
   outDir = 'dist-lib';
 }
 
-// Pass `PLAYWRIGHT_TESTING=true` when starting the dev server via playwright
-// so it knows to disable hot reloading. Vite's file watching consumes inotify
-// resources; since automated browsers don't need HMR, we completely disable it
-// during Playwright test runs.
-const isTestMode = process.env.PLAYWRIGHT_TESTING === 'true';
-
 export default defineConfig({
   base: './',
   plugins: [
@@ -108,9 +102,7 @@ export default defineConfig({
     }},
   },
   server: {
-    // Disable Hot Module Reloading when running under Playwright tests
-    hmr: isTestMode ? false : {},
-    watch: isTestMode ? null : {
+    watch: {
       ignored: [
         '**/node_modules/**',
         '**/coverage/**',

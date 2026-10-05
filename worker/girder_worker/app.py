@@ -1,7 +1,6 @@
 import os
 import sys
 import traceback as tb
-from distutils.version import LooseVersion
 
 import jsonpickle
 from celery import Celery, __version__
@@ -17,6 +16,7 @@ from girder_worker.utils import (JobSpecNotFound, JobStatus, StateTransitionExce
                                  is_builtin_celery_task, is_revoked)
 from girder_worker.utils.transform import ResultTransform
 from kombu.serialization import register
+from packaging.version import Version
 
 CeleryAppInfo = {'threads_pool': False}
 
@@ -101,7 +101,7 @@ def _capture_celery_pool(sender, **kwargs):
 
 @worker_ready.connect
 def check_celery_version(*args, **kwargs):
-    if LooseVersion(__version__) < LooseVersion('4.0.0'):
+    if Version(__version__) < Version('4.0.0'):
         sys.exit("""You are running Celery {}.
 
 girder-worker requires celery>=4.0.0""".format(__version__))
@@ -221,7 +221,18 @@ def gw_task_revoked(sender=None, request=None, **rest):
             "No jobInfoSpec. Unable to move \'%s\' into CANCELED state.")
 
 
-register('girder_io', jsonpickle.encode, jsonpickle.decode,
+def _girder_io_encode(data):
+    # jsonpickle defaults `keys` to False but plans to default it to True in
+    # jsonpickle 5.0.0.  Pass it explicitly so behavior is stable and no
+    # deprecation warning is emitted.
+    return jsonpickle.encode(data, keys=True)
+
+
+def _girder_io_decode(data):
+    return jsonpickle.decode(data, keys=True)
+
+
+register('girder_io', _girder_io_encode, _girder_io_decode,
          content_type='application/json',
          content_encoding='utf-8')
 

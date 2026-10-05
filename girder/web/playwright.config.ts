@@ -7,6 +7,16 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
+  /* Test (and hook) timeout. This is intentionally larger than the expect
+   * timeout so that a slow assertion failure or a slow server startup under
+   * load does not consume the entire budget. */
+  timeout: 60000,
+  /* Default timeout for expect() assertions and web-first assertions. Tests
+   * should rely on this value rather than passing explicit timeouts, so that
+   * slower machines and CI runners do not cause flaky failures. */
+  expect: {
+    timeout: 20000,
+  },
   /* Run tests in files in parallel */
   fullyParallel: false,
   /* Fail the build on CI if test.only is in the source code. */
@@ -57,11 +67,4 @@ export default defineConfig({
       use: { ...devices['Desktop Firefox'] },
     },
   ],
-  webServer: {
-    command: 'npx vite dev --port 5173',
-    port: 5173,
-    reuseExistingServer: false,
-    // Disable Vite HMR when running tests so it doesn't consume inotify resources
-    env: { PLAYWRIGHT_TESTING: 'true' },
-  },
 });

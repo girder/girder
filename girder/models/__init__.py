@@ -10,15 +10,14 @@ _dbClients = {}
 logger = logging.getLogger(__name__)
 
 
+# pymongo 4 removed ``Cursor.count``.  Girder intentionally keeps a ``count`` method on
+# cursors, because endpoints return cursors and report a total count (for example via the
+# ``Girder-Total-Count`` header) alongside the requested records.  Rather than thread an
+# out-of-band count through every such call site, the shim reimplements the pymongo 3
+# behavior using ``count_documents``, which is the non-deprecated API.  Because this is the
+# sanctioned way to count a cursor here, it must not emit a deprecation warning.
 if not hasattr(pymongo.cursor.Cursor, 'count'):
-    import warnings
-
     def _cursorCount(self, with_limit_and_skip=False):
-        warnings.warn(
-            'count is deprecated. Use Collection.count_documents instead.',
-            DeprecationWarning,
-            stacklevel=2,
-        )
         params = {}
         if with_limit_and_skip and getattr(self, '_limit', getattr(self, '_Cursor__limit', None)):
             params['limit'] = getattr(self, '_limit', getattr(self, '_Cursor__limit', None))

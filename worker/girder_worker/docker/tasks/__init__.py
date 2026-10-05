@@ -369,20 +369,25 @@ class DockerTask(Task):
                 daemon=True).start()
 
     def _cleanup_temp_volumes(self, temp_volumes, default_temp_volume):
-        # Set the permission to allow cleanup of temp directories
-        temp_volumes = [v for v in temp_volumes if os.path.exists(v.host_path)]
-        to_chmod = temp_volumes[:]
-        # If our default_temp_volume instance has been transformed then we
-        # know it has been used and we have to clean it up.
-        if default_temp_volume._transformed:
-            to_chmod.append(default_temp_volume)
-            temp_volumes.append(default_temp_volume)
+        # This runs in a daemon thread, so it must never raise; an unhandled
+        # exception here would be reported as an unhandled thread exception.
+        try:
+            # Set the permission to allow cleanup of temp directories
+            temp_volumes = [v for v in temp_volumes if os.path.exists(v.host_path)]
+            to_chmod = temp_volumes[:]
+            # If our default_temp_volume instance has been transformed then we
+            # know it has been used and we have to clean it up.
+            if default_temp_volume._transformed:
+                to_chmod.append(default_temp_volume)
+                temp_volumes.append(default_temp_volume)
 
-        if len(to_chmod) > 0:
-            utils.chmod_writable([v.host_path for v in to_chmod])
+            if len(to_chmod) > 0:
+                utils.chmod_writable([v.host_path for v in to_chmod])
 
-        for v in temp_volumes:
-            shutil.rmtree(v.host_path)
+            for v in temp_volumes:
+                shutil.rmtree(v.host_path)
+        except Exception:
+            logger.exception('Failed to clean up temporary docker volumes')
 
 
 def _add_environment_kargs(run_kwargs):

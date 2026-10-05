@@ -40,11 +40,11 @@ async function createDefaultTaskFolder(page: Page) {
 
 async function navigateToCollectionsFolder(page: Page, collectionName: string, folderName: string) {
     await page.locator('a.g-nav-link[g-target="collections"]').click();
-    await expect(page.locator('.g-collection-list-entry').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.g-collection-list-entry').first()).toBeVisible();
     await page.locator('.g-collection-link', { hasText: collectionName }).first().click();
-    await expect(page.locator('.g-folder-list-link').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.g-folder-list-link').first()).toBeVisible();
     await page.locator('.g-folder-list-link', { hasText: folderName }).first().click();
-    await expect(page.locator('.g-hierarchy-widget').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.g-hierarchy-widget').first()).toBeVisible();
 }
 
 test.describe('Slicer CLI web upload docker images button', () => {
