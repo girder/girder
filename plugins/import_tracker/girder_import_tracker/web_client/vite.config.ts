@@ -1,6 +1,7 @@
 import { resolve } from 'path';
 
 import { defineConfig } from 'vite';
+import istanbul from 'vite-plugin-istanbul';
 import { compileClient } from 'pug';
 
 function pugPlugin() {
@@ -20,6 +21,14 @@ function pugPlugin() {
 export default defineConfig({
   plugins: [
     pugPlugin(),
+    istanbul({
+      include: ['**/*.js', '**/*.ts', '**/*.vue', '**/*.pug'],
+      exclude: ['node_modules/**', 'dist/**'],
+      extension: ['.js', '.ts', '.vue', '.pug'],
+      requireEnv: false,
+      // Only instrument when the test harness asks for coverage.
+      forceBuildInstrument: !!process.env.GIRDER_TEST_COVERAGE,
+    }),
   ],
   build: {
       sourcemap: !process.env.SKIP_SOURCE_MAPS,

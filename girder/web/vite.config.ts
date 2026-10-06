@@ -4,6 +4,7 @@ import path, { resolve } from 'path';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { compileClient } from 'pug';
+import istanbul from 'vite-plugin-istanbul';
 import dts from 'vite-plugin-dts';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
@@ -48,7 +49,23 @@ function inlineFaviconPlugin(relFaviconPath, mimeType) {
 
 let buildOpts = {};
 const plugins: any[] = [];
+const instrumentPlugins: any[] = [];
 let outDir = 'dist';
+
+// When requested, instrument the application source with istanbul so that the
+// browser exposes accurate statement/branch/function coverage on
+// window.__coverage__.  V8 coverage (used elsewhere) cannot represent
+// statements inside functions that are never called, because it only reports
+// executed ranges; instrumented coverage does not have that limitation.
+if (process.env.GIRDER_TEST_COVERAGE && !process.env.BUILD_LIB) {
+  instrumentPlugins.push(istanbul({
+    include: 'src/**/*',
+    exclude: ['node_modules/**', 'dist/**'],
+    extension: ['.js', '.ts', '.vue', '.pug'],
+    requireEnv: false,
+    forceBuildInstrument: true,
+  }));
+}
 
 if (process.env.BUILD_LIB) {
   buildOpts = {
@@ -72,6 +89,7 @@ export default defineConfig({
   plugins: [
     vue(),
     pugPlugin(),
+    ...instrumentPlugins,
     inlineFaviconPlugin('public/Girder_Favicon.png', 'image/png'),
     viteStaticCopy({
       targets: [
