@@ -152,9 +152,6 @@ async function editItem(page: Page, action: 'cancel' | 'save') {
     await waitForIdlePage(page);
 }
 
-/* ------------------------------------------------------------------ *
- * Metadata widget helpers (port of girderTest.testMetadata).
- * ------------------------------------------------------------------ */
 
 function escapeRegExp(value: string) {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -380,9 +377,6 @@ async function testMetadata(page: Page) {
     await toggleMetadata(page, 'some_simple_key', 'simple', 'save', /The simple field is not valid JSON and can not be converted./);
 }
 
-/* ------------------------------------------------------------------ *
- * Tests
- * ------------------------------------------------------------------ */
 
 test.describe('Test item creation, editing, and deletion', () => {
     setupServer();
