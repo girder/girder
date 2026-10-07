@@ -46,6 +46,7 @@
     "moment-timezone": "^0.6.0",
     "qrcode": "^1.4.4",
     "remarkable": "~2.0.0",
+    "swagger-ui-dist": "5.20.1",
     "typeface-open-sans": "^1.1.13",
     "underscore": "~1.13.6",
     "url-otpauth": "~2.0.0",
@@ -53,6 +54,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.61.0",
+    "@redocly/cli": "2.59.0",
     "@tsconfig/node20": "^20.0.0",
     "@types/istanbul-lib-report": "^3.0.0",
     "@types/istanbul-reports": "^3.0.1",
