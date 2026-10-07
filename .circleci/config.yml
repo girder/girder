@@ -195,7 +195,7 @@ jobs:
           command: npm run test
           working_directory: girder/girder/web
           environment:
-            PLAYWRIGHT_WORKERS: 3
+            PLAYWRIGHT_WORKERS: 4
       - store_artifacts:
           path: girder/girder/web/coverage/report
           destination: coverage

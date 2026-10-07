@@ -24,22 +24,65 @@ const createDatabaseName = () =>
   `girder-${process.pid}-${Date.now()}-${randomBytes(4).toString('hex')}`;
 
 /**
- * Drop a database, waiting for mongosh to finish. Failures are reported but
- * never thrown, so that a cleanup problem cannot mask the actual test result.
+ * The mongo shell command used for database cleanup, probed once and memoized
+ * for the lifetime of this worker process. `null` means no shell was found, in
+ * which case cleanup is skipped: some environments (for example CI images with
+ * a MongoDB service but no shell client on the PATH) cannot drop databases
+ * this way, and since database names are unique to this process, leftover
+ * databases cannot interfere with subsequent runs.
+ */
+let mongoShell: Promise<string | null> | null = null;
+
+const findMongoShell = (): Promise<string | null> => {
+  if (mongoShell === null) {
+    mongoShell = new Promise<string | null>((resolve) => {
+      const candidates = ['mongosh', 'mongo'];
+      let index = 0;
+      const probe = () => {
+        if (index >= candidates.length) {
+          resolve(null);
+          return;
+        }
+        const shellProcess = spawn(candidates[index], ['--version']);
+        index += 1;
+        shellProcess.on('error', () => probe());
+        shellProcess.on('close', (code) => {
+          if (code === 0) {
+            resolve(candidates[index - 1]);
+          } else {
+            probe();
+          }
+        });
+      };
+      probe();
+    });
+  }
+  return mongoShell;
+};
+
+/**
+ * Drop a database, waiting for the mongo shell to finish. Failures are
+ * reported but never thrown, so that a cleanup problem cannot mask the actual
+ * test result. If no mongo shell is available, cleanup is skipped silently.
  */
 const dropDatabase = async (database: string) => {
-  const mongoshProcess = spawn('mongosh', [`${mongoUri}/${database}`, '--eval', 'db.dropDatabase();']);
+  const shell = await findMongoShell();
+  if (shell === null) {
+    return;
+  }
+
+  const shellProcess = spawn(shell, [`${mongoUri}/${database}`, '--eval', 'db.dropDatabase();']);
 
   await new Promise<void>((resolve) => {
-    mongoshProcess?.on('close', (code) => {
+    shellProcess.on('close', (code) => {
       if (code !== 0) {
         console.error(`mongo database ${database} cleanup failed with code`, code);
       }
       resolve();
     });
 
-    mongoshProcess?.on('error', (err) => {
-      console.error(`mongosh process error -- database ${database} not cleaned up`, err);
+    shellProcess.on('error', (err) => {
+      console.error(`mongo shell process error -- database ${database} not cleaned up`, err);
       resolve();
     });
   });
@@ -63,8 +106,15 @@ const killServer = async (serverProcess?: ChildProcessWithoutNullStreams) => {
   });
 };
 
+/**
+ * The captured output of the Girder server started most recently in this
+ * worker process. Specs can inspect these logs; for example, emails are
+ * written to the server console when GIRDER_EMAIL_TO_CONSOLE is enabled.
+ */
+const serverLogs: string[] = [];
+
 const startServer = async (port: number, database: string) => {
-  const serverLogs: string[] = [];
+  serverLogs.length = 0;
   const serverProcess = spawn(girderExecutable, [
     'serve',
     '--database', `${mongoUri}/${database}`,
@@ -145,3 +195,5 @@ export const setupServer = () => {
     await outputCoverageReport(page);
   });
 };
+
+export { serverLogs };
