@@ -97,6 +97,11 @@ export default defineConfig({
           src: path.resolve(import.meta.dirname, './src') + '/[!.]*',
           dest: './src',
         },
+        {
+          src: path.resolve(import.meta.dirname, './node_modules/swagger-ui-dist') + '/{swagger-ui.css,swagger-ui-bundle.js}',
+          dest: './swagger-ui',
+          rename: { stripBase: true },
+        },
       ],
     }).filter((config) => config.apply === 'build'),  // Don't copy sources for dev server
     ...plugins,
