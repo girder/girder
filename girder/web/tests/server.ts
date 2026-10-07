@@ -63,8 +63,15 @@ const killServer = async (serverProcess?: ChildProcessWithoutNullStreams) => {
   });
 };
 
+/**
+ * The captured output of the Girder server started most recently in this
+ * worker process. Specs can inspect these logs; for example, emails are
+ * written to the server console when GIRDER_EMAIL_TO_CONSOLE is enabled.
+ */
+const serverLogs: string[] = [];
+
 const startServer = async (port: number, database: string) => {
-  const serverLogs: string[] = [];
+  serverLogs.length = 0;
   const serverProcess = spawn(girderExecutable, [
     'serve',
     '--database', `${mongoUri}/${database}`,
@@ -145,3 +152,5 @@ export const setupServer = () => {
     await outputCoverageReport(page);
   });
 };
+
+export { serverLogs };
