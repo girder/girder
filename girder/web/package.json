@@ -81,6 +81,7 @@
     "vue-tsc": "^3.0.0"
   },
   "overrides": {
+    "argparse": "^2.0.1",
     "moment-timezone": "^0.6.0"
   }
 }
