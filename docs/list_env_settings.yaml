@@ -110,3 +110,51 @@ GIRDER_FILESYSTEMASSETSTORE_RESERVED_MBYTES: >-
 
 GIRDER_SETTING_CORE_SHOW_DOWNLOAD: >-
   One of "all" (default), "admin", "user", or "none". This determines if download buttons and menu items are visible, and, if so, to which user authentication level.
+
+GIRDER_SETTING_SLICER_CLI_WEB_SINGULARITY_ENABLED: >-
+  Whether slicer_cli_web CLI tasks run in apptainer (singularity) containers
+  instead of docker. Set to "true" or "false" (default false) on the girder
+  server. When true, images are pulled as .sif files into SIF_IMAGE_PATH and
+  CLI tasks are executed with apptainer (optionally via slurm). This is a
+  database setting, so it can be changed in the admin UI/API; it can also be
+  seeded at startup via this environment variable. The worker additionally
+  needs GIRDER_WORKER_SINGULARITY_ENABLED to register the singularity tasks.
+
+GIRDER_WORKER_SINGULARITY_ENABLED: >-
+  Set to "1" (or "true") on girder-worker processes to execute container tasks
+  with apptainer instead of docker; it also gates the registration of the
+  singularity celery tasks. When unset, the worker behaves exactly like stock
+  girder-worker (docker only): the presence of the singularity code does not
+  enable the behavior by itself. This must be set on the worker; it is a
+  companion to the slicer_cli_web.singularity_enabled girder setting, which
+  controls the server side.
+
+SIF_IMAGE_PATH: >-
+  Directory where apptainer .sif image files are stored (named like
+  dsarchive_histomicstk_latest.sif). Required for pulling and running
+  singularity images; the directory must be visible at the same path to the
+  girder server, the worker, and, when using slurm, the compute nodes.
+
+GIRDER_WORKER_SINGULARITY_LOGS_DIR: >-
+  Writable directory where apptainer task log files are written. Required for
+  singularity tasks; when using slurm it must be visible to the compute nodes
+  as well, since the job writes its output there.
+
+GIRDER_WORKER_SLURM_SUBMIT_SCRIPT: >-
+  Path to an sbatch submit script used to run apptainer jobs on a slurm
+  cluster (see worker/girder_worker/slurm/girder_worker_slurm/singularity.slurm
+  for an example). Set on the worker. When set, singularity tasks are
+  submitted with sbatch and monitored with scontrol; when unset, apptainer
+  tasks run directly on the worker host without slurm.
+
+GIRDER_WORKER_SLURM_PARTITION: >-
+  Optional slurm partition used when submitting apptainer jobs via sbatch.
+  Command-line options passed to sbatch take precedence over #SBATCH
+  directives in the submit script, so this overrides the script's default
+  partition. It can also be specified per task with a --slurm_partition
+  container argument, which takes precedence over this environment variable.
+
+GIRDER_WORKER_SLURM_MOUNT_PREFIX: >-
+  Optional prefix applied to assetstore-like volume keys when mapping input
+  and output paths for apptainer jobs running on slurm compute nodes. It may
+  be empty or unset; unset is treated as an empty prefix.

@@ -11,9 +11,35 @@ from girder_jobs.constants import JobStatus
 from girder_jobs.models.job import Job
 from girder_worker.app import app
 
+from .config import singularity_enabled
 from .models import DockerImageError, DockerImageNotFoundError
 
 logger = logging.getLogger(__name__)
+
+
+def _use_singularity():
+    """
+    Return the optional singularity support modules when the
+    ``slicer_cli_web.singularity_enabled`` setting is on, and None otherwise
+    (the docker flow is used). The modules are imported lazily so that
+    installations without the optional package keep working; if the setting is
+    on but the package is missing, fail loudly with a clear error.
+    """
+    if not singularity_enabled():
+        return None
+    try:
+        from slicer_cli_web.singularity.slicer_cli_web_singularity import job as singularity_job
+        from slicer_cli_web.singularity.slicer_cli_web_singularity import singularity_image
+    except ImportError:
+        logger.exception(
+            'slicer_cli_web.singularity_enabled is set but the singularity '
+            'support modules could not be imported'
+        )
+        raise DockerImageError(
+            'singularity_enabled is set but the singularity support modules '
+            'could not be imported'
+        )
+    return singularity_job, singularity_image
 
 
 def deleteImage(job):
@@ -29,34 +55,48 @@ def deleteImage(job):
         log='Started to Delete Docker images\n',
         status=JobStatus.RUNNING,
     )
+    singularity = _use_singularity()
     docker_client = None
     try:
         deleteList = job['kwargs']['deleteList']
         error = False
 
-        try:
-            docker_client = docker.from_env(version='auto')
-
-        except docker.errors.DockerException as err:
-            logger.exception('Could not create the docker client')
-            job = Job().updateJob(
-                job,
-                log='Failed to create the Docker Client\n' + str(err) + '\n',
-                status=JobStatus.ERROR,
-            )
-            raise DockerImageError('Could not create the docker client')
-
-        for name in deleteList:
+        if singularity is not None:
+            singularity_job = singularity[0]
+            for name in deleteList:
+                try:
+                    singularity_job.find_and_remove_local_sif_files(name)
+                except Exception as err:
+                    logger.exception('Failed to remove singularity image')
+                    job = Job().updateJob(
+                        job,
+                        log=f'Failed to remove singularity image \n{err}\n',
+                    )
+                    error = True
+        else:
             try:
-                docker_client.images.remove(name, force=True)
+                docker_client = docker.from_env(version='auto')
 
-            except Exception as err:
-                logger.exception('Failed to remove image')
+            except docker.errors.DockerException as err:
+                logger.exception('Could not create the docker client')
                 job = Job().updateJob(
                     job,
-                    log='Failed to remove image \n' + str(err) + '\n',
+                    log=f'Failed to create the Docker Client\n{err}\n',
+                    status=JobStatus.ERROR,
                 )
-                error = True
+                raise DockerImageError('Could not create the docker client')
+
+            for name in deleteList:
+                try:
+                    docker_client.images.remove(name, force=True)
+
+                except Exception as err:
+                    logger.exception('Failed to remove image')
+                    job = Job().updateJob(
+                        job,
+                        log='Failed to remove image \n' + str(err) + '\n',
+                    )
+                    error = True
         if error is True:
             job = Job().updateJob(
                 job,
@@ -122,6 +162,10 @@ def ingest_from_docker(self, name_list, token: str, folder_id, pull: bool):  # n
     related
     """
     stage = 'initializing'
+    singularity = _use_singularity()
+    if singularity is not None:
+        return _ingest_from_singularity(singularity[0], singularity[1], self, name_list, token,
+                                        folder_id, pull)
     try:
         print('Started to load Docker images')
 
@@ -146,10 +190,12 @@ def ingest_from_docker(self, name_list, token: str, folder_id, pull: bool):  # n
         except DockerImageNotFoundError as err:
             errorState = True
             notExistSet = set(err.imageName)
-            print('FAILURE: Could not find the following images\n' + '\n'.join(notExistSet))
+            print('FAILURE: Could not find the following images\n' + '\n'.join(
+                notExistSet))
 
         stage = 'metadata'
-        images, loadingError = loadMetadata(docker_client, pullList, loadList, notExistSet)
+        images, loadingError = loadMetadata(
+            docker_client, pullList, loadList, notExistSet)
         gc = GirderClient(apiUrl=self.request.apiUrl)
         gc.token = token
 
@@ -165,7 +211,8 @@ def ingest_from_docker(self, name_list, token: str, folder_id, pull: bool):  # n
             else:
                 description = 'Slicer CLI generated docker image tag folder'
 
-            tag_metadata = {k.replace('.', '_'): v for k, v in tag_metadata.items()}
+            tag_metadata = {k.replace('.', '_'): v for k,
+                            v in tag_metadata.items()}
             if 'Author' in docker_image.attrs:
                 tag_metadata['author'] = docker_image.attrs['Author']
 
@@ -229,7 +276,8 @@ def ingest_from_docker(self, name_list, token: str, folder_id, pull: bool):  # n
         raise
 
     if errorState:
-        raise DockerImageError('Error occurred during image loading (see previous output)')
+        raise DockerImageError(
+            'Error occurred during image loading (see previous output)')
 
 
 def loadMetadata(docker_client, pullList, loadList, notExistSet):
@@ -260,7 +308,8 @@ def loadMetadata(docker_client, pullList, loadList, notExistSet):
                 images.append((name, cli_dict))
                 print(f'Got pulled image {name} metadata')
             except DockerImageError as err:
-                print(f'FAILURE: Error with recently pulled image {name}\n{err}')
+                print(
+                    f'FAILURE: Error with recently pulled image {name}\n{err}')
                 errorState = True
 
     for name in loadList:
@@ -270,7 +319,8 @@ def loadMetadata(docker_client, pullList, loadList, notExistSet):
             images.append((name, cli_dict))
             print(f'Loaded metadata from pre-existing local image {name}')
         except DockerImageError as err:
-            print(f'FAILURE: Error with recently loading pre-existing image {name}\n{err}')
+            print(
+                f'FAILURE: Error with recently loading pre-existing image {name}\n{err}')
             errorState = True
     return images, errorState
 
@@ -331,10 +381,12 @@ def getCliData(name, client):
 
             # For --xml, strip text before the first < and after the last >
             if desc_type == 'xml':
-                cli_desc = '<' + cli_desc.split('<', 1)[1].rsplit('>', 1)[0] + '>'
+                cli_desc = '<' + \
+                    cli_desc.split('<', 1)[1].rsplit('>', 1)[0] + '>'
             # For --json, strip text before the first { and after the last }
             elif desc_type == 'json':
-                cli_desc = '{' + cli_desc.split('{', 1)[1].rsplit('}', 1)[0] + '}'
+                cli_desc = '{' + \
+                    cli_desc.split('{', 1)[1].rsplit('}', 1)[0] + '}'
 
             cli_dict[key][desc_type] = cli_desc
             print(f'Got image {name}, cli {key} metadata')
@@ -342,7 +394,8 @@ def getCliData(name, client):
     except Exception as err:
         print(f'Error getting {name} cli data from image: {err}')
         logger.exception(f'Error getting {name} cli data from image')
-        raise DockerImageError(f'Error getting {name} cli data from image: {err}')
+        raise DockerImageError(
+            f'Error getting {name} cli data from image: {err}')
 
 
 def pullOneDockerImage(client, name):
@@ -403,7 +456,8 @@ def pullDockerImage(client, names):
     """
     imgNotExistList = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()) as pool:
-        futures = [pool.submit(pullOneDockerImage, client, name) for name in names]
+        futures = [pool.submit(pullOneDockerImage, client, name)
+                   for name in names]
         for f in concurrent.futures.as_completed(futures):
             name, success = f.result()
             if not success:
@@ -411,3 +465,180 @@ def pullDockerImage(client, names):
     if len(imgNotExistList) != 0:
         raise DockerImageNotFoundError('Could not find multiple images ',
                                        image_name=imgNotExistList)
+
+
+def _ingest_from_singularity(  # noqa: C901
+        singularity_job, singularity_image, self, name_list, token: str, folder_id,
+        pull: bool):
+    """
+    Singularity counterpart of ingest_from_docker: pull images as SIF files
+    (when requested), query them for their CLIs and store the CLI metadata in
+    the girder database. Only called when the ``slicer_cli_web.singularity_enabled``
+    setting is on.
+    """
+    stage = 'initializing'
+    try:
+        print('Started to load Singularity images')
+        errorState = False
+        notExistSet = set()
+        singularity_job.is_singularity_installed()
+        if pull:
+            for name in name_list:
+                try:
+                    singularity_job.find_and_remove_local_sif_files(name)
+                except Exception:
+                    pass
+        pullList = [
+            name for name in name_list
+            if pull or not singularity_job.find_local_singularity_image(name)
+        ]
+        loadList = [name for name in name_list if name not in pullList]
+        try:
+            stage = 'pulling'
+            singularity_job.pull_image_and_convert_to_sif(pullList)
+        except DockerImageNotFoundError as err:
+            errorState = True
+            notExistSet = set(err.imageName)
+            print('FAILURE: Could not find the following images\n' + '\n'.join(
+                notExistSet))
+        stage = 'metadata'
+        images, loadingError = loadMetadataSingularity(
+            singularity_job, pullList, loadList, notExistSet)
+        gc = GirderClient(apiUrl=self.request.apiUrl)
+        gc.token = token
+        for name, cli_dict in images:
+            stage = 'parsing'
+            singularity_image_obj = singularity_image.SingularityImage(name)
+            tag_metadata = (singularity_image_obj.labels or {}).copy()
+            if 'description' in tag_metadata:
+                description = tag_metadata['description']
+                del tag_metadata['description']
+            else:
+                description = 'Slicer CLI generated docker image tag folder'
+            tag_metadata = {k.replace('.', '_'): v for k,
+                            v in tag_metadata.items()}
+            tag_metadata['digest'] = singularity_image_obj.get(
+                'digest') or name
+            tag_metadata['slicerCLIType'] = 'tag'
+            image_name, tag_name = _split_image_and_version(name)
+            try:
+                image_folder = gc.post('folder', data={
+                    'name': image_name,
+                    'parentId': folder_id,
+                    'reuseExisting': True,
+                    'description': 'Slicer CLI generated docker image folder',
+                    'metadata': json.dumps(dict(slicerCLIType='image')),
+                })
+            except HttpError as err:
+                print(f'Error creating image folder {image_name}: {err}')
+                print(err.responseText)
+                raise
+            try:
+                tag_folder = gc.post('folder', data={
+                    'name': tag_name,
+                    'parentId': image_folder['_id'],
+                    'reuseExisting': True,
+                    'description': description,
+                    'metadata': json.dumps(tag_metadata),
+                })
+            except HttpError as err:
+                print(f'Error creating tag folder {tag_name}: {err}')
+                print(err.responseText)
+                raise
+            for cli_name, spec in cli_dict.items():
+                try:
+                    desc_type = spec.get('desc-type', 'xml')
+                    gc.post('slicer_cli_web/cli', data={
+                        'folder': tag_folder['_id'],
+                        'name': cli_name,
+                        'image': name,
+                        'replace': True,
+                        'desc_type': desc_type,
+                        'spec': b64encode(spec[desc_type].encode()),
+                    })
+                except HttpError as err:
+                    print(f'Error creating cli {cli_name}: {err}')
+                    print(err.responseText)
+                    raise
+        if loadingError:
+            errorState = True
+        print('Finished caching Singularity image data')
+    except Exception:
+        print(f'Error during stage {stage}:')
+        raise
+    if errorState:
+        raise DockerImageError(
+            'Error occurred during image loading (see previous output)')
+
+
+def loadMetadataSingularity(singularity_job, pullList, loadList, notExistSet):
+    """
+    Attempt to query preexisting images and pulled images for cli data using
+    the singularity support modules.
+
+    :param singularity_job: The optional ``slicer_cli_web_singularity.job``
+        module.
+    :param pullList: The list of images that the job attempted to pull
+    :param loadList: The list of images to be queried that were already on the
+        local machine
+    :param notExistSet: A subset of the pullList that did not exist on the
+        registry or that could not be pulled
+
+    :returns: A list of ``(name, cli_dict)`` tuples and a boolean indicating
+        whether an error occurred
+    """
+    errorState = False
+    images = []
+    for name in pullList:
+        if name not in notExistSet:
+            print(f'Image {name} was pulled successfully')
+            try:
+                cli_dict = getCliDataSingularity(singularity_job, name)
+                images.append((name, cli_dict))
+                print(f'Got pulled image {name} metadata')
+            except DockerImageError as err:
+                print(
+                    f'FAILURE: Error with recently pulled image {name}\n{err}')
+                errorState = True
+    for name in loadList:
+        try:
+            cli_dict = getCliDataSingularity(singularity_job, name)
+            images.append((name, cli_dict))
+            print(f'Loaded metadata from pre-existing local image {name}')
+        except DockerImageError as err:
+            print(
+                f'FAILURE: Error with recently loading pre-existing image {name}\n{err}')
+            errorState = True
+    return images, errorState
+
+
+def getCliDataSingularity(singularity_job, name):
+    try:
+        cli_dict = singularity_job.get_local_singularity_output(
+            name, '--list_cli')
+        if isinstance(cli_dict, bytes):
+            cli_dict = cli_dict.decode('utf8')
+        cli_dict = json.loads(cli_dict)
+
+        for key, info in cli_dict.items():
+            desc_type = info.get('desc-type', 'xml')
+            cli_desc = singularity_job.get_local_singularity_output(
+                name, f'{key} --{desc_type}')
+            if isinstance(cli_desc, bytes):
+                cli_desc = cli_desc.decode('utf8')
+            # For --xml, strip text before the first < and after the last >
+            if desc_type == 'xml':
+                cli_desc = '<' + \
+                    cli_desc.split('<', 1)[1].rsplit('>', 1)[0] + '>'
+            # For --json, strip text before the first { and after the last }
+            elif desc_type == 'json':
+                cli_desc = '{' + \
+                    cli_desc.split('{', 1)[1].rsplit('}', 1)[0] + '}'
+            cli_dict[key][desc_type] = cli_desc
+            print(f'Got image {name}, cli {key} metadata')
+        return cli_dict
+    except Exception as err:
+        logger.exception(
+            'Error getting CLI data from singularity image %s', name)
+        raise DockerImageError(
+            f'Error getting CLI data from singularity image {name}: {err}', name)

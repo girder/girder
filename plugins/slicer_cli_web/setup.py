@@ -29,7 +29,9 @@ with open('README.rst') as f:
 # perform the install
 setup(
     name='girder-slicer-cli-web',
-    use_scm_version={'search_parent_directories': True, 'local_scheme': prerelease_local_scheme},
+    use_scm_version={
+        'search_parent_directories': True,
+        'local_scheme': prerelease_local_scheme},
     setup_requires=[
         'setuptools-scm',
     ],
@@ -80,7 +82,11 @@ setup(
             'slicer_cli_web = slicer_cli_web.girder_plugin:SlicerCLIWebPlugin'
         ],
         'girder_worker_plugins': [
-            'slicer_cli_web = slicer_cli_web.girder_worker_plugin:SlicerCLIWebWorkerPlugin'
+            'slicer_cli_web = slicer_cli_web.girder_worker_plugin:SlicerCLIWebWorkerPlugin',
+            # Unless GIRDER_WORKER_SINGULARITY_ENABLED is set on the worker,
+            # this does nothing.
+            'slicer_cli_web_singularity = '
+            'slicer_cli_web.singularity.slicer_cli_web_singularity:SlicerCLISingularityWebWorkerPlugin',  # noqa: E501
         ],
         'console_scripts': [
             'upload-slicer-cli-task = slicer_cli_web.upload_slicer_cli_task:upload_slicer_cli_task'  # noqa: E501

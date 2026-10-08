@@ -51,7 +51,13 @@ setup(
     zip_safe=False,
     entry_points={
         'girder_worker_plugins': [
-            'docker = girder_worker.docker:DockerPlugin [docker]'
+            'docker = girder_worker.docker:DockerPlugin [docker]',
+            # Registered unconditionally, but the plugin returns no task modules
+            # unless GIRDER_WORKER_SINGULARITY_ENABLED is set on the worker, so
+            # an installation without the flag behaves exactly like stock
+            # girder-worker (docker execution).
+            'singularity = '
+            'girder_worker.singularity.girder_worker_singularity:SingularityPlugin',
         ],
         'girder_worker._test_plugins.valid_plugins': [
             'plugin1 = girder_worker._test_plugins.plugins:TestPlugin1',

@@ -114,6 +114,46 @@ Docker CLIs with GPU support
 
 When girder_worker runs docker images, the containers are started with gpu support only if the docker image has a label saying it should use an nvidia driver (add ``LABEL com.nvidia.volumes.needed=nvidia_driver`` to the Dockerfile).
 
+Apptainer (Singularity) CLIs
+----------------------------
+
+Docker is the default runtime. However, instead of docker, tasks can be executed with `apptainer <https://apptainer.org/>`_
+(optionally submitted to a slurm cluster).
+
+To enable it:
+
+- Set the ``slicer_cli_web.singularity_enabled`` girder setting to ``true``
+  on the girder server (this can also be seeded with the
+  ``GIRDER_SETTING_SLICER_CLI_WEB_SINGULARITY_ENABLED`` environment
+  variable).
+- Set ``GIRDER_WORKER_SINGULARITY_ENABLED=1`` on the worker.
+
+The singularity code is included inside
+``girder-slicer-cli-web`` and ``girder-worker`` and is inert unless those
+flags are set. The optional slurm path additionally needs the environment
+variables below.
+
+Environment variables:
+
+- ``SIF_IMAGE_PATH``: directory holding ``.sif`` files. It must be visible to
+  the girder server, the worker, and (when using slurm) the compute nodes.
+- ``GIRDER_WORKER_SLURM_SUBMIT_SCRIPT``: path to an ``sbatch`` submit script
+  (see ``worker/girder_worker/slurm/girder_worker_slurm/singularity.slurm`` for
+  an example). When unset, apptainer jobs run directly on the worker host.
+- ``GIRDER_WORKER_SLURM_PARTITION``: optional slurm partition override; command
+  line options passed to ``sbatch`` take precedence over ``#SBATCH`` directives
+  in the submit script.
+- ``GIRDER_WORKER_SLURM_MOUNT_PREFIX``: optional prefix applied to
+  assetstore-like volume keys when mapping paths on the compute node. It may be
+  empty or unset.
+- ``GIRDER_WORKER_SINGULARITY_LOGS_DIR``: writable directory (shared with the
+  compute nodes when using slurm) where apptainer task log files are written.
+
+Notes for slurm deployments: the worker blocks while monitoring the submitted
+job, so keep ``--prefetch-multiplier=1`` and modest celery concurrency. Output
+annotations are uploaded via girder result hooks and are saved as annotations
+on the input item.
+
 --list_cli response format
 ==========================
 
