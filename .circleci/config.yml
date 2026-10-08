@@ -175,6 +175,11 @@ jobs:
   web-test:
     executor: py3-mongo
     resource_class: large
+    parameters:
+      browser:
+        description: "Playwright project / browser to run the web tests against"
+        type: enum
+        enum: [chromium, firefox]
     steps:
       - checkout:
           path: girder
@@ -188,20 +193,26 @@ jobs:
       - build-plugins
       - run:
           name: Install playwright browser dependencies
-          command: npm run install-browsers
+          command: npx playwright install --with-deps << parameters.browser >>
           working_directory: girder/girder/web
       - run:
-          name: Test @girder/core
-          command: npm run test
+          name: Test @girder/core (<< parameters.browser >>)
+          command: npm run test -- --project=<< parameters.browser >>
           working_directory: girder/girder/web
           environment:
             PLAYWRIGHT_WORKERS: 4
+            GIRDER_TEST_COVERAGE_DIR: ../../build/test/coverage/<< parameters.browser >>
+            GIRDER_TEST_COVERAGE_FILE: cobertura-coverage.xml
       - store_artifacts:
           path: girder/girder/web/coverage/report
-          destination: coverage
+          destination: coverage-<< parameters.browser >>
       - store_artifacts:
           path: girder/girder/web/test-results
-          destination: test-results
+          destination: test-results-<< parameters.browser >>
+      - persist_to_workspace:
+          root: /home/circleci/project
+          paths:
+            - girder/build/test/coverage/<< parameters.browser >>
 
   integration-test:
     executor: machine
@@ -316,7 +327,7 @@ jobs:
           working_directory: girder
       - run:
           name: Upload coverage
-          command: ./codecov --disable search pycov gcov --root girder --required --file build/test/coverage/py_coverage.xml build/test/coverage/cobertura-coverage.xml
+          command: ./codecov --disable search pycov gcov --root girder --required --file build/test/coverage/py_coverage.xml build/test/coverage/chromium/cobertura-coverage.xml build/test/coverage/firefox/cobertura-coverage.xml
           working_directory: girder
 
   dockers:
@@ -424,6 +435,14 @@ workflows:
             tags:
               only: /^v[0-9]+.*/
       - web-test:
+          name: web-test-chromium
+          browser: chromium
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - web-test:
+          name: web-test-firefox
+          browser: firefox
           filters:
             tags:
               only: /^v[0-9]+.*/
@@ -435,7 +454,8 @@ workflows:
           requires:
             - server-pytest-test
             - server-legacy-test
-            - web-test
+            - web-test-chromium
+            - web-test-firefox
             - integration-test
           filters:
             tags:
