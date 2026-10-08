@@ -234,7 +234,7 @@ test.describe('Test folder info widget async fetch', () => {
     test('show a folder info widget for one of the folders', async ({ page }) => {
         await login(page, 'admin', 'adminpassword!');
 
-        const folderId = await page.evaluate(async () => {
+        const result = await page.evaluate(async () => {
             // @ts-ignore - window.girder is available at runtime
             const g = window.girder;
             if (g.auth.getCurrentUser() === null) {
@@ -255,15 +255,20 @@ test.describe('Test folder info widget async fetch', () => {
             model.set('description', 'hello world');
 
             // The widget fetches the folder's details and then renders itself
-            // into the dialog container.
-            new g.views.widgets.FolderInfoWidget({
+            // into the dialog container. The reference is returned so that the
+            // construction is not a bare `new` statement.
+            const folderInfoWidget = new g.views.widgets.FolderInfoWidget({
                 el: document.getElementById('g-dialog-container'),
                 model,
                 parentView: null,
             });
 
-            return model.id;
+            return { folderId: model.id, hasFolderInfoWidget: !!folderInfoWidget };
         });
+
+        const { folderId, hasFolderInfoWidget } = result;
+        expect(folderId).toBeTruthy();
+        expect(hasFolderInfoWidget).toBe(true);
 
         await waitForDialog(page);
         await expect(page.locator('.modal-body .g-folder-description')).toContainText('hello world');
