@@ -1,0 +1,69 @@
+name: girder-test
+services:
+
+  redis:
+    image: redis:8
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      start_period: 60s
+      start_interval: 2s
+      interval: 60s
+      timeout: 5s
+      retries: 10
+
+  mongodb:
+    image: mongo:6
+    # By default, MongoDB will only allow connection from `localhost`
+    # use `--bind_ip_all` to allow connections from any IP address
+    command: ["mongod",
+      "--bind_ip_all",
+      "--quiet",
+      "--setParameter", "logComponentVerbosity={network:{verbosity:0}}"
+    ]
+    # `tmpfs` instead of `volumes` to store an ephemeral DB in RAM instead of on-disk
+    tmpfs: /data/db
+    healthcheck:
+      start_period: 60s
+      start_interval: 2s
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 60s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:4.2
+    healthcheck:
+      start_period: 60s
+      start_interval: 2s
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 60s
+      timeout: 5s
+      retries: 10
+
+  runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    user: "${UID:-1000}:${GID:-1000}"
+    init: true
+    depends_on:
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - GIRDER_TEST_MONGO_URI=mongodb://mongodb:27017
+      - GIRDER_WORKER_BROKER=amqp://rabbitmq:5672
+      - GIRDER_WORKER_BACKEND=rpc://rabbitmq:5672
+      - GIRDER_NOTIFICATION_REDIS_URL=redis://redis:6379
+    volumes:
+      - ..:/home/ubuntu/girder
+    # for FUSE
+    devices:
+      - /dev/fuse
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
