@@ -29,6 +29,7 @@ class PluginSettings:
     SLICER_CLI_WEB_TASK_FOLDER = 'slicer_cli_web.task_folder'
     SLICER_CLI_WEB_WORKER_CONFIG_ITEM = 'slicer_cli_web.worker_config_item'
     SLICER_CLI_TASK_STORE_METADATA = 'slicer_cli_web.task_store_metadata'
+    SLICER_CLI_WEB_SINGULARITY_ENABLED = 'slicer_cli_web.singularity_enabled'
 
     @staticmethod
     def store_task_metadata():
@@ -91,6 +92,23 @@ def validateStoreMetadata(doc):
         raise ValidationException('task_store_metadata must be a boolean')
 
 
+@setting_utilities.validator({
+    PluginSettings.SLICER_CLI_WEB_SINGULARITY_ENABLED
+})
+def validateSingularityEnabled(doc):
+    if not isinstance(doc['value'], bool):
+        raise ValidationException('singularity_enabled must be a boolean')
+
+
+def singularity_enabled():
+    """
+    Return True when apptainer (singularity) execution is enabled via the
+    ``slicer_cli_web.singularity_enabled`` setting. Import availability of the
+    optional singularity support package alone does not enable the behavior.
+    """
+    return bool(Setting().get(PluginSettings.SLICER_CLI_WEB_SINGULARITY_ENABLED))
+
+
 # Defaults
 
 # Defaults that have fixed values can just be added to the system defaults
@@ -99,4 +117,5 @@ SettingDefault.defaults.update({
     PluginSettings.SLICER_CLI_WEB_TASK_FOLDER: None,
     PluginSettings.SLICER_CLI_WEB_WORKER_CONFIG_ITEM: None,
     PluginSettings.SLICER_CLI_TASK_STORE_METADATA: False,
+    PluginSettings.SLICER_CLI_WEB_SINGULARITY_ENABLED: False,
 })

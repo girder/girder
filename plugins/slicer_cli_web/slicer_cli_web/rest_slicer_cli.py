@@ -22,6 +22,7 @@ from girder.models.user import User
 
 from .cli_utils import (as_model, generate_description, get_cli_parameters, is_on_girder,
                         return_parameter_file_name)
+from .config import singularity_enabled as _singularity_enabled
 from .models import CLIItem
 from .prepare_task import FOLDER_SUFFIX, OPENAPI_DIRECT_TYPES, prepare_task
 
@@ -402,7 +403,19 @@ def genHandlerToRunDockerCLI(cliItem):  # noqa C901
         :param datalist: if not None, an object with keys that override
             parameters.  No outputs are used.
         """
-        from .girder_worker_plugin.direct_docker_run import run
+        if _singularity_enabled():
+            try:
+                from slicer_cli_web.singularity.slicer_cli_web_singularity import \
+                    girder_worker_plugin
+                run = girder_worker_plugin.direct_singularity_run.run
+            except ImportError:
+                logger.exception(
+                    'slicer_cli_web.singularity_enabled is set but the singularity '
+                    'support modules could not be imported'
+                )
+                raise
+        else:
+            from .girder_worker_plugin.direct_docker_run import run
 
         original_params = copy.deepcopy(params)
         if hasattr(getCurrentToken, 'set'):
