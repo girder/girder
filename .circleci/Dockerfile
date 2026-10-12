@@ -45,3 +45,8 @@ RUN mkdir /.nvm && \
 ENV PATH="/usr/local/node:$PATH"
 
 USER circleci
+
+# Install the newest python we want to test against
+RUN (git -C "${PYENV_ROOT}" pull --ff-only || true) \
+  && env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.15 \
+  && pyenv rehash
