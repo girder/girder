@@ -107,3 +107,6 @@ GIRDER_WORKER_JOB_GC_SCOPE: >-
 
 GIRDER_FILESYSTEMASSETSTORE_RESERVED_MBYTES: >-
   For filesystem assetstores, reserve this many megabytes of space.  Uploads will be rejected when there is less than this available.  If using the user quota plugin with fall-back assetstores, it will trigger the fall-back behavior.
+
+GIRDER_SETTING_CORE_SHOW_DOWNLOAD: >-
+  One of "all" (default), "admin", "user", or "none". This determines if download buttons and menu items are visible, and, if so, to which user authentication level.

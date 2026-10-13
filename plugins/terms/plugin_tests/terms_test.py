@@ -43,7 +43,7 @@ class TermsTest(base.TestCase):
             'public': True
         })
         self.assertStatusOk(resp)
-        self.assertDictContainsSubset({
+        self.assertDictContains({
             'name': 'Basic Collection',
             'description': 'Some description.',
             'public': True,
@@ -70,7 +70,7 @@ class TermsTest(base.TestCase):
             'terms': '# Sample Terms of Use\n\n**\u00af\\\\\\_(\u30c4)\\_/\u00af**'.encode()
         })
         self.assertStatusOk(resp)
-        self.assertDictContainsSubset({
+        self.assertDictContains({
             'name': 'Terms Collection',
             'description': 'Some other description.',
             'public': True,
@@ -84,7 +84,7 @@ class TermsTest(base.TestCase):
         resp = self.request(
             '/collection/%s' % termsCollectionId, method='GET', user=self.creatorUser)
         self.assertStatusOk(resp)
-        self.assertDictContainsSubset({
+        self.assertDictContains({
             'name': 'Terms Collection',
             'description': 'Some other description.',
             'public': True,
@@ -119,7 +119,7 @@ class TermsTest(base.TestCase):
         # Check that the user has accepted the terms
         resp = self.request('/user/me', method='GET', user=self.creatorUser)
         self.assertStatusOk(resp)
-        self.assertDictContainsSubset(
+        self.assertDictContains(
             {'hash': '81aae04f3d66cf8efa3d07fda1455bb686fb392ddb6a7ff7687a8e74b81c1c0d'},
             resp.json.get('terms', {}).get('collection', {}).get(termsCollectionId, {})
         )
@@ -136,7 +136,7 @@ class TermsTest(base.TestCase):
                 'terms': '# New Terms of Use\n\nThese have changed.'
             })
         self.assertStatusOk(resp)
-        self.assertDictContainsSubset({
+        self.assertDictContains({
             'name': 'Terms Collection',
             'description': 'A new description.',
             'public': True,
@@ -148,7 +148,7 @@ class TermsTest(base.TestCase):
         # Fetch the terms on a collection, while anonymous
         resp = self.request('/collection/%s' % termsCollectionId, method='GET')
         self.assertStatusOk(resp)
-        self.assertDictContainsSubset({
+        self.assertDictContains({
             'name': 'Terms Collection',
             'description': 'A new description.',
             'public': True,

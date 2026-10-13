@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<executable>
+  <category>Test</category>
+  <title>Assembles A Series</title>
+  <description>Consumes a multi-file series and produces a single output image.</description>
+  <version>0.1.0</version>
+  <parameters>
+    <label>IO</label>
+    <description>Input/output parameters.</description>
+    <image multiple="true">
+      <name>inputSeries</name>
+      <label>Input Series</label>
+      <channel>input</channel>
+      <index>0</index>
+      <description>Files of the input series</description>
+    </image>
+    <image>
+      <name>outputImage</name>
+      <label>Output Image</label>
+      <channel>output</channel>
+      <index>1</index>
+      <description>Assembled output image</description>
+    </image>
+  </parameters>
+</executable>

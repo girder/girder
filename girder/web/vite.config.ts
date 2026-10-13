@@ -4,6 +4,7 @@ import path, { resolve } from 'path';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { compileClient } from 'pug';
+import istanbul from 'vite-plugin-istanbul';
 import dts from 'vite-plugin-dts';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
@@ -48,7 +49,23 @@ function inlineFaviconPlugin(relFaviconPath, mimeType) {
 
 let buildOpts = {};
 const plugins: any[] = [];
+const instrumentPlugins: any[] = [];
 let outDir = 'dist';
+
+// When requested, instrument the application source with istanbul so that the
+// browser exposes accurate statement/branch/function coverage on
+// window.__coverage__.  V8 coverage (used elsewhere) cannot represent
+// statements inside functions that are never called, because it only reports
+// executed ranges; instrumented coverage does not have that limitation.
+if (process.env.GIRDER_TEST_COVERAGE && !process.env.BUILD_LIB) {
+  instrumentPlugins.push(istanbul({
+    include: 'src/**/*',
+    exclude: ['node_modules/**', 'dist/**'],
+    extension: ['.js', '.ts', '.vue', '.pug'],
+    requireEnv: false,
+    forceBuildInstrument: true,
+  }));
+}
 
 if (process.env.BUILD_LIB) {
   buildOpts = {
@@ -67,23 +84,23 @@ if (process.env.BUILD_LIB) {
   outDir = 'dist-lib';
 }
 
-// Pass `PLAYWRIGHT_TESTING=true` when starting the dev server via playwright
-// so it knows to disable hot reloading. Vite's file watching consumes inotify
-// resources; since automated browsers don't need HMR, we completely disable it
-// during Playwright test runs.
-const isTestMode = process.env.PLAYWRIGHT_TESTING === 'true';
-
 export default defineConfig({
   base: './',
   plugins: [
     vue(),
     pugPlugin(),
+    ...instrumentPlugins,
     inlineFaviconPlugin('public/Girder_Favicon.png', 'image/png'),
     viteStaticCopy({
       targets: [
         {
           src: path.resolve(import.meta.dirname, './src') + '/[!.]*',
           dest: './src',
+        },
+        {
+          src: path.resolve(import.meta.dirname, './node_modules/swagger-ui-dist') + '/{swagger-ui.css,swagger-ui-bundle.js}',
+          dest: './swagger-ui',
+          rename: { stripBase: true },
         },
       ],
     }).filter((config) => config.apply === 'build'),  // Don't copy sources for dev server
@@ -108,9 +125,7 @@ export default defineConfig({
     }},
   },
   server: {
-    // Disable Hot Module Reloading when running under Playwright tests
-    hmr: isTestMode ? false : {},
-    watch: isTestMode ? null : {
+    watch: {
       ignored: [
         '**/node_modules/**',
         '**/coverage/**',

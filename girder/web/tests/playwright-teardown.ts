@@ -33,7 +33,7 @@ export default async (_config: PlaywrightTestConfig) => {
 
   report.execute(context);
 
-  const outputDir = '../../build/test/coverage';
+  const outputDir = process.env.GIRDER_TEST_COVERAGE_DIR || '../../build/test/coverage';
   await fs.mkdir(outputDir, { recursive: true });
   const contextXml = libReport.createContext({
     dir: outputDir,
@@ -41,7 +41,7 @@ export default async (_config: PlaywrightTestConfig) => {
     coverageMap,
   });
   const xmlReport = reports.create('cobertura', {
-    file: 'cobertura-coverage.xml',
+    file: process.env.GIRDER_TEST_COVERAGE_FILE || 'cobertura-coverage.xml',
     skipEmpty: false,
   });
   xmlReport.execute(contextXml);

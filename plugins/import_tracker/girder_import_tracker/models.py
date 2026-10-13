@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from bson.objectid import ObjectId
 
@@ -21,7 +21,7 @@ class AssetstoreImport(Model):
         return doc
 
     def createAssetstoreImport(self, assetstore, params):
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         record = self.save(
             {
                 'name': now.isoformat(),
@@ -33,7 +33,7 @@ class AssetstoreImport(Model):
         return record
 
     def markEnded(self, record, success=None):
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         record['ended'] = now
         if success is not None:
             record['success'] = success

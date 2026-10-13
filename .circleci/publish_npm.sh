@@ -3,6 +3,8 @@ set -e
 # Publish npm packages for selected locations
 # NPM_AUTH_TOKEN must be set by the build environment
 
+npm install -g 'npm@^11.5.1'
+
 readonly GIT_VERSION=$(git describe --tags)
 readonly PUBLISHED_NPM_PACKAGES=(
   # Published Fontello is used by all builds, and is critical to publish

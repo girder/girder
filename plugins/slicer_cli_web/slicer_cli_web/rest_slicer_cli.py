@@ -80,6 +80,9 @@ def _addInputParamToHandler(param, handlerDesc, required=True):
                 'Girder ID of input %s (if batch input, this is a regex '
                 'for item names) - %s: %s'
                 % (param.typ, param.identifier(), param.description))
+        elif getattr(param, 'multiple', None):
+            desc = 'Comma separated Girder IDs of input %s - %s: %s' % (
+                param.typ, param.identifier(), param.description)
         else:
             desc = 'Girder ID of input %s - %s: %s' % (
                 param.typ, param.identifier(), param.description)

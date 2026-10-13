@@ -1,45 +1,45 @@
-import distutils
-import email.parser
 import importlib.metadata
-import io
 import unittest.mock
 from contextlib import contextmanager
 from tempfile import gettempdir
 
 
 class _MockDistribution:
+    """
+    A minimal stand-in for an ``importlib.metadata.Distribution``.
+
+    This mimics just enough of the interface used by
+    :class:`girder.plugin.GirderPlugin` (``metadata``, ``version`` and
+    ``location``) to register a plugin that is not actually installed. It is
+    intentionally dependency-free; in particular it does not rely on
+    ``distutils``, which is deprecated and removed from the standard library in
+    Python 3.12.
+    """
+
     def __init__(self, name, version, description='', url='', location=None):
         self.PKG_INFO = 'PKG_INFO'
         self.version = version
         self.location = location or gettempdir()
-        self._metadata = self._generateMetadata(name, version, description, url)
+        # ``importlib.metadata`` exposes package metadata with header names such
+        # as ``Summary`` and ``Home-page``.  Older distutils-based metadata used
+        # lowercase attribute names.  Provide both so this behaves like either.
+        self._metadata = {
+            'name': name,
+            'version': version,
+            'description': description,
+            'url': url,
+            'Name': name,
+            'Version': version,
+            'Summary': description,
+            'Home-page': url,
+        }
 
     @property
     def metadata(self):
-        return self._meta.__dict__
-
-    def get_metadata(self, *args, **kwargs):
         return self._metadata
 
-    def _generateMetadata(self, name, version, description, url):
-        meta = distutils.dist.DistributionMetadata()
-        meta.name = name
-        meta.version = version
-        meta.description = description
-        meta.url = url
-        meta.long_description_content_type = None
-        meta.project_urls = {}
-        meta.provides_extras = ()
-        meta.license_file = None
-        meta.license_files = None
-        meta.license_expression = None
-        meta.install_requires = []
-        meta.extras_require = {}
-        pkgInfo = io.StringIO()
-        meta.write_pkg_file(pkgInfo)
-        self._meta = meta
-        pkgInfo.seek(0)
-        return {k: v for k, v in email.parser.Parser().parse(pkgInfo).items()}
+    def get_metadata(self, *args, **kwargs):
+        return dict(self._metadata)
 
 
 class _MockEntryPoint:

@@ -54,12 +54,17 @@ commands:
           no_output_timeout: 1h
   install-girder:
     description: "Install Girder in a virtualenv and configure CTest"
+    parameters:
+      python-version:
+        description: "Python version used to create the virtual environment"
+        type: string
+        default: "3.10"
     steps:
       - run:
           name: Generate python environment checksum file
           command: ./girder/.circleci/generatePyEnvChecksum.sh > girder/py-env-checksum
       - restore_cache:
-          key: venv-py3.10-{{ arch }}-{{ checksum "girder/py-env-checksum" }}-1
+          key: venv-py<< parameters.python-version >>-{{ arch }}-{{ checksum "girder/py-env-checksum" }}-1
       - run:
           name: Create virtual environment (if necessary)
           command: if [ ! -d girder_env ]; then python3 -m venv girder_env; fi
@@ -112,13 +117,49 @@ jobs:
   server-pytest-test:
     # We need the machine executor here because of slicer_cli_web E2E tests that require docker
     # with bind-mounted paths that don't work with docker-in-docker on CircleCI
+    parameters:
+      python-version:
+        description: "Python version to test against"
+        type: enum
+        enum: ["3.10", "3.15"]
     executor: machine
     steps:
       - checkout:
           path: girder
       # After checkout, since we need files in the .circleci folder
       - prerequisites
-      - install-girder
+      - run:
+          name: Set up Python << parameters.python-version >>
+          # The machine image ships a root-owned pyenv whose git checkout
+          # cannot be updated by the job user and whose definitions lag new
+          # Python releases.  If the image's pyenv already provides the
+          # requested version, select it; otherwise bootstrap a job-local
+          # pyenv checkout (current definitions, owned by the job user) and
+          # install the interpreter into $HOME.  The selection is exported
+          # through BASH_ENV, which each subsequent step's shell sources.
+          command: |
+            set -e
+            version='<< parameters.python-version >>'
+            image_pyenv_root="$(pyenv root)"
+            if pyenv prefix "$version" >/dev/null 2>&1; then
+              echo "Using the machine image's pyenv at $image_pyenv_root"
+              echo "export PYENV_VERSION=$version" >> "$BASH_ENV"
+              PYENV_VERSION="$version" python3 --version
+              exit 0
+            fi
+            echo "$version is not provided by the machine image's pyenv; installing it"
+            export PYENV_ROOT="$HOME/.pyenv-job"
+            if [ ! -d "$PYENV_ROOT" ]; then
+              git clone --depth 1 https://github.com/pyenv/pyenv.git "$PYENV_ROOT"
+            fi
+            export PATH="$PYENV_ROOT/bin:$PATH"
+            "$PYENV_ROOT/bin/pyenv" install --skip-existing "$version"
+            bin_dir="$( "$PYENV_ROOT/bin/pyenv" prefix "$version" )/bin"
+            echo "export PYENV_ROOT=$PYENV_ROOT" >> "$BASH_ENV"
+            echo "export PATH=$bin_dir:\$PATH" >> "$BASH_ENV"
+            "$bin_dir/python3" --version
+      - install-girder:
+          python-version: << parameters.python-version >>
       - build-plugins
       - run:
           name: Run pytest tests
@@ -126,17 +167,37 @@ jobs:
           working_directory: girder
       - store_test_results:
           path: girder/build/test/results
-      - persist_to_workspace:
-          root: /home/circleci/project
-          paths:
-            - girder/build/test/coverage
+      # Only the minimum supported Python version contributes to the coverage
+      # report; coverage results from multiple Python versions would conflict in
+      # the shared workspace path.
+      - when:
+          condition:
+            equal: ["3.10", << parameters.python-version >>]
+          steps:
+            - persist_to_workspace:
+                root: /home/circleci/project
+                paths:
+                  - girder/build/test/coverage
 
   server-legacy-test:
+    parameters:
+      python-version:
+        description: "Python version to test against"
+        type: enum
+        enum: ["3.10", "3.15"]
+    # The test image contains all tested Python versions; the base image's
+    # Python is the default and other versions are selected at run time.
     executor: py3-mongo
     steps:
       - checkout:
           path: girder
-      - install-girder
+      - run:
+          name: Select Python << parameters.python-version >>
+          command: |
+            pyenv global << parameters.python-version >>
+            python3 --version
+      - install-girder:
+          python-version: << parameters.python-version >>
       - build-plugins
       - run:
           name: Create Girder build directory
@@ -150,13 +211,20 @@ jobs:
             --exclude-regex '^server_pytest_core$'
           environment:
             TEST_GROUP: python
-            PYTHON_VERSION: 3.10
+            PYTHON_VERSION: << parameters.python-version >>
             PYTHON_EXECUTABLE: /home/circleci/project/girder_env/bin/python
           working_directory: build
-      - persist_to_workspace:
-          root: /home/circleci/project
-          paths:
-            - girder/build/test/coverage
+      # Only the minimum supported Python version contributes to the coverage
+      # report; coverage results from multiple Python versions would conflict in
+      # the shared workspace path.
+      - when:
+          condition:
+            equal: ["3.10", << parameters.python-version >>]
+          steps:
+            - persist_to_workspace:
+                root: /home/circleci/project
+                paths:
+                  - girder/build/test/coverage
 
   web-lint-test:
     executor: py3
@@ -174,6 +242,12 @@ jobs:
 
   web-test:
     executor: py3-mongo
+    resource_class: large
+    parameters:
+      browser:
+        description: "Playwright project / browser to run the web tests against"
+        type: enum
+        enum: [chromium, firefox]
     steps:
       - checkout:
           path: girder
@@ -187,18 +261,26 @@ jobs:
       - build-plugins
       - run:
           name: Install playwright browser dependencies
-          command: npm run install-browsers
+          command: npx playwright install --with-deps << parameters.browser >>
           working_directory: girder/girder/web
       - run:
-          name: Test @girder/core
-          command: npm run test
+          name: Test @girder/core (<< parameters.browser >>)
+          command: npm run test -- --project=<< parameters.browser >>
           working_directory: girder/girder/web
+          environment:
+            PLAYWRIGHT_WORKERS: 4
+            GIRDER_TEST_COVERAGE_DIR: ../../build/test/coverage/<< parameters.browser >>
+            GIRDER_TEST_COVERAGE_FILE: cobertura-coverage.xml
       - store_artifacts:
           path: girder/girder/web/coverage/report
-          destination: coverage
+          destination: coverage-<< parameters.browser >>
       - store_artifacts:
           path: girder/girder/web/test-results
-          destination: test-results
+          destination: test-results-<< parameters.browser >>
+      - persist_to_workspace:
+          root: /home/circleci/project
+          paths:
+            - girder/build/test/coverage/<< parameters.browser >>
 
   integration-test:
     executor: machine
@@ -313,7 +395,7 @@ jobs:
           working_directory: girder
       - run:
           name: Upload coverage
-          command: ./codecov --disable search pycov gcov --root girder --required --file build/test/coverage/py_coverage.xml build/test/coverage/cobertura-coverage.xml
+          command: ./codecov --disable search pycov gcov --root girder --required --file build/test/coverage/py_coverage.xml build/test/coverage/chromium/cobertura-coverage.xml build/test/coverage/firefox/cobertura-coverage.xml
           working_directory: girder
 
   dockers:
@@ -409,10 +491,26 @@ workflows:
             tags:
               only: /^v[0-9]+.*/
       - server-pytest-test:
+          name: server-pytest-test-3.10
+          python-version: "3.10"
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - server-pytest-test:
+          name: server-pytest-test-3.15
+          python-version: "3.15"
           filters:
             tags:
               only: /^v[0-9]+.*/
       - server-legacy-test:
+          name: server-legacy-test-3.10
+          python-version: "3.10"
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - server-legacy-test:
+          name: server-legacy-test-3.15
+          python-version: "3.15"
           filters:
             tags:
               only: /^v[0-9]+.*/
@@ -421,6 +519,14 @@ workflows:
             tags:
               only: /^v[0-9]+.*/
       - web-test:
+          name: web-test-chromium
+          browser: chromium
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - web-test:
+          name: web-test-firefox
+          browser: firefox
           filters:
             tags:
               only: /^v[0-9]+.*/
@@ -430,9 +536,10 @@ workflows:
               only: /^v[0-9]+.*/
       - coverage:
           requires:
-            - server-pytest-test
-            - server-legacy-test
-            - web-test
+            - server-pytest-test-3.10
+            - server-legacy-test-3.10
+            - web-test-chromium
+            - web-test-firefox
             - integration-test
           filters:
             tags:

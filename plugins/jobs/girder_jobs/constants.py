@@ -1,4 +1,5 @@
 from girder import events
+from girder.constants import TokenScope
 from girder.notification import ProgressState
 
 JOB_HANDLER_LOCAL = 'jobs._local'
@@ -7,6 +8,14 @@ JOB_HANDLER_LOCAL = 'jobs._local'
 # Scope used allow RESTful creation of girder job models
 REST_CREATE_JOB_TOKEN_SCOPE = 'jobs.rest.create_job'
 REST_LIST_JOB_TOKEN_SCOPE = 'jobs.rest.list_job'
+
+# Registered at import time so it is only described once per process. The create
+# scope is intentionally not described, since it is meant for services rather than
+# for user-created API keys.
+TokenScope.describeScope(
+    REST_LIST_JOB_TOKEN_SCOPE, 'List and read jobs',
+    'Allows clients to list your jobs and read the status and log of jobs you have '
+    'access to.')
 
 
 # integer enum describing job states. Note, no order is implied.

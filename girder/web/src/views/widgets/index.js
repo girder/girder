@@ -3,8 +3,6 @@ import ApiKeyListWidget from './ApiKeyListWidget';
 import BrowserWidget from './BrowserWidget';
 import CheckedMenuWidget from './CheckedMenuWidget';
 import CollectionInfoWidget from './CollectionInfoWidget';
-import DateTimeRangeWidget from './DateTimeRangeWidget';
-import DateTimeWidget from './DateTimeWidget';
 import EditApiKeyWidget from './EditApiKeyWidget';
 import EditAssetstoreWidget from './EditAssetstoreWidget';
 import EditCollectionWidget from './EditCollectionWidget';
@@ -44,8 +42,6 @@ export {
     BrowserWidget,
     CheckedMenuWidget,
     CollectionInfoWidget,
-    DateTimeWidget,
-    DateTimeRangeWidget,
     EditApiKeyWidget,
     EditAssetstoreWidget,
     EditCollectionWidget,

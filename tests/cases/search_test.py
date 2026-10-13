@@ -101,12 +101,12 @@ class SearchTestCase(base.TestCase):
         }, user=user)
         self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['folder']))
-        self.assertDictContainsSubset({
+        self.assertDictContains({
             '_id': str(privateFolder['_id']),
             'name': 'Private'
         }, resp.json['folder'][0])
         self.assertEqual(1, len(resp.json['collection']))
-        self.assertDictContainsSubset({
+        self.assertDictContains({
             '_id': str(coll2['_id']),
             'name': coll2['name']
         }, resp.json['collection'][0])
@@ -119,7 +119,7 @@ class SearchTestCase(base.TestCase):
         }, user=user)
         self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['folder']))
-        self.assertDictContainsSubset({
+        self.assertDictContains({
             '_id': str(privateFolder['_id']),
             'name': 'Private'
         }, resp.json['folder'][0])
@@ -135,11 +135,11 @@ class SearchTestCase(base.TestCase):
         }, user=admin)
         self.assertStatusOk(resp)
         self.assertEqual(2, len(resp.json['collection']))
-        self.assertDictContainsSubset({
+        self.assertDictContains({
             '_id': str(coll2['_id']),
             'name': coll2['name']
         }, resp.json['collection'][0])
-        self.assertDictContainsSubset({
+        self.assertDictContains({
             '_id': str(coll1['_id']),
             'name': coll1['name']
         }, resp.json['collection'][1])
@@ -153,7 +153,7 @@ class SearchTestCase(base.TestCase):
         }, user=admin)
         self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['user']))
-        self.assertDictContainsSubset({
+        self.assertDictContains({
             '_id': str(user['_id']),
             'firstName': user['firstName'],
             'lastName': user['lastName'],
@@ -167,7 +167,7 @@ class SearchTestCase(base.TestCase):
         }, user=user)
         self.assertStatusOk(resp)
         self.assertEqual(1, len(resp.json['item']))
-        self.assertDictContainsSubset({
+        self.assertDictContains({
             '_id': str(item1['_id']),
             'name': item1['name']
         }, resp.json['item'][0])

@@ -26,5 +26,8 @@
   "scripts": {
     "build": "vite build",
     "watch": "vite build --watch"
+  },
+  "overrides": {
+    "argparse": "^2.0.1"
   }
 }

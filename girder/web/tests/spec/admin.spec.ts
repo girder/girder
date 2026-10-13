@@ -33,8 +33,8 @@ test.describe('Create an admin and non-admin user', () => {
     await page.getByRole('button', { name: ' Create Group' }).click();
     await waitForDialog(page);
     await page.getByText('Public — Anyone can see this group').click();
-    await page.getByLabel('Name').fill('pubGroup', { timeout: 1000 });
-    await page.getByLabel('Description (optional)').fill('public group', { timeout: 1000 });
+    await page.getByLabel('Name').fill('pubGroup');
+    await page.getByLabel('Description (optional)').fill('public group');
     await page.getByRole('button', { name: ' Create', exact: true }).click();
   });
 });
@@ -62,16 +62,14 @@ test.describe('Test the assetstore page', () => {
     await createUser(page, 'admin', 'admin@girder.test', 'Admin', 'Admin', 'adminpassword!');
     // Navigate to assetstores page via Admin console
     await page.getByRole('link', { name: 'Admin console' }).click();
-    await expect(page.locator('.g-assetstore-config')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.g-assetstore-config')).toBeVisible();
     await page.locator('.g-assetstore-config').click();
     // Wait for assetstores to load and render
-    await expect(page.locator('.g-assetstore-container').first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.g-assetstore-container').first()).toBeVisible();
     const testAssetstoreName = 'Test Filesystem Assetstore';
     // Open the filesystem tab and click create
     await page.locator('[data-target="#g-create-fs-tab"]').click();
-    await expect(page.locator('#g-create-fs-tab .g-new-assetstore-submit:visible')).toBeVisible({
-      timeout: 10000
-    });
+    await expect(page.locator('#g-create-fs-tab .g-new-assetstore-submit:visible')).toBeVisible();
     await page.locator('#g-create-fs-tab .g-new-assetstore-submit').click();
     // Wait for validation message to appear (empty required fields)
     const validationResult = page.locator('#g-create-fs-tab .g-validation-failed-message:visible');
@@ -93,7 +91,7 @@ test.describe('Test the assetstore page', () => {
     await waitForIdlePage(page);
     // Navigate away and back to verify assetstore persists
     await page.getByRole('link', { name: 'Admin console' }).click();
-    await expect(page.locator('.g-assetstore-config')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.g-assetstore-config')).toBeVisible();
     await page.locator('.g-assetstore-config').click();
     await expect(page.locator('.g-assetstore-container').first()).toBeVisible();
     // Verify the assetstore is still current (should have "is current" label)
@@ -125,10 +123,10 @@ test.describe('Test the settings page', () => {
     await createUser(page, 'admin', 'admin@girder.test', 'Admin', 'Admin', 'adminpassword!');
     // Navigate to settings page via Admin console
     await page.getByRole('link', { name: 'Admin console' }).click();
-    await expect(page.locator('.g-server-config')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.g-server-config')).toBeVisible();
     await page.locator('.g-server-config').click();
     // Wait for settings page to load - title section and form should appear
-    await expect(page.getByText('System configuration')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('System configuration')).toBeVisible();
     // Verify main sections exist on the settings page (read-only in Girder 5.x)
     await expect(page.getByText('Instance Branding')).toBeVisible();
     await expect(page.getByText('Administrative Policy')).toBeVisible();
@@ -167,7 +165,7 @@ test.describe('Test the plugins page', () => {
     await page.getByRole('link', { name: ' Admin console' }).click();
     await page.getByRole('link', { name: ' Plugins' }).click();
     // Wait for the plugin list to load - at least core plugins should be present
-    await expect(page.locator('.g-plugin-list-container')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('.g-plugin-list-container')).toBeVisible();
     // Check that there is at least one plugin (core plugins should always be present)
     const pluginCount = await page.locator('.g-plugin-list-item').count();
     expect(pluginCount).toBeGreaterThanOrEqual(1);

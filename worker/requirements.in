@@ -8,4 +8,5 @@ requests[security]>=2.20.0
 setuptools_scm
 stevedore
 jsonpickle
+packaging
 docker>=2.6.0

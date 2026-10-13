@@ -1325,6 +1325,9 @@ plugins
                         forward
                         write
                 direct_docker_run
+                    CommaJoinedVolumes
+                        cleanup
+                        transform
                     DirectDockerTask
                     DirectGirderFileIdToVolume
                         resolve_direct_file_path

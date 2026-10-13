@@ -1,5 +1,3 @@
-import { sprintf } from 'sprintf-js';
-
 import View from '@girder/core/views/View';
 
 import TaskProgressTemplate from '@girder/core/templates/widgets/taskProgress.pug';
@@ -37,11 +35,12 @@ var TaskProgressWidget = View.extend({
                 var timeLeft = parseInt(this.progress.estimatedTotalTime - (
                     this.progress.updatedTime - this.progress.startTime), 10);
                 if (timeLeft >= 3600) {
-                    timeLeftText = sprintf('%d:%02d:%02d left',
-                        timeLeft / 3600, (timeLeft / 60) % 60, timeLeft % 60);
+                    timeLeftText = `${Math.trunc(timeLeft / 3600)}:` +
+                        `${String(Math.trunc((timeLeft / 60) % 60)).padStart(2, '0')}:` +
+                        `${String(Math.trunc(timeLeft % 60)).padStart(2, '0')} left`;
                 } else if (timeLeft > 0) {
-                    timeLeftText = sprintf('%d:%02d left',
-                        timeLeft / 60, timeLeft % 60);
+                    timeLeftText = `${Math.trunc(timeLeft / 60)}:` +
+                        `${String(Math.trunc(timeLeft % 60)).padStart(2, '0')} left`;
                 }
             }
         } else if (this.progress.data.state === 'success') {

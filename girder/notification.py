@@ -81,7 +81,7 @@ class UserNotificationsSocket(WebSocketEndpoint):
             pass
         finally:
             await self.pubsub.unsubscribe()
-            await self.pubsub.close()
+            await self.pubsub.aclose()
 
     async def on_disconnect(self, websocket, close_code):
         if hasattr(self, 'listen_task'):

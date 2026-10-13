@@ -23,10 +23,12 @@ export default defineConfig({
   plugins: [
     pugPlugin(),
     istanbul({
-      include: 'src/*',
-      exclude: ['node_modules', 'test/'],
-      extension: [ '.js', '.ts', '.vue' ],
-      // requireEnv: true,
+      include: ['**/*.js', '**/*.ts', '**/*.vue', '**/*.pug'],
+      exclude: ['node_modules/**', 'dist/**'],
+      extension: ['.js', '.ts', '.vue', '.pug'],
+      requireEnv: false,
+      // Only instrument when the test harness asks for coverage.
+      forceBuildInstrument: !!process.env.GIRDER_TEST_COVERAGE,
     }),
   ],
   build: {
