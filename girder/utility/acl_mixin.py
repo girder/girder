@@ -1,9 +1,9 @@
-import collections
 import itertools
 from collections import abc
 
-from ..models.model_base import Model, AccessControlledModel, _permissionClauses
-from ..exceptions import AccessException
+from ..models.model_base import (
+    Model, AccessControlledModel, _permissionClauses, _TEXT_SCORE_SORT)
+from ..exceptions import AccessException, GirderException
 from ..constants import AccessType, TEXT_SCORE_SORT_MAX
 from ..utility.model_importer import ModelImporter
 
@@ -169,26 +169,26 @@ class AccessControlMixin:
             yield result
 
     def textSearch(self, query, user=None, filters=None, limit=0, offset=0,
-                   sort=None, fields=None, level=AccessType.READ):
+                   sort=None, fields=None, level=AccessType.READ, pipeline=None):
         filters, fields = self._textSearchFilters(query, filters, fields)
-        defaultSort = [('_textScore', {'$meta': 'textScore'})]
         cursor = self.findWithPermissions(
             filters, offset=offset, limit=limit, sort=sort, fields=fields,
-            user=user, level=level, aggregateSort=defaultSort)
+            user=user, level=level, pipeline=pipeline, aggregateSort=_TEXT_SCORE_SORT)
         if (sort is None and not getattr(cursor, 'fromAggregate', False)
                 and callable(getattr(cursor, 'count', None))
                 and cursor.count() < TEXT_SCORE_SORT_MAX):
             cursor = self.findWithPermissions(
-                filters, offset=offset, limit=limit, sort=defaultSort, fields=fields,
+                filters, offset=offset, limit=limit, sort=_TEXT_SCORE_SORT, fields=fields,
                 user=user, level=level)
         return cursor
 
     def prefixSearch(self, query, user=None, filters=None, limit=0, offset=0,
                      sort=None, fields=None, level=AccessType.READ,
-                     prefixSearchFields=None):
+                     prefixSearchFields=None, pipeline=None):
         """
         Custom override of Model.prefixSearch to also force permission-based
-        filtering. The parameters are the same as Model.prefixSearch.
+        filtering. The parameters are the same as Model.prefixSearch, plus
+        ``pipeline``.
 
         :param user: The user to apply permission filtering for.
         :type user: dict or None
@@ -199,7 +199,7 @@ class AccessControlMixin:
 
         return self.findWithPermissions(
             filters, offset=offset, limit=limit, sort=sort, fields=fields,
-            user=user, level=level)
+            user=user, level=level, pipeline=pipeline)
 
     def permissionClauses(self, user=None, level=None, prefix=''):
         return _permissionClauses(user, level, prefix)
@@ -249,7 +249,7 @@ class AccessControlMixin:
 
     def findWithPermissions(self, query=None, offset=0, limit=0, timeout=None, fields=None,
                             sort=None, user=None, level=AccessType.READ, aggregateSort=None,
-                            **kwargs):
+                            pipeline=None, **kwargs):
         """
         Search the collection by a set of parameters, only returning results
         that the combined user and level have permission to access. Passes any
@@ -278,6 +278,10 @@ class AccessControlMixin:
         :param aggregateSort: A sort order to use if `sort` is None and an
             aggregation is used.
         :type aggregateSort: List of (key, order) tuples.
+        :param pipeline: Aggregation stages that further restrict the results,
+            run before sorting and paging.  Not supported when permissions
+            can't be checked in an aggregation.
+        :type pipeline: list or None
         :returns: A pymongo Cursor, CommandCursor, or an iterable.  If a
             CommandCursor, it has been augmented with a count function.
         """
@@ -292,12 +296,16 @@ class AccessControlMixin:
             # attachedToId, since ModelImporter.model(None) will not be an access
             # controlled model.
             if not isinstance(self.parentModel, AccessControlledModel):
+                if pipeline:
+                    raise GirderException(
+                        'Aggregation stages cannot be applied to %s when checking permissions.'
+                        % self.name)
                 return self._findWithPermissionsFallback(
                     query, offset, limit, timeout, fields, sort, user, level,
                     **kwargs)
 
             query = query or {}
-            initialPipeline = [
+            return self._findWithPipeline([
                 {'$match': query},
                 {'$lookup': {
                     'from': self.parentModel.name,
@@ -306,64 +314,12 @@ class AccessControlMixin:
                     'as': '__parent'
                 }},
                 {'$match': self.permissionClauses(user, level, '__parent.')},
-            ]
-            countPipeline = initialPipeline + [
-                {'$count': 'count'},
-            ]
-            fullPipeline = initialPipeline + [
+                *(pipeline or []),
                 {'$project': {'__parent': False}},
-            ]
-            if sort is not None or aggregateSort is not None:
-                fullPipeline.append({'$sort': collections.OrderedDict(sort or aggregateSort)})
-            # limit should immediately follow sort for efficiency
-            if limit:
-                fullPipeline.append({'$limit': limit + (offset or 0)})
-            if offset:
-                fullPipeline.append({'$skip': offset})
-            if fields is not None:
-                # fields can be a Sequence, Set, or Mapping.  If a Mapping, the
-                # values are typically booleans or themselves a mapping (such
-                # as from text search to add a field like _textScore: {$meta:
-                # 'textScore'}).  Convert sequences and sets to mappings (as
-                # done in pymongo), then use values that aren't themselves
-                # mappings as a projection and those that are mappings as
-                # added fields.
-                if isinstance(fields, (abc.Sequence, abc.Set)):
-                    fields = dict.fromkeys(fields, 1)
-                if any(not isinstance(v, abc.Mapping) for v in fields.values()):
-                    fullPipeline.append({'$project': {
-                        k: v for k, v in fields.items()
-                        if not isinstance(v, abc.Mapping)}})
-                if any(isinstance(v, abc.Mapping) for v in fields.values()):
-                    fullPipeline.append({'$addFields': {
-                        k: v for k, v in fields.items()
-                        if isinstance(v, abc.Mapping)}})
-            options = {
-                # By allowing disk use, large sorted queries will work.  If
-                # disallowed, they will fail.  Although this is slower than
-                # memory sorting, actual experiemnts show it to be acceptable
-                'allowDiskUse': True,
-                # Start with a 0-sized batch.  This avoids fetching data from
-                # the Mongo server if the query is never polled and starts
-                # streaming data faster than a fixed batch size.
-                'cursor': {'batchSize': 0}
-            }
-            if timeout:
-                options['maxTimeMS'] = timeout
-            result = self.collection.aggregate(fullPipeline, **options)
-
-            def count():
-                try:
-                    return next(iter(self.collection.aggregate(countPipeline, **options)))['count']
-                except StopIteration:
-                    # If there are no values, this won't return the count, in
-                    # which case it is zero.
-                    return 0
-
-            result.count = count
-            # Mark that this result came from an aggregate.  If an aggregate
-            # is used, the results could be sorted via the aggregateSort
-            # parameter.  This informs the consumer of the result.
-            result.fromAggregate = True
-            return result
+            ], offset=offset, limit=limit, timeout=timeout, fields=fields,
+                sort=sort or aggregateSort)
+        if pipeline:
+            return self._findWithPipeline(
+                [{'$match': query or {}}] + pipeline, offset=offset, limit=limit,
+                timeout=timeout, fields=fields, sort=sort or aggregateSort)
         return self.find(query, offset, limit, timeout, fields, sort, **kwargs)
