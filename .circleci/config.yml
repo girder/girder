@@ -538,6 +538,8 @@ workflows:
           requires:
             - server-pytest-test-3.10
             - server-legacy-test-3.10
+            - server-pytest-test-3.15
+            - server-legacy-test-3.15
             - web-test-chromium
             - web-test-firefox
             - integration-test
