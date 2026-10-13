@@ -1,7 +1,12 @@
 #!/bin/bash
 set -e
-# Publish npm packages for selected locations
-# NPM_AUTH_TOKEN must be set by the build environment
+# Publish npm packages for selected locations, using npm trusted publishing
+# (CircleCI OIDC). No NPM_AUTH_TOKEN is needed.
+export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+npm install -g 'npm@^11.5.1'
+export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
+hash -r
+npm --version
 
 readonly GIT_VERSION=$(git describe --tags)
 readonly PUBLISHED_NPM_PACKAGES=(
@@ -19,10 +24,10 @@ readonly PUBLISHED_NPM_PACKAGES=(
 )
 for directory in "${PUBLISHED_NPM_PACKAGES[@]}"; do
   pushd "$directory"
-  # Trying to set the auth token via 'npm_config_' environment variables does not work
-  echo '//registry.npmjs.org/:_authToken=${NPM_AUTH_TOKEN}' > ./.npmrc
   npm version --allow-same-version --no-git-tag-version "$GIT_VERSION"
+  # OIDC tokens are short-lived, so fetch a fresh one for each publish
+  export NPM_ID_TOKEN=$(circleci run oidc get --claims '{"aud": "npm:registry.npmjs.org"}')
   npm publish --access public
-  rm --interactive=never ./.npmrc
   popd
 done
+
