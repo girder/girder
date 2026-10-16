@@ -1311,9 +1311,165 @@ class OauthTest(base.TestCase):
         ):
             self._testOauth(providerInfo)
 
-    def XtestMicrosoftOauth(self):  # noqa
-        # This test is disabled for now:
-        # https://github.com/girder/girder/pull/3393#issuecomment-1113589758
+    def testCilogonOauth(self):  # noqa
+        providerInfo = {
+            'id': 'cilogon',
+            'name': 'CILogon',
+            'client_id': {
+                'key': PluginSettings.CILOGON_CLIENT_ID,
+                'value': 'cilogon_test_client_id'
+            },
+            'client_secret': {
+                'key': PluginSettings.CILOGON_CLIENT_SECRET,
+                'value': 'cilogon_test_client_secret'
+            },
+            'allowed_callback_re':
+                r'^http://127\.0\.0\.1(?::\d+)?/api/v1/oauth/cilogon/callback$',
+            'url_re': r'^https://cilogon\.org/authorize',
+            'accounts': {
+                'existing': {
+                    'auth_code': 'cilogon_existing_auth_code',
+                    'access_token': 'cilogon_existing_test_token',
+                    'user': {
+                        'login': self.adminUser['login'],
+                        'email': self.adminUser['email'],
+                        'firstName': self.adminUser['firstName'],
+                        'lastName': self.adminUser['lastName'],
+                        'oauth': {
+                            'provider': 'cilogon',
+                            'id': '2399'
+                        }
+                    }
+                },
+                'new': {
+                    'auth_code': 'cilogon_new_auth_code',
+                    'access_token': 'cilogon_new_test_token',
+                    'user': {
+                        # this login is not provided by CILogon, but will be
+                        # created internally by _deriveLogin
+                        'login': 'apollo',
+                        'email': 'apollo@creed.chi.il.us',
+                        'firstName': 'Apollo',
+                        'lastName': 'Creed',
+                        'oauth': {
+                            'provider': 'cilogon',
+                            'id': 'the1best'
+                        }
+                    }
+                }
+            }
+        }
+
+        @httmock.urlmatch(scheme='https', netloc='^cilogon.org$',
+                          path='^/authorize$', method='GET')
+        def mockCilogonRedirect(url, request):
+            redirectUri = None
+            try:
+                params = urllib.parse.parse_qs(url.query)
+                # Check redirect_uri first, so other errors can still redirect
+                redirectUri = params['redirect_uri'][0]
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 404,
+                    'content': json.dumps({
+                        'error': repr(e)
+                    })
+                }
+            try:
+                self.assertRegex(redirectUri, providerInfo['allowed_callback_re'])
+                self.assertEqual(params['response_type'], ['code'])
+                self.assertEqual(params['scope'], ['openid email profile'])
+                state = params['state'][0]
+                # Nothing to test for state, since provider doesn't care
+            except (KeyError, AssertionError) as e:
+                returnQuery = urllib.parse.urlencode({
+                    'error': repr(e),
+                })
+            else:
+                returnQuery = urllib.parse.urlencode({
+                    'state': state,
+                    'code': providerInfo['accounts'][self.accountType]['auth_code']
+                })
+            return {
+                'status_code': 302,
+                'headers': {
+                    'Location': '%s?%s' % (redirectUri, returnQuery)
+                }
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^cilogon.org$',
+                          path='^/oauth2/token$', method='POST')
+        def mockCilogonToken(url, request):
+            try:
+                params = urllib.parse.parse_qs(request.body)
+                self.assertEqual(params['grant_type'], ['authorization_code'])
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
+                for account in providerInfo['accounts'].values():
+                    if account['auth_code'] == params['code'][0]:
+                        break
+                else:
+                    self.fail()
+                self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
+                self.assertRegex(
+                    params['redirect_uri'][0], providerInfo['allowed_callback_re'])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 400,
+                    'headers': {
+                        'Content-Type': 'application/json'
+                    },
+                    'content': json.dumps({
+                        'error': repr(e),
+                        'error_description': repr(e)
+                    })
+                }
+            return {
+                'status_code': 200,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
+                'content': json.dumps({
+                    'token_type': 'Bearer',
+                    'access_token': account['access_token'],
+                    'expires_in': 3600,
+                    'id_token': 'cilogon_id_token'
+                })
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^cilogon.org$',
+                          path='^/oauth2/userinfo$', method='GET')
+        def mockCilogonApiUser(url, request):
+            try:
+                for account in providerInfo['accounts'].values():
+                    if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
+                        break
+                else:
+                    self.fail()
+            except AssertionError as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'message': repr(e)
+                    })
+                }
+            return json.dumps({
+                'sub': account['user']['oauth']['id'],
+                'email': account['user']['email'],
+                'given_name': account['user']['firstName'],
+                'family_name': account['user']['lastName']
+            })
+
+        with httmock.HTTMock(
+            mockCilogonRedirect,
+            mockCilogonToken,
+            mockCilogonApiUser,
+            # Must keep 'mockOtherRequest' last
+            self.mockOtherRequest
+        ):
+            self._testOauth(providerInfo)
+
+    def testMicrosoftOauth(self):  # noqa
         providerInfo = {
             'id': 'microsoft',
             'name': 'Microsoft',
@@ -1348,11 +1504,10 @@ class OauthTest(base.TestCase):
                     'auth_code': 'microsoft_new_auth_code',
                     'access_token': 'microsoft_new_test_token',
                     'user': {
-                        # login may be provided externally by Microsoft; for
-                        # simplicity here, do not use a username with whitespace
-                        # or underscores
+                        # this login is not provided by Microsoft, but will be
+                        # derived from the email address by _deriveLogin
                         'login': 'drago',
-                        'email': 'metaphor@labs.ussr.gov',
+                        'email': 'drago@labs.ussr.gov',
                         'firstName': 'Ivan',
                         'lastName': 'Drago',
                         'oauth': {
@@ -1365,13 +1520,26 @@ class OauthTest(base.TestCase):
         }
 
         @httmock.urlmatch(scheme='https', netloc='^login.microsoftonline.com$',
+                          path=r'^/organizations/v2\.0/\.well-known/openid-configuration$',
+                          method='GET')
+        def mockMicrosoftDiscovery(url, request):
+            return json.dumps({
+                'authorization_endpoint':
+                    'https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize',
+                'token_endpoint':
+                    'https://login.microsoftonline.com/organizations/oauth2/v2.0/token',
+                'issuer': 'https://login.microsoftonline.com/organizations/v2.0',
+                'tenant_region_scope': 'EU',
+                'cloud_instance_name': 'microsoftonline.com',
+                'cloud_graph_host_name': 'graph.windows.net',
+                'msgraph_host': 'graph.microsoft.com',
+            })
+
+        @httmock.urlmatch(scheme='https', netloc='^login.microsoftonline.com$',
                           path='^/organizations/oauth2/v2.0/authorize$', method='GET')
         def mockMicrosoftRedirect(url, request):
-            redirectUri = None
             try:
                 params = urllib.parse.parse_qs(url.query)
-                # Check redirect_uri first, so other errors can still redirect
-                redirectUri = params['redirect_uri'][0]
                 self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
             except (KeyError, AssertionError) as e:
                 return {
@@ -1381,10 +1549,13 @@ class OauthTest(base.TestCase):
                     })
                 }
             try:
-                self.assertRegex(redirectUri, providerInfo['allowed_callback_re'])
                 state = params['state'][0]
                 # Nothing to test for state, since provider doesn't care
-                self.assertEqual(params['scope'], ['account'])
+                self.assertEqual(params['scope'], ['User.Read offline_access openid profile'])
+                self.assertEqual(params['response_type'], ['code'])
+                # msal's get_authorization_request_url is called without a
+                # redirect_uri, so none should be present here
+                self.assertNotIn('redirect_uri', params)
             except (KeyError, AssertionError) as e:
                 returnQuery = urllib.parse.urlencode({
                     'error': repr(e),
@@ -1398,15 +1569,79 @@ class OauthTest(base.TestCase):
             return {
                 'status_code': 302,
                 'headers': {
-                    'Location': '%s?%s' % (redirectUri, returnQuery)
+                    'Location': 'http://127.0.0.1:30000/api/v1/oauth/microsoft/callback?%s'
+                                % returnQuery
                 }
             }
 
+        @httmock.urlmatch(scheme='https', netloc='^login.microsoftonline.com$',
+                          path='^/organizations/oauth2/v2.0/token$', method='POST')
+        def mockMicrosoftToken(url, request):
+            try:
+                params = urllib.parse.parse_qs(request.body)
+                self.assertEqual(params['grant_type'], ['authorization_code'])
+                self.assertEqual(params['client_id'], [providerInfo['client_id']['value']])
+                for account in providerInfo['accounts'].values():
+                    if account['auth_code'] == params['code'][0]:
+                        break
+                else:
+                    self.fail()
+                self.assertEqual(params['client_secret'], [providerInfo['client_secret']['value']])
+            except (KeyError, AssertionError) as e:
+                return {
+                    'status_code': 400,
+                    'headers': {
+                        'Content-Type': 'application/json'
+                    },
+                    'content': json.dumps({
+                        'error': repr(e),
+                        'error_description': repr(e)
+                    })
+                }
+            return {
+                'status_code': 200,
+                'headers': {
+                    'Content-Type': 'application/json'
+                },
+                'content': json.dumps({
+                    'token_type': 'Bearer',
+                    'access_token': account['access_token'],
+                    'expires_in': 3600
+                })
+            }
+
+        @httmock.urlmatch(scheme='https', netloc='^graph.microsoft.com$',
+                          path='^/v1.0/me$', method='GET')
+        def mockMicrosoftApiUser(url, request):
+            try:
+                for account in providerInfo['accounts'].values():
+                    if 'Bearer %s' % account['access_token'] == request.headers['Authorization']:
+                        break
+                else:
+                    self.fail()
+            except AssertionError as e:
+                return {
+                    'status_code': 401,
+                    'content': json.dumps({
+                        'message': repr(e)
+                    })
+                }
+            return json.dumps({
+                'id': account['user']['oauth']['id'],
+                'mail': account['user']['email'],
+                'givenName': account['user']['firstName'],
+                'surname': account['user']['lastName']
+            })
+
+        # The mocked authority URLs above use the 'organizations' tenant,
+        # whereas the default tenant is 'common'
+        Setting().set(PluginSettings.MICROSOFT_TENANT_ID, 'organizations')
+
         with httmock.HTTMock(
+            mockMicrosoftDiscovery,
             mockMicrosoftRedirect,
-            # mockMicrosoftToken,
-            # mockMicrosoftApiUser,
-            # mockMicrosoftApiEmail,
+            mockMicrosoftToken,
+            mockMicrosoftApiUser,
             # Must keep 'mockOtherRequest' last
             self.mockOtherRequest,
         ):
