@@ -144,7 +144,7 @@ def _walk_obj(obj, func, leaf_condition=None):
 
 
 BUILTIN_CELERY_TASKS = [
-    'celery.accumulate'
+    'celery.accumulate',
     'celery.backend_cleanup',
     'celery.chain',
     'celery.chord',
