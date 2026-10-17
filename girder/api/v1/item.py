@@ -1,3 +1,5 @@
+import cherrypy
+
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.utility import ziputil
@@ -261,6 +263,8 @@ class Item(Resource):
     @access.public(scope=TokenScope.DATA_READ, cookie=True)
     @autoDescribeRoute(
         Description('Download the contents of an item.')
+        .notes('This endpoint also accepts the HTTP "Range" header for partial '
+               'downloads of single file items.')
         .modelParam('id', model=ItemModel, level=AccessType.READ)
         .param('offset', 'Byte offset into the file.', dataType='int',
                required=False, default=0)
@@ -288,8 +292,19 @@ class Item(Resource):
         if len(files) == 1 and format != 'zip':
             if contentDisposition not in {None, 'inline', 'attachment'}:
                 raise RestException('Unallowed contentDisposition type "%s".' % contentDisposition)
+            file = files[0]
+            endByte = None
+            rangeRequest = cherrypy.request.headers.get('Range')
+            if rangeRequest and file.get('size') is None:
+                # Ensure the file size is updated
+                File().updateSize(file)
+            rangeHeader = cherrypy.lib.httputil.get_ranges(rangeRequest, file.get('size', 0))
+            # The HTTP Range header takes precedence over the offset param
+            if rangeHeader and len(rangeHeader):
+                # Currently we only support a single range.
+                offset, endByte = rangeHeader[0]
             return File().download(
-                files[0], offset, contentDisposition=contentDisposition,
+                file, offset, endByte=endByte, contentDisposition=contentDisposition,
                 extraParameters=extraParameters)
         else:
             return self._downloadMultifileItem(item, user)
