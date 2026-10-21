@@ -60,7 +60,8 @@ class Microsoft(ProviderBase):
             )
         if 'access_token' not in result:
             strings = result['error'], result['error_description']
-            raise Exception('Error "%s" acquiring access token for client: %s' % strings)
+            raise RestException(
+                'Error "%s" acquiring access token for client: %s' % strings, code=502)
         return result
 
     def getUser(self, token):
