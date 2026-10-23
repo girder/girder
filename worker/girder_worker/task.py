@@ -115,10 +115,16 @@ class Task(celery.Task):
         """
         A property to indicate if a task has been canceled.
 
+        Once a cancel has been observed it is remembered for the rest of the
+        request: the revoked list is fetched from the worker on every check,
+        and a later fetch that times out must not un-cancel the task.
+
         :return: True is this task has been canceled, False otherwise.
         :rtype: bool
         """
-        return is_revoked(self)
+        if getattr(self.request, '_girder_worker_canceled', False) is not True:
+            self.request._girder_worker_canceled = is_revoked(self)
+        return self.request._girder_worker_canceled
 
     def describe(self):
         return describe_function(self.run)
