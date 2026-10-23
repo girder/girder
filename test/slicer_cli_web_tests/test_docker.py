@@ -4,6 +4,7 @@ import os
 import pytest
 from girder_jobs.constants import JobStatus
 
+from girder.models.user import User
 from pytest_girder.assertions import assertStatus
 from pytest_girder.utils import getResponseBody
 
@@ -40,6 +41,17 @@ def testDockerAdd(images, boundServer):
     images.endpointsExist(img_name, ['Example1', 'Example2', 'Example3'], ['NotAnExample'])
     images.deleteImage(img_name, True)
     images.assertNoImages()
+
+
+@dockerOnly
+@pytest.mark.plugin('slicer_cli_web')
+def testDockerAddPrivateAdmin(images, admin):
+    User().setPublic(admin, False, save=True)
+
+    img_name = 'girder/slicer_cli_web:small'
+    images.addImage(img_name, JobStatus.SUCCESS)
+    images.endpointsExist(img_name, ['Example1', 'Example2', 'Example3'])
+    images.deleteImage(img_name, True)
 
 
 # Pure parameter validation; it never contacts docker or the worker.
