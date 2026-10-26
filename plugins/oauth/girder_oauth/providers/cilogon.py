@@ -1,3 +1,4 @@
+import urllib.parse
 import warnings
 
 import requests
@@ -29,15 +30,14 @@ class CILogon(ProviderBase):
 
         redirectUri = '/'.join((getApiUrl(), 'oauth', 'cilogon', 'callback'))
 
-        url = (
-            f'{cls._AUTHORITY}/authorize'
-            f'?client_id={clientId}'
-            f'&response_type=code'
-            f'&scope={" ".join(cls._AUTH_SCOPES)}'
-            f'&redirect_uri={redirectUri}'
-            f'&state={state}'
-        )
-        return url
+        query = urllib.parse.urlencode({
+            'client_id': clientId,
+            'response_type': 'code',
+            'scope': ' '.join(cls._AUTH_SCOPES),
+            'redirect_uri': redirectUri,
+            'state': state,
+        })
+        return f'{cls._AUTHORITY}/authorize?{query}'
 
     def getToken(self, code):
         clientId = self.getClientIdSetting()
@@ -60,8 +60,9 @@ class CILogon(ProviderBase):
             response = requests.post(token_url, data=data)
 
         if response.status_code != 200:
-            raise Exception('Error acquiring token: %s' %
-                            response.json().get('error_description', 'Unknown error'))
+            raise RestException('Error acquiring token: %s' %
+                                response.json().get('error_description', 'Unknown error'),
+                                code=502)
 
         return response.json()
 

@@ -3,7 +3,11 @@ set -e
 # Publish npm packages for selected locations
 # NPM_AUTH_TOKEN must be set by the build environment
 
+export npm_config_prefix="$HOME/.npm-global"
 npm install -g 'npm@^11.5.1'
+export PATH="$npm_config_prefix/bin:$PATH"
+hash -r
+npm --version
 
 readonly GIT_VERSION=$(git describe --tags)
 readonly PUBLISHED_NPM_PACKAGES=(

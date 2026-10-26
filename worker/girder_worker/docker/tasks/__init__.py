@@ -468,6 +468,13 @@ def _docker_run(task, image, pull_image=True, entrypoint=None, container_args=No
             else:
                 container.remove()
 
+    # A canceled container was stopped before it wrote its outputs, so skip the
+    # result hooks rather than failing the job on the missing files.  The select
+    # loop has already recorded any cancel it saw, so check that record rather
+    # than querying the worker again.
+    if getattr(task.request, '_girder_worker_canceled', False) is True:
+        return ()
+
     # return an array of None's equal to number of entries in the girder_result_hooks
     # header, in order to trigger processing of the container outputs.
     results = []
