@@ -26,6 +26,10 @@ var CheckedMenuWidget = View.extend({
             return;
         }
 
+        let baseParent = this.parentView;
+        while (baseParent && !baseParent.showDownload) {
+            baseParent = baseParent.parentView;
+        }
         this.dropdownToggle.girderEnable(true);
         this.$el.html(CheckedActionsMenuTemplate({
             minFolderLevel: this.minFolderLevel,
@@ -37,7 +41,7 @@ var CheckedMenuWidget = View.extend({
             pickedCopyAllowed: this.pickedCopyAllowed,
             pickedMoveAllowed: this.pickedMoveAllowed,
             pickedDesc: this.pickedDesc,
-            showDownload: showDownload(this),
+            showDownload: baseParent && baseParent.showDownload ? baseParent.showDownload() : false,
             HierarchyWidget: HierarchyWidget
         }));
 
