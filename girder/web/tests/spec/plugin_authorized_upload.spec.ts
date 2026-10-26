@@ -36,3 +36,30 @@ test.describe('Test the authorized upload front-end', () => {
     });
 
 });
+
+test.describe('Test the authorized upload menu entry in the htk style', () => {
+    setupServer();
+
+    test('the entry is inside the folder actions menu', async ({ page }) => {
+        await createUser(page, 'admin');
+        const girderToken = await page.evaluate(() => window.localStorage.getItem('girderToken'));
+        const resp = await page.request.put(new URL('/api/v1/system/setting', page.url()).toString(), {
+            headers: { 'Girder-Token': girderToken! },
+            form: { key: 'core.ui_style', value: 'htk' },
+        });
+        expect(resp.ok()).toBeTruthy();
+        await page.reload();
+        await expect(page.locator('html')).toHaveClass(/g-ui-htk/);
+
+        await page.locator('#g-app-header-container').getByText('admin').click();
+        await page.locator('a.g-my-folders').click();
+        await page.locator('a.g-folder-list-link', { hasText: 'Private' }).click();
+        await expect(page.locator('.g-folder-actions-button:visible')).toHaveCount(1);
+        await expect(page.locator('.g-folder-actions-menu a.g-authorize-upload-here')).toHaveCount(1);
+        await expect(page.locator('.g-authorize-upload-here')).toBeHidden();
+        await page.locator('.g-folder-actions-button:visible').click();
+        await expect(page.locator('.g-folder-actions-menu a.g-authorize-upload-here')).toBeVisible();
+        await page.locator('.g-folder-actions-menu a.g-authorize-upload-here').click();
+        await expect(page.getByText('Generate URL')).toBeVisible();
+    });
+});

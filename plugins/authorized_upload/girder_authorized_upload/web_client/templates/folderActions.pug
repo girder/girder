@@ -1,4 +1,10 @@
-li(role="presentation")
-  a.g-authorize-upload-here(href=`#authorize_upload/${folder.id}`)
-    i.icon-upload
+if htk
+  <a class="g-authorize-upload-here text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md whitespace-nowrap" href="#authorize_upload/#{folder.id}">
+    <i class="ri-upload-2-line pr-2"></i>
     | Authorize upload here
+  </a>
+else
+  li(role="presentation")
+    a.g-authorize-upload-here(href=`#authorize_upload/${folder.id}`)
+      i.icon-upload
+      | Authorize upload here
