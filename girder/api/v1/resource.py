@@ -13,6 +13,13 @@ from girder.utility.progress import ProgressContext
 # Plugins can modify this set to allow other types to be searched
 allowedSearchTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
 allowedDeleteTypes = {'collection', 'file', 'folder', 'group', 'item', 'user'}
+# The access level and token scope needed to delete each type, matching the
+# type-specific delete endpoints.  Types not listed require admin access and
+# the DATA_OWN scope.
+_deleteTypeAccess = {
+    'file': (AccessType.WRITE, TokenScope.DATA_WRITE),
+    'item': (AccessType.WRITE, TokenScope.DATA_WRITE),
+}
 
 
 class Resource(BaseResource):
@@ -181,7 +188,7 @@ class Resource(BaseResource):
             yield zip.footer()
         return stream
 
-    @access.user(scope=TokenScope.DATA_OWN)
+    @access.user(scope=TokenScope.DATA_WRITE)
     @autoDescribeRoute(
         Description('Delete a set of items, folders, or other resources.')
         .jsonParam('resources', 'A JSON-encoded set of resources to delete. Each '
@@ -193,11 +200,14 @@ class Resource(BaseResource):
         .errorResponse('Invalid resources format.')
         .errorResponse('No resources specified.')
         .errorResponse('Resource not found.')
-        .errorResponse('Admin access was denied for a resource.', 403)
+        .errorResponse('Write or admin access was denied for a resource.', 403)
     )
     def delete(self, resources, progress):
         user = self.getCurrentUser()
         self._validateResourceSet(resources, allowedDeleteTypes)
+        for kind in resources:
+            self.ensureTokenScopes(_deleteTypeAccess.get(
+                kind, (AccessType.ADMIN, TokenScope.DATA_OWN))[1])
         total = sum([len(resources[key]) for key in resources])
         with ProgressContext(
                 progress, user=user, title='Deleting resources',
@@ -206,8 +216,9 @@ class Resource(BaseResource):
             current = 0
             for kind in resources:
                 model = self._getResourceModel(kind, 'remove')
+                level = _deleteTypeAccess.get(kind, (AccessType.ADMIN, TokenScope.DATA_OWN))[0]
                 for id in resources[kind]:
-                    doc = model.load(id=id, user=user, level=AccessType.ADMIN, exc=True)
+                    doc = model.load(id=id, user=user, level=level, exc=True)
 
                     # Don't do a subtree count if we weren't asked for progress
                     if progress:
