@@ -44,6 +44,8 @@ class SettingKey:
     SMTP_PASSWORD = 'core.smtp.password'
     SMTP_PORT = 'core.smtp.port'
     SMTP_USERNAME = 'core.smtp.username'
+    UI_HEADER_NAV_LABEL = 'core.ui_header_nav_label'
+    UI_STYLE = 'core.ui_style'
     UPLOAD_MINIMUM_CHUNK_SIZE = 'core.upload_minimum_chunk_size'
     USER_DEFAULT_FOLDERS = 'core.user_default_folders'
 
@@ -96,6 +98,8 @@ class SettingDefault:
         SettingKey.SMTP_PASSWORD: '',
         SettingKey.SMTP_PORT: 25,
         SettingKey.SMTP_USERNAME: '',
+        SettingKey.UI_HEADER_NAV_LABEL: '',
+        SettingKey.UI_STYLE: 'classic',
         SettingKey.UPLOAD_MINIMUM_CHUNK_SIZE: 1024 * 1024 * 5,
         SettingKey.USER_DEFAULT_FOLDERS: 'public_private'
     }
@@ -253,6 +257,22 @@ class SettingValidator:
         if doc['value'] not in ('all', 'user', 'admin', 'none'):
             raise ValidationException(
                 'Show download must be "all", "user", "admin", or "none".', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.UI_STYLE)
+    def _validateUiStyle(doc):
+        if not isinstance(doc['value'], str):
+            raise ValidationException('UI style must be "classic" or "htk".', 'value')
+        doc['value'] = doc['value'].lower()
+        if doc['value'] not in ('classic', 'htk'):
+            raise ValidationException('UI style must be "classic" or "htk".', 'value')
+
+    @staticmethod
+    @setting_utilities.validator(SettingKey.UI_HEADER_NAV_LABEL)
+    def _validateUiHeaderNavLabel(doc):
+        if not isinstance(doc['value'], str):
+            raise ValidationException('UI header navigation label must be a string.', 'value')
+        doc['value'] = doc['value'].strip()
 
     @staticmethod
     @setting_utilities.validator(SettingKey.EMAIL_FROM_ADDRESS)

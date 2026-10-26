@@ -7,6 +7,7 @@ import 'bootstrap/js/popover';
 import View from '@girder/core/views/View';
 import { restRequest } from '@girder/core/rest';
 import router from '@girder/core/router';
+import { isHtkStyle } from '@girder/core/uiStyle';
 
 import SearchFieldTemplate from '@girder/core/templates/widgets/searchField.pug';
 import SearchHelpTemplate from '@girder/core/templates/widgets/searchHelp.pug';
@@ -159,7 +160,8 @@ var SearchFieldWidget = View.extend({
         this.$el.html(SearchFieldTemplate({
             placeholder: this.placeholder,
             modes: this.modes,
-            currentMode: this.currentMode
+            currentMode: this.currentMode,
+            htk: isHtkStyle()
         }));
 
         this.$('.g-search-options-button').popover({

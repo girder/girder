@@ -1,13 +1,18 @@
 import _ from 'underscore';
+import Backbone from 'backbone';
 
 import LayoutHeaderUserView from '@girder/core/views/layout/HeaderUserView';
 import router from '@girder/core/router';
 import SearchFieldWidget from '@girder/core/views/widgets/SearchFieldWidget';
 import View from '@girder/core/views/View';
+import { styledTemplate } from '@girder/core/uiStyle';
 
-import LayoutHeaderTemplate from '@girder/core/templates/layout/layoutHeader.pug';
+import LayoutHeaderClassicTemplate from '@girder/core/templates/layout/layoutHeader.pug';
+import LayoutHeaderHtkTemplate from '@girder/core/templates/layout/layoutHeaderHtk.pug';
 
 import '@girder/core/stylesheets/layout/header.styl';
+
+const LayoutHeaderTemplate = styledTemplate(LayoutHeaderClassicTemplate, LayoutHeaderHtkTemplate);
 
 /**
  * This view shows the header in the layout.
@@ -22,6 +27,8 @@ var LayoutHeaderView = View.extend({
     initialize: function (settings) {
         this.brandName = settings.brandName || 'Girder';
         this.bannerColor = settings.bannerColor || '#3F3B3B';
+        // Only the htk header has a navigation link; this is its label.
+        this.headerNavLabel = settings.headerNavLabel || 'Image Explorer';
 
         this.userView = new LayoutHeaderUserView({
             parentView: this,
@@ -48,7 +55,9 @@ var LayoutHeaderView = View.extend({
         this.$el.html(LayoutHeaderTemplate({
             brandName: this.brandName,
             bannerColor: this.bannerColor,
-            textColor: textColor
+            textColor: textColor,
+            navLabel: this.headerNavLabel,
+            hash: Backbone.history.location.hash
         }));
         this.userView.setElement(this.$('.g-current-user-wrapper')).render();
         if (textColor !== '#ffffff') {

@@ -37,6 +37,8 @@ let apiRoot = import.meta.env.VITE_API_ROOT;
     link.rel = 'stylesheet';
     link.type = 'text/css';
     link.href = new URL(href, pluginRoot).href;
+    // Marked so that stylesheets which must precede plugin styles can find them
+    link.setAttribute('data-g-plugin-stylesheet', '');
     document.head.appendChild(link);
   });
 

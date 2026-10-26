@@ -1,11 +1,14 @@
 .g-hierarchy-widget
-  border 1px solid #eaeaea
+  // The htk style lays out its own header and breadcrumb bar; the rules for
+  // the classic ones are scoped to that style.
+  :where(html:not(.g-ui-htk)) &
+    border 1px solid #eaeaea
 
   .g-hierarchy-sticky
     position sticky
     z-index 10
 
-  .g-hierarchy-actions-header
+  :where(html:not(.g-ui-htk)) & .g-hierarchy-actions-header
     background linear-gradient(to bottom, #e6e6e6 0, #f7f7f7 8px)
     padding 4px 5px 3px
     background-color #f6f6f6
@@ -46,7 +49,7 @@
           margin-right 3px
 
 
-  .g-hierarchy-breadcrumb-bar
+  :where(html:not(.g-ui-htk)) & .g-hierarchy-breadcrumb-bar
     ol.breadcrumb
       margin-bottom 0
       background-color #eaebea

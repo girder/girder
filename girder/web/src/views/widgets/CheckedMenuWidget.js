@@ -1,12 +1,16 @@
 import HierarchyWidget from '@girder/core/views/widgets/HierarchyWidget';
 import View from '@girder/core/views/View';
 import { AccessType } from '@girder/core/constants';
+import { styledTemplate } from '@girder/core/uiStyle';
 
-import CheckedActionsMenuTemplate from '@girder/core/templates/widgets/checkedActionsMenu.pug';
+import CheckedActionsMenuClassicTemplate from '@girder/core/templates/widgets/checkedActionsMenu.pug';
+import CheckedActionsMenuHtkTemplate from '@girder/core/templates/widgets/checkedActionsMenuHtk.pug';
 
 import '@girder/core/utilities/jquery/girderEnable';
 
 import { showDownload } from '../../utilities';
+
+const CheckedActionsMenuTemplate = styledTemplate(CheckedActionsMenuClassicTemplate, CheckedActionsMenuHtkTemplate);
 
 /**
  * This widget presents a list of available batch actions

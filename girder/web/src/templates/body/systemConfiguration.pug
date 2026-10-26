@@ -49,6 +49,21 @@ form.g-settings-form(role="form")
           selected=(settings['core.show_download'] === "admin")) Visible to admins only
       option(value="none",
           selected=(settings['core.show_download'] === "none")) Not visible to anyone
+  .form-group
+    label(for="g-core-ui-style") Web client style
+    select#g-core-ui-style.form-control.input-sm(
+        disabled=true)
+      option(value="classic",
+          selected=(settings['core.ui_style'] === "classic")) Classic
+      option(value="htk",
+          selected=(settings['core.ui_style'] === "htk")) HTK
+  .form-group
+    label(for="g-core-ui-header-nav-label") Header navigation link label
+    input#g-core-ui-header-nav-label.form-control.input-sm(
+        disabled=true,
+        type="text", value=settings['core.ui_header_nav_label'] || '',
+        placeholder="Image Explorer",
+        title="The label of the link to the collections in the HTK style header. Leave blank for the default. The classic header has no such link.")
   .g-settings-form-container
     h4 Administrative Policy
     .form-group

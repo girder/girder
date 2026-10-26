@@ -2,11 +2,18 @@
  * Place global styles in this file.
  */
 
+// The htk style uses the browser's default font size rather than bootstrap's
+html:where(.g-ui-htk)
+  font-size initial
+
 body
   // Override the default font from Bootstrap
   font-family "Open Sans", sans-serif !important
   padding 0
   word-wrap break-word
+
+:where(html.g-ui-htk) body
+  font-size initial
 
 i
   -webkit-font-smoothing antialiased
@@ -14,6 +21,12 @@ i
 a
   cursor pointer
   text-decoration none !important
+
+:where(html.g-ui-htk) a:hover
+  color unset
+
+:where(html.g-ui-htk) a:focus
+  color initial
 
 .g-clear-both
   clear both

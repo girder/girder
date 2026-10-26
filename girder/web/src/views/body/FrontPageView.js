@@ -5,6 +5,7 @@ import View from '@girder/core/views/View';
 import { cancelRestRequests, getApiRoot } from '@girder/core/rest';
 import events from '@girder/core/events';
 import { getCurrentUser } from '@girder/core/auth';
+import { isHtkStyle } from '@girder/core/uiStyle';
 
 import FrontPageTemplate from '@girder/core/templates/body/frontPage.pug';
 
@@ -37,7 +38,8 @@ var FrontPageView = View.extend({
             apiRoot: getApiRoot(),
             currentUser: getCurrentUser(),
             version,
-            brandName: this.brandName
+            brandName: this.brandName,
+            htk: isHtkStyle()
         }));
 
         return this;

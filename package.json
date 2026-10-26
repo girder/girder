@@ -102,6 +102,7 @@
   ],
   "pugLintConfig": {
     "extends": "@girder/pug-lint-config",
+    "disallowHtmlText": null,
     "excludeFiles": [
       "**/node_modules/",
       "**/.tox/"

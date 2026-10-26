@@ -1,0 +1,49 @@
+<a class="g-download-folder text-gray-700 block px-3 py-2 text-sm rounded-md">
+  if folderCount
+    <i class="ri-folder-6-line text-base pr-2"></i>
+    span.g-checked-folder-count #{folderCount}
+  if itemCount
+    <i class="ri-file-3-line text-base pr-2"></i>
+    span.g-checked-item-count #{itemCount}
+  if pickedCount
+    <i class="ri-add-circle-line text-base pr-2"></i>
+    span.g-checked-picked-count #{pickedCount}
+</a>
+
+if folderCount || itemCount
+  if showDownload
+    <a class="g-download-checked text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
+      <i class="ri-download-line pr-2"></i>
+      | Download checked resources
+    </a>
+  <a class="g-pick-checked text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
+    <i class="ri-add-circle-line pr-2"></i>
+    | Pick checked resources for Move or Copy
+  </a>
+
+if HierarchyWidget.getPickedResources()
+  <div class="g-admin divider"></div>
+  if pickedMoveAllowed
+    <a class="g-move-picked text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
+      <i class="ri-folder-transfer-line pr-2"></i>
+      | Move picked resources here
+    </a>
+  if pickedCopyAllowed
+    <a class="g-copy-picked text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
+      <i class="ri-clipboard-line pr-2"></i>
+      | Copy picked resources here
+    </a>
+  <a class="g-clear-picked text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
+    <i class="ri-close-circle-line pr-2"></i>
+    | Clear picked resources
+    if pickedDesc
+      |  (#{pickedDesc})
+  </a>
+
+if folderCount || itemCount
+  if (minFolderLevel >= AccessType.ADMIN && minItemLevel >= AccessType.WRITE)
+    <div class="g-admin divider"></div>
+    <a class="g-admin g-delete-checked text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md">
+      <i class="ri-delete-bin-line pr-2"></i>
+      | Delete checked resources
+    </a>

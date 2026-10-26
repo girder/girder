@@ -2,6 +2,8 @@ import View from '@girder/core/views/View';
 import events from '@girder/core/events';
 import { logout, getCurrentUser } from '@girder/core/auth';
 
+import { isHtkStyle } from '@girder/core/uiStyle';
+
 import LayoutHeaderUserTemplate from '@girder/core/templates/layout/layoutHeaderUser.pug';
 
 import '@girder/core/stylesheets/layout/headerUser.styl';
@@ -36,7 +38,8 @@ var LayoutHeaderUserView = View.extend({
     render: function () {
         this.$el.html(LayoutHeaderUserTemplate({
             user: getCurrentUser(),
-            registrationPolicy: this.registrationPolicy
+            registrationPolicy: this.registrationPolicy,
+            htk: isHtkStyle()
         }));
         return this;
     }

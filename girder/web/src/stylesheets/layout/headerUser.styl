@@ -4,8 +4,11 @@
   line-height $headerHeight
 
   a
-    color white
     display inline-block
+
+  // The classic header is drawn on the banner color; the htk header is white
+  :where(html:not(.g-ui-htk)) & a
+    color white
 
     &:hover
       color #e0e0e0

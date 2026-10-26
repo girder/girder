@@ -17,6 +17,8 @@ import CollectionsView from '@girder/core/views/body/CollectionsView';
 
 import CollectionPageTemplate from '@girder/core/templates/body/collectionPage.pug';
 
+import { isHtkStyle } from '@girder/core/uiStyle';
+
 import '@girder/core/stylesheets/body/collectionPage.styl';
 
 import 'bootstrap/js/dropdown';
@@ -91,7 +93,8 @@ var CollectionView = View.extend({
             collection: this.model,
             AccessType: AccessType,
             renderMarkdown: renderMarkdown,
-            showDownload: showDownload(this)
+            showDownload: showDownload(this),
+            htk: isHtkStyle()
         }));
 
         if (!this.hierarchyWidget) {

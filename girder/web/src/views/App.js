@@ -24,6 +24,7 @@ import View from '@girder/core/views/View';
 import { fetchCurrentUser, setCurrentUser, getCurrentUser } from '@girder/core/auth';
 import { Layout } from '@girder/core/constants';
 import { splitRoute } from '@girder/core/misc';
+import { applyHtkBannerColor, getUiStyle, isHtkStyle, setUiStyle } from '@girder/core/uiStyle';
 
 import AlertTemplate from '@girder/core/templates/layout/alert.pug';
 import LayoutTemplate from '@girder/core/templates/layout/layout.pug';
@@ -37,6 +38,11 @@ var App = View.extend({
     /**
      * @param {object} [settings]
      * @param {bool} [settings.start=true] Run start after initialization
+     * @param {string} [settings.uiStyle] The UI style, "classic" or "htk". When
+     *     given, this is applied globally (see uiStyle.setUiStyle); otherwise
+     *     the style already in effect is kept.
+     * @param {string} [settings.headerNavLabel] The label of the navigation
+     *     link in the htk header; blank for the style's default label.
      */
     initialize: function (settings) {
         this._started = false;
@@ -48,9 +54,18 @@ var App = View.extend({
         this.registrationPolicy = settings.registrationPolicy || null;
         this.enablePasswordLogin = _.has(settings, 'enablePasswordLogin') ? settings.enablePasswordLogin : true;
         this.downloadShown = settings.showDownload || 'all';
+        if (settings.uiStyle) {
+            setUiStyle(settings.uiStyle);
+        }
+        this.uiStyle = getUiStyle();
+        this.headerNavLabel = settings.headerNavLabel || null;
 
         if (settings.start === undefined || settings.start) {
             this.start();
+        }
+
+        if (isHtkStyle()) {
+            applyHtkBannerColor(this.bannerColor);
         }
     },
 
@@ -136,7 +151,8 @@ var App = View.extend({
             parentView: this,
             brandName: this.brandName,
             bannerColor: this.bannerColor,
-            registrationPolicy: this.registrationPolicy
+            registrationPolicy: this.registrationPolicy,
+            headerNavLabel: this.headerNavLabel
         });
 
         this.globalNavView = new LayoutGlobalNavView({
@@ -187,7 +203,9 @@ var App = View.extend({
         if (!this._started) {
             return;
         }
-        this.$el.html(LayoutTemplate());
+        this.$el.html(LayoutTemplate({
+            htk: isHtkStyle()
+        }));
 
         this.globalNavView.setElement(this.$('#g-global-nav-container')).render();
         this.headerView.setElement(this.$('#g-app-header-container')).render();
@@ -205,6 +223,11 @@ var App = View.extend({
      */
     navigateTo: function (view, settings, opts) {
         this.globalNavView.deactivateAll();
+
+        if (isHtkStyle() && this.headerView) {
+            // The htk header highlights the section being viewed
+            this.headerView.render();
+        }
 
         settings = settings || {};
         opts = opts || {};

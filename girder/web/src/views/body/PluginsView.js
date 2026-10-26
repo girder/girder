@@ -5,6 +5,7 @@ import router from '@girder/core/router';
 import View from '@girder/core/views/View';
 import { getPluginConfigRoute } from '@girder/core/utilities/PluginUtils';
 import { restRequest, cancelRestRequests } from '@girder/core/rest';
+import { isHtkStyle } from '@girder/core/uiStyle';
 
 import PluginsTemplate from '@girder/core/templates/body/plugins.pug';
 
@@ -47,7 +48,8 @@ var PluginsView = View.extend({
         }, this);
 
         this.$el.html(PluginsTemplate({
-            allPlugins: this._sortPlugins(this.allPlugins)
+            allPlugins: this._sortPlugins(this.allPlugins),
+            htk: isHtkStyle()
         }));
 
         return this;

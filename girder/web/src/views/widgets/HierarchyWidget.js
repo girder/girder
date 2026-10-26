@@ -21,16 +21,22 @@ import { confirm, handleClose } from '@girder/core/dialog';
 import events from '@girder/core/events';
 import { getModelClassByName, renderMarkdown, formatCount, capitalize, formatSize } from '@girder/core/misc';
 import { restRequest, getApiRoot } from '@girder/core/rest';
+import { isHtkStyle, styledTemplate } from '@girder/core/uiStyle';
 
-import HierarchyBreadcrumbTemplate from '@girder/core/templates/widgets/hierarchyBreadcrumb.pug';
+import HierarchyBreadcrumbClassicTemplate from '@girder/core/templates/widgets/hierarchyBreadcrumb.pug';
+import HierarchyBreadcrumbHtkTemplate from '@girder/core/templates/widgets/hierarchyBreadcrumbHtk.pug';
 import HierarchyPaginatedTemplate from '@girder/core/templates/widgets/hierarchyPaginated.pug';
-import HierarchyWidgetTemplate from '@girder/core/templates/widgets/hierarchyWidget.pug';
+import HierarchyWidgetClassicTemplate from '@girder/core/templates/widgets/hierarchyWidget.pug';
+import HierarchyWidgetHtkTemplate from '@girder/core/templates/widgets/hierarchyWidgetHtk.pug';
 
 import '@girder/core/stylesheets/widgets/hierarchyWidget.styl';
 
 import 'bootstrap/js/dropdown';
 
 import { showDownload } from '../../utilities';
+
+const HierarchyBreadcrumbTemplate = styledTemplate(HierarchyBreadcrumbClassicTemplate, HierarchyBreadcrumbHtkTemplate);
+const HierarchyWidgetTemplate = styledTemplate(HierarchyWidgetClassicTemplate, HierarchyWidgetHtkTemplate);
 
 var pickedResources = null;
 
@@ -280,6 +286,9 @@ var HierarchyWidget = View.extend({
             this.listenTo(this.itemListView, 'g:checkboxesChanged', this.updateChecked);
 
             this.listenTo(this.itemListView, 'g:changed', () => {
+                // The htk stylesheet has its own class for this, as bootstrap's
+                // "hidden" conflicts with Tailwind's.
+                const hiddenClass = isHtkStyle() ? 'htk-hidden' : 'hidden';
                 this.itemCount = this.itemListView.collection.length;
                 this._childCountCheck();
                 if (this._paginated && this.hierarchyPaginated && this.itemListView.getNumPages() > 1) {
@@ -290,10 +299,10 @@ var HierarchyWidget = View.extend({
                     this.$('.g-hierarachy-paginated-bar').addClass('g-hierarchy-sticky');
                     this.$('.g-hierarchy-breadcrumb-bar').css({ top: 0 });
                     this.$('.g-hierarachy-paginated-bar').css({ bottom: 0 });
-                    this.$('.g-hierarachy-paginated-bar').removeClass('hidden');
+                    this.$('.g-hierarachy-paginated-bar').removeClass(hiddenClass);
                 } else {
                     // We remove the bar if the current folder doesn't have more than one page, keep the sticky breadcrumb though
-                    this.$('.g-hierarachy-paginated-bar').addClass('hidden');
+                    this.$('.g-hierarachy-paginated-bar').addClass(hiddenClass);
                 }
             });
             // Only emitted when there is more than one page of data
@@ -361,12 +370,13 @@ var HierarchyWidget = View.extend({
             itemFilter: this._itemFilter
         }));
 
-        if (this.$('.g-folder-actions-menu>li>a').length === 0) {
+        if (!isHtkStyle() && this.$('.g-folder-actions-menu>li>a').length === 0) {
             // Disable the actions button if actions list is empty
             this.$('.g-folder-actions-button').girderEnable(false);
         }
 
-        this.breadcrumbView.setElement(this.$('.g-hierarchy-breadcrumb-bar>ol')).render();
+        this.breadcrumbView.setElement(this.$(
+            isHtkStyle() ? '.g-hierarchy-breadcrumb-bar' : '.g-hierarchy-breadcrumb-bar>ol')).render();
         this.checkedMenuWidget.dropdownToggle = this.$('.g-checked-actions-button');
         this.checkedMenuWidget.setElement(this.$('.g-checked-actions-menu')).render();
         this.folderListView.setElement(this.$('.g-folder-list-container')).render();
@@ -426,6 +436,16 @@ var HierarchyWidget = View.extend({
      */
     upOneLevel: function () {
         this.breadcrumbs.pop();
+        if (this.breadcrumbs.length === 0) {
+            // Above a top-level collection or user folder is the list of them.
+            // Only the htk breadcrumb offers this.
+            if (this.parentModel.resourceName === 'collection') {
+                router.navigate('collections', { trigger: true });
+            } else if (this.parentModel.resourceName === 'user') {
+                router.navigate('users', { trigger: true });
+            }
+            return;
+        }
         this.setCurrentModel(this.breadcrumbs[this.breadcrumbs.length - 1]);
     },
 

@@ -1,9 +1,9 @@
-.g-user-text
+.g-user-text(class=htk ? 'h-full flex items-center' : null)
   if user
     a.g-user-dropdown-link(data-toggle="dropdown", data-target="#g-user-action-menu")
       | #[i.icon-user] #{user.get('login')}
       i.icon-down-open
-    #g-user-action-menu.dropdown
+    #g-user-action-menu.dropdown(class=htk ? 'mt-8' : null)
       ul.dropdown-menu(role="menu")
         li(role="presentation")
           a.g-my-folders(href=`#user/${user.id}`)

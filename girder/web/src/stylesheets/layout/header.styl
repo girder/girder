@@ -2,16 +2,20 @@
 
 .g-header-wrapper
   height $headerHeight
-  vertical-align middle
   padding 0 15px
+
+:where(html:not(.g-ui-htk)) .g-header-wrapper
+  vertical-align middle
 
 .g-app-title
   display inline
   font-size 25px
-  font-weight bold
   margin-right 35px
   line-height $headerHeight
   cursor pointer
+
+:where(html:not(.g-ui-htk)) .g-app-title
+  font-weight bold
 
 .g-quick-search-form
   display inline-block

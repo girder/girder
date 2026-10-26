@@ -3,10 +3,13 @@ $emptyBorder=1px solid transparent
 $minHeight=500px
 
 .g-global-nav-main
-  box-shadow inset 0 -35px 45px -10px #fff
-  background-image linear-gradient(to left, #f4f4f4 0, #fff 7px)
   min-height $minHeight - 12px
   padding 15px 0 20px 6px
+
+// The htk style has no borders or shading in the navigation
+:where(html:not(.g-ui-htk)) .g-global-nav-main
+  box-shadow inset 0 -35px 45px -10px #fff
+  background-image linear-gradient(to left, #f4f4f4 0, #fff 7px)
 
 .g-nav-link
   display block
@@ -22,12 +25,16 @@ ul.g-global-nav
   padding-left 0
 
   >li
-    border $emptyBorder
     list-style-type none
     text-decoration none
 
-  >li:hover:not(.g-active)
+  :where(html:not(.g-ui-htk)) &>li
+    border $emptyBorder
+
+  :where(html:not(.g-ui-htk)) &>li:hover:not(.g-active)
     background-color #fafafa
+
+  >li:hover:not(.g-active)
     .g-nav-link
       position relative
       color #222
@@ -37,11 +44,15 @@ ul.g-global-nav
   >li.g-active
     pointer-events none
     cursor default
+
+  :where(html:not(.g-ui-htk)) &>li.g-active
     background-color white
     border-top $navLinkBorder
     border-bottom $navLinkBorder
     border-left $navLinkBorder
     box-shadow -1px 1px 3px rgba(0, 0, 0, 0.05)
+
+  >li.g-active
     .g-nav-link
       color black
     i
@@ -55,10 +66,13 @@ ul.g-global-nav
 
   ul.g-global-nav
     width 100%
-    border-bottom $navLinkBorder
     >li
       display inline-block
       padding 4px 5px
+
+  :where(html:not(.g-ui-htk)) ul.g-global-nav
+    border-bottom $navLinkBorder
+    >li
       border $emptyBorder
     >li.g-active
       box-shadow none
@@ -79,11 +93,17 @@ ul.g-global-nav
         top -1px
         bottom -1px
         right -1px
+
+  :where(html:not(.g-ui-htk)) ul.g-global-nav
+    >li:hover:not(.g-active)
+      .g-nav-link:after
         background-color #ffcc00
 
 @media (max-width 720px)
   .g-global-nav-main
     padding 0
+    min-height 0
+
+  :where(html:not(.g-ui-htk)) .g-global-nav-main
     box-shadow none
     background-image none
-    min-height 0

@@ -730,6 +730,8 @@ girder
             SMTP_PASSWORD
             SMTP_PORT
             SMTP_USERNAME
+            UI_HEADER_NAV_LABEL
+            UI_STYLE
             UPLOAD_MINIMUM_CHUNK_SIZE
             USER_DEFAULT_FOLDERS
         SettingValidator

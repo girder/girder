@@ -149,6 +149,8 @@ class System(Resource):
             SettingKey.REGISTRATION_POLICY,
             SettingKey.ENABLE_PASSWORD_LOGIN,
             SettingKey.SHOW_DOWNLOAD,
+            SettingKey.UI_STYLE,
+            SettingKey.UI_HEADER_NAV_LABEL,
         ]
         return {k: Setting().get(k) for k in publicSettings}
 

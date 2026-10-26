@@ -101,6 +101,8 @@ var SystemConfigurationView = View.extend({
             'core.collection_create_policy',
             'core.user_default_folders',
             'core.show_download',
+            'core.ui_style',
+            'core.ui_header_nav_label',
         ];
         this.settingsKeys = keys;
         restRequest({
