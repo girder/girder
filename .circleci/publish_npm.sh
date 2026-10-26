@@ -1,7 +1,13 @@
 #!/bin/bash
 set -e
 # Publish npm packages for selected locations
-# NPM_AUTH_TOKEN must be set by the build environment
+# Publishing authenticates through CircleCI OIDC.  With --dry-run, every
+# package is installed, versioned, built and packed, but nothing is uploaded.
+
+dry_run=()
+if [[ "$1" == "--dry-run" ]]; then
+  dry_run=(--dry-run --tag dry-run)
+fi
 
 export npm_config_prefix="$HOME/.npm-global"
 npm install -g 'npm@^11.5.1'
@@ -24,7 +30,9 @@ for directory in "${PUBLISHED_NPM_PACKAGES[@]}"; do
   pushd "$directory"
   npm ci
   npm version --allow-same-version --no-git-tag-version "$GIT_VERSION"
-  export NPM_ID_TOKEN=$(circleci run oidc get --claims '{"aud": "npm:registry.npmjs.org"}')
-  npm publish --access public
+  if [[ ${#dry_run[@]} -eq 0 ]]; then
+    export NPM_ID_TOKEN=$(circleci run oidc get --claims '{"aud": "npm:registry.npmjs.org"}')
+  fi
+  npm publish --access public "${dry_run[@]}"
   popd
 done
