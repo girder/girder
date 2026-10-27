@@ -10,10 +10,9 @@
   "bugs": {
     "url": "https://github.com/girder/girder/issues"
   },
-  "main": "index.js",
   "scripts": {
     "build": "node build.js",
-    "prepublishOnly": "$npm_execpath install && $npm_execpath run build"
+    "prepack": "npm run build"
   },
   "devDependencies": {
     "ejs": "^3.1.10",
@@ -26,5 +25,10 @@
   "keywords": [
     "fontello",
     "girder"
+  ],
+  "style": "dist/css/fontello.css",
+  "files": [
+    "dist",
+    "fontello.config.json"
   ]
 }
