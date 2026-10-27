@@ -178,42 +178,66 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         # Restore the internal state of the streaming SHA-512 checksum
         checksum = _hash_state.restoreHex(upload['sha512state'], 'sha512')
 
-        if self.requestOffset(upload) > upload['received']:
-            # This probably means the server died midway through writing last
-            # chunk to disk, and the database record was not updated. This
-            # means we need to update the sha512 state with the difference.
-            with open(upload['tempFile'], 'rb') as tempFile:
-                tempFile.seek(upload['received'])
-                while True:
-                    data = tempFile.read(BUF_SIZE)
+        # Hold a lock on the temp file while the chunk is written, validated,
+        # and (if invalid) rolled back.  Without this, a concurrent request
+        # for the same upload could append its bytes after ours before we
+        # reject and truncate, so the rollback would remove the wrong data
+        # and leave the rejected bytes in the middle of the file.
+        with filelock.FileLock(self._tempLockPath(upload)):
+            start = self.requestOffset(upload)
+            if start > upload['received']:
+                # This probably means the server died midway through writing
+                # last chunk to disk, and the database record was not
+                # updated. This means we need to update the sha512 state
+                # with the difference.
+                with open(upload['tempFile'], 'rb') as tempFile:
+                    tempFile.seek(upload['received'])
+                    while True:
+                        data = tempFile.read(BUF_SIZE)
+                        if not data:
+                            break
+                        checksum.update(data)
+
+            with open(upload['tempFile'], 'a+b') as tempFile:
+                size = 0
+                while not upload['received'] + size > upload['size']:
+                    data = chunk.read(BUF_SIZE)
                     if not data:
                         break
+                    size += len(data)
+                    tempFile.write(data)
                     checksum.update(data)
+            chunk.close()
 
-        with open(upload['tempFile'], 'a+b') as tempFile:
-            size = 0
-            while not upload['received'] + size > upload['size']:
-                data = chunk.read(BUF_SIZE)
-                if not data:
-                    break
-                size += len(data)
-                tempFile.write(data)
-                checksum.update(data)
-        chunk.close()
-
-        try:
-            self.checkUploadSize(upload, size)
-        except ValidationException:
-            # Use the actual file size minus what we just wrote to handle
-            # concurrent uploads that may have updated upload['received'].
-            with open(upload['tempFile'], 'a+b') as tempFile:
-                tempFile.truncate(os.path.getsize(upload['tempFile']) - size)
-            raise
+            try:
+                self.checkUploadSize(upload, size)
+            except ValidationException:
+                # Roll back to where the file ended before this chunk was
+                # written; nothing else can have appended while we hold the
+                # lock.
+                with open(upload['tempFile'], 'a+b') as tempFile:
+                    tempFile.truncate(start)
+                raise
 
         # Persist the internal state of the checksum
         upload['sha512state'] = _hash_state.serializeHex(checksum)
         upload['received'] += size
         return upload
+
+    def _tempLockPath(self, upload):
+        """
+        Returns the path of the lock file guarding an upload's temp file.
+        """
+        return upload['tempFile'] + '.lock'
+
+    def _removeTempLock(self, upload):
+        """
+        Removes the lock file guarding an upload's temp file, if present.
+        """
+        try:
+            os.unlink(self._tempLockPath(upload))
+        except OSError:
+            pass
 
     def requestOffset(self, upload):
         """
@@ -258,6 +282,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
             except OSError:
                 # some filesystems may not support POSIX permissions
                 pass
+        self._removeTempLock(upload)
 
         file['sha512'] = hash
         file['path'] = path
@@ -346,6 +371,7 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         if os.path.exists(upload['tempFile']):
             os.unlink(upload['tempFile'])
+        self._removeTempLock(upload)
 
     def importFile(self, item, path, user, name=None, mimeType=None, **kwargs):
         """
