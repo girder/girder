@@ -53,6 +53,9 @@ def registerAccessFlag(key, name, description=None, admin=False):
     }
 
 
+EDIT_METADATA_FLAG = 'edit_item_metadata'
+
+
 class ServerMode:
     PRODUCTION = 'production'
     DEVELOPMENT = 'development'

@@ -139,10 +139,14 @@ var ItemView = View.extend({
             this.fileEdit = false;
             this.upload = false;
 
+            var metadataAccessLevel = Math.max(
+                accessLevel,
+                this.model.get('_canEditMetadata') ? AccessType.WRITE : AccessType.READ
+            );
             this.metadataWidget = new MetadataWidget({
                 el: this.$('.g-item-metadata'),
                 item: this.model,
-                accessLevel: accessLevel,
+                accessLevel: metadataAccessLevel,
                 parentView: this
             });
 
