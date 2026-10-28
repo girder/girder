@@ -1,0 +1,46 @@
+{
+  "name": "@girder/girder-plugin-local-checkout",
+  "version": "0.0.0",
+  "description": "Temporarily copies S3 assetstore data to a filesystem assetstore.",
+  "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#local-checkout",
+  "bugs": {
+    "url": "https://github.com/girder/girder/issues"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/girder/girder.git"
+  },
+  "type": "module",
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "main": "./dist/girder-plugin-local-checkout.umd.cjs",
+  "module": "./dist/girder-plugin-local-checkout.js",
+  "exports": {
+    ".": {
+      "import": "./dist/girder-plugin-local-checkout.js",
+      "require": "./dist/girder-plugin-local-checkout.umd.cjs"
+    },
+    "./style.css": "./dist/style.css",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "author": "",
+  "dependencies": {
+    "@girder/core": "file:../../../../girder/web"
+  },
+  "devDependencies": {
+    "pug": "^3.0.2",
+    "stylus": "^0.64.0",
+    "vite": "^8.0.0",
+    "vite-plugin-istanbul": "^9.0.0"
+  },
+  "overrides": {
+    "argparse": "^2.0.1"
+  }
+}

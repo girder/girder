@@ -169,7 +169,10 @@ jobs:
       - build-plugins
       - run:
           name: Run pytest tests
-          command: tox -e pytest_circleci -- -x
+          command: |
+            # tox refuses to stage packages in group/world-writable directories
+            umask 0022
+            tox -e pytest_circleci -- -x
           working_directory: girder
       - store_test_results:
           path: girder/build/test/results
