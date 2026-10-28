@@ -23,6 +23,12 @@ executors:
     working_directory: /home/circleci/project
 
 commands:
+  install-ttfautohint:
+    description: "Install ttfautohint so the Fontello build produces a hinted font"
+    steps:
+      - run:
+          name: Install ttfautohint
+          command: sudo apt-get update && sudo apt-get install -y ttfautohint
   prerequisites:
     description: "Install prerequisites and run required background services"
     steps:
@@ -472,11 +478,23 @@ jobs:
           command: tox -e publish
           working_directory: girder
 
+  check-publish-npm:
+    executor: py3
+    steps:
+      - checkout:
+          path: girder
+      - install-ttfautohint
+      - run:
+          name: Check that npm packages can be built and packed
+          command: ./.circleci/publish_npm.sh --dry-run
+          working_directory: girder
+
   publish-release:
     executor: py3
     steps:
       - checkout:
           path: girder
+      - install-ttfautohint
       - run:
           name: Publish npm packages
           command: npm run publish-all
@@ -554,6 +572,10 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+.*/
+      - check-publish-npm:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
       - publish:
           requires:
             - check-publish
@@ -570,6 +592,7 @@ workflows:
       - publish-release:
           requires:
             - check-publish
+            - check-publish-npm
             - server-lint-test
             - web-lint-test
             - coverage

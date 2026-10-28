@@ -23,18 +23,16 @@
       "import": "./dist/girder-plugin-gravatar.js",
       "require": "./dist/girder-plugin-gravatar.umd.cjs"
     },
-    "./style.css": "./dist/style.css",
     "./package.json": "./package.json"
   },
   "scripts": {
     "build": "vite build",
-    "dev": "vite build --watch"
+    "dev": "vite build --watch",
+    "prepack": "npm run build"
   },
   "author": "",
-  "dependencies": {
-    "@girder/core": "file:../../../../girder/web"
-  },
   "devDependencies": {
+    "@girder/core": "file:../../../../girder/web",
     "pug": "^3.0.2",
     "stylus": "^0.64.0",
     "vite": "^8.0.0",

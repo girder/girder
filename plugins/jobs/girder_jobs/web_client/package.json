@@ -9,7 +9,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/girder/girder.git"
+    "url": "git+https://github.com/girder/girder.git"
   },
   "type": "module",
   "files": [
@@ -28,14 +28,15 @@
   },
   "scripts": {
     "build": "vite build",
-    "dev": "vite build --watch"
+    "dev": "vite build --watch",
+    "prepack": "npm run build"
   },
   "author": "",
   "dependencies": {
-    "@girder/core": "file:../../../../girder/web",
     "vega": "^6.0.0"
   },
   "devDependencies": {
+    "@girder/core": "file:../../../../girder/web",
     "nib": "^1.1.2",
     "pug": "^3.0.2",
     "stylus": "^0.64.0",

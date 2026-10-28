@@ -36,7 +36,8 @@ pytest-asyncio
 pytest-cov>=2.6
 pytest-forked
 pytest-mock
-pytest>=3.6
+# Pin to <9.2 until pytest-forked releases an update
+pytest>=3.6,<9.2
 python-dateutil
 tox
 virtualenv

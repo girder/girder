@@ -10,16 +10,25 @@
   "bugs": {
     "url": "https://github.com/girder/girder/issues"
   },
-  "main": "index.js",
   "scripts": {
-    "build": "rm -rf dist .fontello-session && npx fontello-cli install --config fontello.config.json --css dist/css --font dist/fonts --host https://fontello.com && sed -i 's#/font/#/fonts/#g' dist/css/fontello.css && rm -f dist/css/fontello-codes.css dist/css/fontello-embedded.css dist/css/fontello-ie7.css dist/css/fontello-ie7-codes.css",
-    "prepublishOnly": "$npm_execpath install && $npm_execpath run build"
+    "build": "node build.js",
+    "prepack": "npm run build"
   },
   "devDependencies": {
-    "fontello-cli": "^0.6.2"
+    "ejs": "^3.1.10",
+    "svg2ttf": "^6.1.0",
+    "svgpath": "^2.6.0",
+    "ttf2eot": "^3.1.0",
+    "ttf2woff": "^3.0.0",
+    "wawoff2": "^2.0.1"
   },
   "keywords": [
     "fontello",
     "girder"
+  ],
+  "style": "dist/css/fontello.css",
+  "files": [
+    "dist",
+    "fontello.config.json"
   ]
 }
