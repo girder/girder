@@ -1,0 +1,64 @@
+.g-config-breadcrumb-container
+form#g-local-checkout-config-form(role="form")
+  .form-group
+    label.control-label(for="g-local-checkout-assetstore") Assetstore for local copies
+    select#g-local-checkout-assetstore.form-control
+      option(value="", selected=(!settings['local_checkout.assetstore_id'] ? 'selected' : null))
+        | Default assetstore (only when it is a filesystem assetstore)
+      each assetstore in assetstores
+        option(value=assetstore._id,
+            selected=(settings['local_checkout.assetstore_id'] === assetstore._id ? 'selected' : null))
+          = assetstore.name
+    p.help-block.
+      Local copies are placed in this filesystem assetstore.  Free space is
+      computed with the GIRDER_FILESYSTEMASSETSTORE_RESERVED_MBYTES reservation
+      applied.
+  .form-group
+    label.control-label(for="g-local-checkout-max-days") Maximum checkout duration (days)
+    input#g-local-checkout-max-days.form-control(type="number", min="1", step="1",
+        value=settings['local_checkout.max_days'])
+  .checkbox
+    label.control-label(for="g-local-checkout-admin-only")
+      input#g-local-checkout-admin-only(type="checkbox",
+          checked=(settings['local_checkout.admin_only'] ? 'checked' : null))
+      span Only administrators may check out folders
+
+  p#g-local-checkout-error-message.g-validation-failed-message
+  input.btn.btn-sm.btn-primary(type="submit", value="Save")
+
+.g-local-checkout-summary
+  h4 Current checkouts
+  if checkouts.assetstore
+    p
+      | #{checkouts.localFileCount} local file#{checkouts.localFileCount === 1 ? '' : 's'}
+      |  using #{formatSize(checkouts.localBytes)} on #[b= checkouts.assetstore.name]
+      if checkouts.assetstore.capacity && checkouts.assetstore.capacity.free !== null
+        |  (#{formatSize(checkouts.assetstore.capacity.free)} free).
+      else
+        | .
+  else
+    p.text-warning No filesystem assetstore is available for local copies.
+  if checkouts.checkouts.length
+    table.table.table-condensed.table-hover
+      thead
+        tr
+          th Folder
+          th User
+          th Files
+          th Local
+          th Size
+          th Expires
+          th Status
+      tbody
+        each checkout in checkouts.checkouts
+          tr
+            td
+              a(href=`#folder/${checkout.folderId}`)= checkout.folderPath || checkout.folderId
+            td= checkout.userLogin || ''
+            td= checkout.fileCount
+            td= checkout.localCount
+            td= formatSize(checkout.bytes)
+            td= formatDate(checkout.expires, DATE_MINUTE)
+            td(title=checkout.message)= checkout.status
+  else
+    p No folders are currently checked out.

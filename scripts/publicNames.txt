@@ -1129,6 +1129,69 @@ plugins
                 PluginSettings
                     SERVERS
                     SETTINGS
+    local_checkout
+        girder_local_checkout
+            LocalCheckoutPlugin
+                DISPLAY_NAME
+                load
+            girder_worker_plugin
+                LocalCheckoutWorkerPlugin
+                    task_imports
+            models
+                Checkout
+                    createCheckout
+                    findByFolder
+                    initialize
+                    validate
+                CheckoutFile
+                    addCheckout
+                    computeExpires
+                    findByFile
+                    initialize
+                    validate
+                CheckoutStatus
+                    COMPLETE
+                    ERROR
+                    PARTIAL
+                    PENDING
+                    RUNNING
+            rest
+                LocalCheckout
+                    cleanup
+                    listCheckouts
+                deleteFolderCheckout
+                getFolderCheckout
+                setFolderCheckout
+            settings
+                PluginSettings
+                    ADMIN_ONLY
+                    ASSETSTORE_ID
+                    MAX_DAYS
+            tasks
+                checkoutFolderTask
+                cleanupTask
+                detachCheckoutTask
+            utils
+                CLEANUP_CHECK_INTERVAL
+                CLEANUP_INTERVAL
+                LOCATION_KEYS
+                cleanupExpired
+                cleanupIsDue
+                deleteOriginal
+                detachCheckout
+                ensureSpace
+                folderStatus
+                freeSpace
+                getAssetstoreTypes
+                getTargetAssetstore
+                isSourceFile
+                logger
+                makeLocal
+                releaseFile
+                removeCheckout
+                runCheckout
+                updateCheckoutExpiry
+                walkFiles
     oauth
         girder_oauth
             OAuthPlugin

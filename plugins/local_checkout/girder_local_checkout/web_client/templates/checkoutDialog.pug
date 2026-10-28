@@ -1,0 +1,61 @@
+.modal-dialog
+  .modal-content
+    form#g-local-checkout-form.modal-form(role="form")
+      .modal-header
+        button.close(data-dismiss="modal", aria-hidden="true", type="button") &times;
+        h4.modal-title
+          i.icon-location
+          |  Make assets local
+      .modal-body
+        if !status
+          p.g-local-checkout-loading
+            i.icon-spin4.animate-spin
+            |  Counting files in #[b= folder.name()]...
+        else
+          if !status.enabled
+            .alert.alert-warning.
+              No filesystem assetstore is configured for local copies, so assets
+              cannot be made local.
+          else
+            p.
+              Files in #[b= folder.name()] that are stored on an S3 assetstore
+              can be copied to the #[b= status.assetstoreName] assetstore for a
+              period of time.  While local, they are served more quickly.
+            p
+              b= status.fileCount
+              |  file#{status.fileCount === 1 ? '' : 's'} (#{formatSize(status.bytes)})
+              |  can be made local; #[b= status.localCount] (#{formatSize(status.localBytes)})
+              |  currently #{status.localCount === 1 ? 'is' : 'are'}.
+            if status.checkout
+              .g-local-checkout-current
+                p
+                  | This folder is checked out for #[b= status.checkout.days] day#{status.checkout.days === 1 ? '' : 's'},
+                  | expiring in #[b= remainingDays] day#{remainingDays === 1 ? '' : 's'}
+                  |  (#{formatDate(status.checkout.expires, DATE_MINUTE)}).
+                  |  Status: #[b= status.checkout.status].
+                if status.checkout.message
+                  p.g-local-checkout-message= status.checkout.message
+            .form-group
+              label.control-label(for="g-local-checkout-days")
+                if status.checkout
+                  | New check out duration (days, at most #{status.maxDays})
+                else
+                  | Check out duration (days, at most #{status.maxDays})
+              input#g-local-checkout-days.input-sm.form-control(
+                type="number", min="1", max=status.maxDays, step="1", value=defaultDays)
+            if status.adminOnly && !isAdmin
+              .alert.alert-warning Only administrators may check out folders.
+        .g-validation-failed-message
+      .modal-footer
+        a.btn.btn-small.btn-default(data-dismiss="modal") Cancel
+        if status && status.enabled && status.checkout
+          button.g-local-checkout-release.btn.btn-small.btn-danger(type="button")
+            i.icon-cancel
+            | Release now
+        if status && status.enabled
+          button.g-local-checkout-save.btn.btn-small.btn-primary(type="submit")
+            i.icon-location
+            if status.checkout
+              | Update
+            else
+              | Make local

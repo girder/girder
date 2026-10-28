@@ -15,6 +15,7 @@
 -e plugins/hashsum_download
 -e plugins/homepage
 -e plugins/item_licenses
+-e plugins/local_checkout
 -e plugins/ldap
 -e plugins/oauth
 -e plugins/readme

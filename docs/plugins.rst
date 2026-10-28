@@ -402,6 +402,48 @@ instead. The potential error values are:
   current authentication policy.
 
 
+Local Checkout
+--------------
+`PyPI package <https://pypi.org/project/girder-local-checkout/>`__: ``girder-local-checkout``
+
+Data on an S3 assetstore is slower to access than data on a filesystem assetstore.  This plugin
+lets users with write access to a folder temporarily "check out" the folder: every file in the
+folder (recursively) whose data lives on an S3 assetstore is copied to a filesystem assetstore for
+a chosen number of days, and Girder serves the local copy while the checkout lasts.  Files added to
+the folder after a checkout are not copied until the checkout is renewed.
+
+The folder actions menu gains a **Make assets local** item.  Choosing it shows how many files can
+be made local, how many already are, and, for a checked-out folder, the days remaining.  The
+duration can be lengthened or shortened, or the checkout released; copying and releasing happen in
+background tasks on the ``local`` worker queue, so a worker must be available.
+
+Each checkout is tracked per folder.  A file keeps its local copy until the latest expiration of
+every checkout that covers it, so checking out a parent folder for a short time never shortens a
+longer checkout of a subfolder.  When a file's local copy is released, the file once again refers
+to its S3 data; deleting or replacing a checked-out file removes both the local copy and the S3
+data.
+
+Expired checkouts are cleaned up daily, before each new checkout, and on demand via
+``POST /local_checkout/cleanup``.  Free space on the filesystem assetstore is computed with the
+``GIRDER_FILESYSTEMASSETSTORE_RESERVED_MBYTES`` reservation applied.  If a checkout needs more space
+than is free, local copies that expire sooner than the new checkout are released first; if there
+is still not enough room, the checkout is left partial and says so.  Likewise, an upload to the
+filesystem assetstore that would not otherwise fit releases local copies, soonest-expiring first,
+rather than failing.
+
+Administrators can list all checkouts, the files and space they use, and the assetstore's free
+space with ``GET /local_checkout``.  The plugin's configuration page shows the same summary and
+has these settings:
+
+* **Assetstore for local copies**: the filesystem assetstore that receives the copies.  By default
+  the current default assetstore is used, and the feature is unavailable if that is not a
+  filesystem assetstore.
+* **Maximum checkout duration**: the most days a checkout may last (default 90).
+* **Only administrators may check out folders**: restrict the feature to site administrators.
+
+This plugin requires the Jobs plugin and currently only copies files from S3 assetstores.
+
+
 README
 ------
 `PyPI package <https://pypi.org/project/girder-readme/>`__: ``girder-readme``
