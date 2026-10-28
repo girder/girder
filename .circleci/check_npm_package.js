@@ -2,7 +2,9 @@
 // Check that a packed npm tarball is usable: every entry point that
 // package.json declares is in the tarball, every "files" entry matched
 // something, and the relative references inside packed CSS (url(...)) and
-// JavaScript (sourceMappingURL) resolve to packed files.  Any further
+// JavaScript (sourceMappingURL) resolve to packed files, and no runtime
+// dependency uses a local specifier (file:, link:, workspace:) that cannot
+// resolve once installed from the registry.  Any further
 // arguments are paths that must also be in the package.
 //
 // Usage: check_npm_package.js <package.tgz> [required-path ...]
@@ -75,6 +77,14 @@ function checkPackage(root, required) {
   for (const [where, ref] of entryPoints(pkg)) {
     if (!fileSet.has(normalize(ref))) {
       errors.push(`${where} refers to ${ref}, which is not in the package`);
+    }
+  }
+
+  for (const field of ['dependencies', 'peerDependencies', 'optionalDependencies']) {
+    for (const [name, spec] of Object.entries(pkg[field] || {})) {
+      if (/^(file|link|workspace):/.test(spec)) {
+        errors.push(`${field} has ${name}@${spec}, which cannot be installed from the registry`);
+      }
     }
   }
 

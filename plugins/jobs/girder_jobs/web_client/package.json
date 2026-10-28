@@ -33,10 +33,10 @@
   },
   "author": "",
   "dependencies": {
-    "@girder/core": "file:../../../../girder/web",
     "vega": "^6.0.0"
   },
   "devDependencies": {
+    "@girder/core": "file:../../../../girder/web",
     "nib": "^1.1.2",
     "pug": "^3.0.2",
     "stylus": "^0.64.0",
