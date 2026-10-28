@@ -391,6 +391,7 @@ girder
             USER_DEFAULT_FOLDERS
             USER_SELF_ACCESS
             WEBROOT_SETTING_CHANGE
+        EDIT_METADATA_FLAG
         GIRDER_ROUTE_ID
         LOG_BACKUP_COUNT
         LOG_ROOT

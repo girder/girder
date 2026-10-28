@@ -7,10 +7,18 @@ from bson.objectid import ObjectId
 from .model_base import Model
 from girder import events
 from girder import logger
-from girder.constants import AccessType
+from girder.constants import AccessType, registerAccessFlag, EDIT_METADATA_FLAG
 from girder.exceptions import ValidationException, GirderException
 from girder.utility import acl_mixin
 from girder.utility.model_importer import ModelImporter
+
+
+registerAccessFlag(
+    EDIT_METADATA_FLAG,
+    'Edit item metadata',
+    description='Allow users with read access to edit metadata on items in this folder.',
+    admin=False,
+)
 
 
 class Item(acl_mixin.AccessControlMixin, Model):
