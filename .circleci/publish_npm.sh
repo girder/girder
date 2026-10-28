@@ -64,5 +64,5 @@ for tarball in "${tarballs[@]}"; do
     NPM_ID_TOKEN=$(circleci run oidc get --claims '{"aud": "npm:registry.npmjs.org"}')
     export NPM_ID_TOKEN
   fi
-  npm publish "$tarball" --access public "${dry_run[@]}"
+  npm publish "$tarball" --loglevel warn --access public "${dry_run[@]}"
 done
