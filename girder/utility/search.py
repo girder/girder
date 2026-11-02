@@ -12,7 +12,7 @@ from girder.utility.model_importer import ModelImporter
 _allowedSearchMode = {}
 
 # Most results a restricted search reads from a handler that doesn't restrict its own query.
-FALLBACK_SEARCH_READ_LIMIT = 1000
+_FALLBACK_SEARCH_READ_LIMIT = 1000
 _FALLBACK_SEARCH_BATCH_SIZE = 100
 
 
@@ -151,7 +151,7 @@ def _keepInHierarchy(docs, resultType, buildPipeline):
 def _restrictSearchResults(handler, query, types, user, level, limit, offset, buildPipeline):
     """
     Restrict the results of a handler that doesn't restrict its own query, by reading them in
-    batches. Stops after FALLBACK_SEARCH_READ_LIMIT results, so results may be incomplete.
+    batches. Stops after _FALLBACK_SEARCH_READ_LIMIT results, so results may be incomplete.
     """
     results = {}
     for resultType in types:
@@ -160,8 +160,8 @@ def _restrictSearchResults(handler, query, types, user, level, limit, offset, bu
         kept = []
         seen = set()
         read = 0
-        while read < FALLBACK_SEARCH_READ_LIMIT:
-            batchSize = min(_FALLBACK_SEARCH_BATCH_SIZE, FALLBACK_SEARCH_READ_LIMIT - read)
+        while read < _FALLBACK_SEARCH_READ_LIMIT:
+            batchSize = min(_FALLBACK_SEARCH_BATCH_SIZE, _FALLBACK_SEARCH_READ_LIMIT - read)
             batch = handler(
                 query=query, types=[resultType], user=user, level=level, limit=batchSize,
                 offset=read)
@@ -178,7 +178,7 @@ def _restrictSearchResults(handler, query, types, user, level, limit, offset, bu
             logger.warning(
                 'Restricted search stopped after reading %d %s results from %s, so some may be '
                 'missing. The handler can avoid this by accepting a hierarchyPipeline parameter.',
-                FALLBACK_SEARCH_READ_LIMIT, resultType,
+                _FALLBACK_SEARCH_READ_LIMIT, resultType,
                 getattr(handler, '__qualname__', repr(handler)))
         results[resultType] = kept[offset:offset + limit if limit else None]
     return results
