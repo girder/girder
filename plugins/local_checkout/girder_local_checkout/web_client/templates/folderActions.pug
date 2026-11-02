@@ -1,4 +1,10 @@
-li(role="presentation")
-  a.g-local-checkout(role="menuitem")
-    i.icon-location
+if legacyMenu
+  li(role="presentation")
+    a.g-local-checkout(role="menuitem")
+      i.icon-location
+      | Make files local
+else
+  <a class="g-local-checkout text-gray-700 block px-3 py-2 text-sm hover:bg-zinc-100 rounded-md whitespace-nowrap">
+    <i class="ri-hard-drive-2-line pr-2"></i>
     | Make files local
+  </a>

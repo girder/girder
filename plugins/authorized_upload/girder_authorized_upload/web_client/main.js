@@ -12,9 +12,16 @@ wrap(HierarchyWidget, 'render', function (render) {
 
     if (this.parentModel.resourceName === 'folder' &&
             this.parentModel.getAccessLevel() >= AccessType.WRITE) {
-        this.$('.g-folder-actions-menu a.g-edit-folder').parent().after(template({
-            folder: this.parentModel
-        }));
+        const editFolder = this.$('.g-folder-actions-menu a.g-edit-folder');
+        // The classic menu wraps each link in a list item; the htk menu holds
+        // its links directly
+        const legacyMenu = editFolder.parent().is('li');
+        const entry = template({ folder: this.parentModel, legacyMenu });
+        if (legacyMenu) {
+            editFolder.parent().after(entry);
+        } else {
+            editFolder.after(entry);
+        }
     }
     return this;
 });

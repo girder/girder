@@ -34,7 +34,7 @@ describe('Create an authorized upload.', function () {
 
         runs(function () {
             $('.g-folder-actions-button').trigger('click');
-            expect($('.g-folder-actions-menu li>a.g-authorize-upload-here').length).toBeGreaterThan(0);
+            expect($('.g-folder-actions-menu a.g-authorize-upload-here').length).toBeGreaterThan(0);
             window.location.assign($('.g-authorize-upload-here').attr('href'));
         });
 
