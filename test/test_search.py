@@ -277,11 +277,11 @@ def testSearchFallbackGetsNoNewArguments(server, scans, admin, pluginSearchModes
     (4, set(), True),
     # Reading eight finds only the first two inside
     (8, {'scan-here-0', 'scan-here-1'}, True),
-    (search.FALLBACK_SEARCH_READ_LIMIT,
+    (search._FALLBACK_SEARCH_READ_LIMIT,
      {'scan-here-0', 'scan-here-1', 'scan-here-2', 'scan-private'}, False),
 ])
 def testSearchFallbackReadLimit(server, scans, admin, monkeypatch, readLimit, expected, warned):
-    monkeypatch.setattr(search, 'FALLBACK_SEARCH_READ_LIMIT', readLimit)
+    monkeypatch.setattr(search, '_FALLBACK_SEARCH_READ_LIMIT', readLimit)
     with mock.patch.object(search, 'logger') as logger:
         results = _search(server, admin, scans['inside'], 'plainPrefix')
     assert set(results['item']) == expected
