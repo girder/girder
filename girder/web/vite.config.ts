@@ -94,8 +94,8 @@ export default defineConfig({
     viteStaticCopy({
       targets: [
         {
-          src: path.resolve(import.meta.dirname, './src') + '/[!.]*',
-          dest: './src',
+          src: path.resolve(import.meta.dirname, './src'),
+          dest: '.',
         },
         {
           src: path.resolve(import.meta.dirname, './node_modules/swagger-ui-dist') + '/{swagger-ui.css,swagger-ui-bundle.js}',

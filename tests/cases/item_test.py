@@ -120,6 +120,19 @@ class ItemTestCase(base.TestCase):
 
         self.assertEqual(contents[1:], self.getBody(resp))
 
+        # Test downloading with a range header
+        resp = self.request(path='/item/%s/download' % item['_id'],
+                            method='GET', user=user, isJson=False,
+                            additionalHeaders=[('Range', 'bytes=2-7')])
+        self.assertStatus(resp, 206)
+        self.assertEqual(contents[2:8], self.getBody(resp))
+        self.assertEqual(resp.headers['Accept-Ranges'], 'bytes')
+        length = len(contents)
+        begin, end = min(length, 2), min(length, 8)
+        self.assertEqual(resp.headers['Content-Length'], end - begin)
+        self.assertEqual(resp.headers['Content-Range'],
+                         'bytes %d-%d/%d' % (begin, end - 1, length))
+
     def _testDownloadMultiFileItem(self, item, user, contents, format=None):
         params = None
         if format:

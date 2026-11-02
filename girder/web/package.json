@@ -20,7 +20,7 @@
         "default": "./dist-lib/girder-core.umd.cjs"
       }
     },
-    "./style.css": "./dist-lib/style.css"
+    "./style.css": "./dist-lib/girder-core.css"
   },
   "scripts": {
     "dev": "vite",
@@ -32,7 +32,7 @@
     "build-lib": "BUILD_LIB=true vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "install-browsers": "playwright install --with-deps",
-    "prepublishOnly": "npm run build-lib"
+    "prepack": "npm run build-lib"
   },
   "dependencies": {
     "@girder/fontello": "^5.0.0",
