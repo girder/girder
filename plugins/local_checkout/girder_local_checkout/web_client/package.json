@@ -1,0 +1,21 @@
+{
+    "name": "@girder/local_checkout",
+    "version": "0.0.0",
+    "description": "Temporarily copy S3 assetstore data to a filesystem assetstore.",
+    "homepage": "http://girder.readthedocs.io/en/latest/plugins.html#local-checkout",
+    "bugs": {
+        "url": "https://github.com/girder/girder/issues"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/girder/girder.git"
+    },
+    "peerDependencies": {
+        "@girder/core": "*"
+    },
+    "girderPlugin": {
+        "name": "local_checkout",
+        "main": "./main.js"
+    }
+}

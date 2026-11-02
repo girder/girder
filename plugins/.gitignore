@@ -13,6 +13,7 @@
 !item_licenses/
 !jobs/
 !ldap/
+!local_checkout/
 !oauth/
 !readme/
 !sentry/
