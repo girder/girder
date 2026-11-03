@@ -46,7 +46,11 @@ var ItemListWidget = View.extend({
         this._checkboxes = settings.checkboxes;
         this._downloadLinks = (
             _.has(settings, 'downloadLinks') ? settings.downloadLinks : true);
-        if (!showDownload(this)) {
+        let baseParent = this.parentView;
+        while (baseParent && !baseParent.showDownload) {
+            baseParent = baseParent.parentView;
+        }
+        if (!baseParent || !baseParent.showDownload || !baseParent.showDownload()) {
             this._downloadLinks = false;
         }
         this._viewLinks = (

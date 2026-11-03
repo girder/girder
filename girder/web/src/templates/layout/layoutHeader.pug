@@ -1,8 +1,21 @@
-.g-header-wrapper(style=`background-color: ${bannerColor}; color: ${textColor}`)
-  .g-app-title #{brandName}
-
-  form.g-quick-search-form(role="form")
-    .form-group.g-quick-search-container
-
-  .g-current-user-wrapper
-  .g-clear-both
+<div class="g-header-wrapper text-center h-shadow bg-white">
+  <ul class="flex flex-wrap -mb-px h-full text-sm">
+    <li class="g-app-title text-primary"> #{brandName} </li>
+    - var tab = hash.startsWith('#collection') || hash.startsWith('#item') || hash.startsWith('#folder') ? 'explorer' : 'home';
+    - var activeClass = 'border-primary';
+    - var inactiveClass = 'border-transparent hover:border-gray-300';
+    <li class="h-full flex items-center border-b-2 #{tab == 'home' ? activeClass : inactiveClass}">
+      <a href="#" class="inline-block px-4">Home</a>
+    </li>
+    <li class="h-full flex items-center border-b-2 #{tab == 'explorer' ? activeClass : inactiveClass}">
+      <a href="/#collections" class="inline-block px-4 active" aria-current="page">Image Explorer</a>
+    </li>
+    <li>
+      <form class="g-quick-search-form ml-8" role="form">
+        <div class="form-group g-quick-search-container"></div>
+      </form>
+    </li>
+    <li class="g-current-user-wrapper ml-auto"></li>
+    <li class="g-clear-both"></li>
+  </ul>
+</div>
