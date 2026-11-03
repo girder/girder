@@ -1,5 +1,6 @@
 import AdminView from './AdminView';
 import AssetstoresView, { assetstoreImportViewMap } from './AssetstoresView';
+import AssetstoreUsageView from './AssetstoreUsageView';
 import CollectionView from './CollectionView';
 import CollectionsView from './CollectionsView';
 import FilesystemImportView from './FilesystemImportView';
@@ -19,6 +20,7 @@ import UsersView from './UsersView';
 export {
     AdminView,
     AssetstoresView,
+    AssetstoreUsageView,
     assetstoreImportViewMap,
     CollectionView,
     CollectionsView,

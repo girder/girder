@@ -5,6 +5,7 @@ from girder.exceptions import RestException
 from girder.models.assetstore import Assetstore as AssetstoreModel
 from girder.models.file import File
 from girder.tasks import ensure_local_worker_available, importDataTask
+from girder.utility import assetstore_usage
 from girder.utility.model_importer import ModelImporter
 from girder.utility.s3_assetstore_adapter import DEFAULT_REGION
 
@@ -29,6 +30,7 @@ class Assetstore(Resource):
         self.route('PUT', (':id',), self.updateAssetstore)
         self.route('DELETE', (':id',), self.deleteAssetstore)
         self.route('GET', (':id', 'files'), self.getAssetstoreFiles)
+        self.route('GET', ('usage',), self.getUsage)
 
     @access.admin
     @autoDescribeRoute(
@@ -256,3 +258,51 @@ class Assetstore(Resource):
     def getAssetstoreFiles(self, assetstore, limit, offset, sort):
         return File().find(
             query={'assetstoreId': assetstore['_id']}, offset=offset, limit=limit, sort=sort)
+
+    @access.admin
+    @autoDescribeRoute(
+        Description('Report how much storage users, collections, folders, items, '
+                    'and files use.')
+        .notes('With no parent, this lists users and collections.  With a parent, '
+               'it lists the children of that user, collection, folder, or item.  '
+               'Each child reports the total size and number of files under it.  '
+               'Computing the totals reads every file record in scope, which can take '
+               'tens of seconds on large systems, so the result is cached for ten '
+               'minutes.')
+        .modelParam('assetstoreId', 'Limit the report to files in this assetstore.  If '
+                    'not specified, all assetstores are included.', model=AssetstoreModel,
+                    destName='assetstore', paramType='query', required=False)
+        .param('parentType', 'The type of the resource whose children are listed.',
+               enum=list(assetstore_usage.NODE_TYPES), required=False)
+        .param('parentId', 'The ID of the resource whose children are listed.',
+               required=False)
+        .param('attached', 'Include files attached to other resources, such as '
+               'thumbnails.  They count toward the resource they are attached to.',
+               dataType='boolean', default=True, required=False)
+        .param('dedup', 'Count stored data that is shared by several files, such as '
+               'copies, only once.  The oldest file is credited with the data.',
+               dataType='boolean', default=False, required=False)
+        .param('source', 'Count all files, only uploaded files, or only imported files.',
+               enum=list(assetstore_usage.SOURCES), default='all', required=False)
+        .param('limit', 'The maximum number of children to list; the rest are '
+               'summarized.  0 lists all children.', dataType='integer', default=100,
+               required=False)
+        .param('topFiles', 'The number of largest files under the resource to list.',
+               dataType='integer', default=20, required=False)
+        .param('refresh', 'Recompute the totals instead of using cached values.',
+               dataType='boolean', default=False, required=False)
+        .errorResponse()
+        .errorResponse('You are not an administrator.', 403)
+    )
+    def getUsage(self, assetstore, parentType, parentId, attached, dedup, source, limit,
+                 topFiles, refresh):
+        if (parentType is None) != (parentId is None):
+            raise RestException('Specify both parentType and parentId, or neither.')
+        if limit < 0 or topFiles < 0:
+            raise RestException('limit and topFiles must not be negative.')
+        parent = None
+        if parentType is not None:
+            parent = ModelImporter.model(parentType).load(parentId, force=True, exc=True)
+        return assetstore_usage.getUsage(
+            assetstore=assetstore, parentType=parentType, parent=parent, attached=attached,
+            dedup=dedup, source=source, limit=limit, topFiles=topFiles, refresh=refresh)
