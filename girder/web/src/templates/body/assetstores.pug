@@ -5,6 +5,10 @@
       You must create an assetstore before you can upload files to the server.
       Select from the options below to create one.
   else
+    .g-assetstore-usage-all
+      a.g-usage-all-link(href="#assetstores/usage")
+        i.icon-th-large
+        |  Storage usage of all assetstores
     .g-bottom-message.
       Below is a list of all of the assetstores available to the server. The
       one set as "current" is the one that uploaded files will be written to.
@@ -63,6 +67,9 @@
         .g-assetstore-buttons
           button.g-edit-assetstore.btn.btn-sm.btn-default(
               cid=assetstore.cid) Edit
+          a.g-assetstore-usage.btn.btn-sm.btn-default(href=`#assetstores/usage?assetstore=${assetstore.id}`)
+            i.icon-th-large
+            |  Usage
           if !assetstore.get('hasFiles')
             button.g-delete-assetstore.btn.btn-sm.btn-danger(
                 cid=assetstore.cid) Delete

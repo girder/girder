@@ -1,0 +1,101 @@
+.g-assetstore-usage-container
+  .g-body-title Storage usage
+  form.g-usage-controls.form-inline
+    .form-group
+      label(for="g-usage-assetstore") Assetstore
+      select#g-usage-assetstore.form-control.input-sm
+        option(value="", selected=!params.assetstore) All assetstores
+        each assetstore in assetstores
+          option(value=assetstore.id, selected=params.assetstore === assetstore.id)= assetstore.get('name')
+    .form-group
+      label(for="g-usage-source") Files
+      select#g-usage-source.form-control.input-sm
+        each label, value in sources
+          option(value=value, selected=params.source === value)= label
+    .checkbox
+      label
+        input#g-usage-attached(type="checkbox", checked=params.attached)
+        |  Include attached files
+    .checkbox
+      label
+        input#g-usage-dedup(type="checkbox", checked=params.dedup)
+        |  Count shared data once
+    button.g-usage-refresh.btn.btn-sm.btn-default(type="button", title="Recompute the totals instead of using cached values")
+      i.icon-arrows-cw
+      |  Recompute
+  ol.g-usage-breadcrumbs.breadcrumb
+    if usage && usage.breadcrumbs.length
+      li
+        a.g-usage-drill(href=link(null)) All users and collections
+      each crumb, index in usage.breadcrumbs
+        if index === usage.breadcrumbs.length - 1
+          li.active= crumb.name
+        else
+          li
+            a.g-usage-drill(href=link(crumb))= crumb.name
+    else
+      li.active All users and collections
+  if error
+    .g-usage-error.alert.alert-danger= error
+  else if !usage
+    .g-usage-loading
+      i.icon-spin3.animate-spin
+      |  Computing storage usage.  This can be very slow on large systems.
+  else
+    .g-usage-summary
+      b Total:
+      span.g-usage-total-size  #{formatSize(usage.node.size)}
+      |  in
+      span.g-usage-total-count  #{formatCount(usage.node.count)}
+      |  #{usage.node.count === 1 ? 'file' : 'files'}.
+      span.g-usage-computed
+        |  Totals computed #{formatDate(usage.computed, DATE_SECOND)}
+        |  (#{usage.elapsed.toFixed(1)} s).
+    if usage.children.length
+      .g-usage-treemap
+      table.g-usage-children.table.table-condensed.table-hover
+        thead
+          tr
+            th Name
+            th Type
+            th.g-usage-number Size
+            th.g-usage-number Files
+        tbody
+          each child in usage.children
+            tr.g-usage-child(g-type=child.type, g-id=child._id)
+              td
+                if child.drillable
+                  a.g-usage-drill(href=link(child))= child.name
+                else
+                  = child.name
+              td= typeNames[child.type] || child.type
+              td.g-usage-number= formatSize(child.size)
+              td.g-usage-number= formatCount(child.count)
+          if usage.other.nodes
+            tr.g-usage-other
+              td(colspan=2) #{formatCount(usage.other.nodes)} more
+              td.g-usage-number= formatSize(usage.other.size)
+              td.g-usage-number= formatCount(usage.other.count)
+    else
+      .g-usage-empty No files are stored here.
+    if usage.topFiles.length
+      h4 Largest files
+      table.g-usage-top-files.table.table-condensed
+        thead
+          tr
+            th Name
+            th In
+            th.g-usage-number Size
+        tbody
+          each file in usage.topFiles
+            tr.g-usage-top-file
+              td
+                = file.name
+                if file.imported
+                  span.g-usage-flag  (imported)
+                if file.attached
+                  span.g-usage-flag  (attached)
+              td
+                if file.resourceType
+                  a.g-usage-file-resource(href=`#${file.resourceType}/${file.resourceId}`, title=file.resourcePath || file.resourceName)= file.resourcePath || file.resourceName
+              td.g-usage-number= formatSize(file.size)
