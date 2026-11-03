@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from girder import events
 from girder.constants import AssetstoreType, SortDir
@@ -7,6 +8,8 @@ from girder.utility import assetstore_utilities
 from girder.utility.abstract_assetstore_adapter import AbstractAssetstoreAdapter
 
 from .model_base import Model
+
+logger = logging.getLogger(__name__)
 
 
 class Assetstore(Model):
@@ -69,6 +72,13 @@ class Assetstore(Model):
         except (NoAssetstoreAdapter, ValidationException):
             # this assetstore is currently unreachable, so skip this step
             pass
+        except Exception:
+            # The assetstore's backend could not be reached.  There could be
+            # partial uploads, but no files.
+            logger.warning(
+                'Could not remove partial uploads from assetstore %s (%s); '
+                'deleting the assetstore anyway.',
+                assetstore.get('name'), assetstore['_id'], exc_info=True)
         # now remove the assetstore
         super().remove(assetstore)
         # If after removal there is no current assetstore, then pick a

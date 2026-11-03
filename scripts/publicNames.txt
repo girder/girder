@@ -452,6 +452,7 @@ girder
                 list
                 remove
                 validate
+            logger
         collection
             Collection
                 countFolders
