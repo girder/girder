@@ -1,9 +1,8 @@
 from girder.api import access
 from girder.constants import AccessType, TokenScope
 from girder.exceptions import RestException
-from girder.utility import parseTimestamp
+from girder.utility import parseTimestamp, ziputil
 from girder.utility import path as path_util
-from girder.utility import ziputil
 from girder.utility.model_importer import ModelImporter
 from girder.utility.progress import ProgressContext
 from girder.utility.search import getSearchModeHandler

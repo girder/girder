@@ -6,7 +6,6 @@ Since this setting purely drives UI, these tests only ensure validation is corre
 import pytest
 
 from girder.exceptions import ValidationException
-
 from girder.models.setting import Setting
 from girder.settings import SettingKey
 
