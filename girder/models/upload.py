@@ -103,7 +103,7 @@ class Upload(Model):
         if doc['received'] > doc['size']:
             raise ValidationException('Received too many bytes.')
 
-        doc['updated'] = datetime.datetime.utcnow()
+        doc['updated'] = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
         return doc
 
@@ -204,7 +204,7 @@ class Upload(Model):
 
             # Update file info
             file['creatorId'] = upload['userId']
-            file['created'] = datetime.datetime.utcnow()
+            file['created'] = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
             file['assetstoreId'] = assetstore['_id']
             file['size'] = upload['size']
             # If the file was previously imported, it is no longer.
@@ -306,7 +306,7 @@ class Upload(Model):
 
         assetstore = self.getTargetAssetstore('file', file, assetstore)
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
         if 'attachedToId' in file:
             parent = ModelImporter.model(
@@ -373,7 +373,7 @@ class Upload(Model):
 
         assetstore = self.getTargetAssetstore(parentType, parent, assetstore)
         adapter = assetstore_utilities.getAssetstoreAdapter(assetstore)
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
         if not mimeType:
             mimeType = 'application/octet-stream'
@@ -483,7 +483,8 @@ class Upload(Model):
                             query[key] = id
             if 'minimumAge' in filters:
                 query['updated'] = {
-                    '$lte': datetime.datetime.utcnow() - datetime.timedelta(
+                    '$lte': datetime.datetime.now(datetime.timezone.utc).replace(
+                        tzinfo=None) - datetime.timedelta(
                         days=float(filters['minimumAge']))
                     }
         # Perform the find; we'll do access-based filtering of the result

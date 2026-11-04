@@ -220,7 +220,8 @@ class OauthTest(base.TestCase):
             token = Token().load(csrfTokenParts[0], force=True, objectId=False)
             self.assertLess(
                 token['expires'],
-                datetime.datetime.utcnow() + datetime.timedelta(days=0.30))
+                datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+                + datetime.timedelta(days=0.30))
             self.assertEqual(csrfTokenParts[2], 'http://localhost/#foo/bar')
             return providerResp
 

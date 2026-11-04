@@ -57,7 +57,8 @@ class ProgressContext:
 
         Notification().updateProgress(
             self.progress, state=state, message=message,
-            expires=datetime.datetime.utcnow() + datetime.timedelta(seconds=30)
+            expires=datetime.datetime.now(datetime.timezone.utc).replace(
+                tzinfo=None) + datetime.timedelta(seconds=30)
         )
 
     def update(self, force=False, **kwargs):

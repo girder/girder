@@ -234,7 +234,8 @@ class LocalCheckoutTestCase(base.TestCase):
         resp = self.request(path='/local_checkout/cleanup', method='POST', user=self.admin)
         self.assertStatusOk(resp)
         self.assertEqual(resp.json['released'], 0)
-        past = datetime.datetime.utcnow() - datetime.timedelta(hours=1)
+        past = datetime.datetime.now(datetime.timezone.utc).replace(
+            tzinfo=None) - datetime.timedelta(hours=1)
         Checkout().update({'_id': subCheckout['_id']}, {'$set': {'expires': past}})
         CheckoutFile().update({'_id': subRecord['_id']}, {'$set': {'expires': past}})
         resp = self.request(path='/local_checkout/cleanup', method='POST', user=self.admin)

@@ -3,7 +3,8 @@ import pytest
 from pytest_girder.assertions import assertStatus, assertStatusOk
 from girder.models.notification import Notification
 
-OLD_TIME = datetime.datetime.utcnow() - datetime.timedelta(days=3)
+OLD_TIME = datetime.datetime.now(datetime.timezone.utc).replace(
+    tzinfo=None) - datetime.timedelta(days=3)
 SINCE = OLD_TIME + datetime.timedelta(days=1)
 
 
