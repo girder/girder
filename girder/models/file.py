@@ -228,7 +228,7 @@ class File(acl_mixin.AccessControlMixin, Model):
             file = existing
         else:
             file = {
-                'created': datetime.datetime.utcnow(),
+                'created': datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None),
                 'itemId': item['_id'],
                 'assetstoreId': None,
                 'name': name
@@ -322,7 +322,7 @@ class File(acl_mixin.AccessControlMixin, Model):
                 return existing
 
         file = {
-            'created': datetime.datetime.utcnow(),
+            'created': datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None),
             'creatorId': creator['_id'],
             'assetstoreId': assetstore['_id'],
             'name': name,
@@ -366,7 +366,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         or MIME type. This causes the updated stamp to change, and also alerts
         the underlying assetstore adapter that file information has changed.
         """
-        file['updated'] = datetime.datetime.utcnow()
+        file['updated'] = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         file = self.save(file)
 
         if file.get('assetstoreId'):
@@ -402,7 +402,7 @@ class File(acl_mixin.AccessControlMixin, Model):
         file = srcFile.copy()
         # Immediately delete the original id so that we get a new one.
         del file['_id']
-        file['copied'] = datetime.datetime.utcnow()
+        file['copied'] = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         file['copierId'] = creator['_id']
         if item:
             file['itemId'] = item['_id']

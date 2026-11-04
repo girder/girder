@@ -39,7 +39,7 @@ class TestResource:
     (' ', False),
     (False, False),
     (True, True)
-])
+], ids=lambda x: f'{type(x).__name__}_{x}')
 def testBoolParam(input, expected):
     assert rest.Resource().boolParam('some_key', {'some_key': input}) == expected
 

@@ -32,7 +32,7 @@ class Checkout(Model):
         return doc
 
     def createCheckout(self, folder, user, days, assetstore):
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         return self.save({
             'folderId': folder['_id'],
             'assetstoreId': assetstore['_id'],

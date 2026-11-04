@@ -42,7 +42,7 @@ class Token(AccessControlledModel):
         """
         from .setting import Setting
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
         days = days or Setting().get(SettingKey.COOKIE_LIFETIME)
 
         if scope is None:
