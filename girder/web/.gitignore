@@ -11,6 +11,7 @@ node_modules/
 dist/
 dist-lib/
 dist-ssr
+*.tsbuildinfo
 *.local
 
 # Editor directories and files
