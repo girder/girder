@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path, { resolve } from 'path';
 
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { compileClient } from 'pug';
 import istanbul from 'vite-plugin-istanbul';
@@ -22,7 +22,7 @@ function pugPlugin() {
   };
 }
 
-function inlineFaviconPlugin(relFaviconPath, mimeType) {
+function inlineFaviconPlugin(relFaviconPath: string, mimeType: string): Plugin {
   return {
     name: 'inline-favicon',
     transformIndexHtml(html, ctx) {

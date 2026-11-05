@@ -22,7 +22,7 @@ export default defineConfig({
   /* Fail the build on CI if test.only is in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 4 : (isFinite(process.env.PLAYWRIGHT_RETRIES) && parseInt(process.env.PLAYWRIGHT_RETRIES) || 0),
+  retries: process.env.CI ? 4 : (isFinite(Number(process.env.PLAYWRIGHT_RETRIES)) && parseInt(process.env.PLAYWRIGHT_RETRIES ?? '') || 0),
   workers: (() => {
     if (process.env.PLAYWRIGHT_WORKERS) {
       return parseInt(process.env.PLAYWRIGHT_WORKERS);
@@ -43,7 +43,6 @@ export default defineConfig({
       open: 'never'
     }]
   ],
-  reporterOpenTimeout: 0,
   globalSetup: "./tests/playwright-setup.ts",
   globalTeardown: "./tests/playwright-teardown.ts",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */

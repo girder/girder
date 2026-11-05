@@ -13,7 +13,6 @@
   ],
   "compilerOptions": {
     "composite": true,
-    "baseUrl": ".",
     "allowJs": true,
     "declaration": true,
     "paths": {

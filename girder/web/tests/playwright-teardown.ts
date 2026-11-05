@@ -42,7 +42,6 @@ export default async (_config: PlaywrightTestConfig) => {
   });
   const xmlReport = reports.create('cobertura', {
     file: process.env.GIRDER_TEST_COVERAGE_FILE || 'cobertura-coverage.xml',
-    skipEmpty: false,
   });
   xmlReport.execute(contextXml);
 };
