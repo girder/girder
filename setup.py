@@ -61,7 +61,7 @@ extrasReqs = {
     ],
     'mount': [
         'cachetools',
-        'diskcache',
+        'diskcache-community>=5.8.3',
         'mfusepy>=3.0'
     ]
 }

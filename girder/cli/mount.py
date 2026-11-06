@@ -92,13 +92,13 @@ class ServerFuse(fuse.Operations):
         Configure the disk cache.
 
         :param cacheopts: An optional dictionary of options.  Any option that
-            starts with 'diskcache' will be passed to diskcache.Cache without
+            starts with 'diskcache' will be passed to diskcache_community.Cache without
             the 'diskcache' prefix.  'diskcache' by itself is a boolean to
             enable or disable the diskcache.
         """
         use = None
         try:
-            import diskcache
+            import diskcache_community
         except ImportError:
             use = False
 
@@ -128,7 +128,9 @@ class ServerFuse(fuse.Operations):
             chunk = int(options.pop('chunk', 128 * 1024))
             self.diskcache = {
                 'chunk': chunk,
-                'cache': diskcache.Cache(**options),
+                'cache': diskcache_community.Cache(
+                    disk=diskcache_community.SafeDisk.with_options(on_error='miss'),
+                    **options),
                 'hits': 0,
                 'miss': 0,
                 'bytesread': 0,
@@ -611,7 +613,7 @@ def unmountServer(path, lazy=False, quiet=False):
     help='Comma separated list of additional FUSE mount options.  ro cannot '
     'be overridden.  Some additional options can be specified: Options '
     'beginning with diskcache are used to create a diskcache for somewhat '
-    'persistent local data storage.  These are passed to diskcache.Cache '
+    'persistent local data storage.  These are passed to diskcache_community.Cache '
     'with the "diskcache" prefix removed.  diskcache by itself will enable '
     'the default diskcache.  diskcache_directory and diskcache_size_limit (in '
     'bytes) are the most common.  The directory defaults to '

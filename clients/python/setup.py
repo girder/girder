@@ -25,7 +25,7 @@ def prerelease_local_scheme(version):
 
 install_reqs = [
     'click>=6.7',
-    'diskcache',
+    'diskcache-community>=5.8.3',
     'requests>=2.4.2',
     'requests_toolbelt',
 ]

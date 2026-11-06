@@ -20,7 +20,7 @@ import shutil
 import tempfile
 from contextlib import contextmanager
 
-import diskcache
+import diskcache_community
 import requests
 
 DEFAULT_PAGE_LIMIT = 50  # Number of results to fetch per request
@@ -170,8 +170,9 @@ class GirderClient:
         :param scheme: A string containing the scheme for the Girder host,
             the default value is 'http'; if you pass 'https' you likely want
             to pass 443 for the port
-        :param cacheSettings: Settings to use with the diskcache library, or
-            None to disable caching.
+        :param cacheSettings: Settings to use with the diskcache_community library, or
+            None to disable caching.  Entries are read with `SafeDisk` unless the
+            settings give another `disk`.
         :param progressReporterCls: the progress reporter class to instantiate. This class
             is expected to be a context manager with a constructor accepting `label` and
             `length` keyword arguments, an `update` method accepting a `chunkSize` argument and
@@ -212,7 +213,10 @@ class GirderClient:
         if cacheSettings is None:
             self.cache = None
         else:
-            self.cache = diskcache.Cache(**cacheSettings)
+            self.cache = diskcache_community.Cache(**{
+                'disk': diskcache_community.SafeDisk.with_options(on_error='miss'),
+                **cacheSettings,
+            })
 
         if progressReporterCls is None:
             progressReporterCls = _NoopProgressReporter
