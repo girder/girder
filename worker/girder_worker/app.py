@@ -218,7 +218,7 @@ def gw_task_revoked(sender=None, request=None, **rest):
         pass
     except JobSpecNotFound:
         logger.warning(
-            "No jobInfoSpec. Unable to move \'%s\' into CANCELED state.")
+            "No jobInfoSpec. Unable to move '%s' into CANCELED state.")
 
 
 def _girder_io_encode(data):

@@ -4,3 +4,122 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 fallback_version = "0.0.0"
+
+[tool.ruff]
+include = ["*.py", "*.pyi", "**/pyproject.toml"]
+exclude = [
+    "build",
+    "*/web_client/*",
+]
+line-length = 100
+lint.select = [
+    "ASYNC",
+    "B",  # bugbear
+    "C4",
+    "C90",  # mccabe
+    # "COM",  # trailing commas
+    "D",  # pydocstyle
+    "DTZ",
+    "E",  # pycodestyle errors
+    # "EM",  # error messages
+    "EXE",
+    "F",  # pyflakes
+    "G",
+    "ISC",
+    "NPY",
+    "PIE",
+    "PT",
+    "PYI",
+    "Q",  # flake8-quotes
+    # "RET",  # return statements
+    # "RSE",  # raise statements
+    # "S102",  # exec builtin
+    "SIM",
+    # "T",  # print statements
+    "W",  # pycodestyle warnings
+    "YTT",  # flake8-2020
+]
+lint.ignore = [
+    "B017",  # assert raises exception
+    "B026",  # star arg unpacking after keyword arg
+    "B904",  # raise without from inside except
+    "C408",  # unnecessary collection call (would prohibit dict())
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    "D200",
+    "D203",
+    "D205",
+    "D212",
+    "D213",
+    "D400",
+    "D401",
+    "D404",
+    "D415",
+    "E741",  # ambiguous variable name
+    "ISC004",  # Unparenthesized implicit string concatenation in collection
+    "NPY002",  # numpy-legacy-random
+    "PT011",  # pytest-raises-too-broad
+    "PT012",  # pytest-raises-with-multiple-statements
+    "PT017",  # pytest-assert-in-except
+    "PT030",
+    "RET503",  # implict-return on function that can return non-none
+    "RET504",  # unncessary-assign before return
+    "SIM102",
+    "SIM103",
+    "SIM108",
+    "SIM110",
+    "SIM113",
+    "SIM114",
+    "SIM115",
+    "SIM401",
+
+    # "SIM105",
+
+    # The rules below currently report issues in the existing code.  Each
+    # could be enabled after the code is updated.
+    "ASYNC109",  # async-function-with-timeout
+    "B018",  # useless-expression
+    "B019",  # cached-instance-method
+    "B027",  # empty-method-without-abstract-decorator
+    "B905",  # zip-without-explicit-strict
+    "C416",  # unnecessary-comprehension
+    "D413",  # missing-blank-line-after-last-section
+    "D417",  # undocumented-param
+    "DTZ005",  # call-datetime-now-without-tzinfo
+    "E713",  # not-in-test
+    "G002",  # logging-percent-format
+    "G004",  # logging-f-string
+    "ISC002",  # multi-line-implicit-string-concatenation
+    "ISC003",  # explicit-string-concatenation
+    "PIE790",  # unnecessary-placeholder
+    "PIE804",  # unnecessary-dict-kwargs
+    "PIE808",  # unnecessary-range-start
+    "PT006",  # pytest-parametrize-names-wrong-type
+    "PT007",  # pytest-parametrize-values-wrong-type
+    "PT009",  # pytest-unittest-assertion
+    "PT018",  # pytest-composite-assertion
+    "PT022",  # pytest-useless-yield-fixture
+    "PT027",  # pytest-unittest-raises-assertion
+    "PYI006",  # bad-version-info-comparison
+    "PYI024",  # collections-named-tuple
+    "SIM105",  # suppressible-exception
+    "SIM117",  # multiple-with-statements
+    "SIM118",  # in-dict-keys
+    "SIM201",  # negate-equal-op
+    "SIM300",  # yoda-conditions
+]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 14

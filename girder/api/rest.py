@@ -330,7 +330,7 @@ def getParamJson(name, params, default=None):
         raise RestException('The %s parameter must be valid JSON.' % name)
 
 
-class loadmodel:  # noqa: class name
+class loadmodel:  # noqa: N801
     """
     This is a decorator that can be used to load a model based on an ID param.
     For access controlled models, it will check authorization for the current
@@ -410,7 +410,7 @@ class loadmodel:  # noqa: class name
         return wrapped
 
 
-class filtermodel:  # noqa: class name
+class filtermodel:  # noqa: N801
     def __init__(self, model, plugin='_core', addFields=None):
         """
         This creates a decorator that will filter a model or list of models

@@ -615,7 +615,7 @@ class Describe(Resource):
         }
 
 
-class describeRoute:  # noqa: class name
+class describeRoute:  # noqa: N801
     def __init__(self, description):
         """
         This returns a decorator to set the API documentation on a route
@@ -640,7 +640,7 @@ class describeRoute:  # noqa: class name
         return fun
 
 
-class autoDescribeRoute(describeRoute):  # noqa: class name
+class autoDescribeRoute(describeRoute):  # noqa: N801
     def __init__(self, description, hide=False):
         """
         Like describeRoute, but this decorator also controls behavior of the
