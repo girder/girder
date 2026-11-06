@@ -171,7 +171,8 @@ class GirderClient:
             the default value is 'http'; if you pass 'https' you likely want
             to pass 443 for the port
         :param cacheSettings: Settings to use with the diskcache library, or
-            None to disable caching.
+            None to disable caching.  The cache directory is made accessible
+            only by the current user.
         :param progressReporterCls: the progress reporter class to instantiate. This class
             is expected to be a context manager with a constructor accepting `label` and
             `length` keyword arguments, an `update` method accepting a `chunkSize` argument and
@@ -212,6 +213,12 @@ class GirderClient:
         if cacheSettings is None:
             self.cache = None
         else:
+            cacheSettings = dict(cacheSettings)
+            if cacheSettings.get('directory') is not None:
+                directory = os.path.abspath(os.path.expanduser(cacheSettings['directory']))
+                os.makedirs(directory, mode=0o700, exist_ok=True)
+                os.chmod(directory, 0o700)
+                cacheSettings['directory'] = directory
             self.cache = diskcache.Cache(**cacheSettings)
 
         if progressReporterCls is None:

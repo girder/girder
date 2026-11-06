@@ -126,6 +126,11 @@ class ServerFuse(fuse.Operations):
                     use = False
         if use:
             chunk = int(options.pop('chunk', 128 * 1024))
+            # Only the current user may read or write the cache
+            directory = os.path.abspath(os.path.expanduser(options['directory']))
+            os.makedirs(directory, mode=0o700, exist_ok=True)
+            os.chmod(directory, 0o700)
+            options['directory'] = directory
             self.diskcache = {
                 'chunk': chunk,
                 'cache': diskcache.Cache(**options),
@@ -615,7 +620,8 @@ def unmountServer(path, lazy=False, quiet=False):
     'with the "diskcache" prefix removed.  diskcache by itself will enable '
     'the default diskcache.  diskcache_directory and diskcache_size_limit (in '
     'bytes) are the most common.  The directory defaults to '
-    '~/.cache/girder-mount.  stat_cache_ttl specifies how long in seconds '
+    '~/.cache/girder-mount and is only accessible by the current user.  '
+    'stat_cache_ttl specifies how long in seconds '
     'attributes are cached for girder documents.  A longer time reduces '
     'network access but could result in stale permissions or miss updates.')
 @click.option(
