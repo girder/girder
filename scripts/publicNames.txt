@@ -194,6 +194,7 @@ girder
                     find
                     getAssetstore
                     getAssetstoreFiles
+                    getUsage
                     importData
                     updateAssetstore
             collection
@@ -782,6 +783,7 @@ girder
                 deleteFile
                 downloadFile
                 fileIndexFields
+                fileStorageKeyFields
                 fileUpdated
                 finalizeUpload
                 findInvalidFiles
@@ -820,6 +822,17 @@ girder
                 resourceColl
                 resourceParent
                 textSearch
+        assetstore_usage
+            BATCH_SIZE
+            CACHE_ENTRIES
+            CACHE_SECONDS
+            LARGE_ASSETSTORE_FILES
+            MAX_FOLDER_DEPTH
+            NODE_TYPES
+            ROOT_TYPES
+            SOURCES
+            clearCache
+            getUsage
         assetstore_utilities
             fileIndexFields
             getAssetstoreAdapter
@@ -839,6 +852,7 @@ girder
                 deleteFile
                 downloadFile
                 fileIndexFields
+                fileStorageKeyFields
                 finalizeUpload
                 findInvalidFiles
                 fullPath
@@ -908,6 +922,7 @@ girder
                 deleteFile
                 downloadFile
                 fileIndexFields
+                fileStorageKeyFields
                 fileUpdated
                 finalizeUpload
                 importData

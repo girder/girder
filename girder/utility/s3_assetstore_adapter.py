@@ -121,6 +121,13 @@ class S3AssetstoreAdapter(AbstractAssetstoreAdapter):
             ], {}),
         ]
 
+    @staticmethod
+    def fileStorageKeyFields():
+        """
+        Files that share an S3 key share the same stored data.
+        """
+        return ['s3Key']
+
     def __init__(self, assetstore):
         super().__init__(assetstore)
         if all(k in self.assetstore for k in ('accessKeyId', 'secret', 'service')):

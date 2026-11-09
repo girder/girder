@@ -84,6 +84,15 @@ class FilesystemAssetstoreAdapter(AbstractAssetstoreAdapter):
         """
         return ['sha512', 'imported']
 
+    @staticmethod
+    def fileStorageKeyFields():
+        """
+        Uploaded files are stored at a path based on their contents, and
+        imported files are referenced by their absolute path, so the path
+        identifies the stored data.
+        """
+        return ['path']
+
     def __init__(self, assetstore):
         super().__init__(assetstore)
         # If we can't create the temp directory, the assetstore still needs to
