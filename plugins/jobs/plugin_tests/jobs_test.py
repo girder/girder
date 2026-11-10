@@ -2,8 +2,7 @@ import json
 import time
 
 from bson import json_util
-from girder_jobs.constants import (
-    REST_CREATE_JOB_TOKEN_SCOPE, REST_LIST_JOB_TOKEN_SCOPE, JobStatus)
+from girder_jobs.constants import REST_CREATE_JOB_TOKEN_SCOPE, REST_LIST_JOB_TOKEN_SCOPE, JobStatus
 from girder_jobs.models.job import Job
 
 from girder import events

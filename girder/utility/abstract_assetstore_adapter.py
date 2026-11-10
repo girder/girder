@@ -144,6 +144,22 @@ class AbstractAssetstoreAdapter:
         """
         return []
 
+    @staticmethod
+    def fileStorageKeyFields():
+        """
+        Return the file document fields that identify the stored data of a
+        file.  Files in the same assetstore whose values match in all of these
+        fields share the same stored data, as happens when a file is copied.
+        This is used to report storage use without counting shared data more
+        than once.
+
+        Default behavior is to report no fields, which means that each file is
+        assumed to have its own stored data.
+
+        :returns: a list of field names.
+        """
+        return []
+
     def capacityInfo(self):
         """
         Assetstore types that are able to report how much free and/or total

@@ -290,11 +290,11 @@ Web client libraries in Girder core are managed via `npm <https://www.npmjs.com/
 When a new npm package is required, or an existing package is upgraded, the following
 should be done:
 
-1. Ensure that you are using a development environment with version >=5.6 of npm installed:
+1. Ensure that you are using a development environment with version >=10 of npm installed:
 
    .. code-block:: bash
 
-       npm install -g 'npm@>=5.6'
+       npm install -g 'npm@>=10'
 
 2. Update ``girder/web_client/package.json.template`` or ``girder/web_client/src/package.json`` to
    add a new *abstract* specifier for the package:
