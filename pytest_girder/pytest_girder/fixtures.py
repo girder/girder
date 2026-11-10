@@ -84,8 +84,15 @@ def db(request):
 
     # Clear connection cache and model singletons
     _dbClients.clear()
+    # Only keep the most recent instance of each model class.  Older instances
+    # can no longer be reached through event bindings (which are keyed by
+    # handler name and replaced by newer instances), and reconnecting all of
+    # them in every test makes each test slower than the last.
+    latest = {}
     for model in model_base._modelSingletons:
         model.__class__._instance = None
+        latest[model.__class__] = model
+    model_base._modelSingletons[:] = latest.values()
 
     if mockDb:
         pymongo.MongoClient = realMongoClient
