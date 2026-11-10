@@ -1,0 +1,74 @@
+.g-usage-controls
+  margin-bottom 10px
+
+  .form-group
+  .checkbox
+  .btn
+    margin-right 15px
+
+  label
+    margin-right 5px
+
+.g-usage-summary
+  margin-bottom 10px
+
+.g-usage-computed
+  color #777
+
+.g-usage-treemap
+  position relative
+  height 420px
+  margin-bottom 10px
+  overflow hidden
+
+.g-usage-treemap-rect
+  position absolute
+  box-sizing border-box
+  border 1px solid #fff
+  overflow hidden
+
+  &.g-usage-drillable
+    cursor pointer
+
+  &:hover
+    opacity 0.85
+
+  // Children past the limit are also marked by a dashed border and italic
+  // label, not just by color.
+  &.g-usage-treemap-more
+    border 2px dashed #fff
+
+    .g-usage-treemap-name
+      font-style italic
+
+.g-usage-treemap-label
+  padding 3px 5px
+  font-size 12px
+  line-height 15px
+
+  div
+    overflow hidden
+    white-space nowrap
+    text-overflow ellipsis
+
+.g-usage-treemap-name
+  font-weight bold
+
+.g-usage-open
+  margin-left 6px
+
+.g-usage-number
+  text-align right
+
+.g-usage-flag
+  color #777
+
+.g-usage-file-resource
+  word-break break-all
+
+.g-usage-empty
+  margin 15px 0
+  color #777
+
+.g-usage-loading
+  margin 15px 0

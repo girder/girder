@@ -1,3 +1,4 @@
+import cherrypy
 import os
 import pytest
 import shutil
@@ -24,9 +25,23 @@ def tempLog():
         'error_log_file': errorFile,
         'original_error_log_file': errorFile
     }
+    # Configuring logging adds handlers and can redirect stdout and stderr;
+    # undo this afterwards so later tests don't log to files that have been
+    # deleted.
+    loggers = [logger, cherrypy.log.error_log, cherrypy.log.access_log]
+    oldHandlers = [list(log.handlers) for log in loggers]
+    oldStreams = sys.stdout, sys.stderr
+    oldQuiet = girder._quiet
 
     yield cfg['logging']
 
+    sys.stdout, sys.stderr = oldStreams
+    girder._quiet = oldQuiet
+    for log, handlers in zip(loggers, oldHandlers):
+        for handler in log.handlers[:]:
+            if handler not in handlers:
+                log.removeHandler(handler)
+                handler.close()
     cfg['logging'] = old
     shutil.rmtree(logRoot)
 

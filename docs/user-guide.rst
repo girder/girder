@@ -169,6 +169,27 @@ The below CORS configuration is sufficient for Girder's needs:
 
     Support for Google Storage may not be complete, as it is accessed via an S3 access library and is not automatically tested.
 
+Storage usage
+^^^^^^^^^^^^^
+
+Administrators can see which users, collections, folders, items, and files use
+storage, either in one ``Assetstore`` or in all of them. On the **Assetstores**
+page of the admin console, click **Usage** on an assetstore, or **Usage** at the
+top of the page for all assetstores. The page shows a treemap and a table of the
+users and collections with data, and the largest files. Click a user,
+collection, folder, or item to see its contents, or the link icon after its
+name to open its page. The link icon of a file opens its item, and that of
+attached files opens the resource they are attached to.
+
+The report can be limited to uploaded or imported files. Files attached to
+other resources, such as thumbnails, can be included with the resource they are
+attached to or left out. Copies of a file share the same stored data; the
+report can count that data once, crediting it to the oldest copy.
+
+Computing the totals reads every file record in scope, which can take a long
+time, so totals are cached for a while; use **Recompute** to update them. The
+same report is available from the ``GET /assetstore/usage`` endpoint.
+
 .. _permissions:
 
 Permissions

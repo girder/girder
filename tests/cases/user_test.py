@@ -546,7 +546,7 @@ class UserTestCase(base.TestCase):
 
         # Artificially adjust the token to have expired.
         token = Token().load(tokenId, force=True, objectId=False)
-        token['expires'] = (datetime.datetime.utcnow()
+        token['expires'] = (datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
                             - datetime.timedelta(days=1))
         Token().save(token)
         resp = self.request(path=path, method='GET', params={'token': tokenId})

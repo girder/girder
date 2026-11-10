@@ -46,6 +46,7 @@ if(RUN_CORE_TESTS)
   add_web_client_test(data_filesystem "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE filesystem)
   add_web_client_test(data_gridfs "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE gridfs)
   add_web_client_test(data_s3 "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/dataSpec.js" ASSETSTORE s3 WEBSECURITY false)
+  add_web_client_test(assetstore_usage "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/assetstoreUsageSpec.js")
   add_web_client_test(admin "${PROJECT_SOURCE_DIR}/girder/web_client/test/spec/adminSpec.js" ASSETSTORE s3 WEBSECURITY false
     RESOURCE_LOCKS replicaset
     )

@@ -18,10 +18,14 @@ router.route('admin', 'admin', function () {
  * Assetstores
  */
 import AssetstoresView from '@girder/core/views/body/AssetstoresView';
+import AssetstoreUsageView from '@girder/core/views/body/AssetstoreUsageView';
 router.route('assetstores', 'assetstores', function (params) {
     events.trigger('g:navigateTo', AssetstoresView, {
         assetstoreEdit: params.dialog === 'assetstoreedit' ? params.dialogid : false
     });
+});
+router.route('assetstores/usage', 'assetstoreUsage', function (params) {
+    events.trigger('g:navigateTo', AssetstoreUsageView, params);
 });
 router.route('assetstore/:id/import', 'assetstoreImport', function (assetstoreId) {
     AssetstoresView.import(assetstoreId);

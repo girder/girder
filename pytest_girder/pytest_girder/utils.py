@@ -2,18 +2,65 @@ import base64
 import cherrypy
 import contextlib
 import email
-import errno
 import io
 import json
-import os
 import queue
 import socket
+import socketserver
 import threading
 import time
 import urllib.parse
 
-_startPort = 31000
-_maxTries = 100
+
+class _MockSmtpHandler(socketserver.StreamRequestHandler):
+    """
+    Handle a single SMTP session, accepting every message and placing its data
+    on the server's mail queue.  Only the subset of SMTP used by smtplib to
+    send unauthenticated, unencrypted mail is implemented.
+    """
+
+    def _reply(self, line):
+        self.wfile.write(line.encode('ascii') + b'\r\n')
+
+    def handle(self):
+        self._reply('220 localhost Mock SMTP server ready')
+        while True:
+            line = self.rfile.readline()
+            if not line:
+                return
+            command = line.strip().split(b' ', 1)[0].upper()
+            if command in (b'HELO', b'EHLO'):
+                self._reply('250 localhost')
+            elif command in (b'MAIL', b'RCPT', b'RSET', b'NOOP'):
+                self._reply('250 OK')
+            elif command == b'DATA':
+                self._reply('354 End data with <CR><LF>.<CR><LF>')
+                lines = []
+                while True:
+                    line = self.rfile.readline()
+                    if not line:
+                        return
+                    if line in (b'.\r\n', b'.\n'):
+                        break
+                    # Undo dot-stuffing (RFC 5321 section 4.5.2)
+                    if line.startswith(b'.'):
+                        line = line[1:]
+                    lines.append(line)
+                self.server.mailQueue.put(b''.join(lines))
+                self._reply('250 OK')
+            elif command == b'QUIT':
+                self._reply('221 Bye')
+                return
+            else:
+                self._reply('502 Command not implemented')
+
+
+class _MockSmtpServer(socketserver.ThreadingTCPServer):
+    daemon_threads = True
+
+    def __init__(self, address):
+        self.mailQueue = queue.Queue()
+        super().__init__(address, _MockSmtpHandler)
 
 
 class MockSmtpReceiver:
@@ -24,52 +71,19 @@ class MockSmtpReceiver:
 
     def start(self):
         """
-        Start the mock SMTP server. Attempt to bind to any port within the
-        range specified by _startPort and _maxTries.  Bias it with the pid of
-        the current process so as to reduce potential conflicts with parallel
-        tests that are started nearly simultaneously.
+        Start the mock SMTP server on an available port.  The bound host and
+        port are available as the ``address`` attribute.
         """
-        # These imports are not at module level because the smtpd package was
-        # removed from Python 3.12.  By having them within the class, tests
-        # that do not require the smtp mocks can still use the pytest girder
-        # fixtures.
-        import smtpd
-
-        class MockSmtpServer(smtpd.SMTPServer):
-            mailQueue = queue.Queue()
-
-            def process_message(self, peer, mailfrom, rcpttos, data, **kwargs):
-                self.mailQueue.put(data)
-
-        for porttry in range(_maxTries):
-            port = _startPort + ((porttry + os.getpid()) % _maxTries)
-            try:
-                self.address = ('localhost', port)
-                self.smtp = MockSmtpServer(self.address, None)
-                break
-            except OSError as e:
-                if e.errno != errno.EADDRINUSE:
-                    raise
-        else:
-            raise Exception('Could not bind to any port for Mock SMTP server')
-
-        self.thread = threading.Thread(target=self.loop)
+        self.smtp = _MockSmtpServer(('localhost', 0))
+        self.address = ('localhost', self.smtp.server_address[1])
+        self.thread = threading.Thread(target=self.smtp.serve_forever, kwargs={
+            'poll_interval': 0.1}, daemon=True)
         self.thread.start()
-
-    def loop(self):
-        # See comment in start about import scoping
-        import asyncore
-
-        """
-        Instead of calling asyncore.loop directly, wrap it with a small
-        timeout.  This prevents using 100% cpu and still allows a graceful exit.
-        """
-        while len(asyncore.socket_map):
-            asyncore.loop(timeout=0.5, use_poll=True)
 
     def stop(self):
         """Stop the mock STMP server"""
-        self.smtp.close()
+        self.smtp.shutdown()
+        self.smtp.server_close()
         self.thread.join()
 
     def getMail(self, parse=False):
@@ -334,6 +348,9 @@ def serverContext(plugins=None, bindPort=False):
         cherrypy.engine.unsubscribe('stop', girder.events.daemon.stop)
         cherrypy.engine.stop()
         cherrypy.engine.exit()
+        # Since the daemon was unsubscribed from the engine, stop it explicitly
+        # so its thread doesn't linger after the test.
+        girder.events.daemon.stop()
         cherrypy.tree.apps = {}
         # This is needed to allow cherrypy to restart on another port
         cherrypy.server.httpserver = None

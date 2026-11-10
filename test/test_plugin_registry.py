@@ -125,9 +125,11 @@ def testPluginWithNPMPackage(registry):
         packageJson.write(b'{"name": "@girder/test_plugin"}')
         packageJson.flush()
         pluginDef = plugin.getPlugin('client_plugin')
-        with pytest.raises(TypeError) as exception1:
+        # Before Python 3.12, importlib.resources refuses to resolve a
+        # non-package module; newer versions resolve it to the module's
+        # directory, which has no web client.
+        with pytest.raises(Exception, match='not a package|Invalid web client path'):
             pluginDef.npmPackages()
-        assert 'not a package' in str(exception1)
 
 
 @pytest.mark.plugin('plugin1', NoDeps)

@@ -195,7 +195,7 @@ class Folder(AccessControlledModel):
             for key in toDelete:
                 del folder['meta'][key]
 
-        folder['updated'] = datetime.datetime.utcnow()
+        folder['updated'] = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
         self.validateKeys(folder['meta'])
 
@@ -223,7 +223,7 @@ class Folder(AccessControlledModel):
         for field in fields:
             folder['meta'].pop(field, None)
 
-        folder['updated'] = datetime.datetime.utcnow()
+        folder['updated'] = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
         return self.save(folder)
 
@@ -502,7 +502,7 @@ class Folder(AccessControlledModel):
             parent['baseParentId'] = parent['_id']
             parent['baseParentType'] = parentType
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
         if creator is None:
             creatorId = None
@@ -548,7 +548,7 @@ class Folder(AccessControlledModel):
         :type folder: dict
         :returns: The folder document that was edited.
         """
-        folder['updated'] = datetime.datetime.utcnow()
+        folder['updated'] = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
         # Validate and save the folder
         return self.save(folder)

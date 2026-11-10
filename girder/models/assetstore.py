@@ -1,6 +1,7 @@
 import datetime
 
 from .model_base import Model
+from girder import logger
 from girder.constants import AssetstoreType, SortDir
 from girder.exceptions import ValidationException, GirderException, NoAssetstoreAdapter
 from girder.utility import assetstore_utilities
@@ -67,6 +68,13 @@ class Assetstore(Model):
         except (NoAssetstoreAdapter, ValidationException):
             # this assetstore is currently unreachable, so skip this step
             pass
+        except Exception:
+            # The assetstore's backend could not be reached.  There could be
+            # partial uploads, but no files.
+            logger.warning(
+                'Could not remove partial uploads from assetstore %s (%s); '
+                'deleting the assetstore anyway.',
+                assetstore.get('name'), assetstore['_id'], exc_info=True)
         # now remove the assetstore
         super().remove(assetstore)
         # If after removal there is no current assetstore, then pick a
@@ -113,7 +121,7 @@ class Assetstore(Model):
     def createFilesystemAssetstore(self, name, root, perms=None):
         return self.save({
             'type': AssetstoreType.FILESYSTEM,
-            'created': datetime.datetime.utcnow(),
+            'created': datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None),
             'name': name,
             'root': root,
             'perms': perms
@@ -123,7 +131,7 @@ class Assetstore(Model):
                                replicaset=None):
         return self.save({
             'type': AssetstoreType.GRIDFS,
-            'created': datetime.datetime.utcnow(),
+            'created': datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None),
             'name': name,
             'db': db,
             'mongohost': mongohost,
@@ -135,7 +143,7 @@ class Assetstore(Model):
                            serverSideEncryption=False, allowS3AcceleratedTransfer=False):
         return self.save({
             'type': AssetstoreType.S3,
-            'created': datetime.datetime.utcnow(),
+            'created': datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None),
             'name': name,
             'accessKeyId': accessKeyId,
             'secret': secret,

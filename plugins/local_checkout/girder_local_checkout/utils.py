@@ -33,7 +33,7 @@ _lastCleanupCheck = 0
 
 def _now():
     # Girder stores naive UTC datetimes
-    return datetime.datetime.utcnow()
+    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
 
 
 def getTargetAssetstore():
