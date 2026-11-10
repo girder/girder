@@ -348,6 +348,9 @@ def serverContext(plugins=None, bindPort=False):
         cherrypy.engine.unsubscribe('stop', girder.events.daemon.stop)
         cherrypy.engine.stop()
         cherrypy.engine.exit()
+        # Since the daemon was unsubscribed from the engine, stop it explicitly
+        # so its thread doesn't linger after the test.
+        girder.events.daemon.stop()
         cherrypy.tree.apps = {}
         # This is needed to allow cherrypy to restart on another port
         cherrypy.server.httpserver = None
