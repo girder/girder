@@ -1,5 +1,9 @@
 .g-current-assetstores-container
   .g-body-title Assetstores
+  if assetstores.length
+    a.g-usage-all-link.btn.btn-sm.btn-default(href="#assetstores/usage", title="Storage usage of all assetstores")
+      i.icon-th-large
+      |  Usage
   if !assetstores.length
     .g-bottom-message.
       You must create an assetstore before you can upload files to the server.
@@ -63,6 +67,9 @@
         .g-assetstore-buttons
           button.g-edit-assetstore.btn.btn-sm.btn-default(
               cid=assetstore.cid) Edit
+          a.g-assetstore-usage.btn.btn-sm.btn-default(href=`#assetstores/usage?assetstore=${assetstore.id}`)
+            i.icon-th-large
+            |  Usage
           if !assetstore.get('hasFiles')
             button.g-delete-assetstore.btn.btn-sm.btn-danger(
                 cid=assetstore.cid) Delete
