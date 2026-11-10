@@ -334,6 +334,30 @@ test.describe('Quick search', () => {
 
 });
 
+test.describe('Search results page', () => {
+    setupServer();
+
+    test('search results page preserves special characters in the query', async ({ page }) => {
+        await createUser(page, 'johndoe', 'john.doe@girder.test', 'John', 'Doe', 'password!');
+        const privateId = await getUserFolderId(page, 'Private');
+        const query = 'H&E #1+2 50%';
+        await createFolderApi(page, 'folder', privateId, `${query} slide`);
+        await gotoFolder(page, privateId);
+
+        const field = page.locator('.g-quick-search-container input.g-search-field');
+        const results = page.locator('.g-quick-search-container .g-search-results');
+
+        await field.fill(query);
+        await expect(results).toHaveClass(/open/);
+        // Pressing enter with no resource selected goes to the results page.
+        await field.press('Enter');
+        await waitForIdlePage(page);
+        await expect(page.locator('.g-search-results-title')).toHaveText(`Results : ${query}`);
+        await expect(page.locator('.g-search-results-container a[href^="#folder/"]')).toHaveText(`${query} slide`);
+    });
+
+});
+
 test.describe('Upload files of various sizes', () => {
     setupServer();
 
