@@ -1,37 +1,73 @@
-- var idx = 0
-each obj in links
-  li
-    a.g-breadcrumb-link(g-index=idx)
-      if obj.resourceName === 'user'
-        i.icon-user
-      else if obj.resourceName === 'collection'
-        i.icon-sitemap
-      = obj.name()
-  - idx += 1
+<!-- Path/Breadcrumbs -->
+<div class="flex flex-grow">
+  <div class="flex items-center p-1">
+    <div class="group relative">
+      <div class="absolute bg-zinc-800 bg-opacity-80 px-2 py-1 text-white left-1/2 -translate-x-1/2 bottom-full z-100 rounded-md mb-[2px] text-sm whitespace-nowrap htk-hidden group-hover:block">
+        | Go up one level
+      </div>
+      <button class="g-hierarchy-level-up htk-btn htk-btn-ghost htk-btn-secondary htk-btn-sm htk-btn-icon">
+        <i class="ri-corner-left-up-line text-base"></i>
+      </button>
+    </div>
+  </div>
 
-if current
-  li.active
-    if current.resourceName === 'user'
-      i.icon-user
-    else if current.resourceName === 'collection'
-      i.icon-sitemap
-    = current.name()
+  <ol class="flex items-center whitespace-nowrap h-full">
+    - var idx = 0
+    each obj in links
+      <li class="inline-flex items-center">
+        <a g-index="#{idx}" class="g-breadcrumb-link flex items-center text-sm px-[6px] text-zinc-600 hover:text-secondary focus:outline-none focus:text-secondary">
+          if obj.resourceName === 'user'
+            <i class="ri-user-fill text-zinc-400 mr-2"></i>
+          else if obj.resourceName === 'collection'
+            <i class="ri-database-fill text-zinc-400 mr-2"></i>
+          else if obj.resourceName === 'folder'
+            <i class="ri-folder-fill text-zinc-400 mr-2"></i>
+          = obj.name()
+        </a>
+        <i class="ri-arrow-right-s-line text-lg text-zinc-300"></i>
+      </li>
+      - idx += 1
 
-if descriptionText
-  a.g-description-preview= descriptionText
+    if current
+      <li class="inline-flex items-center">
+        <a g-index="#{idx}" class="flex items-center text-sm px-[6px] text-zinc-600 hover:text-secondary focus:outline-none focus:text-secondary">
+          if current.resourceName === 'user'
+            <i class="ri-user-fill text-zinc-400 mr-2"></i>
+          else if current.resourceName === 'collection'
+            <i class="ri-database-fill text-zinc-400 mr-2"></i>
+          else if current.resourceName === 'folder'
+            <i class="ri-folder-fill text-zinc-400 mr-2"></i>
+          = current.name()
+        </a>
+      </li>
 
-.pull-right
-  .g-child-count-container.hide
-    .g-subfolder-count-container(title='total folders')
-      i.icon-folder
-      .g-subfolder-count
+      if current.resourceName === 'folder' || current.resourceName === 'collection'
+        <li class="g-description-preview inline-flex items-center">
+          <div class="group relative">
+            <div class="absolute bg-zinc-800 bg-opacity-80 px-2 py-1 text-white left-1/2 -translate-x-1/2 bottom-full z-100 rounded-md mb-[2px] text-sm whitespace-nowrap htk-hidden group-hover:block">
+              | Show info
+            </div>
+            <button class="rounded-full hover:bg-zinc-200 px-1 text-zinc-500 hover:text-zinc-700">
+              <div class="ri-information-line"></div>
+            </button>
+          </div>
+      </li>
+  </ol>
+</div>
 
-    if idx > 0
-      .g-item-count-container(title='total items')
-        i.icon-doc-text-inv
-        .g-item-count
-
-  if idx > 0
-    .g-level-up-button-container
-      a.g-hierarchy-level-up(title="Go up one level")
-        i.icon-level-up
+<!-- Current Directory Information -->
+<ul class="flex items-center">
+  <li class="flex items-baseline text-sm px-3 py-1">
+    <i class="ri-folder-6-line text-base mr-1"></i>
+    <span>
+      <span class="g-subfolder-count"></span> <span class="text-xs text-zinc-400">folder(s)</span>
+    </span>
+  </li>
+  if current.resourceName === 'folder'
+    <li class="flex items-baseline text-sm px-3 py-1">
+      <i class="ri-file-3-line text-base mr-1"></i>
+      <span>
+        <span class="g-item-count"></span> <span class="text-xs text-zinc-400">item(s)</span>
+      </span>
+    </li>
+</ul>
