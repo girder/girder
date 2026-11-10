@@ -303,6 +303,35 @@ describe('Create a data hierarchy', function () {
         });
     });
 
+    it('search results page preserves special characters in the query', function () {
+        var query = 'john & doe #1+2 50%';
+        runs(function () {
+            $('.g-quick-search-container input.g-search-field')
+                .val(query).trigger('input');
+        });
+        waitsFor(function () {
+            return $('.g-quick-search-container .g-search-results')
+                .hasClass('open');
+        }, 'search to return');
+        runs(function () {
+            // Pressing enter with no resource selected goes to the results page.
+            var e = $.Event('keydown');
+            e.which = 13;
+            $('.g-quick-search-container input.g-search-field').trigger(e);
+        });
+        waitsFor(function () {
+            return $('.g-search-results-title').length === 1 &&
+                $('.g-search-results-container a[href^="#user/"]').length === 1;
+        }, 'search results page to show the user');
+        runs(function () {
+            expect($('.g-search-results-title').text()).toBe('Results : ' + query);
+            girder.router.navigate('user/' + girder.auth.getCurrentUser().get('_id'), { trigger: true });
+        });
+        waitsFor(function () {
+            return $('li.g-folder-list-entry').length > 0;
+        }, 'my folders list to display');
+    });
+
     it('upload a file without an extension', function () {
         waitsFor(function () {
             return $('li.g-folder-list-entry').length > 0;
