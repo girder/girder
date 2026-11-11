@@ -3,8 +3,8 @@ import cherrypy
 from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.utility import ziputil
-from girder.constants import AccessType, TokenScope, SortDir
-from girder.exceptions import RestException
+from girder.constants import AccessType, TokenScope, SortDir, EDIT_METADATA_FLAG
+from girder.exceptions import AccessException, RestException
 from girder.api import access
 from girder.models.file import File
 from girder.models.folder import Folder
@@ -127,7 +127,7 @@ class Item(Resource):
         return cursor.count()
 
     @access.public(scope=TokenScope.DATA_READ)
-    @filtermodel(model=ItemModel)
+    @filtermodel(model=ItemModel, addFields={'_canEditMetadata'})
     @autoDescribeRoute(
         Description('Get an item by ID.')
         .responseClass('Item')
@@ -136,6 +136,7 @@ class Item(Resource):
         .errorResponse('Read access was denied for the item.', 403)
     )
     def getItem(self, item):
+        item['_canEditMetadata'] = self._canEditMetadata(item)
         return item
 
     @access.user(scope=TokenScope.DATA_WRITE)
@@ -194,13 +195,34 @@ class Item(Resource):
 
         return item
 
+    def _canEditMetadata(self, item):
+        """Return True if the user can edit the item's metadata."""
+        user = self.getCurrentUser()
+        if user is None:
+            return False
+        if self._model.hasAccess(item, user, AccessType.WRITE):
+            return True
+        # Only grant through explicitly granted access flags, not public flags.
+        folder = Folder().load(item['folderId'], force=True)
+        if not folder:
+            return False
+        return Folder().hasAccessFlags({**folder, 'publicFlags': []}, user, EDIT_METADATA_FLAG)
+
+    def _requireMetadataEdit(self, item):
+        """This will raise an error if the user has no write access and no access flag."""
+        user = self.getCurrentUser()
+        if user is None:
+            raise AccessException('You must be logged in to edit metadata.')
+        if not self._canEditMetadata(item):
+            raise AccessException('Write access or metadata edit flag is required.')
+
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model=ItemModel)
     @autoDescribeRoute(
         Description('Set metadata fields on an item.')
         .responseClass('Item')
         .notes('Set metadata fields to null in order to delete them.')
-        .modelParam('id', model=ItemModel, level=AccessType.WRITE)
+        .modelParam('id', model=ItemModel, level=AccessType.READ)
         .jsonParam('metadata', 'A JSON object containing the metadata keys to add',
                    paramType='body', requireObject=True)
         .param('allowNull', 'Whether "null" is allowed as a metadata value.', required=False,
@@ -208,9 +230,10 @@ class Item(Resource):
         .errorResponse(('ID was invalid.',
                         'Invalid JSON passed in request body.',
                         'Metadata key name was invalid.'))
-        .errorResponse('Write access was denied for the item.', 403)
+        .errorResponse('Write access or the edit-metadata flag is missing for this item.', 403)
     )
     def setMetadata(self, item, metadata, allowNull):
+        self._requireMetadataEdit(item)
         return self._model.setMetadata(item, metadata, allowNull=allowNull)
 
     @access.user(scope=TokenScope.DATA_WRITE)
@@ -218,7 +241,7 @@ class Item(Resource):
     @autoDescribeRoute(
         Description('Delete metadata fields on an item.')
         .responseClass('Item')
-        .modelParam('id', model=ItemModel, level=AccessType.WRITE)
+        .modelParam('id', model=ItemModel, level=AccessType.READ)
         .jsonParam(
             'fields', 'A JSON list containing the metadata fields to delete',
             paramType='body', schema={
@@ -231,9 +254,10 @@ class Item(Resource):
         .errorResponse(('ID was invalid.',
                         'Invalid JSON passed in request body.',
                         'Metadata key name was invalid.'))
-        .errorResponse('Write access was denied for the item.', 403)
+        .errorResponse('Write access or the edit-metadata flag is missing for this item.', 403)
     )
     def deleteMetadata(self, item, fields):
+        self._requireMetadataEdit(item)
         return self._model.deleteMetadata(item, fields)
 
     def _downloadMultifileItem(self, item, user):

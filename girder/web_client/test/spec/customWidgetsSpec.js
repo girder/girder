@@ -488,8 +488,10 @@ describe('Test access widget with non-standard options', function () {
 
         runs(function () {
             var countSel = '.g-action-manage-public-flags .g-flag-count-indicator';
-            // Make sure the public flags popover rendered properly
-            expect($('.popover input.g-public-flag-checkbox').length).toBe(2);
+            // Make sure the public flags popover rendered properly.
+            // There are 2 flags included in this test, and one default flag
+            // registered by the system.
+            expect($('.popover input.g-public-flag-checkbox').length).toBe(3);
             expect($(countSel).text()).toBe('0');
             expect($(countSel).is(':visible')).toBe(false);
 
@@ -524,8 +526,10 @@ describe('Test access widget with non-standard options', function () {
 
         runs(function () {
             var countSel = '.g-action-manage-flags .g-flag-count-indicator';
-            // Make sure the per-user flag checkbox rendered properly
-            expect($('.popover input.g-flag-checkbox').length).toBe(2);
+            // Make sure the per-user flag checkbox rendered properly.
+            // There are 2 flags included in this test, and one default flag
+            // registered by the system.
+            expect($('.popover input.g-flag-checkbox').length).toBe(3);
             expect($(countSel).text()).toBe('0');
             expect($(countSel).is(':visible')).toBe(false);
 
@@ -604,7 +608,9 @@ describe('Test access widget with non-standard options', function () {
 
         runs(function () {
             // Make sure enabled flags render properly
-            expect($('.popover input.g-flag-checkbox').length).toBe(2);
+            // There are 2 flags included in this test, and one default flag
+            // registered by the system.
+            expect($('.popover input.g-flag-checkbox').length).toBe(3);
 
             var adminCheckbox = $('.popover input.g-flag-checkbox[flag="adminFlag"]');
             var openCheckbox = $('.popover .g-flag-checkbox[flag="openFlag"]');
