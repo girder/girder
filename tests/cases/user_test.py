@@ -48,6 +48,7 @@ class UserTestCase(base.TestCase):
             resp.cookie['girderToken']['expires'],
             lifetime * 3600 * 24)
         self.assertEqual(resp.cookie['girderToken']['secure'], True if secure else '')
+        self.assertEqual(resp.cookie['girderToken']['samesite'], 'Lax')
 
     def _verifyDeletedCookie(self, resp):
         self.assertTrue('girderToken' in resp.cookie)
