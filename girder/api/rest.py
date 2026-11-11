@@ -1192,6 +1192,10 @@ class Resource:
         cookie['girderToken']['path'] = '/'
         cookie['girderToken']['expires'] = int(days * 3600 * 24)
         cookie['girderToken']['httponly'] = True
+        # Lax keeps the cookie on top-level navigation (links, downloads) but
+        # withholds it from cross-site subrequests and POSTs, limiting CSRF.
+        # This is nearly the default for Chrome
+        cookie['girderToken']['samesite'] = 'Lax'
 
         # CherryPy proxy tools modify the request.base, but not request.scheme, when receiving
         # X-Forwarded-Proto headers from a reverse proxy
