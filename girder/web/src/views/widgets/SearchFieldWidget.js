@@ -214,7 +214,7 @@ var SearchFieldWidget = View.extend({
         this.resetState();
         let route = `#search/results?query=${encodeURIComponent(query)}&mode=${encodeURIComponent(mode)}`;
         if (parent) {
-            route += `&parentType=${parent.type}&parentId=${parent.id}`;
+            route += `&parentType=${encodeURIComponent(parent.type)}&parentId=${encodeURIComponent(parent.id)}`;
         }
         router.navigate(route, { trigger: true });
     },
