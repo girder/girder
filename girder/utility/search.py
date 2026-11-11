@@ -1,13 +1,15 @@
 import copy
 import inspect
+import logging
 from functools import partial
 
 from bson.objectid import ObjectId
 
-from girder import logger
 from girder.constants import AccessType
 from girder.exceptions import GirderException, ValidationException
 from girder.utility.model_importer import ModelImporter
+
+logger = logging.getLogger(__name__)
 
 _allowedSearchMode = {}
 

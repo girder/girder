@@ -902,6 +902,7 @@ girder
             addSearchMode
             getSearchModeHandler
             hierarchySearchPipeline
+            logger
             removeSearchMode
             runSearch
         server
