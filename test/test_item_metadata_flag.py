@@ -6,6 +6,7 @@ from girder.constants import AccessType, EDIT_METADATA_FLAG
 from girder.models.folder import Folder
 from girder.models.group import Group
 from girder.models.item import Item
+from girder.models.user import User
 from pytest_girder.assertions import assertStatus, assertStatusOk
 
 
@@ -127,6 +128,32 @@ def testAnonymousCannotEditMetadata(server, readableFolder):
     assertStatus(resp, 401)
     resp = _deleteMetadata(server, item, ['existing'])
     assertStatus(resp, 401)
+
+
+def testPublicFlagDoesNotAllowMetadataEdit(server, user, readableFolder):
+    folder = Folder().setPublic(readableFolder['folder'], True, save=True)
+    Folder().setPublicFlags(folder, [EDIT_METADATA_FLAG], force=True, save=True)
+    item = readableFolder['item']
+    publicAccessOnlyUser = User().createUser(
+        'public', 'password', 'First', 'Last', 'foo@example.com')
+
+    # Neither a user in the ACL without the flag, nor a user with only public
+    # access, should gain metadata edit access from the public flag.
+    for requester in (user, publicAccessOnlyUser):
+        resp = _getItem(server, item, user=requester)
+        assertStatusOk(resp)
+        assert resp.json['_canEditMetadata'] is False
+
+        resp = _setMetadata(server, item, {'foo': 'bar'}, user=requester)
+        assertStatus(resp, 403)
+        resp = _deleteMetadata(server, item, ['existing'], user=requester)
+        assertStatus(resp, 403)
+
+    assert Item().load(item['_id'], force=True)['meta'] == {'existing': 'value'}
+
+    # An explicit ACL flag still works on a public folder with public flags set.
+    Folder().setUserAccess(folder, user, AccessType.READ, flags=[EDIT_METADATA_FLAG], save=True)
+    _assertCanEditMetadata(server, item, user)
 
 
 def testRecursiveFlagReachesSubfolderItems(server, admin, user, readableFolder):

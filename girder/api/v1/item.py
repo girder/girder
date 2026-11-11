@@ -4,7 +4,7 @@ from ..describe import Description, autoDescribeRoute
 from ..rest import Resource, filtermodel, setResponseHeader, setContentDisposition
 from girder.utility import ziputil
 from girder.constants import AccessType, TokenScope, SortDir, EDIT_METADATA_FLAG
-from girder.exceptions import RestException
+from girder.exceptions import AccessException, RestException
 from girder.api import access
 from girder.models.file import File
 from girder.models.folder import Folder
@@ -136,12 +136,7 @@ class Item(Resource):
         .errorResponse('Read access was denied for the item.', 403)
     )
     def getItem(self, item):
-        user = self.getCurrentUser()
-        canEditMetadata = user is not None and (
-            self._model.hasAccess(item, user, AccessType.WRITE)
-            or self._model.hasAccessFlags(item, user, EDIT_METADATA_FLAG)
-        )
-        item['_canEditMetadata'] = canEditMetadata
+        item['_canEditMetadata'] = self._canEditMetadata(item)
         return item
 
     @access.user(scope=TokenScope.DATA_WRITE)
@@ -200,11 +195,26 @@ class Item(Resource):
 
         return item
 
+    def _canEditMetadata(self, item):
+        """Return True if the user can edit the item's metadata."""
+        user = self.getCurrentUser()
+        if user is None:
+            return False
+        if self._model.hasAccess(item, user, AccessType.WRITE):
+            return True
+        # Only grant through explicitly granted access flags, not public flags.
+        folder = Folder().load(item['folderId'], force=True)
+        if not folder:
+            return False
+        return Folder().hasAccessFlags({**folder, 'publicFlags': []}, user, EDIT_METADATA_FLAG)
+
     def _requireMetadataEdit(self, item):
         """This will raise an error if the user has no write access and no access flag."""
         user = self.getCurrentUser()
-        if not self._model.hasAccess(item, user, AccessType.WRITE):
-            self._model.requireAccessFlags(item, user, EDIT_METADATA_FLAG)
+        if user is None:
+            raise AccessException('You must be logged in to edit metadata.')
+        if not self._canEditMetadata(item):
+            raise AccessException('Write access or metadata edit flag is required.')
 
     @access.user(scope=TokenScope.DATA_WRITE)
     @filtermodel(model=ItemModel)
