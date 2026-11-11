@@ -901,7 +901,10 @@ girder
         search
             addSearchMode
             getSearchModeHandler
+            hierarchySearchPipeline
+            logger
             removeSearchMode
+            runSearch
         server
             RootHandler
                 index
