@@ -1,6 +1,8 @@
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 import time
 
 from girder import config
@@ -145,9 +147,15 @@ class WebClientTestCase(base.TestCase):
         if os.environ.get('BASEURL', ''):
             baseUrl = os.environ['BASEURL']
 
+        # Use private browser storage so that state, such as an auth token in
+        # localStorage, cannot leak between runs that use the same port.
+        storageDir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, storageDir, ignore_errors=True)
+
         cmd = (
             'npx', 'phantomjs',
             '--web-security=%s' % self.webSecurity,
+            '--local-storage-path=%s' % storageDir,
             os.path.join(ROOT_DIR, 'girder', 'web_client', 'test', 'specRunner.js'),
             'http://localhost:%s%s' % (os.environ['GIRDER_PORT'], baseUrl),
             self.specFile,
@@ -163,6 +171,9 @@ class WebClientTestCase(base.TestCase):
         retry_count = os.environ.get('PHANTOMJS_RETRY', 3)
         for _ in range(int(retry_count)):
             retry = False
+            # A retry resets the database, so it needs empty storage as well
+            shutil.rmtree(storageDir, ignore_errors=True)
+            os.makedirs(storageDir)
             task = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ROOT_DIR,
                 env=dict(
