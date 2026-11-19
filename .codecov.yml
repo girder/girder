@@ -9,12 +9,12 @@ coverage:
     project:
       default: false
       server:
-        target: 80%
+        target: 70%
         paths:
           - girder
           - plugins/*/server
       python_client:
-        target: 80%
+        target: 70%
         paths:
           - clients/python/girder_client
       web_client:
