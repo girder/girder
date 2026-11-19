@@ -16,7 +16,8 @@ from girder.utility.model_importer import ModelImporter
 registerAccessFlag(
     EDIT_METADATA_FLAG,
     'Edit item metadata',
-    description='Allow users with read access to edit metadata on items in this folder.',
+    description=('Allow users with read access to edit metadata on items in folders. '
+                 'On a collection or user, this only takes effect when applied to subfolders.'),
     admin=False,
 )
 
