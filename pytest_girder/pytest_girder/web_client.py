@@ -105,7 +105,8 @@ def _webClientResource():
             """
             flags = self.getBodyJson()
             for key, info in flags.items():
-                registerAccessFlag(key, info['name'], info['description'], info['admin'])
+                registerAccessFlag(key, info['name'], info['description'], info['admin'],
+                                   public=info.get('public', True))
 
     return _WebClientTestEndpoints()
 

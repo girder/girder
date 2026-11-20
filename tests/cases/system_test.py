@@ -7,7 +7,7 @@ from .. import base
 from girder.api import access
 from girder.api.describe import describeRoute
 from girder.api.rest import getApiUrl, loadmodel, Resource
-from girder.constants import AccessType, registerAccessFlag, ROOT_DIR, VERSION
+from girder.constants import AccessType, registerAccessFlag, ROOT_DIR, VERSION, EDIT_METADATA_FLAG
 from girder.exceptions import AccessException, ValidationException
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -399,21 +399,28 @@ class SystemTestCase(base.TestCase):
         self.assertIn('Invalid value for level', resp.json['message'])
 
     def testAccessFlags(self):
+        default_flags = {
+            EDIT_METADATA_FLAG: {
+                'name': 'Edit item metadata',
+                'description': 'Allow users with read access to edit metadata on items '
+                               'in this folder.',
+                'admin': False,
+            },
+        }
+
         resp = self.request('/system/access_flag')
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json, {})
+        self.assertEqual(resp.json, default_flags)
 
         registerAccessFlag('my_key', name='hello', description='a custom flag')
 
         resp = self.request('/system/access_flag')
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json, {
-            'my_key': {
-                'name': 'hello',
-                'description': 'a custom flag',
-                'admin': False
-            }
-        })
+        self.assertEqual(resp.json, dict(default_flags, my_key={
+            'name': 'hello',
+            'description': 'a custom flag',
+            'admin': False
+        }))
 
         self.users[1] = User().load(self.users[1]['_id'], force=True)
         user = self.users[1]
