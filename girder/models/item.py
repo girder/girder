@@ -19,6 +19,7 @@ registerAccessFlag(
     description=('Allow users with read access to edit metadata on items in folders. '
                  'On a collection or user, this only takes effect when applied to subfolders.'),
     admin=False,
+    public=False
 )
 
 

@@ -20,6 +20,17 @@ def readableFolder(admin, user):
     yield {'folder': folder, 'item': item}
 
 
+def _makePublicWithEditFlag(folder):
+    """
+    Make the folder public and store the edit flag in its publicFlags directly.
+    setPublicFlags would drop the flag since it is non-public, so this simulates
+    data written before that restriction existed or directly to the database.
+    """
+    Folder().update({'_id': folder['_id']}, {'$set': {
+        'public': True, 'publicFlags': [EDIT_METADATA_FLAG]}})
+    return Folder().load(folder['_id'], force=True)
+
+
 def _getItem(server, item, **kwargs):
     return server.request(path='/item/%s' % item['_id'], **kwargs)
 
@@ -116,8 +127,7 @@ def testFlagDoesNotGrantOtherItemWrites(server, user, readableFolder):
 
 
 def testAnonymousCannotEditMetadata(server, readableFolder):
-    folder = Folder().setPublic(readableFolder['folder'], True, save=True)
-    Folder().setPublicFlags(folder, [EDIT_METADATA_FLAG], force=True, save=True)
+    _makePublicWithEditFlag(readableFolder['folder'])
     item = readableFolder['item']
 
     resp = _getItem(server, item)
@@ -130,9 +140,14 @@ def testAnonymousCannotEditMetadata(server, readableFolder):
     assertStatus(resp, 401)
 
 
+def testEditFlagCannotBeSetPublic(admin, readableFolder):
+    folder = Folder().setPublicFlags(
+        readableFolder['folder'], [EDIT_METADATA_FLAG], user=admin, force=True, save=True)
+    assert folder['publicFlags'] == []
+
+
 def testPublicFlagDoesNotAllowMetadataEdit(server, user, readableFolder):
-    folder = Folder().setPublic(readableFolder['folder'], True, save=True)
-    Folder().setPublicFlags(folder, [EDIT_METADATA_FLAG], force=True, save=True)
+    folder = _makePublicWithEditFlag(readableFolder['folder'])
     item = readableFolder['item']
     publicAccessOnlyUser = User().createUser(
         'public', 'password', 'First', 'Last', 'foo@example.com')

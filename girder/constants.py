@@ -29,7 +29,7 @@ STATIC_PREFIX = os.path.join(sys.prefix, 'share', 'girder')
 STATIC_ROOT_DIR = os.path.join(STATIC_PREFIX, 'static')
 
 
-def registerAccessFlag(key, name, description=None, admin=False):
+def registerAccessFlag(key, name, description=None, admin=False, public=True):
     """
     Register a new access flag in the set of ACCESS_FLAGS available
     on data in the hierarchy. These are boolean switches that can be used
@@ -45,11 +45,15 @@ def registerAccessFlag(key, name, description=None, admin=False):
         this flag. If True, the flag will only appear in the list for
         site admins. This can be useful for flags with security
         considerations.
+    :param public: Set this to False to prevent the flag from being set via
+        a resource's public flags. It can only be granted to specific users
+        and groups in the access list.
     """
     ACCESS_FLAGS[key] = {
         'name': name,
         'description': description,
-        'admin': admin
+        'admin': admin,
+        'public': public
     }
 
 

@@ -200,13 +200,8 @@ class Item(Resource):
         user = self.getCurrentUser()
         if user is None:
             return False
-        if self._model.hasAccess(item, user, AccessType.WRITE):
-            return True
-        # Only grant through explicitly granted access flags, not public flags.
-        folder = Folder().load(item['folderId'], force=True)
-        if not folder:
-            return False
-        return Folder().hasAccessFlags({**folder, 'publicFlags': []}, user, EDIT_METADATA_FLAG)
+        return (self._model.hasAccess(item, user, AccessType.WRITE)
+                or self._model.hasAccessFlags(item, user, EDIT_METADATA_FLAG))
 
     def _requireMetadataEdit(self, item):
         """This will raise an error if the user has no write access and no access flag."""
