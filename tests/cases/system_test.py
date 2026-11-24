@@ -403,8 +403,10 @@ class SystemTestCase(base.TestCase):
             EDIT_METADATA_FLAG: {
                 'name': 'Edit item metadata',
                 'description': 'Allow users with read access to edit metadata on items '
-                               'in this folder.',
+                               'in folders. On a collection or user, this only takes '
+                               'effect when applied to subfolders.',
                 'admin': False,
+                'public': False,
             },
         }
 
@@ -419,7 +421,8 @@ class SystemTestCase(base.TestCase):
         self.assertEqual(resp.json, dict(default_flags, my_key={
             'name': 'hello',
             'description': 'a custom flag',
-            'admin': False
+            'admin': False,
+            'public': True
         }))
 
         self.users[1] = User().load(self.users[1]['_id'], force=True)
