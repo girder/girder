@@ -353,3 +353,178 @@ describe('Test item creation, editing, and deletion', function () {
         });
     });
 });
+
+describe('Test the edit item metadata access flag', function () {
+    var flaggedItemId, unflaggedItemId;
+
+    /* Create a private folder owned by the current user containing one item,
+     * and give seconduser read access to the folder with the given flags.
+     * :param name: the folder name; the item is named '<name> Item'.
+     * :param flags: the list of access flags to grant to seconduser.
+     * :returns: the id of the created item.
+     */
+    function _createSharedItem(name, flags) {
+        var secondUser = girder.rest.restRequest({
+            url: 'user',
+            method: 'GET',
+            data: { text: 'seconduser' },
+            async: false
+        }).responseJSON[0];
+
+        var folder = girder.rest.restRequest({
+            url: 'folder',
+            method: 'POST',
+            data: {
+                parentType: 'user',
+                parentId: girder.auth.getCurrentUser().id,
+                name: name,
+                public: false
+            },
+            async: false
+        }).responseJSON;
+
+        var item = girder.rest.restRequest({
+            url: 'item',
+            method: 'POST',
+            data: {
+                folderId: folder._id,
+                name: name + ' Item',
+                metadata: JSON.stringify({ existing: 'value' })
+            },
+            async: false
+        }).responseJSON;
+
+        var access = girder.rest.restRequest({
+            url: 'folder/' + folder._id + '/access',
+            method: 'GET',
+            async: false
+        }).responseJSON;
+        access.users.push({
+            id: secondUser._id,
+            level: girder.constants.AccessType.READ,
+            flags: flags
+        });
+        girder.rest.restRequest({
+            url: 'folder/' + folder._id + '/access',
+            method: 'PUT',
+            data: { access: JSON.stringify(access) },
+            async: false
+        });
+
+        return item._id;
+    }
+
+    function _goToItem(itemId, itemName) {
+        runs(function () {
+            girder.router.navigate('item/' + itemId, { trigger: true });
+        });
+
+        waitsFor(function () {
+            return $('.g-item-name').text() === itemName &&
+                $('.g-widget-metadata-row').length > 0;
+        }, 'the item page to load');
+        girderTest.waitForLoad();
+    }
+
+    it('create a flagged and an unflagged item shared with seconduser', function () {
+        runs(function () {
+            flaggedItemId = _createSharedItem('Flagged', ['edit_item_metadata']);
+            unflaggedItemId = _createSharedItem('Unflagged', []);
+        });
+    });
+
+    it('logout', girderTest.logout());
+
+    it('login as seconduser', girderTest.login('seconduser', 'Second', 'User', 'password!'));
+
+    it('show metadata editing but not other write actions with the flag', function () {
+        _goToItem(flaggedItemId, 'Flagged Item');
+
+        runs(function () {
+            expect($('.g-widget-metadata-add-button').length).toBe(1);
+            expect($('.g-widget-metadata-edit-button').length).toBe(1);
+            expect($('.g-upload-into-item').length).toBe(0);
+            expect($('.g-edit-item').length).toBe(0);
+            expect($('.g-delete-item').length).toBe(0);
+        });
+    });
+
+    it('add metadata with the flag', function () {
+        runs(function () {
+            $('a.g-add-simple-metadata').trigger('click');
+        });
+
+        waitsFor(function () {
+            return $('input.g-widget-metadata-key-input').length === 1 &&
+                $('textarea.g-widget-metadata-value-input').length === 1;
+        }, 'the add metadata input fields to appear');
+
+        runs(function () {
+            $('input.g-widget-metadata-key-input').val('added');
+            $('textarea.g-widget-metadata-value-input').val('by flag');
+            $('.g-widget-metadata-save-button').trigger('click');
+        });
+
+        waitsFor(function () {
+            return $('input.g-widget-metadata-key-input').length === 0 &&
+                $('.g-widget-metadata-key:contains("added")').length === 1;
+        }, 'the new metadata row to appear');
+
+        runs(function () {
+            var item = girder.rest.restRequest({
+                url: 'item/' + flaggedItemId,
+                method: 'GET',
+                async: false
+            }).responseJSON;
+            expect(item.meta).toEqual({ existing: 'value', added: 'by flag' });
+        });
+    });
+
+    it('delete metadata with the flag', function () {
+        runs(function () {
+            var elem = $('.g-widget-metadata-key:contains("existing")').closest('.g-widget-metadata-row');
+            $('.g-widget-metadata-edit-button', elem).trigger('click');
+        });
+
+        waitsFor(function () {
+            return $('.g-widget-metadata-delete-button:visible').length === 1;
+        }, 'the metadata delete button to appear');
+
+        runs(function () {
+            $('.g-widget-metadata-delete-button').trigger('click');
+        });
+
+        girderTest.waitForDialog();
+        waitsFor(function () {
+            return $('#g-confirm-button:visible').length > 0;
+        }, 'delete confirmation to appear');
+
+        runs(function () {
+            $('#g-confirm-button').trigger('click');
+        });
+
+        waitsFor(function () {
+            return $('.g-widget-metadata-key:contains("existing")').length === 0;
+        }, 'the metadata row to be removed');
+        girderTest.waitForLoad();
+
+        runs(function () {
+            var item = girder.rest.restRequest({
+                url: 'item/' + flaggedItemId,
+                method: 'GET',
+                async: false
+            }).responseJSON;
+            expect(item.meta).toEqual({ added: 'by flag' });
+        });
+    });
+
+    it('hide metadata editing without the flag', function () {
+        _goToItem(unflaggedItemId, 'Unflagged Item');
+
+        runs(function () {
+            expect($('.g-widget-metadata-add-button').length).toBe(0);
+            expect($('.g-widget-metadata-edit-button').length).toBe(0);
+            expect($('.g-edit-item').length).toBe(0);
+        });
+    });
+});
