@@ -444,6 +444,12 @@ describe('Test access widget with non-standard options', function () {
                         name: 'Admin-only flag',
                         description: 'Only admins may enable this flag',
                         admin: true
+                    },
+                    nonPublicFlag: {
+                        name: 'Non-public flag',
+                        description: 'This flag cannot be set publicly',
+                        admin: false,
+                        public: false
                     }
                 })
             });
@@ -488,8 +494,12 @@ describe('Test access widget with non-standard options', function () {
 
         runs(function () {
             var countSel = '.g-action-manage-public-flags .g-flag-count-indicator';
-            // Make sure the public flags popover rendered properly
+            // Make sure the public flags popover rendered properly. Only the 2
+            // public flags registered by this test are shown; the non-public test
+            // flag and the system's non-public edit metadata flag are excluded.
             expect($('.popover input.g-public-flag-checkbox').length).toBe(2);
+            expect($('.popover .g-public-flag-checkbox[flag="nonPublicFlag"]').length).toBe(0);
+            expect($('.popover .g-public-flag-checkbox[flag="edit_item_metadata"]').length).toBe(0);
             expect($(countSel).text()).toBe('0');
             expect($(countSel).is(':visible')).toBe(false);
 
@@ -524,8 +534,13 @@ describe('Test access widget with non-standard options', function () {
 
         runs(function () {
             var countSel = '.g-action-manage-flags .g-flag-count-indicator';
-            // Make sure the per-user flag checkbox rendered properly
-            expect($('.popover input.g-flag-checkbox').length).toBe(2);
+            // Make sure the per-user flag checkbox rendered properly.
+            // There are 3 flags included in this test, and one default flag
+            // registered by the system. Non-public flags are shown here.
+            expect($('.popover input.g-flag-checkbox').length).toBe(4);
+            expect($('.popover .g-flag-checkbox[flag="nonPublicFlag"]').parent().text())
+                .toBe('Non-public flag');
+            expect($('.popover .g-flag-checkbox[flag="edit_item_metadata"]').length).toBe(1);
             expect($(countSel).text()).toBe('0');
             expect($(countSel).is(':visible')).toBe(false);
 
@@ -604,7 +619,9 @@ describe('Test access widget with non-standard options', function () {
 
         runs(function () {
             // Make sure enabled flags render properly
-            expect($('.popover input.g-flag-checkbox').length).toBe(2);
+            // There are 3 flags included in this test, and one default flag
+            // registered by the system.
+            expect($('.popover input.g-flag-checkbox').length).toBe(4);
 
             var adminCheckbox = $('.popover input.g-flag-checkbox[flag="adminFlag"]');
             var openCheckbox = $('.popover .g-flag-checkbox[flag="openFlag"]');

@@ -13,14 +13,15 @@ mixin privacyEditor(typeName)
         i.icon-globe
         | #[b Public] &mdash; Anyone can view this #{typeName}
 
-    if _.keys(flagList).length
+    - var publicFlagList = _.pick(flagList, flag => flag.public !== false)
+    if _.keys(publicFlagList).length
       a.g-action-manage-public-flags.hide(title="Public access flags")
         i.g-flag-icon.icon-flag
-          - var flagLen = (publicFlags && publicFlags.length) || 0
+          - var flagLen = _.intersection(publicFlags || [], _.keys(publicFlagList)).length
           .g-flag-count-indicator(class=(flagLen ? null : "hide"))= flagLen
         |  Manage public access flags...
       .g-public-flags-popover-container.hide
-        each flag, key in flagList
+        each flag, key in publicFlagList
           - var checked = _.contains(publicFlags, key) ? 'checked' : null;
           - var disabled = (!isAdmin && flag.admin) ? 'disabled' : null;
           .checkbox(class=disabled)

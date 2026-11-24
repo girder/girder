@@ -1,6 +1,7 @@
 import inspect
 import os
 import subprocess
+import tempfile
 import time
 
 
@@ -104,7 +105,8 @@ def _webClientResource():
             """
             flags = self.getBodyJson()
             for key, info in flags.items():
-                registerAccessFlag(key, info['name'], info['description'], info['admin'])
+                registerAccessFlag(key, info['name'], info['description'], info['admin'],
+                                   public=info.get('public', True))
 
     return _WebClientTestEndpoints()
 
@@ -122,26 +124,30 @@ def runWebClientTest(boundServer, spec, jasmineTimeout=None):
 
     boundServer.root.api.v1.webclienttest = _webClientResource()
 
-    cmd = (
-        'npx', 'phantomjs',
-        os.path.join(ROOT_DIR, 'girder', 'web_client', 'test', 'specRunner.js'),
-        'http://localhost:%s/static/built/testEnv.html' % boundServer.boundPort,
-        spec,
-        str(jasmineTimeout or ''),
-        )
+    # Use private browser storage so that state, such as an auth token in
+    # localStorage, cannot leak between runs that use the same port.
+    with tempfile.TemporaryDirectory() as storageDir:
+        cmd = (
+            'npx', 'phantomjs',
+            '--local-storage-path=%s' % storageDir,
+            os.path.join(ROOT_DIR, 'girder', 'web_client', 'test', 'specRunner.js'),
+            'http://localhost:%s/static/built/testEnv.html' % boundServer.boundPort,
+            spec,
+            str(jasmineTimeout or ''),
+            )
 
-    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=dict(
-        # https://github.com/bazelbuild/rules_closure/pull/353
-        OPENSSL_CONF='/dev/null',
-        **os.environ
-    ))
-    jasmineFinished = False
-    for line in iter(p.stdout.readline, b''):
-        print(line.rstrip())
-        if b'PHANTOM_TIMEOUT' in line or b'error loading source script' in line:
-            p.kill()
-            raise Exception('Phantomjs failure')
-        if b'Testing Finished' in line:
-            jasmineFinished = True
-    assert p.wait() == 0
-    assert jasmineFinished
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=dict(
+            # https://github.com/bazelbuild/rules_closure/pull/353
+            OPENSSL_CONF='/dev/null',
+            **os.environ
+        ))
+        jasmineFinished = False
+        for line in iter(p.stdout.readline, b''):
+            print(line.rstrip())
+            if b'PHANTOM_TIMEOUT' in line or b'error loading source script' in line:
+                p.kill()
+                raise Exception('Phantomjs failure')
+            if b'Testing Finished' in line:
+                jasmineFinished = True
+        assert p.wait() == 0
+        assert jasmineFinished
