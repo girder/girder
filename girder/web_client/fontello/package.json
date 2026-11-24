@@ -10,7 +10,7 @@
   "bugs": {
     "url": "https://github.com/girder/girder/issues"
   },
-  "main": "index.js",
+  "style": "dist/css/fontello.css",
   "scripts": {
     "build": "grunt",
     "prepublishOnly": "$npm_execpath install && $npm_execpath run build"

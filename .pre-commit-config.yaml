@@ -1,0 +1,13 @@
+---
+# A minimal configuration so that pre-commit hooks installed for other
+# branches work here.  These hooks only check; they never modify files.
+#   pre-commit install
+# See https://pre-commit.com for more information
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-yaml
