@@ -47,7 +47,7 @@ test.describe('Test access widget with non-standard options', () => {
         await expect(page.locator('.g-recursive-container .radio').first()).toBeVisible();
 
         // 5. Close the dialog
-        await page.locator('#g-dialog-container .btn-default').click();
+        await page.locator('#g-dialog-container a.btn-default').click();
         await expect(page.locator('#g-dialog-container')).toBeHidden();
     });
 
@@ -82,7 +82,7 @@ test.describe('Test access widget with non-standard options', () => {
         await expect(page.locator('.g-ac-list')).toBeVisible();
         await expect(page.locator('.g-grant-access-container')).toBeVisible();
 
-        await page.locator('#g-dialog-container .btn-default').click();
+        await page.locator('#g-dialog-container a.btn-default').click();
         await expect(page.locator('#g-dialog-container')).toBeHidden();
     });
 
@@ -113,7 +113,7 @@ test.describe('Test access widget with non-standard options', () => {
         await expect(page.locator('#g-access-private')).toBeChecked();
 
         // Close dialog
-        await page.locator('#g-dialog-container .btn-default').click();
+        await page.locator('#g-dialog-container a.btn-default').click();
         await expect(page.locator('#g-dialog-container')).toBeHidden();
 
         // Re-open to switch to public
@@ -133,6 +133,51 @@ test.describe('Test access widget with non-standard options', () => {
         const saveBtn = page.locator('.g-save-access-list').first();
         await expect(saveBtn).toBeVisible();
         await saveBtn.click();
+        await expect(page.locator('#g-dialog-container')).toBeHidden();
+    });
+
+    /**
+     * Ported from 3.x-maintenance: girder/web_client/test/spec/customWidgetsSpec.js
+     * Original: part of "test custom access flags UI"
+     * The built-in edit_item_metadata flag is registered as non-public, so it
+     * is offered in the per-user access flags but not in the public flags.
+     */
+    test('test non-public access flags are not offered as public flags', async ({ page }) => {
+        await createUser(page, 'nonpublicflaguser', 'nonpublicflag@test.test');
+
+        // Navigate to the folder
+        await page.locator('.g-user-dropdown-link').click();
+        await page.locator('a.g-my-folders').first().click();
+        await waitForIdlePage(page);
+
+        const folderLink = page.locator('.g-folder-list-link').first();
+        await expect(folderLink).toBeVisible();
+        await folderLink.click();
+        await waitForIdlePage(page);
+
+        // Open Access control dialog
+        await expect(page.locator('.g-folder-access-button:visible')).toHaveCount(1);
+        await page.locator('.g-folder-access-button').click();
+        await waitForDialog(page);
+        await expect(page.locator('#g-access-private')).toBeChecked();
+
+        // The only registered flag is non-public, so there is nothing to manage publicly.
+        await expect(page.locator('.g-action-manage-public-flags')).toHaveCount(0);
+        await expect(page.locator('.g-public-flag-checkbox')).toHaveCount(0);
+
+        // The non-public flag is still available on the per-user access entry.
+        const userEntry = page.locator('#g-ac-list-users .g-user-access-entry');
+        await expect(userEntry).toHaveCount(1);
+        await expect(userEntry.locator('.g-action-manage-flags')).toHaveCount(1);
+        await userEntry.locator('.g-action-manage-flags').click();
+        await expect(page.locator('.popover input.g-flag-checkbox')).toHaveCount(1);
+        await expect(page.locator('.popover input.g-flag-checkbox[flag="edit_item_metadata"]')).toHaveCount(1);
+        await expect(page.locator('.popover .g-flag-label', { hasText: 'Edit item metadata' })).toHaveCount(1);
+        await page.locator('.popover .g-close-flags-popover').click();
+        await expect(page.locator('.popover')).toHaveCount(0);
+
+        // Close the dialog
+        await page.locator('#g-dialog-container a.btn-default').click();
         await expect(page.locator('#g-dialog-container')).toBeHidden();
     });
 
@@ -164,7 +209,7 @@ test.describe('Test access widget with non-standard options', () => {
         expect(await userList.count()).toBeGreaterThan(0);
 
         // Close the dialog
-        await page.locator('#g-dialog-container .btn-default').click();
+        await page.locator('#g-dialog-container a.btn-default').click();
         await expect(page.locator('#g-dialog-container')).toBeHidden();
     });
 });

@@ -1133,7 +1133,11 @@ class AccessControlledModel(Model):
         if append:
             flags = currentFlags + list(flags)
 
-        flags = set(flags) & set(ACCESS_FLAGS.keys())
+        flags = {
+            flag for flag in flags
+            if flag in ACCESS_FLAGS
+            and ACCESS_FLAGS[flag].get('public', True)
+        }
 
         if force or user['admin']:
             doc['publicFlags'] = list(flags)
@@ -1420,7 +1424,11 @@ class AccessControlledModel(Model):
             flags = set(flags)
 
         # Remove any publicly allowed flags from the required set
-        requiredFlags = flags - set(doc.get('publicFlags', ()))
+        publicFlags = {
+            flag for flag in doc.get('publicFlags', ())
+            if ACCESS_FLAGS.get(flag, {}).get('public', True)
+        }
+        requiredFlags = flags - publicFlags
 
         if requiredFlags and user is None:
             return False

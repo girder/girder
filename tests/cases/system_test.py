@@ -4,7 +4,7 @@ import time
 from girder.api import access
 from girder.api.describe import describeRoute
 from girder.api.rest import Resource, getApiUrl, loadmodel
-from girder.constants import VERSION, AccessType, registerAccessFlag
+from girder.constants import EDIT_METADATA_FLAG, VERSION, AccessType, registerAccessFlag
 from girder.exceptions import AccessException, ValidationException
 from girder.models.collection import Collection
 from girder.models.file import File
@@ -294,21 +294,31 @@ class SystemTestCase(base.TestCase):
             0, User().load(user['_id'], force=True)['size'])
 
     def testAccessFlags(self):
+        default_flags = {
+            EDIT_METADATA_FLAG: {
+                'name': 'Edit item metadata',
+                'description': 'Allow users with read access to edit metadata on items '
+                               'in folders. On a collection or user, this only takes '
+                               'effect when applied to subfolders.',
+                'admin': False,
+                'public': False,
+            },
+        }
+
         resp = self.request('/system/access_flag')
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json, {})
+        self.assertEqual(resp.json, default_flags)
 
         registerAccessFlag('my_key', name='hello', description='a custom flag')
 
         resp = self.request('/system/access_flag')
         self.assertStatusOk(resp)
-        self.assertEqual(resp.json, {
-            'my_key': {
-                'name': 'hello',
-                'description': 'a custom flag',
-                'admin': False
-            }
-        })
+        self.assertEqual(resp.json, dict(default_flags, my_key={
+            'name': 'hello',
+            'description': 'a custom flag',
+            'admin': False,
+            'public': True
+        }))
 
         self.users[1] = User().load(self.users[1]['_id'], force=True)
         user = self.users[1]

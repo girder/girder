@@ -381,6 +381,7 @@ girder
             GROUP_CREATOR_ACCESS
             USER_DEFAULT_FOLDERS
             USER_SELF_ACCESS
+        EDIT_METADATA_FLAG
         PACKAGE_DIR
         ROOT_DIR
         STATIC_ROOT_DIR

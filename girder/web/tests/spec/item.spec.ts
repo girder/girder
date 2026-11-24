@@ -529,3 +529,146 @@ test.describe('Test item creation, editing, and deletion', () => {
         await expect(page.locator('li.g-item-list-entry', { hasText: ITEM_NAME })).toHaveCount(0);
     });
 });
+
+/**
+ * Ported from 3.x-maintenance: girder/web_client/test/spec/itemSpec.js
+ * Original: "Test the edit item metadata access flag"
+ *
+ * A user with only read access to a folder, but who has been granted the
+ * edit_item_metadata access flag, can add, edit, and delete metadata on items
+ * in that folder, but cannot otherwise modify the items.
+ */
+test.describe('Test the edit item metadata access flag', () => {
+    setupServer();
+    test.describe.configure({ mode: 'serial' });
+
+    let flaggedItemId = '';
+    let unflaggedItemId = '';
+
+    /**
+     * Create a private folder owned by the current user containing one item,
+     * and give seconduser read access to the folder with the given flags.
+     * The item is named '<name> Item'.  Returns the id of the created item.
+     */
+    async function createSharedItem(page: Page, name: string, flags: string[]) {
+        const users = await asyncRestRequest(page, {
+            url: 'user',
+            method: 'GET',
+            data: { text: SECONDUSER.login },
+        }) as Array<{ _id: string }>;
+        const secondUser = users[0];
+
+        const currentUserId = await page.evaluate(() => {
+            // @ts-ignore - window.girder is available at runtime
+            return window.girder.auth.getCurrentUser().id;
+        });
+
+        const folder = await asyncRestRequest(page, {
+            url: 'folder',
+            method: 'POST',
+            data: {
+                parentType: 'user',
+                parentId: currentUserId,
+                name,
+                public: false,
+            },
+        }) as { _id: string };
+
+        const item = await asyncRestRequest(page, {
+            url: 'item',
+            method: 'POST',
+            data: {
+                folderId: folder._id,
+                name: `${name} Item`,
+                metadata: JSON.stringify({ existing: 'value' }),
+            },
+        }) as { _id: string };
+
+        const access = await asyncRestRequest(page, {
+            url: `folder/${folder._id}/access`,
+            method: 'GET',
+        }) as { users: Array<Record<string, unknown>> };
+        access.users.push({
+            id: secondUser._id,
+            level: 0, // AccessType.READ
+            flags,
+        });
+        await asyncRestRequest(page, {
+            url: `folder/${folder._id}/access`,
+            method: 'PUT',
+            data: { access: JSON.stringify(access) },
+        });
+
+        return item._id;
+    }
+
+    /** Navigate to an item that the current user may only be able to read. */
+    async function gotoSharedItem(page: Page, id: string, name: string) {
+        const base = page.url().split('#')[0];
+        await page.goto(`${base}#item/${id}`);
+        await page.reload();
+        await expect(page.locator('.g-item-name')).toHaveText(name);
+        await expect(page.locator('.g-widget-metadata-row').first()).toBeVisible();
+        await waitForIdlePage(page);
+    }
+
+    async function getItemMeta(page: Page, id: string) {
+        const item = await asyncRestRequest(page, {
+            url: `item/${id}`,
+            method: 'GET',
+        }) as { meta: Record<string, unknown> };
+        return item.meta;
+    }
+
+    test('register a user (first is admin)', async ({ page }) => {
+        await createUser(page, ADMIN.login, ADMIN.email, ADMIN.firstName, ADMIN.lastName, ADMIN.password);
+    });
+
+    test('register another user', async ({ page }) => {
+        await createUser(page, SECONDUSER.login, SECONDUSER.email, SECONDUSER.firstName, SECONDUSER.lastName, SECONDUSER.password);
+    });
+
+    test('create a flagged and an unflagged item shared with seconduser', async ({ page }) => {
+        await login(page, ADMIN.login, ADMIN.password);
+        flaggedItemId = await createSharedItem(page, 'Flagged', ['edit_item_metadata']);
+        unflaggedItemId = await createSharedItem(page, 'Unflagged', []);
+        expect(flaggedItemId).toMatch(/[a-f0-9]{24}/);
+        expect(unflaggedItemId).toMatch(/[a-f0-9]{24}/);
+    });
+
+    test('show metadata editing but not other write actions with the flag', async ({ page }) => {
+        await login(page, SECONDUSER.login, SECONDUSER.password);
+        await gotoSharedItem(page, flaggedItemId, 'Flagged Item');
+
+        await expect(page.locator('.g-widget-metadata-add-button')).toHaveCount(1);
+        await expect(page.locator('.g-widget-metadata-edit-button')).toHaveCount(1);
+        await expect(page.locator('.g-upload-into-item')).toHaveCount(0);
+        await expect(page.locator('.g-edit-item')).toHaveCount(0);
+        await expect(page.locator('.g-delete-item')).toHaveCount(0);
+    });
+
+    test('add metadata with the flag', async ({ page }) => {
+        await login(page, SECONDUSER.login, SECONDUSER.password);
+        await gotoSharedItem(page, flaggedItemId, 'Flagged Item');
+
+        await editMetadata(page, null, 'added', 'by flag');
+        expect(await getItemMeta(page, flaggedItemId)).toEqual({ existing: 'value', added: 'by flag' });
+    });
+
+    test('delete metadata with the flag', async ({ page }) => {
+        await login(page, SECONDUSER.login, SECONDUSER.password);
+        await gotoSharedItem(page, flaggedItemId, 'Flagged Item');
+
+        await editMetadata(page, 'existing', null, null, 'delete');
+        expect(await getItemMeta(page, flaggedItemId)).toEqual({ added: 'by flag' });
+    });
+
+    test('hide metadata editing without the flag', async ({ page }) => {
+        await login(page, SECONDUSER.login, SECONDUSER.password);
+        await gotoSharedItem(page, unflaggedItemId, 'Unflagged Item');
+
+        await expect(page.locator('.g-widget-metadata-add-button')).toHaveCount(0);
+        await expect(page.locator('.g-widget-metadata-edit-button')).toHaveCount(0);
+        await expect(page.locator('.g-edit-item')).toHaveCount(0);
+    });
+});
