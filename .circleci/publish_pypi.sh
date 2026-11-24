@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-# Build and publish sdist's for all Python packages in this repo
+# Build sdist's for all Python packages in this repo, then check them, or
+# with "upload", publish them
 readonly PUBLISHED_PYTHON_PACKAGES=(
   .
   plugins/*
@@ -13,5 +14,9 @@ for directory in "${PUBLISHED_PYTHON_PACKAGES[@]}"; do
     rm -fr dist
     python setup.py sdist
     popd
-    twine upload --skip-existing "$directory/dist/*"
+    if [[ "$1" == "upload" ]]; then
+        twine upload --skip-existing "$directory/dist/*"
+    else
+        twine check "$directory/dist/*"
+    fi
 done

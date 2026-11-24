@@ -15,6 +15,12 @@ executors:
       - image: mongo:5.0
         command: bash -c "mongod --noauth --bind_ip_all"
     working_directory: /home/circleci/project
+  node:
+    docker:
+      # npm trusted publishing needs Node 22.14 or later and npm 11.5.1 or
+      # later; npm 11 does not run on the Node 14 in the test image
+      - image: cimg/node:22.21
+    working_directory: /home/circleci/project
   machine:
     machine:
       image: ubuntu-2004:202111-02
@@ -368,6 +374,21 @@ jobs:
               fi
               docker push girder/girder_test:py39-node14
 
+  check-publish:
+    docker:
+      - image: cimg/python:3.9
+    working_directory: ~/project
+    steps:
+      - checkout:
+          path: girder
+      - run:
+          name: Install tox
+          command: pip install tox
+      - run:
+          name: Check that Python packages can be built and published
+          command: tox -e check-publish
+          working_directory: girder
+
   publish:
     docker:
       - image: cimg/python:3.9
@@ -387,8 +408,18 @@ jobs:
       #     command: tox -e release_ansible
       #     working_directory: girder
 
+  check-publish-npm:
+    executor: node
+    steps:
+      - checkout:
+          path: girder
+      - run:
+          name: Check that npm packages can be built and published
+          command: ./.circleci/publish_npm.sh --dry-run
+          working_directory: girder
+
   publish-release:
-    executor: py3
+    executor: node
     steps:
       - checkout:
           path: girder
@@ -442,8 +473,17 @@ workflows:
           filters:
             tags:
               only: /^v[0-9]+.*/
+      - check-publish:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
+      - check-publish-npm:
+          filters:
+            tags:
+              only: /^v[0-9]+.*/
       - publish:
           requires:
+            - check-publish
             - server-lint-test
             - web-lint-test
             - coverage
@@ -455,6 +495,8 @@ workflows:
               only: 3.x-maintenance
       - publish-release:
           requires:
+            - check-publish
+            - check-publish-npm
             - server-lint-test
             - web-lint-test
             - coverage
